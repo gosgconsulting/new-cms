@@ -33,6 +33,59 @@ export const testWordPressConnection = async () => {
   }
 };
 
+// Function to test page creation permissions
+export const testCreatePage = async () => {
+  console.log('Testing WordPress page creation permissions...');
+  
+  try {
+    const username = 'admin';
+    const password = '1n5q WknY lU1C hGXI 3Yzm 8dah';
+    const credentials = btoa(`${username}:${password}`);
+    
+    const testPageData = {
+      title: 'Test Page - Delete Me',
+      content: '<p>This is a test page created to verify permissions.</p>',
+      status: 'draft',
+      slug: 'test-page-delete-me'
+    };
+    
+    const response = await fetch(`https://gosgconsulting.com/cms/wp-json/wp/v2/pages`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Basic ${credentials}`
+      },
+      body: JSON.stringify(testPageData)
+    });
+    
+    if (response.ok) {
+      const result = await response.json();
+      console.log('✅ Page creation successful!');
+      console.log('Created test page:', result.title.rendered);
+      console.log('You can delete this test page from WordPress admin');
+      return true;
+    } else {
+      const errorText = await response.text();
+      console.error('❌ Page creation failed:');
+      console.error(`Status: ${response.status}`);
+      console.error(`Error details:`, errorText);
+      
+      // Parse JSON error if possible
+      try {
+        const errorJson = JSON.parse(errorText);
+        console.error('Parsed error:', errorJson);
+      } catch (e) {
+        // Error text is not JSON
+      }
+      
+      return false;
+    }
+  } catch (error) {
+    console.error('❌ Page creation test failed:', error);
+    return false;
+  }
+};
+
 // Function to run the migration
 export const runPageMigration = async () => {
   console.log('Starting WordPress page migration...');
