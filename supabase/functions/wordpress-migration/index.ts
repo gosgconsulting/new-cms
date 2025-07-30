@@ -35,8 +35,8 @@ serve(async (req) => {
     const wpApiUrl = 'https://gosgconsulting.com/cms/wp-json/wp/v2'
 
     if (action === 'test-connection') {
-      // Test WordPress connection
-      const response = await fetch(`${wpApiUrl}/pages?per_page=1`, {
+      // Test WordPress connection using posts API
+      const response = await fetch(`${wpApiUrl}/posts?per_page=1`, {
         method: 'GET',
         headers: {
           'Authorization': `Basic ${credentials}`
@@ -44,11 +44,11 @@ serve(async (req) => {
       })
 
       if (response.ok) {
-        const pages = await response.json()
+        const posts = await response.json()
         return new Response(
           JSON.stringify({ 
             success: true, 
-            message: `Connection successful! Found ${pages.length} existing pages` 
+            message: `Connection successful! Found ${posts.length} existing posts` 
           }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
@@ -59,21 +59,21 @@ serve(async (req) => {
     }
 
     if (action === 'test-create') {
-      // Test page creation
-      const testPageData = {
-        title: 'Test Page - Delete Me',
-        content: '<p>This is a test page created to verify permissions.</p>',
+      // Test post creation
+      const testPostData = {
+        title: 'Test Post - Delete Me',
+        content: '<p>This is a test post created to verify permissions.</p>',
         status: 'draft',
-        slug: 'test-page-delete-me'
+        slug: 'test-post-delete-me'
       }
 
-      const response = await fetch(`${wpApiUrl}/pages`, {
+      const response = await fetch(`${wpApiUrl}/posts`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Basic ${credentials}`
         },
-        body: JSON.stringify(testPageData)
+        body: JSON.stringify(testPostData)
       })
 
       if (response.ok) {
@@ -81,19 +81,19 @@ serve(async (req) => {
         return new Response(
           JSON.stringify({ 
             success: true, 
-            message: `Page creation successful! Created: ${result.title.rendered}` 
+            message: `Post creation successful! Created: ${result.title.rendered}` 
           }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
       } else {
         const errorText = await response.text()
-        throw new Error(`Page creation failed: ${response.status} - ${errorText}`)
+        throw new Error(`Post creation failed: ${response.status} - ${errorText}`)
       }
     }
 
-    if (action === 'create-page' && pageData) {
-      // Create a WordPress page
-      const response = await fetch(`${wpApiUrl}/pages`, {
+    if (action === 'create-post' && pageData) {
+      // Create a WordPress post
+      const response = await fetch(`${wpApiUrl}/posts`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -107,14 +107,14 @@ serve(async (req) => {
         return new Response(
           JSON.stringify({ 
             success: true, 
-            page: result,
+            post: result,
             message: `Successfully created: ${result.title.rendered}` 
           }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
       } else {
         const errorText = await response.text()
-        throw new Error(`Failed to create page: ${response.status} - ${errorText}`)
+        throw new Error(`Failed to create post: ${response.status} - ${errorText}`)
       }
     }
 
@@ -347,7 +347,8 @@ serve(async (req) => {
       
       for (const page of pages) {
         try {
-          const response = await fetch(`${wpApiUrl}/pages`, {
+          // Create as WordPress posts instead of pages
+          const response = await fetch(`${wpApiUrl}/posts`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -362,7 +363,8 @@ serve(async (req) => {
               page: page.title,
               success: true,
               id: result.id,
-              url: result.link
+              url: result.link,
+              type: 'post'
             })
           } else {
             const errorText = await response.text()
