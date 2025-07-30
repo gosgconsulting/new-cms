@@ -165,14 +165,13 @@ export const migrateReactPagesToWordPress = async () => {
     try {
       console.log(`Migrating page: ${pageData.title}`);
       
-      // Note: WordPress REST API typically requires authentication for creating pages
-      // This is a conceptual implementation - actual implementation would need proper auth
-      const response = await fetch(`https://your-wordpress-site.com/wp-json/wp/v2/pages`, {
+      // WordPress REST API with Application Password authentication
+      const credentials = btoa('admin:1n5q WknY lU1C hGXI 3Yzm 8dah');
+      const response = await fetch(`https://gosgconsulting.com/wp-json/wp/v2/pages`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          // Add authentication headers here
-          // 'Authorization': 'Bearer ' + token
+          'Authorization': 'Basic ' + credentials
         },
         body: JSON.stringify({
           title: pageData.title,

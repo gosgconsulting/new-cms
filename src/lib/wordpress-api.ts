@@ -96,7 +96,7 @@ class WordPressAPI {
   private baseUrl: string;
   private apiPath: string = '/wp-json/wp/v2';
 
-  constructor(baseUrl: string = 'https://your-wordpress-site.com') {
+  constructor(baseUrl: string = 'https://gosgconsulting.com') {
     this.baseUrl = baseUrl.replace(/\/$/, ''); // Remove trailing slash
   }
 
