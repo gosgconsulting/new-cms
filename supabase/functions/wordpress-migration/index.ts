@@ -21,13 +21,20 @@ serve(async (req) => {
   }
 
   try {
-    const { action, pageData } = await req.json()
+    console.log('Request received:', req.method)
+    const body = await req.json()
+    console.log('Request body:', body)
+    const { action, pageData } = body
     
     // Get WordPress credentials from Supabase secrets
     const username = Deno.env.get('WORDPRESS_USERNAME')
     const password = Deno.env.get('WORDPRESS_PASSWORD')
     
+    console.log('Username available:', !!username)
+    console.log('Password available:', !!password)
+    
     if (!username || !password) {
+      console.error('WordPress credentials missing')
       throw new Error('WordPress credentials not found in environment')
     }
 
