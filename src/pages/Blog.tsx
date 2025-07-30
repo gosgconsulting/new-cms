@@ -1,45 +1,19 @@
 
 import React from "react";
-import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { supabase } from "@/integrations/supabase/client";
+import { useWordPressPosts } from "@/hooks/use-wordpress";
 import { Calendar, User } from "lucide-react";
 
-interface BlogPost {
-  id: string;
-  tenant_id: string;
-  author_id: string | null;
-  title: string;
-  slug: string;
-  content: string;
-  excerpt: string | null;
-  featured_image: string | null;
-  status: 'published';
-  published_at: string;
-  created_at: string;
-  updated_at: string;
-  meta_title: string | null;
-  meta_description: string | null;
-  meta_keywords: string | null;
-}
-
 const Blog = () => {
-  const { data: posts, isLoading, error } = useQuery({
-    queryKey: ['published-blog-posts'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('blog_posts')
-        .select('*')
-        .eq('status', 'published')
-        .order('published_at', { ascending: false });
-      
-      if (error) throw error;
-      return data as BlogPost[];
-    },
+  const { data: posts, isLoading, error } = useWordPressPosts({
+    status: 'publish',
+    per_page: 10,
+    orderby: 'date',
+    order: 'desc'
   });
 
   if (isLoading) {
@@ -85,21 +59,21 @@ const Blog = () => {
               {posts.map((post) => (
                 <Card key={post.id} className="overflow-hidden">
                   <div className="md:flex">
-                    {post.featured_image && (
+                    {post.featured_media && (
                       <div className="md:w-1/3">
                         <img
-                          src={post.featured_image}
-                          alt={post.title}
+                          src={`/wp-content/uploads/${post.featured_media}`}
+                          alt={post.title.rendered}
                           className="w-full h-48 md:h-full object-cover"
                         />
                       </div>
                     )}
-                    <div className={post.featured_image ? "md:w-2/3" : "w-full"}>
+                    <div className={post.featured_media ? "md:w-2/3" : "w-full"}>
                       <CardHeader>
                         <div className="flex items-center space-x-4 text-sm text-muted-foreground mb-2">
                           <div className="flex items-center">
                             <Calendar className="h-4 w-4 mr-1" />
-                            {new Date(post.published_at).toLocaleDateString('en-US', {
+                            {new Date(post.date).toLocaleDateString('en-US', {
                               year: 'numeric',
                               month: 'long',
                               day: 'numeric'
@@ -107,16 +81,19 @@ const Blog = () => {
                           </div>
                            <div className="flex items-center">
                              <User className="h-4 w-4 mr-1" />
-                             {post.author_id || 'Unknown Author'}
+                             {post.author || 'Unknown Author'}
                            </div>
                         </div>
                         <CardTitle className="text-2xl hover:text-coral transition-colors">
                           <Link to={`/blog/${post.slug}`}>
-                            {post.title}
+                            {post.title.rendered}
                           </Link>
                         </CardTitle>
                         <CardDescription className="text-base">
-                          {post.excerpt || post.content.substring(0, 200) + '...'}
+                          {post.excerpt?.rendered ? 
+                            post.excerpt.rendered.replace(/<[^>]*>/g, '').substring(0, 200) + '...' : 
+                            post.content.rendered.replace(/<[^>]*>/g, '').substring(0, 200) + '...'
+                          }
                         </CardDescription>
                       </CardHeader>
                       <CardContent>
