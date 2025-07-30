@@ -1,8 +1,8 @@
 import { createClient } from '@supabase/supabase-js'
 
 const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_ANON_KEY
+  'https://eajxlakosmxdjyjczdwq.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVhanhsYWtvc214ZGp5amN6ZHdxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI2NDY1MjAsImV4cCI6MjA2ODIyMjUyMH0.eTAy9aR6qD7OfnM-tM2w4XWGM4U0eMdog4rjyXnx76g'
 )
 
 // Function to call WordPress migration edge function
