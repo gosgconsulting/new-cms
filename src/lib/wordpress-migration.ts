@@ -166,12 +166,15 @@ export const migrateReactPagesToWordPress = async () => {
       console.log(`Migrating page: ${pageData.title}`);
       
       // WordPress REST API with Application Password authentication
-      const credentials = btoa('admin:1n5q WknY lU1C hGXI 3Yzm 8dah');
-      const response = await fetch(`https://gosgconsulting.com/wp-json/wp/v2/pages`, {
+      const username = 'admin'; // Your WordPress username
+      const password = '1n5q WknY lU1C hGXI 3Yzm 8dah'; // Your application password
+      const credentials = btoa(`${username}:${password}`);
+      
+      const response = await fetch(`https://gosgconsulting.com/cms/wp-json/wp/v2/pages`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Basic ' + credentials
+          'Authorization': `Basic ${credentials}`
         },
         body: JSON.stringify({
           title: pageData.title,
