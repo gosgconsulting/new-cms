@@ -399,13 +399,14 @@ serve(async (req) => {
     throw new Error('Invalid action')
 
   } catch (error) {
+    console.error('Edge function error:', error.message)
     return new Response(
       JSON.stringify({ 
         success: false, 
         error: error.message 
       }),
       { 
-        status: 400,
+        status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       }
     )
