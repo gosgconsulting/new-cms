@@ -199,7 +199,10 @@ export const migrateReactPagesToWordPress = async () => {
         });
         console.log(`✅ Successfully created: ${pageData.title}`);
       } else {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        const errorText = await response.text();
+        console.error(`Response status: ${response.status}`);
+        console.error(`Response text:`, errorText);
+        throw new Error(`HTTP ${response.status}: ${response.statusText} - ${errorText}`);
       }
     } catch (error) {
       results.push({
