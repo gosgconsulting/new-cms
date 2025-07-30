@@ -32,7 +32,7 @@ serve(async (req) => {
     }
 
     const credentials = btoa(`${username}:${password}`)
-    const wpApiUrl = 'https://gosgconsulting.com/cms/wp-json/wp/v2'
+    const wpApiUrl = 'https://posgconsulting.com/wp-json/wp/v2'
 
     if (action === 'test-connection') {
       // Test WordPress connection using posts API
