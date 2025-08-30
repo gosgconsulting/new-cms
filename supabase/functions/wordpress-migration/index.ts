@@ -6,6 +6,15 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+interface MigrationResult {
+  page: string;
+  success: boolean;
+  id?: number;
+  url?: string;
+  type?: 'post' | 'page';
+  error?: string;
+}
+
 interface PageMigrationData {
   title: string;
   slug: string;
@@ -350,7 +359,7 @@ serve(async (req) => {
         }
       ]
 
-      const results = []
+      const results: MigrationResult[] = []
       
       for (const page of pages) {
         try {
@@ -406,7 +415,7 @@ serve(async (req) => {
         error: error.message 
       }),
       { 
-        status: 200,
+        status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       }
     )
