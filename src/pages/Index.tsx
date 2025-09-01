@@ -1,16 +1,10 @@
-
 import { useEffect } from "react";
 import HeroSection from "@/components/HeroSection";
-import ServicesSection from "@/components/ServicesSection";
-import WhyChooseUsSection from "@/components/WhyChooseUsSection";
 import CTASection from "@/components/CTASection";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import ClientLogos from "@/components/ClientLogos";
-import TestimonialsCarousel from "@/components/TestimonialsCarousel";
 import FAQAccordion from "@/components/FAQAccordion";
-import StatsCounter from "@/components/StatsCounter";
 
 /**
  * WordPress Theme Template: Home/Front Page
@@ -62,21 +56,6 @@ const Index = () => {
       <main className="flex-grow">
         {/* WordPress: Hero section - template-parts/home/hero.php */}
         <HeroSection />
-        
-        {/* WordPress: Client logos section - template-parts/home/client-logos.php */}
-        <ClientLogos />
-        
-        {/* WordPress: Services section - template-parts/home/services.php */}
-        <ServicesSection />
-        
-        {/* WordPress: Stats counter section - template-parts/home/stats.php */}
-        <StatsCounter />
-        
-        {/* WordPress: Testimonials section - template-parts/home/testimonials.php */}
-        <TestimonialsCarousel />
-        
-        {/* WordPress: Why choose us section - template-parts/home/why-choose-us.php */}
-        <WhyChooseUsSection />
         
         {/* WordPress: FAQ section - template-parts/home/faq.php
              FAQs would be stored as custom post type or ACF repeater field */}
