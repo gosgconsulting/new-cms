@@ -1,25 +1,16 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
-// Import all client logos
-import googleLogo from '../assets/clients/google.svg';
-import microsoftLogo from '../assets/clients/microsoft.svg';
-import amazonLogo from '../assets/clients/amazon.svg';
-import netflixLogo from '../assets/clients/netflix.svg';
-import spotifyLogo from '../assets/clients/spotify.svg';
-import appleLogo from '../assets/clients/apple.svg';
-import metaLogo from '../assets/clients/meta.svg';
-import twitterLogo from '../assets/clients/twitter.svg';
-
+// Client logos data with placeholder text
 const logos = [
-  { src: googleLogo, alt: 'Google' },
-  { src: microsoftLogo, alt: 'Microsoft' },
-  { src: amazonLogo, alt: 'Amazon' },
-  { src: netflixLogo, alt: 'Netflix' },
-  { src: spotifyLogo, alt: 'Spotify' },
-  { src: appleLogo, alt: 'Apple' },
-  { src: metaLogo, alt: 'Meta' },
-  { src: twitterLogo, alt: 'Twitter' },
+  { name: 'Google' },
+  { name: 'Microsoft' },
+  { name: 'Amazon' },
+  { name: 'Netflix' },
+  { name: 'Spotify' },
+  { name: 'Apple' },
+  { name: 'Meta' },
+  { name: 'Twitter' },
 ];
 
 const ClientLogos = () => {
@@ -49,14 +40,10 @@ const ClientLogos = () => {
           {logos.map((logo, index) => (
             <motion.div
               key={index}
-              className="h-12 w-auto grayscale opacity-70 hover:grayscale-0 hover:opacity-100 transition-all duration-300"
+              className="h-12 px-6 py-3 bg-gray-100 rounded-lg border border-gray-200 flex items-center justify-center"
               whileHover={{ scale: 1.05 }}
             >
-              <img 
-                src={logo.src} 
-                alt={logo.alt} 
-                className="h-full w-auto object-contain" 
-              />
+              <span className="text-gray-700 font-medium">{logo.name}</span>
             </motion.div>
           ))}
         </motion.div>
