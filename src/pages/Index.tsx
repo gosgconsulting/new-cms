@@ -5,6 +5,7 @@ import WhatsAppButton from "@/components/WhatsAppButton";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import FAQAccordion from "@/components/FAQAccordion";
+import BlogSection from "@/components/BlogSection";
 
 /**
  * WordPress Theme Template: Home/Front Page
@@ -56,6 +57,9 @@ const Index = () => {
       <main className="flex-grow">
         {/* WordPress: Hero section - template-parts/home/hero.php */}
         <HeroSection />
+        
+        {/* Blog Section */}
+        <BlogSection />
         
         {/* WordPress: FAQ section - template-parts/home/faq.php
              FAQs would be stored as custom post type or ACF repeater field */}
