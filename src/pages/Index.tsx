@@ -1,11 +1,17 @@
 import { useEffect } from "react";
-import HeroSection from "@/components/HeroSection";
+import HeroLandingDemo from "@/components/HeroLandingDemo";
 import CTASection from "@/components/CTASection";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import FAQAccordion from "@/components/FAQAccordion";
 import BlogSection from "@/components/BlogSection";
+import StatsCounter from "@/components/StatsCounter";
+import TestimonialsCarousel from "@/components/TestimonialsCarousel";
+import ServicesSection from "@/components/ServicesSection";
+import AwardsBadges from "@/components/AwardsBadges";
+import InsightsSection from "@/components/InsightsSection";
+import WhyChooseUsSection from "@/components/WhyChooseUsSection";
 
 /**
  * WordPress Theme Template: Home/Front Page
@@ -56,7 +62,25 @@ const Index = () => {
       {/* WordPress: Page content sections - each can be a template part */}
       <main className="flex-grow">
         {/* WordPress: Hero section - template-parts/home/hero.php */}
-        <HeroSection />
+        <HeroLandingDemo />
+        
+        {/* Stats Counter Section */}
+        <StatsCounter />
+        
+        {/* Services Section */}
+        <ServicesSection />
+        
+        {/* Why Choose Us Section */}
+        <WhyChooseUsSection />
+        
+        {/* Insights Section */}
+        <InsightsSection />
+        
+        {/* Testimonials Section */}
+        <TestimonialsCarousel />
+        
+        {/* Awards Badges */}
+        <AwardsBadges />
         
         {/* Blog Section */}
         <BlogSection />
