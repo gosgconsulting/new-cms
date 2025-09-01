@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">gosgwebsite</string>
+    <string name="title_activity_main">gosgwebsite</string>
+    <string name="package_name">com.example.gosgwebsite</string>
+    <string name="custom_url_scheme">com.example.gosgwebsite</string>
+</resources>
