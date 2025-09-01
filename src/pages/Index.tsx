@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import HeroSection from "@/components/HeroSection";
+import { AuroraHero } from "@/components/ui/futurastic-hero-section";
 import CTASection from "@/components/CTASection";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import Header from "@/components/Header";
@@ -56,7 +56,7 @@ const Index = () => {
       {/* WordPress: Page content sections - each can be a template part */}
       <main className="flex-grow">
         {/* WordPress: Hero section - template-parts/home/hero.php */}
-        <HeroSection />
+        <AuroraHero />
         
         {/* Blog Section */}
         <BlogSection />
