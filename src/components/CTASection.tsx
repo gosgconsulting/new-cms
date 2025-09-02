@@ -31,25 +31,15 @@ const CTASection = () => {
           <p className="text-xl text-gray-200 max-w-2xl mx-auto">
             Let's create a marketing strategy that drives real results for your business.
           </p>
-          <div className="flex flex-col sm:flex-row justify-center gap-4 pt-4">
+          <div className="flex justify-center pt-4">
             <Button 
               size="lg" 
-              className="bg-coral hover:bg-coral/90 text-white px-8 py-6 text-lg rounded-full"
+              className="group relative flex w-fit items-center gap-1.5 rounded-full bg-deepBlue/10 px-8 py-6 text-lg text-gray-50 transition-colors hover:bg-deepBlue/50 border border-brandPurple shadow-[0px_4px_24px_#9b87f5]"
               asChild
             >
               <a href="/contact">
                 Get Started Today
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </a>
-            </Button>
-            <Button 
-              size="lg" 
-              variant="outline"
-              className="bg-transparent border-2 border-white text-white hover:bg-white/10 px-8 py-6 text-lg rounded-full"
-              asChild
-            >
-              <a href="/services">
-                View Our Services
+                <ArrowRight className="transition-transform group-hover:-rotate-45 group-active:-rotate-12" />
               </a>
             </Button>
           </div>
