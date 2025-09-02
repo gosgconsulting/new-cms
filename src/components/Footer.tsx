@@ -1,103 +1,25 @@
-
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Calendar, Phone, Instagram, Linkedin } from "lucide-react";
 
-/**
- * WordPress Theme Component: Footer
- * 
- * Component: Will be converted to footer.php
- * Template Name: Footer
- * 
- * Dynamic Elements:
- * - Footer widgets/menus (will use WordPress widget areas)
- * - Copyright text (will use dynamic year and site name)
- * - Social links (will come from theme options)
- * 
- * WordPress Implementation:
- * <?php
- * /**
- *  * The footer for our theme
- *  *
- *  * Contains the closing of the #content div and all content after.
- *  *
- *  * @link https://developer.wordpress.org/themes/basics/template-files/#template-partials
- *  *
- *  * @package GoSG
- *  *\/
- * ?>
- * 
- * <footer class="bg-deepBlue text-white py-12 px-4 md:px-8">
- *   <div class="container mx-auto">
- *     <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
- *       <!-- First Footer Widget Area -->
- *       <div>
- *         <?php dynamic_sidebar('footer-1'); ?>
- *       </div>
- *       
- *       <!-- Second Footer Widget Area -->
- *       <div>
- *         <h3 class="text-lg font-semibold mb-4">Our Services</h3>
- *         <?php
- *           wp_nav_menu(array(
- *             'theme_location' => 'footer_services',
- *             'container' => false,
- *             'menu_class' => 'space-y-2',
- *             'walker' => new GoSG_Footer_Menu_Walker()
- *           ));
- *         ?>
- *       </div>
- *       
- *       <!-- Third Footer Widget Area -->
- *       <div>
- *         <h3 class="text-lg font-semibold mb-4">Quick Links</h3>
- *         <?php
- *           wp_nav_menu(array(
- *             'theme_location' => 'footer_links',
- *             'container' => false,
- *             'menu_class' => 'space-y-2',
- *             'walker' => new GoSG_Footer_Menu_Walker()
- *           ));
- *         ?>
- *       </div>
- *       
- *       <!-- Fourth Footer Widget Area -->
- *       <div>
- *         <?php dynamic_sidebar('footer-4'); ?>
- *       </div>
- *     </div>
- *     
- *     <!-- Copyright -->
- *     <div class="mt-12 pt-8 border-t border-gray-700 text-center text-gray-400 text-sm">
- *       <p>&copy; <?php echo date('Y'); ?> <?php echo get_bloginfo('name'); ?>. All rights reserved.</p>
- *     </div>
- *   </div>
- * </footer>
- * 
- * <?php wp_footer(); ?>
- */
 const Footer = () => {
   return (
     <footer className="bg-deepBlue text-white py-12 px-4 md:px-8">
       <div className="container mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          {/* WordPress: First footer widget area - logo, tagline, social icons */}
+          {/* Logo and description */}
           <div>
             <div className="mb-4">
-              {/* WordPress: Replace with customizer logo option */}
               <img 
                 src="/lovable-uploads/d6e7a1ca-229a-4c34-83fc-e9bdf106b683.png" 
                 alt="GO SG CONSULTING Logo" 
                 className="h-12"
               />
             </div>
-            {/* WordPress: Replace with editable text from theme options */}
             <p className="text-gray-300 mb-4">
               Integrated marketing solutions for startups, entrepreneurs, and brands.
             </p>
-            {/* WordPress: Replace with social menu */}
             <div className="flex space-x-3">
-              {/* Keep only LinkedIn and Instagram */}
               <a href="https://linkedin.com" aria-label="LinkedIn" target="_blank" rel="noreferrer"
                 className="flex items-center justify-center w-10 h-10 rounded-full bg-white hover:bg-gray-200 text-deepBlue transition-colors">
                 <Linkedin className="h-5 w-5" />
@@ -109,10 +31,9 @@ const Footer = () => {
             </div>
           </div>
           
-          {/* WordPress: Second footer widget area - services menu */}
+          {/* Services menu */}
           <div>
             <h3 className="text-lg font-semibold mb-4 text-white">Our Services</h3>
-            {/* WordPress: Replace with wp_nav_menu - "footer-services" */}
             <ul className="space-y-2">
               <li>
                 <Link to="/services/website-design" className="text-gray-300 hover:text-coral transition-colors">
@@ -137,10 +58,9 @@ const Footer = () => {
             </ul>
           </div>
           
-          {/* WordPress: Third footer widget area - quick links menu */}
+          {/* Quick links - simplified */}
           <div>
             <h3 className="text-lg font-semibold mb-4 text-white">Quick Links</h3>
-            {/* WordPress: Replace with wp_nav_menu - "footer-links" */}
             <ul className="space-y-2">
               <li>
                 <Link to="/" className="text-gray-300 hover:text-coral transition-colors">
@@ -157,23 +77,12 @@ const Footer = () => {
                   Contact Us
                 </Link>
               </li>
-              <li>
-                <a href="#" className="text-gray-300 hover:text-coral transition-colors">
-                  Privacy Policy
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-gray-300 hover:text-coral transition-colors">
-                  Terms of Service
-                </a>
-              </li>
             </ul>
           </div>
           
-          {/* WordPress: Fourth footer widget area - contact info */}
+          {/* Contact info */}
           <div>
             <h3 className="text-lg font-semibold mb-4 text-white">Get In Touch</h3>
-            {/* WordPress: Replace with contact info from theme options */}
             <div className="space-y-4">
               <div className="flex items-center">
                 <Phone className="h-5 w-5 mr-2 text-coral" />
@@ -196,10 +105,18 @@ const Footer = () => {
           </div>
         </div>
         
-        {/* WordPress: Copyright area - replace with dynamic year and site title */}
+        {/* Simplified copyright and legal links */}
         <div className="mt-12 pt-8 border-t border-gray-700 text-center text-gray-400 text-sm">
+          <div className="flex flex-col md:flex-row justify-center items-center gap-4 mb-2">
+            <a href="#" className="text-gray-400 hover:text-coral transition-colors">
+              Privacy Policy
+            </a>
+            <span className="hidden md:block">|</span>
+            <a href="#" className="text-gray-400 hover:text-coral transition-colors">
+              Terms of Service
+            </a>
+          </div>
           <p>© {new Date().getFullYear()} GO SG CONSULTING. All rights reserved.</p>
-          {/* WP: <?php echo date('Y'); ?> <?php echo get_bloginfo('name'); ?> */}
         </div>
       </div>
     </footer>
