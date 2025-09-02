@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Link } from "react-router-dom";
 
 interface BlogPost {
   id: number;
@@ -12,7 +13,6 @@ interface BlogPost {
 }
 
 const BlogSection = () => {
-  const [activeCategory, setActiveCategory] = useState("All");
   const [scrollPosition, setScrollPosition] = useState(0);
 
   // Mock blog posts data
@@ -61,14 +61,6 @@ const BlogSection = () => {
     }
   ];
 
-  // Unique categories
-  const categories = ["All", ...Array.from(new Set(blogPosts.map(post => post.category)))];
-
-  // Filter posts by category
-  const filteredPosts = activeCategory === "All" 
-    ? blogPosts 
-    : blogPosts.filter(post => post.category === activeCategory);
-
   const scrollRef = React.useRef<HTMLDivElement>(null);
 
   const scroll = (direction: 'left' | 'right') => {
@@ -100,10 +92,10 @@ const BlogSection = () => {
           </p>
         </motion.div>
 
-        {/* Categories Tabs */}
-        <div className="relative mb-12">
-          <div className="flex items-center justify-between mb-4 md:hidden">
-            <h3 className="text-lg font-semibold">Categories</h3>
+        {/* Blog Posts Carousel */}
+        <div className="relative">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-xl font-semibold">Latest Articles</h3>
             <div className="flex space-x-2">
               <Button 
                 variant="outline" 
@@ -126,60 +118,55 @@ const BlogSection = () => {
           
           <div 
             ref={scrollRef}
-            className="flex space-x-2 md:space-x-4 overflow-x-auto pb-4 scrollbar-hide"
+            className="flex space-x-6 overflow-x-auto pb-4 scrollbar-hide"
             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           >
-            {categories.map((category) => (
-              <Button
-                key={category}
-                onClick={() => setActiveCategory(category)}
-                variant={activeCategory === category ? "default" : "outline"}
-                className={`whitespace-nowrap ${activeCategory === category ? 'bg-coral text-white hover:bg-coral/90' : ''}`}
+            {blogPosts.slice(0, 3).map((post, index) => (
+              <motion.div
+                key={post.id}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                className="flex-shrink-0 w-80 bg-card rounded-xl overflow-hidden border border-border hover:border-coral/50 transition-all duration-300 hover:shadow-lg"
               >
-                {category}
-              </Button>
+                <div className="p-6">
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    <span className="inline-block px-3 py-1 bg-coral/10 text-coral text-xs font-medium rounded-full">
+                      {post.category}
+                    </span>
+                  </div>
+                  <h3 className="text-xl font-semibold mb-3 line-clamp-2">{post.title}</h3>
+                  <p className="text-muted-foreground mb-4 line-clamp-3">{post.excerpt}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {post.tags.slice(0, 2).map((tag, tagIndex) => (
+                      <span 
+                        key={tagIndex} 
+                        className="text-xs px-2 py-1 bg-muted rounded"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
             ))}
           </div>
         </div>
 
-        {/* Blog Posts Grid */}
+        {/* View More Button */}
         <motion.div 
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+          className="mt-12 text-center"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          {filteredPosts.map((post, index) => (
-            <motion.div
-              key={post.id}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              className="bg-card rounded-xl overflow-hidden border border-border hover:border-coral/50 transition-all duration-300 hover:shadow-lg"
-            >
-              <div className="p-6">
-                <div className="flex flex-wrap gap-2 mb-4">
-                  <span className="inline-block px-3 py-1 bg-coral/10 text-coral text-xs font-medium rounded-full">
-                    {post.category}
-                  </span>
-                </div>
-                <h3 className="text-xl font-semibold mb-3 line-clamp-2">{post.title}</h3>
-                <p className="text-muted-foreground mb-4 line-clamp-3">{post.excerpt}</p>
-                <div className="flex flex-wrap gap-2">
-                  {post.tags.map((tag, tagIndex) => (
-                    <span 
-                      key={tagIndex} 
-                      className="text-xs px-2 py-1 bg-muted rounded"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </motion.div>
-          ))}
+          <Button asChild variant="coral" size="lg">
+            <Link to="/blog">
+              View More Articles
+            </Link>
+          </Button>
         </motion.div>
       </div>
     </section>
