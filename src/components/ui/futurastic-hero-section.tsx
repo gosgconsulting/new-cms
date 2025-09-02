@@ -1,6 +1,6 @@
 import { Stars } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
-import React, { useEffect } from "react";
+import React, { useEffect, Suspense } from "react";
 import { FiArrowRight } from "react-icons/fi";
 import {
   useMotionTemplate,
@@ -10,6 +10,15 @@ import {
 } from "framer-motion";
 
 const COLORS_TOP = ["#13FFAA", "#1E67C6", "#CE84CF", "#DD335C"];
+
+// Separate the 3D elements into their own component
+const StarField = () => {
+  return (
+    <Suspense fallback={null}>
+      <Stars radius={50} count={2500} factor={4} fade speed={2} />
+    </Suspense>
+  );
+};
 
 export const AuroraHero = () => {
   const color = useMotionValue(COLORS_TOP[0]);
@@ -64,8 +73,8 @@ export const AuroraHero = () => {
       </div>
 
       <div className="absolute inset-0 z-0">
-        <Canvas>
-          <Stars radius={50} count={2500} factor={4} fade speed={2} />
+        <Canvas dpr={[1, 2]} camera={{ position: [0, 0, 10], fov: 25 }}>
+          <StarField />
         </Canvas>
       </div>
     </motion.section>
