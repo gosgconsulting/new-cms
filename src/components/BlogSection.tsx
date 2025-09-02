@@ -4,6 +4,13 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 
+interface BlogCategory {
+  id: number;
+  name: string;
+  description: string;
+  subcategories: string[];
+}
+
 interface BlogPost {
   id: number;
   title: string;
@@ -15,7 +22,27 @@ interface BlogPost {
 const BlogSection = () => {
   const [scrollPosition, setScrollPosition] = useState(0);
 
-  // Mock blog posts data
+  // Blog categories with subcategories
+  const blogCategories: BlogCategory[] = [
+    {
+      id: 1,
+      name: "Social Media Advertising",
+      description: "Master the art of social media marketing across all platforms",
+      subcategories: ["Facebook Ads", "Instagram Advertising", "LinkedIn Marketing", "TikTok Advertising"]
+    },
+    {
+      id: 2,
+      name: "Search Engine Optimisation",
+      description: "Boost your website's visibility and organic traffic",
+      subcategories: ["On-Page SEO", "Technical SEO", "Link Building", "Local SEO"]
+    },
+    {
+      id: 3,
+      name: "Technology",
+      description: "Stay ahead with the latest marketing technology trends",
+      subcategories: ["Marketing Automation", "Analytics & Tracking", "AI & Machine Learning", "Web Development"]
+    }
+  ];
   const blogPosts: BlogPost[] = [
     {
       id: 1,
@@ -85,35 +112,44 @@ const BlogSection = () => {
           transition={{ duration: 0.6 }}
         >
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Search Engine Marketing
+            Digital Marketing Insights
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
             Stay updated with the latest trends, strategies, and insights in digital marketing
           </p>
         </motion.div>
 
-        {/* Blog Posts Carousel */}
+        {/* Blog Categories */}
         <div className="relative">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-xl font-semibold">Latest Articles</h3>
-            <div className="flex space-x-2">
-              <Button 
-                variant="outline" 
-                size="icon" 
-                onClick={() => scroll('left')}
-                className="rounded-full"
+          <div className="flex items-center justify-between mb-8">
+            <h3 className="text-2xl font-semibold">Categories</h3>
+          </div>
+          
+          <div className="grid md:grid-cols-3 gap-8 mb-12">
+            {blogCategories.map((category, index) => (
+              <motion.div
+                key={category.id}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                className="bg-card rounded-xl p-6 border border-border hover:border-coral/50 transition-all duration-300 hover:shadow-lg"
               >
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <Button 
-                variant="outline" 
-                size="icon" 
-                onClick={() => scroll('right')}
-                className="rounded-full"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
+                <h4 className="text-xl font-semibold mb-3 text-coral">{category.name}</h4>
+                <p className="text-muted-foreground mb-4 text-sm">{category.description}</p>
+                <div className="space-y-2">
+                  {category.subcategories.map((subcategory, subIndex) => (
+                    <div 
+                      key={subIndex}
+                      className="flex items-center space-x-2 text-sm hover:text-coral transition-colors cursor-pointer"
+                    >
+                      <span className="w-2 h-2 bg-coral/60 rounded-full"></span>
+                      <span>{subcategory}</span>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            ))}
           </div>
           
           <div 
