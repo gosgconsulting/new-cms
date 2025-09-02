@@ -13,7 +13,7 @@ const Header = () => {
             <img 
               src="/lovable-uploads/d6e7a1ca-229a-4c34-83fc-e9bdf106b683.png" 
               alt="GO SG CONSULTING Logo" 
-              className="h-12"
+              className="h-16"
             />
           </Link>
         </div>
