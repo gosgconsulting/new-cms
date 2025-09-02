@@ -13,7 +13,7 @@ const Footer = () => {
             />
           </div>
           
-          <div className="flex flex-col md:flex-row justify-center items-center gap-4 mb-6">
+          <div className="flex flex-col md:flex-row justify-center items-center gap-4 mb-6 py-4 px-8 rounded-lg bg-gradient-to-r from-gray-600/20 to-gray-800/20">
             <Link to="/privacy-policy" className="text-gray-300 hover:text-coral transition-colors">
               Privacy Policy
             </Link>
