@@ -18,9 +18,6 @@ import Admin from "./pages/Admin";
 import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import Auth from "./pages/Auth";
-import HomepageTemplate from "./pages/templates/HomepageTemplate";
-import LandingPageTemplate from "./pages/templates/LandingPageTemplate";
-import ContactTemplate from "./pages/templates/ContactTemplate";
 import WebsiteDesignServices from "./pages/services/WebsiteDesignServices";
 import SEOServices from "./pages/services/SEOServices";
 import PaidAdvertisingServices from "./pages/services/PaidAdvertisingServices";
@@ -73,9 +70,6 @@ const App = () => (
           <Route path="/customizer" element={<CustomDashboard />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/auth" element={<Auth />} />
-          <Route path="/templates/homepage" element={<HomepageTemplate />} />
-          <Route path="/templates/landing-page" element={<LandingPageTemplate />} />
-          <Route path="/templates/contact" element={<ContactTemplate />} />
           <Route path="/terms/website-design" element={<WebsiteDesignServices />} />
           <Route path="/terms/seo" element={<SEOServices />} />
           <Route path="/terms/paid-advertising" element={<PaidAdvertisingServices />} />
