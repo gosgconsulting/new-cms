@@ -9,8 +9,12 @@ const Header = () => {
       <div className="container mx-auto">
         <div className="flex items-center justify-center">
           {/* Logo */}
-          <Link to="/" className="text-3xl font-bold">
-            <span className="text-deepBlue">GO</span> <span className="text-coral">SG</span>
+          <Link to="/" className="flex items-center">
+            <img 
+              src="/lovable-uploads/d6e7a1ca-229a-4c34-83fc-e9bdf106b683.png" 
+              alt="GO SG CONSULTING Logo" 
+              className="h-8"
+            />
           </Link>
         </div>
       </div>
