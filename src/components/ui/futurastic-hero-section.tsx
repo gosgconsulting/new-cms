@@ -1,7 +1,5 @@
-import { Stars } from "@react-three/drei";
-import { Canvas } from "@react-three/fiber";
-import React, { useEffect, Suspense } from "react";
-import { FiArrowRight } from "react-icons/fi";
+import React, { useEffect } from "react";
+import { ArrowRight } from "lucide-react";
 import {
   useMotionTemplate,
   useMotionValue,
@@ -10,15 +8,6 @@ import {
 } from "framer-motion";
 
 const COLORS_TOP = ["#13FFAA", "#1E67C6", "#CE84CF", "#DD335C"];
-
-// Separate the 3D elements into their own component
-const StarField = () => {
-  return (
-    <Suspense fallback={null}>
-      <Stars radius={50} count={2500} factor={4} fade speed={2} />
-    </Suspense>
-  );
-};
 
 export const AuroraHero = () => {
   const color = useMotionValue(COLORS_TOP[0]);
@@ -68,14 +57,37 @@ export const AuroraHero = () => {
           className="group relative flex w-fit items-center gap-1.5 rounded-full bg-gray-950/10 px-4 py-2 text-gray-50 transition-colors hover:bg-gray-950/50"
         >
           Start free trial
-          <FiArrowRight className="transition-transform group-hover:-rotate-45 group-active:-rotate-12" />
+          <ArrowRight className="transition-transform group-hover:-rotate-45 group-active:-rotate-12" />
         </motion.button>
       </div>
 
+      {/* Simulated stars background with CSS */}
+      <div className="absolute inset-0 z-0 overflow-hidden">
+        <div className="stars-bg"></div>
+      </div>
+
+      {/* Add some animated dots to simulate stars */}
       <div className="absolute inset-0 z-0">
-        <Canvas dpr={[1, 2]} camera={{ position: [0, 0, 10], fov: 25 }}>
-          <StarField />
-        </Canvas>
+        {Array.from({ length: 20 }).map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute w-1 h-1 bg-white rounded-full opacity-70"
+            initial={{
+              x: Math.random() * 100 + "%",
+              y: Math.random() * 100 + "%",
+              scale: Math.random() * 0.5 + 0.5,
+            }}
+            animate={{
+              opacity: [0.2, 0.8, 0.2],
+              scale: [1, 1.2, 1],
+            }}
+            transition={{
+              duration: Math.random() * 5 + 3,
+              repeat: Infinity,
+              repeatType: "reverse",
+            }}
+          />
+        ))}
       </div>
     </motion.section>
   );
