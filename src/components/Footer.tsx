@@ -7,13 +7,13 @@ const Footer = () => {
         <div className="text-center">
           <div className="mb-6">
             <img 
-              src="/lovable-uploads/d6e7a1ca-229a-4c34-83fc-e9bdf106b683.png" 
+              src="/lovable-uploads/d2d7d623-f729-433e-b350-0e40b4a32b91.png" 
               alt="GO SG CONSULTING Logo" 
               className="h-12 mx-auto"
             />
           </div>
           
-          <div className="flex flex-col md:flex-row justify-center items-center gap-4 mb-6 py-4 px-8 rounded-lg bg-gradient-to-r from-gray-200/50 to-gray-300/50">
+          <div className="flex flex-col md:flex-row justify-center items-center gap-4 mb-6">
             <Link to="/privacy-policy" className="text-gray-600 hover:text-coral transition-colors">
               Privacy Policy
             </Link>
