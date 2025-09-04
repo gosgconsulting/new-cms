@@ -155,17 +155,17 @@ const WordPressConnectionTester = () => {
           </div>
         )}
 
-        {/* Authentication Info */}
+        {/* Public API Info */}
         <div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg">
           <div className="flex items-start gap-2">
-            <Key className="h-4 w-4 text-blue-600 mt-0.5" />
+            <Globe className="h-4 w-4 text-blue-600 mt-0.5" />
             <div className="text-sm">
               <div className="font-medium text-blue-900 dark:text-blue-100 mb-1">
-                Authentication Status
+                Public API Access
               </div>
               <div className="text-blue-700 dark:text-blue-300">
-                WordPress credentials are configured and ready for authenticated requests.
-                This connection tester uses public endpoints, but your app can access private content when needed.
+                This integration uses the WordPress REST API public endpoints to fetch published content.
+                No authentication required - perfect for displaying blog posts, pages, and categories.
               </div>
             </div>
           </div>

@@ -141,17 +141,16 @@ const posts = await customApi.getPosts({ per_page: 5 });`}
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <Database className="h-5 w-5" />
-                      Authenticated Content
-                      <Badge variant="secondary">Requires Auth</Badge>
+                      WordPress Features
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <ul className="space-y-2 text-sm">
-                      <li>• Draft posts and pages</li>
-                      <li>• Private content</li>
-                      <li>• User-specific data</li>
-                      <li>• Protected custom fields</li>
-                      <li>• Admin-only endpoints</li>
+                      <li>• All published content</li>
+                      <li>• Media and attachments</li>
+                      <li>• SEO metadata</li>
+                      <li>• Pagination support</li>
+                      <li>• Real-time content updates</li>
                     </ul>
                   </CardContent>
                 </Card>
@@ -173,15 +172,15 @@ const posts = await customApi.getPosts({ per_page: 5 });`}
 
                 <Card>
                   <CardHeader>
-                    <CardTitle>Security Features</CardTitle>
+                    <CardTitle>Security & Performance</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <ul className="space-y-2 text-sm">
-                      <li>• Credentials stored in Supabase secrets</li>
-                      <li>• Edge function proxy for auth</li>
-                      <li>• CORS handling</li>
-                      <li>• Rate limiting support</li>
+                      <li>• Public API - no credentials needed</li>
+                      <li>• CORS-friendly requests</li>
+                      <li>• Built-in rate limiting</li>
                       <li>• Error sanitization</li>
+                      <li>• Lightweight and fast</li>
                     </ul>
                   </CardContent>
                 </Card>
@@ -205,15 +204,16 @@ const posts = await customApi.getPosts({ per_page: 5 });`}
                   </div>
 
                   <div>
-                    <h4 className="font-medium mb-2">2. Authentication (Optional)</h4>
+                    <h4 className="font-medium mb-2">2. Public Content Access</h4>
                     <p className="text-sm text-muted-foreground mb-2">
-                      For private content, we use Application Passwords (WordPress 5.6+):
+                      This integration accesses only public WordPress content:
                     </p>
                     <ul className="text-sm text-muted-foreground space-y-1 ml-4">
-                      <li>• Go to WordPress Admin → Users → Your Profile</li>
-                      <li>• Scroll to "Application Passwords"</li>
-                      <li>• Create a new application password</li>
-                      <li>• Use username + app password for authentication</li>
+                      <li>• Published posts and pages</li>
+                      <li>• Categories and tags</li>
+                      <li>• Featured images and media</li>
+                      <li>• Public custom fields</li>
+                      <li>• No authentication required</li>
                     </ul>
                   </div>
 
