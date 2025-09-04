@@ -99,6 +99,7 @@ const Blog = () => {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.5, delay: index * 0.1 }}
                       className="bg-card rounded-xl overflow-hidden border border-border hover:border-coral/50 transition-all duration-300 hover:shadow-lg cursor-pointer group"
+                      onClick={() => window.location.href = `/blog/${post.slug}`}
                     >
                       <div className="p-6">
                         <div className="flex flex-wrap gap-2 mb-4">
@@ -123,7 +124,7 @@ const Blog = () => {
                               : post.content.rendered.replace(/<[^>]*>/g, '').substring(0, 150) + '...'
                           }}
                         />
-                        <div className="flex flex-wrap gap-2 mb-4">
+                        <div className="flex flex-wrap gap-2">
                           {postTags.slice(0, 2).map((tag, tagIndex) => (
                             <span 
                               key={tagIndex} 
@@ -133,15 +134,6 @@ const Blog = () => {
                             </span>
                           ))}
                         </div>
-                        <Button 
-                          variant="ghost" 
-                          className="text-coral hover:text-coral hover:bg-coral/10 pl-0 group-hover:translate-x-1 transition-transform"
-                          asChild
-                        >
-                          <a href={`/blog/${post.slug}`}>
-                            Read More →
-                          </a>
-                        </Button>
                       </div>
                     </motion.div>
                   );

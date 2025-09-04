@@ -12,6 +12,7 @@ interface BlogPost {
   categories: number[];
   tags: number[];
   date: string;
+  slug: string;
 }
 
 interface BlogSectionProps {
@@ -147,43 +148,44 @@ const CategorySection: React.FC<BlogSectionProps> = ({ title, description, categ
                 const postDate = new Date(post.date).toLocaleDateString();
 
                 return (
-                  <motion.div
-                    key={post.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.5, delay: index * 0.1 }}
-                    className="flex-shrink-0 w-80 bg-card rounded-xl overflow-hidden border border-border hover:border-coral/50 transition-all duration-300 hover:shadow-lg cursor-pointer"
-                  >
-                    <div className="p-6">
-                      <div className="flex flex-wrap gap-2 mb-4">
-                        <span className="inline-block px-3 py-1 bg-coral/10 text-coral text-xs font-medium rounded-full">
-                          {categoryName}
-                        </span>
-                        <span className="text-xs text-muted-foreground">
-                          {postDate}
-                        </span>
-                      </div>
-                      <h3 
-                        className="text-xl font-semibold mb-3 line-clamp-2"
-                        dangerouslySetInnerHTML={{ __html: post.title.rendered }}
-                      />
-                      <div 
-                        className="text-muted-foreground mb-4 line-clamp-3"
-                        dangerouslySetInnerHTML={{ __html: post.excerpt.rendered }}
-                      />
-                      <div className="flex flex-wrap gap-2">
-                        {postTags.slice(0, 2).map((tag, tagIndex) => (
-                          <span 
-                            key={tagIndex} 
-                            className="text-xs px-2 py-1 bg-muted rounded"
-                          >
-                            {tag}
+                  <Link key={post.id} to={`/blog/${post.slug}`}>
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.5, delay: index * 0.1 }}
+                      className="flex-shrink-0 w-80 bg-card rounded-xl overflow-hidden border border-border hover:border-coral/50 transition-all duration-300 hover:shadow-lg cursor-pointer"
+                    >
+                      <div className="p-6">
+                        <div className="flex flex-wrap gap-2 mb-4">
+                          <span className="inline-block px-3 py-1 bg-coral/10 text-coral text-xs font-medium rounded-full">
+                            {categoryName}
                           </span>
-                        ))}
+                          <span className="text-xs text-muted-foreground">
+                            {postDate}
+                          </span>
+                        </div>
+                        <h3 
+                          className="text-xl font-semibold mb-3 line-clamp-2"
+                          dangerouslySetInnerHTML={{ __html: post.title.rendered }}
+                        />
+                        <div 
+                          className="text-muted-foreground mb-4 line-clamp-3"
+                          dangerouslySetInnerHTML={{ __html: post.excerpt.rendered }}
+                        />
+                        <div className="flex flex-wrap gap-2">
+                          {postTags.slice(0, 2).map((tag, tagIndex) => (
+                            <span 
+                              key={tagIndex} 
+                              className="text-xs px-2 py-1 bg-muted rounded"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  </motion.div>
+                    </motion.div>
+                  </Link>
                 );
               })
             ) : (
