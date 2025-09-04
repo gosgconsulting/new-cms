@@ -24,6 +24,7 @@ import SEOServices from "./pages/services/SEOServices";
 import PaidAdvertisingServices from "./pages/services/PaidAdvertisingServices";
 import CloudHostingServices from "./pages/services/CloudHostingServices";
 import ServicePresentationPage from "./pages/ServicePresentation";
+import WordPressSetup from "./pages/WordPressSetup";
 
 /**
  * WordPress Theme Structure
@@ -77,6 +78,7 @@ const App = () => (
           <Route path="/terms/paid-advertising" element={<PaidAdvertisingServices />} />
           <Route path="/terms/cloud-hosting" element={<CloudHostingServices />} />
           <Route path="/present/:serviceType" element={<ServicePresentationPage />} />
+          <Route path="/wordpress-setup" element={<WordPressSetup />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

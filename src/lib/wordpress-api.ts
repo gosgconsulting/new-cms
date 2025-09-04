@@ -94,30 +94,83 @@ export interface WordPressTag {
 
 class WordPressAPI {
   private baseUrl: string;
-  private apiPath: string = '/wp-json/wp/v2';
+  private useEdgeFunction: boolean;
 
-  constructor(baseUrl: string = 'https://gosgconsulting.com') {
+  constructor(baseUrl: string = 'https://gosgconsulting.com', useEdgeFunction: boolean = true) {
     this.baseUrl = baseUrl.replace(/\/$/, ''); // Remove trailing slash
+    this.useEdgeFunction = useEdgeFunction;
   }
 
-  private async fetchApi<T>(endpoint: string, params?: Record<string, any>): Promise<T> {
-    const url = new URL(`${this.baseUrl}${this.apiPath}${endpoint}`);
-    
-    if (params) {
-      Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          url.searchParams.append(key, String(value));
+  private async fetchApi<T>(endpoint: string, params?: Record<string, any>, requireAuth: boolean = false): Promise<T> {
+    if (this.useEdgeFunction) {
+      // Use Supabase edge function for authenticated requests or when configured
+      const { supabase } = await import('@/integrations/supabase/client');
+      
+      const { data, error } = await supabase.functions.invoke('wordpress-api', {
+        body: {
+          method: 'GET',
+          endpoint,
+          params,
+          baseUrl: this.baseUrl,
+          requireAuth
         }
       });
-    }
 
-    const response = await fetch(url.toString());
-    
-    if (!response.ok) {
-      throw new Error(`WordPress API error: ${response.status} ${response.statusText}`);
-    }
+      if (error) {
+        console.error('WordPress API edge function error:', error);
+        throw new Error(`WordPress API error: ${error.message}`);
+      }
 
-    return response.json();
+      if (!data.success) {
+        throw new Error(`WordPress API error: ${data.error}`);
+      }
+
+      return data.data;
+    } else {
+      // Direct API call (public endpoints only)
+      const url = new URL(`${this.baseUrl}/wp-json/wp/v2${endpoint}`);
+      
+      if (params) {
+        Object.entries(params).forEach(([key, value]) => {
+          if (value !== undefined && value !== null) {
+            if (Array.isArray(value)) {
+              value.forEach(v => url.searchParams.append(key, String(v)));
+            } else {
+              url.searchParams.append(key, String(value));
+            }
+          }
+        });
+      }
+
+      const response = await fetch(url.toString());
+      
+      if (!response.ok) {
+        throw new Error(`WordPress API error: ${response.status} ${response.statusText}`);
+      }
+
+      return response.json();
+    }
+  }
+
+  // Test connection method
+  async testConnection(): Promise<{ success: boolean; message: string; data?: any }> {
+    try {
+      const posts = await this.fetchApi<WordPressPost[]>('/posts', { per_page: 1, status: 'publish' });
+      return {
+        success: true,
+        message: `Successfully connected to WordPress site: ${this.baseUrl}`,
+        data: {
+          siteName: this.baseUrl,
+          postsFound: posts.length > 0,
+          samplePost: posts[0]?.title?.rendered || 'No posts found'
+        }
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: `Failed to connect to WordPress site: ${error.message}`,
+      };
+    }
   }
 
   // Pages
@@ -200,10 +253,15 @@ class WordPressAPI {
   }
 }
 
-// Create a singleton instance
+// Create a singleton instance with default configuration
 export const wordpressApi = new WordPressAPI();
 
-// Configure WordPress API base URL (you can change this as needed)
-export const configureWordPressAPI = (baseUrl: string) => {
-  return new WordPressAPI(baseUrl);
+// Configure WordPress API base URL and authentication method
+export const configureWordPressAPI = (baseUrl: string, useEdgeFunction: boolean = true) => {
+  return new WordPressAPI(baseUrl, useEdgeFunction);
+};
+
+// Create an authenticated WordPress API instance
+export const createAuthenticatedWordPressAPI = (baseUrl: string = 'https://gosgconsulting.com') => {
+  return new WordPressAPI(baseUrl, true);
 };
