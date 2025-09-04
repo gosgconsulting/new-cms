@@ -204,19 +204,19 @@ const BlogSection = () => {
       <CategorySection
         title="Search Engine Marketing"
         description="Master paid search advertising and drive targeted traffic to your website"
-        categorySlug="search-engine-marketing"
+        categorySlug="sem"
         bgColor="bg-background"
       />
       <CategorySection
         title="Social Media Advertising"
         description="Reach and engage your audience across all major social media platforms"
-        categorySlug="social-media-advertising"
+        categorySlug="sma"
         bgColor="bg-muted/30"
       />
       <CategorySection
         title="Search Engine Optimisation"
         description="Improve your organic visibility and rank higher in search results"
-        categorySlug="search-engine-optimisation"
+        categorySlug="seo"
         bgColor="bg-background"
       />
       <CategorySection
