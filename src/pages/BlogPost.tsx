@@ -1,81 +1,52 @@
 
 import React, { useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { supabase } from "@/integrations/supabase/client";
 import { Calendar, User, ArrowLeft, Clock, Share2, Tag } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { useWordPressPostBySlug, useWordPressCategories, useWordPressTags } from "@/hooks/use-wordpress";
 
 interface BlogPost {
-  id: string;
-  tenant_id: string;
-  author_id: string | null;
-  title: string;
+  id: number;
+  title: { rendered: string };
+  content: { rendered: string };
+  excerpt: { rendered: string };
   slug: string;
-  content: string;
-  excerpt: string | null;
-  featured_image: string | null;
-  status: 'published';
-  published_at: string;
-  created_at: string;
-  updated_at: string;
-  meta_title: string | null;
-  meta_description: string | null;
-  meta_keywords: string | null;
+  date: string;
+  categories: number[];
+  tags: number[];
+  author: number;
+  featured_media: number;
 }
 
 const BlogPost = () => {
   const { slug } = useParams<{ slug: string }>();
 
-  const { data: post, isLoading, error } = useQuery({
-    queryKey: ['blog-post', slug],
-    queryFn: async () => {
-      if (!slug) throw new Error('No slug provided');
-      
-      const { data, error } = await supabase
-        .from('blog_posts')
-        .select('*')
-        .eq('slug', slug)
-        .eq('status', 'published')
-        .maybeSingle();
-      
-      if (error) throw error;
-      return data as BlogPost | null;
-    },
-    enabled: !!slug,
-  });
+  const { data: post, isLoading, error } = useWordPressPostBySlug(slug || '');
+  const { data: categories } = useWordPressCategories();
+  const { data: tags } = useWordPressTags();
 
   // Set SEO meta tags when post loads
   useEffect(() => {
     if (post) {
-      document.title = post.meta_title || `${post.title} - GO SG Blog`;
+      document.title = `${post.title.rendered} - GO SG Blog`;
       
       // Update meta description
       const metaDescription = document.querySelector('meta[name="description"]');
       if (metaDescription) {
-        metaDescription.setAttribute('content', post.meta_description || post.excerpt || 'Read this article on GO SG Blog');
-      }
-      
-      // Update meta keywords
-      if (post.meta_keywords) {
-        const metaKeywords = document.querySelector('meta[name="keywords"]') || document.createElement('meta');
-        metaKeywords.setAttribute('name', 'keywords');
-        metaKeywords.setAttribute('content', post.meta_keywords);
-        if (!document.querySelector('meta[name="keywords"]')) {
-          document.head.appendChild(metaKeywords);
-        }
+        const excerpt = post.excerpt.rendered.replace(/<[^>]*>/g, '').trim();
+        metaDescription.setAttribute('content', excerpt || 'Read this article on GO SG Blog');
       }
     }
   }, [post]);
 
   const estimateReadingTime = (content: string) => {
     const wordsPerMinute = 200;
-    const wordCount = content.split(/\s+/).length;
+    const wordCount = content.replace(/<[^>]*>/g, '').split(/\s+/).length;
     return Math.ceil(wordCount / wordsPerMinute);
   };
 
@@ -83,18 +54,16 @@ const BlogPost = () => {
     if (navigator.share && post) {
       try {
         await navigator.share({
-          title: post.title,
-          text: post.excerpt || '',
+          title: post.title.rendered,
+          text: post.excerpt.rendered.replace(/<[^>]*>/g, ''),
           url: window.location.href,
         });
       } catch (err) {
         // Fallback to copying URL
         navigator.clipboard.writeText(window.location.href);
-        // You could add a toast notification here
       }
     } else if (post) {
       navigator.clipboard.writeText(window.location.href);
-      // You could add a toast notification here
     }
   };
 
@@ -162,33 +131,25 @@ const BlogPost = () => {
             </div>
           </div>
 
-          {/* Featured Image */}
-          {post.featured_image && (
-            <div className="mb-8">
-              <img
-                src={post.featured_image}
-                alt={post.title}
-                className="w-full h-64 md:h-96 object-cover rounded-lg shadow-lg"
-              />
-            </div>
-          )}
-
+          {/* Featured Image - WordPress doesn't have direct featured_image URL, skip for now */}
+          
           {/* Article Header */}
           <header className="mb-8">
             <h1 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
-              {post.title}
+              {post.title.rendered}
             </h1>
             
-            {post.excerpt && (
-              <p className="text-xl text-muted-foreground mb-6 leading-relaxed">
-                {post.excerpt}
-              </p>
+            {post.excerpt.rendered && (
+              <div 
+                className="text-xl text-muted-foreground mb-6 leading-relaxed"
+                dangerouslySetInnerHTML={{ __html: post.excerpt.rendered }}
+              />
             )}
             
             <div className="flex flex-wrap items-center gap-6 text-sm text-muted-foreground">
               <div className="flex items-center">
                 <Calendar className="h-4 w-4 mr-2" />
-                {new Date(post.published_at).toLocaleDateString('en-US', {
+                {new Date(post.date).toLocaleDateString('en-US', {
                   year: 'numeric',
                   month: 'long',
                   day: 'numeric'
@@ -197,38 +158,43 @@ const BlogPost = () => {
               
               <div className="flex items-center">
                 <User className="h-4 w-4 mr-2" />
-                {post.author_id || 'GO SG Team'}
+                GO SG Team
               </div>
               
               <div className="flex items-center">
                 <Clock className="h-4 w-4 mr-2" />
-                {estimateReadingTime(post.content)} min read
+                {estimateReadingTime(post.content.rendered)} min read
               </div>
+            </div>
+
+            {/* Categories and Tags */}
+            <div className="flex flex-wrap gap-2 mt-4">
+              {post.categories.map(categoryId => {
+                const category = categories?.find(cat => cat.id === categoryId);
+                return category ? (
+                  <Badge key={categoryId} variant="secondary" className="bg-coral/10 text-coral">
+                    {category.name}
+                  </Badge>
+                ) : null;
+              })}
+              {post.tags.map(tagId => {
+                const tag = tags?.find(t => t.id === tagId);
+                return tag ? (
+                  <Badge key={tagId} variant="outline" className="text-xs">
+                    {tag.name}
+                  </Badge>
+                ) : null;
+              })}
             </div>
             
             <Separator className="mt-6" />
           </header>
 
           {/* Article Content */}
-          <div className="prose prose-lg max-w-none prose-headings:text-foreground prose-p:text-foreground/90 prose-strong:text-foreground prose-a:text-primary hover:prose-a:text-primary/80">
-            {post.content.split('\n\n').map((paragraph, index) => {
-              if (paragraph.startsWith('#')) {
-                const level = paragraph.match(/^#+/)?.[0].length || 1;
-                const text = paragraph.replace(/^#+\s*/, '');
-                const HeadingTag = `h${Math.min(level, 6)}` as keyof JSX.IntrinsicElements;
-                return (
-                  <HeadingTag key={index} className={`text-${4 - Math.min(level - 1, 2)}xl font-bold mt-8 mb-4 first:mt-0`}>
-                    {text}
-                  </HeadingTag>
-                );
-              }
-              return (
-                <p key={index} className="mb-6 leading-relaxed text-lg">
-                  {paragraph}
-                </p>
-              );
-            })}
-          </div>
+          <div 
+            className="prose prose-lg max-w-none prose-headings:text-foreground prose-p:text-foreground/90 prose-strong:text-foreground prose-a:text-primary hover:prose-a:text-primary/80"
+            dangerouslySetInnerHTML={{ __html: post.content.rendered }}
+          />
 
           {/* Article Footer */}
           <footer className="mt-16 pt-8 border-t">
