@@ -95,7 +95,7 @@ export interface WordPressTag {
 class WordPressAPI {
   private baseUrl: string;
 
-  constructor(baseUrl: string = 'https://gosgconsulting.com') {
+  constructor(baseUrl: string = 'https://cms.gosgconsulting.com') {
     this.baseUrl = baseUrl.replace(/\/$/, ''); // Remove trailing slash
   }
 

@@ -20,7 +20,7 @@ interface ConnectionTestResult {
 }
 
 const WordPressConnectionTester = () => {
-  const [wordpressUrl, setWordpressUrl] = useState('https://gosgconsulting.com');
+  const [wordpressUrl, setWordpressUrl] = useState('https://cms.gosgconsulting.com');
   const [testTriggered, setTestTriggered] = useState(false);
 
   const { data: testResult, isLoading, error, refetch } = useQuery({
