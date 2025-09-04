@@ -2,8 +2,11 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Button } from './ui/button';
 import { ArrowRight } from 'lucide-react';
+import { useContactModal } from '@/contexts/ContactModalContext';
 
 const CTASection = () => {
+  const { openModal } = useContactModal();
+  
   return (
     <section className="relative py-20 overflow-hidden bg-deepBlue">
       {/* Background elements matching hero section */}
@@ -34,13 +37,11 @@ const CTASection = () => {
           <div className="flex justify-center pt-4">
             <Button 
               size="lg" 
+              onClick={openModal}
               className="group relative flex w-fit items-center gap-1.5 rounded-full bg-deepBlue/10 px-8 py-6 text-lg text-gray-50 transition-colors hover:bg-deepBlue/50 border border-brandPurple shadow-[0px_4px_24px_#9b87f5]"
-              asChild
             >
-              <a href="/contact">
-                Get Started Today
-                <ArrowRight className="transition-transform group-hover:-rotate-45 group-active:-rotate-12" />
-              </a>
+              Get Started Today
+              <ArrowRight className="transition-transform group-hover:-rotate-45 group-active:-rotate-12" />
             </Button>
           </div>
         </motion.div>

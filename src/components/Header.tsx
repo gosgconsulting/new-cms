@@ -4,7 +4,8 @@ const Header = () => {
   const location = useLocation();
   const isHomepage = location.pathname === "/";
   const isBlogPage = location.pathname === "/blog";
-  const hasHeroSection = isHomepage || isBlogPage;
+  const isContactPage = location.pathname === "/contact";
+  const hasHeroSection = isHomepage || isBlogPage || isContactPage;
 
   return (
     <header className={`w-full py-6 px-4 md:px-8 ${hasHeroSection ? 'bg-transparent absolute top-0 left-0 right-0 z-50' : 'bg-white/90 backdrop-blur-md shadow-sm border-b border-gray-100'}`}>

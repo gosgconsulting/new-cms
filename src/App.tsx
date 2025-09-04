@@ -4,6 +4,9 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { ContactModalProvider } from "@/contexts/ContactModalContext";
+import ContactModal from "@/components/ContactModal";
+import { useContactModal } from "@/contexts/ContactModalContext";
 import AdminTopBar from "@/components/AdminTopBar";
 import Index from "./pages/Index";
 import WebsiteDesign from "./pages/WebsiteDesign";
@@ -52,36 +55,49 @@ import WordPressSetup from "./pages/WordPressSetup";
 
 const queryClient = new QueryClient();
 
+const AppContent = () => {
+  const { isModalOpen, closeModal } = useContactModal();
+  
+  return (
+    <>
+      <AdminTopBar />
+      <Routes>
+        <Route path="/" element={<Index />} />
+        <Route path="/services/website-design" element={<WebsiteDesign />} />
+        <Route path="/services/seo" element={<SEO />} />
+        <Route path="/services/paid-ads" element={<PaidAds />} />
+        <Route path="/services/social-media" element={<SocialMedia />} />
+        <Route path="/services/reporting" element={<Reporting />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/blog" element={<Blog />} />
+        <Route path="/blog/archive" element={<BlogArchive />} />
+        <Route path="/blog/:slug" element={<BlogPost />} />
+        <Route path="/customizer" element={<CustomDashboard />} />
+        <Route path="/admin" element={<Admin />} />
+        <Route path="/auth" element={<Auth />} />
+        <Route path="/terms/website-design" element={<WebsiteDesignServices />} />
+        <Route path="/terms/seo" element={<SEOServices />} />
+        <Route path="/terms/paid-advertising" element={<PaidAdvertisingServices />} />
+        <Route path="/terms/cloud-hosting" element={<CloudHostingServices />} />
+        <Route path="/present/:serviceType" element={<ServicePresentationPage />} />
+        <Route path="/wordpress-setup" element={<WordPressSetup />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+      <ContactModal isOpen={isModalOpen} onClose={closeModal} />
+    </>
+  );
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter>
-        <AdminTopBar />
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/services/website-design" element={<WebsiteDesign />} />
-          <Route path="/services/seo" element={<SEO />} />
-          <Route path="/services/paid-ads" element={<PaidAds />} />
-          <Route path="/services/social-media" element={<SocialMedia />} />
-          <Route path="/services/reporting" element={<Reporting />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/blog" element={<Blog />} />
-          <Route path="/blog/archive" element={<BlogArchive />} />
-          <Route path="/blog/:slug" element={<BlogPost />} />
-          <Route path="/customizer" element={<CustomDashboard />} />
-          <Route path="/admin" element={<Admin />} />
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/terms/website-design" element={<WebsiteDesignServices />} />
-          <Route path="/terms/seo" element={<SEOServices />} />
-          <Route path="/terms/paid-advertising" element={<PaidAdvertisingServices />} />
-          <Route path="/terms/cloud-hosting" element={<CloudHostingServices />} />
-          <Route path="/present/:serviceType" element={<ServicePresentationPage />} />
-          <Route path="/wordpress-setup" element={<WordPressSetup />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
+      <ContactModalProvider>
+        <BrowserRouter>
+          <AppContent />
+        </BrowserRouter>
+      </ContactModalProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );
