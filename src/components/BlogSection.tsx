@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useWordPressPosts, useWordPressCategories, useWordPressTags } from "@/hooks/use-wordpress";
+import SectionTestimonials from "@/components/SectionTestimonials";
 
 interface BlogPost {
   id: number;
@@ -164,10 +165,10 @@ const CategorySection: React.FC<BlogSectionProps> = ({ title, description, categ
                       <div className="p-6">
                         <div className="flex flex-wrap gap-2 mb-4">
                           <span className="inline-block px-3 py-1 bg-coral/10 text-coral text-xs font-medium rounded-full">
-                            {categoryName}
+                            {tagLabel}
                           </span>
                           <span className="text-xs text-muted-foreground">
-                            {postDate}
+                            {formattedDate}
                           </span>
                         </div>
                         <h3 
@@ -214,24 +215,31 @@ const BlogSection = () => {
         categorySlug="sem"
         bgColor="bg-background"
       />
+      <SectionTestimonials category="sem" bgColor="bg-muted/30" />
+      
       <CategorySection
         title="Social Media Advertising"
         description="Reach and engage your audience across all major social media platforms"
         categorySlug="sma"
-        bgColor="bg-muted/30"
+        bgColor="bg-background"
       />
+      <SectionTestimonials category="sma" bgColor="bg-muted/30" />
+      
       <CategorySection
         title="Search Engine Optimisation"
         description="Improve your organic visibility and rank higher in search results"
         categorySlug="seo"
         bgColor="bg-background"
       />
+      <SectionTestimonials category="seo" bgColor="bg-muted/30" />
+      
       <CategorySection
         title="Technology"
         description="Stay ahead with the latest marketing technology and tools"
         categorySlug="technology"
-        bgColor="bg-muted/30"
+        bgColor="bg-background"
       />
+      <SectionTestimonials category="technology" bgColor="bg-muted/30" />
       
       {/* View More Button */}
       <section className="py-12 px-4 bg-background">
