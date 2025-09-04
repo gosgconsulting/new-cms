@@ -16,6 +16,7 @@ import NotFound from "./pages/NotFound";
 import CustomDashboard from "./pages/CustomDashboard";
 import Admin from "./pages/Admin";
 import Blog from "./pages/Blog";
+import BlogArchive from "./pages/BlogArchive";
 import BlogPost from "./pages/BlogPost";
 import Auth from "./pages/Auth";
 import WebsiteDesignServices from "./pages/services/WebsiteDesignServices";
@@ -66,6 +67,7 @@ const App = () => (
           <Route path="/services/reporting" element={<Reporting />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/blog" element={<Blog />} />
+          <Route path="/blog/archive" element={<BlogArchive />} />
           <Route path="/blog/:slug" element={<BlogPost />} />
           <Route path="/customizer" element={<CustomDashboard />} />
           <Route path="/admin" element={<Admin />} />
