@@ -46,6 +46,7 @@ const BlogPost = () => {
 
   const estimateReadingTime = (content: string) => {
     const wordsPerMinute = 200;
+    if (!content || typeof content !== 'string') return 1;
     const wordCount = content.replace(/<[^>]*>/g, '').split(/\s+/).length;
     return Math.ceil(wordCount / wordsPerMinute);
   };
