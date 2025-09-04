@@ -62,8 +62,7 @@ describe('WhatsAppButton', () => {
     
     // Chat bubble should appear
     expect(screen.getByText('Have a question?')).toBeInTheDocument();
-    expect(screen.getByText('Chat with us!')).toBeInTheDocument();
-    expect(screen.getByText('+65 8024 6850')).toBeInTheDocument();
+    expect(screen.getByText('Chat with us on WhatsApp!')).toBeInTheDocument();
   });
 
   it('closes chat bubble when X button is clicked', () => {
@@ -84,7 +83,7 @@ describe('WhatsAppButton', () => {
     expect(screen.queryByText('Have a question?')).not.toBeInTheDocument();
   });
 
-  it('opens contact modal when send button is clicked', () => {
+  it('opens WhatsApp when send button is clicked', () => {
     render(<WhatsAppButton />);
     
     // Open chat bubble
@@ -95,23 +94,24 @@ describe('WhatsAppButton', () => {
     const sendButton = screen.getByRole('button', { name: '' });
     fireEvent.click(sendButton);
     
-    // Contact modal should be opened
-    expect(mockOpenModal).toHaveBeenCalled();
+    // WhatsApp should be opened
+    expect(mockWindowOpen).toHaveBeenCalledWith('https://wa.me/6580246850', '_blank');
   });
 
-  it('opens contact modal when Enter key is pressed in input', () => {
+  it('opens WhatsApp when Enter key is pressed in input', () => {
     render(<WhatsAppButton />);
     
     // Open chat bubble
     const whatsappButton = screen.getByRole('button');
     fireEvent.click(whatsappButton);
     
-    // Press Enter in the input field
+    // Type a message and press Enter
     const inputField = screen.getByPlaceholderText('Write your message...');
+    fireEvent.change(inputField, { target: { value: 'Hello' } });
     fireEvent.keyDown(inputField, { key: 'Enter', code: 'Enter' });
     
-    // Contact modal should be opened
-    expect(mockOpenModal).toHaveBeenCalled();
+    // WhatsApp should be opened with the message
+    expect(mockWindowOpen).toHaveBeenCalledWith('https://wa.me/6580246850?text=Hello', '_blank');
   });
   
   it('opens WhatsApp when direct WhatsApp link is clicked', () => {
@@ -122,7 +122,7 @@ describe('WhatsAppButton', () => {
     fireEvent.click(whatsappButton);
     
     // Click the WhatsApp direct link
-    const whatsappLink = screen.getByText('Contact us directly on WhatsApp: +65 8024 6850');
+    const whatsappLink = screen.getByText('Contact us directly on WhatsApp');
     fireEvent.click(whatsappLink);
     
     // WhatsApp should be opened
