@@ -1,9 +1,10 @@
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Calendar, User, ArrowLeft, Clock, Share2, Tag } from "lucide-react";
+import { BlogPostHero } from "@/components/BlogPostHero";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -103,10 +104,45 @@ const BlogPost = () => {
     );
   }
 
+  // Extract headings for table of contents
+  const [headings, setHeadings] = useState<{ id: string; text: string; level: number }[]>([]);
+
+  useEffect(() => {
+    if (post) {
+      // Create a temporary div to parse HTML content
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = post.content.rendered;
+      
+      // Find all heading elements
+      const headingElements = tempDiv.querySelectorAll('h2, h3');
+      
+      // Extract heading info
+      const extractedHeadings = Array.from(headingElements).map((heading, index) => {
+        const id = `heading-${index}`;
+        const level = parseInt(heading.tagName.substring(1));
+        // Set ID on the actual heading element for scroll targeting
+        heading.id = id;
+        return {
+          id,
+          text: heading.textContent || '',
+          level
+        };
+      });
+      
+      setHeadings(extractedHeadings);
+      
+      // Update the post content with IDs added to headings
+      post.content.rendered = tempDiv.innerHTML;
+    }
+  }, [post]);
+
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
       <main className="flex-grow">
+        {/* Hero Section with Title and Table of Contents */}
+        {post && <BlogPostHero title={post.title.rendered} headings={headings} />}
+        
         <article className="container mx-auto px-4 py-8 max-w-4xl">
           {/* Navigation */}
           <div className="mb-8">
@@ -136,9 +172,7 @@ const BlogPost = () => {
           
           {/* Article Header */}
           <header className="mb-8">
-            <h1 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
-              {post.title.rendered}
-            </h1>
+            {/* Title is now in the hero section */}
             
             {post.excerpt.rendered && (
               <div 
