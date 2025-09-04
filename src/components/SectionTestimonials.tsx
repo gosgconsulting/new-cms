@@ -72,22 +72,22 @@ const SectionTestimonials: React.FC<SectionTestimonialsProps> = ({ category, bgC
     ],
     technology: [
       {
-        text: "Their marketing technology recommendations streamlined our entire workflow. The automation tools they implemented saved us countless hours.",
+        text: "The website they designed for our business perfectly captures our brand identity. It's not just beautiful but also incredibly functional and user-friendly.",
         image: "https://images.unsplash.com/photo-1560250097-0b93528c311a?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=250&q=80",
         name: "James Taylor",
-        role: "CTO",
+        role: "Business Owner",
       },
       {
-        text: "The analytics dashboard they created gives us unprecedented visibility into our marketing performance. We can now make data-driven decisions quickly.",
+        text: "Our mobile app development project was delivered on time and exceeded our expectations. The user experience is seamless and our customers love it.",
         image: "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=250&q=80",
         name: "Linda Wang",
-        role: "Analytics Manager",
+        role: "Product Manager",
       },
       {
-        text: "Their technology stack recommendations transformed our marketing capabilities. We're now able to execute campaigns we couldn't have imagined before.",
+        text: "They transformed our outdated website into a modern, responsive platform that's significantly increased our conversion rates and customer engagement.",
         image: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=250&q=80",
         name: "Daniel Garcia",
-        role: "Digital Transformation Lead",
+        role: "E-commerce Director",
       },
     ]
   };

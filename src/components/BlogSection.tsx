@@ -234,8 +234,8 @@ const BlogSection = () => {
       <SectionTestimonials category="seo" bgColor="bg-muted/30" />
       
       <CategorySection
-        title="Technology"
-        description="Stay ahead with the latest marketing technology and tools"
+        title="Tech Services"
+        description="Apps and website design solutions for your business"
         categorySlug="technology"
         bgColor="bg-background"
       />

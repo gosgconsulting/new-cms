@@ -51,7 +51,7 @@ describe('SectionTestimonials', () => {
   it('renders Technology testimonials correctly', () => {
     render(<SectionTestimonials category="technology" />);
     
-    expect(screen.getByText('What our clients say about Marketing Technology')).toBeInTheDocument();
+    expect(screen.getByText('What our clients say about our Tech Services')).toBeInTheDocument();
   });
 
   it('applies custom background color', () => {
