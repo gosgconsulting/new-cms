@@ -8,6 +8,7 @@ import { ContactModalProvider } from "@/contexts/ContactModalContext";
 import ContactModal from "@/components/ContactModal";
 import { useContactModal } from "@/contexts/ContactModalContext";
 import AdminTopBar from "@/components/AdminTopBar";
+import WhatsAppButton from "@/components/WhatsAppButton";
 import Index from "./pages/Index";
 import WebsiteDesign from "./pages/WebsiteDesign";
 import SEO from "./pages/SEO";
@@ -84,6 +85,7 @@ const AppContent = () => {
         <Route path="*" element={<NotFound />} />
       </Routes>
       <ContactModal isOpen={isModalOpen} onClose={closeModal} />
+      <WhatsAppButton />
     </>
   );
 };

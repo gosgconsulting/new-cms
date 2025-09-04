@@ -141,11 +141,16 @@ const CategorySection: React.FC<BlogSectionProps> = ({ title, description, categ
           >
             {filteredPosts.length > 0 ? (
               filteredPosts.slice(0, 3).map((post, index) => {
-                const categoryName = categories?.find(cat => post.categories.includes(cat.id))?.name || '';
                 const postTags = post.tags.map(tagId => 
                   tags?.find(tag => tag.id === tagId)?.name
                 ).filter(Boolean);
-                const postDate = new Date(post.date).toLocaleDateString();
+                
+                // Use the first tag as the label, or fallback to "Blog" if no tags
+                const tagLabel = postTags.length > 0 ? postTags[0] : "Blog";
+                
+                // Format date in European style (DD/MM/YYYY)
+                const postDate = new Date(post.date);
+                const formattedDate = `${postDate.getDate().toString().padStart(2, '0')}/${(postDate.getMonth() + 1).toString().padStart(2, '0')}/${postDate.getFullYear()}`;
 
                 return (
                   <Link key={post.id} to={`/blog/${post.slug}`}>

@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import HeroSection from "@/components/HeroSection";
 import CTASection from "@/components/CTASection";
-import WhatsAppButton from "@/components/WhatsAppButton";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import FAQAccordion from "@/components/FAQAccordion";
@@ -74,9 +73,6 @@ const Index = () => {
       
       {/* WordPress: footer.php */}
       <Footer />
-      
-      {/* WordPress: This could be included in footer.php or as a separate template part */}
-      <WhatsAppButton />
     </div>
   );
 };
