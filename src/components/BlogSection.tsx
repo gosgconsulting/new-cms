@@ -144,34 +144,11 @@ const CategorySection: React.FC<BlogSectionProps> = ({ title, description, posts
 };
 
 const BlogSection = () => {
-  // Mock blog posts data for each main section
-  const semPosts: BlogPost[] = [
-    { id: 1, title: "Advanced Google Ads Bidding Strategies", excerpt: "Master automated bidding and maximize your campaign ROI", category: "Google Ads", tags: ["Google Ads", "Bidding", "ROI"], date: "Dec 15, 2024" },
-    { id: 2, title: "Bing Ads vs Google Ads: Complete Comparison", excerpt: "Discover when to use Microsoft Advertising for better results", category: "Bing Ads", tags: ["Bing Ads", "Comparison"], date: "Dec 12, 2024" },
-    { id: 3, title: "Display Advertising Best Practices 2024", excerpt: "Create visually compelling ads that drive conversions", category: "Display Advertising", tags: ["Display", "Design"], date: "Dec 10, 2024" },
-    { id: 4, title: "Google Shopping Campaigns Optimization", excerpt: "Boost your e-commerce sales with strategic product listings", category: "Shopping Campaigns", tags: ["Shopping", "E-commerce"], date: "Dec 8, 2024" }
-  ];
-
-  const smaPosts: BlogPost[] = [
-    { id: 5, title: "Facebook Ads Audience Targeting Mastery", excerpt: "Reach your ideal customers with precision targeting", category: "Facebook Advertising", tags: ["Facebook", "Targeting"], date: "Dec 14, 2024" },
-    { id: 6, title: "LinkedIn B2B Lead Generation Strategies", excerpt: "Generate quality leads through professional networking", category: "LinkedIn Marketing", tags: ["LinkedIn", "B2B", "Leads"], date: "Dec 11, 2024" },
-    { id: 7, title: "TikTok Advertising for Business Growth", excerpt: "Tap into the fastest-growing social platform", category: "TikTok Advertising", tags: ["TikTok", "Growth"], date: "Dec 9, 2024" },
-    { id: 8, title: "Twitter Ads Campaign Optimization", excerpt: "Maximize engagement and drive brand awareness", category: "Twitter Ads", tags: ["Twitter", "Engagement"], date: "Dec 7, 2024" }
-  ];
-
-  const seoPosts: BlogPost[] = [
-    { id: 9, title: "Core Web Vitals Optimization Guide", excerpt: "Improve your site's performance and search rankings", category: "Technical SEO", tags: ["Performance", "Rankings"], date: "Dec 13, 2024" },
-    { id: 10, title: "Content SEO: Writing for Search Engines", excerpt: "Create content that ranks and converts visitors", category: "Content Optimization", tags: ["Content", "SEO"], date: "Dec 10, 2024" },
-    { id: 11, title: "Local SEO Strategies That Work", excerpt: "Dominate local search results in your area", category: "Local SEO", tags: ["Local", "Maps"], date: "Dec 8, 2024" },
-    { id: 12, title: "Link Building Tactics for 2024", excerpt: "Build high-quality backlinks that boost authority", category: "Link Building", tags: ["Links", "Authority"], date: "Dec 6, 2024" }
-  ];
-
-  const techPosts: BlogPost[] = [
-    { id: 13, title: "Marketing Automation Workflows", excerpt: "Streamline your marketing with smart automation", category: "Marketing Automation", tags: ["Automation", "Workflows"], date: "Dec 12, 2024" },
-    { id: 14, title: "Google Analytics 4: Advanced Tracking", excerpt: "Master GA4 for better data-driven decisions", category: "Analytics & Tracking", tags: ["Analytics", "Data"], date: "Dec 9, 2024" },
-    { id: 15, title: "AI Tools for Digital Marketing", excerpt: "Leverage AI to boost your marketing performance", category: "AI in Marketing", tags: ["AI", "Tools"], date: "Dec 7, 2024" },
-    { id: 16, title: "Landing Page Optimization Techniques", excerpt: "Convert more visitors with strategic page design", category: "Web Development", tags: ["Landing Pages", "CRO"], date: "Dec 5, 2024" }
-  ];
+  // Blog posts data - Connect to your WordPress API or CMS
+  const semPosts: BlogPost[] = [];
+  const smaPosts: BlogPost[] = [];
+  const seoPosts: BlogPost[] = [];
+  const techPosts: BlogPost[] = [];
 
   return (
     <>

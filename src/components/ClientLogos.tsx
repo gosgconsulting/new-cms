@@ -1,17 +1,8 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
-// Client logos data with placeholder text
-const logos = [
-  { name: 'Google' },
-  { name: 'Microsoft' },
-  { name: 'Amazon' },
-  { name: 'Netflix' },
-  { name: 'Spotify' },
-  { name: 'Apple' },
-  { name: 'Meta' },
-  { name: 'Twitter' },
-];
+// Client logos - Add your actual client logos here
+const logos: { name: string; logo?: string }[] = [];
 
 const ClientLogos = () => {
   return (
@@ -31,22 +22,32 @@ const ClientLogos = () => {
           </p>
         </div>
 
-        <motion.div 
-          className="flex space-x-12 items-center justify-center flex-wrap gap-y-8"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-        >
-          {logos.map((logo, index) => (
-            <motion.div
-              key={index}
-              className="h-12 px-6 py-3 bg-gray-100 rounded-lg border border-gray-200 flex items-center justify-center"
-              whileHover={{ scale: 1.05 }}
-            >
-              <span className="text-gray-700 font-medium">{logo.name}</span>
-            </motion.div>
-          ))}
-        </motion.div>
+        {logos.length > 0 ? (
+          <motion.div 
+            className="flex space-x-12 items-center justify-center flex-wrap gap-y-8"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
+            {logos.map((logo, index) => (
+              <motion.div
+                key={index}
+                className="h-12 px-6 py-3 bg-gray-100 rounded-lg border border-gray-200 flex items-center justify-center"
+                whileHover={{ scale: 1.05 }}
+              >
+                {logo.logo ? (
+                  <img src={logo.logo} alt={logo.name} className="h-8 max-w-32 object-contain" />
+                ) : (
+                  <span className="text-gray-700 font-medium">{logo.name}</span>
+                )}
+              </motion.div>
+            ))}
+          </motion.div>
+        ) : (
+          <div className="text-center py-8">
+            <p className="text-gray-500">Client logos will be displayed here</p>
+          </div>
+        )}
       </div>
     </section>
   );
