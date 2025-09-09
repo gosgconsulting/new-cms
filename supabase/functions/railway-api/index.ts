@@ -87,7 +87,10 @@ serve(async (req) => {
         console.log('GraphQL Response:', {
           status: response.status,
           statusText: response.statusText,
-          headers: Object.fromEntries(response.headers.entries())
+          headers: Object.fromEntries(response.headers.entries()),
+          rateLimitLimit: response.headers.get('X-RateLimit-Limit'),
+          rateLimitRemaining: response.headers.get('X-RateLimit-Remaining'),
+          rateLimitReset: response.headers.get('X-RateLimit-Reset')
         });
 
         if (!response.ok) {
