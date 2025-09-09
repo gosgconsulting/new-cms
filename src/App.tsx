@@ -23,6 +23,7 @@ import Blog from "./pages/Blog";
 import BlogArchive from "./pages/BlogArchive";
 import BlogPost from "./pages/BlogPost";
 import Auth from "./pages/Auth";
+import Dashboard from "./pages/Dashboard";
 import WebsiteDesignServices from "./pages/services/WebsiteDesignServices";
 import SEOServices from "./pages/services/SEOServices";
 import PaidAdvertisingServices from "./pages/services/PaidAdvertisingServices";
@@ -74,6 +75,7 @@ const AppContent = () => {
         <Route path="/blog/archive" element={<BlogArchive />} />
         <Route path="/blog/:slug" element={<BlogPost />} />
         <Route path="/customizer" element={<CustomDashboard />} />
+        <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/admin" element={<Admin />} />
         <Route path="/auth" element={<Auth />} />
         <Route path="/terms/website-design" element={<WebsiteDesignServices />} />
