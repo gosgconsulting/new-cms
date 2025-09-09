@@ -73,8 +73,8 @@ const Dashboard = () => {
   };
 
   const getProjectServiceCount = (projectId: string): number => {
-    const project = costData.find(c => c.projectId === projectId);
-    return project?.services.length || 0;
+    const project = projects.find(p => p.id === projectId);
+    return (project as any)?.servicesCount || 0;
   };
 
   const formatCurrency = (amount: number) => {
