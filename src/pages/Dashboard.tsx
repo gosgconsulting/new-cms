@@ -50,8 +50,11 @@ const Dashboard = () => {
       if (projectsData.length > 0) {
         setSelectedProject(projectsData[0].id);
       }
+      setLoading(false);
     } catch (error) {
       console.error('Failed to load projects:', error);
+      setLoading(false);
+      // Show error state instead of using mock data
     }
   };
 
@@ -92,6 +95,44 @@ const Dashboard = () => {
     const variation = 1 + (Math.random() * 0.2 + 0.1);
     return currentCost * variation;
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="container mx-auto px-4 pt-32">
+          <div className="text-center">
+            <h1 className="text-3xl font-bold mb-4">Railway Dashboard</h1>
+            <p className="text-muted-foreground">Loading your Railway projects...</p>
+            <div className="mt-8 space-y-4 max-w-md mx-auto">
+              {[...Array(3)].map((_, i) => (
+                <Skeleton key={i} className="h-12 w-full" />
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (projects.length === 0) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="container mx-auto px-4 pt-32">
+          <div className="text-center">
+            <h1 className="text-3xl font-bold mb-4">Railway Dashboard</h1>
+            <p className="text-muted-foreground mb-4">
+              No Railway projects found or unable to connect to Railway API.
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Please ensure your Railway API token is configured correctly.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">

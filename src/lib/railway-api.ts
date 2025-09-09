@@ -41,82 +41,17 @@ export interface RailwayCostData {
   totalCost: number;
 }
 
-// Mock data for development - replace with actual API calls
-export const mockProjects: RailwayProject[] = [
+// Mock data for development - fallback only if API fails
+const mockProjects: RailwayProject[] = [
   {
-    id: "proj_1",
-    name: "Client Website - ABC Corp",
-    description: "Production website hosting",
+    id: "proj_fallback_1",
+    name: "Fallback Project 1",
+    description: "API connection failed - using fallback data",
     createdAt: "2024-01-15T10:00:00Z"
-  },
-  {
-    id: "proj_2", 
-    name: "E-commerce Store - XYZ Ltd",
-    description: "Online store with database",
-    createdAt: "2024-02-01T14:30:00Z"
   }
 ];
 
-export const mockCostData: { [key: string]: RailwayCostData[] } = {
-  "proj_1": [
-    {
-      projectId: "proj_1",
-      month: "December",
-      year: 2024,
-      services: [
-        {
-          serviceId: "svc_1",
-          serviceName: "Web Server",
-          metrics: {
-            compute: { cpuHours: 720, memorySizeMB: 512, cost: 15.60 },
-            storage: { sizeGB: 10, cost: 2.50 },
-            network: { inboundGB: 50, outboundGB: 25, cost: 1.25 },
-            total: 19.35
-          }
-        },
-        {
-          serviceId: "svc_2", 
-          serviceName: "Database",
-          metrics: {
-            compute: { cpuHours: 720, memorySizeMB: 256, cost: 7.80 },
-            storage: { sizeGB: 5, cost: 1.25 },
-            network: { inboundGB: 10, outboundGB: 5, cost: 0.25 },
-            total: 9.30
-          }
-        }
-      ],
-      totalCost: 28.65
-    },
-    {
-      projectId: "proj_1",
-      month: "November", 
-      year: 2024,
-      services: [
-        {
-          serviceId: "svc_1",
-          serviceName: "Web Server",
-          metrics: {
-            compute: { cpuHours: 720, memorySizeMB: 512, cost: 15.60 },
-            storage: { sizeGB: 8, cost: 2.00 },
-            network: { inboundGB: 42, outboundGB: 18, cost: 1.00 },
-            total: 18.60
-          }
-        },
-        {
-          serviceId: "svc_2",
-          serviceName: "Database", 
-          metrics: {
-            compute: { cpuHours: 720, memorySizeMB: 256, cost: 7.80 },
-            storage: { sizeGB: 4, cost: 1.00 },
-            network: { inboundGB: 8, outboundGB: 3, cost: 0.18 },
-            total: 8.98
-          }
-        }
-      ],
-      totalCost: 27.58
-    }
-  ]
-};
+const mockCostData: { [key: string]: RailwayCostData[] } = {};
 
 export class RailwayAPI {
   private supabaseUrl: string;
@@ -149,9 +84,8 @@ export class RailwayAPI {
 
       return data.projects || [];
     } catch (error) {
-      console.error('Failed to fetch projects:', error);
-      // Fallback to mock data on error
-      return mockProjects;
+      console.error('Failed to fetch projects from Railway API:', error);
+      throw error; // Don't fallback to mock data, let the UI handle the error
     }
   }
 
@@ -181,10 +115,8 @@ export class RailwayAPI {
 
       return data.costData || [];
     } catch (error) {
-      console.error('Failed to fetch project costs:', error);
-      // Fallback to mock data on error
-      const data = mockCostData[projectId] || [];
-      return data.slice(0, months);
+      console.error('Failed to fetch project costs from Railway API:', error);
+      throw error; // Don't fallback to mock data, let the UI handle the error
     }
   }
 
