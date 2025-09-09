@@ -1,1 +1,4 @@
 project_id = "eajxlakosmxdjyjczdwq"
+
+[functions.railway-api]
+verify_jwt = false

@@ -119,29 +119,73 @@ export const mockCostData: { [key: string]: RailwayCostData[] } = {
 };
 
 export class RailwayAPI {
-  private apiKey: string;
-  private baseUrl: string;
+  private supabaseUrl: string;
+  private supabaseAnonKey: string;
 
-  constructor(apiKey: string = 'mock-key') {
-    this.apiKey = apiKey;
-    this.baseUrl = 'https://backboard.railway.app/graphql';
+  constructor() {
+    this.supabaseUrl = 'https://eajxlakosmxdjyjczdwq.supabase.co';
+    this.supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVhanhsYWtvc214ZGp5amN6ZHdxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI2NDY1MjAsImV4cCI6MjA2ODIyMjUyMH0.eTAy9aR6qD7OfnM-tM2w4XWGM4U0eMdog4rjyXnx76g';
   }
 
   async getProjects(): Promise<RailwayProject[]> {
-    // Mock implementation - replace with actual API call
-    return new Promise((resolve) => {
-      setTimeout(() => resolve(mockProjects), 500);
-    });
+    try {
+      const response = await fetch(`${this.supabaseUrl}/functions/v1/railway-api`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.supabaseAnonKey}`,
+        },
+        body: JSON.stringify({ action: 'getProjects' }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      return data.projects || [];
+    } catch (error) {
+      console.error('Failed to fetch projects:', error);
+      // Fallback to mock data on error
+      return mockProjects;
+    }
   }
 
   async getProjectCosts(projectId: string, months: number = 6): Promise<RailwayCostData[]> {
-    // Mock implementation - replace with actual API call
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const data = mockCostData[projectId] || [];
-        resolve(data.slice(0, months));
-      }, 800);
-    });
+    try {
+      const response = await fetch(`${this.supabaseUrl}/functions/v1/railway-api`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.supabaseAnonKey}`,
+        },
+        body: JSON.stringify({ 
+          action: 'getProjectCosts', 
+          projectId,
+          months 
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      return data.costData || [];
+    } catch (error) {
+      console.error('Failed to fetch project costs:', error);
+      // Fallback to mock data on error
+      const data = mockCostData[projectId] || [];
+      return data.slice(0, months);
+    }
   }
 
   async getMonthlyUsage(projectId: string, month: string, year: number): Promise<RailwayCostData | null> {
