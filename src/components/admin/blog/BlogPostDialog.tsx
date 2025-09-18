@@ -13,19 +13,17 @@ type BlogPostStatus = 'draft' | 'published' | 'archived';
 
 interface Category {
   id: string;
-  tenant_id: string;
   name: string;
   slug: string;
   description: string | null;
-  created_at: string;
+  color: string;
 }
 
 interface Tag {
   id: string;
-  tenant_id: string;
   name: string;
   slug: string;
-  created_at: string;
+  color: string;
 }
 
 interface FormData {

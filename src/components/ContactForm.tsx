@@ -22,25 +22,13 @@ const ContactForm = () => {
     try {
       console.log("Submitting form with data:", { name, email, message });
       
-      // Get the default tenant ID for now
-      const { data: tenantData } = await supabase
-        .from('tenants')
-        .select('id')
-        .eq('subdomain', 'default')
-        .single();
-
-      if (!tenantData) {
-        throw new Error('Default tenant not found');
-      }
-
       const { error } = await supabase
-        .from('contact_forms')
+        .from('form_submissions')
         .insert({
-          tenant_id: tenantData.id,
           name,
           email,
           message,
-          form_type: 'contact'
+          form_type: 'Contact Form'
         });
 
       if (error) {
@@ -70,7 +58,7 @@ const ContactForm = () => {
   };
 
   return (
-    <section id="contact-form" className="py-20 px-4">
+    <section className="py-20 px-4">
       <div className="container mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
           <motion.div
@@ -78,6 +66,12 @@ const ContactForm = () => {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6 }}
           >
+            <h2 className="text-3xl md:text-4xl font-bold mb-6">Get In Touch</h2>
+            <p className="text-lg text-muted-foreground mb-8">
+              Have questions about our services or want to discuss your marketing needs? 
+              Fill out the form, and we'll get back to you shortly.
+            </p>
+            
             <div className="space-y-6 mb-8">
               <div className="flex items-center">
                 <Phone className="h-5 w-5 mr-3 text-coral" />

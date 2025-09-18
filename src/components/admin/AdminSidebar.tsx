@@ -8,8 +8,7 @@ import {
   Settings,
   Plug,
   BookOpen,
-  Palette,
-  Briefcase
+  Palette
 } from "lucide-react";
 
 interface AdminSidebarProps {
@@ -33,11 +32,6 @@ const AdminSidebar = ({ activeSection, onSectionChange }: AdminSidebarProps) => 
       id: "blog",
       label: "Blog Manager",
       icon: BookOpen,
-    },
-    {
-      id: "services",
-      label: "Services",
-      icon: Briefcase,
     },
     {
       id: "forms",

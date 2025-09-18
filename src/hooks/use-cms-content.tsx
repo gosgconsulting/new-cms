@@ -1,5 +1,6 @@
-// Temporarily disabled CMS content functionality until cms_content table is created
+
 import { useState, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface CMSContent {
   id: string;
@@ -17,13 +18,69 @@ export const useCMSContent = (pageId: string) => {
   const [isLoading, setIsLoading] = useState(false);
 
   const loadContent = useCallback(async () => {
-    // Temporarily disabled - return empty content
-    setIsLoading(false);
+    try {
+      setIsLoading(true);
+      const { data, error } = await supabase
+        .from('cms_content')
+        .select('*')
+        .eq('page_id', pageId);
+
+      if (error) {
+        console.error('Error loading CMS content:', error);
+        return;
+      }
+
+      const contentMap: Record<string, CMSContent> = {};
+      data?.forEach((item) => {
+        contentMap[item.element_id] = item as CMSContent;
+      });
+      
+      setContent(contentMap);
+    } catch (error) {
+      console.error('Error loading content:', error);
+    } finally {
+      setIsLoading(false);
+    }
   }, [pageId]);
 
   const saveContent = useCallback(async (elementId: string, elementType: string, newContent: any) => {
-    // Temporarily disabled
-    return false;
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return false;
+
+      const contentData = {
+        page_id: pageId,
+        element_id: elementId,
+        element_type: elementType,
+        content: newContent,
+        updated_by: user.id
+      };
+
+      const { data, error } = await supabase
+        .from('cms_content')
+        .upsert(contentData, {
+          onConflict: 'page_id,element_id'
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error saving content:', error);
+        return false;
+      }
+
+      if (data) {
+        setContent(prev => ({
+          ...prev,
+          [elementId]: data as CMSContent
+        }));
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error saving content:', error);
+      return false;
+    }
   }, [pageId]);
 
   const getContent = useCallback((elementId: string) => {

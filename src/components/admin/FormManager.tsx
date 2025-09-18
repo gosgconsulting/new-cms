@@ -25,13 +25,13 @@ import { useToast } from "@/hooks/use-toast";
 
 interface FormSubmission {
   id: string;
-  tenant_id: string;
   name: string;
   email: string;
   message: string;
   form_type: string;
   status: string;
   created_at: string;
+  updated_at: string;
 }
 
 const FormManager = () => {
@@ -45,7 +45,7 @@ const FormManager = () => {
     try {
       console.log("Fetching form submissions...");
       const { data, error } = await supabase
-        .from('contact_forms')
+        .from('form_submissions')
         .select('*')
         .order('created_at', { ascending: false });
 
@@ -95,7 +95,7 @@ const FormManager = () => {
     try {
       console.log("Updating submission status:", { id, newStatus });
       const { error } = await supabase
-        .from('contact_forms')
+        .from('form_submissions')
         .update({ status: newStatus })
         .eq('id', id);
 

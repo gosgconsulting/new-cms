@@ -1,13 +1,16 @@
+
 import { useEffect } from "react";
 import HeroSection from "@/components/HeroSection";
+import ServicesSection from "@/components/ServicesSection";
+import WhyChooseUsSection from "@/components/WhyChooseUsSection";
 import CTASection from "@/components/CTASection";
+import WhatsAppButton from "@/components/WhatsAppButton";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import ClientLogos from "@/components/ClientLogos";
+import TestimonialsCarousel from "@/components/TestimonialsCarousel";
 import FAQAccordion from "@/components/FAQAccordion";
-import ScrollTransition from "@/components/ScrollTransition";
-import ModernServicesSection from "@/components/ModernServicesSection";
-import UnifiedReviewsSection from "@/components/UnifiedReviewsSection";
-import TabbedNewsSection from "@/components/TabbedNewsSection";
+import StatsCounter from "@/components/StatsCounter";
 
 /**
  * WordPress Theme Template: Home/Front Page
@@ -57,19 +60,23 @@ const Index = () => {
       
       {/* WordPress: Page content sections - each can be a template part */}
       <main className="flex-grow">
-        {/* WordPress: Hero section with scroll transition effect */}
-        <ScrollTransition>
-          <HeroSection />
-        </ScrollTransition>
+        {/* WordPress: Hero section - template-parts/home/hero.php */}
+        <HeroSection />
         
-        {/* Modern Services Section */}
-        <ModernServicesSection />
+        {/* WordPress: Client logos section - template-parts/home/client-logos.php */}
+        <ClientLogos />
         
-        {/* Unified Reviews Section with tabs */}
-        <UnifiedReviewsSection />
+        {/* WordPress: Services section - template-parts/home/services.php */}
+        <ServicesSection />
         
-        {/* Tabbed News Section */}
-        <TabbedNewsSection />
+        {/* WordPress: Stats counter section - template-parts/home/stats.php */}
+        <StatsCounter />
+        
+        {/* WordPress: Testimonials section - template-parts/home/testimonials.php */}
+        <TestimonialsCarousel />
+        
+        {/* WordPress: Why choose us section - template-parts/home/why-choose-us.php */}
+        <WhyChooseUsSection />
         
         {/* WordPress: FAQ section - template-parts/home/faq.php
              FAQs would be stored as custom post type or ACF repeater field */}
@@ -84,6 +91,9 @@ const Index = () => {
       
       {/* WordPress: footer.php */}
       <Footer />
+      
+      {/* WordPress: This could be included in footer.php or as a separate template part */}
+      <WhatsAppButton />
     </div>
   );
 };

@@ -1,57 +1,57 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    /* GO SG Brand - Core Colors (HSL format) */
-    --go-sg-deep-blue: 210 100% 12%;
-    --go-sg-coral: 5 88% 62%;
-    --go-sg-purple: 270 70% 60%;
-    --go-sg-teal: 174 80% 45%;
-    --go-sg-gold: 36 100% 65%;
-    
-    /* Semantic Design System Colors */
-    --background: 0 0% 98%;
-    --foreground: var(--go-sg-deep-blue);
+    --background: 0 0% 96%;
+    --foreground: 210 100% 12%;
 
     --card: 0 0% 100%;
-    --card-foreground: var(--go-sg-deep-blue);
+    --card-foreground: 210 100% 12%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: var(--go-sg-deep-blue);
+    --popover-foreground: 210 100% 12%;
 
-    --primary: var(--go-sg-purple);
+    --primary: 270 70% 60%;
     --primary-foreground: 0 0% 98%;
 
-    --secondary: 210 50% 95%;
-    --secondary-foreground: var(--go-sg-deep-blue);
+    --secondary: 210 50% 90%;
+    --secondary-foreground: 210 100% 12%;
 
-    --muted: 210 40% 96%;
-    --muted-foreground: 210 40% 45%;
+    --muted: 210 50% 90%;
+    --muted-foreground: 210 50% 40%;
 
-    --accent: var(--go-sg-coral);
-    --accent-foreground: 0 0% 98%;
+    --accent: 210 50% 90%;
+    --accent-foreground: 210 100% 12%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 210 30% 85%;
-    --input: 210 30% 90%;
-    --ring: var(--go-sg-purple);
+    --border: 210 50% 85%;
+    --input: 210 50% 85%;
+    --ring: 270 70% 60%;
 
-    /* GO SG Brand Extensions */
-    --brand-teal: var(--go-sg-teal);
-    --brand-blue: var(--go-sg-deep-blue);
-    --brand-gold: var(--go-sg-gold);
-    --brand-purple: var(--go-sg-purple);
-    --coral: var(--go-sg-coral);
+    /* Additional brand colors */
+    --brand-teal: 174 80% 45%;
+    --brand-blue: 210 100% 50%;
+    --brand-gold: 36 100% 65%; 
+    --brand-purple: 270 70% 60%;
+    --coral: 5 88% 62%;
 
-    /* Surface Colors */
-    --surface: 0 0% 100%;
-    --surface-variant: 210 20% 97%;
-    --on-surface: var(--go-sg-deep-blue);
-    --on-surface-variant: 210 30% 35%;
+    /* Global theme variables (customizable) */
+    --brand-primary: #9b87f5;
+    --brand-secondary: #7E69AB;
+    --brand-accent: #F94E40;
+    --brand-background: #FFFFFF;
+    --brand-text: #333333;
+    
+    /* Enhanced color variables for advanced styling */
+    --gradient-start: #9b87f5;
+    --gradient-end: #7E69AB;
+    --label-color: #666666;
+    --footer-dark-text: #FFFFFF;
     
     /* Global typography variables */
     --font-heading: "Inter", sans-serif;
@@ -64,39 +64,33 @@
   }
 
   .dark {
-    --background: var(--go-sg-deep-blue);
+    --background: 210 100% 12%;
     --foreground: 0 0% 98%;
 
-    --card: 210 100% 8%;
+    --card: 210 100% 10%;
     --card-foreground: 0 0% 98%;
 
-    --popover: 210 100% 8%;
+    --popover: 210 100% 10%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: var(--go-sg-purple);
+    --primary: 270 70% 60%;
     --primary-foreground: 0 0% 98%;
 
-    --secondary: 210 100% 15%;
+    --secondary: 210 100% 18%;
     --secondary-foreground: 0 0% 98%;
 
-    --muted: 210 50% 20%;
+    --muted: 210 50% 25%;
     --muted-foreground: 0 0% 83%;
 
-    --accent: var(--go-sg-coral);
+    --accent: 210 50% 25%;
     --accent-foreground: 0 0% 98%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 210 50% 15%;
-    --input: 210 50% 15%;
-    --ring: var(--go-sg-purple);
-
-    /* Dark mode surfaces */
-    --surface: 210 100% 8%;
-    --surface-variant: 210 50% 12%;
-    --on-surface: 0 0% 98%;
-    --on-surface-variant: 0 0% 80%;
+    --border: 210 50% 18%;
+    --input: 210 50% 18%;
+    --ring: 270 70% 60%;
   }
 }
 
@@ -108,16 +102,19 @@
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
+    /* Apply global typography variables */
     font-family: var(--font-body);
     font-size: var(--font-base-size);
     font-weight: var(--font-body-weight);
+    color: var(--brand-text);
+    background-color: var(--brand-background);
   }
 
-  /* Apply semantic typography to headings */
+  /* Apply global typography to headings */
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading);
     font-weight: var(--font-heading-weight);
-    @apply text-foreground;
+    color: var(--brand-text);
   }
 
   /* Global button styles using brand colors */
@@ -404,65 +401,4 @@
   background-clip: text;
   -webkit-background-clip: text;
   color: transparent;
-}
-
-/* Stars background animation */
-.stars-bg {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-image: 
-    radial-gradient(2px 2px at 20px 30px, #ffffff, rgba(0,0,0,0)),
-    radial-gradient(2px 2px at 40px 70px, #ffffff, rgba(0,0,0,0)),
-    radial-gradient(2px 2px at 50px 160px, #ffffff, rgba(0,0,0,0)),
-    radial-gradient(2px 2px at 90px 40px, #ffffff, rgba(0,0,0,0)),
-    radial-gradient(2px 2px at 130px 80px, #ffffff, rgba(0,0,0,0)),
-    radial-gradient(2px 2px at 160px 120px, #ffffff, rgba(0,0,0,0));
-  background-repeat: repeat;
-  background-size: 200px 200px;
-  opacity: 0.3;
-  animation: stars-move 100s linear infinite;
-}
-
-@keyframes stars-move {
-  0% {
-    background-position: 0 0;
-  }
-  100% {
-    background-position: 400px 400px;
-  }
-}
-
-/* Scrollbar hide utilities */
-.scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
-}
-
-/* Enhanced 3D scroll transition effects */
-.scroll-transition {
-  transform-style: preserve-3d;
-  backface-visibility: hidden;
-  will-change: transform;
-}
-
-/* Line clamp utilities */
-.line-clamp-2 {
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-}
-
-.line-clamp-3 {
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
 }

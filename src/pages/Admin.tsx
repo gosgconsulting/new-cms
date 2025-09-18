@@ -7,7 +7,6 @@ import BlogManager from "@/components/admin/BlogManager";
 import FormManager from "@/components/admin/FormManager";
 import IntegrationsManager from "@/components/admin/IntegrationsManager";
 import DashboardOverview from "@/components/admin/DashboardOverview";
-import ServicesManager from "@/components/admin/ServicesManager";
 import CustomDashboard from "@/components/dashboard/CustomDashboard";
 
 const Admin = () => {
@@ -33,8 +32,6 @@ const Admin = () => {
         return <PageManager />;
       case "blog":
         return <BlogManager />;
-      case "services":
-        return <ServicesManager />;
       case "forms":
         return <FormManager />;
       case "customizer":

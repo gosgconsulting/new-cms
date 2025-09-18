@@ -36,11 +36,11 @@ export const useCMSAuth = () => {
       const { data: { user: authUser } } = await supabase.auth.getUser();
       
       if (authUser) {
-        // Get user role from the user_profiles table
+        // Get user role from the users table
         const { data: userData, error } = await supabase
-          .from('user_profiles')
+          .from('users')
           .select('id, email, role')
-          .eq('user_id', authUser.id)
+          .eq('id', authUser.id)
           .single();
 
         if (error) {

@@ -14,20 +14,16 @@ import { Edit, Trash2, Eye } from "lucide-react";
 
 interface BlogPost {
   id: string;
-  tenant_id: string;
-  author_id: string | null;
   title: string;
   slug: string;
   content: string;
   excerpt: string | null;
   featured_image: string | null;
+  author: string;
   status: 'draft' | 'published' | 'archived';
   published_at: string | null;
   created_at: string;
   updated_at: string;
-  meta_title: string | null;
-  meta_description: string | null;
-  meta_keywords: string | null;
 }
 
 interface BlogPostTableProps {
@@ -77,7 +73,7 @@ const BlogPostTable: React.FC<BlogPostTableProps> = ({
                 {post.status}
               </Badge>
             </TableCell>
-            <TableCell>{post.author_id || 'Unknown'}</TableCell>
+            <TableCell>{post.author}</TableCell>
             <TableCell>{new Date(post.created_at).toLocaleDateString()}</TableCell>
             <TableCell>
               <div className="flex space-x-2">

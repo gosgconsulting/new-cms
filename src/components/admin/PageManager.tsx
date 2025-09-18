@@ -1,116 +1,117 @@
 import React, { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Edit, ExternalLink, Eye, Settings, FileText, Copy } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { useWordPressPages } from "@/hooks/use-wordpress";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Edit, Eye, Plus, Copy, FileText } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import PageContentEditor from "./PageContentEditor";
 
 const PageManager = () => {
+  const [pages, setPages] = useState([
+    {
+      id: 1,
+      title: "Home",
+      slug: "/",
+      metaTitle: "GO SG - Digital Marketing Agency Singapore",
+      metaDescription: "Leading digital marketing agency in Singapore offering SEO, web design, and paid advertising services.",
+      status: "published",
+      lastModified: "2024-01-15"
+    },
+    {
+      id: 2,
+      title: "Website Design",
+      slug: "/services/website-design",
+      metaTitle: "Website Design Services Singapore | GO SG",
+      metaDescription: "Professional website design and development services in Singapore. Custom, responsive websites that convert.",
+      status: "published",
+      lastModified: "2024-01-14"
+    },
+    {
+      id: 3,
+      title: "SEO Services",
+      slug: "/services/seo",
+      metaTitle: "SEO Services Singapore | Search Engine Optimization",
+      metaDescription: "Boost your website rankings with our expert SEO services in Singapore. Increase organic traffic and visibility.",
+      status: "published",
+      lastModified: "2024-01-13"
+    },
+    {
+      id: 4,
+      title: "Contact",
+      slug: "/contact",
+      metaTitle: "Contact GO SG | Digital Marketing Agency Singapore",
+      metaDescription: "Get in touch with GO SG for your digital marketing needs. We're here to help grow your business online.",
+      status: "published",
+      lastModified: "2024-01-12"
+    }
+  ]);
+
   const [editingPage, setEditingPage] = useState<any>(null);
   const [contentEditingPage, setContentEditingPage] = useState<any>(null);
 
-  // Fetch WordPress pages
-  const { data: wordpressPages, isLoading, error } = useWordPressPages();
-
-  // Static pages configuration
-  const staticPages = [
-    {
-      id: 'home',
-      title: 'Homepage',
-      path: '/',
-      component: 'Index.tsx',
-      description: 'Main landing page with hero, services, and testimonials',
-      status: 'active',
-      wordpress_manageable: true,
-    },
-    {
-      id: 'contact',
-      title: 'Contact',
-      path: '/contact',
-      component: 'Contact.tsx',
-      description: 'Contact form and business information',
-      status: 'active',
-      wordpress_manageable: true,
-    },
-    {
-      id: 'website-design',
-      title: 'Website Design Services',
-      path: '/services/website-design',
-      component: 'WebsiteDesignServices.tsx',
-      description: 'Website design service details and case studies',
-      status: 'active',
-      wordpress_manageable: true,
-    },
-    {
-      id: 'seo-services',
-      title: 'SEO Services',
-      path: '/services/seo',
-      component: 'SEOServices.tsx',
-      description: 'SEO service details and optimization strategies',
-      status: 'active',
-      wordpress_manageable: true,
-    },
-    {
-      id: 'paid-advertising',
-      title: 'Paid Advertising Services',
-      path: '/services/paid-advertising',
-      component: 'PaidAdvertisingServices.tsx',
-      description: 'PPC and paid advertising campaign services',
-      status: 'active',
-      wordpress_manageable: true,
-    },
-    {
-      id: 'cloud-hosting',
-      title: 'Cloud Hosting Services',
-      path: '/services/cloud-hosting',
-      component: 'CloudHostingServices.tsx',
-      description: 'Cloud hosting and infrastructure services',
-      status: 'active',
-      wordpress_manageable: true,
-    },
-  ];
-
   const templates = [
     {
-      id: 'homepage',
-      name: 'Homepage Template',
-      description: 'Corporate homepage with hero, services, testimonials',
-      viewUrl: '/templates/homepage',
-      previewImage: '/public/lovable-uploads/35e0c5a6-18b6-412a-ac65-0197f19f1dfc.png',
+      id: "homepage",
+      name: "Homepage Template",
+      description: "Complete homepage with hero section, services carousel, testimonials, and CTA",
+      viewUrl: "/templates/homepage",
+      preview: {
+        hero: "Your Main Headline Here",
+        services: ["Service 1", "Service 2", "Service 3", "Service 4"],
+        features: ["Feature/Benefit 1", "Feature/Benefit 2", "Feature/Benefit 3"],
+        cta: "Your Call to Action"
+      }
     },
     {
-      id: 'landing',
-      name: 'Landing Page Template',
-      description: 'Conversion-focused landing page',
-      viewUrl: '/templates/landing-page',
-      previewImage: '/public/lovable-uploads/d2d7d623-f729-433e-b350-0e40b4a32b91.png',
+      id: "landing",
+      name: "Landing Page Template", 
+      description: "Focused landing page with hero, benefits, testimonials, and conversion CTA",
+      viewUrl: "/templates/landing-page",
+      preview: {
+        hero: "Landing Page Headline",
+        benefits: ["Key Benefit 1", "Key Benefit 2", "Key Benefit 3"],
+        features: ["Feature 1", "Feature 2", "Feature 3"],
+        cta: "Convert Now"
+      }
     },
     {
-      id: 'contact',
-      name: 'Contact Template',
-      description: 'Contact page with form and location info',
-      viewUrl: '/templates/contact',
-      previewImage: '/public/lovable-uploads/d6e7a1ca-229a-4c34-83fc-e9bdf106b683.png',
-    },
+      id: "contact",
+      name: "Contact Page Template",
+      description: "Contact page with form, location info, and contact details",
+      viewUrl: "/templates/contact",
+      preview: {
+        hero: "Get In Touch",
+        sections: ["Contact Form", "Office Location", "Contact Information"],
+        cta: "Send Message"
+      }
+    }
   ];
 
   const handleEditPage = (page: any) => {
-    setEditingPage(page);
+    setEditingPage({ ...page });
   };
 
   const handleSavePage = () => {
-    // Implement page saving logic
-    setEditingPage(null);
+    if (editingPage) {
+      setPages(pages.map(page => 
+        page.id === editingPage.id ? editingPage : page
+      ));
+      setEditingPage(null);
+    }
   };
 
   const handleCreateFromTemplate = (templateId: string) => {
-    // Implement template creation logic
-    console.log('Creating page from template:', templateId);
+    console.log(`Creating page from template: ${templateId}`);
+    // In a real implementation, this would create a new page based on the template
   };
 
   const handleViewTemplate = (viewUrl: string) => {
@@ -121,195 +122,219 @@ const PageManager = () => {
     setContentEditingPage(page);
   };
 
-  const handleConnectWordPress = () => {
-    // This would open a configuration modal for WordPress connection
-    console.log('Opening WordPress connection dialog');
-  };
-
-  if (isLoading) {
-    return (
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h2 className="text-2xl font-bold">Page Management</h2>
-        </div>
-        <div className="text-center py-8">Loading WordPress pages...</div>
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Page Management</h2>
-        <div className="space-x-2">
-          <Button onClick={handleConnectWordPress} variant="outline">
-            <Settings className="h-4 w-4 mr-2" />
-            Configure WordPress
-          </Button>
-          <Button>
-            <Plus className="h-4 w-4 mr-2" />
-            New Page
-          </Button>
+    <div>
+      <div className="flex justify-between items-center mb-8">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Page Manager</h1>
+          <p className="text-gray-600 mt-2">Manage your website pages and SEO settings</p>
         </div>
+        <Button>
+          <Plus className="h-4 w-4 mr-2" />
+          Add New Page
+        </Button>
       </div>
 
-      <Tabs defaultValue="react-pages" className="w-full">
+      <Tabs defaultValue="pages" className="w-full">
         <TabsList>
-          <TabsTrigger value="react-pages">React Pages</TabsTrigger>
-          <TabsTrigger value="wordpress-pages">WordPress Pages</TabsTrigger>
+          <TabsTrigger value="pages">All Pages</TabsTrigger>
           <TabsTrigger value="templates">Templates</TabsTrigger>
         </TabsList>
-
-        <TabsContent value="react-pages" className="space-y-4">
-          <div className="grid gap-4">
-            {staticPages.map((page) => (
-              <Card key={page.id}>
-                <CardHeader>
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <CardTitle className="flex items-center gap-2">
-                        {page.title}
-                        <Badge variant={page.status === 'active' ? 'default' : 'secondary'}>
-                          {page.status}
-                        </Badge>
-                        {page.wordpress_manageable && (
-                          <Badge variant="outline">WP Ready</Badge>
-                        )}
-                      </CardTitle>
-                      <CardDescription>{page.description}</CardDescription>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Path: {page.path} • Component: {page.component}
-                      </p>
-                    </div>
-                    <div className="flex space-x-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => window.open(page.path, '_blank')}
-                      >
-                        <ExternalLink className="h-4 w-4" />
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => handleEditContent(page)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => handleEditPage(page)}
-                      >
-                        <Settings className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardHeader>
-              </Card>
-            ))}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="wordpress-pages" className="space-y-4">
-          {error ? (
-            <Card>
-              <CardContent className="pt-6">
-                <div className="text-center">
-                  <p className="text-muted-foreground mb-4">
-                    Unable to connect to WordPress. Please configure your WordPress connection.
-                  </p>
-                  <Button onClick={handleConnectWordPress}>
-                    <Settings className="h-4 w-4 mr-2" />
-                    Configure WordPress Connection
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ) : wordpressPages && wordpressPages.length > 0 ? (
-            <div className="grid gap-4">
-              {wordpressPages.map((page) => (
-                <Card key={page.id}>
-                  <CardHeader>
+        
+        <TabsContent value="pages">
+          <Card>
+            <CardHeader>
+              <CardTitle>All Pages</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {pages.map((page) => (
+                  <div key={page.id} className="border rounded-lg p-4">
                     <div className="flex justify-between items-start">
-                      <div>
-                        <CardTitle className="flex items-center gap-2">
-                          {page.title.rendered}
-                          <Badge variant={page.status === 'publish' ? 'default' : 'secondary'}>
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-3 mb-2">
+                          <h3 className="font-semibold text-lg">{page.title}</h3>
+                          <Badge variant={page.status === 'published' ? 'default' : 'secondary'}>
                             {page.status}
                           </Badge>
-                        </CardTitle>
-                        <CardDescription>
-                          {page.excerpt?.rendered?.replace(/<[^>]*>/g, '').substring(0, 100)}...
-                        </CardDescription>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          Slug: /{page.slug} • Last modified: {new Date(page.modified).toLocaleDateString()}
+                        </div>
+                        <p className="text-sm text-gray-600 mb-1">
+                          <strong>URL:</strong> {page.slug}
+                        </p>
+                        <p className="text-sm text-gray-600 mb-1">
+                          <strong>Meta Title:</strong> {page.metaTitle}
+                        </p>
+                        <p className="text-sm text-gray-600 mb-2">
+                          <strong>Meta Description:</strong> {page.metaDescription}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          Last modified: {page.lastModified}
                         </p>
                       </div>
+                      
                       <div className="flex space-x-2">
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => window.open(page.link, '_blank')}
-                        >
-                          <ExternalLink className="h-4 w-4" />
+                        <Button variant="outline" size="sm">
+                          <Eye className="h-4 w-4" />
                         </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => handleEditContent(page)}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
+                        
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => handleEditContent(page)}
+                            >
+                              <FileText className="h-4 w-4" />
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="max-w-6xl max-h-[95vh] overflow-hidden">
+                            <DialogHeader>
+                              <DialogTitle>Edit Page Content: {page.title}</DialogTitle>
+                            </DialogHeader>
+                            <div className="overflow-y-auto max-h-[80vh]">
+                              {contentEditingPage && (
+                                <PageContentEditor 
+                                  pageTitle={contentEditingPage.title}
+                                  pageId={contentEditingPage.id.toString()}
+                                />
+                              )}
+                            </div>
+                          </DialogContent>
+                        </Dialog>
+                        
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => handleEditPage(page)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="max-w-2xl">
+                            <DialogHeader>
+                              <DialogTitle>Edit Page Settings: {page.title}</DialogTitle>
+                            </DialogHeader>
+                            {editingPage && (
+                              <div className="space-y-4">
+                                <div>
+                                  <label className="block text-sm font-medium mb-2">Page Title</label>
+                                  <Input
+                                    value={editingPage.title}
+                                    onChange={(e) => setEditingPage({
+                                      ...editingPage,
+                                      title: e.target.value
+                                    })}
+                                  />
+                                </div>
+                                
+                                <div>
+                                  <label className="block text-sm font-medium mb-2">Meta Title</label>
+                                  <Input
+                                    value={editingPage.metaTitle}
+                                    onChange={(e) => setEditingPage({
+                                      ...editingPage,
+                                      metaTitle: e.target.value
+                                    })}
+                                  />
+                                </div>
+                                
+                                <div>
+                                  <label className="block text-sm font-medium mb-2">Meta Description</label>
+                                  <Textarea
+                                    value={editingPage.metaDescription}
+                                    onChange={(e) => setEditingPage({
+                                      ...editingPage,
+                                      metaDescription: e.target.value
+                                    })}
+                                    rows={3}
+                                  />
+                                </div>
+                                
+                                <div className="flex justify-end space-x-2">
+                                  <Button variant="outline" onClick={() => setEditingPage(null)}>
+                                    Cancel
+                                  </Button>
+                                  <Button onClick={handleSavePage}>
+                                    Save Changes
+                                  </Button>
+                                </div>
+                              </div>
+                            )}
+                          </DialogContent>
+                        </Dialog>
                       </div>
                     </div>
-                  </CardHeader>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <Card>
-              <CardContent className="pt-6">
-                <div className="text-center">
-                  <p className="text-muted-foreground mb-4">
-                    No WordPress pages found. Create your first page or check your connection.
-                  </p>
-                  <Button onClick={handleConnectWordPress}>
-                    <Settings className="h-4 w-4 mr-2" />
-                    Configure WordPress
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
-
-        <TabsContent value="templates" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {templates.map((template) => (
-              <Card key={template.id}>
-                <CardHeader>
-                  <CardTitle>{template.name}</CardTitle>
-                  <CardDescription>{template.description}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div className="aspect-video bg-muted rounded-md flex items-center justify-center">
-                      <Eye className="h-8 w-8 text-muted-foreground" />
+        
+        <TabsContent value="templates">
+          <Card>
+            <CardHeader>
+              <CardTitle>Page Templates</CardTitle>
+              <p className="text-sm text-gray-600">
+                Pre-built page templates with placeholder content to get you started quickly
+              </p>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {templates.map((template) => (
+                  <div key={template.id} className="border rounded-lg p-6 hover:border-blue-300 transition-colors">
+                    <div className="flex items-center space-x-2 mb-3">
+                      <Copy className="h-5 w-5 text-blue-600" />
+                      <h3 className="font-semibold text-lg">{template.name}</h3>
                     </div>
+                    
+                    <p className="text-sm text-gray-600 mb-4">
+                      {template.description}
+                    </p>
+                    
+                    <div className="bg-gray-50 rounded-md p-3 mb-4">
+                      <h4 className="text-xs font-medium text-gray-700 mb-2">PREVIEW:</h4>
+                      <div className="space-y-1 text-xs text-gray-600">
+                        {template.id === 'homepage' && (
+                          <>
+                            <div>• {template.preview.hero}</div>
+                            <div>• Services: {template.preview.services?.join(', ')}</div>
+                            <div>• Features: {template.preview.features?.join(', ')}</div>
+                            <div>• {template.preview.cta}</div>
+                          </>
+                        )}
+                        {template.id === 'landing' && (
+                          <>
+                            <div>• {template.preview.hero}</div>
+                            <div>• Benefits: {template.preview.benefits?.join(', ')}</div>
+                            <div>• Features: {template.preview.features?.join(', ')}</div>
+                            <div>• {template.preview.cta}</div>
+                          </>
+                        )}
+                        {template.id === 'contact' && (
+                          <>
+                            <div>• {template.preview.hero}</div>
+                            <div>• Sections: {template.preview.sections?.join(', ')}</div>
+                            <div>• {template.preview.cta}</div>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                    
                     <div className="flex space-x-2">
                       <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="flex-1"
+                        className="flex-1" 
+                        variant="outline"
                         onClick={() => handleViewTemplate(template.viewUrl)}
                       >
                         <Eye className="h-4 w-4 mr-2" />
-                        Preview
+                        View
                       </Button>
                       <Button 
-                        size="sm" 
-                        className="flex-1"
+                        className="flex-1" 
+                        variant="outline"
                         onClick={() => handleCreateFromTemplate(template.id)}
                       >
                         <Plus className="h-4 w-4 mr-2" />
@@ -317,58 +342,12 @@ const PageManager = () => {
                       </Button>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
-
-      {/* Edit Page Settings Dialog */}
-      <Dialog open={!!editingPage} onOpenChange={() => setEditingPage(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit Page Settings</DialogTitle>
-          </DialogHeader>
-          {editingPage && (
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium">Page Title</label>
-                <p className="text-sm text-muted-foreground">{editingPage.title}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium">Path</label>
-                <p className="text-sm text-muted-foreground">{editingPage.path}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium">Status</label>
-                <p className="text-sm text-muted-foreground">{editingPage.status}</p>
-              </div>
-              <div className="flex justify-end space-x-2">
-                <Button variant="outline" onClick={() => setEditingPage(null)}>
-                  Cancel
-                </Button>
-                <Button onClick={handleSavePage}>Save Changes</Button>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Edit Page Content Dialog */}
-      <Dialog open={!!contentEditingPage} onOpenChange={() => setContentEditingPage(null)}>
-        <DialogContent className="max-w-4xl">
-          <DialogHeader>
-            <DialogTitle>Edit Page Content</DialogTitle>
-          </DialogHeader>
-          {contentEditingPage && (
-            <PageContentEditor 
-              pageTitle={contentEditingPage.title}
-              pageId={contentEditingPage.id?.toString() || contentEditingPage.slug}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };

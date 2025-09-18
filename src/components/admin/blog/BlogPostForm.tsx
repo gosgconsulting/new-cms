@@ -18,19 +18,17 @@ type BlogPostStatus = 'draft' | 'published' | 'archived';
 
 interface Category {
   id: string;
-  tenant_id: string;
   name: string;
   slug: string;
   description: string | null;
-  created_at: string;
+  color: string;
 }
 
 interface Tag {
   id: string;
-  tenant_id: string;
   name: string;
   slug: string;
-  created_at: string;
+  color: string;
 }
 
 interface FormData {
@@ -198,7 +196,8 @@ const BlogPostForm: React.FC<BlogPostFormProps> = ({
                     className="flex items-center space-x-2"
                   >
                     <div 
-                      className="w-3 h-3 rounded-full bg-blue-500" 
+                      className="w-3 h-3 rounded-full" 
+                      style={{ backgroundColor: category.color }}
                     />
                     <span>{category.name}</span>
                   </Label>
@@ -224,7 +223,8 @@ const BlogPostForm: React.FC<BlogPostFormProps> = ({
                     className="flex items-center space-x-2"
                   >
                     <div 
-                      className="w-3 h-3 rounded-full bg-gray-500" 
+                      className="w-3 h-3 rounded-full" 
+                      style={{ backgroundColor: tag.color }}
                     />
                     <span>{tag.name}</span>
                   </Label>

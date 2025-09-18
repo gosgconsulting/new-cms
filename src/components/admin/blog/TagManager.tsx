@@ -20,9 +20,9 @@ import {
 
 interface Tag {
   id: string;
-  tenant_id: string;
   name: string;
   slug: string;
+  color: string;
   created_at: string;
 }
 
@@ -53,24 +53,9 @@ const TagManager = () => {
 
   const createMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      // Get the default tenant ID for now
-      const { data: tenantData } = await supabase
-        .from('tenants')
-        .select('id')
-        .eq('subdomain', 'default')
-        .single();
-
-      if (!tenantData) {
-        throw new Error('Default tenant not found');
-      }
-
       const { error } = await supabase
         .from('blog_tags')
-        .insert({
-          tenant_id: tenantData.id,
-          name: data.name,
-          slug: data.slug
-        });
+        .insert(data);
       
       if (error) throw error;
     },
@@ -93,10 +78,7 @@ const TagManager = () => {
     mutationFn: async ({ id, data }: { id: string; data: typeof formData }) => {
       const { error } = await supabase
         .from('blog_tags')
-        .update({
-          name: data.name,
-          slug: data.slug
-        })
+        .update(data)
         .eq('id', id);
       
       if (error) throw error;
@@ -167,7 +149,7 @@ const TagManager = () => {
     setFormData({
       name: tag.name,
       slug: tag.slug,
-      color: "#6b7280",
+      color: tag.color,
     });
     setIsEditOpen(true);
   };
@@ -206,7 +188,8 @@ const TagManager = () => {
             <CardContent className="p-4">
               <div className="flex items-center space-x-3">
                 <Badge 
-                  className="flex items-center space-x-2 bg-gray-500 text-white"
+                  className="flex items-center space-x-2"
+                  style={{ backgroundColor: tag.color, color: 'white' }}
                 >
                   <span>{tag.name}</span>
                 </Badge>

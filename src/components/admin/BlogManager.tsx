@@ -17,13 +17,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface BlogPost {
   id: string;
-  tenant_id: string;
-  author_id: string | null;
   title: string;
   slug: string;
   content: string;
   excerpt: string | null;
   featured_image: string | null;
+  author: string;
   status: 'draft' | 'published' | 'archived';
   published_at: string | null;
   created_at: string;
@@ -35,19 +34,17 @@ interface BlogPost {
 
 interface Category {
   id: string;
-  tenant_id: string;
   name: string;
   slug: string;
   description: string | null;
-  created_at: string;
+  color: string;
 }
 
 interface Tag {
   id: string;
-  tenant_id: string;
   name: string;
   slug: string;
-  created_at: string;
+  color: string;
 }
 
 type BlogPostStatus = 'draft' | 'published' | 'archived';
@@ -113,19 +110,7 @@ const BlogManager = () => {
 
   const createPostMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      // Get the default tenant ID for now
-      const { data: tenantData } = await supabase
-        .from('tenants')
-        .select('id')
-        .eq('subdomain', 'default')
-        .single();
-
-      if (!tenantData) {
-        throw new Error('Default tenant not found');
-      }
-
       const postData = {
-        tenant_id: tenantData.id,
         title: data.title,
         slug: data.slug,
         content: data.content,
