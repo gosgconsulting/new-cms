@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { motion, useAnimation } from "framer-motion";
 import { Star } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface Testimonial {
   id: number;
@@ -106,12 +107,12 @@ const TestimonialsCarousel = () => {
   }, [leftControls, rightControls]);
 
   return (
-    <section className="py-20 relative overflow-hidden bg-deepBlue">
+    <section className="py-20 relative overflow-hidden bg-primary">
       {/* Background elements */}
-      <div className="absolute inset-0 bg-gradient-to-tr from-deepBlue via-deepBlue/95 to-deepBlue/90 -z-10"></div>
+      <div className="absolute inset-0 bg-gradient-to-tr from-primary via-primary/95 to-primary/90 -z-10"></div>
       <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5"></div>
-      <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-coral/5 blur-3xl"></div>
-      <div className="absolute -bottom-40 -left-40 w-96 h-96 rounded-full bg-coral/5 blur-3xl"></div>
+      <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-accent/5 blur-3xl"></div>
+      <div className="absolute -bottom-40 -left-40 w-96 h-96 rounded-full bg-accent/5 blur-3xl"></div>
       
       <div className="container mx-auto mb-8 px-4">
         <motion.div 
@@ -121,9 +122,9 @@ const TestimonialsCarousel = () => {
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 text-white">Hear from our customers</h2>
-          <div className="w-20 h-1 bg-coral mx-auto rounded-full mb-6"></div>
-          <p className="text-lg text-white/80 max-w-2xl mx-auto">
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 text-primary-foreground">Hear from our customers</h2>
+          <div className="w-20 h-1 bg-accent mx-auto rounded-full mb-6"></div>
+          <p className="text-lg text-primary-foreground/80 max-w-2xl mx-auto">
             See what our clients have to say about working with GO SG and the results we've delivered.
           </p>
         </motion.div>
@@ -183,52 +184,54 @@ interface TestimonialCardProps {
 
 const TestimonialCard = ({ testimonial }: TestimonialCardProps) => {
   return (
-    <div className="bg-card/10 hover:bg-card/20 backdrop-blur-md border border-white/10 rounded-xl p-6 w-full flex flex-col min-h-[200px]">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center">
-          <Avatar className="h-12 w-12 border-2 border-coral/30">
-            {testimonial.image ? (
-              <AvatarImage src={testimonial.image} alt={testimonial.name} />
-            ) : (
-              <AvatarFallback className="bg-coral/20 text-coral">
-                {testimonial.name.charAt(0)}
-              </AvatarFallback>
-            )}
-          </Avatar>
-          <div className="ml-3">
-            <h4 className="font-semibold text-base text-white">{testimonial.name}</h4>
-            <p className="text-xs text-white/60">
-              {testimonial.role}
-              {testimonial.company && ` at ${testimonial.company}`}
-            </p>
+    <Card className="bg-surface/10 hover:bg-surface/20 backdrop-blur-md border-primary-foreground/10 w-full min-h-[200px] group transition-all duration-300">
+      <CardContent className="p-6 flex flex-col h-full">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center">
+            <Avatar className="h-12 w-12 border-2 border-accent/30">
+              {testimonial.image ? (
+                <AvatarImage src={testimonial.image} alt={testimonial.name} />
+              ) : (
+                <AvatarFallback className="bg-accent/20 text-accent">
+                  {testimonial.name.charAt(0)}
+                </AvatarFallback>
+              )}
+            </Avatar>
+            <div className="ml-3">
+              <h4 className="font-semibold text-base text-primary-foreground">{testimonial.name}</h4>
+              <p className="text-xs text-primary-foreground/60">
+                {testimonial.role}
+                {testimonial.company && ` at ${testimonial.company}`}
+              </p>
+            </div>
+          </div>
+          
+          <div className="flex">
+            {Array(5).fill(0).map((_, i) => (
+              <Star 
+                key={i} 
+                className="h-4 w-4 text-yellow-400" 
+                fill={i < testimonial.rating ? "currentColor" : "none"} 
+              />
+            ))}
           </div>
         </div>
         
-        <div className="flex">
-          {Array(5).fill(0).map((_, i) => (
-            <Star 
-              key={i} 
-              className="h-4 w-4 text-yellow-400" 
-              fill={i < testimonial.rating ? "currentColor" : "none"} 
-            />
-          ))}
-        </div>
-      </div>
-      
-      <div className="relative flex-1 flex flex-col">
-        <div className="absolute -top-3 -left-1 text-coral/20 text-5xl font-serif">
-          "
-        </div>
-        <p className="text-base mb-4 relative z-10 pt-2 text-white/90 flex-1">{testimonial.quote}</p>
-        <div className="mt-auto">
-          <div className="flex justify-end">
-            <span className="text-2xl text-coral/20 font-serif">
-              "
-            </span>
+        <div className="relative flex-1 flex flex-col">
+          <div className="absolute -top-3 -left-1 text-accent/20 text-5xl font-serif">
+            "
+          </div>
+          <p className="text-base mb-4 relative z-10 pt-2 text-primary-foreground/90 flex-1">{testimonial.quote}</p>
+          <div className="mt-auto">
+            <div className="flex justify-end">
+              <span className="text-2xl text-accent/20 font-serif">
+                "
+              </span>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 
