@@ -19,7 +19,7 @@ const Header = () => {
         <div className="flex items-center justify-between">
           {/* Logo */}
           <Link to="/" className="text-3xl font-bold z-10">
-            <span className="text-white">GO</span> <span className="text-accent">SG</span>
+            <span className="text-primary">GO</span> <span className="text-accent">SG</span>
           </Link>
 
           {/* Centered Navigation Menu */}
@@ -27,7 +27,7 @@ const Header = () => {
             <div className="flex items-center space-x-8">
               <Link 
                 to="/" 
-                className="relative text-white/80 hover:text-accent font-medium transition-all duration-300 group"
+                className="relative text-foreground hover:text-accent font-medium transition-all duration-300 group"
               >
                 <span className="relative z-10">Home</span>
                 <span className="absolute inset-0 w-full h-full bg-accent/20 rounded-lg scale-0 group-hover:scale-100 transition-transform duration-300 blur-sm"></span>
@@ -36,7 +36,7 @@ const Header = () => {
               
               <Link 
                 to="/services/website-design" 
-                className="relative text-white/80 hover:text-accent font-medium transition-all duration-300 group"
+                className="relative text-foreground hover:text-accent font-medium transition-all duration-300 group"
               >
                 <span className="relative z-10">Website Design</span>
                 <span className="absolute inset-0 w-full h-full bg-accent/20 rounded-lg scale-0 group-hover:scale-100 transition-transform duration-300 blur-sm"></span>
@@ -45,7 +45,7 @@ const Header = () => {
               
               <Link 
                 to="/services/seo" 
-                className="relative text-white/80 hover:text-accent font-medium transition-all duration-300 group"
+                className="relative text-foreground hover:text-accent font-medium transition-all duration-300 group"
               >
                 <span className="relative z-10">SEO</span>
                 <span className="absolute inset-0 w-full h-full bg-accent/20 rounded-lg scale-0 group-hover:scale-100 transition-transform duration-300 blur-sm"></span>
@@ -54,7 +54,7 @@ const Header = () => {
               
               <Link 
                 to="/services/paid-ads" 
-                className="relative text-white/80 hover:text-accent font-medium transition-all duration-300 group"
+                className="relative text-foreground hover:text-accent font-medium transition-all duration-300 group"
               >
                 <span className="relative z-10">Paid Ads</span>
                 <span className="absolute inset-0 w-full h-full bg-accent/20 rounded-lg scale-0 group-hover:scale-100 transition-transform duration-300 blur-sm"></span>
@@ -63,7 +63,7 @@ const Header = () => {
               
               <Link 
                 to="/services/social-media" 
-                className="relative text-white/80 hover:text-accent font-medium transition-all duration-300 group"
+                className="relative text-foreground hover:text-accent font-medium transition-all duration-300 group"
               >
                 <span className="relative z-10">Social Media</span>
                 <span className="absolute inset-0 w-full h-full bg-accent/20 rounded-lg scale-0 group-hover:scale-100 transition-transform duration-300 blur-sm"></span>
@@ -72,7 +72,7 @@ const Header = () => {
               
               <Link 
                 to="/services/reporting" 
-                className="relative text-white/80 hover:text-accent font-medium transition-all duration-300 group"
+                className="relative text-foreground hover:text-accent font-medium transition-all duration-300 group"
               >
                 <span className="relative z-10">Reporting</span>
                 <span className="absolute inset-0 w-full h-full bg-accent/20 rounded-lg scale-0 group-hover:scale-100 transition-transform duration-300 blur-sm"></span>
@@ -111,37 +111,37 @@ const Header = () => {
         <nav className="md:hidden mt-6 flex flex-wrap justify-center gap-4">
           <Link 
             to="/" 
-            className="text-white/80 hover:text-accent font-medium transition-colors duration-300 px-3 py-1"
+            className="text-foreground hover:text-accent font-medium transition-colors duration-300 px-3 py-1"
           >
             Home
           </Link>
           <Link 
             to="/services/website-design" 
-            className="text-white/80 hover:text-accent font-medium transition-colors duration-300 px-3 py-1"
+            className="text-foreground hover:text-accent font-medium transition-colors duration-300 px-3 py-1"
           >
             Design
           </Link>
           <Link 
             to="/services/seo" 
-            className="text-white/80 hover:text-accent font-medium transition-colors duration-300 px-3 py-1"
+            className="text-foreground hover:text-accent font-medium transition-colors duration-300 px-3 py-1"
           >
             SEO
           </Link>
           <Link 
             to="/services/paid-ads" 
-            className="text-white/80 hover:text-accent font-medium transition-colors duration-300 px-3 py-1"
+            className="text-foreground hover:text-accent font-medium transition-colors duration-300 px-3 py-1"
           >
             Paid Ads
           </Link>
           <Link 
             to="/services/social-media" 
-            className="text-white/80 hover:text-accent font-medium transition-colors duration-300 px-3 py-1"
+            className="text-foreground hover:text-accent font-medium transition-colors duration-300 px-3 py-1"
           >
             Social
           </Link>
           <Link 
             to="/services/reporting" 
-            className="text-white/80 hover:text-accent font-medium transition-colors duration-300 px-3 py-1"
+            className="text-foreground hover:text-accent font-medium transition-colors duration-300 px-3 py-1"
           >
             Reporting
           </Link>
