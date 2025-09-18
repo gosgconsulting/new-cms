@@ -15,7 +15,7 @@ const services = [
     description: 'Boost your organic visibility and rank higher in search results to attract more qualified traffic.',
     image: seoIcon,
     link: '/services/seo',
-    gradient: 'from-teal-400 to-blue-500',
+    gradient: 'from-go-sg-teal to-go-sg-deep-blue',
   },
   {
     title: 'SEM',
@@ -23,7 +23,7 @@ const services = [
     description: 'Drive targeted traffic with strategic paid search campaigns that deliver measurable results.',
     image: semIcon,
     link: '/services/paid-ads',
-    gradient: 'from-purple-500 to-pink-500',
+    gradient: 'from-go-sg-purple to-go-sg-coral',
   },
   {
     title: 'SMA',
@@ -31,7 +31,7 @@ const services = [
     description: 'Reach and engage your audience across all major social media platforms with compelling ads.',
     image: smaIcon,
     link: '/services/social-media',
-    gradient: 'from-orange-400 to-red-500',
+    gradient: 'from-go-sg-coral to-go-sg-gold',
   },
   {
     title: 'Website Design',
@@ -39,7 +39,7 @@ const services = [
     description: 'Create stunning, responsive websites that convert visitors into customers and drive growth.',
     image: websiteIcon,
     link: '/services/website-design',
-    gradient: 'from-green-400 to-teal-500',
+    gradient: 'from-go-sg-teal to-go-sg-purple',
   },
 ];
 
@@ -56,7 +56,7 @@ const ModernServicesSection = () => {
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          <span className="inline-block py-1 px-3 mb-4 bg-coral/20 text-coral text-sm font-medium rounded-full">
+          <span className="inline-block py-1 px-3 mb-4 bg-accent/20 text-accent text-sm font-medium rounded-full">
             OUR DIGITAL MARKETING SERVICES
           </span>
           <h2 className="text-4xl md:text-5xl font-bold mb-6 gradient-headline">
@@ -77,7 +77,7 @@ const ModernServicesSection = () => {
               transition={{ duration: 0.6, delay: index * 0.1 }}
               className="group"
             >
-              <div className="bg-card rounded-2xl p-8 border border-border hover:border-coral/30 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 hover:-translate-y-2 relative overflow-hidden">
+              <div className="bg-card rounded-2xl p-8 border border-border hover:border-accent/30 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 hover:-translate-y-2 relative overflow-hidden">
                 {/* Background gradient overlay */}
                 <div className={`absolute inset-0 bg-gradient-to-br ${service.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-500 rounded-2xl`} />
                 
@@ -94,7 +94,7 @@ const ModernServicesSection = () => {
 
                 {/* Service content */}
                 <div className="relative z-10">
-                  <h3 className="text-2xl font-bold mb-2 text-foreground group-hover:text-coral transition-colors duration-300">
+                  <h3 className="text-2xl font-bold mb-2 text-foreground group-hover:text-accent transition-colors duration-300">
                     {service.title}
                   </h3>
                   <h4 className="text-sm font-medium text-muted-foreground mb-4 uppercase tracking-wider">
@@ -107,7 +107,7 @@ const ModernServicesSection = () => {
                   <Button 
                     asChild 
                     variant="ghost" 
-                    className="text-coral hover:text-coral hover:bg-coral/10 pl-0 group-hover:translate-x-2 transition-transform duration-300"
+                    className="text-accent hover:text-accent hover:bg-accent/10 pl-0 group-hover:translate-x-2 transition-transform duration-300"
                   >
                     <Link to={service.link} className="flex items-center">
                       Learn More
@@ -117,7 +117,7 @@ const ModernServicesSection = () => {
                 </div>
 
                 {/* Decorative element */}
-                <div className="absolute top-4 right-4 w-20 h-20 bg-gradient-to-br from-primary/20 to-coral/20 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <div className="absolute top-4 right-4 w-20 h-20 bg-gradient-to-br from-primary/20 to-accent/20 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               </div>
             </motion.div>
           ))}

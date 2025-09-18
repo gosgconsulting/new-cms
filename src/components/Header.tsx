@@ -13,7 +13,7 @@ const Header = () => {
   }
 
   return (
-    <header className={`w-full py-6 px-4 md:px-8 ${hasHeroSection ? 'bg-transparent absolute top-0 left-0 right-0 z-50' : 'bg-white/90 backdrop-blur-md shadow-sm border-b border-gray-100'}`}>
+    <header className={`w-full py-6 px-4 md:px-8 ${hasHeroSection ? 'bg-transparent absolute top-0 left-0 right-0 z-50' : 'bg-surface/90 backdrop-blur-md shadow-sm border-b border-border'}`}>
       <div className="container mx-auto">
         <div className="flex items-center justify-center">
           {/* Logo */}

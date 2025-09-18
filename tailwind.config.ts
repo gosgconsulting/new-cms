@@ -62,13 +62,28 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				deepBlue: "#00213D",
-				coral: "#F94E40",
+				// GO SG Brand Colors (semantic)
+				'go-sg': {
+					'deep-blue': 'hsl(var(--go-sg-deep-blue))',
+					'coral': 'hsl(var(--go-sg-coral))',
+					'purple': 'hsl(var(--go-sg-purple))',
+					'teal': 'hsl(var(--go-sg-teal))',
+					'gold': 'hsl(var(--go-sg-gold))',
+				},
+				
+				// Legacy brand colors (for backward compatibility)
+				deepBlue: 'hsl(var(--go-sg-deep-blue))',
+				coral: 'hsl(var(--go-sg-coral))',
 				brandTeal: 'hsl(var(--brand-teal))',
 				brandBlue: 'hsl(var(--brand-blue))',
 				brandGold: 'hsl(var(--brand-gold))',
 				brandPurple: 'hsl(var(--brand-purple))',
-				starYellow: "#FACC15", // Adding star yellow color
+				
+				// Surface system
+				surface: 'hsl(var(--surface))',
+				'surface-variant': 'hsl(var(--surface-variant))',
+				'on-surface': 'hsl(var(--on-surface))',
+				'on-surface-variant': 'hsl(var(--on-surface-variant))',
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
