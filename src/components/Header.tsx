@@ -2,6 +2,7 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import gosgLogo from "@/assets/go-sg-logo.png";
+import { useEffect, useState } from "react";
 
 /**
  * WordPress Theme Component: Header
@@ -14,8 +15,22 @@ import gosgLogo from "@/assets/go-sg-logo.png";
  * - Logo (will be replaced with get_custom_logo or theme option)
  */
 const Header = () => {
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollTop = window.scrollY;
+      setIsScrolled(scrollTop > 50);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 w-full py-6 px-4 md:px-8 bg-transparent backdrop-blur-md">
+    <header className={`fixed top-0 left-0 right-0 z-50 w-full py-6 px-4 md:px-8 backdrop-blur-md transition-all duration-300 ${
+      isScrolled ? 'bg-background/95 shadow-sm border-b border-border' : 'bg-transparent'
+    }`}>
       <div className="container mx-auto">
         <div className="flex items-center justify-between">
           {/* Logo */}
@@ -32,7 +47,9 @@ const Header = () => {
             <div className="flex items-center space-x-8">
               <Link 
                 to="/" 
-                className="relative text-foreground hover:text-accent font-medium transition-all duration-300 group"
+                className={`relative font-medium transition-all duration-300 group ${
+                  isScrolled ? 'text-foreground hover:text-accent' : 'text-foreground hover:text-accent'
+                }`}
               >
                 <span className="relative z-10">Home</span>
                 <span className="absolute inset-0 w-full h-full bg-accent/20 rounded-lg scale-0 group-hover:scale-100 transition-transform duration-300 blur-sm"></span>
@@ -41,7 +58,9 @@ const Header = () => {
               
               <Link 
                 to="/services/website-design" 
-                className="relative text-foreground hover:text-accent font-medium transition-all duration-300 group"
+                className={`relative font-medium transition-all duration-300 group ${
+                  isScrolled ? 'text-foreground hover:text-accent' : 'text-foreground hover:text-accent'
+                }`}
               >
                 <span className="relative z-10">Website Design</span>
                 <span className="absolute inset-0 w-full h-full bg-accent/20 rounded-lg scale-0 group-hover:scale-100 transition-transform duration-300 blur-sm"></span>
@@ -50,7 +69,9 @@ const Header = () => {
               
               <Link 
                 to="/services/seo" 
-                className="relative text-foreground hover:text-accent font-medium transition-all duration-300 group"
+                className={`relative font-medium transition-all duration-300 group ${
+                  isScrolled ? 'text-foreground hover:text-accent' : 'text-foreground hover:text-accent'
+                }`}
               >
                 <span className="relative z-10">SEO</span>
                 <span className="absolute inset-0 w-full h-full bg-accent/20 rounded-lg scale-0 group-hover:scale-100 transition-transform duration-300 blur-sm"></span>
@@ -59,7 +80,9 @@ const Header = () => {
               
               <Link 
                 to="/services/paid-ads" 
-                className="relative text-foreground hover:text-accent font-medium transition-all duration-300 group"
+                className={`relative font-medium transition-all duration-300 group ${
+                  isScrolled ? 'text-foreground hover:text-accent' : 'text-foreground hover:text-accent'
+                }`}
               >
                 <span className="relative z-10">Paid Ads</span>
                 <span className="absolute inset-0 w-full h-full bg-accent/20 rounded-lg scale-0 group-hover:scale-100 transition-transform duration-300 blur-sm"></span>
@@ -68,7 +91,9 @@ const Header = () => {
               
               <Link 
                 to="/services/social-media" 
-                className="relative text-foreground hover:text-accent font-medium transition-all duration-300 group"
+                className={`relative font-medium transition-all duration-300 group ${
+                  isScrolled ? 'text-foreground hover:text-accent' : 'text-foreground hover:text-accent'
+                }`}
               >
                 <span className="relative z-10">Social Media</span>
                 <span className="absolute inset-0 w-full h-full bg-accent/20 rounded-lg scale-0 group-hover:scale-100 transition-transform duration-300 blur-sm"></span>
@@ -77,7 +102,9 @@ const Header = () => {
               
               <Link 
                 to="/services/reporting" 
-                className="relative text-foreground hover:text-accent font-medium transition-all duration-300 group"
+                className={`relative font-medium transition-all duration-300 group ${
+                  isScrolled ? 'text-foreground hover:text-accent' : 'text-foreground hover:text-accent'
+                }`}
               >
                 <span className="relative z-10">Reporting</span>
                 <span className="absolute inset-0 w-full h-full bg-accent/20 rounded-lg scale-0 group-hover:scale-100 transition-transform duration-300 blur-sm"></span>
@@ -116,37 +143,49 @@ const Header = () => {
         <nav className="md:hidden mt-6 flex flex-wrap justify-center gap-4">
           <Link 
             to="/" 
-            className="text-foreground hover:text-accent font-medium transition-colors duration-300 px-3 py-1"
+            className={`font-medium transition-colors duration-300 px-3 py-1 ${
+              isScrolled ? 'text-foreground hover:text-accent' : 'text-foreground hover:text-accent'
+            }`}
           >
             Home
           </Link>
           <Link 
             to="/services/website-design" 
-            className="text-foreground hover:text-accent font-medium transition-colors duration-300 px-3 py-1"
+            className={`font-medium transition-colors duration-300 px-3 py-1 ${
+              isScrolled ? 'text-foreground hover:text-accent' : 'text-foreground hover:text-accent'
+            }`}
           >
             Design
           </Link>
           <Link 
             to="/services/seo" 
-            className="text-foreground hover:text-accent font-medium transition-colors duration-300 px-3 py-1"
+            className={`font-medium transition-colors duration-300 px-3 py-1 ${
+              isScrolled ? 'text-foreground hover:text-accent' : 'text-foreground hover:text-accent'
+            }`}
           >
             SEO
           </Link>
           <Link 
             to="/services/paid-ads" 
-            className="text-foreground hover:text-accent font-medium transition-colors duration-300 px-3 py-1"
+            className={`font-medium transition-colors duration-300 px-3 py-1 ${
+              isScrolled ? 'text-foreground hover:text-accent' : 'text-foreground hover:text-accent'
+            }`}
           >
             Paid Ads
           </Link>
           <Link 
             to="/services/social-media" 
-            className="text-foreground hover:text-accent font-medium transition-colors duration-300 px-3 py-1"
+            className={`font-medium transition-colors duration-300 px-3 py-1 ${
+              isScrolled ? 'text-foreground hover:text-accent' : 'text-foreground hover:text-accent'
+            }`}
           >
             Social
           </Link>
           <Link 
             to="/services/reporting" 
-            className="text-foreground hover:text-accent font-medium transition-colors duration-300 px-3 py-1"
+            className={`font-medium transition-colors duration-300 px-3 py-1 ${
+              isScrolled ? 'text-foreground hover:text-accent' : 'text-foreground hover:text-accent'
+            }`}
           >
             Reporting
           </Link>
