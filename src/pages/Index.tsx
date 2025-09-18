@@ -4,7 +4,10 @@ import CTASection from "@/components/CTASection";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import FAQAccordion from "@/components/FAQAccordion";
-import BlogSection from "@/components/BlogSection";
+import ScrollTransition from "@/components/ScrollTransition";
+import ModernServicesSection from "@/components/ModernServicesSection";
+import UnifiedReviewsSection from "@/components/UnifiedReviewsSection";
+import TabbedNewsSection from "@/components/TabbedNewsSection";
 
 /**
  * WordPress Theme Template: Home/Front Page
@@ -54,11 +57,19 @@ const Index = () => {
       
       {/* WordPress: Page content sections - each can be a template part */}
       <main className="flex-grow">
-        {/* WordPress: Hero section - template-parts/home/hero.php */}
-        <HeroSection />
+        {/* WordPress: Hero section with scroll transition effect */}
+        <ScrollTransition>
+          <HeroSection />
+        </ScrollTransition>
         
-        {/* Blog Section */}
-        <BlogSection />
+        {/* Modern Services Section */}
+        <ModernServicesSection />
+        
+        {/* Unified Reviews Section with tabs */}
+        <UnifiedReviewsSection />
+        
+        {/* Tabbed News Section */}
+        <TabbedNewsSection />
         
         {/* WordPress: FAQ section - template-parts/home/faq.php
              FAQs would be stored as custom post type or ACF repeater field */}
