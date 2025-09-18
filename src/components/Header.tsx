@@ -1,7 +1,7 @@
 
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import gosgLogo from "@/assets/go-sg-logo.png";
+import gosgLogo from "@/assets/go-sg-logo-official.png";
 import { useEffect, useState } from "react";
 
 /**
