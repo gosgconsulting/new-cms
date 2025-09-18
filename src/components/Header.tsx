@@ -1,6 +1,7 @@
 
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import gosgLogo from "@/assets/go-sg-logo.png";
 
 /**
  * WordPress Theme Component: Header
@@ -18,8 +19,12 @@ const Header = () => {
       <div className="container mx-auto">
         <div className="flex items-center justify-between">
           {/* Logo */}
-          <Link to="/" className="text-3xl font-bold z-10">
-            <span className="text-primary">GO</span> <span className="text-accent">SG</span>
+          <Link to="/" className="flex items-center z-10">
+            <img 
+              src={gosgLogo} 
+              alt="GO SG Digital Marketing Agency" 
+              className="h-12 w-auto"
+            />
           </Link>
 
           {/* Centered Navigation Menu */}
@@ -86,7 +91,7 @@ const Header = () => {
             asChild 
             variant="secondary" 
             size="sm" 
-            className="relative overflow-hidden group bg-accent hover:bg-accent/90 text-white font-medium px-6 py-2 rounded-full transition-all duration-300 shadow-lg hover:shadow-accent/25 hover:shadow-xl"
+            className="relative overflow-hidden group bg-destructive hover:bg-destructive/90 text-destructive-foreground font-medium px-6 py-2 rounded-full transition-all duration-300 shadow-lg hover:shadow-destructive/25 hover:shadow-xl"
           >
             <Link to="/contact">
               <span className="relative z-10">Contact Us</span>
@@ -100,7 +105,7 @@ const Header = () => {
               asChild 
               variant="secondary" 
               size="sm"
-              className="bg-accent hover:bg-accent/90 text-white"
+              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
             >
               <Link to="/contact">Contact</Link>
             </Button>
