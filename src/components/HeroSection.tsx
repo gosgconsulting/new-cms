@@ -22,7 +22,7 @@ import VisualCMSEditor from "@/components/cms/VisualCMSEditor";
 const HeroSection = () => {
   return (
     <>
-      <section className="relative py-24 md:py-36 px-4 overflow-hidden">
+      <section className="relative pt-32 pb-24 md:pt-40 md:pb-36 px-4 overflow-hidden">
         {/* Background gradient - keep in CSS */}
         <div className="absolute inset-0 gradient-bg -z-10"></div>
         
