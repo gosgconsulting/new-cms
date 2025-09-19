@@ -3,12 +3,13 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Calendar, ArrowRight } from "lucide-react";
 const CTASection = () => {
-  return <section className="py-24 px-4 relative overflow-hidden">
-      {/* Background decoration - improved contrast for better readability */}
-      <div className="absolute inset-0 bg-gradient-to-tr from-deepBlue to-deepBlue/80 -z-10"></div>
-      <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-white/5 rounded-full blur-3xl"></div>
-      <div className="absolute bottom-0 left-0 w-1/4 h-1/4 bg-white/10 rounded-full blur-3xl"></div>
-      <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5"></div>
+  return <section className="relative py-24 px-4 overflow-hidden">
+      {/* Background gradient - same as hero section */}
+      <div className="absolute inset-0 gradient-bg -z-10"></div>
+      
+      {/* Abstract shapes - same as hero section */}
+      <div className="absolute top-20 right-[10%] w-64 h-64 rounded-full bg-brandPurple/10 blur-3xl"></div>
+      <div className="absolute bottom-10 left-[5%] w-40 h-40 rounded-full bg-brandPurple/20 blur-3xl"></div>
       
       <div className="container mx-auto relative z-10">
         <motion.div className="max-w-4xl mx-auto text-center space-y-8" initial={{
@@ -24,11 +25,11 @@ const CTASection = () => {
       }}>
           
           
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white">
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground">
             Drive <span className="bg-gradient-to-r from-brandPurple to-brandTeal bg-clip-text text-transparent">Revenue Growth</span> Through Powerful Campaigns
           </h2>
           
-          <p className="text-xl text-white">
+          <p className="text-xl text-muted-foreground">
             Work with a marketing agency that helps you double your profits. 
             Increase your brand reach, get new customers and grow market share.
           </p>
@@ -41,7 +42,7 @@ const CTASection = () => {
                 <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></span>
               </Link>
             </Button>
-            <Button asChild variant="outline" size="xl" className="border-white text-white hover:bg-white/10">
+            <Button asChild variant="outline" size="xl" className="border-border text-foreground hover:bg-accent/10">
               
             </Button>
           </div>
