@@ -5,7 +5,6 @@ import WhatIsSEOSection from "@/components/WhatIsSEOSection";
 import SEOResultsSection from "@/components/SEOResultsSection";
 import ComparisonSection from "@/components/ComparisonSection";
 import WhatIsSEOServicesSection from "@/components/WhatIsSEOServicesSection";
-import CTASection from "@/components/CTASection";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -48,9 +47,6 @@ const Index = () => {
         
         {/* WordPress: Testimonials section - template-parts/home/testimonials.php */}
         <NewTestimonials />
-        
-        {/* WordPress: CTA section - template-parts/home/cta.php */}
-        <CTASection />
       </main>
       
       {/* WordPress: footer.php */}

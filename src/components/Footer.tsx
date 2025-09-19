@@ -82,6 +82,9 @@ import { supabase } from "@/integrations/supabase/client";
  */
 const Footer = () => {
   const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
@@ -93,9 +96,9 @@ const Footer = () => {
       const { error } = await supabase
         .from('form_submissions')
         .insert({
-          name: 'Footer Contact',
+          name,
           email,
-          message: 'Footer contact form submission',
+          message: `Phone: ${phone}\n\nMessage: ${message}`,
           form_type: 'Footer Contact'
         });
 
@@ -108,7 +111,10 @@ const Footer = () => {
         description: "We'll be in touch soon to discuss your marketing needs.",
       });
       
+      setName("");
       setEmail("");
+      setPhone("");
+      setMessage("");
     } catch (error) {
       toast({
         title: "Error",
@@ -129,9 +135,9 @@ const Footer = () => {
             {/* Left Side - Large Text */}
             <div className="text-white">
               <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6">
-                Build amazing <br />
-                campaigns with <br />
-                our creative <br />
+                <span className="text-white">Build amazing</span> <br />
+                <span className="text-white">campaigns with</span> <br />
+                <span className="text-white">our creative</span> <br />
                 <span className="bg-gradient-to-r from-orange-400 to-red-500 bg-clip-text text-transparent">team.</span>
               </h2>
             </div>
@@ -149,6 +155,21 @@ const Footer = () => {
                 
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div>
+                    <label htmlFor="footer-name" className="block text-sm font-medium text-gray-700 mb-2">
+                      Your name
+                    </label>
+                    <Input
+                      id="footer-name"
+                      type="text"
+                      placeholder="John Doe"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      required
+                      className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                    />
+                  </div>
+                  
+                  <div>
                     <label htmlFor="footer-email" className="block text-sm font-medium text-gray-700 mb-2">
                       Your email
                     </label>
@@ -163,6 +184,36 @@ const Footer = () => {
                     />
                   </div>
                   
+                  <div>
+                    <label htmlFor="footer-phone" className="block text-sm font-medium text-gray-700 mb-2">
+                      Your phone
+                    </label>
+                    <Input
+                      id="footer-phone"
+                      type="tel"
+                      placeholder="+65 1234 5678"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      required
+                      className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label htmlFor="footer-message" className="block text-sm font-medium text-gray-700 mb-2">
+                      Your message
+                    </label>
+                    <textarea
+                      id="footer-message"
+                      placeholder="Tell us about your project..."
+                      value={message}
+                      onChange={(e) => setMessage(e.target.value)}
+                      required
+                      rows={3}
+                      className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 resize-none"
+                    />
+                  </div>
+                  
                   <Button 
                     type="submit" 
                     disabled={isSubmitting}
@@ -171,12 +222,6 @@ const Footer = () => {
                     {isSubmitting ? "Sending..." : "Get Free Marketing Consultation"}
                   </Button>
                 </form>
-                
-                <div className="text-center mt-6">
-                  <p className="text-gray-500 text-sm">
-                    Already have questions? <Link to="/contact" className="text-orange-500 hover:text-orange-600 font-medium">Contact us</Link>
-                  </p>
-                </div>
               </div>
             </div>
           </div>
