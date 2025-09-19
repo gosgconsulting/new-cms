@@ -74,8 +74,8 @@ const ContactSection = () => {
                   <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl mb-4">
                     <Rocket className="w-6 h-6 text-white" />
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">Join Us Today</h3>
-                  <p className="text-gray-600">Welcome to GO SG — Start your journey</p>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-2">About GO SG</h3>
+                  <p className="text-gray-600">Results-oriented SEO agency that delivers sustainable growth through proven strategies and data-driven insights.</p>
                 </div>
                 
                 <form onSubmit={handleSubmit} className="space-y-4">
