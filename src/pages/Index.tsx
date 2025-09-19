@@ -9,6 +9,7 @@ import WhatsAppButton from "@/components/WhatsAppButton";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import NewTestimonials from "@/components/NewTestimonials";
+import BlogSection from "@/components/BlogSection";
 import ContactModal from "@/components/ContactModal";
 
 /**
@@ -50,6 +51,9 @@ const Index = () => {
         
         {/* WordPress: Testimonials section - template-parts/home/testimonials.php */}
         <NewTestimonials />
+        
+        {/* WordPress: Blog section - template-parts/home/blog.php */}
+        <BlogSection onContactClick={() => setContactModalOpen(true)} />
       </main>
       
       {/* WordPress: footer.php */}
