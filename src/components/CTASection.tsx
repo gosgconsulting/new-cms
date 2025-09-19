@@ -1,8 +1,54 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Calendar, ArrowRight } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 const CTASection = () => {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [message, setMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    
+    try {
+      const { error } = await supabase
+        .from('form_submissions')
+        .insert({
+          name,
+          email,
+          message,
+          form_type: 'CTA Contact Form'
+        });
+
+      if (error) {
+        throw error;
+      }
+
+      toast({
+        title: "Message sent!",
+        description: "We'll get back to you as soon as possible.",
+      });
+      
+      setName("");
+      setEmail("");
+      setMessage("");
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "There was a problem sending your message. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return <section className="relative py-24 px-4 overflow-hidden">
       {/* Background gradient - same as hero section */}
       <div className="absolute inset-0 gradient-bg -z-10"></div>
@@ -34,18 +80,58 @@ const CTASection = () => {
             Increase your brand reach, get new customers and grow market share.
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-            <Button asChild variant="coral" size="xl" className="group relative overflow-hidden">
-              <Link to="/contact" className="flex items-center">
-                <Calendar className="mr-2 h-5 w-5" />
-                Get a Free Consultation
+          {/* Contact Form */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            viewport={{ once: true }}
+            className="max-w-2xl mx-auto"
+          >
+            <form onSubmit={handleSubmit} className="space-y-6 bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Input
+                    placeholder="Your name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    required
+                    className="bg-white/20 border-white/30 text-foreground placeholder:text-foreground/70"
+                  />
+                </div>
+                <div>
+                  <Input
+                    type="email"
+                    placeholder="your.email@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    className="bg-white/20 border-white/30 text-foreground placeholder:text-foreground/70"
+                  />
+                </div>
+              </div>
+              <div>
+                <Textarea
+                  placeholder="How can we help you grow your business?"
+                  rows={4}
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  required
+                  className="bg-white/20 border-white/30 text-foreground placeholder:text-foreground/70"
+                />
+              </div>
+              <Button 
+                type="submit" 
+                variant="coral"
+                size="xl"
+                className="w-full group relative overflow-hidden"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "Sending..." : "Get Your Free Marketing Strategy"}
                 <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></span>
-              </Link>
-            </Button>
-            <Button asChild variant="outline" size="xl" className="border-border text-foreground hover:bg-accent/10">
-              
-            </Button>
-          </div>
+              </Button>
+            </form>
+          </motion.div>
           
           
         </motion.div>
