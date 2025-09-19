@@ -41,9 +41,9 @@ const HeroSection = () => {
                 transition={{ duration: 0.6 }}
               >
                 <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight">
-                  We Boost Your SEO in 3 Months <br />
+                  We Boost Your SEO <br />
                   <span className="bg-gradient-to-r from-brandPurple to-brandTeal bg-clip-text text-transparent">
-                    Or you dont pay
+                    In 3 Months
                   </span>
                 </h1>
                 {/* WP:
