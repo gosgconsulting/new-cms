@@ -40,10 +40,10 @@ const HeroSection = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6 }}
               >
-                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
-                  Grow your business with <br />
+                <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight">
+                  We Boost Your SEO in 3 Months <br />
                   <span className="bg-gradient-to-r from-brandPurple to-brandTeal bg-clip-text text-transparent">
-                    data-driven marketing
+                    Or you dont pay
                   </span>
                 </h1>
                 {/* WP:
