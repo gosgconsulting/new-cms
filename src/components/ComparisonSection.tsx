@@ -98,23 +98,6 @@ const ComparisonSection = () => {
                 GET A FREE STRATEGY CONSULTATION
               </Button>
             </motion.div>
-            
-            <motion.div
-              className="flex items-center mt-6"
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              transition={{ duration: 0.6, delay: 0.6 }}
-              viewport={{ once: true }}
-            >
-              <div className="flex text-yellow-400 mr-3">
-                {[...Array(5)].map((_, i) => (
-                  <span key={i} className="text-lg">★</span>
-                ))}
-              </div>
-              <span className="text-sm text-muted-foreground">
-                Rated 4.9 By 300+ Brands
-              </span>
-            </motion.div>
           </motion.div>
         </div>
       </div>
