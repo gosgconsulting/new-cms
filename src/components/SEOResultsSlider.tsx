@@ -4,7 +4,7 @@ import { TrendingUp, Eye, MousePointer, BarChart3 } from "lucide-react";
 const seoResults = [
   {
     id: 1,
-    industry: "LEADING HEALTHCARE PROVIDER",
+    industry: "SMOOY FROZEN YOGURT",
     growth: "+382% increase in clicks within 12 months",
     hasScreenshot: true,
     screenshotUrl: "/assets/seo-results-1.png",
