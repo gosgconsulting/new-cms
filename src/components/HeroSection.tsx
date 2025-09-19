@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "lucide-react";
 import VisualCMSEditor from "@/components/cms/VisualCMSEditor";
+import SEOResultsSlider from "./SEOResultsSlider";
 
 /**
  * WordPress Theme Component: Hero Section
@@ -73,95 +74,9 @@ const HeroSection = () => {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.6 }}
             >
-              <div className="aspect-video bg-secondary/60 backdrop-blur-sm rounded-lg shadow-xl overflow-hidden border border-white/10">
-                {/* Neon data growth chart image - will be dynamic in WordPress */}
-                <img 
-                  src="/lovable-uploads/35e0c5a6-18b6-412a-ac65-0197f19f1dfc.png"
-                  alt="Neon data growth chart showing business performance"
-                  className="w-full h-full object-cover"
-                />
-                
-                {/* WP:
-                <?php 
-                $hero_image = get_field('hero_image');
-                if ($hero_image) {
-                  echo wp_get_attachment_image($hero_image, 'full', false, array(
-                    'class' => 'w-full h-full object-cover',
-                    'alt' => get_field('hero_heading_line_1')
-                  ));
-                }
-                ?>
-                */}
-                
-                {/* Animated floating elements - implement with CSS animations in WordPress */}
-                <motion.div 
-                  className="absolute top-[15%] right-[15%] w-16 h-16 bg-brandPurple/80 rounded-full"
-                  animate={{
-                    y: [0, -15, 0],
-                    opacity: [0.7, 1, 0.7]
-                  }}
-                  transition={{
-                    duration: 4,
-                    repeat: Infinity,
-                    ease: "easeInOut"
-                  }}
-                />
-                
-                <motion.div 
-                  className="absolute bottom-[20%] left-[15%] w-12 h-12 bg-coral/80 rounded-full"
-                  animate={{
-                    y: [0, 15, 0],
-                    opacity: [0.7, 1, 0.7]
-                  }}
-                  transition={{
-                    duration: 3.5,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                    delay: 0.5
-                  }}
-                />
-                
-                <motion.div 
-                  className="absolute top-[30%] left-[20%] w-10 h-10 bg-brandTeal/80 rounded-full"
-                  animate={{
-                    y: [0, -10, 0],
-                    opacity: [0.7, 1, 0.7]
-                  }}
-                  transition={{
-                    duration: 3,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                    delay: 1
-                  }}
-                />
-                
-                {/* Chart-like graphic element */}
-                <motion.svg 
-                  className="absolute bottom-[15%] right-[20%] w-32 h-24"
-                  viewBox="0 0 100 60"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.8, duration: 0.8 }}
-                >
-                  <motion.path
-                    d="M0,50 Q25,10 50,30 T100,10"
-                    fill="none"
-                    stroke="#9b87f5"
-                    strokeWidth="3"
-                    initial={{ pathLength: 0 }}
-                    animate={{ pathLength: 1 }}
-                    transition={{ duration: 2, delay: 1 }}
-                  />
-                  <motion.path
-                    d="M0,50 Q35,40 65,20 T100,30"
-                    fill="none"
-                    stroke="#F94E40"
-                    strokeWidth="3"
-                    initial={{ pathLength: 0 }}
-                    animate={{ pathLength: 1 }}
-                    transition={{ duration: 2, delay: 1.5 }}
-                  />
-                </motion.svg>
+              <div className="aspect-video bg-white backdrop-blur-sm rounded-lg shadow-xl overflow-hidden border border-white/10">
+                {/* SEO Results Slider */}
+                <SEOResultsSlider />
               </div>
               
               {/* Decorative elements - keep in CSS */}
