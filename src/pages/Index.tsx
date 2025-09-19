@@ -1,6 +1,7 @@
 
 import { useEffect } from "react";
 import HeroSection from "@/components/HeroSection";
+import SEOResultsSection from "@/components/SEOResultsSection";
 import CTASection from "@/components/CTASection";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import Header from "@/components/Header";
@@ -29,6 +30,9 @@ const Index = () => {
       <main className="flex-grow">
         {/* WordPress: Hero section - template-parts/home/hero.php */}
         <HeroSection />
+        
+        {/* WordPress: SEO Results section - template-parts/home/seo-results.php */}
+        <SEOResultsSection />
         
         {/* WordPress: Testimonials section - template-parts/home/testimonials.php */}
         <NewTestimonials />
