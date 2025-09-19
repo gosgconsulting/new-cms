@@ -2,6 +2,7 @@
 import { useEffect } from "react";
 import HeroSection from "@/components/HeroSection";
 import SEOResultsSection from "@/components/SEOResultsSection";
+import ComparisonSection from "@/components/ComparisonSection";
 import CTASection from "@/components/CTASection";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import Header from "@/components/Header";
@@ -33,6 +34,9 @@ const Index = () => {
         
         {/* WordPress: SEO Results section - template-parts/home/seo-results.php */}
         <SEOResultsSection />
+        
+        {/* WordPress: Comparison section - template-parts/home/comparison.php */}
+        <ComparisonSection />
         
         {/* WordPress: Testimonials section - template-parts/home/testimonials.php */}
         <NewTestimonials />
