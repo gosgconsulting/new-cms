@@ -46,8 +46,7 @@ const WhatIsSEOSection = () => {
               </p>
               
               <p>
-                This presentation will give you a quick tour of who we are, what we do, and 
-                most importantly, how our SEO strategies can help your business grow smarter, 
+                Let us show you how our proven SEO strategies can help your business grow smarter, 
                 faster, and stronger.
               </p>
             </motion.div>
