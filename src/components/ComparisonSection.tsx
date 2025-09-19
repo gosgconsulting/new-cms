@@ -74,14 +74,14 @@ const ComparisonSection = ({ onContactClick }: ComparisonSectionProps) => {
               OUR GUARANTEE
             </div>
             
-            <h2 className="text-4xl md:text-5xl font-bold text-white text-center leading-tight mb-6">
+            <h2 className="text-2xl md:text-4xl lg:text-5xl font-bold text-white text-center leading-tight mb-4 md:mb-6">
               Proven SEO Results In 90 Days With{" "}
               <span className="bg-gradient-to-r from-coral to-pink-400 bg-clip-text text-transparent">
                 Our Expert Partnership
               </span>
             </h2>
             
-            <p className="text-xl text-white/90 text-center max-w-3xl mx-auto mb-12">
+            <p className="text-base md:text-xl text-white/90 text-center max-w-3xl mx-auto mb-8 md:mb-12 px-4">
               SEO takes time, which is why we recommend a minimum of three months to see meaningful results. 
               At GOSG, we use proven frameworks, real data, and expert insights to deliver sustainable growth 
               rather than short-term wins. With our focus on consistency and transparency, we build SEO 
@@ -93,14 +93,16 @@ const ComparisonSection = ({ onContactClick }: ComparisonSectionProps) => {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.3 }}
               viewport={{ once: true }}
+              className="text-center"
             >
               <Button 
                 onClick={onContactClick}
                 size="lg" 
-                className="bg-coral hover:bg-coral/90 text-white px-8 py-6 text-lg font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer"
+                className="bg-coral hover:bg-coral/90 text-white px-4 md:px-8 py-4 md:py-6 text-base md:text-lg font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer w-full sm:w-auto"
               >
-                <TrendingUp className="mr-2 h-5 w-5" />
-                START YOUR SEO PARTNERSHIP
+                <TrendingUp className="mr-2 h-4 w-4 md:h-5 md:w-5" />
+                <span className="hidden sm:inline">START YOUR SEO PARTNERSHIP</span>
+                <span className="sm:hidden">START SEO PARTNERSHIP</span>
               </Button>
             </motion.div>
           </motion.div>

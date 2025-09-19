@@ -60,7 +60,7 @@ const ContactModal = ({ open, onOpenChange }: ContactModalProps) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md w-[95vw] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center justify-center text-center">
             <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl mb-4">
@@ -70,8 +70,8 @@ const ContactModal = ({ open, onOpenChange }: ContactModalProps) => {
         </DialogHeader>
         
         <div className="text-center mb-6">
-          <h3 className="text-2xl font-bold text-gray-900 mb-2">About GO SG</h3>
-          <p className="text-gray-600">Results-oriented SEO agency that delivers sustainable growth through proven strategies and data-driven insights.</p>
+          <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">About GO SG</h3>
+          <p className="text-sm md:text-base text-gray-600">Results-oriented SEO agency that delivers sustainable growth through proven strategies and data-driven insights.</p>
         </div>
         
         <form onSubmit={handleSubmit} className="space-y-4">

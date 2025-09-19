@@ -121,28 +121,26 @@ const Header = ({ onContactClick }: HeaderProps) => {
             </nav>
           )}
 
-          {/* Contact Us Button */}
+          {/* Contact Us Button - Desktop Only */}
           <Button 
             onClick={onContactClick}
             variant="secondary" 
             size="sm" 
-            className="relative overflow-hidden group bg-destructive hover:bg-destructive/90 text-destructive-foreground font-medium px-6 py-2 rounded-full transition-all duration-300 shadow-lg hover:shadow-destructive/25 hover:shadow-xl cursor-pointer"
+            className="hidden md:block relative overflow-hidden group bg-destructive hover:bg-destructive/90 text-destructive-foreground font-medium px-6 py-2 rounded-full transition-all duration-300 shadow-lg hover:shadow-destructive/25 hover:shadow-xl cursor-pointer"
           >
             <span className="relative z-10">Contact Us</span>
             <span className="absolute inset-0 w-full h-full bg-white/20 rounded-full scale-0 group-hover:scale-100 transition-transform duration-300 blur-sm"></span>
           </Button>
 
-          {/* Mobile Navigation - Simplified */}
-          <div className="md:hidden">
-            <Button 
-              onClick={onContactClick}
-              variant="secondary" 
-              size="sm"
-              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground cursor-pointer"
-            >
-              Contact
-            </Button>
-          </div>
+          {/* Mobile Contact Button */}
+          <Button 
+            onClick={onContactClick}
+            variant="secondary" 
+            size="sm"
+            className="md:hidden bg-destructive hover:bg-destructive/90 text-destructive-foreground cursor-pointer"
+          >
+            Contact
+          </Button>
         </div>
 
         {/* Mobile Menu Items - Stack vertically on mobile, hidden on homepage */}

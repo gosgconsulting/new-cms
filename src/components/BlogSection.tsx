@@ -44,19 +44,19 @@ interface BlogSectionProps {
 
 const BlogSection = ({ onContactClick }: BlogSectionProps) => {
   return (
-    <section className="py-20 px-4 bg-gradient-to-br from-gray-50 to-blue-50/30">
+    <section className="py-12 md:py-20 px-4 bg-gradient-to-br from-gray-50 to-blue-50/30">
       <div className="container mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           viewport={{ once: true }}
-          className="text-center mb-16"
+          className="text-center mb-12 md:mb-16"
         >
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+          <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4">
             Latest SEO <span className="bg-gradient-to-r from-brandPurple to-brandTeal bg-clip-text text-transparent">Insights</span>
           </h2>
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+          <p className="text-muted-foreground text-base md:text-lg max-w-2xl mx-auto px-4">
             Stay ahead of the curve with our expert SEO tips, strategies, and industry insights.
           </p>
         </motion.div>
@@ -132,17 +132,17 @@ const BlogSection = ({ onContactClick }: BlogSectionProps) => {
             Get personalized SEO recommendations that drive real results.
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+          <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center items-center">
             <button
               onClick={onContactClick}
-              className="bg-gradient-to-r from-brandPurple to-brandTeal text-white px-8 py-3 rounded-lg font-semibold hover:shadow-lg transition-all duration-300 cursor-pointer"
+              className="bg-gradient-to-r from-brandPurple to-brandTeal text-white px-6 md:px-8 py-3 text-sm md:text-base rounded-lg font-semibold hover:shadow-lg transition-all duration-300 cursor-pointer w-full sm:w-auto"
             >
               Get Your SEO Strategy
             </button>
             
             <Link 
               to="/blog"
-              className="text-brandPurple hover:text-brandTeal font-semibold px-8 py-3 rounded-lg hover:bg-brandPurple/5 transition-colors duration-300"
+              className="text-brandPurple hover:text-brandTeal font-semibold px-6 md:px-8 py-3 text-sm md:text-base rounded-lg hover:bg-brandPurple/5 transition-colors duration-300 w-full sm:w-auto text-center"
             >
               View All Articles
             </Link>
