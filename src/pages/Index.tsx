@@ -4,6 +4,7 @@ import HeroSection from "@/components/HeroSection";
 import WhatIsSEOSection from "@/components/WhatIsSEOSection";
 import SEOResultsSection from "@/components/SEOResultsSection";
 import ComparisonSection from "@/components/ComparisonSection";
+import WhatIsSEOServicesSection from "@/components/WhatIsSEOServicesSection";
 import CTASection from "@/components/CTASection";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import Header from "@/components/Header";
@@ -41,6 +42,9 @@ const Index = () => {
         
         {/* WordPress: Comparison section - template-parts/home/comparison.php */}
         <ComparisonSection />
+        
+        {/* WordPress: What is SEO Services section - template-parts/home/seo-services.php */}
+        <WhatIsSEOServicesSection />
         
         {/* WordPress: Testimonials section - template-parts/home/testimonials.php */}
         <NewTestimonials />
