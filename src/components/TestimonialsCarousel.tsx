@@ -107,9 +107,9 @@ const TestimonialsCarousel = () => {
   }, [leftControls, rightControls]);
 
   return (
-    <section className="py-20 relative overflow-hidden bg-primary">
+    <section className="py-20 relative overflow-hidden bg-[hsl(var(--brand-blue))]">
       {/* Background elements */}
-      <div className="absolute inset-0 bg-gradient-to-tr from-primary via-primary/95 to-primary/90 -z-10"></div>
+      <div className="absolute inset-0 bg-gradient-to-tr from-[hsl(var(--brand-blue))] via-[hsl(var(--brand-blue))]/95 to-[hsl(var(--brand-blue))]/90 -z-10"></div>
       <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5"></div>
       <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-accent/5 blur-3xl"></div>
       <div className="absolute -bottom-40 -left-40 w-96 h-96 rounded-full bg-accent/5 blur-3xl"></div>
