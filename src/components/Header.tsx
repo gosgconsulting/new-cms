@@ -14,7 +14,11 @@ import { useEffect, useState } from "react";
  * - Navigation menu items (will be replaced with wp_nav_menu)
  * - Logo (will be replaced with get_custom_logo or theme option)
  */
-const Header = () => {
+interface HeaderProps {
+  onContactClick?: () => void;
+}
+
+const Header = ({ onContactClick }: HeaderProps) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
   const isHomepage = location.pathname === '/';
@@ -119,26 +123,24 @@ const Header = () => {
 
           {/* Contact Us Button */}
           <Button 
-            asChild 
+            onClick={onContactClick}
             variant="secondary" 
             size="sm" 
-            className="relative overflow-hidden group bg-destructive hover:bg-destructive/90 text-destructive-foreground font-medium px-6 py-2 rounded-full transition-all duration-300 shadow-lg hover:shadow-destructive/25 hover:shadow-xl"
+            className="relative overflow-hidden group bg-destructive hover:bg-destructive/90 text-destructive-foreground font-medium px-6 py-2 rounded-full transition-all duration-300 shadow-lg hover:shadow-destructive/25 hover:shadow-xl cursor-pointer"
           >
-            <Link to="/contact">
-              <span className="relative z-10">Contact Us</span>
-              <span className="absolute inset-0 w-full h-full bg-white/20 rounded-full scale-0 group-hover:scale-100 transition-transform duration-300 blur-sm"></span>
-            </Link>
+            <span className="relative z-10">Contact Us</span>
+            <span className="absolute inset-0 w-full h-full bg-white/20 rounded-full scale-0 group-hover:scale-100 transition-transform duration-300 blur-sm"></span>
           </Button>
 
           {/* Mobile Navigation - Simplified */}
           <div className="md:hidden">
             <Button 
-              asChild 
+              onClick={onContactClick}
               variant="secondary" 
               size="sm"
-              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground cursor-pointer"
             >
-              <Link to="/contact">Contact</Link>
+              Contact
             </Button>
           </div>
         </div>

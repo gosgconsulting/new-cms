@@ -2,7 +2,11 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { TrendingUp } from "lucide-react";
 
-const ComparisonSection = () => {
+interface ComparisonSectionProps {
+  onContactClick?: () => void;
+}
+
+const ComparisonSection = ({ onContactClick }: ComparisonSectionProps) => {
   return (
     <section className="relative py-20 px-4 bg-deepBlue text-white overflow-hidden">
       {/* Background Graphs */}
@@ -91,8 +95,9 @@ const ComparisonSection = () => {
               viewport={{ once: true }}
             >
               <Button 
+                onClick={onContactClick}
                 size="lg" 
-                className="bg-coral hover:bg-coral/90 text-white px-8 py-6 text-lg font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
+                className="bg-coral hover:bg-coral/90 text-white px-8 py-6 text-lg font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer"
               >
                 <TrendingUp className="mr-2 h-5 w-5" />
                 START YOUR SEO PARTNERSHIP

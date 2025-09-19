@@ -44,7 +44,11 @@ const seoServices = [
   }
 ];
 
-const WhatIsSEOServicesSection = () => {
+interface WhatIsSEOServicesSectionProps {
+  onContactClick?: () => void;
+}
+
+const WhatIsSEOServicesSection = ({ onContactClick }: WhatIsSEOServicesSectionProps) => {
   return (
     <section className="py-20 px-4 bg-white">
       <div className="container mx-auto">
@@ -108,7 +112,10 @@ const WhatIsSEOServicesSection = () => {
           <p className="text-lg text-gray-700 mb-6">
             Ready to see how SEO can transform your business?
           </p>
-          <div className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-brandPurple to-brandTeal rounded-lg text-white font-medium hover:shadow-lg transition-all duration-300 cursor-pointer">
+          <div 
+            onClick={onContactClick}
+            className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-brandPurple to-brandTeal rounded-lg text-white font-medium hover:shadow-lg transition-all duration-300 cursor-pointer"
+          >
             Start Your SEO Partnership
           </div>
         </motion.div>

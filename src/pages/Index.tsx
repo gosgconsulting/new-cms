@@ -1,5 +1,5 @@
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import HeroSection from "@/components/HeroSection";
 import WhatIsSEOSection from "@/components/WhatIsSEOSection";
 import SEOResultsSection from "@/components/SEOResultsSection";
@@ -9,6 +9,7 @@ import WhatsAppButton from "@/components/WhatsAppButton";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import NewTestimonials from "@/components/NewTestimonials";
+import ContactModal from "@/components/ContactModal";
 
 /**
  * WordPress Theme Template: Home/Front Page
@@ -19,6 +20,8 @@ import NewTestimonials from "@/components/NewTestimonials";
  */
 
 const Index = () => {
+  const [contactModalOpen, setContactModalOpen] = useState(false);
+
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
@@ -26,7 +29,7 @@ const Index = () => {
   return (
     <div className="min-h-screen flex flex-col">
       {/* WordPress: header.php */}
-      <Header />
+      <Header onContactClick={() => setContactModalOpen(true)} />
       
       {/* WordPress: Page content sections - each can be a template part */}
       <main className="flex-grow">
@@ -37,10 +40,10 @@ const Index = () => {
         <SEOResultsSection />
         
         {/* WordPress: Comparison section - template-parts/home/comparison.php */}
-        <ComparisonSection />
+        <ComparisonSection onContactClick={() => setContactModalOpen(true)} />
         
         {/* WordPress: What is SEO Services section - template-parts/home/seo-services.php */}
-        <WhatIsSEOServicesSection />
+        <WhatIsSEOServicesSection onContactClick={() => setContactModalOpen(true)} />
         
         {/* WordPress: What is SEO section - template-parts/home/what-is-seo.php */}
         <WhatIsSEOSection />
@@ -50,10 +53,12 @@ const Index = () => {
       </main>
       
       {/* WordPress: footer.php */}
-      <Footer />
+      <Footer onContactClick={() => setContactModalOpen(true)} />
       
       {/* WordPress: This could be included in footer.php or as a separate template part */}
       <WhatsAppButton />
+      
+      <ContactModal open={contactModalOpen} onOpenChange={setContactModalOpen} />
     </div>
   );
 };

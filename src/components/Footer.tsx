@@ -75,7 +75,11 @@ import { Calendar, Phone, Instagram, Linkedin } from "lucide-react";
  * 
  * <?php wp_footer(); ?>
  */
-const Footer = () => {
+interface FooterProps {
+  onContactClick?: () => void;
+}
+
+const Footer = ({ onContactClick }: FooterProps) => {
   return (
     <footer className="bg-slate-900 text-white py-12 px-4">
         <div className="container mx-auto">
@@ -121,7 +125,7 @@ const Footer = () => {
               <ul className="space-y-2 text-sm">
                 <li><Link to="/" className="text-gray-300 hover:text-orange-400 transition-colors">Home</Link></li>
                 <li><Link to="/blog" className="text-gray-300 hover:text-orange-400 transition-colors">Blog</Link></li>
-                <li><Link to="/contact" className="text-gray-300 hover:text-orange-400 transition-colors">Contact</Link></li>
+                <li><button onClick={onContactClick} className="text-gray-300 hover:text-orange-400 transition-colors cursor-pointer">Contact</button></li>
                 <li><a href="#" className="text-gray-300 hover:text-orange-400 transition-colors">Privacy Policy</a></li>
               </ul>
             </div>
@@ -136,7 +140,7 @@ const Footer = () => {
                 </div>
                 <div className="flex items-center">
                   <Calendar className="h-4 w-4 mr-2 text-orange-400" />
-                  <Link to="/contact" className="text-gray-300 hover:text-orange-400">Book Meeting</Link>
+                  <button onClick={onContactClick} className="text-gray-300 hover:text-orange-400 cursor-pointer">Book Meeting</button>
                 </div>
               </div>
             </div>
