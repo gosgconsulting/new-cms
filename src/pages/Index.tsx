@@ -1,6 +1,7 @@
 
 import { useEffect } from "react";
 import HeroSection from "@/components/HeroSection";
+import WhatIsSEOSection from "@/components/WhatIsSEOSection";
 import SEOResultsSection from "@/components/SEOResultsSection";
 import ComparisonSection from "@/components/ComparisonSection";
 import CTASection from "@/components/CTASection";
@@ -31,6 +32,9 @@ const Index = () => {
       <main className="flex-grow">
         {/* WordPress: Hero section - template-parts/home/hero.php */}
         <HeroSection />
+        
+        {/* WordPress: What is SEO section - template-parts/home/what-is-seo.php */}
+        <WhatIsSEOSection />
         
         {/* WordPress: SEO Results section - template-parts/home/seo-results.php */}
         <SEOResultsSection />
