@@ -22,7 +22,7 @@ import VisualCMSEditor from "@/components/cms/VisualCMSEditor";
 const HeroSection = () => {
   return (
     <>
-      <section className="relative pt-32 pb-24 md:pt-40 md:pb-36 px-4 overflow-hidden">
+      <section className="relative min-h-screen flex items-center px-4 overflow-hidden">
         {/* Background gradient - keep in CSS */}
         <div className="absolute inset-0 gradient-bg -z-10"></div>
         
@@ -64,21 +64,6 @@ const HeroSection = () => {
                 {/* WP: <?php echo get_field('hero_description'); ?> */}
               </motion.p>
               
-              {/* WordPress: CTA button with ACF fields */}
-              <motion.div 
-                className="flex flex-col sm:flex-row gap-4 pt-4"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.4 }}
-              >
-                <Button asChild variant="coral" size="xl" className="cta-button">
-                  <Link to="/contact" className="flex items-center">
-                    <Calendar className="mr-2 h-5 w-5" />
-                    Schedule a Consultation
-                    {/* WP: <?php echo get_field('hero_button_text'); ?> */}
-                  </Link>
-                </Button>
-              </motion.div>
             </div>
             
             {/* WordPress: Hero Image - use wp_get_attachment_image */}
@@ -185,8 +170,54 @@ const HeroSection = () => {
             </motion.div>
           </div>
         </div>
+        
+        {/* Scroll Indicator */}
+        <motion.div 
+          className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-center cursor-pointer"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 1 }}
+          onClick={() => {
+            const nextSection = document.querySelector('#next-section');
+            if (nextSection) {
+              nextSection.scrollIntoView({ 
+                behavior: 'smooth',
+                block: 'start'
+              });
+            }
+          }}
+        >
+          <motion.p 
+            className="text-sm text-muted-foreground mb-3 font-light tracking-wide"
+            animate={{ opacity: [0.5, 1, 0.5] }}
+            transition={{ duration: 2, repeat: Infinity }}
+          >
+            Scroll to see how
+          </motion.p>
+          <motion.div
+            className="w-6 h-10 border-2 border-muted-foreground/30 rounded-full mx-auto relative"
+            whileHover={{ scale: 1.1 }}
+            transition={{ type: "spring", stiffness: 400, damping: 10 }}
+          >
+            <motion.div
+              className="w-1 h-3 bg-muted-foreground/60 rounded-full absolute left-1/2 top-2 transform -translate-x-1/2"
+              animate={{ 
+                y: [0, 12, 0],
+                opacity: [1, 0, 1]
+              }}
+              transition={{
+                duration: 1.5,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+            />
+          </motion.div>
+        </motion.div>
       </section>
 
+      {/* Next Section Target */}
+      <div id="next-section"></div>
+      
       {/* CMS Editor - Only visible to admin users */}
       <VisualCMSEditor pageId="homepage" />
     </>
