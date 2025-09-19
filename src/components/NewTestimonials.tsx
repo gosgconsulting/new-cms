@@ -73,9 +73,6 @@ const NewTestimonials = () => {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <span className="inline-block py-1 px-3 mb-4 bg-accent/20 text-accent text-sm font-medium rounded-full">
-            TESTIMONIALS
-          </span>
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
             What our clients say
           </h2>
