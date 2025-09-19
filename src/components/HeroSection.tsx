@@ -173,7 +173,7 @@ const HeroSection = () => {
         
         {/* Scroll Indicator */}
         <motion.div 
-          className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-center cursor-pointer"
+          className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-center cursor-pointer flex flex-col items-center"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 1 }}
