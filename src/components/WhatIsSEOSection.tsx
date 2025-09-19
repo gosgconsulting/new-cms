@@ -78,14 +78,14 @@ const WhatIsSEOSection = () => {
               <div className="absolute top-8 right-8 w-24 h-24 bg-coral rounded-lg transform -rotate-12"></div>
               
               {/* Content placeholder - can be replaced with actual image */}
-              <div className="relative bg-gray-100 rounded-2xl p-8 transform -rotate-1 shadow-xl">
-                <div className="aspect-[4/5] bg-gradient-to-br from-gray-200 to-gray-300 rounded-xl flex items-center justify-center">
+              <div className="relative bg-deepBlue rounded-2xl p-8 transform -rotate-1 shadow-xl">
+                <div className="aspect-[4/5] bg-gradient-to-br from-deepBlue to-blue-900 rounded-xl flex items-center justify-center">
                   <div className="text-center">
-                    <div className="w-20 h-20 bg-brandPurple/20 rounded-full mx-auto mb-4 flex items-center justify-center">
-                      <span className="text-2xl font-bold text-brandPurple">GO</span>
+                    <div className="w-20 h-20 bg-white/20 rounded-full mx-auto mb-4 flex items-center justify-center">
+                      <span className="text-2xl font-bold text-white">GO</span>
                     </div>
-                    <p className="text-sm text-gray-600 font-medium">Gregoire Liao</p>
-                    <p className="text-xs text-gray-500">SEO Expert</p>
+                    <p className="text-sm text-white font-medium">Gregoire Liao</p>
+                    <p className="text-xs text-gray-300">SEO Expert</p>
                   </div>
                 </div>
               </div>
