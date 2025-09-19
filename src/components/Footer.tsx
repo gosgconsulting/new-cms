@@ -108,7 +108,7 @@ const Footer = () => {
 
       toast({
         title: "Thank you!",
-        description: "We'll be in touch soon to discuss your marketing needs.",
+        description: "We'll be in touch soon to discuss your SEO needs.",
       });
       
       setName("");
@@ -135,10 +135,10 @@ const Footer = () => {
             {/* Left Side - Large Text */}
             <div className="text-white">
               <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6">
-                <span className="text-white">Build amazing</span> <br />
-                <span className="text-white">campaigns with</span> <br />
-                <span className="text-white">our creative</span> <br />
-                <span className="bg-gradient-to-r from-orange-400 to-red-500 bg-clip-text text-transparent">team.</span>
+                <span className="text-white">Dominate</span> <br />
+                <span className="text-white">search results</span> <br />
+                <span className="text-white">with our SEO</span> <br />
+                <span className="bg-gradient-to-r from-orange-400 to-red-500 bg-clip-text text-transparent">expertise.</span>
               </h2>
             </div>
             
@@ -219,7 +219,7 @@ const Footer = () => {
                     disabled={isSubmitting}
                     className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200"
                   >
-                    {isSubmitting ? "Sending..." : "Get Free Marketing Consultation"}
+                    {isSubmitting ? "Sending..." : "Get Free SEO Audit"}
                   </Button>
                 </form>
               </div>
@@ -242,7 +242,7 @@ const Footer = () => {
                 />
               </div>
               <p className="text-gray-300 mb-4 text-sm">
-                Integrated marketing solutions for startups, entrepreneurs, and brands.
+                Professional SEO services that boost search rankings and drive organic traffic for Singapore businesses.
               </p>
               <div className="flex space-x-3">
                 <a href="https://linkedin.com" aria-label="LinkedIn" target="_blank" rel="noreferrer"
@@ -260,10 +260,10 @@ const Footer = () => {
             <div>
               <h3 className="text-sm font-semibold mb-4 text-white">Our Services</h3>
               <ul className="space-y-2 text-sm">
-                <li><Link to="/services/website-design" className="text-gray-300 hover:text-orange-400 transition-colors">Website Design</Link></li>
-                <li><Link to="/services/seo" className="text-gray-300 hover:text-orange-400 transition-colors">SEO</Link></li>
-                <li><Link to="/services/paid-ads" className="text-gray-300 hover:text-orange-400 transition-colors">Paid Ads</Link></li>
-                <li><Link to="/services/dashboard" className="text-gray-300 hover:text-orange-400 transition-colors">Reporting</Link></li>
+                <li><Link to="/services/seo" className="text-gray-300 hover:text-orange-400 transition-colors">Technical SEO</Link></li>
+                <li><Link to="/services/seo" className="text-gray-300 hover:text-orange-400 transition-colors">Local SEO</Link></li>
+                <li><Link to="/services/seo" className="text-gray-300 hover:text-orange-400 transition-colors">Content SEO</Link></li>
+                <li><Link to="/services/dashboard" className="text-gray-300 hover:text-orange-400 transition-colors">SEO Audits</Link></li>
               </ul>
             </div>
             

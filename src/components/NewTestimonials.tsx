@@ -3,55 +3,55 @@ import { motion } from "framer-motion";
 
 const testimonials = [
   {
-    text: "GoSG transformed our digital marketing strategy. Their SEO expertise boosted our rankings significantly within just 3 months.",
+    text: "GoSG's SEO strategies boosted our organic traffic by 400% in just 3 months. Our website now ranks #1 for our main keywords.",
     image: "https://randomuser.me/api/portraits/women/1.jpg",
     name: "Sarah Chen",
     role: "Marketing Director",
   },
   {
-    text: "The website design team created exactly what we envisioned. Professional, modern, and perfectly represents our brand.",
+    text: "Their technical SEO audit revealed critical issues we didn't know existed. After fixes, our search rankings improved dramatically.",
     image: "https://randomuser.me/api/portraits/men/2.jpg",
     name: "Marcus Tan",
     role: "Business Owner",
   },
   {
-    text: "Their social media management doubled our engagement. The content strategy is spot-on for our target audience.",
+    text: "GoSG's local SEO expertise helped us dominate Singapore search results. We're now the top choice in our area.",
     image: "https://randomuser.me/api/portraits/women/3.jpg",
     name: "Priya Sharma",
     role: "E-commerce Manager",
   },
   {
-    text: "GoSG's paid advertising campaigns delivered exceptional ROI. Our lead generation increased by 300% in 6 months.",
+    text: "From page 5 to page 1 in Google in just 4 months. GoSG's SEO approach delivered exactly what they promised.",
     image: "https://randomuser.me/api/portraits/men/4.jpg",
     name: "David Lim",
     role: "CEO",
   },
   {
-    text: "Outstanding support and transparent reporting. They truly understand the Singapore market and deliver results.",
+    text: "Their SEO content strategy doubled our organic leads. Every blog post now ranks and brings qualified traffic.",
     image: "https://randomuser.me/api/portraits/women/5.jpg",
     name: "Jennifer Wong",
     role: "Operations Manager",
   },
   {
-    text: "The comprehensive digital strategy exceeded our expectations. Professional team with deep industry knowledge.",
+    text: "GoSG's link building campaign increased our domain authority by 25 points. Our search visibility is now unmatched.",
     image: "https://randomuser.me/api/portraits/women/6.jpg",
     name: "Michelle Ng",
     role: "Brand Manager",
   },
   {
-    text: "Their data-driven approach to digital marketing helped us understand our customers better and improve conversions.",
+    text: "Their keyword research uncovered high-value terms we missed. Now we rank for searches that actually convert customers.",
     image: "https://randomuser.me/api/portraits/men/7.jpg",
     name: "Alex Kumar",
     role: "Growth Manager",
   },
   {
-    text: "GoSG delivered a complete digital transformation. From website to social media, everything works seamlessly together.",
+    text: "GoSG's on-page SEO optimization made our site lightning fast and search-engine friendly. Rankings improved across the board.",
     image: "https://randomuser.me/api/portraits/women/8.jpg",
     name: "Lisa Tan",
     role: "Marketing Manager",
   },
   {
-    text: "Reliable, results-driven, and always available. GoSG has become an essential partner for our business growth.",
+    text: "Their monthly SEO reports show clear progress. We've gone from zero organic traffic to 50,000 monthly visitors.",
     image: "https://randomuser.me/api/portraits/men/9.jpg",
     name: "Robert Lee",
     role: "Founder",
@@ -77,7 +77,7 @@ const NewTestimonials = () => {
             What our clients say
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            See what our customers have to say about our digital marketing services.
+            See what our customers have to say about our SEO services and results.
           </p>
         </motion.div>
 

@@ -60,7 +60,7 @@ const HeroSection = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.2 }}
               >
-                We help businesses grow through strategic digital marketing initiatives that drive real results.
+                We help businesses dominate search results through proven SEO strategies that increase organic traffic, boost rankings, and drive qualified leads to your website.
                 {/* WP: <?php echo get_field('hero_description'); ?> */}
               </motion.p>
               
