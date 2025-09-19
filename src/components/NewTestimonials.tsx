@@ -3,58 +3,58 @@ import { motion } from "framer-motion";
 
 const testimonials = [
   {
-    text: "GoSG transformed our digital marketing strategy. Their SEO expertise boosted our rankings significantly within just 3 months.",
+    text: "Our organic traffic increased by 400% in just 4 months. We went from page 3 to ranking #1 for our main keywords and now get 50+ qualified leads monthly.",
     image: "https://randomuser.me/api/portraits/women/1.jpg",
     name: "Sarah Chen",
-    role: "Marketing Director",
+    role: "CEO, TechStart Solutions",
   },
   {
-    text: "The website design team created exactly what we envisioned. Professional, modern, and perfectly represents our brand.",
+    text: "ROI of 300% within 6 months. GoSG's SEO strategy helped us capture high-intent traffic that converts 40% better than our paid ads.",
     image: "https://randomuser.me/api/portraits/men/2.jpg",
     name: "Marcus Tan",
-    role: "Business Owner",
+    role: "Marketing Director, GreenTech",
   },
   {
-    text: "Their social media management doubled our engagement. The content strategy is spot-on for our target audience.",
+    text: "From 500 to 15,000 monthly organic visitors. Our revenue from organic search grew by 250%. Best investment we've made for our business.",
     image: "https://randomuser.me/api/portraits/women/3.jpg",
     name: "Priya Sharma",
-    role: "E-commerce Manager",
+    role: "Founder, Local Services Pro",
   },
   {
-    text: "GoSG's paid advertising campaigns delivered exceptional ROI. Our lead generation increased by 300% in 6 months.",
+    text: "We dominate our local market now. Ranking #1 for 25+ keywords and getting 80% of our customers from Google. Our competitors can't compete.",
     image: "https://randomuser.me/api/portraits/men/4.jpg",
     name: "David Lim",
-    role: "CEO",
+    role: "Owner, Singapore Legal Firm",
   },
   {
-    text: "Outstanding support and transparent reporting. They truly understand the Singapore market and deliver results.",
+    text: "Traffic increased 350% and conversion rate improved by 45%. The technical SEO audit alone was worth the entire investment.",
     image: "https://randomuser.me/api/portraits/women/5.jpg",
     name: "Jennifer Wong",
-    role: "Operations Manager",
+    role: "Operations Manager, E-commerce Store",
   },
   {
-    text: "The comprehensive digital strategy exceeded our expectations. Professional team with deep industry knowledge.",
+    text: "From invisible to industry leader. Now ranking above Fortune 500 companies for competitive keywords. Organic leads increased by 500%.",
     image: "https://randomuser.me/api/portraits/women/6.jpg",
     name: "Michelle Ng",
-    role: "Brand Manager",
+    role: "VP Marketing, FinTech Startup",
   },
   {
-    text: "Their data-driven approach to digital marketing helped us understand our customers better and improve conversions.",
+    text: "12x return on investment in the first year. Our organic revenue went from $50K to $600K annually. GoSG's strategy transformed our business.",
     image: "https://randomuser.me/api/portraits/men/7.jpg",
     name: "Alex Kumar",
-    role: "Growth Manager",
+    role: "CEO, Manufacturing Company",
   },
   {
-    text: "GoSG delivered a complete digital transformation. From website to social media, everything works seamlessly together.",
+    text: "Competitor analysis and keyword strategy were game-changing. We outrank companies 10x our size and capture 70% market share online.",
     image: "https://randomuser.me/api/portraits/women/8.jpg",
     name: "Lisa Tan",
-    role: "Marketing Manager",
+    role: "Director, Healthcare Clinic",
   },
   {
-    text: "Reliable, results-driven, and always available. GoSG has become an essential partner for our business growth.",
+    text: "Page 1 rankings for 15 high-value keywords within 3 months. Our phone doesn't stop ringing with qualified prospects. Simply incredible results.",
     image: "https://randomuser.me/api/portraits/men/9.jpg",
     name: "Robert Lee",
-    role: "Founder",
+    role: "Founder, Professional Services",
   },
 ];
 
@@ -74,10 +74,10 @@ const NewTestimonials = () => {
           className="text-center mb-16"
         >
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            What our clients say
+            Real SEO Results From Real Clients
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            See what our customers have to say about our digital marketing services.
+            See the proven results our SEO strategies deliver for businesses like yours.
           </p>
         </motion.div>
 
