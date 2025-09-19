@@ -64,7 +64,7 @@ const thirdColumn = testimonials.slice(6, 9);
 
 const NewTestimonials = () => {
   return (
-    <section className="py-20 px-4">
+    <section className="py-20 px-4 bg-gray-50">
       <div className="container mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

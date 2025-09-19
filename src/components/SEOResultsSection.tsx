@@ -3,7 +3,7 @@ import SEOResultsSlider from "./SEOResultsSlider";
 
 const SEOResultsSection = () => {
   return (
-    <section id="next-section" className="py-20 px-4 bg-gray-50">
+    <section id="next-section" className="py-20 px-4 bg-white">
       <div className="container mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 30 }}

@@ -4,9 +4,9 @@ import { TrendingUp } from "lucide-react";
 
 const ComparisonSection = () => {
   return (
-    <section className="relative py-20 px-4 bg-gradient-to-br from-gray-50 to-white overflow-hidden">
+    <section className="relative py-20 px-4 bg-deepBlue text-white overflow-hidden">
       {/* Background Graphs */}
-      <div className="absolute inset-0 opacity-20">
+      <div className="absolute inset-0 opacity-30">
         <svg className="absolute inset-0 w-full h-full" viewBox="0 0 1200 600" preserveAspectRatio="none">
           {/* Your Agency - Stagnant Line */}
           <motion.path
@@ -54,7 +54,7 @@ const ComparisonSection = () => {
           transition={{ duration: 0.6, delay: 2.5 }}
           viewport={{ once: true }}
         >
-          <div className="text-2xl font-bold text-teal-600 mb-2">GO SG</div>
+          <div className="text-2xl font-bold text-white mb-2">GO SG</div>
         </motion.div>
       </div>
 
@@ -66,18 +66,18 @@ const ComparisonSection = () => {
             transition={{ duration: 0.6 }}
             viewport={{ once: true }}
           >
-            <div className="text-sm font-semibold text-teal-600 mb-4 tracking-wide uppercase">
+            <div className="text-sm font-semibold text-coral mb-4 tracking-wide uppercase">
               OUR GUARANTEE
             </div>
             
-            <h2 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 leading-tight text-white">
               Results In 90 Days Or We{" "}
-              <span className="bg-gradient-to-r from-brandPurple to-brandTeal bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-coral to-pink-400 bg-clip-text text-transparent">
                 Work For Free
               </span>
             </h2>
             
-            <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
+            <p className="text-xl text-gray-300 mb-8 leading-relaxed">
               Transform your organic traffic with our 90-day SEO sprint accelerator program, 
               designed to deliver tangible results and grow your rankings. Experience the 
               bottom-line impact of increased traffic and visibility with a proven SEO strategy. 
@@ -103,8 +103,8 @@ const ComparisonSection = () => {
       </div>
       
       {/* Decorative Elements */}
-      <div className="absolute top-10 right-10 w-32 h-32 rounded-full bg-brandPurple/5 blur-3xl"></div>
-      <div className="absolute bottom-10 left-10 w-40 h-40 rounded-full bg-brandTeal/5 blur-3xl"></div>
+      <div className="absolute top-10 right-10 w-32 h-32 rounded-full bg-coral/10 blur-3xl"></div>
+      <div className="absolute bottom-10 left-10 w-40 h-40 rounded-full bg-white/5 blur-3xl"></div>
     </section>
   );
 };
