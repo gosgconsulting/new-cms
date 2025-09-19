@@ -54,9 +54,6 @@ const ServicesSection = () => {
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          <span className="inline-block py-1 px-3 mb-4 bg-accent/20 text-accent text-sm font-medium rounded-full">
-            OUR SERVICES
-          </span>
           <h2 className="text-3xl md:text-4xl font-bold mb-4">Comprehensive Marketing Solutions</h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
             Designed to deliver measurable results and accelerate your business growth.

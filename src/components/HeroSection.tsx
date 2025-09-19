@@ -40,10 +40,6 @@ const HeroSection = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6 }}
               >
-                <span className="inline-block py-1 px-3 mb-4 bg-brandPurple/20 text-brandPurple text-sm font-medium rounded-full">
-                  Digital Marketing Agency
-                  {/* WP: <?php echo get_field('hero_label'); ?> */}
-                </span>
                 <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
                   Grow your business with <br />
                   <span className="bg-gradient-to-r from-brandPurple to-brandTeal bg-clip-text text-transparent">
