@@ -6,7 +6,7 @@ import CTASection from "@/components/CTASection";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import TestimonialsCarousel from "@/components/TestimonialsCarousel";
+import NewTestimonials from "@/components/NewTestimonials";
 
 /**
  * WordPress Theme Template: Home/Front Page
@@ -35,7 +35,7 @@ const Index = () => {
         <ServicesSection />
         
         {/* WordPress: Testimonials section - template-parts/home/testimonials.php */}
-        <TestimonialsCarousel />
+        <NewTestimonials />
         
         {/* WordPress: CTA section - template-parts/home/cta.php */}
         <CTASection />
