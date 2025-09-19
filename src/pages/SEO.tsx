@@ -121,7 +121,7 @@ const SEO = ({ isAdmin = false, pageId = "seo", onEditSection = () => {} }: SEOP
           <ServiceCTA 
             title="Ready to Improve Your Search Rankings?"
             subtitle="Get started with a comprehensive SEO audit and strategy."
-            buttonText="Get a Free SEO Audit"
+            buttonText="Start Your SEO Partnership"
             buttonLink="/contact"
           />
         </EditableSection>

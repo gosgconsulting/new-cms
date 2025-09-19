@@ -70,18 +70,18 @@ const ComparisonSection = () => {
               OUR GUARANTEE
             </div>
             
-            <h2 className="text-4xl md:text-5xl font-bold mb-6 leading-tight text-white">
-              Results In 90 Days Or We{" "}
+            <h2 className="text-4xl md:text-5xl font-bold text-white text-center leading-tight mb-6">
+              Proven SEO Results In 90 Days With{" "}
               <span className="bg-gradient-to-r from-coral to-pink-400 bg-clip-text text-transparent">
-                Work For Free
+                Our Expert Partnership
               </span>
             </h2>
             
-            <p className="text-xl text-gray-300 mb-8 leading-relaxed">
-              Transform your organic traffic with our 90-day SEO sprint accelerator program, 
-              designed to deliver tangible results and grow your rankings. Experience the 
-              bottom-line impact of increased traffic and visibility with a proven SEO strategy. 
-              If you don't see any growth in your SEO traffic within 90 days, we will work for free.
+            <p className="text-xl text-white/90 text-center max-w-3xl mx-auto mb-12">
+              SEO takes time, which is why we recommend a minimum of three months to see meaningful results. 
+              At GOSG, we use proven frameworks, real data, and expert insights to deliver sustainable growth 
+              rather than short-term wins. With our focus on consistency and transparency, we build SEO 
+              partnerships that drive lasting impact.
             </p>
             
             <motion.div
@@ -95,7 +95,7 @@ const ComparisonSection = () => {
                 className="bg-coral hover:bg-coral/90 text-white px-8 py-6 text-lg font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
               >
                 <TrendingUp className="mr-2 h-5 w-5" />
-                GET A FREE STRATEGY CONSULTATION
+                START YOUR SEO PARTNERSHIP
               </Button>
             </motion.div>
           </motion.div>

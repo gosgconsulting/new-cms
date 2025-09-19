@@ -152,7 +152,7 @@ const PaidAds = ({ isAdmin = false, pageId = "paid-ads", onEditSection = () => {
             title="Why Use Paid Advertising?"
             subtitle="In an increasingly competitive digital landscape, paid advertising offers precise targeting and immediate results."
             benefits={benefits}
-            ctaText="Get a Free Ad Account Audit"
+            ctaText="Start Your Ad Strategy"
           />
         </EditableSection>
         
@@ -208,7 +208,7 @@ const PaidAds = ({ isAdmin = false, pageId = "paid-ads", onEditSection = () => {
           <ServiceCTA 
             title="Ready to Boost Your Ad Campaigns?"
             subtitle="Get started with ROI-focused paid advertising that delivers real results."
-            buttonText="Get a Free Strategy Session"
+            buttonText="Start Your Growth Partnership"
             buttonLink="/contact"
           />
         </EditableSection>

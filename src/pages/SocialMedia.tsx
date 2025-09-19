@@ -134,7 +134,7 @@ const SocialMedia = () => {
         <ServiceCTA 
           title="Ready to Elevate Your Social Media Presence?"
           subtitle="Let our expert team handle your Instagram and Facebook posting with professional content creation."
-          buttonText="Get a Free Social Media Audit"
+          buttonText="Start Your Social Media Strategy"
           buttonLink="/contact"
         />
       </main>
