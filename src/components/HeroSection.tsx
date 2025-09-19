@@ -41,9 +41,9 @@ const HeroSection = () => {
                 transition={{ duration: 0.6 }}
               >
                 <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
-                  Hey, we are GO SG. <br />
+                  Grow your business with <br />
                   <span className="bg-gradient-to-r from-brandPurple to-brandTeal bg-clip-text text-transparent">
-                    We grow your traffic organically in 3 months, without breaking your bank
+                    data-driven marketing
                   </span>
                 </h1>
                 {/* WP:
