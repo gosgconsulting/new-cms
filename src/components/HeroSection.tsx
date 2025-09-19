@@ -41,9 +41,9 @@ const HeroSection = () => {
                 transition={{ duration: 0.6 }}
               >
                 <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
-                  Get more customers with <br />
+                  Grow your business with <br />
                   <span className="bg-gradient-to-r from-brandPurple to-brandTeal bg-clip-text text-transparent">
-                    proven SEO results
+                    data-driven marketing
                   </span>
                 </h1>
                 {/* WP:
@@ -60,7 +60,7 @@ const HeroSection = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.2 }}
               >
-                We help businesses dominate search rankings and drive qualified traffic that converts into paying customers.
+                We help businesses grow through strategic digital marketing initiatives that drive real results.
                 {/* WP: <?php echo get_field('hero_description'); ?> */}
               </motion.p>
               
@@ -74,7 +74,7 @@ const HeroSection = () => {
                 <Button asChild variant="coral" size="xl" className="cta-button">
                   <Link to="/contact" className="flex items-center">
                     <Calendar className="mr-2 h-5 w-5" />
-                    Get Your SEO Audit
+                    Schedule a Consultation
                     {/* WP: <?php echo get_field('hero_button_text'); ?> */}
                   </Link>
                 </Button>

@@ -7,7 +7,6 @@ import WhatsAppButton from "@/components/WhatsAppButton";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import NewTestimonials from "@/components/NewTestimonials";
-import ResultsSection from "@/components/ResultsSection";
 
 /**
  * WordPress Theme Template: Home/Front Page
@@ -32,8 +31,8 @@ const Index = () => {
         {/* WordPress: Hero section - template-parts/home/hero.php */}
         <HeroSection />
         
-        {/* WordPress: Results section - template-parts/home/results.php */}
-        <ResultsSection />
+        {/* WordPress: Services section - template-parts/home/services.php */}
+        <ServicesSection />
         
         {/* WordPress: Testimonials section - template-parts/home/testimonials.php */}
         <NewTestimonials />
