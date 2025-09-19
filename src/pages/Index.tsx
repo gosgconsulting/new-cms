@@ -34,9 +34,6 @@ const Index = () => {
         {/* WordPress: Hero section - template-parts/home/hero.php */}
         <HeroSection />
         
-        {/* WordPress: What is SEO section - template-parts/home/what-is-seo.php */}
-        <WhatIsSEOSection />
-        
         {/* WordPress: SEO Results section - template-parts/home/seo-results.php */}
         <SEOResultsSection />
         
@@ -45,6 +42,9 @@ const Index = () => {
         
         {/* WordPress: What is SEO Services section - template-parts/home/seo-services.php */}
         <WhatIsSEOServicesSection />
+        
+        {/* WordPress: What is SEO section - template-parts/home/what-is-seo.php */}
+        <WhatIsSEOSection />
         
         {/* WordPress: Testimonials section - template-parts/home/testimonials.php */}
         <NewTestimonials />
