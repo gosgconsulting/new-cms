@@ -1,48 +1,53 @@
 import { motion } from "framer-motion";
 import { Calendar, ArrowRight, Clock } from "lucide-react";
 import { Link } from "react-router-dom";
-
-const blogPosts = [
-  {
-    id: 1,
-    title: "Complete Guide to Technical SEO in 2024",
-    excerpt: "Learn the essential technical SEO factors that can make or break your search rankings. From Core Web Vitals to structured data implementation.",
-    image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=500&h=300&fit=crop",
-    category: "Technical SEO",
-    author: "GOSG Team",
-    date: "Dec 15, 2024",
-    readTime: "8 min read",
-    slug: "complete-guide-technical-seo-2024"
-  },
-  {
-    id: 2,
-    title: "Local SEO Strategies That Drive Singapore Business Growth",
-    excerpt: "Discover proven local SEO tactics specifically designed for Singapore businesses. Dominate local search results and attract nearby customers.",
-    image: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=500&h=300&fit=crop",
-    category: "Local SEO",
-    author: "GOSG Team",
-    date: "Dec 12, 2024",
-    readTime: "6 min read",
-    slug: "local-seo-strategies-singapore-business"
-  },
-  {
-    id: 3,
-    title: "Content SEO: How to Create Pages That Rank and Convert",
-    excerpt: "Master the art of creating SEO-optimized content that not only ranks high in search results but also converts visitors into customers.",
-    image: "https://images.unsplash.com/photo-1552664730-d307ca884978?w=500&h=300&fit=crop",
-    category: "Content SEO",
-    author: "GOSG Team",
-    date: "Dec 10, 2024",
-    readTime: "10 min read",
-    slug: "content-seo-pages-rank-convert"
-  }
-];
+import { wordpressApi } from "@/services/wordpressApi";
+import { useLatestWordPressPosts } from "@/hooks/use-wordpress-posts";
 
 interface BlogSectionProps {
   onContactClick?: () => void;
 }
 
 const BlogSection = ({ onContactClick }: BlogSectionProps) => {
+  const { posts: blogPosts, isLoading, error } = useLatestWordPressPosts(3);
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <section className="py-12 md:py-20 px-4 bg-gradient-to-br from-gray-50 to-blue-50/30">
+        <div className="container mx-auto">
+          <div className="text-center">
+            <div className="text-muted-foreground">Loading latest blog posts...</div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // Show error state or empty state
+  if (error || !blogPosts || blogPosts.length === 0) {
+    return (
+      <section className="py-12 md:py-20 px-4 bg-gradient-to-br from-gray-50 to-blue-50/30">
+        <div className="container mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+            className="text-center mb-12 md:mb-16"
+          >
+            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4">
+              Latest SEO <span className="bg-gradient-to-r from-brandPurple to-brandTeal bg-clip-text text-transparent">Insights</span>
+            </h2>
+            <p className="text-muted-foreground text-base md:text-lg max-w-2xl mx-auto px-4">
+              Check back soon for expert SEO tips, strategies, and industry insights.
+            </p>
+          </motion.div>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="py-12 md:py-20 px-4 bg-gradient-to-br from-gray-50 to-blue-50/30">
       <div className="container mx-auto">
@@ -73,34 +78,37 @@ const BlogSection = ({ onContactClick }: BlogSectionProps) => {
             >
               <div className="relative overflow-hidden">
                 <img 
-                  src={post.image}
-                  alt={post.title}
+                  src={post.featured_image_url || "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=500&h=300&fit=crop"}
+                  alt={wordpressApi.stripHtml(post.title.rendered)}
                   className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
                 />
                 <div className="absolute top-4 left-4 bg-brandPurple text-white px-3 py-1 rounded-full text-sm font-medium">
-                  {post.category}
+                  SEO
                 </div>
               </div>
               
               <div className="p-6">
                 <div className="flex items-center text-sm text-gray-500 mb-3">
                   <Calendar className="w-4 h-4 mr-2" />
-                  <span>{post.date}</span>
+                  <span>{wordpressApi.formatDate(post.date)}</span>
                   <Clock className="w-4 h-4 ml-4 mr-2" />
-                  <span>{post.readTime}</span>
+                  <span>{Math.ceil(wordpressApi.stripHtml(post.content.rendered).length / 250)} min read</span>
                 </div>
                 
                 <h3 className="text-xl font-bold text-gray-900 mb-3 line-clamp-2 group-hover:text-brandPurple transition-colors duration-300">
-                  {post.title}
+                  {wordpressApi.stripHtml(post.title.rendered)}
                 </h3>
                 
                 <p className="text-gray-600 mb-4 line-clamp-3">
-                  {post.excerpt}
+                  {post.excerpt.rendered ? 
+                    wordpressApi.stripHtml(post.excerpt.rendered) : 
+                    wordpressApi.generateExcerpt(post.content.rendered, 120)
+                  }
                 </p>
                 
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-gray-700">
-                    By {post.author}
+                    By {post.author_name || 'GOSG Team'}
                   </span>
                   
                   <Link 

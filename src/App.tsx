@@ -17,6 +17,7 @@ import CustomDashboard from "./pages/CustomDashboard";
 import Admin from "./pages/Admin";
 import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
+import Sitemap from "./pages/Sitemap";
 import HomepageTemplate from "./pages/templates/HomepageTemplate";
 import LandingPageTemplate from "./pages/templates/LandingPageTemplate";
 import ContactTemplate from "./pages/templates/ContactTemplate";
@@ -61,6 +62,7 @@ const App = () => (
           <Route path="/contact" element={<Contact />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/blog/:slug" element={<BlogPost />} />
+          <Route path="/sitemap" element={<Sitemap />} />
           <Route path="/customizer" element={<CustomDashboard />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/templates/homepage" element={<HomepageTemplate />} />

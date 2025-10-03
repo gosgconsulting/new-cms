@@ -1,47 +1,26 @@
 
 import React from "react";
-import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { supabase } from "@/integrations/supabase/client";
+import { wordpressApi } from "@/services/wordpressApi";
+import { useWordPressPosts } from "@/hooks/use-wordpress-posts";
 import { Calendar, User } from "lucide-react";
 
-interface BlogPost {
-  id: string;
-  title: string;
-  slug: string;
-  content: string;
-  excerpt: string | null;
-  featured_image: string | null;
-  author: string;
-  status: 'published';
-  published_at: string;
-  created_at: string;
-}
-
 const Blog = () => {
-  const { data: posts, isLoading, error } = useQuery({
-    queryKey: ['published-blog-posts'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('blog_posts')
-        .select('*')
-        .eq('status', 'published')
-        .order('published_at', { ascending: false });
-      
-      if (error) throw error;
-      return data as BlogPost[];
-    },
+  const { posts, isLoading, error } = useWordPressPosts({
+    per_page: 10,
+    orderby: 'date',
+    order: 'desc'
   });
 
   if (isLoading) {
     return (
       <div className="min-h-screen flex flex-col">
         <Header />
-        <main className="flex-grow container mx-auto px-4 py-8">
+        <main className="flex-grow container mx-auto px-4 py-8 pt-32">
           <div className="text-center">Loading blog posts...</div>
         </main>
         <Footer />
@@ -53,7 +32,7 @@ const Blog = () => {
     return (
       <div className="min-h-screen flex flex-col">
         <Header />
-        <main className="flex-grow container mx-auto px-4 py-8">
+        <main className="flex-grow container mx-auto px-4 py-8 pt-32">
           <div className="text-center text-red-600">
             Error loading blog posts. Please try again later.
           </div>
@@ -64,54 +43,53 @@ const Blog = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <Header />
-      <main className="flex-grow container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold mb-4">Our Blog</h1>
-            <p className="text-xl text-muted-foreground">
-              Insights, tips, and updates from our team
-            </p>
-          </div>
+      <div className="min-h-screen flex flex-col">
+        <Header />
+        <main className="flex-grow container mx-auto px-4 py-8 pt-32">
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center mb-12">
+              <h1 className="text-4xl font-bold mb-4">Our Blog</h1>
+              <p className="text-xl text-muted-foreground">
+                Insights, tips, and updates from our team
+              </p>
+            </div>
 
           {posts && posts.length > 0 ? (
             <div className="grid gap-8">
               {posts.map((post) => (
                 <Card key={post.id} className="overflow-hidden">
                   <div className="md:flex">
-                    {post.featured_image && (
+                    {post.featured_image_url && (
                       <div className="md:w-1/3">
                         <img
-                          src={post.featured_image}
-                          alt={post.title}
+                          src={post.featured_image_url}
+                          alt={wordpressApi.stripHtml(post.title.rendered)}
                           className="w-full h-48 md:h-full object-cover"
                         />
                       </div>
                     )}
-                    <div className={post.featured_image ? "md:w-2/3" : "w-full"}>
+                    <div className={post.featured_image_url ? "md:w-2/3" : "w-full"}>
                       <CardHeader>
                         <div className="flex items-center space-x-4 text-sm text-muted-foreground mb-2">
                           <div className="flex items-center">
                             <Calendar className="h-4 w-4 mr-1" />
-                            {new Date(post.published_at).toLocaleDateString('en-US', {
-                              year: 'numeric',
-                              month: 'long',
-                              day: 'numeric'
-                            })}
+                            {wordpressApi.formatDate(post.date)}
                           </div>
                           <div className="flex items-center">
                             <User className="h-4 w-4 mr-1" />
-                            {post.author}
+                            {post.author_name || 'GOSG Team'}
                           </div>
                         </div>
                         <CardTitle className="text-2xl hover:text-coral transition-colors">
                           <Link to={`/blog/${post.slug}`}>
-                            {post.title}
+                            {wordpressApi.stripHtml(post.title.rendered)}
                           </Link>
                         </CardTitle>
                         <CardDescription className="text-base">
-                          {post.excerpt || post.content.substring(0, 200) + '...'}
+                          {post.excerpt.rendered ? 
+                            wordpressApi.stripHtml(post.excerpt.rendered) : 
+                            wordpressApi.generateExcerpt(post.content.rendered, 200)
+                          }
                         </CardDescription>
                       </CardHeader>
                       <CardContent>

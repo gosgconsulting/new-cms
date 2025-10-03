@@ -1,46 +1,20 @@
 
 import React from "react";
 import { useParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { supabase } from "@/integrations/supabase/client";
+import { wordpressApi } from "@/services/wordpressApi";
+import { useWordPressPost } from "@/hooks/use-wordpress-posts";
 import { Calendar, User, ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
-interface BlogPost {
-  id: string;
-  title: string;
-  slug: string;
-  content: string;
-  excerpt: string | null;
-  featured_image: string | null;
-  author: string;
-  status: 'published';
-  published_at: string;
-  created_at: string;
-}
-
 const BlogPost = () => {
   const { slug } = useParams<{ slug: string }>();
 
-  const { data: post, isLoading, error } = useQuery({
-    queryKey: ['blog-post', slug],
-    queryFn: async () => {
-      if (!slug) throw new Error('No slug provided');
-      
-      const { data, error } = await supabase
-        .from('blog_posts')
-        .select('*')
-        .eq('slug', slug)
-        .eq('status', 'published')
-        .maybeSingle();
-      
-      if (error) throw error;
-      return data as BlogPost | null;
-    },
-    enabled: !!slug,
+  const { post, isLoading, error } = useWordPressPost({
+    slug: slug || '',
+    enabled: !!slug
   });
 
   if (isLoading) {
@@ -92,42 +66,37 @@ const BlogPost = () => {
             </Button>
           </div>
 
-          {post.featured_image && (
+          {post.featured_image_url && (
             <div className="mb-8">
               <img
-                src={post.featured_image}
-                alt={post.title}
+                src={post.featured_image_url}
+                alt={wordpressApi.stripHtml(post.title.rendered)}
                 className="w-full h-64 md:h-96 object-cover rounded-lg"
               />
             </div>
           )}
 
           <header className="mb-8">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">{post.title}</h1>
+            <h1 className="text-4xl md:text-5xl font-bold mb-4">
+              {wordpressApi.stripHtml(post.title.rendered)}
+            </h1>
             
             <div className="flex items-center space-x-6 text-muted-foreground">
               <div className="flex items-center">
                 <Calendar className="h-5 w-5 mr-2" />
-                {new Date(post.published_at).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric'
-                })}
+                {wordpressApi.formatDate(post.date)}
               </div>
               <div className="flex items-center">
                 <User className="h-5 w-5 mr-2" />
-                {post.author}
+                {post.author_name || 'GOSG Team'}
               </div>
             </div>
           </header>
 
-          <div className="prose prose-lg max-w-none">
-            {post.content.split('\n').map((paragraph, index) => (
-              <p key={index} className="mb-4 leading-relaxed">
-                {paragraph}
-              </p>
-            ))}
-          </div>
+          <div 
+            className="prose prose-lg max-w-none"
+            dangerouslySetInnerHTML={{ __html: post.content.rendered }}
+          />
 
           <div className="mt-12 pt-8 border-t">
             <div className="text-center">

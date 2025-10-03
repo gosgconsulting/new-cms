@@ -148,6 +148,20 @@ const Footer = ({ onContactClick }: FooterProps) => {
           
           {/* Copyright */}
           <div className="mt-8 pt-6 border-t border-gray-700 text-center text-gray-400 text-xs">
+            <div className="flex flex-col sm:flex-row justify-center items-center space-y-2 sm:space-y-0 sm:space-x-4 mb-2">
+              <Link to="/sitemap" className="hover:text-white transition-colors duration-300">
+                Sitemap
+              </Link>
+              <span className="hidden sm:inline">•</span>
+              <a 
+                href="/sitemap.xml" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="hover:text-white transition-colors duration-300"
+              >
+                XML Sitemap
+              </a>
+            </div>
             <p>© {new Date().getFullYear()} GO SG CONSULTING. All rights reserved.</p>
           </div>
         </div>
