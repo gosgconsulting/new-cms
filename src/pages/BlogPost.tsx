@@ -56,7 +56,7 @@ const BlogPost = () => {
     <div className="min-h-screen flex flex-col">
       <Header />
       <main className="flex-grow">
-        <article className="container mx-auto px-4 py-8 max-w-4xl">
+        <article className="container mx-auto px-4 py-8  pt-32 max-w-4xl">
           <div className="mb-6">
             <Button variant="ghost" asChild>
               <Link to="/blog">
