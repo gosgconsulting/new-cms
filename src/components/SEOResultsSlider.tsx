@@ -8,6 +8,8 @@ import result5 from "@/assets/results/result-5.png";
 import result6 from "@/assets/results/result-6.png";
 import result7 from "@/assets/results/result-7.png";
 import result8 from "@/assets/results/result-8.png";
+import result9 from "@/assets/results/result-9.png";
+import result10 from "@/assets/results/result-10.png";
 
 const results = [
   { img: result1, label: "+245% Organic Traffic in 6 months" },
@@ -18,6 +20,8 @@ const results = [
   { img: result6, label: "+160% Organic Traffic in 4 months" },
   { img: result7, label: "+215% Organic Traffic in 5 months" },
   { img: result8, label: "+290% Organic Traffic in 6 months" },
+  { img: result9, label: "+165% Organic Traffic in 4 months" },
+  { img: result10, label: "+280% Organic Traffic in 5 months" },
 ];
 
 const SEOResultsSlider = () => {
