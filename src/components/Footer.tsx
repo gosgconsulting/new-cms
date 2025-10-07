@@ -134,7 +134,7 @@ const Footer = ({ onContactClick }: FooterProps) => {
               <div className="flex flex-wrap justify-center md:justify-start gap-6 text-sm text-gray-400">
                 <a href="#" className="hover:text-brandTeal transition-colors">Privacy Policy</a>
                 <a href="#" className="hover:text-brandTeal transition-colors">Terms of Service</a>
-                <Link to="/sitemap" className="hover:text-brandTeal transition-colors">Sitemap</Link>
+                <Link to="/blog" className="hover:text-brandTeal transition-colors">Blog</Link>
                 <a 
                   href="/sitemap.xml" 
                   target="_blank" 
