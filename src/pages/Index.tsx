@@ -4,7 +4,6 @@ import HeroSection from "@/components/HeroSection";
 import PainPointSection from "@/components/PainPointSection";
 import WhatIsSEOSection from "@/components/WhatIsSEOSection";
 import SEOResultsSection from "@/components/SEOResultsSection";
-import ComparisonSection from "@/components/ComparisonSection";
 import WhatIsSEOServicesSection from "@/components/WhatIsSEOServicesSection";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import Header from "@/components/Header";
@@ -44,14 +43,11 @@ const Index = () => {
         {/* WordPress: SEO Results section - template-parts/home/seo-results.php */}
         <SEOResultsSection />
         
-        {/* WordPress: Comparison section - template-parts/home/comparison.php */}
-        <ComparisonSection onContactClick={() => setContactModalOpen(true)} />
+        {/* WordPress: What is SEO section - template-parts/home/what-is-seo.php */}
+        <WhatIsSEOSection onContactClick={() => setContactModalOpen(true)} />
         
         {/* WordPress: What is SEO Services section - template-parts/home/seo-services.php */}
         <WhatIsSEOServicesSection onContactClick={() => setContactModalOpen(true)} />
-        
-        {/* WordPress: What is SEO section - template-parts/home/what-is-seo.php */}
-        <WhatIsSEOSection />
         
         {/* WordPress: Testimonials section - template-parts/home/testimonials.php */}
         <NewTestimonials />

@@ -1,6 +1,12 @@
 import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { TrendingUp } from "lucide-react";
 
-const WhatIsSEOSection = () => {
+interface WhatIsSEOSectionProps {
+  onContactClick?: () => void;
+}
+
+const WhatIsSEOSection = ({ onContactClick }: WhatIsSEOSectionProps) => {
   return (
     <section className="py-20 px-4 bg-coral/5">
       <div className="container mx-auto">
@@ -19,10 +25,14 @@ const WhatIsSEOSection = () => {
               transition={{ duration: 0.6, delay: 0.1 }}
               viewport={{ once: true }}
             >
-              <h2 className="text-4xl md:text-5xl font-bold text-gray-900 leading-tight mb-8">
-                WELCOME TO{" "}
-                <span className="bg-gradient-to-r from-brandPurple to-brandTeal bg-clip-text text-transparent">
-                  GOSG
+              <div className="text-sm font-semibold text-coral mb-4 tracking-wide uppercase">
+                OUR GUARANTEE
+              </div>
+              
+              <h2 className="text-4xl md:text-5xl font-bold text-gray-900 leading-tight mb-6">
+                Proven SEO Results In 90 Days With{" "}
+                <span className="bg-gradient-to-r from-coral to-pink-400 bg-clip-text text-transparent">
+                  Our Expert Partnership
                 </span>
               </h2>
             </motion.div>
@@ -35,32 +45,28 @@ const WhatIsSEOSection = () => {
               viewport={{ once: true }}
             >
               <p>
-                We're glad you're here. At GOSG, we live and breathe SEO - helping businesses 
-                get found online, attract the right audience, and turn clicks into customers.
-              </p>
-              
-              <p>
-                Think of us as your growth partners: whether it's climbing to page one, boosting 
-                traffic, or turning insights into results, our job is to make your brand shine where 
-                it matters most: on Google.
-              </p>
-              
-              <p>
-                Let us show you how our proven SEO strategies can help your business grow smarter, 
-                faster, and stronger.
+                SEO takes time, which is why we recommend a minimum of three months to see meaningful results. 
+                At GOSG, we use proven frameworks, real data, and expert insights to deliver sustainable growth 
+                rather than short-term wins. With our focus on consistency and transparency, we build SEO 
+                partnerships that drive lasting impact.
               </p>
             </motion.div>
 
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
               viewport={{ once: true }}
               className="pt-6"
             >
-              <p className="text-xl font-semibold text-gray-900">
-                - GREGOIRE LIAO
-              </p>
+              <Button 
+                onClick={onContactClick}
+                size="lg" 
+                className="bg-coral hover:bg-coral/90 text-white px-8 py-6 text-lg font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer"
+              >
+                <TrendingUp className="mr-2 h-5 w-5" />
+                START YOUR SEO PARTNERSHIP
+              </Button>
             </motion.div>
           </motion.div>
 
@@ -80,8 +86,8 @@ const WhatIsSEOSection = () => {
               {/* Content with SEO data background and profile image */}
               <div className="relative bg-deepBlue rounded-2xl p-8 transform -rotate-1 shadow-xl">
                 <div className="aspect-[4/5] bg-gradient-to-br from-deepBlue to-blue-900 rounded-xl relative overflow-hidden">
-                  {/* SEO Data Background */}
-                  <div className="absolute inset-0 opacity-20">
+                  {/* Background Graphs - Growth vs Stagnant */}
+                  <div className="absolute inset-0 opacity-40">
                     <svg className="w-full h-full" viewBox="0 0 400 500" preserveAspectRatio="none">
                       {/* Grid lines */}
                       <defs>
@@ -91,25 +97,61 @@ const WhatIsSEOSection = () => {
                       </defs>
                       <rect width="100%" height="100%" fill="url(#grid)" />
                       
-                      {/* Data visualization lines */}
-                      <path d="M50,400 Q150,350 250,300 T350,200" fill="none" stroke="rgba(32,178,170,0.3)" strokeWidth="3"/>
-                      <path d="M50,450 Q150,400 250,350 T350,250" fill="none" stroke="rgba(249,78,64,0.3)" strokeWidth="3"/>
-                      <path d="M50,380 Q150,320 250,280 T350,180" fill="none" stroke="rgba(155,135,245,0.3)" strokeWidth="3"/>
+                      {/* Your Agency - Stagnant Line (Red) */}
+                      <motion.path
+                        d="M50,350 L100,360 L150,355 L200,362 L250,358 L300,365 L350,360"
+                        fill="none"
+                        stroke="#F94E40"
+                        strokeWidth="4"
+                        strokeLinecap="round"
+                        initial={{ pathLength: 0, opacity: 0 }}
+                        whileInView={{ pathLength: 1, opacity: 1 }}
+                        transition={{ duration: 2, delay: 0.5 }}
+                        viewport={{ once: true }}
+                      />
                       
-                      {/* Data points */}
-                      <circle cx="100" cy="380" r="3" fill="rgba(32,178,170,0.4)"/>
-                      <circle cx="200" cy="320" r="3" fill="rgba(32,178,170,0.4)"/>
-                      <circle cx="300" cy="220" r="3" fill="rgba(32,178,170,0.4)"/>
+                      {/* GO SG - Growth Line (Teal) */}
+                      <motion.path
+                        d="M50,400 L100,360 L150,320 L200,270 L250,220 L300,160 L350,100"
+                        fill="none"
+                        stroke="#20B2AA"
+                        strokeWidth="4"
+                        strokeDasharray="8,4"
+                        strokeLinecap="round"
+                        initial={{ pathLength: 0, opacity: 0 }}
+                        whileInView={{ pathLength: 1, opacity: 1 }}
+                        transition={{ duration: 2.5, delay: 1 }}
+                        viewport={{ once: true }}
+                      />
                       
-                      {/* Bar chart elements */}
-                      <rect x="60" y="350" width="8" height="50" fill="rgba(249,78,64,0.2)"/>
-                      <rect x="80" y="320" width="8" height="80" fill="rgba(249,78,64,0.3)"/>
-                      <rect x="100" y="300" width="8" height="100" fill="rgba(249,78,64,0.2)"/>
+                      {/* Data points for growth line */}
+                      <motion.circle 
+                        cx="100" cy="360" r="4" fill="rgba(32,178,170,0.8)"
+                        initial={{ scale: 0 }}
+                        whileInView={{ scale: 1 }}
+                        transition={{ delay: 1.5 }}
+                      />
+                      <motion.circle 
+                        cx="200" cy="270" r="4" fill="rgba(32,178,170,0.8)"
+                        initial={{ scale: 0 }}
+                        whileInView={{ scale: 1 }}
+                        transition={{ delay: 2 }}
+                      />
+                      <motion.circle 
+                        cx="300" cy="160" r="4" fill="rgba(32,178,170,0.8)"
+                        initial={{ scale: 0 }}
+                        whileInView={{ scale: 1 }}
+                        transition={{ delay: 2.5 }}
+                      />
                       
-                      {/* Numbers/labels */}
-                      <text x="320" y="40" fill="rgba(255,255,255,0.2)" fontSize="12" fontFamily="monospace">+382%</text>
-                      <text x="50" y="40" fill="rgba(255,255,255,0.2)" fontSize="12" fontFamily="monospace">SEO</text>
-                      <text x="300" y="460" fill="rgba(255,255,255,0.2)" fontSize="12" fontFamily="monospace">Traffic</text>
+                      {/* Labels */}
+                      <text x="320" y="370" fill="rgba(249,78,64,0.6)" fontSize="10" fontFamily="sans-serif" fontWeight="bold">YOUR AGENCY</text>
+                      <text x="320" y="110" fill="rgba(32,178,170,0.8)" fontSize="10" fontFamily="sans-serif" fontWeight="bold">GO SG</text>
+                      <text x="350" y="90" fill="rgba(32,178,170,0.8)" fontSize="16" fontFamily="sans-serif" fontWeight="bold">↑</text>
+                      
+                      {/* Growth percentage */}
+                      <text x="20" y="40" fill="rgba(255,255,255,0.6)" fontSize="14" fontFamily="monospace">+382%</text>
+                      <text x="20" y="460" fill="rgba(255,255,255,0.3)" fontSize="10" fontFamily="monospace">90 Days</text>
                     </svg>
                   </div>
                   
