@@ -1,6 +1,7 @@
 
 import { useEffect, useState } from "react";
 import HeroSection from "@/components/HeroSection";
+import PainPointSection from "@/components/PainPointSection";
 import WhatIsSEOSection from "@/components/WhatIsSEOSection";
 import SEOResultsSection from "@/components/SEOResultsSection";
 import ComparisonSection from "@/components/ComparisonSection";
@@ -36,6 +37,9 @@ const Index = () => {
       <main className="flex-grow">
         {/* WordPress: Hero section - template-parts/home/hero.php */}
         <HeroSection onContactClick={() => setContactModalOpen(true)} />
+        
+        {/* WordPress: Pain Point section - template-parts/home/pain-point.php */}
+        <PainPointSection />
         
         {/* WordPress: SEO Results section - template-parts/home/seo-results.php */}
         <SEOResultsSection />
