@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { TrendingDown, BarChart3, MousePointerClick, X } from "lucide-react";
+import { ArrowUpRight, BarChart3, MousePointerClick, X } from "lucide-react";
 
 const PainPointSection = () => {
   return (
@@ -21,29 +21,27 @@ const PainPointSection = () => {
             {/* Main Circle/Globe */}
             <motion.div
               className="relative w-80 h-80 md:w-96 md:h-96"
-              animate={{ rotate: 360 }}
-              transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
             >
-              {/* Outer ring with dots pattern */}
-              <div className="absolute inset-0 rounded-full border-2 border-white/10"></div>
-              <div className="absolute inset-4 rounded-full border border-white/5"></div>
+              {/* Outer ring with gradient */}
+              <div className="absolute inset-0 rounded-full border-2 border-white/20 bg-gradient-to-br from-slate-800/50 via-blue-900/30 to-purple-900/50 backdrop-blur-sm"></div>
+              <div className="absolute inset-8 rounded-full border border-white/10"></div>
               
-              {/* Dotted globe effect */}
-              <div className="absolute inset-0 opacity-30">
-                {[...Array(20)].map((_, i) => (
+              {/* Dotted background effect */}
+              <div className="absolute inset-0 opacity-20">
+                {[...Array(30)].map((_, i) => (
                   <motion.div
                     key={i}
-                    className="absolute w-1.5 h-1.5 bg-white/40 rounded-full"
+                    className="absolute w-1 h-1 bg-white/30 rounded-full"
                     style={{
                       top: `${Math.random() * 100}%`,
                       left: `${Math.random() * 100}%`,
                     }}
                     animate={{
-                      opacity: [0.2, 0.6, 0.2],
-                      scale: [0.8, 1.2, 0.8],
+                      opacity: [0.1, 0.4, 0.1],
+                      scale: [0.5, 1, 0.5],
                     }}
                     transition={{
-                      duration: 2 + Math.random() * 2,
+                      duration: 3 + Math.random() * 2,
                       repeat: Infinity,
                       delay: Math.random() * 2,
                     }}
@@ -53,40 +51,81 @@ const PainPointSection = () => {
 
               {/* Floating text elements */}
               <motion.div
-                className="absolute top-1/4 left-0 text-white/60 text-lg font-light"
-                animate={{ y: [-10, 10, -10] }}
+                className="absolute top-8 right-12 text-white/50 text-base font-light tracking-wide"
+                initial={{ opacity: 0 }}
+                animate={{ 
+                  opacity: [0.3, 0.6, 0.3],
+                  y: [-3, 3, -3]
+                }}
                 transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-              >
-                low traffic
-              </motion.div>
-              
-              <motion.div
-                className="absolute top-1/2 right-0 text-white/60 text-lg font-light"
-                animate={{ y: [10, -10, 10] }}
-                transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
               >
                 stagnant
               </motion.div>
               
               <motion.div
-                className="absolute bottom-1/4 left-1/4 text-white/60 text-lg font-light"
-                animate={{ y: [-5, 15, -5] }}
-                transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+                className="absolute top-1/2 right-4 text-white/50 text-base font-light tracking-wide"
+                initial={{ opacity: 0 }}
+                animate={{ 
+                  opacity: [0.3, 0.6, 0.3],
+                  y: [3, -3, 3]
+                }}
+                transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
               >
                 no traffic
               </motion.div>
+              
+              <motion.div
+                className="absolute bottom-16 left-8 text-white/50 text-base font-light tracking-wide"
+                initial={{ opacity: 0 }}
+                animate={{ 
+                  opacity: [0.3, 0.6, 0.3],
+                  y: [-2, 4, -2]
+                }}
+                transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+              >
+                low traffic
+              </motion.div>
 
-              {/* Center declining graph icon */}
+              {/* Center red arrow - stagnant graph visualization */}
               <motion.div
                 className="absolute inset-0 flex items-center justify-center"
-                animate={{ scale: [1, 1.05, 1] }}
-                transition={{ duration: 3, repeat: Infinity }}
+                animate={{ 
+                  scale: [1, 1.1, 1],
+                }}
+                transition={{ duration: 2.5, repeat: Infinity }}
               >
                 <motion.div
-                  animate={{ y: [0, -5, 0] }}
-                  transition={{ duration: 2, repeat: Infinity }}
+                  className="relative"
+                  animate={{ 
+                    rotate: [0, 5, -5, 0],
+                  }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
                 >
-                  <TrendingDown className="w-24 h-24 text-red-400/80" strokeWidth={1.5} />
+                  {/* Red zigzag arrow path */}
+                  <svg width="120" height="120" viewBox="0 0 120 120" className="text-red-400">
+                    <motion.path
+                      d="M 30 90 L 45 70 L 40 60 L 55 45 L 50 40 L 75 20"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                      fill="none"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      initial={{ pathLength: 0, opacity: 0 }}
+                      animate={{ pathLength: 1, opacity: 1 }}
+                      transition={{ duration: 1.5, ease: "easeInOut" }}
+                    />
+                    <motion.path
+                      d="M 75 20 L 65 30 M 75 20 L 85 25"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                      fill="none"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.5, delay: 1.5 }}
+                    />
+                  </svg>
                 </motion.div>
               </motion.div>
             </motion.div>
