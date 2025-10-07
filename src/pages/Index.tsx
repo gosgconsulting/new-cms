@@ -11,6 +11,7 @@ import Footer from "@/components/Footer";
 import NewTestimonials from "@/components/NewTestimonials";
 import BlogSection from "@/components/BlogSection";
 import ContactModal from "@/components/ContactModal";
+import FAQAccordion from "@/components/FAQAccordion";
 
 /**
  * WordPress Theme Template: Home/Front Page
@@ -51,6 +52,26 @@ const Index = () => {
         
         {/* WordPress: Testimonials section - template-parts/home/testimonials.php */}
         <NewTestimonials />
+        
+        {/* WordPress: FAQ section - template-parts/home/faq.php */}
+        <FAQAccordion 
+          title="Frequently Asked Questions"
+          subtitle="Everything you need to know about our SEO services"
+          items={[
+            {
+              question: "How do backlinks help my website's SEO?",
+              answer: "Backlinks are crucial for building your website's authority and trust. When reputable websites link to yours, search engines view it as a vote of confidence. This increases your Domain Rating (DR) and Domain Authority (DA), which are key metrics that Google uses to determine your site's credibility. Higher authority means better rankings, more visibility, and increased organic traffic to your website."
+            },
+            {
+              question: "Why are blog posts important for SEO?",
+              answer: "Blog posts are essential for SEO because they provide fresh, relevant content that search engines love. Regular blogging helps you target long-tail keywords, answer customer questions, and establish your expertise in your industry. Each blog post is a new opportunity to rank for different search terms, attract backlinks, and engage your audience. Quality blog content also increases time-on-site and reduces bounce rates, which are positive ranking signals for search engines."
+            },
+            {
+              question: "How much do your SEO services cost?",
+              answer: "Our SEO services start from just 600 SGD per month, making professional SEO accessible for businesses of all sizes. This includes comprehensive keyword research, on-page optimization, quality backlink building, regular blog content creation, and detailed monthly reporting. We offer flexible packages tailored to your specific needs and goals, ensuring you get the best ROI for your investment."
+            }
+          ]}
+        />
         
         {/* WordPress: Blog section - template-parts/home/blog.php */}
         <BlogSection onContactClick={() => setContactModalOpen(true)} />
