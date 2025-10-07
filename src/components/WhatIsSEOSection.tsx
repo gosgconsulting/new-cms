@@ -4,6 +4,8 @@ import { TrendingUp } from "lucide-react";
 import gregoireLiao from "@/assets/gregoire-liao.png";
 import teamMember1 from "@/assets/team/member-1.png";
 import teamMember2 from "@/assets/team/member-2.jpeg";
+import teamMember3 from "@/assets/team/member-3.png";
+import teamMember4 from "@/assets/team/member-4.png";
 
 interface WhatIsSEOSectionProps {
   onContactClick?: () => void;
@@ -159,58 +161,94 @@ const WhatIsSEOSection = ({ onContactClick }: WhatIsSEOSectionProps) => {
                   </div>
                   
                   
-                  {/* Team Photos - Overlapping Circles */}
+                  {/* Team Photos - 5 Members in Staggered Layout */}
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="relative w-64 h-32">
-                      {/* Team member 1 - Left */}
-                      <motion.div
-                        className="absolute left-0 top-0 w-28 h-28 rounded-full border-4 border-white/20 shadow-xl overflow-hidden bg-white"
-                        initial={{ opacity: 0, x: -20 }}
-                        whileInView={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.5, duration: 0.5 }}
-                        viewport={{ once: true }}
-                      >
-                        <img 
-                          src={teamMember1}
-                          alt="Team Member"
-                          className="w-full h-full object-cover"
-                        />
-                      </motion.div>
+                    <div className="relative w-full h-48">
+                      {/* Top row - 3 members */}
+                      <div className="absolute top-0 left-1/2 -translate-x-1/2 flex items-center justify-center gap-2">
+                        {/* Member 1 */}
+                        <motion.div
+                          className="w-20 h-20 rounded-full border-3 border-white/20 shadow-xl overflow-hidden bg-white"
+                          initial={{ opacity: 0, y: -20 }}
+                          whileInView={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.3, duration: 0.5 }}
+                          viewport={{ once: true }}
+                        >
+                          <img 
+                            src={teamMember1}
+                            alt="Team Member"
+                            className="w-full h-full object-cover"
+                          />
+                        </motion.div>
+                        
+                        {/* Gregoire - Center (larger) */}
+                        <motion.div
+                          className="w-24 h-24 rounded-full border-4 border-white/30 shadow-2xl overflow-hidden bg-white z-10"
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          whileInView={{ opacity: 1, scale: 1 }}
+                          transition={{ delay: 0.5, duration: 0.5 }}
+                          viewport={{ once: true }}
+                        >
+                          <img 
+                            src={gregoireLiao}
+                            alt="Gregoire Liao"
+                            className="w-full h-full object-cover"
+                          />
+                        </motion.div>
+                        
+                        {/* Member 2 */}
+                        <motion.div
+                          className="w-20 h-20 rounded-full border-3 border-white/20 shadow-xl overflow-hidden bg-white"
+                          initial={{ opacity: 0, y: -20 }}
+                          whileInView={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.7, duration: 0.5 }}
+                          viewport={{ once: true }}
+                        >
+                          <img 
+                            src={teamMember2}
+                            alt="Team Member"
+                            className="w-full h-full object-cover"
+                          />
+                        </motion.div>
+                      </div>
                       
-                      {/* Gregoire - Center (larger) */}
-                      <motion.div
-                        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 rounded-full border-4 border-white/30 shadow-2xl overflow-hidden bg-white z-10"
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        whileInView={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 0.7, duration: 0.5 }}
-                        viewport={{ once: true }}
-                      >
-                        <img 
-                          src={gregoireLiao}
-                          alt="Gregoire Liao"
-                          className="w-full h-full object-cover"
-                        />
-                      </motion.div>
-                      
-                      {/* Team member 2 - Right */}
-                      <motion.div
-                        className="absolute right-0 top-0 w-28 h-28 rounded-full border-4 border-white/20 shadow-xl overflow-hidden bg-white"
-                        initial={{ opacity: 0, x: 20 }}
-                        whileInView={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.9, duration: 0.5 }}
-                        viewport={{ once: true }}
-                      >
-                        <img 
-                          src={teamMember2}
-                          alt="Team Member"
-                          className="w-full h-full object-cover"
-                        />
-                      </motion.div>
+                      {/* Bottom row - 2 members */}
+                      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center justify-center gap-8">
+                        {/* Member 3 */}
+                        <motion.div
+                          className="w-20 h-20 rounded-full border-3 border-white/20 shadow-xl overflow-hidden bg-white"
+                          initial={{ opacity: 0, y: 20 }}
+                          whileInView={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.9, duration: 0.5 }}
+                          viewport={{ once: true }}
+                        >
+                          <img 
+                            src={teamMember3}
+                            alt="Team Member"
+                            className="w-full h-full object-cover"
+                          />
+                        </motion.div>
+                        
+                        {/* Member 4 */}
+                        <motion.div
+                          className="w-20 h-20 rounded-full border-3 border-white/20 shadow-xl overflow-hidden bg-white"
+                          initial={{ opacity: 0, y: 20 }}
+                          whileInView={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 1.1, duration: 0.5 }}
+                          viewport={{ once: true }}
+                        >
+                          <img 
+                            src={teamMember4}
+                            alt="Team Member"
+                            className="w-full h-full object-cover"
+                          />
+                        </motion.div>
+                      </div>
                     </div>
                   </div>
                   
                   {/* Team label */}
-                  <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 text-center">
+                  <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 text-center">
                     <p className="text-sm text-white font-medium">Our Team</p>
                   </div>
                 </div>
