@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import HeroSection from "@/components/HeroSection";
 import PainPointSection from "@/components/PainPointSection";
-import WhatIsSEOSection from "@/components/WhatIsSEOSection";
+import SEOServicesShowcase from "@/components/SEOServicesShowcase";
 import SEOResultsSection from "@/components/SEOResultsSection";
 import WhatIsSEOServicesSection from "@/components/WhatIsSEOServicesSection";
 import WhatsAppButton from "@/components/WhatsAppButton";
@@ -44,8 +44,8 @@ const Index = () => {
         {/* WordPress: SEO Results section - template-parts/home/seo-results.php */}
         <SEOResultsSection />
         
-        {/* WordPress: What is SEO section - template-parts/home/what-is-seo.php */}
-        <WhatIsSEOSection onContactClick={() => setContactModalOpen(true)} />
+        {/* WordPress: SEO Services Showcase section - template-parts/home/seo-services-showcase.php */}
+        <SEOServicesShowcase onContactClick={() => setContactModalOpen(true)} />
         
         {/* WordPress: What is SEO Services section - template-parts/home/seo-services.php */}
         <WhatIsSEOServicesSection onContactClick={() => setContactModalOpen(true)} />
