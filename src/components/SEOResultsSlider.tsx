@@ -30,6 +30,11 @@ const SEOResultsSlider = () => {
   const column2 = results.slice(3, 6);
   const column3 = results.slice(6, 8);
 
+  // Duplicate arrays for seamless infinite scroll
+  const column1Doubled = [...column1, ...column1];
+  const column2Doubled = [...column2, ...column2];
+  const column3Doubled = [...column3, ...column3];
+
   return (
     <div className="w-full overflow-hidden py-8">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-7xl mx-auto px-4 max-h-[800px]">
@@ -37,15 +42,16 @@ const SEOResultsSlider = () => {
         <motion.div
           className="flex flex-col gap-4"
           animate={{
-            y: [0, -600],
+            y: [0, -1200],
           }}
           transition={{
-            duration: 20,
+            duration: 40,
             repeat: Infinity,
             ease: "linear",
+            repeatType: "loop",
           }}
         >
-          {column1.map((result, index) => (
+          {column1Doubled.map((result, index) => (
             <Card
               key={`col1-${index}`}
               className="overflow-hidden bg-gradient-to-br from-brandPurple/20 to-brandTeal/20 backdrop-blur-sm border-brandPurple/30 shadow-lg hover:shadow-xl transition-all"
@@ -72,16 +78,17 @@ const SEOResultsSlider = () => {
         <motion.div
           className="hidden md:flex flex-col gap-4"
           animate={{
-            y: [0, -600],
+            y: [0, -1200],
           }}
           transition={{
-            duration: 25,
+            duration: 50,
             repeat: Infinity,
             ease: "linear",
             delay: 2,
+            repeatType: "loop",
           }}
         >
-          {column2.map((result, index) => (
+          {column2Doubled.map((result, index) => (
             <Card
               key={`col2-${index}`}
               className="overflow-hidden bg-gradient-to-br from-brandPurple/20 to-brandTeal/20 backdrop-blur-sm border-brandPurple/30 shadow-lg hover:shadow-xl transition-all"
@@ -108,16 +115,17 @@ const SEOResultsSlider = () => {
         <motion.div
           className="hidden lg:flex flex-col gap-4"
           animate={{
-            y: [0, -400],
+            y: [0, -800],
           }}
           transition={{
-            duration: 22,
+            duration: 44,
             repeat: Infinity,
             ease: "linear",
             delay: 4,
+            repeatType: "loop",
           }}
         >
-          {column3.map((result, index) => (
+          {column3Doubled.map((result, index) => (
             <Card
               key={`col3-${index}`}
               className="overflow-hidden bg-gradient-to-br from-brandPurple/20 to-brandTeal/20 backdrop-blur-sm border-brandPurple/30 shadow-lg hover:shadow-xl transition-all"
