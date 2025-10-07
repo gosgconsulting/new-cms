@@ -3,7 +3,7 @@ import SEOResultsSlider from "./SEOResultsSlider";
 
 const SEOResultsSection = () => {
   return (
-    <section id="next-section" className="py-20 px-4 bg-gradient-to-b from-background via-secondary/30 to-background relative overflow-hidden">
+    <section id="next-section" className="py-12 px-4 bg-gradient-to-b from-background via-secondary/30 to-background relative overflow-hidden">
       {/* Gradient overlay effects */}
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/5 to-transparent pointer-events-none" />
       
