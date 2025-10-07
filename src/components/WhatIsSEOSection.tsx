@@ -205,7 +205,7 @@ const WhatIsSEOSection = ({ onContactClick }: WhatIsSEOSectionProps) => {
                             <div className="w-6 h-6 rounded-full bg-brandPurple"></div>
                             <div className="w-6 h-6 rounded-full bg-coral"></div>
                           </div>
-                          <span className="text-xs text-white font-medium">5+ Years Experience</span>
+                          <span className="text-xs text-white font-medium">10+ Years Experience</span>
                         </div>
                       </motion.div>
                     </div>
