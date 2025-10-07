@@ -21,7 +21,7 @@ const SEOResultsSection = () => {
           className="text-center mb-12"
         >
           <h2 className="text-4xl md:text-5xl font-bold mb-6">
-            Proven <span className="bg-gradient-to-r from-brandPurple to-brandTeal bg-clip-text text-transparent">Results</span>
+            Real <span className="bg-gradient-to-r from-brandPurple to-brandTeal bg-clip-text text-transparent">SEO Results</span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
             See how we've helped businesses like yours achieve remarkable growth through strategic SEO implementation.
