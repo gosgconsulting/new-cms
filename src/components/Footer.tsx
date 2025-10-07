@@ -135,14 +135,6 @@ const Footer = ({ onContactClick }: FooterProps) => {
                 <a href="#" className="hover:text-brandTeal transition-colors">Privacy Policy</a>
                 <a href="#" className="hover:text-brandTeal transition-colors">Terms of Service</a>
                 <Link to="/blog" className="hover:text-brandTeal transition-colors">Blog</Link>
-                <a 
-                  href="/sitemap.xml" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="hover:text-brandTeal transition-colors"
-                >
-                  XML Sitemap
-                </a>
               </div>
               
               <p className="text-sm text-gray-400">
