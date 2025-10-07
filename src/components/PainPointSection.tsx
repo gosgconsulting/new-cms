@@ -57,7 +57,7 @@ const PainPointSection = () => {
                 animate={{ y: [-10, 10, -10] }}
                 transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
               >
-                0 clicks
+                low traffic
               </motion.div>
               
               <motion.div
