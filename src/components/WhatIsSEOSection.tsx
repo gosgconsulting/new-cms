@@ -160,7 +160,7 @@ const WhatIsSEOSection = ({ onContactClick }: WhatIsSEOSectionProps) => {
                     <div className="w-32 h-32 rounded-full border-4 border-white/20 shadow-xl overflow-hidden bg-white">
                       <img 
                         src="/assets/gregoire-liao.png"
-                        alt="Gregoire Liao - SEO Expert"
+                        alt="Our Team"
                         className="w-full h-full object-cover"
                       />
                     </div>
@@ -168,8 +168,7 @@ const WhatIsSEOSection = ({ onContactClick }: WhatIsSEOSectionProps) => {
                   
                   {/* Name label */}
                   <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 text-center">
-                    <p className="text-sm text-white font-medium">Gregoire Liao</p>
-                    <p className="text-xs text-gray-300">SEO Expert</p>
+                    <p className="text-sm text-white font-medium">Our Team</p>
                   </div>
                 </div>
               </div>
