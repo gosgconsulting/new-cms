@@ -104,25 +104,25 @@ const Footer = ({ onContactClick }: FooterProps) => {
               </button>
             </div>
             
-            {/* Right Side - Social Links */}
+            {/* Right Side - Contact Links */}
             <div className="lg:text-right">
-              <h3 className="text-sm font-semibold mb-4 text-gray-400 uppercase tracking-wider">Socials</h3>
+              <h3 className="text-sm font-semibold mb-4 text-gray-400 uppercase tracking-wider">Contact</h3>
               <div className="space-y-3">
                 <a 
-                  href="https://linkedin.com" 
+                  href="https://wa.me/1234567890" 
                   target="_blank" 
                   rel="noreferrer"
                   className="block text-xl text-white hover:text-brandTeal transition-colors"
                 >
-                  LinkedIn
+                  WhatsApp
                 </a>
                 <a 
-                  href="https://instagram.com" 
+                  href="https://calendly.com" 
                   target="_blank" 
                   rel="noreferrer"
                   className="block text-xl text-white hover:text-brandTeal transition-colors"
                 >
-                  Instagram
+                  Book a Meeting
                 </a>
               </div>
             </div>
