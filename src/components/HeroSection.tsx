@@ -95,16 +95,11 @@ const HeroSection = () => {
             
             {/* Logo Animation Strip */}
             <motion.div
-              className="w-full mt-16 pt-12 border-t border-border"
+              className="w-full mt-16"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.6, delay: 0.5 }}
             >
-              <p className="text-muted-foreground text-sm mb-8">
-                Trusted by leading brands
-                {/* WP: <?php echo get_field('hero_logos_heading', 'option') ?: 'Trusted by leading brands'; ?> */}
-              </p>
-              
               <div className="relative overflow-hidden">
                 <motion.div
                   className="flex gap-12 items-center justify-center"
