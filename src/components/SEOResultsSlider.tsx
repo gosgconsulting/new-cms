@@ -44,18 +44,20 @@ const SEOResultsSlider = () => {
           {column1.map((result, index) => (
             <Card
               key={`col1-${index}`}
-              className="overflow-hidden bg-gradient-to-br from-background to-secondary/20 border-border shadow-lg hover:shadow-xl transition-all"
+              className="overflow-hidden bg-gradient-to-br from-brandPurple/20 to-brandTeal/20 backdrop-blur-sm border-brandPurple/30 shadow-lg hover:shadow-xl transition-all"
             >
               <div className="p-4">
-                <div className="relative aspect-[16/10] overflow-hidden rounded-2xl bg-white/5">
+                <div className="relative aspect-[16/10] overflow-hidden rounded-2xl bg-background/50 shadow-inner">
                   <img
                     src={result.img}
                     alt="SEO Performance Results"
                     className="w-full h-full object-cover"
                   />
                 </div>
-                <div className="mt-3 text-center">
-                  <p className="text-sm font-semibold text-primary">{result.label}</p>
+                <div className="mt-3 flex justify-center">
+                  <span className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-brandPurple to-brandTeal text-white text-xs font-bold shadow-md">
+                    {result.label}
+                  </span>
                 </div>
               </div>
             </Card>
@@ -78,18 +80,20 @@ const SEOResultsSlider = () => {
           {column2.map((result, index) => (
             <Card
               key={`col2-${index}`}
-              className="overflow-hidden bg-gradient-to-br from-background to-secondary/20 border-border shadow-lg hover:shadow-xl transition-all"
+              className="overflow-hidden bg-gradient-to-br from-brandPurple/20 to-brandTeal/20 backdrop-blur-sm border-brandPurple/30 shadow-lg hover:shadow-xl transition-all"
             >
               <div className="p-4">
-                <div className="relative aspect-[16/10] overflow-hidden rounded-2xl bg-white/5">
+                <div className="relative aspect-[16/10] overflow-hidden rounded-2xl bg-background/50 shadow-inner">
                   <img
                     src={result.img}
                     alt="SEO Performance Results"
                     className="w-full h-full object-cover"
                   />
                 </div>
-                <div className="mt-3 text-center">
-                  <p className="text-sm font-semibold text-primary">{result.label}</p>
+                <div className="mt-3 flex justify-center">
+                  <span className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-brandPurple to-brandTeal text-white text-xs font-bold shadow-md">
+                    {result.label}
+                  </span>
                 </div>
               </div>
             </Card>
@@ -112,18 +116,20 @@ const SEOResultsSlider = () => {
           {column3.map((result, index) => (
             <Card
               key={`col3-${index}`}
-              className="overflow-hidden bg-gradient-to-br from-background to-secondary/20 border-border shadow-lg hover:shadow-xl transition-all"
+              className="overflow-hidden bg-gradient-to-br from-brandPurple/20 to-brandTeal/20 backdrop-blur-sm border-brandPurple/30 shadow-lg hover:shadow-xl transition-all"
             >
               <div className="p-4">
-                <div className="relative aspect-[16/10] overflow-hidden rounded-2xl bg-white/5">
+                <div className="relative aspect-[16/10] overflow-hidden rounded-2xl bg-background/50 shadow-inner">
                   <img
                     src={result.img}
                     alt="SEO Performance Results"
                     className="w-full h-full object-cover"
                   />
                 </div>
-                <div className="mt-3 text-center">
-                  <p className="text-sm font-semibold text-primary">{result.label}</p>
+                <div className="mt-3 flex justify-center">
+                  <span className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-brandPurple to-brandTeal text-white text-xs font-bold shadow-md">
+                    {result.label}
+                  </span>
                 </div>
               </div>
             </Card>
