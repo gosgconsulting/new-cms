@@ -112,51 +112,51 @@ const HeroSection = () => {
             >
               <div className="relative overflow-hidden py-8">
                 <motion.div
-                  className="flex gap-24 items-center"
+                  className="flex gap-12 items-center"
                   animate={{
-                    x: [0, -1600],
+                    x: [0, -1400],
                   }}
                   transition={{
                     x: {
                       repeat: Infinity,
                       repeatType: "loop",
-                      duration: 35,
+                      duration: 30,
                       ease: "linear",
                     },
                   }}
                 >
                   {/* Duplicate logo sets for seamless loop */}
                   {[...Array(3)].map((_, setIndex) => (
-                    <div key={setIndex} className="flex gap-24 items-center shrink-0">
-                      <div className="flex items-center justify-center min-w-[120px]">
-                        <img src={artInBloom} alt="Art in Bloom" className="h-10 w-auto max-w-[120px] object-contain opacity-60 hover:opacity-100 transition-opacity" />
+                    <div key={setIndex} className="flex gap-12 items-center shrink-0">
+                      <div className="flex items-center justify-center min-w-[100px]">
+                        <img src={artInBloom} alt="Art in Bloom" className="h-10 w-auto max-w-[100px] object-contain opacity-60 hover:opacity-100 transition-opacity" />
                       </div>
-                      <div className="flex items-center justify-center min-w-[120px]">
-                        <img src={selenightco} alt="Selenightco" className="h-10 w-auto max-w-[120px] object-contain opacity-60 hover:opacity-100 transition-opacity" />
+                      <div className="flex items-center justify-center min-w-[100px]">
+                        <img src={selenightco} alt="Selenightco" className="h-10 w-auto max-w-[100px] object-contain opacity-60 hover:opacity-100 transition-opacity" />
                       </div>
-                      <div className="flex items-center justify-center min-w-[120px]">
-                        <img src={smooy} alt="Smooy" className="h-10 w-auto max-w-[120px] object-contain opacity-60 hover:opacity-100 transition-opacity" />
+                      <div className="flex items-center justify-center min-w-[100px]">
+                        <img src={smooy} alt="Smooy" className="h-10 w-auto max-w-[100px] object-contain opacity-60 hover:opacity-100 transition-opacity" />
                       </div>
-                      <div className="flex items-center justify-center min-w-[120px]">
-                        <img src={solstice} alt="Solstice" className="h-10 w-auto max-w-[120px] object-contain opacity-60 hover:opacity-100 transition-opacity" />
+                      <div className="flex items-center justify-center min-w-[100px]">
+                        <img src={solstice} alt="Solstice" className="h-10 w-auto max-w-[100px] object-contain opacity-60 hover:opacity-100 transition-opacity" />
                       </div>
-                      <div className="flex items-center justify-center min-w-[120px]">
-                        <img src={grub} alt="Grub" className="h-10 w-auto max-w-[120px] object-contain opacity-60 hover:opacity-100 transition-opacity" />
+                      <div className="flex items-center justify-center min-w-[100px]">
+                        <img src={grub} alt="Grub" className="h-10 w-auto max-w-[100px] object-contain opacity-60 hover:opacity-100 transition-opacity" />
                       </div>
-                      <div className="flex items-center justify-center min-w-[120px]">
-                        <img src={nailQueen} alt="Nail Queen" className="h-10 w-auto max-w-[120px] object-contain opacity-60 hover:opacity-100 transition-opacity" />
+                      <div className="flex items-center justify-center min-w-[100px]">
+                        <img src={nailQueen} alt="Nail Queen" className="h-10 w-auto max-w-[100px] object-contain opacity-60 hover:opacity-100 transition-opacity" />
                       </div>
-                      <div className="flex items-center justify-center min-w-[120px]">
-                        <img src={caroPatisserie} alt="Caro Pâtisserie" className="h-10 w-auto max-w-[120px] object-contain opacity-60 hover:opacity-100 transition-opacity" />
+                      <div className="flex items-center justify-center min-w-[100px]">
+                        <img src={caroPatisserie} alt="Caro Pâtisserie" className="h-10 w-auto max-w-[100px] object-contain opacity-60 hover:opacity-100 transition-opacity" />
                       </div>
-                      <div className="flex items-center justify-center min-w-[120px]">
-                        <img src={spiritStretch} alt="Spirit Stretch" className="h-10 w-auto max-w-[120px] object-contain opacity-60 hover:opacity-100 transition-opacity" />
+                      <div className="flex items-center justify-center min-w-[100px]">
+                        <img src={spiritStretch} alt="Spirit Stretch" className="h-10 w-auto max-w-[100px] object-contain opacity-60 hover:opacity-100 transition-opacity" />
                       </div>
                       {/* WP: <?php 
                         $logos = get_field('client_logos', 'option');
                         if ($logos) {
                           foreach ($logos as $logo) {
-                            echo '<div class="flex items-center justify-center min-w-[120px]"><img src="' . esc_url($logo['url']) . '" alt="' . esc_attr($logo['alt']) . '" class="h-10 w-auto max-w-[120px] object-contain opacity-60 hover:opacity-100 transition-opacity" /></div>';
+                            echo '<div class="flex items-center justify-center min-w-[100px]"><img src="' . esc_url($logo['url']) . '" alt="' . esc_attr($logo['alt']) . '" class="h-10 w-auto max-w-[100px] object-contain opacity-60 hover:opacity-100 transition-opacity" /></div>';
                           }
                         }
                       ?> */}
