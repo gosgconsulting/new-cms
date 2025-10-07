@@ -49,9 +49,6 @@ const SEOResultsSlider = () => {
                   className="w-full h-full object-cover"
                 />
               </div>
-              <div className="p-4 text-center">
-                <p className="text-sm text-muted-foreground">{result.date}</p>
-              </div>
             </Card>
           ))}
         </motion.div>
@@ -81,9 +78,6 @@ const SEOResultsSlider = () => {
                   className="w-full h-full object-cover"
                 />
               </div>
-              <div className="p-4 text-center">
-                <p className="text-sm text-muted-foreground">{result.date}</p>
-              </div>
             </Card>
           ))}
         </motion.div>
@@ -112,9 +106,6 @@ const SEOResultsSlider = () => {
                   alt={`SEO Results ${result.date}`}
                   className="w-full h-full object-cover"
                 />
-              </div>
-              <div className="p-4 text-center">
-                <p className="text-sm text-muted-foreground">{result.date}</p>
               </div>
             </Card>
           ))}
