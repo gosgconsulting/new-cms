@@ -36,7 +36,7 @@ interface HeroSectionProps {
 const HeroSection = ({ onContactClick }: HeroSectionProps) => {
   return (
     <>
-      <section className="relative min-h-screen flex items-center justify-center px-4 overflow-hidden bg-gradient-to-br from-background via-secondary/30 to-background">
+      <section className="relative min-h-screen flex items-center justify-center px-4 pt-32 md:pt-24 overflow-hidden bg-gradient-to-br from-background via-secondary/30 to-background">
         {/* Diagonal gradient accents */}
         <div className="absolute top-0 right-1/4 w-96 h-96 bg-gradient-to-br from-brandPurple/20 to-transparent blur-3xl rotate-45 -z-10"></div>
         <div className="absolute bottom-1/4 left-1/3 w-80 h-80 bg-gradient-to-tl from-brandTeal/15 to-transparent blur-3xl -rotate-45 -z-10"></div>
