@@ -10,14 +10,14 @@ import result7 from "@/assets/results/result-7.png";
 import result8 from "@/assets/results/result-8.png";
 
 const results = [
-  { img: result1 },
-  { img: result2 },
-  { img: result3 },
-  { img: result4 },
-  { img: result5 },
-  { img: result6 },
-  { img: result7 },
-  { img: result8 },
+  { img: result1, label: "+245% Organic Traffic in 6 months" },
+  { img: result2, label: "+180% Organic Traffic in 4 months" },
+  { img: result3, label: "+320% Organic Traffic in 5 months" },
+  { img: result4, label: "+195% Organic Traffic in 3 months" },
+  { img: result5, label: "+275% Organic Traffic in 6 months" },
+  { img: result6, label: "+160% Organic Traffic in 4 months" },
+  { img: result7, label: "+215% Organic Traffic in 5 months" },
+  { img: result8, label: "+290% Organic Traffic in 6 months" },
 ];
 
 const SEOResultsSlider = () => {
@@ -53,6 +53,9 @@ const SEOResultsSlider = () => {
                   className="w-full h-full object-cover"
                 />
               </div>
+              <div className="p-4 text-center bg-primary/5">
+                <p className="text-sm font-semibold text-primary">{result.label}</p>
+              </div>
             </Card>
           ))}
         </motion.div>
@@ -82,6 +85,9 @@ const SEOResultsSlider = () => {
                   className="w-full h-full object-cover"
                 />
               </div>
+              <div className="p-4 text-center bg-primary/5">
+                <p className="text-sm font-semibold text-primary">{result.label}</p>
+              </div>
             </Card>
           ))}
         </motion.div>
@@ -110,6 +116,9 @@ const SEOResultsSlider = () => {
                   alt="SEO Performance Results"
                   className="w-full h-full object-cover"
                 />
+              </div>
+              <div className="p-4 text-center bg-primary/5">
+                <p className="text-sm font-semibold text-primary">{result.label}</p>
               </div>
             </Card>
           ))}
