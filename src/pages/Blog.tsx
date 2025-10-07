@@ -5,32 +5,27 @@ import { Button } from "@/components/ui/button";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { wordpressApi } from "@/services/wordpressApi";
-import { useWordPressPosts } from "@/hooks/use-wordpress-posts";
+import { useWordPressPosts, useWordPressCategories } from "@/hooks/use-wordpress-posts";
 import { Calendar, Clock, ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import ContactModal from "@/components/ContactModal";
 
 const Blog = () => {
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const [contactModalOpen, setContactModalOpen] = useState(false);
   const postsPerPage = 9;
 
+  // Fetch categories from WordPress
+  const { categories, isLoading: categoriesLoading } = useWordPressCategories();
+
+  // Fetch posts, filtering by selected category if one is chosen
   const { posts, isLoading, error } = useWordPressPosts({
     per_page: postsPerPage,
     page: currentPage,
     orderby: 'date',
-    order: 'desc'
+    order: 'desc',
+    categories: selectedCategory ? [selectedCategory] : undefined
   });
-
-  // Sample categories - in production, these would come from WordPress API
-  const categories = [
-    "All tags",
-    "Time-Saving Tools",
-    "Blogging Tips",
-    "Content Marketing Trends",
-    "Keyword Research",
-    "SEO Best Practices"
-  ];
 
   if (isLoading) {
     return (
@@ -91,19 +86,45 @@ const Blog = () => {
             >
               <div className="bg-white rounded-xl p-6 shadow-sm sticky top-24">
                 <div className="space-y-2">
-                  {categories.map((category, index) => (
-                    <button
-                      key={index}
-                      onClick={() => setSelectedCategory(category === "All tags" ? null : category)}
-                      className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-300 ${
-                        (category === "All tags" && !selectedCategory) || selectedCategory === category
-                          ? "bg-gradient-to-r from-brandPurple/10 to-brandTeal/10 text-gray-900 font-medium border border-brandPurple/20"
-                          : "hover:bg-gray-50 text-gray-700"
-                      }`}
-                    >
-                      {category}
-                    </button>
-                  ))}
+                  {/* All Categories Button */}
+                  <button
+                    onClick={() => {
+                      setSelectedCategory(null);
+                      setCurrentPage(1);
+                    }}
+                    className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-300 ${
+                      !selectedCategory
+                        ? "bg-gradient-to-r from-brandPurple/10 to-brandTeal/10 text-gray-900 font-medium border border-brandPurple/20"
+                        : "hover:bg-gray-50 text-gray-700"
+                    }`}
+                  >
+                    All Categories
+                  </button>
+                  
+                  {/* Display categories from WordPress */}
+                  {categoriesLoading ? (
+                    <div className="px-4 py-3 text-gray-500 text-sm">Loading categories...</div>
+                  ) : categories && categories.length > 0 ? (
+                    categories.map((category) => (
+                      <button
+                        key={category.id}
+                        onClick={() => {
+                          setSelectedCategory(category.id);
+                          setCurrentPage(1);
+                        }}
+                        className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-300 ${
+                          selectedCategory === category.id
+                            ? "bg-gradient-to-r from-brandPurple/10 to-brandTeal/10 text-gray-900 font-medium border border-brandPurple/20"
+                            : "hover:bg-gray-50 text-gray-700"
+                        }`}
+                      >
+                        {category.name}
+                        {category.count > 0 && (
+                          <span className="ml-2 text-xs text-gray-500">({category.count})</span>
+                        )}
+                      </button>
+                    ))
+                  ) : null}
                 </div>
               </div>
             </motion.aside>

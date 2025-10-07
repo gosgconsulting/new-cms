@@ -101,6 +101,18 @@ export interface WordPressAuthor {
   meta: any[];
 }
 
+export interface WordPressCategory {
+  id: number;
+  count: number;
+  description: string;
+  link: string;
+  name: string;
+  slug: string;
+  taxonomy: string;
+  parent: number;
+  meta: any[];
+}
+
 class WordPressApiService {
   private baseUrl: string;
 
@@ -178,6 +190,31 @@ class WordPressApiService {
       throw new Error(`WordPress API Error: ${response.status} ${response.statusText}`);
     }
     return (await response.json()) as WordPressMedia;
+  }
+
+  /**
+   * Fetch all categories
+   */
+  async getCategories(params: {
+    per_page?: number;
+    page?: number;
+    orderby?: 'count' | 'name' | 'slug';
+    order?: 'asc' | 'desc';
+  } = {}): Promise<WordPressCategory[]> {
+    const searchParams = new URLSearchParams();
+    
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        searchParams.append(key, value.toString());
+      }
+    });
+
+    const response = await fetch(`${this.baseUrl}/categories?${searchParams.toString()}`);
+    if (!response.ok) {
+      throw new Error(`WordPress API Error: ${response.status} ${response.statusText}`);
+    }
+    
+    return (await response.json()) as WordPressCategory[];
   }
 
   /**

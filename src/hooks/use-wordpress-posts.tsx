@@ -4,7 +4,7 @@
  */
 
 import { useQuery } from "@tanstack/react-query";
-import { wordpressApi, WordPressPost } from "@/services/wordpressApi";
+import { wordpressApi, WordPressPost, WordPressCategory } from "@/services/wordpressApi";
 
 export interface UseWordPressPostsOptions {
   per_page?: number;
@@ -162,8 +162,51 @@ export function useLatestWordPressPosts(count: number = 3): UseWordPressPostsRes
   });
 }
 
+export interface UseWordPressCategoriesResult {
+  categories: WordPressCategory[] | undefined;
+  isLoading: boolean;
+  error: Error | null;
+  isError: boolean;
+  refetch: () => void;
+}
+
+/**
+ * Hook to fetch WordPress categories
+ * @returns UseWordPressCategoriesResult
+ */
+export function useWordPressCategories(): UseWordPressCategoriesResult {
+  const {
+    data: categories,
+    isLoading,
+    error,
+    isError,
+    refetch
+  } = useQuery({
+    queryKey: ['wordpress-categories'],
+    queryFn: async () => {
+      return await wordpressApi.getCategories({
+        per_page: 100,
+        orderby: 'name',
+        order: 'asc'
+      });
+    },
+    staleTime: 30 * 60 * 1000, // 30 minutes - categories don't change often
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+  });
+
+  return {
+    categories,
+    isLoading,
+    error: error as Error | null,
+    isError,
+    refetch
+  };
+}
+
 export default {
   useWordPressPosts,
   useWordPressPost,
-  useLatestWordPressPosts
+  useLatestWordPressPosts,
+  useWordPressCategories
 };
