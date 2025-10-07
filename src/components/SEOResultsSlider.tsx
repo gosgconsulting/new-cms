@@ -6,21 +6,25 @@ import result3 from "@/assets/results/result-3.png";
 import result4 from "@/assets/results/result-4.png";
 import result5 from "@/assets/results/result-5.png";
 import result6 from "@/assets/results/result-6.png";
+import result7 from "@/assets/results/result-7.png";
+import result8 from "@/assets/results/result-8.png";
 
 const results = [
-  { img: result1, date: "5 janvier 2025" },
-  { img: result2, date: "15 mars 2025" },
-  { img: result3, date: "24 mars 2025" },
-  { img: result4, date: "7 avril 2025" },
-  { img: result5, date: "19 avril 2025" },
-  { img: result6, date: "6 mai 2025" },
+  { img: result1 },
+  { img: result2 },
+  { img: result3 },
+  { img: result4 },
+  { img: result5 },
+  { img: result6 },
+  { img: result7 },
+  { img: result8 },
 ];
 
 const SEOResultsSlider = () => {
   // Create three columns for desktop, duplicate items for infinite scroll
-  const column1 = [...results.slice(0, 2), ...results.slice(0, 2)];
-  const column2 = [...results.slice(2, 4), ...results.slice(2, 4)];
-  const column3 = [...results.slice(4, 6), ...results.slice(4, 6)];
+  const column1 = [...results.slice(0, 3), ...results.slice(0, 3)];
+  const column2 = [...results.slice(3, 6), ...results.slice(3, 6)];
+  const column3 = [...results.slice(6, 8), ...results.slice(6, 8)];
 
   return (
     <div className="w-full overflow-hidden py-12">
@@ -29,7 +33,7 @@ const SEOResultsSlider = () => {
         <motion.div
           className="flex flex-col gap-6"
           animate={{
-            y: [0, -400],
+            y: [0, -600],
           }}
           transition={{
             duration: 20,
@@ -45,7 +49,7 @@ const SEOResultsSlider = () => {
               <div className="relative aspect-[16/10]">
                 <img
                   src={result.img}
-                  alt={`SEO Results ${result.date}`}
+                  alt="SEO Performance Results"
                   className="w-full h-full object-cover"
                 />
               </div>
@@ -57,7 +61,7 @@ const SEOResultsSlider = () => {
         <motion.div
           className="hidden md:flex flex-col gap-6"
           animate={{
-            y: [0, -400],
+            y: [0, -600],
           }}
           transition={{
             duration: 25,
@@ -74,7 +78,7 @@ const SEOResultsSlider = () => {
               <div className="relative aspect-[16/10]">
                 <img
                   src={result.img}
-                  alt={`SEO Results ${result.date}`}
+                  alt="SEO Performance Results"
                   className="w-full h-full object-cover"
                 />
               </div>
@@ -103,7 +107,7 @@ const SEOResultsSlider = () => {
               <div className="relative aspect-[16/10]">
                 <img
                   src={result.img}
-                  alt={`SEO Results ${result.date}`}
+                  alt="SEO Performance Results"
                   className="w-full h-full object-cover"
                 />
               </div>
