@@ -81,88 +81,79 @@ interface FooterProps {
 
 const Footer = ({ onContactClick }: FooterProps) => {
   return (
-    <footer className="bg-slate-900 text-white py-12 px-4">
+    <footer className="bg-slate-900 text-white py-16 px-4">
         <div className="container mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            {/* Logo & Social */}
-            <div>
-              <div className="mb-4">
+          {/* Main Footer Content */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start mb-12">
+            {/* Left Side - CTA Section */}
+            <div className="space-y-6">
+              <div>
                 <img 
                   src="/lovable-uploads/d6e7a1ca-229a-4c34-83fc-e9bdf106b683.png" 
                   alt="GO SG CONSULTING Logo" 
-                  className="h-12"
+                  className="h-12 mb-6"
                 />
+                <h2 className="text-3xl md:text-4xl font-bold mb-4">
+                  Get Your SEO Strategy
+                </h2>
+                <p className="text-gray-300 text-lg mb-6">
+                  Ready to dominate search results? Let's discuss how we can help your business grow.
+                </p>
               </div>
-              <p className="text-gray-300 mb-4 text-sm">
-                Professional SEO services that boost search rankings and drive organic traffic for Singapore businesses.
-              </p>
-              <div className="flex space-x-3">
-                <a href="https://linkedin.com" aria-label="LinkedIn" target="_blank" rel="noreferrer"
-                  className="flex items-center justify-center w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors">
-                  <Linkedin className="h-4 w-4" />
+              
+              <button 
+                onClick={onContactClick}
+                className="inline-flex items-center px-8 py-4 bg-white text-slate-900 font-semibold rounded-lg hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl cursor-pointer"
+              >
+                Start Your Journey
+              </button>
+            </div>
+            
+            {/* Right Side - Social Links */}
+            <div className="lg:text-right">
+              <h3 className="text-sm font-semibold mb-4 text-gray-400 uppercase tracking-wider">Socials</h3>
+              <div className="space-y-3">
+                <a 
+                  href="https://linkedin.com" 
+                  target="_blank" 
+                  rel="noreferrer"
+                  className="block text-xl text-white hover:text-brandTeal transition-colors"
+                >
+                  LinkedIn
                 </a>
-                <a href="https://instagram.com" aria-label="Instagram" target="_blank" rel="noreferrer"
-                  className="flex items-center justify-center w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors">
-                  <Instagram className="h-4 w-4" />
+                <a 
+                  href="https://instagram.com" 
+                  target="_blank" 
+                  rel="noreferrer"
+                  className="block text-xl text-white hover:text-brandTeal transition-colors"
+                >
+                  Instagram
                 </a>
-              </div>
-            </div>
-            
-            {/* Services */}
-            <div>
-              <h3 className="text-sm font-semibold mb-4 text-white">Our Services</h3>
-              <ul className="space-y-2 text-sm">
-                <li><Link to="/services/seo" className="text-gray-300 hover:text-orange-400 transition-colors">Technical SEO</Link></li>
-                <li><Link to="/services/seo" className="text-gray-300 hover:text-orange-400 transition-colors">Local SEO</Link></li>
-                <li><Link to="/services/seo" className="text-gray-300 hover:text-orange-400 transition-colors">Content SEO</Link></li>
-                <li><Link to="/services/dashboard" className="text-gray-300 hover:text-orange-400 transition-colors">SEO Audits</Link></li>
-              </ul>
-            </div>
-            
-            {/* Quick Links */}
-            <div>
-              <h3 className="text-sm font-semibold mb-4 text-white">Quick Links</h3>
-              <ul className="space-y-2 text-sm">
-                <li><Link to="/" className="text-gray-300 hover:text-orange-400 transition-colors">Home</Link></li>
-                <li><Link to="/blog" className="text-gray-300 hover:text-orange-400 transition-colors">Blog</Link></li>
-                <li><button onClick={onContactClick} className="text-gray-300 hover:text-orange-400 transition-colors cursor-pointer">Contact</button></li>
-                <li><a href="#" className="text-gray-300 hover:text-orange-400 transition-colors">Privacy Policy</a></li>
-              </ul>
-            </div>
-            
-            {/* Contact */}
-            <div>
-              <h3 className="text-sm font-semibold mb-4 text-white">Get In Touch</h3>
-              <div className="space-y-2 text-sm">
-                <div className="flex items-center">
-                  <Phone className="h-4 w-4 mr-2 text-orange-400" />
-                  <a href="tel:+6580246850" className="text-gray-300 hover:text-orange-400">+65 8024 6850</a>
-                </div>
-                <div className="flex items-center">
-                  <Calendar className="h-4 w-4 mr-2 text-orange-400" />
-                  <button onClick={onContactClick} className="text-gray-300 hover:text-orange-400 cursor-pointer">Book Meeting</button>
-                </div>
               </div>
             </div>
           </div>
           
-          {/* Copyright */}
-          <div className="mt-8 pt-6 border-t border-gray-700 text-center text-gray-400 text-xs">
-            <div className="flex flex-col sm:flex-row justify-center items-center space-y-2 sm:space-y-0 sm:space-x-4 mb-2">
-              <Link to="/sitemap" className="hover:text-white transition-colors duration-300">
-                Sitemap
-              </Link>
-              <span className="hidden sm:inline">•</span>
-              <a 
-                href="/sitemap.xml" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="hover:text-white transition-colors duration-300"
-              >
-                XML Sitemap
-              </a>
+          {/* Bottom Bar - Legal Links */}
+          <div className="pt-8 border-t border-gray-700">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+              <div className="flex flex-wrap justify-center md:justify-start gap-6 text-sm text-gray-400">
+                <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
+                <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
+                <Link to="/sitemap" className="hover:text-white transition-colors">Sitemap</Link>
+                <a 
+                  href="/sitemap.xml" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="hover:text-white transition-colors"
+                >
+                  XML Sitemap
+                </a>
+              </div>
+              
+              <p className="text-sm text-gray-400">
+                © {new Date().getFullYear()} GO SG CONSULTING. All rights reserved.
+              </p>
             </div>
-            <p>© {new Date().getFullYear()} GO SG CONSULTING. All rights reserved.</p>
           </div>
         </div>
     </footer>
