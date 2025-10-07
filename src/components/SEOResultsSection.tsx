@@ -3,8 +3,11 @@ import SEOResultsSlider from "./SEOResultsSlider";
 
 const SEOResultsSection = () => {
   return (
-    <section id="next-section" className="py-20 px-4 bg-white">
-      <div className="container mx-auto">
+    <section id="next-section" className="py-20 px-4 bg-gradient-to-b from-background via-secondary/30 to-background relative overflow-hidden">
+      {/* Gradient overlay effects */}
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/5 to-transparent pointer-events-none" />
+      
+      <div className="container mx-auto relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -25,13 +28,13 @@ const SEOResultsSection = () => {
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
           viewport={{ once: true }}
-          className="max-w-4xl mx-auto"
         >
-          <div className="aspect-[16/10] w-full">
-            <SEOResultsSlider />
-          </div>
+          <SEOResultsSlider />
         </motion.div>
       </div>
+
+      {/* Bottom gradient fade */}
+      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent pointer-events-none" />
     </section>
   );
 };
