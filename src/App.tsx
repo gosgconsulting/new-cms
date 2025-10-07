@@ -11,7 +11,6 @@ import SEO from "./pages/SEO";
 import PaidAds from "./pages/PaidAds";
 import SocialMedia from "./pages/SocialMedia";
 import Reporting from "./pages/Reporting";
-import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
 import CustomDashboard from "./pages/CustomDashboard";
 import Admin from "./pages/Admin";
@@ -59,7 +58,6 @@ const App = () => (
           <Route path="/services/paid-ads" element={<PaidAds />} />
           <Route path="/services/social-media" element={<SocialMedia />} />
           <Route path="/services/reporting" element={<Reporting />} />
-          <Route path="/contact" element={<Contact />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/blog/:slug" element={<BlogPost />} />
           <Route path="/sitemap" element={<Sitemap />} />

@@ -1,5 +1,4 @@
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Clock, ArrowRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -30,7 +29,11 @@ import spiritStretch from "@/assets/logos/spirit-stretch.png";
  * - Use wp_get_attachment_image for the hero image
  * - Convert animations to CSS classes for WordPress compatibility
  */
-const HeroSection = () => {
+interface HeroSectionProps {
+  onContactClick?: () => void;
+}
+
+const HeroSection = ({ onContactClick }: HeroSectionProps) => {
   return (
     <>
       <section className="relative min-h-screen flex items-center justify-center px-4 overflow-hidden bg-gradient-to-br from-background via-secondary/30 to-background">
@@ -94,12 +97,17 @@ const HeroSection = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.3 }}
             >
-              <Button asChild size="lg" variant="coral" className="px-8 py-6 text-lg font-semibold shadow-lg hover:shadow-xl transition-all">
-                <Link to="/contact" className="flex items-center">
+              <Button 
+                onClick={onContactClick}
+                size="lg" 
+                variant="coral" 
+                className="px-8 py-6 text-lg font-semibold shadow-lg hover:shadow-xl transition-all cursor-pointer"
+              >
+                <span className="flex items-center">
                   Get a Quote
                   <ArrowRight className="ml-2 h-5 w-5" />
-                  {/* WP: <?php echo get_field('hero_cta_text', 'option') ?: 'Get a Quote'; ?> */}
-                </Link>
+                </span>
+                {/* WP: <?php echo get_field('hero_cta_text', 'option') ?: 'Get a Quote'; ?> */}
               </Button>
             </motion.div>
             

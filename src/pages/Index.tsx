@@ -35,7 +35,7 @@ const Index = () => {
       {/* WordPress: Page content sections - each can be a template part */}
       <main className="flex-grow">
         {/* WordPress: Hero section - template-parts/home/hero.php */}
-        <HeroSection />
+        <HeroSection onContactClick={() => setContactModalOpen(true)} />
         
         {/* WordPress: SEO Results section - template-parts/home/seo-results.php */}
         <SEOResultsSection />
