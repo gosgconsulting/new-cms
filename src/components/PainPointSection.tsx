@@ -1,6 +1,5 @@
 import { motion } from "framer-motion";
-import { BarChart3, MousePointerClick, X } from "lucide-react";
-import seoStagnantGraph from "@/assets/seo-stagnant-graph.png";
+import { TrendingDown, BarChart3, MousePointerClick, X } from "lucide-react";
 
 const PainPointSection = () => {
   return (
@@ -11,7 +10,7 @@ const PainPointSection = () => {
       
       <div className="container mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          {/* Left Side - Static Graph Image */}
+          {/* Left Side - Animated Icon */}
           <motion.div
             initial={{ opacity: 0, x: -50 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -19,13 +18,78 @@ const PainPointSection = () => {
             viewport={{ once: true }}
             className="relative flex items-center justify-center"
           >
-            <div className="relative w-80 h-80 md:w-96 md:h-96 flex items-center justify-center">
-              <img 
-                src={seoStagnantGraph} 
-                alt="Stagnant SEO Traffic Graph" 
-                className="w-full h-full object-contain"
-              />
-            </div>
+            {/* Main Circle/Globe */}
+            <motion.div
+              className="relative w-80 h-80 md:w-96 md:h-96"
+              animate={{ rotate: 360 }}
+              transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
+            >
+              {/* Outer ring with dots pattern */}
+              <div className="absolute inset-0 rounded-full border-2 border-white/10"></div>
+              <div className="absolute inset-4 rounded-full border border-white/5"></div>
+              
+              {/* Dotted globe effect */}
+              <div className="absolute inset-0 opacity-30">
+                {[...Array(20)].map((_, i) => (
+                  <motion.div
+                    key={i}
+                    className="absolute w-1.5 h-1.5 bg-white/40 rounded-full"
+                    style={{
+                      top: `${Math.random() * 100}%`,
+                      left: `${Math.random() * 100}%`,
+                    }}
+                    animate={{
+                      opacity: [0.2, 0.6, 0.2],
+                      scale: [0.8, 1.2, 0.8],
+                    }}
+                    transition={{
+                      duration: 2 + Math.random() * 2,
+                      repeat: Infinity,
+                      delay: Math.random() * 2,
+                    }}
+                  />
+                ))}
+              </div>
+
+              {/* Floating text elements */}
+              <motion.div
+                className="absolute top-1/4 left-0 text-white/60 text-lg font-light"
+                animate={{ y: [-10, 10, -10] }}
+                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+              >
+                low traffic
+              </motion.div>
+              
+              <motion.div
+                className="absolute top-1/2 right-0 text-white/60 text-lg font-light"
+                animate={{ y: [10, -10, 10] }}
+                transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+              >
+                stagnant
+              </motion.div>
+              
+              <motion.div
+                className="absolute bottom-1/4 left-1/4 text-white/60 text-lg font-light"
+                animate={{ y: [-5, 15, -5] }}
+                transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+              >
+                no traffic
+              </motion.div>
+
+              {/* Center declining graph icon */}
+              <motion.div
+                className="absolute inset-0 flex items-center justify-center"
+                animate={{ scale: [1, 1.05, 1] }}
+                transition={{ duration: 3, repeat: Infinity }}
+              >
+                <motion.div
+                  animate={{ y: [0, -5, 0] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                >
+                  <TrendingDown className="w-24 h-24 text-red-400/80" strokeWidth={1.5} />
+                </motion.div>
+              </motion.div>
+            </motion.div>
           </motion.div>
 
           {/* Right Side - Content */}
