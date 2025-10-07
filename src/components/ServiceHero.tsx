@@ -60,14 +60,14 @@ const ServiceHero = ({ title, description, image }: ServiceHeroProps) => {
             
             <div className="flex flex-col sm:flex-row gap-4 pt-4">
               {/* WordPress: Use get_permalink() or custom URLs from ACF */}
-              <Button asChild variant="coral" size="lg">
-                <Link to="/contact" className="flex items-center">
+              <Button asChild variant="coral" size="lg" className="w-full sm:w-auto justify-center">
+                <Link to="/contact" className="flex items-center justify-center">
                   Get a Quote
                   {/* WP: <?php echo get_field('cta_primary_text', 'option') ?: 'Get a Quote'; ?> */}
                 </Link>
               </Button>
-              <Button asChild variant="outline" className="border-brandPurple text-brandPurple hover:bg-brandPurple/10">
-                <Link to="/contact" className="flex items-center">
+              <Button asChild variant="outline" className="border-brandPurple text-brandPurple hover:bg-brandPurple/10 w-full sm:w-auto justify-center">
+                <Link to="/contact" className="flex items-center justify-center">
                   <Calendar className="mr-2 h-5 w-5" />
                   Book a Meeting
                   {/* WP: <?php echo get_field('cta_secondary_text', 'option') ?: 'Book a Meeting'; ?> */}

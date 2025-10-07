@@ -34,8 +34,8 @@ const ServiceCTA = ({ title, subtitle, buttonText, buttonLink }: ServiceCTAProps
             {subtitle}
           </p>
           
-          <div className="pt-4">
-            <Button asChild variant="coral" size="xl" className="cta-button">
+          <div className="pt-4 flex justify-center">
+            <Button asChild variant="coral" size="xl" className="cta-button w-full sm:w-auto">
               <Link to={buttonLink}>
                 {buttonText}
               </Link>
