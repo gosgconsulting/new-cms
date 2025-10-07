@@ -28,7 +28,7 @@ const SEOResultsSlider = () => {
 
   return (
     <div className="w-full overflow-hidden py-8">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-7xl mx-auto px-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-7xl mx-auto px-4 max-h-[800px]">
         {/* Column 1 */}
         <motion.div
           className="flex flex-col gap-4"
@@ -44,17 +44,19 @@ const SEOResultsSlider = () => {
           {column1.map((result, index) => (
             <Card
               key={`col1-${index}`}
-              className="overflow-hidden bg-card border-border shadow-lg hover:shadow-xl transition-all"
+              className="overflow-hidden bg-gradient-to-br from-background to-secondary/20 border-border shadow-lg hover:shadow-xl transition-all"
             >
-              <div className="relative aspect-[16/10] p-3">
-                <img
-                  src={result.img}
-                  alt="SEO Performance Results"
-                  className="w-full h-full object-cover rounded-2xl"
-                />
-              </div>
-              <div className="px-4 pb-4 text-center bg-primary/5">
-                <p className="text-sm font-semibold text-primary">{result.label}</p>
+              <div className="p-4">
+                <div className="relative aspect-[16/10] overflow-hidden rounded-2xl bg-white/5">
+                  <img
+                    src={result.img}
+                    alt="SEO Performance Results"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="mt-3 text-center">
+                  <p className="text-sm font-semibold text-primary">{result.label}</p>
+                </div>
               </div>
             </Card>
           ))}
@@ -76,17 +78,19 @@ const SEOResultsSlider = () => {
           {column2.map((result, index) => (
             <Card
               key={`col2-${index}`}
-              className="overflow-hidden bg-card border-border shadow-lg hover:shadow-xl transition-all"
+              className="overflow-hidden bg-gradient-to-br from-background to-secondary/20 border-border shadow-lg hover:shadow-xl transition-all"
             >
-              <div className="relative aspect-[16/10] p-3">
-                <img
-                  src={result.img}
-                  alt="SEO Performance Results"
-                  className="w-full h-full object-cover rounded-2xl"
-                />
-              </div>
-              <div className="px-4 pb-4 text-center bg-primary/5">
-                <p className="text-sm font-semibold text-primary">{result.label}</p>
+              <div className="p-4">
+                <div className="relative aspect-[16/10] overflow-hidden rounded-2xl bg-white/5">
+                  <img
+                    src={result.img}
+                    alt="SEO Performance Results"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="mt-3 text-center">
+                  <p className="text-sm font-semibold text-primary">{result.label}</p>
+                </div>
               </div>
             </Card>
           ))}
@@ -108,17 +112,19 @@ const SEOResultsSlider = () => {
           {column3.map((result, index) => (
             <Card
               key={`col3-${index}`}
-              className="overflow-hidden bg-card border-border shadow-lg hover:shadow-xl transition-all"
+              className="overflow-hidden bg-gradient-to-br from-background to-secondary/20 border-border shadow-lg hover:shadow-xl transition-all"
             >
-              <div className="relative aspect-[16/10] p-3">
-                <img
-                  src={result.img}
-                  alt="SEO Performance Results"
-                  className="w-full h-full object-cover rounded-2xl"
-                />
-              </div>
-              <div className="px-4 pb-4 text-center bg-primary/5">
-                <p className="text-sm font-semibold text-primary">{result.label}</p>
+              <div className="p-4">
+                <div className="relative aspect-[16/10] overflow-hidden rounded-2xl bg-white/5">
+                  <img
+                    src={result.img}
+                    alt="SEO Performance Results"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="mt-3 text-center">
+                  <p className="text-sm font-semibold text-primary">{result.label}</p>
+                </div>
               </div>
             </Card>
           ))}
