@@ -1,6 +1,9 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { TrendingUp } from "lucide-react";
+import gregoireLiao from "@/assets/gregoire-liao.png";
+import teamMember1 from "@/assets/team/member-1.png";
+import teamMember2 from "@/assets/team/member-2.jpeg";
 
 interface WhatIsSEOSectionProps {
   onContactClick?: () => void;
@@ -155,18 +158,58 @@ const WhatIsSEOSection = ({ onContactClick }: WhatIsSEOSectionProps) => {
                     </svg>
                   </div>
                   
-                  {/* Profile Image */}
+                  
+                  {/* Team Photos - Overlapping Circles */}
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-32 h-32 rounded-full border-4 border-white/20 shadow-xl overflow-hidden bg-white">
-                      <img 
-                        src="/assets/gregoire-liao.png"
-                        alt="Our Team"
-                        className="w-full h-full object-cover"
-                      />
+                    <div className="relative w-64 h-32">
+                      {/* Team member 1 - Left */}
+                      <motion.div
+                        className="absolute left-0 top-0 w-28 h-28 rounded-full border-4 border-white/20 shadow-xl overflow-hidden bg-white"
+                        initial={{ opacity: 0, x: -20 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.5, duration: 0.5 }}
+                        viewport={{ once: true }}
+                      >
+                        <img 
+                          src={teamMember1}
+                          alt="Team Member"
+                          className="w-full h-full object-cover"
+                        />
+                      </motion.div>
+                      
+                      {/* Gregoire - Center (larger) */}
+                      <motion.div
+                        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 rounded-full border-4 border-white/30 shadow-2xl overflow-hidden bg-white z-10"
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        whileInView={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 0.7, duration: 0.5 }}
+                        viewport={{ once: true }}
+                      >
+                        <img 
+                          src={gregoireLiao}
+                          alt="Gregoire Liao"
+                          className="w-full h-full object-cover"
+                        />
+                      </motion.div>
+                      
+                      {/* Team member 2 - Right */}
+                      <motion.div
+                        className="absolute right-0 top-0 w-28 h-28 rounded-full border-4 border-white/20 shadow-xl overflow-hidden bg-white"
+                        initial={{ opacity: 0, x: 20 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.9, duration: 0.5 }}
+                        viewport={{ once: true }}
+                      >
+                        <img 
+                          src={teamMember2}
+                          alt="Team Member"
+                          className="w-full h-full object-cover"
+                        />
+                      </motion.div>
                     </div>
                   </div>
                   
-                  {/* Name label */}
+                  {/* Team label */}
                   <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 text-center">
                     <p className="text-sm text-white font-medium">Our Team</p>
                   </div>
