@@ -123,39 +123,6 @@ const BlogSection = ({ onContactClick }: BlogSectionProps) => {
             </motion.article>
           ))}
         </div>
-
-        {/* CTA Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          viewport={{ once: true }}
-          className="text-center bg-white rounded-2xl p-8 shadow-sm border border-gray-100"
-        >
-          <h3 className="text-2xl font-bold text-gray-900 mb-4">
-            Ready to Implement These SEO Strategies?
-          </h3>
-          <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
-            Our SEO experts can help you implement these proven strategies for your business. 
-            Get personalized SEO recommendations that drive real results.
-          </p>
-          
-          <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center items-center">
-            <button
-              onClick={onContactClick}
-              className="bg-gradient-to-r from-brandPurple to-brandTeal text-white px-6 md:px-8 py-3 text-sm md:text-base rounded-lg font-semibold hover:shadow-lg transition-all duration-300 cursor-pointer w-full sm:w-auto"
-            >
-              Get Your SEO Strategy
-            </button>
-            
-            <Link 
-              to="/blog"
-              className="text-brandPurple hover:text-brandTeal font-semibold px-6 md:px-8 py-3 text-sm md:text-base rounded-lg hover:bg-brandPurple/5 transition-colors duration-300 w-full sm:w-auto text-center"
-            >
-              View All Articles
-            </Link>
-          </div>
-        </motion.div>
       </div>
     </section>
   );

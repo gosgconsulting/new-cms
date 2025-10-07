@@ -87,23 +87,18 @@ const Footer = ({ onContactClick }: FooterProps) => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start mb-12">
             {/* Left Side - CTA Section */}
             <div className="space-y-6">
-              <div>
-                <img 
-                  src="/lovable-uploads/d6e7a1ca-229a-4c34-83fc-e9bdf106b683.png" 
-                  alt="GO SG CONSULTING Logo" 
-                  className="h-12 mb-6"
-                />
-                <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              <h2 className="text-3xl md:text-5xl font-bold mb-4">
+                <span className="bg-gradient-to-r from-brandPurple to-brandTeal bg-clip-text text-transparent">
                   Get Your SEO Strategy
-                </h2>
-                <p className="text-gray-300 text-lg mb-6">
-                  Ready to dominate search results? Let's discuss how we can help your business grow.
-                </p>
-              </div>
+                </span>
+              </h2>
+              <p className="text-gray-300 text-lg mb-6">
+                Ready to dominate search results? Let's discuss how we can help your business grow.
+              </p>
               
               <button 
                 onClick={onContactClick}
-                className="inline-flex items-center px-8 py-4 bg-white text-slate-900 font-semibold rounded-lg hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl cursor-pointer"
+                className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-brandPurple to-brandTeal text-white font-semibold rounded-lg hover:opacity-90 transition-all duration-300 shadow-lg hover:shadow-xl cursor-pointer"
               >
                 Start Your Journey
               </button>
@@ -137,14 +132,14 @@ const Footer = ({ onContactClick }: FooterProps) => {
           <div className="pt-8 border-t border-gray-700">
             <div className="flex flex-col md:flex-row justify-between items-center gap-4">
               <div className="flex flex-wrap justify-center md:justify-start gap-6 text-sm text-gray-400">
-                <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
-                <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
-                <Link to="/sitemap" className="hover:text-white transition-colors">Sitemap</Link>
+                <a href="#" className="hover:text-brandTeal transition-colors">Privacy Policy</a>
+                <a href="#" className="hover:text-brandTeal transition-colors">Terms of Service</a>
+                <Link to="/sitemap" className="hover:text-brandTeal transition-colors">Sitemap</Link>
                 <a 
                   href="/sitemap.xml" 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="hover:text-white transition-colors"
+                  className="hover:text-brandTeal transition-colors"
                 >
                   XML Sitemap
                 </a>
