@@ -5,6 +5,16 @@ import { Clock, ArrowRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import VisualCMSEditor from "@/components/cms/VisualCMSEditor";
 
+// Import client logos
+import artInBloom from "@/assets/logos/art-in-bloom.png";
+import selenightco from "@/assets/logos/selenightco.png";
+import smooy from "@/assets/logos/smooy.png";
+import solstice from "@/assets/logos/solstice.png";
+import grub from "@/assets/logos/grub.png";
+import nailQueen from "@/assets/logos/nail-queen.png";
+import caroPatisserie from "@/assets/logos/caro-patisserie.png";
+import spiritStretch from "@/assets/logos/spirit-stretch.png";
+
 /**
  * WordPress Theme Component: Hero Section
  * 
@@ -102,31 +112,38 @@ const HeroSection = () => {
             >
               <div className="relative overflow-hidden">
                 <motion.div
-                  className="flex gap-12 items-center justify-center"
+                  className="flex gap-16 items-center"
                   animate={{
-                    x: [0, -1000],
+                    x: [0, -1500],
                   }}
                   transition={{
                     x: {
                       repeat: Infinity,
                       repeatType: "loop",
-                      duration: 20,
+                      duration: 30,
                       ease: "linear",
                     },
                   }}
                 >
-                  {/* First set of logos */}
-                  {[...Array(2)].map((_, setIndex) => (
-                    <div key={setIndex} className="flex gap-12 items-center">
-                      {["ALPHAGUM", "UGLAM", "namlika", "SUNSCRUBEE", "LUXBIO", "BRANDNAME"].map((brand, index) => (
-                        <div
-                          key={`${setIndex}-${index}`}
-                          className="text-muted-foreground/60 font-bold text-2xl whitespace-nowrap px-8"
-                        >
-                          {brand}
-                          {/* WP: Logo images will go here - <?php echo wp_get_attachment_image($logo_id, 'medium'); ?> */}
-                        </div>
-                      ))}
+                  {/* Duplicate logo sets for seamless loop */}
+                  {[...Array(3)].map((_, setIndex) => (
+                    <div key={setIndex} className="flex gap-16 items-center">
+                      <img src={artInBloom} alt="Art in Bloom" className="h-12 w-auto object-contain opacity-60 hover:opacity-100 transition-opacity" />
+                      <img src={selenightco} alt="Selenightco" className="h-12 w-auto object-contain opacity-60 hover:opacity-100 transition-opacity" />
+                      <img src={smooy} alt="Smooy" className="h-12 w-auto object-contain opacity-60 hover:opacity-100 transition-opacity" />
+                      <img src={solstice} alt="Solstice" className="h-12 w-auto object-contain opacity-60 hover:opacity-100 transition-opacity" />
+                      <img src={grub} alt="Grub" className="h-12 w-auto object-contain opacity-60 hover:opacity-100 transition-opacity" />
+                      <img src={nailQueen} alt="Nail Queen" className="h-12 w-auto object-contain opacity-60 hover:opacity-100 transition-opacity" />
+                      <img src={caroPatisserie} alt="Caro Pâtisserie" className="h-12 w-auto object-contain opacity-60 hover:opacity-100 transition-opacity" />
+                      <img src={spiritStretch} alt="Spirit Stretch" className="h-12 w-auto object-contain opacity-60 hover:opacity-100 transition-opacity" />
+                      {/* WP: <?php 
+                        $logos = get_field('client_logos', 'option');
+                        if ($logos) {
+                          foreach ($logos as $logo) {
+                            echo '<img src="' . esc_url($logo['url']) . '" alt="' . esc_attr($logo['alt']) . '" class="h-12 w-auto object-contain opacity-60 hover:opacity-100 transition-opacity" />';
+                          }
+                        }
+                      ?> */}
                     </div>
                   ))}
                 </motion.div>
