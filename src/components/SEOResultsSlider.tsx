@@ -21,10 +21,10 @@ const results = [
 ];
 
 const SEOResultsSlider = () => {
-  // Create three columns for desktop, duplicate items for infinite scroll
-  const column1 = [...results.slice(0, 3), ...results.slice(0, 3)];
-  const column2 = [...results.slice(3, 6), ...results.slice(3, 6)];
-  const column3 = [...results.slice(6, 8), ...results.slice(6, 8)];
+  // Create three columns for desktop
+  const column1 = results.slice(0, 3);
+  const column2 = results.slice(3, 6);
+  const column3 = results.slice(6, 8);
 
   return (
     <div className="w-full overflow-hidden py-12">
