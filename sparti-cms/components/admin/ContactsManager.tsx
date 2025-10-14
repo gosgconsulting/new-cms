@@ -498,27 +498,14 @@ const ContactsManager: React.FC = () => {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Source
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Message
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Created
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {leadsData.leads.map((lead) => (
-                    <tr 
-                      key={lead.id} 
-                      onClick={() => {
-                        setSelectedLead(lead);
-                        setShowLeadModal(true);
-                      }}
-                      className="hover:bg-gray-50 cursor-pointer"
-                    >
+                    <tr key={lead.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900">{lead.name}</div>
                       </td>
@@ -539,27 +526,17 @@ const ContactsManager: React.FC = () => {
                           {lead.source}
                         </span>
                       </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-start text-sm text-gray-600 max-w-md">
-                          <MessageSquare className="h-4 w-4 mr-2 text-gray-400 mt-0.5 flex-shrink-0" />
-                          <span className="line-clamp-2">{lead.message}</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center text-sm text-gray-600">
-                          <Calendar className="h-4 w-4 mr-2 text-gray-400" />
-                          {lead.created}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center space-x-2">
-                          <button className="text-purple-600 hover:text-purple-900">
-                            <Edit className="h-4 w-4" />
-                          </button>
-                          <button className="text-red-600 hover:text-red-900">
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </div>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <button 
+                          onClick={() => {
+                            setSelectedLead(lead);
+                            setShowLeadModal(true);
+                          }}
+                          className="inline-flex items-center px-3 py-1.5 text-sm text-purple-600 hover:text-purple-900 hover:bg-purple-50 rounded-md transition-colors"
+                        >
+                          <Eye className="h-4 w-4 mr-1.5" />
+                          View
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -572,11 +549,11 @@ const ContactsManager: React.FC = () => {
 
       {/* Lead Details Modal */}
       {showLeadModal && selectedLead && (
-        <ContactDetailsModal
-          contact={selectedContact}
+        <LeadDetailsModal
+          lead={selectedLead}
           onClose={() => {
-            setShowContactModal(false);
-            setSelectedContact(null);
+            setShowLeadModal(false);
+            setSelectedLead(null);
           }}
         />
       )}
@@ -596,6 +573,75 @@ const ContactsManager: React.FC = () => {
           }}
         />
       )}
+    </div>
+  );
+};
+
+// Lead Details Modal Component
+const LeadDetailsModal: React.FC<{
+  lead: any;
+  onClose: () => void;
+}> = ({ lead, onClose }) => {
+  if (!lead) return null;
+  
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-between items-start mb-4">
+          <h3 className="text-xl font-semibold">Lead Details</h3>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+        
+        <div className="space-y-4">
+          <div>
+            <label className="text-sm font-medium text-gray-500">Contact Name</label>
+            <p className="text-base mt-1">{lead.name}</p>
+          </div>
+          
+          <div>
+            <label className="text-sm font-medium text-gray-500">Email</label>
+            <p className="text-base mt-1">{lead.email}</p>
+          </div>
+          
+          <div>
+            <label className="text-sm font-medium text-gray-500">Phone</label>
+            <p className="text-base mt-1">{lead.phone}</p>
+          </div>
+          
+          <div>
+            <label className="text-sm font-medium text-gray-500">Source</label>
+            <p className="mt-1">
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                {lead.source}
+              </span>
+            </p>
+          </div>
+          
+          <div>
+            <label className="text-sm font-medium text-gray-500">Message</label>
+            <p className="text-base mt-1 whitespace-pre-wrap">{lead.message}</p>
+          </div>
+          
+          <div>
+            <label className="text-sm font-medium text-gray-500">Submitted</label>
+            <p className="text-base text-gray-600 mt-1">{lead.created}</p>
+          </div>
+        </div>
+        
+        <div className="mt-6 flex justify-end border-t border-gray-200 pt-4">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            Close
+          </button>
+        </div>
+      </div>
     </div>
   );
 };
