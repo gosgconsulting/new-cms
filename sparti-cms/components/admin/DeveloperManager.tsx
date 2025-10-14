@@ -159,20 +159,6 @@ const IntegrationsTab: React.FC = () => {
       status: 'Connected',
       provider: 'Railway',
       description: 'Main database for storing project data, user information, and content'
-    },
-    {
-      name: 'DataForSEO API',
-      type: 'API',
-      status: 'Active',
-      provider: 'DataForSEO',
-      description: 'API for keyword research, search volume, and SEO metrics'
-    },
-    {
-      name: 'Firecrawl API',
-      type: 'API',
-      status: 'Active',
-      provider: 'Firecrawl',
-      description: 'Web scraping API for content research and topic analysis'
     }
   ];
 
