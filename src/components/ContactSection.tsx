@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Rocket } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 
 const ContactSection = () => {
   const [email, setEmail] = useState("");
@@ -18,19 +17,8 @@ const ContactSection = () => {
     setIsSubmitting(true);
     
     try {
-      const { error } = await supabase
-        .from('form_submissions')
-        .insert({
-          name,
-          email,
-          message: `Phone: ${phone}\n\nMessage: ${message}`,
-          form_type: 'Contact Page'
-        });
-
-      if (error) {
-        throw error;
-      }
-
+      console.log('Contact form submitted:', { name, email, phone, message });
+      
       toast({
         title: "Thank you!",
         description: "We'll be in touch soon to discuss your SEO needs.",

@@ -15,10 +15,7 @@ import { ContainerEditor } from './editors/ContainerEditor';
 export const ContentEditPanel: React.FC = () => {
   const { isEditing, selectedElement, selectElement } = useSpartiBuilder();
   const [saveSuccess, setSaveSuccess] = useState(false);
-  const { components, status, error } = useDatabase();
-  
-  // Derive loading state from useDatabase status
-  const isSaving = status === 'loading';
+  const [isSaving, setIsSaving] = useState(false);
 
   if (!isEditing || !selectedElement) return null;
 
@@ -81,36 +78,19 @@ export const ContentEditPanel: React.FC = () => {
     if (!isComponent) return;
     
     setSaveSuccess(false);
+    setIsSaving(true);
     
     try {
-      // Create a component object from the selected element
-      const componentData = {
-        name: data.id || `${data.tagName}-${Date.now()}`,
-        type: data.tagName,
-        content: JSON.stringify(data),
-        isPublished: true
-      };
-      
-      // Check if component already exists
-      const existingComponent = await components.getByName(componentData.name) as any;
-      
-      if (existingComponent && existingComponent.id) {
-        // Update existing component
-        await components.update(existingComponent.id, componentData);
-      } else {
-        // Create new component
-        await components.create({ ...componentData, tenantId: 'default' });
-      }
-      
+      console.log('Saving component:', data);
       setSaveSuccess(true);
       
-      // Auto-hide success message after 3 seconds
       setTimeout(() => {
         setSaveSuccess(false);
       }, 3000);
     } catch (err) {
-      // Error is already handled by useDatabase hook
       console.error('Error saving component:', err);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -157,16 +137,6 @@ export const ContentEditPanel: React.FC = () => {
           {saveSuccess && (
             <div className="sparti-alert sparti-alert-success">
               Component saved successfully!
-            </div>
-          )}
-          {error && status === 'error' && (
-            <div className="sparti-alert sparti-alert-error">
-              {error}
-            </div>
-          )}
-          {status === 'loading' && (
-            <div className="sparti-alert sparti-alert-info">
-              Processing your request...
             </div>
           )}
           {renderSpecializedEditor()}

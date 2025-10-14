@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 const CTASection = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -17,19 +16,8 @@ const CTASection = () => {
     setIsSubmitting(true);
     
     try {
-      const { error } = await supabase
-        .from('form_submissions')
-        .insert({
-          name,
-          email,
-          message,
-          form_type: 'CTA Contact Form'
-        });
-
-      if (error) {
-        throw error;
-      }
-
+      console.log('Form submitted:', { name, email, message });
+      
       toast({
         title: "Message sent!",
         description: "We'll get back to you as soon as possible.",

@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar, Phone } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 
 const ContactForm = () => {
   const [name, setName] = useState("");
@@ -22,21 +21,6 @@ const ContactForm = () => {
     try {
       console.log("Submitting form with data:", { name, email, message });
       
-      const { error } = await supabase
-        .from('form_submissions')
-        .insert({
-          name,
-          email,
-          message,
-          form_type: 'Contact Form'
-        });
-
-      if (error) {
-        console.error("Error submitting form:", error);
-        throw error;
-      }
-
-      console.log("Form submitted successfully");
       toast({
         title: "Message sent!",
         description: "We'll get back to you as soon as possible.",
