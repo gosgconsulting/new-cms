@@ -14,6 +14,7 @@ import { useAuth } from '../auth/AuthProvider';
 
 // Import existing components
 import PagesManager from '../cms/PagesManager';
+import FormsManager from '../cms/FormsManager';
 
 // Import new components
 import SettingsManager from './SettingsManager';
@@ -40,12 +41,6 @@ const FooterManager = () => (
   </div>
 );
 
-const FormsManager = () => (
-  <div className="bg-white rounded-lg border border-gray-200 p-6">
-    <h2 className="text-lg font-semibold text-gray-900 mb-4">Forms Management</h2>
-    <p className="text-gray-600">Form management features will be implemented here.</p>
-  </div>
-);
 
 const CMSDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>('pages');
