@@ -54,6 +54,8 @@ export default defineConfig(({ mode }) => ({
   },
   optimizeDeps: {
     // Exclude server-side packages from frontend bundle
-    exclude: ['pg', 'express']
+    exclude: ['pg', 'express'],
+    // Force React and React-DOM to be pre-bundled together
+    include: ['react', 'react-dom', 'react/jsx-runtime']
   },
 }));
