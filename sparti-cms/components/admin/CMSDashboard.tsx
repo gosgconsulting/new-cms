@@ -75,7 +75,7 @@ const CMSDashboard: React.FC = () => {
     { id: 'forms', label: 'Forms', icon: FileInput },
     { id: 'contacts', label: 'Contacts', icon: Users },
     { id: 'settings', label: 'Settings', icon: SettingsIcon },
-    { id: 'developer', label: 'Code', icon: SettingsIcon },
+    { id: 'developer', label: 'Developer', icon: SettingsIcon },
   ];
 
   const getPageTitle = () => {
