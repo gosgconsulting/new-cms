@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
 import '../sparti-cms/styles/modal-sparti-fix.css'
+import '../sparti-cms/styles/rich-text-editor.css'
 import { initializeGlobalTheme } from '@/lib/utils-dashboard'
 
 // Set light mode by default

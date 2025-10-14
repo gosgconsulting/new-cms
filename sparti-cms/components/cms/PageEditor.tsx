@@ -6,6 +6,7 @@ import { Textarea } from '../../../src/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../src/components/ui/card';
 import { ArrowLeft, Save } from 'lucide-react';
 import { toast } from 'sonner';
+import RichTextEditor from './RichTextEditor';
 
 interface PageEditorProps {
   pageId: string;
@@ -83,22 +84,15 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
         <Card>
           <CardHeader>
             <CardTitle>Page Content</CardTitle>
-            <CardDescription>Edit the content of this legal page</CardDescription>
+            <CardDescription>Edit the content of this legal page using the rich text editor</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              <Label htmlFor="content">Content</Label>
-              <Textarea
-                id="content"
-                value={pageData.content}
-                onChange={(e) => updateField('content', e.target.value)}
-                rows={20}
-                className="font-mono text-sm"
-                placeholder="Enter HTML content here..."
+              <Label>Content</Label>
+              <RichTextEditor
+                content={pageData.content}
+                onChange={(content) => updateField('content', content)}
               />
-              <p className="text-xs text-muted-foreground">
-                You can use HTML tags for formatting. A visual editor will be added soon.
-              </p>
             </div>
           </CardContent>
         </Card>
