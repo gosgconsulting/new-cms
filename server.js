@@ -24,7 +24,16 @@ initializeDatabase().then(success => {
   console.error('[testing] Error initializing database:', error);
 });
 
-// API Routes
+// Health check endpoint - this is what Railway will check
+app.get('/health', (req, res) => {
+  res.status(200).json({ 
+    status: 'healthy', 
+    timestamp: new Date().toISOString(),
+    port: port 
+  });
+});
+
+// API Routes - MUST come before static file serving
 app.get('/api/branding', async (req, res) => {
   try {
     console.log('[testing] API: Getting branding settings');
@@ -47,19 +56,10 @@ app.post('/api/branding', async (req, res) => {
   }
 });
 
-// Health check endpoint - this is what Railway will check
-app.get('/health', (req, res) => {
-  res.status(200).json({ 
-    status: 'healthy', 
-    timestamp: new Date().toISOString(),
-    port: port 
-  });
-});
-
-// Serve static files from the dist directory
+// Serve static files from the dist directory - MUST come after API routes
 app.use(express.static(join(__dirname, 'dist')));
 
-// Handle all other routes by serving the React app
+// Handle all other routes by serving the React app - MUST be last
 app.use((req, res) => {
   const indexPath = join(__dirname, 'dist', 'index.html');
   if (existsSync(indexPath)) {
