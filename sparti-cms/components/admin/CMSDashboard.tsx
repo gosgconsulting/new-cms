@@ -20,6 +20,7 @@ import FormsManager from '../cms/FormsManager';
 import SettingsManager from './SettingsManager';
 import DeveloperManager from './DeveloperManager';
 import HeaderManager from './HeaderManager';
+import FooterManager from './FooterManager';
 
 // Placeholder components
 const BlogManager = () => (
@@ -30,12 +31,6 @@ const BlogManager = () => (
 );
 
 
-const FooterManager = () => (
-  <div className="bg-white rounded-lg border border-gray-200 p-6">
-    <h2 className="text-lg font-semibold text-gray-900 mb-4">Footer Management</h2>
-    <p className="text-gray-600">Footer customization features will be implemented here.</p>
-  </div>
-);
 
 
 const CMSDashboard: React.FC = () => {
