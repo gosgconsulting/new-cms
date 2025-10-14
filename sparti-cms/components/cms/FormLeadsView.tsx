@@ -49,43 +49,10 @@ const FormLeadsView: React.FC<FormLeadsViewProps> = ({ form, onBack }) => {
           const data = await response.json();
           setSubmissions(data);
         } else {
-          // Mock data for now
-          setSubmissions([
-            {
-              id: '1',
-              date: '2025-01-15 14:30',
-              data: {
-                name: 'John Smith',
-                email: 'john@example.com',
-                phone: '+65 9123 4567',
-                message: 'Interested in your SEO services for my e-commerce website.'
-              }
-            },
-            {
-              id: '2',
-              date: '2025-01-14 10:15',
-              data: {
-                name: 'Sarah Lee',
-                email: 'sarah.lee@company.com',
-                phone: '+65 8234 5678',
-                message: 'Need help with local SEO for my restaurant chain.'
-              }
-            },
-            {
-              id: '3',
-              date: '2025-01-13 16:45',
-              data: {
-                name: 'Michael Tan',
-                email: 'michael@startup.sg',
-                phone: '+65 9876 5432',
-                message: 'Looking to improve organic rankings for my tech startup.'
-              }
-            }
-          ]);
+          setSubmissions([]);
         }
       } catch (error) {
         console.error('Error fetching submissions:', error);
-        // Use mock data on error
         setSubmissions([]);
       } finally {
         setIsLoading(false);

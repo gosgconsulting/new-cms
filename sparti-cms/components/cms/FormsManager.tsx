@@ -26,7 +26,7 @@ const FormsManager: React.FC = () => {
         { name: 'message', placeholder: 'Tell us about your project...', type: 'textarea' }
       ],
       submissions: 0,
-      location: 'Header, Hero Section, Multiple CTAs'
+      location: ''
     }
   ];
 
@@ -72,16 +72,6 @@ const FormsManager: React.FC = () => {
                           </span>
                         ))}
                       </div>
-                    </div>
-                    
-                    <div className="flex items-center text-sm text-gray-600">
-                      <span className="font-medium mr-2">Location:</span>
-                      <span>{form.location}</span>
-                    </div>
-                    
-                    <div className="flex items-center text-sm text-gray-600">
-                      <span className="font-medium mr-2">Submissions:</span>
-                      <span className="font-semibold text-blue-600">{form.submissions}</span>
                     </div>
                   </div>
                 </div>

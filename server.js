@@ -4,6 +4,7 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { existsSync, mkdirSync } from 'fs';
 import { initializeDatabase, getBrandingSettings, updateMultipleBrandingSettings } from './sparti-cms/db/postgres.js';
+import { saveFormSubmission, getFormSubmissions } from './sparti-cms/db/supabase-server.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -113,6 +114,41 @@ app.post('/api/upload', upload.single('file'), (req, res) => {
   } catch (error) {
     console.error('[testing] Error uploading file:', error);
     res.status(500).json({ error: 'Failed to upload file' });
+  }
+});
+
+// Form submissions endpoint - POST
+app.post('/api/form-submissions', async (req, res) => {
+  try {
+    const { form_id, form_name, name, email, phone, message } = req.body;
+    
+    console.log('[testing] Form submission received:', { form_id, name, email });
+    
+    await saveFormSubmission({ form_id, form_name, name, email, phone, message });
+    
+    res.json({ 
+      success: true, 
+      message: 'Form submission saved successfully' 
+    });
+  } catch (error) {
+    console.error('[testing] Error saving form submission:', error);
+    res.status(500).json({ error: 'Failed to save form submission' });
+  }
+});
+
+// Form submissions endpoint - GET
+app.get('/api/form-submissions/:formId', async (req, res) => {
+  try {
+    const { formId } = req.params;
+    
+    console.log('[testing] Fetching submissions for form:', formId);
+    
+    const submissions = await getFormSubmissions(formId);
+    
+    res.json(submissions);
+  } catch (error) {
+    console.error('[testing] Error fetching form submissions:', error);
+    res.status(500).json({ error: 'Failed to fetch form submissions' });
   }
 });
 

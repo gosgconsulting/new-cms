@@ -22,7 +22,24 @@ const ContactModal = ({ open, onOpenChange }: ContactModalProps) => {
     setIsSubmitting(true);
     
     try {
-      console.log('Contact form submitted:', { name, email, phone, message });
+      const response = await fetch('/api/form-submissions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          form_id: 'contact-modal',
+          form_name: 'Contact Modal Form',
+          name,
+          email,
+          phone,
+          message
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to submit form');
+      }
 
       toast({
         title: "Thank you!",
