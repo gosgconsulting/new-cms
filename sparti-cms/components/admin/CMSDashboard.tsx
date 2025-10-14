@@ -19,6 +19,7 @@ import FormsManager from '../cms/FormsManager';
 // Import new components
 import SettingsManager from './SettingsManager';
 import DeveloperManager from './DeveloperManager';
+import HeaderManager from './HeaderManager';
 
 // Placeholder components
 const BlogManager = () => (
@@ -28,12 +29,6 @@ const BlogManager = () => (
   </div>
 );
 
-const HeaderManager = () => (
-  <div className="bg-white rounded-lg border border-gray-200 p-6">
-    <h2 className="text-lg font-semibold text-gray-900 mb-4">Header Management</h2>
-    <p className="text-gray-600">Header customization features will be implemented here.</p>
-  </div>
-);
 
 const FooterManager = () => (
   <div className="bg-white rounded-lg border border-gray-200 p-6">
