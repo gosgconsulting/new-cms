@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { query } from "../../sparti-cms/db/postgres";
 
 interface ContactModalProps {
   open: boolean;
@@ -23,11 +22,7 @@ const ContactModal = ({ open, onOpenChange }: ContactModalProps) => {
     setIsSubmitting(true);
     
     try {
-      // Submit form data via API
-      await query(
-        'INSERT INTO form_submissions (name, email, message, form_type) VALUES ($1, $2, $3, $4)',
-        [name, email, `Phone: ${phone}\n\nMessage: ${message}`, 'Contact Modal']
-      );
+      console.log('Contact form submitted:', { name, email, phone, message });
 
       toast({
         title: "Thank you!",
@@ -41,19 +36,11 @@ const ContactModal = ({ open, onOpenChange }: ContactModalProps) => {
       onOpenChange(false);
     } catch (error) {
       console.error('Error submitting form:', error);
-      
-      // For now, we'll show success even if the API call fails
-      // since we're in development mode
       toast({
-        title: "Thank you!",
-        description: "We'll be in touch soon to discuss your SEO needs.",
+        title: "Error",
+        description: "There was a problem. Please try again.",
+        variant: "destructive",
       });
-      
-      setName("");
-      setEmail("");
-      setPhone("");
-      setMessage("");
-      onOpenChange(false);
     } finally {
       setIsSubmitting(false);
     }
