@@ -97,20 +97,20 @@ export const PagesManager: React.FC = () => {
               </div>
               <div className="flex items-center gap-2">
                 <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleViewPage(page.slug)}
-                >
-                  <Eye className="h-4 w-4 mr-2" />
-                  View
-                </Button>
-                <Button
                   variant="default"
                   size="sm"
                   onClick={() => handleEditPage(page.id)}
                 >
                   <Edit className="h-4 w-4 mr-2" />
                   Edit
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleViewPage(page.slug)}
+                >
+                  <Eye className="h-4 w-4 mr-2" />
+                  View
                 </Button>
               </div>
             </div>
