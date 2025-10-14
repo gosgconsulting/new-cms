@@ -15,6 +15,7 @@ interface NavLink {
 
 interface HeaderSettings {
   logoUrl: string;
+  navLinksEnabled: boolean;
   navLinks: NavLink[];
   ctaButton: {
     enabled: boolean;
@@ -26,6 +27,7 @@ interface HeaderSettings {
 const HeaderManager: React.FC = () => {
   const [settings, setSettings] = useState<HeaderSettings>({
     logoUrl: '/assets/go-sg-logo.png',
+    navLinksEnabled: true,
     navLinks: [
       { id: '1', label: 'Home', url: '/' },
       { id: '2', label: 'Services', url: '/services' },
@@ -81,6 +83,13 @@ const HeaderManager: React.FC = () => {
     setSettings({
       ...settings,
       navLinks: settings.navLinks.filter((link) => link.id !== id),
+    });
+  };
+
+  const toggleNavLinks = (enabled: boolean) => {
+    setSettings({
+      ...settings,
+      navLinksEnabled: enabled,
     });
   };
 
@@ -167,7 +176,23 @@ const HeaderManager: React.FC = () => {
           <CardDescription>Manage your header navigation menu</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-3">
+          <div className="flex items-center justify-between pb-4">
+            <div className="space-y-0.5">
+              <Label htmlFor="nav-enabled">Enable Navigation Links</Label>
+              <p className="text-sm text-muted-foreground">
+                Show navigation links in the header
+              </p>
+            </div>
+            <Switch
+              id="nav-enabled"
+              checked={settings.navLinksEnabled}
+              onCheckedChange={toggleNavLinks}
+            />
+          </div>
+
+          {settings.navLinksEnabled && (
+            <>
+              <div className="space-y-3 pt-4 border-t">
             {settings.navLinks.map((link, index) => (
               <div
                 key={link.id}
@@ -208,11 +233,13 @@ const HeaderManager: React.FC = () => {
                 </Button>
               </div>
             ))}
-          </div>
-          <Button onClick={addNavLink} variant="outline" className="w-full">
-            <Plus className="h-4 w-4 mr-2" />
-            Add Navigation Link
-          </Button>
+              </div>
+              <Button onClick={addNavLink} variant="outline" className="w-full">
+                <Plus className="h-4 w-4 mr-2" />
+                Add Navigation Link
+              </Button>
+            </>
+          )}
         </CardContent>
       </Card>
 
@@ -259,51 +286,6 @@ const HeaderManager: React.FC = () => {
               </div>
             </div>
           )}
-        </CardContent>
-      </Card>
-
-      {/* Preview Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Preview</CardTitle>
-          <CardDescription>Preview of your header configuration</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="border rounded-lg p-4 bg-background">
-            <div className="flex items-center justify-between">
-              {/* Logo */}
-              <div className="h-10 w-32 flex items-center">
-                {settings.logoUrl && (
-                  <img
-                    src={settings.logoUrl}
-                    alt="Logo"
-                    className="max-h-full max-w-full object-contain"
-                  />
-                )}
-              </div>
-
-              {/* Navigation Links */}
-              <nav className="flex items-center gap-6">
-                {settings.navLinks.map((link) => (
-                  <a
-                    key={link.id}
-                    href={link.url}
-                    className="text-sm font-medium hover:text-primary transition-colors"
-                    onClick={(e) => e.preventDefault()}
-                  >
-                    {link.label}
-                  </a>
-                ))}
-              </nav>
-
-              {/* CTA Button */}
-              {settings.ctaButton.enabled && (
-                <Button onClick={(e) => e.preventDefault()}>
-                  {settings.ctaButton.text}
-                </Button>
-              )}
-            </div>
-          </div>
         </CardContent>
       </Card>
     </div>
