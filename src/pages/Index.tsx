@@ -12,6 +12,7 @@ import NewTestimonials from "@/components/NewTestimonials";
 import BlogSection from "@/components/BlogSection";
 import ContactModal from "@/components/ContactModal";
 import FAQAccordion from "@/components/FAQAccordion";
+import TeamSection from "@/components/TeamSection";
 
 /**
  * WordPress Theme Template: Home/Front Page
@@ -52,6 +53,9 @@ const Index = () => {
         
         {/* WordPress: Testimonials section - template-parts/home/testimonials.php */}
         <NewTestimonials />
+        
+        {/* WordPress: Team section - template-parts/home/team.php */}
+        <TeamSection />
         
         {/* WordPress: FAQ section - template-parts/home/faq.php */}
         <FAQAccordion 
