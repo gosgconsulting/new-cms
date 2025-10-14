@@ -1,112 +1,117 @@
 # GO SG Website
 
-A modern digital marketing agency website built with React, TypeScript, and Vite, featuring an integrated Sparti CMS for content management.
+A modern digital marketing agency website built with React, TypeScript, and Tailwind CSS, featuring an integrated Sparti CMS for content management.
 
-## Features
+## 🚀 Features
 
 ### Frontend
-- Modern, responsive design with Tailwind CSS
-- Contact modal with form submission
-- SEO-optimized structure
-- Fast loading with Vite build system
+- **Homepage**: Clean, modern design with contact modal
+- **Responsive Design**: Mobile-first approach with Tailwind CSS
+- **SEO Optimized**: Meta tags, Open Graph, and structured data
 
-### Sparti CMS Admin Interface
-Access the admin interface at `/admin` with credentials: `admin` / `admin`
+### Admin Dashboard (Sparti CMS)
+- **Content Management**: Pages, Blog, Header, Footer, Forms
+- **Settings Management**: 
+  - **Branding**: Site name, tagline, logo, favicon
+  - **Style**: Color palette, typography, light/dark mode
+  - **SEO**: Sitemap generation, meta titles/descriptions, robots.txt
+  - **Developer**: Custom code injection, Google services integration
+- **Database Integration**: PostgreSQL with UPSERT operations
+- **Authentication**: Secure admin access
 
-**Navigation Menu:**
-- **Pages** - Manage website pages and content
-- **Blog** - Blog post management (placeholder)
-- **Header** - Header customization (placeholder)
-- **Footer** - Footer customization (placeholder)
-- **Forms** - Form submissions and management (placeholder)
-- **Settings** - Site configuration and styling
+## 🛠️ Tech Stack
 
-**Settings Features:**
-- **Branding Tab**:
-  - Site name and tagline configuration
-  - Logo upload (placeholder)
-  - Favicon upload (placeholder)
+- **Frontend**: React 18, TypeScript, Vite
+- **Styling**: Tailwind CSS, Radix UI
+- **Database**: PostgreSQL (Railway)
+- **Server**: Express.js
+- **Deployment**: Railway
+- **CMS**: Sparti CMS (integrated)
 
-- **Style Tab**:
-  - **Colors Section**: 
-    - Light/Dark mode toggle
-    - Brand color palette (Primary, Secondary, Success, Warning)
-    - Live color picker with hex values
-  - **Typography Section**:
-    - Headings font selection
-    - Body text font selection
-    - Live font preview
-
-- **SEO Tab**:
-  - **XML Sitemap**:
-    - Auto-generate sitemap.xml for search engines
-    - Toggle sitemap generation on/off
-    - Manual regeneration button
-  - **Meta Titles & Descriptions**:
-    - Page title template with variables: `{{page_title}}`, `{{site_name}}`, `{{category}}`, `{{author}}`
-    - Homepage title template with variables: `{{site_name}}`, `{{tagline}}`
-    - Description templates with variables: `{{page_excerpt}}`, `{{page_title}}`, `{{site_name}}`, `{{category}}`
-    - Custom homepage description
-    - Title separator options (|, -, •, /, :)
-  - **Advanced SEO**:
-    - Custom robots.txt editor with `{{site_url}}` variable
-    - Open Graph social media settings
-    - Default social image upload
-    - Twitter handle and Facebook App ID configuration
-
-- **Developer Tab**:
-  - **Custom Code Section**:
-    - Head section for custom HTML, CSS, JavaScript in `<head>`
-    - Body section for scripts before closing `</body>` tag
-    - Syntax-highlighted code editors with placeholders
-  - **Google Services Integration**:
-    - **Google Tag Manager**: Container ID configuration (GTM-XXXXXXX)
-    - **Google Analytics**: Measurement ID setup (G-XXXXXXXXXX)
-    - **Google Search Console**: Site verification meta tag content
-    - Visual service cards with icons and descriptions
-
-### Database Integration
-- PostgreSQL database connection via Railway
-- Form submission storage
-- Session management with localStorage (demo mode)
-
-## Getting Started
+## 📦 Getting Started
 
 ### Prerequisites
 - Node.js 18+ 
 - npm or yarn
+- PostgreSQL database (local or Railway)
 
 ### Installation
-```bash
-# Clone the repository
-git clone <repository-url>
-cd gosgwebsite
 
-# Install dependencies
-npm install
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd gosgwebsite
+   ```
 
-# Build the application
-npm run build
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
 
-# Start the server
-npm start
-```
+3. **Environment Setup**
+   - For local development, ensure you have PostgreSQL running
+   - For Railway deployment, use the environment variables from `railway-env-variables.txt`
+
+4. **Build the application**
+   ```bash
+   npm run build
+   ```
+
+5. **Start the server**
+   ```bash
+   npm start
+   ```
 
 The application will be available at `http://localhost:4173`
 
-### Admin Access
-1. Navigate to `http://localhost:4173/admin`
-2. Login with credentials: `admin` / `admin`
-3. Use the sidebar navigation to access different CMS sections
+## 🚀 Deployment
 
-### Development
-```bash
-# Start development server
-npm run dev
+### Railway Deployment
+
+1. **Create a Railway project** with PostgreSQL service
+2. **Set environment variables** from `railway-env-variables.txt`:
+   ```
+   DATABASE_PUBLIC_URL=${{Postgres.DATABASE_PUBLIC_URL}}
+   DATABASE_URL=${{Postgres.DATABASE_URL}}
+   POSTGRES_DB=${{Postgres.POSTGRES_DB}}
+   POSTGRES_USER=${{Postgres.POSTGRES_USER}}
+   POSTGRES_PASSWORD=${{Postgres.POSTGRES_PASSWORD}}
+   PORT=${{PORT}}
+   NODE_ENV=production
+   RAILWAY_HEALTHCHECK_TIMEOUT_SEC=120
+   ```
+3. **Configure healthcheck**:
+   - Healthcheck Path: `/health`
+   - Healthcheck Timeout: 120 seconds
+4. **Deploy** using Railway CLI or GitHub integration
+
+### Health Check
+The application includes a health check endpoint at `/health` that returns:
+```json
+{
+  "status": "healthy",
+  "timestamp": "2025-10-14T09:12:07.000Z",
+  "port": 4173
+}
 ```
 
-## Project Structure
+## 🗄️ Database
 
+### PostgreSQL Schema
+The application automatically creates the following tables:
+
+- **site_settings**: Stores branding and configuration settings
+- **form_submissions**: Stores contact form submissions
+
+### API Endpoints
+
+- `GET /health` - Health check
+- `GET /api/branding` - Get branding settings
+- `POST /api/branding` - Update branding settings
+
+## 🔧 Development
+
+### Project Structure
 ```
 src/
 ├── components/          # React components
@@ -115,32 +120,56 @@ src/
 ├── lib/                # Utility functions
 └── integrations/       # External service integrations
 
-sparti-cms/             # Sparti CMS module
+sparti-cms/
 ├── components/         # CMS components
-│   ├── admin/         # Admin interface components
-│   ├── auth/          # Authentication components
-│   └── cms/           # Content management components
-├── hooks/             # CMS-specific hooks
-├── styles/            # CMS styling
-└── types/             # TypeScript definitions
+├── db/                 # Database operations
+├── hooks/              # CMS hooks
+└── styles/             # CMS styles
+
+server.js               # Express server
 ```
 
-## Deployment
+### Available Scripts
 
-The application is configured for Railway deployment with:
-- Express.js server for static file serving
-- Health check endpoint at `/health`
-- Environment variable support
-- PostgreSQL database integration
+- `npm run dev` - Start development server (Vite)
+- `npm run build` - Build for production
+- `npm start` - Start production server
+- `npm run preview` - Preview production build locally
 
-## Technologies Used
+## 🎨 Admin Dashboard
 
-- **Frontend**: React 18, TypeScript, Vite
-- **Styling**: Tailwind CSS, Lucide React icons
-- **Backend**: Express.js, PostgreSQL
-- **Deployment**: Railway
-- **CMS**: Sparti CMS (integrated)
+Access the admin dashboard at `/admin` with the following features:
 
-## License
+### Navigation Menu
+- **Pages**: Content management
+- **Blog**: Blog post management
+- **Header**: Header customization
+- **Footer**: Footer customization  
+- **Forms**: Form management
+- **Settings**: Site configuration
 
-This project is proprietary software for GO SG Digital Marketing Agency.
+### Settings Tabs
+- **Branding**: Site name, tagline, logo, favicon
+- **Style**: Colors, typography, themes
+- **SEO**: Sitemap, meta tags, robots.txt, Open Graph
+- **Developer**: Custom code, Google Tag Manager, Analytics, Search Console
+
+## 🔒 Security
+
+- Environment variables for sensitive data
+- Secure database connections with SSL
+- Input validation and sanitization
+- CORS protection
+
+## 📝 License
+
+This project is proprietary and confidential.
+
+## 🤝 Support
+
+For support and questions, please contact the development team.
+
+---
+
+**Status**: ✅ Ready for deployment
+**Last Updated**: October 14, 2025
