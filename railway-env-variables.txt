@@ -6,3 +6,4 @@ POSTGRES_PASSWORD=${Postgres.POSTGRES_PASSWORD}
 
 # Frontend Environment Variables
 VITE_API_BASE_URL=/api
+PORT=${PORT}
