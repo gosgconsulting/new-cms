@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import { Type, Image, Video, Link, MousePointer, Settings, X, Save } from 'lucide-react';
 import { useSpartiBuilder } from './SpartiBuilderProvider';
 import { ElementType } from '../types';
-import useDatabase from '../hooks/useDatabase';
 import { componentRegistry } from '../registry';
 
 // Specialized editor components

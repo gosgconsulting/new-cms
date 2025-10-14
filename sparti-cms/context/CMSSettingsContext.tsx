@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { useDatabase } from '../hooks/useDatabase';
 
 // Define types for our CMS settings
 export interface TypographySettings {
