@@ -24,6 +24,15 @@ import {
   deleteContact
 } from './sparti-cms/db/postgres.js';
 
+// Import mock data for development
+import {
+  getMockContacts,
+  getMockFormSubmissions,
+  createMockContact,
+  updateMockContact,
+  deleteMockContact
+} from './sparti-cms/db/mock-data.js';
+
 // SMTP Configuration for server-side email sending
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const SMTP_FROM_EMAIL = process.env.SMTP_FROM_EMAIL || 'noreply@gosg.com';

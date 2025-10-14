@@ -432,6 +432,75 @@ export async function deleteContact(contactId) {
   }
 }
 
+export async function getContactsWithMessages(limit = 50, offset = 0, search = '') {
+  try {
+    let whereClause = '';
+    let params = [limit, offset];
+    
+    if (search) {
+      whereClause = `WHERE 
+        c.first_name ILIKE $3 OR 
+        c.last_name ILIKE $3 OR 
+        c.email ILIKE $3 OR 
+        c.company ILIKE $3`;
+      params.push(`%${search}%`);
+    }
+    
+    const result = await query(`
+      SELECT 
+        c.id,
+        c.first_name,
+        c.last_name,
+        c.email,
+        c.phone,
+        c.company,
+        c.source,
+        c.status,
+        c.tags,
+        c.notes,
+        c.created_at,
+        c.updated_at,
+        COALESCE(
+          JSON_AGG(
+            CASE WHEN fs.id IS NOT NULL THEN
+              JSON_BUILD_OBJECT(
+                'id', fs.id,
+                'form_name', fs.form_name,
+                'message', fs.message,
+                'submitted_at', fs.submitted_at
+              )
+            END
+          ) FILTER (WHERE fs.id IS NOT NULL), 
+          '[]'::json
+        ) as form_messages
+      FROM contacts c
+      LEFT JOIN form_submissions fs ON c.email = fs.email
+      ${whereClause}
+      GROUP BY c.id, c.first_name, c.last_name, c.email, c.phone, c.company, c.source, c.status, c.tags, c.notes, c.created_at, c.updated_at
+      ORDER BY c.created_at DESC
+      LIMIT $1 OFFSET $2
+    `, params);
+    
+    // Get total count
+    const countResult = await query(`
+      SELECT COUNT(DISTINCT c.id) as total 
+      FROM contacts c
+      LEFT JOIN form_submissions fs ON c.email = fs.email
+      ${whereClause}
+    `, search ? [`%${search}%`] : []);
+    
+    return {
+      contacts: result.rows,
+      total: parseInt(countResult.rows[0].total),
+      limit,
+      offset
+    };
+  } catch (error) {
+    console.error('[testing] Error fetching contacts with messages:', error);
+    throw error;
+  }
+}
+
 // Project management functions
 export async function createProject(projectData) {
   try {

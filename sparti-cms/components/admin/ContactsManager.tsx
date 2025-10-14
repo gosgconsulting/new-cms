@@ -59,24 +59,29 @@ const ContactsManager: React.FC = () => {
     setError(null);
     
     try {
-      console.log('[testing] Loading contacts...');
+      console.log('[testing] Loading contacts with messages...');
       const params = new URLSearchParams({
         limit: '50',
         offset: offset.toString(),
         ...(search && { search })
       });
       
-      const response = await fetch(`/api/contacts?${params}`);
+      const response = await fetch(`/api/contacts-with-messages?${params}`);
+      console.log('[testing] Response status:', response.status);
+      
       if (response.ok) {
         const data = await response.json();
         setContactsData(data);
-        console.log('[testing] Contacts loaded:', data);
+        console.log('[testing] Contacts with messages loaded:', data);
       } else {
-        throw new Error('Failed to load contacts');
+        const errorText = await response.text();
+        console.error('[testing] API Error:', response.status, errorText);
+        throw new Error(`API Error ${response.status}: ${errorText}`);
       }
     } catch (err) {
       console.error('[testing] Error loading contacts:', err);
-      setError('Failed to load contacts');
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+      setError(errorMessage);
       // Show empty state on error
       setContactsData({
         contacts: [],
