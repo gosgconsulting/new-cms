@@ -8,7 +8,7 @@ const SettingsManager: React.FC = () => {
     { id: 'branding', label: 'Branding', icon: Image },
     { id: 'style', label: 'Style', icon: Palette },
     { id: 'seo', label: 'SEO', icon: Search }, // Added SEO tab
-    { id: 'developer', label: 'Code', icon: Code }, // Added Code tab
+    { id: 'developer', label: 'Developer', icon: Code }, // Added Developer tab
   ];
 
   const renderTabContent = () => {
@@ -20,7 +20,7 @@ const SettingsManager: React.FC = () => {
       case 'seo':
         return <SEOTab />; // Render SEO tab content
       case 'developer':
-        return <DeveloperTab />; // Render Code tab content
+        return <DeveloperTab />; // Render Developer tab content
       default:
         return null;
     }
@@ -589,7 +589,7 @@ const DeveloperTab: React.FC = () => {
   return (
     <div className="space-y-8">
       <div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Code Settings</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Developer Settings</h3>
         <p className="text-sm text-gray-600 mb-6">
           Add custom code and configure analytics services.
         </p>

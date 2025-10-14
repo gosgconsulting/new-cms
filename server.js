@@ -387,6 +387,131 @@ app.get('/api/analytics/overview', async (req, res) => {
 });
 */
 
+// Database Viewer API Routes
+app.get('/api/database/tables', async (req, res) => {
+  try {
+    console.log('[testing] API: Getting database tables');
+    const { pool } = await initializeDatabase();
+    
+    const query = `
+      SELECT 
+        table_name,
+        table_schema,
+        table_type,
+        (
+          SELECT COUNT(*) 
+          FROM information_schema.columns 
+          WHERE table_name = t.table_name 
+          AND table_schema = t.table_schema
+        ) as column_count
+      FROM information_schema.tables t
+      WHERE table_schema = 'public'
+      AND table_type = 'BASE TABLE'
+      ORDER BY table_name;
+    `;
+    
+    const result = await pool.query(query);
+    
+    // Get row counts for each table
+    const tablesWithCounts = await Promise.all(
+      result.rows.map(async (table) => {
+        try {
+          const countQuery = `SELECT COUNT(*) as row_count FROM "${table.table_name}"`;
+          const countResult = await pool.query(countQuery);
+          return {
+            ...table,
+            row_count: parseInt(countResult.rows[0].row_count)
+          };
+        } catch (error) {
+          console.warn(`[testing] Could not get row count for ${table.table_name}:`, error.message);
+          return {
+            ...table,
+            row_count: 0
+          };
+        }
+      })
+    );
+    
+    console.log('[testing] Database tables loaded:', tablesWithCounts.length);
+    res.json(tablesWithCounts);
+  } catch (error) {
+    console.error('[testing] Database tables error:', error);
+    res.status(500).json({ error: 'Failed to fetch database tables' });
+  }
+});
+
+app.get('/api/database/tables/:tableName/columns', async (req, res) => {
+  try {
+    const { tableName } = req.params;
+    console.log('[testing] API: Getting columns for table:', tableName);
+    const { pool } = await initializeDatabase();
+    
+    const query = `
+      SELECT 
+        c.column_name,
+        c.data_type,
+        c.is_nullable,
+        c.column_default,
+        CASE 
+          WHEN pk.column_name IS NOT NULL THEN true 
+          ELSE false 
+        END as is_primary_key
+      FROM information_schema.columns c
+      LEFT JOIN (
+        SELECT ku.column_name
+        FROM information_schema.table_constraints tc
+        JOIN information_schema.key_column_usage ku
+          ON tc.constraint_name = ku.constraint_name
+        WHERE tc.table_name = $1
+          AND tc.constraint_type = 'PRIMARY KEY'
+      ) pk ON c.column_name = pk.column_name
+      WHERE c.table_name = $1
+        AND c.table_schema = 'public'
+      ORDER BY c.ordinal_position;
+    `;
+    
+    const result = await pool.query(query, [tableName]);
+    console.log('[testing] Table columns loaded:', result.rows.length);
+    res.json(result.rows);
+  } catch (error) {
+    console.error('[testing] Table columns error:', error);
+    res.status(500).json({ error: 'Failed to fetch table columns' });
+  }
+});
+
+app.get('/api/database/tables/:tableName/data', async (req, res) => {
+  try {
+    const { tableName } = req.params;
+    const limit = parseInt(req.query.limit) || 100;
+    const offset = parseInt(req.query.offset) || 0;
+    
+    console.log('[testing] API: Getting data for table:', tableName, 'limit:', limit);
+    const { pool } = await initializeDatabase();
+    
+    // Validate table name to prevent SQL injection
+    const tableExistsQuery = `
+      SELECT table_name 
+      FROM information_schema.tables 
+      WHERE table_name = $1 AND table_schema = 'public'
+    `;
+    const tableExists = await pool.query(tableExistsQuery, [tableName]);
+    
+    if (tableExists.rows.length === 0) {
+      return res.status(404).json({ error: 'Table not found' });
+    }
+    
+    // Use parameterized query with table name validation
+    const query = `SELECT * FROM "${tableName}" LIMIT $1 OFFSET $2`;
+    const result = await pool.query(query, [limit, offset]);
+    
+    console.log('[testing] Table data loaded:', result.rows.length, 'rows');
+    res.json(result.rows);
+  } catch (error) {
+    console.error('[testing] Table data error:', error);
+    res.status(500).json({ error: 'Failed to fetch table data' });
+  }
+});
+
 // SMTP Email Routes
 app.post('/api/send-email', async (req, res) => {
   try {
