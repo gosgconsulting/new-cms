@@ -1,148 +1,133 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from '../../../src/components/ui/button';
-// Demo pages manager (no database required)
-import { Input } from '../../../src/components/ui/input';
 import { Card } from '../../../src/components/ui/card';
-import { useToast } from '../../../src/hooks/use-toast';
+import { Badge } from '../../../src/components/ui/badge';
+import { Edit, Eye } from 'lucide-react';
 
 interface PageItem {
   id: string;
   title: string;
   slug: string;
-  is_published: boolean;
-  created_at: string;
+  status: 'published' | 'draft';
+  type: string;
 }
 
+// Fixed list of pages
+const defaultPages: PageItem[] = [
+  {
+    id: '1',
+    title: 'Homepage',
+    slug: '/',
+    status: 'published',
+    type: 'core',
+  },
+  {
+    id: '2',
+    title: 'Blog',
+    slug: '/blog',
+    status: 'published',
+    type: 'core',
+  },
+  {
+    id: '3',
+    title: 'Privacy Policy',
+    slug: '/privacy-policy',
+    status: 'published',
+    type: 'legal',
+  },
+  {
+    id: '4',
+    title: 'Terms of Service',
+    slug: '/terms-of-service',
+    status: 'published',
+    type: 'legal',
+  },
+  {
+    id: '5',
+    title: 'About Us',
+    slug: '/about',
+    status: 'published',
+    type: 'content',
+  },
+  {
+    id: '6',
+    title: 'Contact',
+    slug: '/contact',
+    status: 'published',
+    type: 'content',
+  },
+];
+
 export const PagesManager: React.FC = () => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [pages, setPages] = useState<PageItem[]>([]);
-  const [newPageTitle, setNewPageTitle] = useState('');
-  const { toast } = useToast();
+  const [pages] = useState<PageItem[]>(defaultPages);
 
-  useEffect(() => {
-    // Demo: Load pages from localStorage
-    const demoPages = JSON.parse(localStorage.getItem('sparti-demo-pages') || '[]');
-    setPages(demoPages);
-  }, []);
-
-  const handleCreatePage = async () => {
-    if (!newPageTitle.trim()) return;
-    
-    setIsLoading(true);
-    
-    try {
-      // Demo: simulate creation delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const newPage: PageItem = {
-        id: 'demo-page-' + Date.now(),
-        title: newPageTitle,
-        slug: newPageTitle.toLowerCase().replace(/\s+/g, '-'),
-        is_published: false,
-        created_at: new Date().toISOString(),
-      };
-
-      const updatedPages = [...pages, newPage];
-      setPages(updatedPages);
-      
-      // Demo: store in localStorage
-      localStorage.setItem('sparti-demo-pages', JSON.stringify(updatedPages));
-      
-      setNewPageTitle('');
-      
-      toast({
-        title: "Page Created",
-        description: `Page "${newPage.title}" has been created (demo mode)`,
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to create page (demo mode)",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+  const handleEditPage = (pageId: string) => {
+    const page = pages.find(p => p.id === pageId);
+    console.log('Edit page:', page);
+    // In real implementation, navigate to page editor
   };
 
-  const handleDeletePage = async (pageId: string) => {
-    setIsLoading(true);
-    
-    try {
-      // Demo: simulate deletion delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      const updatedPages = pages.filter(p => p.id !== pageId);
-      setPages(updatedPages);
-      
-      // Demo: store in localStorage
-      localStorage.setItem('sparti-demo-pages', JSON.stringify(updatedPages));
-      
-      toast({
-        title: "Page Deleted",
-        description: "Page has been deleted (demo mode)",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to delete page (demo mode)",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+  const handleViewPage = (slug: string) => {
+    window.open(slug, '_blank');
   };
 
   return (
-    <Card className="p-6">
-      <h2 className="text-xl font-semibold mb-4">Pages Manager</h2>
-      
-      <div className="space-y-4">
-        <div className="flex gap-2">
-          <Input
-            value={newPageTitle}
-            onChange={(e) => setNewPageTitle(e.target.value)}
-            placeholder="Page title"
-            onKeyPress={(e) => e.key === 'Enter' && handleCreatePage()}
-          />
-          <Button onClick={handleCreatePage} disabled={isLoading || !newPageTitle.trim()}>
-            {isLoading ? 'Creating...' : 'Create Page'}
-          </Button>
-        </div>
-
-        <div className="space-y-2">
-          {pages.length === 0 ? (
-            <p className="text-muted-foreground text-center py-4">
-              No pages yet. Create your first page above.
-            </p>
-          ) : (
-            pages.map((page) => (
-              <div key={page.id} className="flex items-center justify-between p-3 border rounded">
-                <div>
-                  <h3 className="font-medium">{page.title}</h3>
-                  <p className="text-sm text-muted-foreground">/{page.slug}</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className={`px-2 py-1 text-xs rounded ${
-                    page.is_published ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                  }`}>
-                    {page.is_published ? 'Published' : 'Draft'}
-                  </span>
-                  <Button 
-                    variant="destructive" 
-                    size="sm"
-                    onClick={() => handleDeletePage(page.id)}
-                    disabled={isLoading}
-                  >
-                    Delete
-                  </Button>
-                </div>
-              </div>
-            ))
-          )}
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-2xl font-bold">Pages</h2>
+          <p className="text-muted-foreground">Manage your website pages</p>
         </div>
       </div>
-    </Card>
+
+      <div className="grid gap-4">
+        {pages.map((page) => (
+          <Card key={page.id} className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <div className="flex items-center gap-3 mb-1">
+                  <h3 className="text-lg font-semibold">{page.title}</h3>
+                  <Badge 
+                    variant={page.status === 'published' ? 'default' : 'secondary'}
+                    className="text-xs"
+                  >
+                    {page.status}
+                  </Badge>
+                  <Badge variant="outline" className="text-xs">
+                    {page.type}
+                  </Badge>
+                </div>
+                <p className="text-sm text-muted-foreground">{page.slug}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleViewPage(page.slug)}
+                >
+                  <Eye className="h-4 w-4 mr-2" />
+                  View
+                </Button>
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={() => handleEditPage(page.id)}
+                >
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit
+                </Button>
+              </div>
+            </div>
+          </Card>
+        ))}
+      </div>
+
+      <div className="mt-8 p-4 bg-muted rounded-lg">
+        <p className="text-sm text-muted-foreground">
+          <strong>Note:</strong> These are the core pages of your website. To add custom pages, please contact support.
+        </p>
+      </div>
+    </div>
   );
 };
 
