@@ -63,11 +63,15 @@ export async function initializeDatabase() {
     await query(`
       CREATE TABLE IF NOT EXISTS form_submissions (
         id SERIAL PRIMARY KEY,
-        name VARCHAR(255),
-        email VARCHAR(255),
+        form_id VARCHAR(255) NOT NULL,
+        form_name VARCHAR(255) NOT NULL,
+        name VARCHAR(255) NOT NULL,
+        email VARCHAR(255) NOT NULL,
+        phone VARCHAR(50),
         message TEXT,
-        form_type VARCHAR(100),
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        ip_address VARCHAR(50),
+        user_agent TEXT
       )
     `);
 
@@ -162,6 +166,78 @@ export async function updateMultipleBrandingSettings(settings: Record<string, st
     throw error;
   } finally {
     client.release();
+  }
+}
+
+// Form submission functions
+export async function saveFormSubmission(formData: {
+  form_id: string;
+  form_name: string;
+  name: string;
+  email: string;
+  phone?: string;
+  message?: string;
+}) {
+  try {
+    const result = await query(`
+      INSERT INTO form_submissions 
+        (form_id, form_name, name, email, phone, message, submitted_at)
+      VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP)
+      RETURNING *
+    `, [
+      formData.form_id,
+      formData.form_name,
+      formData.name,
+      formData.email,
+      formData.phone || null,
+      formData.message || null
+    ]);
+    
+    console.log('[testing] Form submission saved:', result.rows[0].id);
+    return result.rows[0];
+  } catch (error) {
+    console.error('[testing] Error saving form submission:', error);
+    throw error;
+  }
+}
+
+export async function getFormSubmissions(formId: string) {
+  try {
+    const result = await query(`
+      SELECT 
+        id,
+        name,
+        email,
+        phone,
+        message,
+        submitted_at
+      FROM form_submissions
+      WHERE form_id = $1
+      ORDER BY submitted_at DESC
+    `, [formId]);
+    
+    // Format for frontend
+    const formatted = result.rows.map(row => ({
+      id: row.id.toString(),
+      date: new Date(row.submitted_at).toLocaleString('en-SG', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      }),
+      data: {
+        name: row.name,
+        email: row.email,
+        phone: row.phone || '',
+        message: row.message || ''
+      }
+    }));
+    
+    return formatted;
+  } catch (error) {
+    console.error('[testing] Error fetching form submissions:', error);
+    throw error;
   }
 }
 

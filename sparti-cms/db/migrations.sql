@@ -48,11 +48,15 @@ CREATE TABLE IF NOT EXISTS media (
 -- Create form_submissions table (for contact forms)
 CREATE TABLE IF NOT EXISTS form_submissions (
   id SERIAL PRIMARY KEY,
+  form_id VARCHAR(255) NOT NULL,
+  form_name VARCHAR(255) NOT NULL,
   name VARCHAR(255) NOT NULL,
   email VARCHAR(255) NOT NULL,
-  message TEXT NOT NULL,
-  form_type VARCHAR(50) NOT NULL,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  phone VARCHAR(50),
+  message TEXT,
+  submitted_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  ip_address VARCHAR(50),
+  user_agent TEXT
 );
 
 -- Create indexes for better performance
@@ -61,8 +65,8 @@ CREATE INDEX IF NOT EXISTS idx_components_category ON components(category);
 CREATE INDEX IF NOT EXISTS idx_components_active ON components(is_active);
 CREATE INDEX IF NOT EXISTS idx_pages_slug ON pages(slug);
 CREATE INDEX IF NOT EXISTS idx_pages_published ON pages(is_published);
-CREATE INDEX IF NOT EXISTS idx_form_submissions_type ON form_submissions(form_type);
-CREATE INDEX IF NOT EXISTS idx_form_submissions_created ON form_submissions(created_at);
+CREATE INDEX IF NOT EXISTS idx_form_submissions_form_id ON form_submissions(form_id);
+CREATE INDEX IF NOT EXISTS idx_form_submissions_submitted ON form_submissions(submitted_at);
 
 -- Insert default settings if none exist
 INSERT INTO settings (site_name, primary_color, secondary_color, font_family)

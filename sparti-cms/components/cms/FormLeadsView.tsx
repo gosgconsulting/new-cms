@@ -9,7 +9,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { supabase } from '@/integrations/supabase/client';
 
 interface FormField {
   name: string;
@@ -41,36 +40,18 @@ const FormLeadsView: React.FC<FormLeadsViewProps> = ({ form, onBack }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Fetch submissions from Supabase
+    // Fetch submissions from Railway PostgreSQL via API
     const fetchSubmissions = async () => {
       setIsLoading(true);
       try {
-        const { data, error } = await supabase
-          .from('form_submissions')
-          .select('*')
-          .eq('form_id', form.id)
-          .order('submitted_at', { ascending: false });
+        const response = await fetch(`/api/form-submissions/${form.id}`);
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch submissions');
+        }
 
-        if (error) throw error;
-
-        const formatted = data?.map(submission => ({
-          id: submission.id,
-          date: new Date(submission.submitted_at).toLocaleString('en-SG', {
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit'
-          }),
-          data: {
-            name: submission.name,
-            email: submission.email,
-            phone: submission.phone || '',
-            message: submission.message || ''
-          }
-        })) || [];
-
-        setSubmissions(formatted);
+        const data = await response.json();
+        setSubmissions(data);
       } catch (error) {
         console.error('Error fetching submissions:', error);
         setSubmissions([]);
