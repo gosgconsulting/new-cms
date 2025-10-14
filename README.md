@@ -1,94 +1,146 @@
-# Welcome to your Lovable project
+# GO SG Website
 
-## Project info
+A modern digital marketing agency website built with React, TypeScript, and Vite, featuring an integrated Sparti CMS for content management.
 
-**URL**: https://lovable.dev/projects/71ee1bf0-f845-485d-a5cc-24b16173fc54
+## Features
 
-## Recent Refactoring
+### Frontend
+- Modern, responsive design with Tailwind CSS
+- Contact modal with form submission
+- SEO-optimized structure
+- Fast loading with Vite build system
 
-This project has been refactored to simplify the structure. Now it only includes:
-- Homepage with contact modal
-- Admin dashboard page
-- 404 page for handling not found routes
+### Sparti CMS Admin Interface
+Access the admin interface at `/admin` with credentials: `admin` / `admin`
 
-All other pages and unused components have been removed to streamline the codebase.
+**Navigation Menu:**
+- **Pages** - Manage website pages and content
+- **Blog** - Blog post management (placeholder)
+- **Header** - Header customization (placeholder)
+- **Footer** - Footer customization (placeholder)
+- **Forms** - Form submissions and management (placeholder)
+- **Settings** - Site configuration and styling
 
-## Database Setup
+**Settings Features:**
+- **Branding Tab**:
+  - Site name and tagline configuration
+  - Logo upload (placeholder)
+  - Favicon upload (placeholder)
 
-This project uses PostgreSQL hosted on Railway. To set up the database:
+- **Style Tab**:
+  - **Colors Section**: 
+    - Light/Dark mode toggle
+    - Brand color palette (Primary, Secondary, Success, Warning)
+    - Live color picker with hex values
+  - **Typography Section**:
+    - Headings font selection
+    - Body text font selection
+    - Live font preview
 
-1. Create a new PostgreSQL instance on Railway
-2. Copy the environment variables from `railway-env-variables.txt` into your Railway project's environment variables
-3. Deploy your application to Railway
+- **SEO Tab**:
+  - **XML Sitemap**:
+    - Auto-generate sitemap.xml for search engines
+    - Toggle sitemap generation on/off
+    - Manual regeneration button
+  - **Meta Titles & Descriptions**:
+    - Page title template with variables: `{{page_title}}`, `{{site_name}}`, `{{category}}`, `{{author}}`
+    - Homepage title template with variables: `{{site_name}}`, `{{tagline}}`
+    - Description templates with variables: `{{page_excerpt}}`, `{{page_title}}`, `{{site_name}}`, `{{category}}`
+    - Custom homepage description
+    - Title separator options (|, -, •, /, :)
+  - **Advanced SEO**:
+    - Custom robots.txt editor with `{{site_url}}` variable
+    - Open Graph social media settings
+    - Default social image upload
+    - Twitter handle and Facebook App ID configuration
 
-For local development:
-1. Create a `.env.local` file in the root directory with the same variables but with your local PostgreSQL connection details
-2. Run `npm run dev` to start the development server
+- **Developer Tab**:
+  - **Custom Code Section**:
+    - Head section for custom HTML, CSS, JavaScript in `<head>`
+    - Body section for scripts before closing `</body>` tag
+    - Syntax-highlighted code editors with placeholders
+  - **Google Services Integration**:
+    - **Google Tag Manager**: Container ID configuration (GTM-XXXXXXX)
+    - **Google Analytics**: Measurement ID setup (G-XXXXXXXXXX)
+    - **Google Search Console**: Site verification meta tag content
+    - Visual service cards with icons and descriptions
 
-## How can I edit this code?
+### Database Integration
+- PostgreSQL database connection via Railway
+- Form submission storage
+- Session management with localStorage (demo mode)
 
-There are several ways of editing your application.
+## Getting Started
 
-**Use Lovable**
+### Prerequisites
+- Node.js 18+ 
+- npm or yarn
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/71ee1bf0-f845-485d-a5cc-24b16173fc54) and start prompting.
+### Installation
+```bash
+# Clone the repository
+git clone <repository-url>
+cd gosgwebsite
 
-Changes made via Lovable will be committed automatically to this repo.
+# Install dependencies
+npm install
 
-**Use your preferred IDE**
+# Build the application
+npm run build
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+# Start the server
+npm start
+```
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+The application will be available at `http://localhost:4173`
 
-Follow these steps:
+### Admin Access
+1. Navigate to `http://localhost:4173/admin`
+2. Login with credentials: `admin` / `admin`
+3. Use the sidebar navigation to access different CMS sections
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+### Development
+```bash
+# Start development server
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+## Project Structure
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```
+src/
+├── components/          # React components
+├── pages/              # Page components
+├── hooks/              # Custom React hooks
+├── lib/                # Utility functions
+└── integrations/       # External service integrations
 
-**Use GitHub Codespaces**
+sparti-cms/             # Sparti CMS module
+├── components/         # CMS components
+│   ├── admin/         # Admin interface components
+│   ├── auth/          # Authentication components
+│   └── cms/           # Content management components
+├── hooks/             # CMS-specific hooks
+├── styles/            # CMS styling
+└── types/             # TypeScript definitions
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Deployment
 
-## What technologies are used for this project?
+The application is configured for Railway deployment with:
+- Express.js server for static file serving
+- Health check endpoint at `/health`
+- Environment variable support
+- PostgreSQL database integration
 
-This project is built with:
+## Technologies Used
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+- **Frontend**: React 18, TypeScript, Vite
+- **Styling**: Tailwind CSS, Lucide React icons
+- **Backend**: Express.js, PostgreSQL
+- **Deployment**: Railway
+- **CMS**: Sparti CMS (integrated)
 
-## How can I deploy this project?
+## License
 
-Simply open [Lovable](https://lovable.dev/projects/71ee1bf0-f845-485d-a5cc-24b16173fc54) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+This project is proprietary software for GO SG Digital Marketing Agency.

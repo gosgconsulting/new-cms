@@ -1,0 +1,40 @@
+{
+  "id": "text",
+  "name": "Text Component",
+  "type": "text",
+  "category": "content",
+  "description": "Editable text content with rich formatting support",
+  "properties": {
+    "content": {
+      "type": "string",
+      "description": "The text content",
+      "editable": true,
+      "required": true,
+      "default": "Click to edit text"
+    },
+    "styles": {
+      "type": "object",
+      "description": "CSS styles for the text",
+      "editable": true,
+      "required": false,
+      "default": {
+        "fontSize": "16px",
+        "color": "#000000",
+        "fontFamily": "inherit"
+      }
+    },
+    "tagName": {
+      "type": "string",
+      "description": "HTML tag name for the text element",
+      "editable": true,
+      "required": false,
+      "default": "p"
+    }
+  },
+  "editor": "TextEditor",
+  "version": "1.0.0",
+  "tenant_scope": "global",
+  "tags": ["text", "content", "editable", "typography"],
+  "dependencies": [],
+  "last_updated": "2025-01-26T12:00:00Z"
+}

@@ -1,0 +1,42 @@
+{
+  "id": "image",
+  "name": "Image",
+  "type": "image",
+  "category": "media",
+  "description": "Interactive image editor supporting single images and image galleries",
+  "properties": {
+    "src": {
+      "type": "string",
+      "description": "Image source URL",
+      "editable": true,
+      "required": true
+    },
+    "alt": {
+      "type": "string", 
+      "description": "Alternative text for accessibility",
+      "editable": true,
+      "default": ""
+    },
+    "title": {
+      "type": "string",
+      "description": "Image title",
+      "editable": true,
+      "default": ""
+    },
+    "width": {
+      "type": "number",
+      "description": "Image width",
+      "editable": true
+    },
+    "height": {
+      "type": "number", 
+      "description": "Image height",
+      "editable": true
+    }
+  },
+  "editor": "ImageEditor",
+  "version": "1.0.0",
+  "tenant_scope": "global",
+  "tags": ["image", "media", "gallery", "photo"],
+  "dependencies": []
+}

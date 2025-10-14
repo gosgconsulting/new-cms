@@ -1,0 +1,29 @@
+{
+  "id": "button",
+  "name": "Button Component",
+  "type": "button",
+  "category": "interactive",
+  "description": "Interactive button with customizable text and optional URL link",
+  "properties": {
+    "content": {
+      "type": "string",
+      "description": "Button text content",
+      "editable": true,
+      "required": true,
+      "default": "Click me"
+    },
+    "href": {
+      "type": "string",
+      "description": "URL to navigate to when clicked",
+      "editable": true,
+      "required": false,
+      "default": ""
+    }
+  },
+  "editor": "ButtonEditor",
+  "version": "1.0.0",
+  "tenant_scope": "global",
+  "tags": ["button", "interactive", "link", "action", "clickable"],
+  "dependencies": [],
+  "last_updated": "2025-01-26T12:00:00Z"
+}

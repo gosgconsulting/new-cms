@@ -1,0 +1,43 @@
+{
+  "id": "container",
+  "name": "Container Component",
+  "type": "container",
+  "category": "layout",
+  "description": "Container/block/section with customizable background options",
+  "properties": {
+    "backgroundType": {
+      "type": "string",
+      "description": "Type of background (color, image, video)",
+      "editable": true,
+      "required": false,
+      "default": "color"
+    },
+    "backgroundColor": {
+      "type": "string",
+      "description": "Background color",
+      "editable": true,
+      "required": false,
+      "default": "#ffffff"
+    },
+    "backgroundImage": {
+      "type": "string",
+      "description": "Background image URL",
+      "editable": true,
+      "required": false,
+      "default": ""
+    },
+    "backgroundVideo": {
+      "type": "string",
+      "description": "Background video URL",
+      "editable": true,
+      "required": false,
+      "default": ""
+    }
+  },
+  "editor": "ContainerEditor",
+  "version": "1.0.0",
+  "tenant_scope": "global",
+  "tags": ["container", "layout", "section", "div", "background"],
+  "dependencies": [],
+  "last_updated": "2025-01-26T12:00:00Z"
+}
