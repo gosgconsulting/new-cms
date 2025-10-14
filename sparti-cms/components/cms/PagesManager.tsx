@@ -42,20 +42,6 @@ const defaultPages: PageItem[] = [
     status: 'published',
     type: 'legal',
   },
-  {
-    id: '5',
-    title: 'About Us',
-    slug: '/about',
-    status: 'published',
-    type: 'content',
-  },
-  {
-    id: '6',
-    title: 'Contact',
-    slug: '/contact',
-    status: 'published',
-    type: 'content',
-  },
 ];
 
 export const PagesManager: React.FC = () => {
