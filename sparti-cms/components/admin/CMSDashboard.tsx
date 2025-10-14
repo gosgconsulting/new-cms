@@ -18,6 +18,7 @@ import FormsManager from '../cms/FormsManager';
 
 // Import new components
 import SettingsManager from './SettingsManager';
+import DeveloperManager from './DeveloperManager';
 
 // Placeholder components
 const BlogManager = () => (
@@ -60,6 +61,8 @@ const CMSDashboard: React.FC = () => {
         return <FormsManager />;
       case 'settings':
         return <SettingsManager />;
+      case 'developer':
+        return <DeveloperManager />;
       default:
         return <div className="text-gray-500">Select a section from the sidebar</div>;
     }
@@ -72,6 +75,7 @@ const CMSDashboard: React.FC = () => {
     { id: 'footer', label: 'Footer', icon: Minus },
     { id: 'forms', label: 'Forms', icon: FileInput },
     { id: 'settings', label: 'Settings', icon: SettingsIcon },
+    { id: 'developer', label: 'Developer', icon: SettingsIcon },
   ];
 
   const getPageTitle = () => {
