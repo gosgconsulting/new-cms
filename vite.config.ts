@@ -54,7 +54,6 @@ export default defineConfig(({ mode }) => ({
   },
   optimizeDeps: {
     // Exclude server-side packages from frontend bundle
-    // We use Railway PostgreSQL via Express API, not client-side
-    exclude: ['pg', 'express', '@supabase/supabase-js']
+    exclude: ['pg', 'express']
   },
 }));
