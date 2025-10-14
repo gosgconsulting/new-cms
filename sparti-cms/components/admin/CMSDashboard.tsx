@@ -10,7 +10,9 @@ import {
   Home,
   ArrowLeft,
   BarChart3,
-  Users
+  Users,
+  ChevronDown,
+  ChevronRight
 } from 'lucide-react';
 import { useAuth } from '../auth/AuthProvider';
 
@@ -39,6 +41,7 @@ const BlogManager = () => (
 
 const CMSDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>('analytics');
+  const [crmExpanded, setCrmExpanded] = useState<boolean>(false);
   const { signOut } = useAuth();
 
   const renderContent = () => {
@@ -72,14 +75,18 @@ const CMSDashboard: React.FC = () => {
     { id: 'blog', label: 'Blog', icon: PenTool },
     { id: 'header', label: 'Header', icon: Layout },
     { id: 'footer', label: 'Footer', icon: Minus },
-    { id: 'forms', label: 'Forms', icon: FileInput },
-    { id: 'contacts', label: 'Contacts', icon: Users },
     { id: 'settings', label: 'Settings', icon: SettingsIcon },
     { id: 'developer', label: 'Developer', icon: SettingsIcon },
   ];
 
+  const crmItems = [
+    { id: 'contacts', label: 'Contacts', icon: Users },
+    { id: 'forms', label: 'Forms', icon: FileInput },
+  ];
+
   const getPageTitle = () => {
-    const currentItem = navItems.find(item => item.id === activeTab);
+    const currentItem = navItems.find(item => item.id === activeTab) || 
+                        crmItems.find(item => item.id === activeTab);
     return currentItem ? currentItem.label : 'Dashboard';
   };
 
@@ -121,6 +128,49 @@ const CMSDashboard: React.FC = () => {
                   </li>
                 );
               })}
+              
+              {/* CRM Submenu */}
+              <li>
+                <button
+                  onClick={() => setCrmExpanded(!crmExpanded)}
+                  className={`w-full flex items-center justify-between px-3 py-2.5 text-left rounded-lg transition-all duration-200 ${
+                    crmItems.some(item => item.id === activeTab)
+                      ? 'bg-gray-100 text-gray-900 font-medium'
+                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                  }`}
+                >
+                  <div className="flex items-center">
+                    <Users className="mr-3 h-5 w-5" />
+                    CRM
+                  </div>
+                  {crmExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                </button>
+                
+                {crmExpanded && (
+                  <ul className="mt-1 ml-4 space-y-1">
+                    {crmItems.map((item) => {
+                      const Icon = item.icon;
+                      const isActive = activeTab === item.id;
+                      
+                      return (
+                        <li key={item.id}>
+                          <button
+                            onClick={() => setActiveTab(item.id)}
+                            className={`w-full flex items-center px-3 py-2.5 text-left rounded-lg transition-all duration-200 ${
+                              isActive
+                                ? 'bg-gray-100 text-gray-900 font-medium'
+                                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                            }`}
+                          >
+                            <Icon className="mr-3 h-4 w-4" />
+                            {item.label}
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </li>
             </ul>
           </nav>
           

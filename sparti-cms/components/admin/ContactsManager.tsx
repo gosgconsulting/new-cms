@@ -12,8 +12,10 @@ import {
   Filter,
   Download,
   Eye,
-  X
+  X,
+  MessageSquare
 } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface Contact {
   id: number;
@@ -38,6 +40,8 @@ interface ContactsData {
 }
 
 const ContactsManager: React.FC = () => {
+  const [activeTab, setActiveTab] = useState('contacts');
+  const [currentPage, setCurrentPage] = useState(1);
   const [contactsData, setContactsData] = useState<ContactsData>({
     contacts: [],
     total: 0,
@@ -50,6 +54,29 @@ const ContactsManager: React.FC = () => {
   const [showContactModal, setShowContactModal] = useState(false);
   const [showNewContactModal, setShowNewContactModal] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Mock leads data
+  const leadsData = {
+    leads: [
+      {
+        id: 1,
+        name: 'John Doe',
+        email: 'john@example.com',
+        phone: '+1 234-567-8900',
+        message: 'Interested in your SEO services for my e-commerce site.',
+        created: '2024-01-15 10:30 AM'
+      },
+      {
+        id: 2,
+        name: 'Sarah Wilson',
+        email: 'sarah.w@company.com',
+        phone: '+1 234-567-8901',
+        message: 'Need help with local SEO for multiple locations.',
+        created: '2024-01-14 03:45 PM'
+      },
+    ],
+    total: 2
+  };
 
   useEffect(() => {
     loadContacts();
@@ -229,9 +256,17 @@ const ContactsManager: React.FC = () => {
         </div>
       </div>
 
-      {/* Contacts Table */}
-      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-        <div className="overflow-x-auto">
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="w-full justify-start border-b rounded-none bg-white p-0">
+          <TabsTrigger value="contacts" className="px-6 py-3">Contacts</TabsTrigger>
+          <TabsTrigger value="leads" className="px-6 py-3">Leads</TabsTrigger>
+        </TabsList>
+
+        {/* Contacts Tab Content */}
+        <TabsContent value="contacts" className="mt-6">
+          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
@@ -364,22 +399,22 @@ const ContactsManager: React.FC = () => {
               </table>
             </div>
 
-          {/* Pagination */}
-          {contactsData.total > contactsData.limit && (
+            {/* Pagination */}
+            {contactsData.total > contactsData.limit && (
               <div className="bg-white px-4 py-3 border-t border-gray-200 sm:px-6">
                 <div className="flex items-center justify-between">
                   <div className="flex-1 flex justify-between sm:hidden">
                     <button
-                      onClick={() => loadContacts(searchTerm, Math.max(0, contactsData.offset - contactsData.limit))}
-                      disabled={contactsData.offset === 0}
-                      className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                      disabled={currentPage === 1}
+                      className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
                     >
                       Previous
                     </button>
                     <button
-                      onClick={() => loadContacts(searchTerm, contactsData.offset + contactsData.limit)}
-                      disabled={contactsData.offset + contactsData.limit >= contactsData.total}
-                      className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      onClick={() => setCurrentPage(Math.min(Math.ceil(contactsData.total / contactsData.limit), currentPage + 1))}
+                      disabled={currentPage >= Math.ceil(contactsData.total / contactsData.limit)}
+                      className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
                     >
                       Next
                     </button>
@@ -387,30 +422,37 @@ const ContactsManager: React.FC = () => {
                   <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
                     <div>
                       <p className="text-sm text-gray-700">
-                        Showing{' '}
-                        <span className="font-medium">{contactsData.offset + 1}</span>
-                        {' '}to{' '}
-                        <span className="font-medium">
-                          {Math.min(contactsData.offset + contactsData.limit, contactsData.total)}
-                        </span>
-                        {' '}of{' '}
-                        <span className="font-medium">{contactsData.total}</span>
-                        {' '}results
+                        Showing <span className="font-medium">{((currentPage - 1) * contactsData.limit) + 1}</span> to{' '}
+                        <span className="font-medium">{Math.min(currentPage * contactsData.limit, contactsData.total)}</span> of{' '}
+                        <span className="font-medium">{contactsData.total}</span> results
                       </p>
                     </div>
                     <div>
-                      <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+                      <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
                         <button
-                          onClick={() => loadContacts(searchTerm, Math.max(0, contactsData.offset - contactsData.limit))}
-                          disabled={contactsData.offset === 0}
-                          className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                          onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                          disabled={currentPage === 1}
+                          className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
                         >
                           Previous
                         </button>
+                        {Array.from({ length: Math.ceil(contactsData.total / contactsData.limit) }, (_, i) => i + 1).map((page) => (
+                          <button
+                            key={page}
+                            onClick={() => setCurrentPage(page)}
+                            className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                              page === currentPage
+                                ? 'z-10 bg-purple-50 border-purple-500 text-purple-600'
+                                : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                            }`}
+                          >
+                            {page}
+                          </button>
+                        ))}
                         <button
-                          onClick={() => loadContacts(searchTerm, contactsData.offset + contactsData.limit)}
-                          disabled={contactsData.offset + contactsData.limit >= contactsData.total}
-                          className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                          onClick={() => setCurrentPage(Math.min(Math.ceil(contactsData.total / contactsData.limit), currentPage + 1))}
+                          disabled={currentPage >= Math.ceil(contactsData.total / contactsData.limit)}
+                          className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
                         >
                           Next
                         </button>
@@ -420,7 +462,84 @@ const ContactsManager: React.FC = () => {
                 </div>
               </div>
             )}
-      </div>
+          </div>
+        </TabsContent>
+
+        {/* Leads Tab Content */}
+        <TabsContent value="leads" className="mt-6">
+          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Contact
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Email
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Phone
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Message
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Created
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {leadsData.leads.map((lead) => (
+                    <tr key={lead.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-gray-900">{lead.name}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center text-sm text-gray-600">
+                          <Mail className="h-4 w-4 mr-2 text-gray-400" />
+                          {lead.email}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center text-sm text-gray-600">
+                          <Phone className="h-4 w-4 mr-2 text-gray-400" />
+                          {lead.phone}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-start text-sm text-gray-600 max-w-md">
+                          <MessageSquare className="h-4 w-4 mr-2 text-gray-400 mt-0.5 flex-shrink-0" />
+                          <span className="line-clamp-2">{lead.message}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center text-sm text-gray-600">
+                          <Calendar className="h-4 w-4 mr-2 text-gray-400" />
+                          {lead.created}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <div className="flex items-center space-x-2">
+                          <button className="text-purple-600 hover:text-purple-900">
+                            <Edit className="h-4 w-4" />
+                          </button>
+                          <button className="text-red-600 hover:text-red-900">
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </TabsContent>
+      </Tabs>
 
       {/* Contact Details Modal */}
       {showContactModal && selectedContact && (
