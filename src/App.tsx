@@ -8,6 +8,7 @@ import AdminTopBar from "@/components/AdminTopBar";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Admin from "./pages/Admin";
+import DatabaseViewer from "./pages/DatabaseViewer";
 
 const queryClient = new QueryClient();
 
@@ -21,6 +22,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/admin/*" element={<Admin />} />
+          <Route path="/database-viewer" element={<DatabaseViewer />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

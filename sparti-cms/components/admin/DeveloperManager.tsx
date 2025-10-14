@@ -19,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useNavigate } from 'react-router-dom';
 
 const DeveloperManager: React.FC = () => {
   return (
@@ -152,6 +153,8 @@ const ProjectsTab: React.FC = () => {
 };
 
 const IntegrationsTab: React.FC = () => {
+  const navigate = useNavigate();
+  
   const integrations = [
     {
       name: 'PostgreSQL Database',
@@ -186,7 +189,13 @@ const IntegrationsTab: React.FC = () => {
                     <span>Provider: {integration.provider}</span>
                   </div>
                 </div>
-                <Button variant="outline" size="sm">Configure</Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => navigate('/database-viewer')}
+                >
+                  View
+                </Button>
               </div>
             ))}
           </div>
