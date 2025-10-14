@@ -25,6 +25,7 @@ interface Contact {
   source: string;
   status: string;
   tags?: string[];
+  notes?: string;
   created_at: string;
   updated_at: string;
 }
@@ -230,23 +231,7 @@ const ContactsManager: React.FC = () => {
 
       {/* Contacts Table */}
       <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-        {contactsData.contacts.length === 0 ? (
-          <div className="p-12 text-center">
-            <Users className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No contacts found</h3>
-            <p className="text-gray-600 mb-4">
-              {searchTerm ? 'No contacts match your search criteria.' : 'Get started by adding your first contact.'}
-            </p>
-            <button
-              onClick={() => setShowNewContactModal(true)}
-              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium"
-            >
-              Add First Contact
-            </button>
-          </div>
-        ) : (
-          <>
-            <div className="overflow-x-auto">
+        <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
@@ -379,8 +364,8 @@ const ContactsManager: React.FC = () => {
               </table>
             </div>
 
-            {/* Pagination */}
-            {contactsData.total > contactsData.limit && (
+          {/* Pagination */}
+          {contactsData.total > contactsData.limit && (
               <div className="bg-white px-4 py-3 border-t border-gray-200 sm:px-6">
                 <div className="flex items-center justify-between">
                   <div className="flex-1 flex justify-between sm:hidden">
@@ -435,8 +420,6 @@ const ContactsManager: React.FC = () => {
                 </div>
               </div>
             )}
-          </>
-        )}
       </div>
 
       {/* Contact Details Modal */}
