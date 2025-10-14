@@ -131,6 +131,45 @@ const BrandingTab: React.FC = () => {
     }));
   };
 
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, field: 'site_logo' | 'site_favicon') => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file size (2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      setError('File size must be less than 2MB');
+      return;
+    }
+
+    setIsSaving(true);
+    setError(null);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      console.log('[testing] Uploading file:', file.name);
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('[testing] File uploaded successfully:', data.url);
+        handleInputChange(field, data.url);
+      } else {
+        throw new Error('Upload failed');
+      }
+    } catch (err) {
+      console.error('[testing] Error uploading file:', err);
+      setError('Failed to upload file');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const handleSave = async () => {
     setIsSaving(true);
     setError(null);
@@ -138,8 +177,6 @@ const BrandingTab: React.FC = () => {
     try {
       console.log('[testing] Saving branding settings:', brandingData);
       
-      // For now, we'll use a mock API call since we're in frontend
-      // In a real implementation, this would call the backend API
       const response = await fetch('/api/branding', {
         method: 'POST',
         headers: {
@@ -150,7 +187,9 @@ const BrandingTab: React.FC = () => {
       
       if (response.ok) {
         console.log('[testing] Branding settings saved successfully');
-        // Show success message (you could add a toast notification here)
+        // Show success message
+        setError(null);
+        // Optionally show a success toast here
       } else {
         throw new Error('Failed to save settings');
       }
@@ -234,11 +273,36 @@ const BrandingTab: React.FC = () => {
               Logo
             </label>
             <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-purple-400 transition-colors">
-              <Image className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-              <p className="text-sm text-gray-600">Click to upload logo</p>
-              <p className="text-xs text-gray-500 mt-1">PNG, JPG up to 2MB</p>
-              {brandingData.site_logo && (
-                <p className="text-xs text-purple-600 mt-2">Current: {brandingData.site_logo}</p>
+              {brandingData.site_logo ? (
+                <div className="space-y-2">
+                  <img 
+                    src={brandingData.site_logo} 
+                    alt="Site logo" 
+                    className="h-16 mx-auto object-contain"
+                  />
+                  <p className="text-xs text-gray-500">{brandingData.site_logo}</p>
+                  <button
+                    type="button"
+                    onClick={() => handleInputChange('site_logo', '')}
+                    className="text-xs text-red-600 hover:text-red-700"
+                  >
+                    Remove
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <Image className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                  <label className="cursor-pointer">
+                    <span className="text-sm text-gray-600">Click to upload logo</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => handleFileUpload(e, 'site_logo')}
+                    />
+                  </label>
+                  <p className="text-xs text-gray-500 mt-1">PNG, JPG, SVG up to 2MB</p>
+                </>
               )}
             </div>
           </div>
@@ -248,11 +312,36 @@ const BrandingTab: React.FC = () => {
               Favicon
             </label>
             <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-purple-400 transition-colors">
-              <div className="w-8 h-8 bg-gray-200 rounded mx-auto mb-2"></div>
-              <p className="text-sm text-gray-600">Upload favicon</p>
-              <p className="text-xs text-gray-500">32x32 PNG</p>
-              {brandingData.site_favicon && (
-                <p className="text-xs text-purple-600 mt-2">Current: {brandingData.site_favicon}</p>
+              {brandingData.site_favicon ? (
+                <div className="space-y-2">
+                  <img 
+                    src={brandingData.site_favicon} 
+                    alt="Favicon" 
+                    className="w-8 h-8 mx-auto"
+                  />
+                  <p className="text-xs text-gray-500">{brandingData.site_favicon}</p>
+                  <button
+                    type="button"
+                    onClick={() => handleInputChange('site_favicon', '')}
+                    className="text-xs text-red-600 hover:text-red-700"
+                  >
+                    Remove
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <div className="w-8 h-8 bg-gray-200 rounded mx-auto mb-2"></div>
+                  <label className="cursor-pointer">
+                    <span className="text-sm text-gray-600">Upload favicon</span>
+                    <input
+                      type="file"
+                      accept="image/x-icon,image/png"
+                      className="hidden"
+                      onChange={(e) => handleFileUpload(e, 'site_favicon')}
+                    />
+                  </label>
+                  <p className="text-xs text-gray-500">32x32 PNG or ICO</p>
+                </>
               )}
             </div>
           </div>

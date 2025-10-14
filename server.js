@@ -1,7 +1,8 @@
 import express from 'express';
+import multer from 'multer';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
-import { existsSync } from 'fs';
+import { existsSync, mkdirSync } from 'fs';
 import { initializeDatabase, getBrandingSettings, updateMultipleBrandingSettings } from './sparti-cms/db/postgres.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -9,6 +10,43 @@ const __dirname = dirname(__filename);
 
 const app = express();
 const port = process.env.PORT || 4173;
+
+// Ensure uploads directory exists
+const uploadsDir = join(__dirname, 'public', 'uploads');
+if (!existsSync(uploadsDir)) {
+  mkdirSync(uploadsDir, { recursive: true });
+  console.log('[testing] Created uploads directory:', uploadsDir);
+}
+
+// Configure multer for file uploads
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, uploadsDir);
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const ext = file.originalname.split('.').pop();
+    cb(null, file.fieldname + '-' + uniqueSuffix + '.' + ext);
+  }
+});
+
+const upload = multer({ 
+  storage: storage,
+  limits: { 
+    fileSize: 2 * 1024 * 1024 // 2MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = /jpeg|jpg|png|gif|svg|ico|webp/;
+    const ext = allowedTypes.test(file.originalname.split('.').pop().toLowerCase());
+    const mime = allowedTypes.test(file.mimetype);
+    
+    if (ext && mime) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed (jpeg, jpg, png, gif, svg, ico, webp)'));
+    }
+  }
+});
 
 // Middleware
 app.use(express.json());
@@ -53,6 +91,28 @@ app.post('/api/branding', async (req, res) => {
   } catch (error) {
     console.error('[testing] API: Error updating branding settings:', error);
     res.status(500).json({ error: 'Failed to update branding settings' });
+  }
+});
+
+// File upload endpoint
+app.post('/api/upload', upload.single('file'), (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+    
+    console.log('[testing] File uploaded:', req.file.filename);
+    
+    res.json({ 
+      success: true, 
+      url: `/uploads/${req.file.filename}`,
+      filename: req.file.filename,
+      originalName: req.file.originalname,
+      size: req.file.size
+    });
+  } catch (error) {
+    console.error('[testing] Error uploading file:', error);
+    res.status(500).json({ error: 'Failed to upload file' });
   }
 });
 
