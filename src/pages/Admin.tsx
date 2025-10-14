@@ -7,7 +7,6 @@ import BlogManager from "@/components/admin/BlogManager";
 import FormManager from "@/components/admin/FormManager";
 import IntegrationsManager from "@/components/admin/IntegrationsManager";
 import DashboardOverview from "@/components/admin/DashboardOverview";
-import CustomDashboard from "@/components/dashboard/CustomDashboard";
 
 const Admin = () => {
   const { isAdmin, isLoading } = useAdminCheck();
@@ -34,8 +33,6 @@ const Admin = () => {
         return <BlogManager />;
       case "forms":
         return <FormManager />;
-      case "customizer":
-        return <CustomDashboard />;
       case "integrations":
         return <IntegrationsManager />;
       default:

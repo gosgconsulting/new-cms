@@ -4,6 +4,27 @@
 
 **URL**: https://lovable.dev/projects/71ee1bf0-f845-485d-a5cc-24b16173fc54
 
+## Recent Refactoring
+
+This project has been refactored to simplify the structure. Now it only includes:
+- Homepage with contact modal
+- Admin dashboard page
+- 404 page for handling not found routes
+
+All other pages and unused components have been removed to streamline the codebase.
+
+## Database Setup
+
+This project uses PostgreSQL hosted on Railway. To set up the database:
+
+1. Create a new PostgreSQL instance on Railway
+2. Copy the environment variables from `railway-env-variables.txt` into your Railway project's environment variables
+3. Deploy your application to Railway
+
+For local development:
+1. Create a `.env.local` file in the root directory with the same variables but with your local PostgreSQL connection details
+2. Run `npm run dev` to start the development server
+
 ## How can I edit this code?
 
 There are several ways of editing your application.

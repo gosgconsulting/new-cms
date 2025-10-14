@@ -2,9 +2,8 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { query } from "@/integrations/postgres";
 
 interface ContactModalProps {
   open: boolean;
@@ -24,18 +23,10 @@ const ContactModal = ({ open, onOpenChange }: ContactModalProps) => {
     setIsSubmitting(true);
     
     try {
-      const { error } = await supabase
-        .from('form_submissions')
-        .insert({
-          name,
-          email,
-          message: `Phone: ${phone}\n\nMessage: ${message}`,
-          form_type: 'Contact Modal'
-        });
-
-      if (error) {
-        throw error;
-      }
+      await query(
+        'INSERT INTO form_submissions (name, email, message, form_type) VALUES ($1, $2, $3, $4)',
+        [name, email, `Phone: ${phone}\n\nMessage: ${message}`, 'Contact Modal']
+      );
 
       toast({
         title: "Thank you!",
@@ -48,6 +39,7 @@ const ContactModal = ({ open, onOpenChange }: ContactModalProps) => {
       setMessage("");
       onOpenChange(false);
     } catch (error) {
+      console.error('Error submitting form:', error);
       toast({
         title: "Error",
         description: "There was a problem. Please try again.",
