@@ -3,6 +3,7 @@ import { Button } from '../../../src/components/ui/button';
 import { Card } from '../../../src/components/ui/card';
 import { Badge } from '../../../src/components/ui/badge';
 import { Edit, Eye } from 'lucide-react';
+import PageEditor from './PageEditor';
 
 interface PageItem {
   id: string;
@@ -46,16 +47,25 @@ const defaultPages: PageItem[] = [
 
 export const PagesManager: React.FC = () => {
   const [pages] = useState<PageItem[]>(defaultPages);
+  const [editingPageId, setEditingPageId] = useState<string | null>(null);
 
   const handleEditPage = (pageId: string) => {
-    const page = pages.find(p => p.id === pageId);
-    console.log('Edit page:', page);
-    // In real implementation, navigate to page editor
+    setEditingPageId(pageId);
   };
 
   const handleViewPage = (slug: string) => {
     window.open(slug, '_blank');
   };
+
+  // Show editor if a page is being edited
+  if (editingPageId) {
+    return (
+      <PageEditor 
+        pageId={editingPageId} 
+        onBack={() => setEditingPageId(null)} 
+      />
+    );
+  }
 
   return (
     <div className="space-y-6">
