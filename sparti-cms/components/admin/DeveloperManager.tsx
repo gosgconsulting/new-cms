@@ -11,6 +11,14 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 const DeveloperManager: React.FC = () => {
   return (
@@ -39,47 +47,22 @@ const DeveloperManager: React.FC = () => {
 };
 
 const ProjectsTab: React.FC = () => {
-  const [projects] = useState([
-    {
-      id: 1,
-      name: 'Keywords Research',
-      description: 'End-to-end process flow for keywords research',
-      steps: [
-        {
-          step: 'User Input',
-          brief: 'User navigates to Keywords page, enters keywords, selects location and language in the form',
-          status: 'Live'
-        },
-        {
-          step: 'API Request',
-          brief: 'User submits form, frontend sends request to keyword-research edge function',
-          status: 'Live'
-        },
-        {
-          step: 'Data Processing',
-          brief: 'Edge function calls DataForSEO API to get search volume, competition, and keyword metrics',
-          status: 'Live'
-        }
-      ]
-    },
-    {
-      id: 2,
-      name: 'Topic Research',
-      description: 'End-to-end process flow for topic research',
-      steps: [
-        {
-          step: 'Keyword Selection',
-          brief: 'User selects keywords from saved keywords list to research topics',
-          status: 'Live'
-        },
-        {
-          step: 'Web Scraping',
-          brief: 'Edge function uses Firecrawl API to scrape top-ranking content for selected keywords',
-          status: 'Live'
-        }
-      ]
-    }
-  ]);
+  const [projects, setProjects] = useState<any[]>([]);
+
+  const deleteProject = (projectId: number) => {
+    setProjects(projects.filter(p => p.id !== projectId));
+  };
+
+  const updateStepField = (projectId: number, stepIndex: number, field: 'step' | 'brief' | 'status', value: string) => {
+    setProjects(projects.map(project => {
+      if (project.id === projectId) {
+        const updatedSteps = [...project.steps];
+        updatedSteps[stepIndex] = { ...updatedSteps[stepIndex], [field]: value };
+        return { ...project, steps: updatedSteps };
+      }
+      return project;
+    }));
+  };
 
   return (
     <div className="space-y-6">
@@ -90,10 +73,16 @@ const ProjectsTab: React.FC = () => {
               <CardTitle className="text-xl text-primary">{project.name}</CardTitle>
               <CardDescription className="mt-1">{project.description}</CardDescription>
             </div>
-            <Button size="sm" variant="outline">
-              <Plus className="h-4 w-4 mr-2" />
-              New Step
-            </Button>
+            <div className="flex gap-2">
+              <Button size="sm" variant="outline">
+                <Plus className="h-4 w-4 mr-2" />
+                New Step
+              </Button>
+              <Button size="sm" variant="destructive" onClick={() => deleteProject(project.id)}>
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete Project
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             <Table>
@@ -112,12 +101,34 @@ const ProjectsTab: React.FC = () => {
                     <TableCell>
                       <GripVertical className="h-4 w-4 text-muted-foreground cursor-move" />
                     </TableCell>
-                    <TableCell className="font-medium">{step.step}</TableCell>
-                    <TableCell className="text-sm text-muted-foreground">{step.brief}</TableCell>
+                    <TableCell className="font-medium">
+                      <Input
+                        value={step.step}
+                        onChange={(e) => updateStepField(project.id, index, 'step', e.target.value)}
+                        className="border-0 focus-visible:ring-0 px-0"
+                      />
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      <Input
+                        value={step.brief}
+                        onChange={(e) => updateStepField(project.id, index, 'brief', e.target.value)}
+                        className="border-0 focus-visible:ring-0 px-0"
+                      />
+                    </TableCell>
                     <TableCell>
-                      <span className="inline-flex items-center rounded-full bg-green-50 px-3 py-1 text-xs font-medium text-green-700">
-                        {step.status}
-                      </span>
+                      <Select
+                        value={step.status}
+                        onValueChange={(value) => updateStepField(project.id, index, 'status', value)}
+                      >
+                        <SelectTrigger className="w-[140px]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Not started">Not started</SelectItem>
+                          <SelectItem value="In progress">In progress</SelectItem>
+                          <SelectItem value="Live">Live</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </TableCell>
                     <TableCell>
                       <Button variant="ghost" size="sm">
