@@ -602,9 +602,11 @@ const ContactsManager: React.FC = () => {
 
 // Contact Details Modal Component
 const ContactDetailsModal: React.FC<{
-  contact: Contact;
+  contact: Contact | null;
   onClose: () => void;
 }> = ({ contact, onClose }) => {
+  if (!contact) return null;
+  
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 w-full max-w-lg mx-4">
