@@ -2,7 +2,6 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Clock, ArrowRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import VisualCMSEditor from "@/components/cms/VisualCMSEditor";
 
 // Import client logos
 import artInBloom from "@/assets/logos/art-in-bloom.png";
@@ -179,9 +178,6 @@ const HeroSection = ({ onContactClick }: HeroSectionProps) => {
 
       {/* Next Section Target */}
       <div id="next-section"></div>
-      
-      {/* CMS Editor - Only visible to admin users */}
-      <VisualCMSEditor pageId="homepage" />
     </>
   );
 };

@@ -88,3 +88,6 @@ export async function runMigrations(migrations: { name: string; up: () => Promis
     throw error;
   }
 }
+
+// Export runAllMigrations for backward compatibility
+export { runMigrations as runAllMigrations };
