@@ -3,6 +3,13 @@
  * Provides Google Maps, Reviews, and Translator services
  */
 
+// Extend Window interface to include Google APIs
+declare global {
+  interface Window {
+    google?: any;
+  }
+}
+
 export interface GooglePlace {
   place_id: string;
   name: string;

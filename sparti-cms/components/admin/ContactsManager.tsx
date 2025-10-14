@@ -55,6 +55,9 @@ const ContactsManager: React.FC = () => {
   const [showNewContactModal, setShowNewContactModal] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const [showLeadModal, setShowLeadModal] = useState(false);
+  const [selectedLead, setSelectedLead] = useState<any>(null);
+
   // Mock leads data
   const leadsData = {
     leads: [
@@ -64,6 +67,7 @@ const ContactsManager: React.FC = () => {
         email: 'john@example.com',
         phone: '+1 234-567-8900',
         message: 'Interested in your SEO services for my e-commerce site.',
+        source: 'Contact Form',
         created: '2024-01-15 10:30 AM'
       },
       {
@@ -72,10 +76,20 @@ const ContactsManager: React.FC = () => {
         email: 'sarah.w@company.com',
         phone: '+1 234-567-8901',
         message: 'Need help with local SEO for multiple locations.',
+        source: 'Quote Request Form',
         created: '2024-01-14 03:45 PM'
       },
+      {
+        id: 3,
+        name: 'Mike Chen',
+        email: 'mike.chen@startup.io',
+        phone: '+1 234-567-8902',
+        message: 'Looking for comprehensive SEO audit and strategy.',
+        source: 'Consultation Form',
+        created: '2024-01-13 09:15 AM'
+      },
     ],
-    total: 2
+    total: 3
   };
 
   useEffect(() => {
@@ -482,6 +496,9 @@ const ContactsManager: React.FC = () => {
                       Phone
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Source
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Message
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -494,7 +511,14 @@ const ContactsManager: React.FC = () => {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {leadsData.leads.map((lead) => (
-                    <tr key={lead.id} className="hover:bg-gray-50">
+                    <tr 
+                      key={lead.id} 
+                      onClick={() => {
+                        setSelectedLead(lead);
+                        setShowLeadModal(true);
+                      }}
+                      className="hover:bg-gray-50 cursor-pointer"
+                    >
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900">{lead.name}</div>
                       </td>
@@ -510,6 +534,11 @@ const ContactsManager: React.FC = () => {
                           {lead.phone}
                         </div>
                       </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="px-2 py-1 text-xs rounded-full bg-purple-100 text-purple-800">
+                          {lead.source}
+                        </span>
+                      </td>
                       <td className="px-6 py-4">
                         <div className="flex items-start text-sm text-gray-600 max-w-md">
                           <MessageSquare className="h-4 w-4 mr-2 text-gray-400 mt-0.5 flex-shrink-0" />
@@ -522,7 +551,7 @@ const ContactsManager: React.FC = () => {
                           {lead.created}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center space-x-2">
                           <button className="text-purple-600 hover:text-purple-900">
                             <Edit className="h-4 w-4" />
@@ -541,8 +570,8 @@ const ContactsManager: React.FC = () => {
         </TabsContent>
       </Tabs>
 
-      {/* Contact Details Modal */}
-      {showContactModal && selectedContact && (
+      {/* Lead Details Modal */}
+      {showLeadModal && selectedLead && (
         <ContactDetailsModal
           contact={selectedContact}
           onClose={() => {
