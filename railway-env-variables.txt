@@ -14,3 +14,17 @@ NODE_ENV=production
 
 # Railway Deployment Configuration
 RAILWAY_HEALTHCHECK_TIMEOUT_SEC=120
+
+# API Keys - Add these manually in Railway dashboard
+# OpenRouter API for AI services
+OPENROUTER_API_KEY=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
+
+# Google API for Maps, Reviews, and Translator
+GOOGLE_API_KEY=AIzaSyBN_I1rWGaUqN_wtWMnaFM-BGWoJ7xUh7A
+
+# SMTP Configuration using Resend
+RESEND_API_KEY=re_2ap5qM9k_96jEVym5P34qtcJctKycM1ai
+SMTP_HOST=smtp.resend.com
+SMTP_PORT=465
+SMTP_USER=resend
+SMTP_FROM_EMAIL=noreply@yourdomain.com

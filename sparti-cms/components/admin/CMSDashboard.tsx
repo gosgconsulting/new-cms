@@ -8,7 +8,9 @@ import {
   Settings as SettingsIcon, 
   LogOut, 
   Home,
-  ArrowLeft 
+  ArrowLeft,
+  BarChart3,
+  Users
 } from 'lucide-react';
 import { useAuth } from '../auth/AuthProvider';
 
@@ -21,6 +23,8 @@ import SettingsManager from './SettingsManager';
 import DeveloperManager from './DeveloperManager';
 import HeaderManager from './HeaderManager';
 import FooterManager from './FooterManager';
+import AnalyticsManager from './AnalyticsManager';
+import ContactsManager from './ContactsManager';
 
 // Placeholder components
 const BlogManager = () => (
@@ -34,11 +38,13 @@ const BlogManager = () => (
 
 
 const CMSDashboard: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<string>('pages');
+  const [activeTab, setActiveTab] = useState<string>('analytics');
   const { signOut } = useAuth();
 
   const renderContent = () => {
     switch (activeTab) {
+      case 'analytics':
+        return <AnalyticsManager />;
       case 'pages':
         return <PagesManager />;
       case 'blog':
@@ -49,6 +55,8 @@ const CMSDashboard: React.FC = () => {
         return <FooterManager />;
       case 'forms':
         return <FormsManager />;
+      case 'contacts':
+        return <ContactsManager />;
       case 'settings':
         return <SettingsManager />;
       case 'developer':
@@ -59,13 +67,15 @@ const CMSDashboard: React.FC = () => {
   };
 
   const navItems = [
+    { id: 'analytics', label: 'Analytics', icon: BarChart3 },
     { id: 'pages', label: 'Pages', icon: FileText },
     { id: 'blog', label: 'Blog', icon: PenTool },
     { id: 'header', label: 'Header', icon: Layout },
     { id: 'footer', label: 'Footer', icon: Minus },
     { id: 'forms', label: 'Forms', icon: FileInput },
+    { id: 'contacts', label: 'Contacts', icon: Users },
     { id: 'settings', label: 'Settings', icon: SettingsIcon },
-    { id: 'developer', label: 'Developer', icon: SettingsIcon },
+    { id: 'developer', label: 'Code', icon: SettingsIcon },
   ];
 
   const getPageTitle = () => {

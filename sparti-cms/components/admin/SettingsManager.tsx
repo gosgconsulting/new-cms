@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, Palette, Type, Image, Monitor, Sun, Moon, Code, Globe, Search, FileText, Tag, Link } from 'lucide-react';
+import { Image, Monitor, Code, Globe, Search, FileText, Tag, Palette } from 'lucide-react';
 
 const SettingsManager: React.FC = () => {
   const [activeTab, setActiveTab] = useState('branding');
@@ -7,8 +7,8 @@ const SettingsManager: React.FC = () => {
   const tabs = [
     { id: 'branding', label: 'Branding', icon: Image },
     { id: 'style', label: 'Style', icon: Palette },
-    { id: 'seo', label: 'SEO', icon: Search },
-    { id: 'developer', label: 'Developer', icon: Code },
+    { id: 'seo', label: 'SEO', icon: Search }, // Added SEO tab
+    { id: 'developer', label: 'Code', icon: Code }, // Added Code tab
   ];
 
   const renderTabContent = () => {
@@ -18,9 +18,9 @@ const SettingsManager: React.FC = () => {
       case 'style':
         return <StyleTab />;
       case 'seo':
-        return <SEOTab />;
+        return <SEOTab />; // Render SEO tab content
       case 'developer':
-        return <DeveloperTab />;
+        return <DeveloperTab />; // Render Code tab content
       default:
         return null;
     }
@@ -131,45 +131,6 @@ const BrandingTab: React.FC = () => {
     }));
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, field: 'site_logo' | 'site_favicon') => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Validate file size (2MB)
-    if (file.size > 2 * 1024 * 1024) {
-      setError('File size must be less than 2MB');
-      return;
-    }
-
-    setIsSaving(true);
-    setError(null);
-
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-
-      console.log('[testing] Uploading file:', file.name);
-
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        console.log('[testing] File uploaded successfully:', data.url);
-        handleInputChange(field, data.url);
-      } else {
-        throw new Error('Upload failed');
-      }
-    } catch (err) {
-      console.error('[testing] Error uploading file:', err);
-      setError('Failed to upload file');
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
   const handleSave = async () => {
     setIsSaving(true);
     setError(null);
@@ -177,6 +138,8 @@ const BrandingTab: React.FC = () => {
     try {
       console.log('[testing] Saving branding settings:', brandingData);
       
+      // For now, we'll use a mock API call since we're in frontend
+      // In a real implementation, this would call the backend API
       const response = await fetch('/api/branding', {
         method: 'POST',
         headers: {
@@ -187,9 +150,7 @@ const BrandingTab: React.FC = () => {
       
       if (response.ok) {
         console.log('[testing] Branding settings saved successfully');
-        // Show success message
-        setError(null);
-        // Optionally show a success toast here
+        // Show success message (you could add a toast notification here)
       } else {
         throw new Error('Failed to save settings');
       }
@@ -273,36 +234,11 @@ const BrandingTab: React.FC = () => {
               Logo
             </label>
             <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-purple-400 transition-colors">
-              {brandingData.site_logo ? (
-                <div className="space-y-2">
-                  <img 
-                    src={brandingData.site_logo} 
-                    alt="Site logo" 
-                    className="h-16 mx-auto object-contain"
-                  />
-                  <p className="text-xs text-gray-500">{brandingData.site_logo}</p>
-                  <button
-                    type="button"
-                    onClick={() => handleInputChange('site_logo', '')}
-                    className="text-xs text-red-600 hover:text-red-700"
-                  >
-                    Remove
-                  </button>
-                </div>
-              ) : (
-                <>
-                  <Image className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                  <label className="cursor-pointer">
-                    <span className="text-sm text-gray-600">Click to upload logo</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(e) => handleFileUpload(e, 'site_logo')}
-                    />
-                  </label>
-                  <p className="text-xs text-gray-500 mt-1">PNG, JPG, SVG up to 2MB</p>
-                </>
+              <Image className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+              <p className="text-sm text-gray-600">Click to upload logo</p>
+              <p className="text-xs text-gray-500 mt-1">PNG, JPG up to 2MB</p>
+              {brandingData.site_logo && (
+                <p className="text-xs text-purple-600 mt-2">Current: {brandingData.site_logo}</p>
               )}
             </div>
           </div>
@@ -312,36 +248,11 @@ const BrandingTab: React.FC = () => {
               Favicon
             </label>
             <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-purple-400 transition-colors">
-              {brandingData.site_favicon ? (
-                <div className="space-y-2">
-                  <img 
-                    src={brandingData.site_favicon} 
-                    alt="Favicon" 
-                    className="w-8 h-8 mx-auto"
-                  />
-                  <p className="text-xs text-gray-500">{brandingData.site_favicon}</p>
-                  <button
-                    type="button"
-                    onClick={() => handleInputChange('site_favicon', '')}
-                    className="text-xs text-red-600 hover:text-red-700"
-                  >
-                    Remove
-                  </button>
-                </div>
-              ) : (
-                <>
-                  <div className="w-8 h-8 bg-gray-200 rounded mx-auto mb-2"></div>
-                  <label className="cursor-pointer">
-                    <span className="text-sm text-gray-600">Upload favicon</span>
-                    <input
-                      type="file"
-                      accept="image/x-icon,image/png"
-                      className="hidden"
-                      onChange={(e) => handleFileUpload(e, 'site_favicon')}
-                    />
-                  </label>
-                  <p className="text-xs text-gray-500">32x32 PNG or ICO</p>
-                </>
+              <div className="w-8 h-8 bg-gray-200 rounded mx-auto mb-2"></div>
+              <p className="text-sm text-gray-600">Upload favicon</p>
+              <p className="text-xs text-gray-500">32x32 PNG</p>
+              {brandingData.site_favicon && (
+                <p className="text-xs text-purple-600 mt-2">Current: {brandingData.site_favicon}</p>
               )}
             </div>
           </div>
@@ -370,18 +281,490 @@ const StyleTab: React.FC = () => (
   </div>
 );
 
-const SEOTab: React.FC = () => (
-  <div className="bg-white rounded-lg border border-gray-200 p-6">
-    <h2 className="text-lg font-semibold text-gray-900 mb-4">SEO Settings</h2>
-    <p className="text-gray-600">SEO settings will be implemented here.</p>
-  </div>
-);
+const SEOTab: React.FC = () => {
+  const [seoSettings, setSeoSettings] = useState({
+    sitemapEnabled: true,
+    titleTemplate: '{{page_title}} | {{site_name}}',
+    homeTitleTemplate: '{{site_name}} | {{tagline}}',
+    descriptionTemplate: '{{page_excerpt}}',
+    homeDescription: '',
+    separator: '|',
+    noindexPages: [] as string[],
+    robotsTxt: `User-agent: *
+Allow: /
 
-const DeveloperTab: React.FC = () => (
-  <div className="bg-white rounded-lg border border-gray-200 p-6">
-    <h2 className="text-lg font-semibold text-gray-900 mb-4">Developer Settings</h2>
-    <p className="text-gray-600">Developer settings will be implemented here.</p>
-  </div>
-);
+Sitemap: {{site_url}}/sitemap.xml`,
+  });
+
+  const handleInputChange = (field: string, value: string | boolean | string[]) => {
+    setSeoSettings(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const separatorOptions = [
+    { value: '|', label: '| (Pipe)' },
+    { value: '-', label: '- (Dash)' },
+    { value: '•', label: '• (Bullet)' },
+    { value: '/', label: '/ (Slash)' },
+    { value: ':', label: ': (Colon)' },
+  ];
+
+  return (
+    <div className="space-y-8">
+      <div>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">SEO Settings</h3>
+        <p className="text-sm text-gray-600 mb-6">
+          Configure search engine optimization settings for better visibility and ranking.
+        </p>
+      </div>
+      
+      {/* Sitemap Section */}
+      <div className="bg-gray-50 rounded-lg p-6">
+        <div className="mb-6">
+          <h4 className="text-base font-semibold text-gray-900 flex items-center">
+            <FileText className="h-5 w-5 mr-2" />
+            XML Sitemap
+          </h4>
+          <p className="text-sm text-gray-600 mt-1">
+            Automatically generate and manage your site's XML sitemap
+          </p>
+        </div>
+        
+        <div className="bg-white rounded-lg p-4 border border-gray-200">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h5 className="font-medium text-gray-900">Enable XML Sitemap</h5>
+              <p className="text-sm text-gray-600">Automatically generate sitemap.xml for search engines</p>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={seoSettings.sitemapEnabled}
+                onChange={(e) => handleInputChange('sitemapEnabled', e.target.checked)}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+            </label>
+          </div>
+          
+          {seoSettings.sitemapEnabled && (
+            <div className="space-y-4 pt-4 border-t border-gray-200">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Sitemap URL
+                  </label>
+                  <input
+                    type="text"
+                    value="/sitemap.xml"
+                    readOnly
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Last Generated
+                  </label>
+                  <input
+                    type="text"
+                    value="Auto-generated on content changes"
+                    readOnly
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
+                  />
+                </div>
+              </div>
+              <button className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium">
+                Regenerate Sitemap Now
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+      
+      {/* Meta Titles & Descriptions */}
+      <div className="bg-gray-50 rounded-lg p-6">
+        <div className="mb-6">
+          <h4 className="text-base font-semibold text-gray-900 flex items-center">
+            <Tag className="h-5 w-5 mr-2" />
+            Meta Titles & Descriptions
+          </h4>
+          <p className="text-sm text-gray-600 mt-1">
+            Configure title and description templates using variables
+          </p>
+        </div>
+        
+        <div className="space-y-6">
+          {/* Title Templates */}
+          <div className="bg-white rounded-lg p-4 border border-gray-200">
+            <h5 className="font-medium text-gray-900 mb-4">Title Templates</h5>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Page Title Template
+                </label>
+                <input
+                  type="text"
+                  value={seoSettings.titleTemplate}
+                  onChange={(e) => handleInputChange('titleTemplate', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Variables: {`{{page_title}}, {{site_name}}, {{category}}, {{author}}`}
+                </p>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Homepage Title Template
+                </label>
+                <input
+                  type="text"
+                  value={seoSettings.homeTitleTemplate}
+                  onChange={(e) => handleInputChange('homeTitleTemplate', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Variables: {`{{site_name}}, {{tagline}}`}
+                </p>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Title Separator
+                </label>
+                <select
+                  value={seoSettings.separator}
+                  onChange={(e) => handleInputChange('separator', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                >
+                  {separatorOptions.map(option => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
+          
+          {/* Description Templates */}
+          <div className="bg-white rounded-lg p-4 border border-gray-200">
+            <h5 className="font-medium text-gray-900 mb-4">Meta Descriptions</h5>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Page Description Template
+                </label>
+                <input
+                  type="text"
+                  value={seoSettings.descriptionTemplate}
+                  onChange={(e) => handleInputChange('descriptionTemplate', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Variables: {`{{page_excerpt}}, {{page_title}}, {{site_name}}, {{category}}`}
+                </p>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Homepage Description
+                </label>
+                <textarea
+                  value={seoSettings.homeDescription}
+                  onChange={(e) => handleInputChange('homeDescription', e.target.value)}
+                  rows={3}
+                  placeholder="Enter a custom description for your homepage..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Recommended length: 150-160 characters
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      {/* Advanced SEO Settings */}
+      <div className="bg-gray-50 rounded-lg p-6">
+        <div className="mb-6">
+          <h4 className="text-base font-semibold text-gray-900 flex items-center">
+            <Search className="h-5 w-5 mr-2" />
+            Advanced SEO
+          </h4>
+          <p className="text-sm text-gray-600 mt-1">
+            Advanced search engine optimization settings
+          </p>
+        </div>
+        
+        <div className="space-y-6">
+          {/* Robots.txt */}
+          <div className="bg-white rounded-lg p-4 border border-gray-200">
+            <h5 className="font-medium text-gray-900 mb-4">Robots.txt</h5>
+            <textarea
+              value={seoSettings.robotsTxt}
+              onChange={(e) => handleInputChange('robotsTxt', e.target.value)}
+              rows={6}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent font-mono text-sm resize-none"
+            />
+            <p className="text-xs text-gray-500 mt-2">
+              Variables: {`{{site_url}}`} - Will be automatically replaced with your site URL
+            </p>
+          </div>
+          
+          {/* Social Media */}
+          <div className="bg-white rounded-lg p-4 border border-gray-200">
+            <h5 className="font-medium text-gray-900 mb-4">Social Media (Open Graph)</h5>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Default Social Image
+                </label>
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-purple-400 transition-colors">
+                  <Image className="h-6 w-6 text-gray-400 mx-auto mb-2" />
+                  <p className="text-sm text-gray-600">Upload default social image</p>
+                  <p className="text-xs text-gray-500">1200x630px recommended</p>
+                </div>
+              </div>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Twitter Handle
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="@yourhandle"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Facebook App ID
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="123456789"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      {/* Save Button */}
+      <div className="flex justify-end">
+        <button className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium">
+          Save SEO Settings
+        </button>
+      </div>
+    </div>
+  );
+};
+
+const DeveloperTab: React.FC = () => {
+  const [customCode, setCustomCode] = useState({
+    head: '',
+    body: '',
+    gtmId: '',
+    gaId: '',
+    gscVerification: ''
+  });
+
+  const handleInputChange = (field: string, value: string) => {
+    setCustomCode(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  return (
+    <div className="space-y-8">
+      <div>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Code Settings</h3>
+        <p className="text-sm text-gray-600 mb-6">
+          Add custom code and configure analytics services.
+        </p>
+      </div>
+      
+      {/* Custom Code Section */}
+      <div className="bg-gray-50 rounded-lg p-6">
+        <div className="mb-6">
+          <h4 className="text-base font-semibold text-gray-900 flex items-center">
+            <Code className="h-5 w-5 mr-2" />
+            Custom Code
+          </h4>
+          <p className="text-sm text-gray-600 mt-1">
+            Add custom HTML, CSS, or JavaScript to your site
+          </p>
+        </div>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Head Section */}
+          <div className="bg-white rounded-lg p-4 border border-gray-200">
+            <label className="block text-sm font-medium text-gray-700 mb-3">
+              Head Section
+            </label>
+            <p className="text-xs text-gray-500 mb-3">
+              Code added here will be inserted in the &lt;head&gt; section of your site
+            </p>
+            <textarea
+              value={customCode.head}
+              onChange={(e) => handleInputChange('head', e.target.value)}
+              placeholder={`<!-- Add your custom head code here -->
+<meta name='custom-meta' content='value'>
+<link rel='stylesheet' href='custom.css'>
+<script>
+  // Custom JavaScript
+</script>`}
+              rows={8}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent font-mono text-sm resize-none"
+            />
+          </div>
+          
+          {/* Body Section */}
+          <div className="bg-white rounded-lg p-4 border border-gray-200">
+            <label className="block text-sm font-medium text-gray-700 mb-3">
+              Body Section
+            </label>
+            <p className="text-xs text-gray-500 mb-3">
+              Code added here will be inserted before the closing &lt;/body&gt; tag
+            </p>
+            <textarea
+              value={customCode.body}
+              onChange={(e) => handleInputChange('body', e.target.value)}
+              placeholder={`<!-- Add your custom body code here -->
+<script>
+  // Analytics or tracking code
+  console.log('Custom body script loaded');
+</script>`}
+              rows={8}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent font-mono text-sm resize-none"
+            />
+          </div>
+        </div>
+      </div>
+      
+      {/* Google Services Section */}
+      <div className="bg-gray-50 rounded-lg p-6">
+        <div className="mb-6">
+          <h4 className="text-base font-semibold text-gray-900 flex items-center">
+            <Globe className="h-5 w-5 mr-2" />
+            Google Services
+          </h4>
+          <p className="text-sm text-gray-600 mt-1">
+            Configure Google analytics and tracking services
+          </p>
+        </div>
+        
+        <div className="space-y-6">
+          {/* Google Tag Manager */}
+          <div className="bg-white rounded-lg p-4 border border-gray-200">
+            <div className="flex items-start space-x-3">
+              <div className="flex-shrink-0 mt-1">
+                <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <Code className="h-4 w-4 text-blue-600" />
+                </div>
+              </div>
+              <div className="flex-1">
+                <h5 className="font-medium text-gray-900 mb-2">Google Tag Manager</h5>
+                <p className="text-sm text-gray-600 mb-3">
+                  Manage all your marketing and analytics tags in one place
+                </p>
+                <div className="space-y-2">
+                  <label className="block text-xs font-medium text-gray-700">
+                    Container ID (GTM-XXXXXXX)
+                  </label>
+                  <input
+                    type="text"
+                    value={customCode.gtmId}
+                    onChange={(e) => handleInputChange('gtmId', e.target.value)}
+                    placeholder="GTM-XXXXXXX"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Google Analytics */}
+          <div className="bg-white rounded-lg p-4 border border-gray-200">
+            <div className="flex items-start space-x-3">
+              <div className="flex-shrink-0 mt-1">
+                <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                  <Globe className="h-4 w-4 text-green-600" />
+                </div>
+              </div>
+              <div className="flex-1">
+                <h5 className="font-medium text-gray-900 mb-2">Google Analytics</h5>
+                <p className="text-sm text-gray-600 mb-3">
+                  Track website traffic and user behavior
+                </p>
+                <div className="space-y-2">
+                  <label className="block text-xs font-medium text-gray-700">
+                    Measurement ID (G-XXXXXXXXXX)
+                  </label>
+                  <input
+                    type="text"
+                    value={customCode.gaId}
+                    onChange={(e) => handleInputChange('gaId', e.target.value)}
+                    placeholder="G-XXXXXXXXXX"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Google Search Console */}
+          <div className="bg-white rounded-lg p-4 border border-gray-200">
+            <div className="flex items-start space-x-3">
+              <div className="flex-shrink-0 mt-1">
+                <div className="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center">
+                  <Monitor className="h-4 w-4 text-yellow-600" />
+                </div>
+              </div>
+              <div className="flex-1">
+                <h5 className="font-medium text-gray-900 mb-2">Google Search Console</h5>
+                <p className="text-sm text-gray-600 mb-3">
+                  Verify your site ownership for Search Console</p>
+                <div className="space-y-2">
+                  <label className="block text-xs font-medium text-gray-700">
+                    Verification Meta Tag Content
+                  </label>
+                  <input
+                    type="text"
+                    value={customCode.gscVerification}
+                    onChange={(e) => handleInputChange('gscVerification', e.target.value)}
+                    placeholder="Enter the content value from the meta tag"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+                  />
+                  <p className="text-xs text-gray-500">
+                    Copy only the content value from: &lt;meta name="google-site-verification" content="<strong>this_part</strong>" /&gt;
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      {/* Save Button */}
+      <div className="flex justify-end">
+        <button className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium">
+          Save Changes
+        </button>
+      </div>
+    </div>
+  );
+};
 
 export default SettingsManager;

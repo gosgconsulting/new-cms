@@ -10,23 +10,43 @@ A modern digital marketing agency website built with React, TypeScript, and Tail
 - **SEO Optimized**: Meta tags, Open Graph, and structured data
 
 ### Admin Dashboard (Sparti CMS)
+- **Analytics Dashboard**: Comprehensive website performance tracking
+  - **KPI Metrics**: Page views, sessions, bounce rate, conversions
+  - **Real-time Data**: Live visitor tracking and activity monitoring
+  - **Event Management**: Custom event tracking for leads and engagement
+  - **Visual Charts**: Traffic trends, bounce rates, top pages analysis
 - **Content Management**: Pages, Blog, Header, Footer, Forms
 - **Settings Management**: 
   - **Branding**: Site name, tagline, logo, favicon
   - **Style**: Color palette, typography, light/dark mode
   - **SEO**: Sitemap generation, meta titles/descriptions, robots.txt
-  - **Developer**: Custom code injection, Google services integration
+  - **Developer**: Custom code injection, Google services integration, **Project Management**
 - **Database Integration**: PostgreSQL with UPSERT operations
 - **Authentication**: Secure admin access
+
+### Project Management (Developer Tab)
+- **Project Cards**: Visual project overview with status, priority, and progress
+- **Task Management**: Add, edit, and track project steps/tasks
+- **Progress Tracking**: Automatic completion percentage calculation
+- **Project Details**: Title, description, category, priority, dates
+- **Task Details**: Estimated hours, assigned person, due dates
+- **Status Management**: Active, completed, on-hold, cancelled projects
+- **Step Status**: Pending, in-progress, completed tasks
 
 ## 🛠️ Tech Stack
 
 - **Frontend**: React 18, TypeScript, Vite
 - **Styling**: Tailwind CSS, Radix UI
 - **Database**: PostgreSQL (Railway)
-- **Server**: Express.js
+- **Server**: Express.js with Multer for file uploads
 - **Deployment**: Railway
 - **CMS**: Sparti CMS (integrated)
+
+### 🔌 API Integrations
+- **OpenRouter**: AI services for chat completion and text generation
+- **Google API**: Maps, Places, Reviews, and Translator services
+- **SMTP (Resend)**: Email sending capabilities for contact forms
+- **Supabase**: Database and authentication services
 
 ## 📦 Getting Started
 
@@ -102,12 +122,38 @@ The application automatically creates the following tables:
 
 - **site_settings**: Stores branding and configuration settings
 - **form_submissions**: Stores contact form submissions
+- **contacts**: Stores contact information and lead data
+- **projects**: Stores development projects with metadata
+- **project_steps**: Stores individual tasks/steps for each project
 
 ### API Endpoints
 
+#### Core APIs
 - `GET /health` - Health check
 - `GET /api/branding` - Get branding settings
 - `POST /api/branding` - Update branding settings
+- `POST /api/upload` - File upload endpoint
+
+#### Form APIs
+- `POST /api/form-submissions` - Save form submission
+- `GET /api/form-submissions/:formId` - Get form submissions
+
+#### Contact Management APIs
+- `GET /api/contacts` - Get all contacts (with pagination and search)
+- `GET /api/contacts/:id` - Get specific contact
+- `POST /api/contacts` - Create new contact
+- `PUT /api/contacts/:id` - Update contact
+- `DELETE /api/contacts/:id` - Delete contact
+
+#### Project Management APIs
+- `GET /api/projects` - Get all projects
+- `POST /api/projects` - Create new project
+- `PUT /api/projects/:id` - Update project
+- `DELETE /api/projects/:id` - Delete project
+- `GET /api/projects/:projectId/steps` - Get project steps
+- `POST /api/projects/:projectId/steps` - Create project step
+- `PUT /api/project-steps/:id` - Update project step
+- `DELETE /api/project-steps/:id` - Delete project step
 
 ## 🔧 Development
 
@@ -141,18 +187,41 @@ server.js               # Express server
 Access the admin dashboard at `/admin` with the following features:
 
 ### Navigation Menu
+- **Analytics**: Website performance tracking
 - **Pages**: Content management
 - **Blog**: Blog post management
 - **Header**: Header customization
 - **Footer**: Footer customization  
 - **Forms**: Form management
+- **Contacts**: Contact database management
 - **Settings**: Site configuration
+- **Developer**: Development tools and project management
+
+### Contact Management Features
+- **Contact Table**: Display contacts with first name, last name, email, phone, company, source, and creation date
+- **Search & Filter**: Find contacts by name, email, or company
+- **Contact Details**: View full contact information in modal
+- **Add/Edit Contacts**: Create new contacts or update existing ones
+- **Status Tracking**: Track contact status (new, contacted, qualified, converted, closed)
+- **Source Tracking**: Track where contacts came from (form, manual, import, etc.)
+- **Form Integration**: Automatically create contacts from form submissions
+- **Pagination**: Handle large contact databases efficiently
 
 ### Settings Tabs
 - **Branding**: Site name, tagline, logo, favicon
 - **Style**: Colors, typography, themes
 - **SEO**: Sitemap, meta tags, robots.txt, Open Graph
-- **Developer**: Custom code, Google Tag Manager, Analytics, Search Console
+- **Developer**: Custom code, Google services, **Project Management**
+
+### Project Management Features
+- **Project Cards**: Visual overview with status badges and progress bars
+- **Create Projects**: Modal form with title, description, category, priority, dates
+- **Task Management**: Add, edit, complete, and delete project tasks
+- **Progress Tracking**: Automatic calculation based on completed tasks
+- **Status Management**: Track project and task statuses
+- **Time Tracking**: Estimated and actual hours for tasks
+- **Assignment**: Assign tasks to team members
+- **Due Dates**: Set and track task deadlines
 
 ## 🔒 Security
 
@@ -160,6 +229,8 @@ Access the admin dashboard at `/admin` with the following features:
 - Secure database connections with SSL
 - Input validation and sanitization
 - CORS protection
+- File upload restrictions (images only, 2MB limit)
+- API key management with proper scoping
 
 ## 📝 License
 
@@ -171,5 +242,5 @@ For support and questions, please contact the development team.
 
 ---
 
-**Status**: ✅ Ready for deployment
+**Status**: ✅ Ready for deployment with Contact Management
 **Last Updated**: October 14, 2025
