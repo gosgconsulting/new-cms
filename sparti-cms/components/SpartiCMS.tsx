@@ -20,7 +20,7 @@ export const SpartiCMS: React.FC = () => {
         } />
         
         {/* Default redirect to dashboard for authenticated users */}
-        <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
+        <Route path="*" element={<Navigate to="dashboard" replace />} />
       </Routes>
     </AuthProvider>
   );
