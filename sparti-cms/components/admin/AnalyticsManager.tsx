@@ -173,6 +173,35 @@ const AnalyticsManager: React.FC = () => {
 
   // Prepare chart data
   const prepareLineChartData = () => {
+    if (!Array.isArray(chartData) || chartData.length === 0) {
+      return {
+        labels: [],
+        datasets: [
+          {
+            label: 'Page Views',
+            data: [],
+            borderColor: 'rgb(59, 130, 246)',
+            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            tension: 0.4,
+          },
+          {
+            label: 'Sessions',
+            data: [],
+            borderColor: 'rgb(16, 185, 129)',
+            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+            tension: 0.4,
+          },
+          {
+            label: 'Unique Visitors',
+            data: [],
+            borderColor: 'rgb(245, 158, 11)',
+            backgroundColor: 'rgba(245, 158, 11, 0.1)',
+            tension: 0.4,
+          }
+        ]
+      };
+    }
+
     const labels = chartData.map(d => format(new Date(d.date), 'MMM dd'));
     
     return {
@@ -204,6 +233,21 @@ const AnalyticsManager: React.FC = () => {
   };
 
   const prepareBounceRateChartData = () => {
+    if (!Array.isArray(chartData) || chartData.length === 0) {
+      return {
+        labels: [],
+        datasets: [
+          {
+            label: 'Bounce Rate (%)',
+            data: [],
+            backgroundColor: 'rgba(239, 68, 68, 0.8)',
+            borderColor: 'rgb(239, 68, 68)',
+            borderWidth: 1,
+          }
+        ]
+      };
+    }
+
     const labels = chartData.map(d => format(new Date(d.date), 'MMM dd'));
     
     return {
@@ -221,6 +265,28 @@ const AnalyticsManager: React.FC = () => {
   };
 
   const prepareEventsChartData = () => {
+    if (!Array.isArray(chartData) || chartData.length === 0) {
+      return {
+        labels: [],
+        datasets: [
+          {
+            label: 'Total Events',
+            data: [],
+            backgroundColor: 'rgba(139, 92, 246, 0.8)',
+            borderColor: 'rgb(139, 92, 246)',
+            borderWidth: 1,
+          },
+          {
+            label: 'Conversions',
+            data: [],
+            backgroundColor: 'rgba(34, 197, 94, 0.8)',
+            borderColor: 'rgb(34, 197, 94)',
+            borderWidth: 1,
+          }
+        ]
+      };
+    }
+
     const labels = chartData.map(d => format(new Date(d.date), 'MMM dd'));
     
     return {
