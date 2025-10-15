@@ -113,7 +113,7 @@ const Blog = () => {
       
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="py-16 md:py-24 px-4 bg-gradient-to-br from-primary/5 to-secondary/5">
+        <section className="pt-32 md:pt-24 pb-12 px-4 bg-gradient-to-br from-primary/5 to-secondary/5">
           <div className="container mx-auto text-center">
             <motion.div
               initial={{ opacity: 0, y: 30 }}
@@ -143,7 +143,7 @@ const Blog = () => {
         </section>
 
         {/* Blog Posts with Sidebar */}
-        <section className="py-16 md:py-24 px-4">
+        <section className="py-20 px-4">
           <div className="container mx-auto">
             <div className="flex flex-col lg:flex-row gap-8">
               {/* Sidebar */}
