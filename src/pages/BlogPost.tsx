@@ -328,8 +328,8 @@ const BlogPost = () => {
               </p>
               <Button 
                 onClick={() => setIsContactOpen(true)}
+                variant="cta-outline"
                 size="lg"
-                className="px-8"
               >
                 Get Free Consultation
               </Button>

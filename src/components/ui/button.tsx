@@ -21,6 +21,8 @@ const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline",
         coral: "bg-coral hover:bg-coral/90 text-white",
         branded: "bg-brandPurple hover:bg-brandPurple/90 text-white",
+        "cta-gradient": "bg-gradient-to-r from-[#9b87f5] via-[#7E69AB] to-[#0EA5E9] text-white font-semibold rounded-full shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300",
+        "cta-outline": "border-2 border-[#9b87f5] text-[#9b87f5] bg-transparent hover:bg-[#9b87f5] hover:text-white rounded-full font-semibold transition-all duration-300",
       },
       size: {
         default: "h-10 px-4 py-2",

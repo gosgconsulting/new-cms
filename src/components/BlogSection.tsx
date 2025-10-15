@@ -123,9 +123,8 @@ const BlogSection = ({ onContactClick }: BlogSectionProps) => {
         >
           <Button 
             onClick={onContactClick}
-            variant="outline" 
+            variant="cta-outline" 
             size="lg"
-            className="px-8 py-3 border-2 border-brandPurple text-brandPurple hover:bg-brandPurple hover:text-white transition-all duration-300"
           >
             Get SEO Consultation
             <ArrowRight className="ml-2 h-5 w-5" />

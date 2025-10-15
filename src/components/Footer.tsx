@@ -1,6 +1,7 @@
 
 import { Link } from "react-router-dom";
 import { Calendar, Phone, Instagram, Linkedin } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 /**
  * WordPress Theme Component: Footer
@@ -96,12 +97,14 @@ const Footer = ({ onContactClick }: FooterProps) => {
                 Ready to dominate search results? Let's discuss how we can help your business grow.
               </p>
               
-              <button 
+              <Button 
                 onClick={onContactClick}
-                className="inline-flex items-center justify-center w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-brandPurple to-brandTeal text-white font-semibold rounded-lg hover:opacity-90 transition-all duration-300 shadow-lg hover:shadow-xl cursor-pointer"
+                variant="cta-gradient"
+                size="lg"
+                className="w-full sm:w-auto cursor-pointer"
               >
                 Start Your Journey
-              </button>
+              </Button>
             </div>
             
             {/* Right Side - Contact Links */}
