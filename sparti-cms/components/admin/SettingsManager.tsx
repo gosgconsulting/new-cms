@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Image, Monitor, Code, Globe, Search, FileText, Tag, Palette } from 'lucide-react';
 import { ColorSettings } from '../cms/ColorSettings';
 import { TypographySettings } from '../cms/TypographySettings';
+import { ButtonSettings } from '../cms/ButtonSettings';
 
 const SettingsManager: React.FC = () => {
   const [activeTab, setActiveTab] = useState('branding');
@@ -272,7 +273,7 @@ const BrandingTab: React.FC = () => {
   );
 };
 
-// Style Tab with Color and Typography Settings
+// Style Tab with Color, Typography, and Button Settings
 const StyleTab: React.FC = () => {
   const handleSettingsUpdate = (settings: any) => {
     console.log('Settings updated:', settings);
@@ -282,6 +283,7 @@ const StyleTab: React.FC = () => {
     <div className="space-y-6">
       <ColorSettings onUpdate={handleSettingsUpdate} />
       <TypographySettings onUpdate={handleSettingsUpdate} />
+      <ButtonSettings onUpdate={handleSettingsUpdate} />
     </div>
   );
 };
