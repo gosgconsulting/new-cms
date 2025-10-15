@@ -351,11 +351,17 @@ export async function getContacts(limit = 50, offset = 0, search = '') {
       ${search ? 'LIMIT $2 OFFSET $3' : 'LIMIT $1 OFFSET $2'}
     `, params);
     
-    // Get total count - use same parameter structure as main query
+    // Get total count - use consistent parameter indexing
+    const countWhereClause = search ? `WHERE 
+      first_name ILIKE $1 OR 
+      last_name ILIKE $1 OR 
+      email ILIKE $1 OR 
+      company ILIKE $1` : '';
+    
     const countResult = await query(`
       SELECT COUNT(*) as total 
       FROM contacts 
-      ${whereClause}
+      ${countWhereClause}
     `, search ? [`%${search}%`] : []);
     
     return {
