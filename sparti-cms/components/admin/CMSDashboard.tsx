@@ -12,7 +12,8 @@ import {
   BarChart3,
   Users,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
+  Code
 } from 'lucide-react';
 import { useAuth } from '../auth/AuthProvider';
 
@@ -76,7 +77,7 @@ const CMSDashboard: React.FC = () => {
     { id: 'header', label: 'Header', icon: Layout },
     { id: 'footer', label: 'Footer', icon: Minus },
     { id: 'settings', label: 'Settings', icon: SettingsIcon },
-    { id: 'developer', label: 'Developer', icon: SettingsIcon },
+    { id: 'developer', label: 'Developer', icon: Code },
   ];
 
   const crmItems = [
@@ -108,7 +109,7 @@ const CMSDashboard: React.FC = () => {
           {/* Navigation */}
           <nav className="flex-1 p-4">
             <ul className="space-y-1">
-              {navItems.map((item) => {
+              {navItems.slice(0, 3).map((item) => {
                 const Icon = item.icon;
                 const isActive = activeTab === item.id;
                 
@@ -129,7 +130,7 @@ const CMSDashboard: React.FC = () => {
                 );
               })}
               
-              {/* CRM Submenu */}
+              {/* CRM Submenu - positioned after Blog */}
               <li>
                 <button
                   onClick={() => setCrmExpanded(!crmExpanded)}
@@ -171,6 +172,28 @@ const CMSDashboard: React.FC = () => {
                   </ul>
                 )}
               </li>
+              
+              {/* Remaining navigation items */}
+              {navItems.slice(3).map((item) => {
+                const Icon = item.icon;
+                const isActive = activeTab === item.id;
+                
+                return (
+                  <li key={item.id}>
+                    <button
+                      onClick={() => setActiveTab(item.id)}
+                      className={`w-full flex items-center px-3 py-2.5 text-left rounded-lg transition-all duration-200 ${
+                        isActive
+                          ? 'bg-gray-100 text-gray-900 font-medium'
+                          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                      }`}
+                    >
+                      <Icon className="mr-3 h-5 w-5" />
+                      {item.label}
+                    </button>
+                  </li>
+                );
+              })}
             </ul>
           </nav>
           
