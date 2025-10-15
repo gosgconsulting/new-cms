@@ -112,22 +112,34 @@ const AnalyticsManager: React.FC = () => {
 
       if (overviewRes.ok) {
         const overviewData = await overviewRes.json();
-        setOverview(overviewData);
+        // Only set if it has expected structure
+        if (overviewData && typeof overviewData === 'object' && 'page_views' in overviewData) {
+          setOverview(overviewData);
+        }
       }
 
       if (chartRes.ok) {
         const chartData = await chartRes.json();
-        setChartData(chartData);
+        // Only set if it's actually an array
+        if (Array.isArray(chartData)) {
+          setChartData(chartData);
+        }
       }
 
       if (eventsRes.ok) {
         const eventsData = await eventsRes.json();
-        setEventDefinitions(eventsData);
+        // Only set if it's actually an array
+        if (Array.isArray(eventsData)) {
+          setEventDefinitions(eventsData);
+        }
       }
 
       if (realTimeRes.ok) {
         const realTimeData = await realTimeRes.json();
-        setRealTimeData(realTimeData);
+        // Only set if it has expected structure
+        if (realTimeData && typeof realTimeData === 'object' && 'page_views_24h' in realTimeData) {
+          setRealTimeData(realTimeData);
+        }
       }
     } catch (error) {
       console.error('[testing] Failed to load analytics data:', error);
@@ -148,7 +160,10 @@ const AnalyticsManager: React.FC = () => {
           const res = await fetch('/api/analytics/realtime');
           if (res.ok) {
             const data = await res.json();
-            setRealTimeData(data);
+            // Only set if it has expected structure
+            if (data && typeof data === 'object' && 'page_views_24h' in data) {
+              setRealTimeData(data);
+            }
           }
         } catch (error) {
           console.error('[testing] Failed to refresh real-time data:', error);
