@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { Calendar, Clock, ArrowRight, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ContactModal from "@/components/ContactModal";
@@ -128,7 +128,7 @@ const Blog = () => {
               </p>
               
               {/* Search Bar */}
-              <div className="max-w-2xl mx-auto relative mb-8">
+              <div className="max-w-2xl mx-auto relative">
                 <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
                 <Input
                   type="text"
@@ -138,90 +138,108 @@ const Blog = () => {
                   className="pl-12 pr-4 py-6 text-lg rounded-full border-2"
                 />
               </div>
-
-              {/* Category Tabs */}
-              <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="max-w-4xl mx-auto">
-                <TabsList className="grid w-full grid-cols-4 lg:grid-cols-7 gap-2 h-auto bg-transparent">
-                  {categories.map((category) => (
-                    <TabsTrigger 
-                      key={category}
-                      value={category === "All" ? "all" : category}
-                      className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-4 py-2 rounded-full"
-                    >
-                      {category}
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-              </Tabs>
             </motion.div>
           </div>
         </section>
 
-        {/* Blog Posts Grid */}
+        {/* Blog Posts with Sidebar */}
         <section className="py-16 md:py-24 px-4">
           <div className="container mx-auto">
-            {filteredPosts.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-muted-foreground text-lg">No articles found matching your search.</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {filteredPosts.map((post, index) => (
-                  <motion.div
-                    key={post.id}
-                    initial={{ opacity: 0, y: 30 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: index * 0.1 }}
-                    viewport={{ once: true }}
-                  >
-                    <Card className="h-full overflow-hidden hover:shadow-lg transition-all duration-300 group cursor-pointer"
-                      onClick={() => navigate(`/blog/${post.slug}`)}
-                    >
-                      <div className="relative overflow-hidden">
-                        <img 
-                          src={post.image}
-                          alt={post.title}
-                          className="w-full h-56 object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                        <div className="absolute top-4 left-4 bg-primary text-primary-foreground px-3 py-1 rounded-full text-sm font-medium">
-                          {post.category}
-                        </div>
-                      </div>
-                      
-                      <CardHeader>
-                        <div className="flex items-center text-sm text-muted-foreground mb-3">
-                          <Calendar className="w-4 h-4 mr-2" />
-                          <span>{formatDate(post.date)}</span>
-                          <Clock className="w-4 h-4 ml-4 mr-2" />
-                          <span>{post.readTime}</span>
-                        </div>
-                        
-                        <h3 className="text-xl font-bold mb-3 line-clamp-2 group-hover:text-primary transition-colors duration-300">
-                          {post.title}
-                        </h3>
-                      </CardHeader>
+            <div className="flex flex-col lg:flex-row gap-8">
+              {/* Sidebar */}
+              <aside className="lg:w-64 flex-shrink-0">
+                <div className="bg-card rounded-lg border p-6 sticky top-8">
+                  <h3 className="text-lg font-semibold mb-4">Categories</h3>
+                  <ScrollArea className="h-[400px]">
+                    <nav className="space-y-1">
+                      {categories.map((category) => {
+                        const value = category === "All" ? "all" : category;
+                        const isActive = selectedCategory === value;
+                        return (
+                          <button
+                            key={category}
+                            onClick={() => setSelectedCategory(value)}
+                            className={`w-full text-left px-4 py-2.5 rounded-md transition-colors ${
+                              isActive
+                                ? "bg-muted text-foreground font-medium"
+                                : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                            }`}
+                          >
+                            {category}
+                          </button>
+                        );
+                      })}
+                    </nav>
+                  </ScrollArea>
+                </div>
+              </aside>
 
-                      <CardContent>
-                        <p className="text-muted-foreground mb-4 line-clamp-3">
-                          {post.excerpt}
-                        </p>
-                        
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium">
-                            GOSG Consulting
-                          </span>
+              {/* Blog Posts Grid */}
+              <div className="flex-1">
+                {filteredPosts.length === 0 ? (
+                  <div className="text-center py-12">
+                    <p className="text-muted-foreground text-lg">No articles found matching your search.</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+                    {filteredPosts.map((post, index) => (
+                      <motion.div
+                        key={post.id}
+                        initial={{ opacity: 0, y: 30 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.6, delay: index * 0.1 }}
+                        viewport={{ once: true }}
+                      >
+                        <Card className="h-full overflow-hidden hover:shadow-lg transition-all duration-300 group cursor-pointer"
+                          onClick={() => navigate(`/blog/${post.slug}`)}
+                        >
+                          <div className="relative overflow-hidden">
+                            <img 
+                              src={post.image}
+                              alt={post.title}
+                              className="w-full h-56 object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
+                            <div className="absolute top-4 left-4 bg-primary text-primary-foreground px-3 py-1 rounded-full text-sm font-medium">
+                              {post.category}
+                            </div>
+                          </div>
                           
-                          <span className="inline-flex items-center text-primary group-hover:text-secondary font-medium text-sm transition-colors duration-300">
-                            Read More
-                            <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform duration-300" />
-                          </span>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                ))}
+                          <CardHeader>
+                            <div className="flex items-center text-sm text-muted-foreground mb-3">
+                              <Calendar className="w-4 h-4 mr-2" />
+                              <span>{formatDate(post.date)}</span>
+                              <Clock className="w-4 h-4 ml-4 mr-2" />
+                              <span>{post.readTime}</span>
+                            </div>
+                            
+                            <h3 className="text-xl font-bold mb-3 line-clamp-2 group-hover:text-primary transition-colors duration-300">
+                              {post.title}
+                            </h3>
+                          </CardHeader>
+
+                          <CardContent>
+                            <p className="text-muted-foreground mb-4 line-clamp-3">
+                              {post.excerpt}
+                            </p>
+                            
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm font-medium">
+                                GOSG Consulting
+                              </span>
+                              
+                              <span className="inline-flex items-center text-primary group-hover:text-secondary font-medium text-sm transition-colors duration-300">
+                                Read More
+                                <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform duration-300" />
+                              </span>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
               </div>
-            )}
+            </div>
           </div>
         </section>
 
