@@ -1,12 +1,15 @@
 import { motion } from "framer-motion";
 import { Calendar, ArrowRight, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 interface BlogSectionProps {
   onContactClick?: () => void;
 }
 
 const BlogSection = ({ onContactClick }: BlogSectionProps) => {
+  const navigate = useNavigate();
+  
   // Static blog posts for demonstration
   const blogPosts = [
     {
@@ -70,7 +73,7 @@ const BlogSection = ({ onContactClick }: BlogSectionProps) => {
               transition={{ duration: 0.6, delay: index * 0.1 }}
               viewport={{ once: true }}
               className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 group cursor-pointer h-full"
-              onClick={onContactClick}
+              onClick={() => navigate(`/blog/${post.id}`)}
             >
               <div className="relative overflow-hidden">
                 <img 
