@@ -325,11 +325,11 @@ export async function getContacts(limit = 50, offset = 0, search = '') {
     
     if (search) {
       whereClause = `WHERE 
-        first_name ILIKE $3 OR 
-        last_name ILIKE $3 OR 
-        email ILIKE $3 OR 
-        company ILIKE $3`;
-      params.push(`%${search}%`);
+        first_name ILIKE $1 OR 
+        last_name ILIKE $1 OR 
+        email ILIKE $1 OR 
+        company ILIKE $1`;
+      params = [`%${search}%`, limit, offset];
     }
     
     const result = await query(`
@@ -348,10 +348,10 @@ export async function getContacts(limit = 50, offset = 0, search = '') {
       FROM contacts 
       ${whereClause}
       ORDER BY created_at DESC
-      LIMIT $1 OFFSET $2
+      ${search ? 'LIMIT $2 OFFSET $3' : 'LIMIT $1 OFFSET $2'}
     `, params);
     
-    // Get total count
+    // Get total count - use same parameter structure as main query
     const countResult = await query(`
       SELECT COUNT(*) as total 
       FROM contacts 

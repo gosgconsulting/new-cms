@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { 
   Users, 
   Search, 
@@ -62,58 +61,32 @@ const ContactsManager: React.FC = () => {
     setError(null);
     
     try {
-      const { data: submissions, error: submissionsError } = await supabase
-        .from('form_submissions')
-        .select('*')
-        .order('submitted_at', { ascending: false });
-
-      if (submissionsError) throw submissionsError;
-
-      // Group submissions by email to get unique contacts
-      const uniqueContactsMap = new Map<string, Contact>();
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4173';
+      const response = await fetch(`${API_BASE_URL}/api/contacts?limit=100&search=${encodeURIComponent(search)}`);
       
-      submissions?.forEach((submission) => {
-        const email = submission.email;
-        if (!uniqueContactsMap.has(email)) {
-          uniqueContactsMap.set(email, {
-            id: submission.id,
-            name: submission.name,
-            email: submission.email,
-            phone: submission.phone || '',
-            source: submission.form_name,
-            latest_submission: submission.submitted_at,
-            total_submissions: 1,
-            messages: submission.message ? [submission.message] : []
-          });
-        } else {
-          const existing = uniqueContactsMap.get(email)!;
-          existing.total_submissions++;
-          if (submission.message) {
-            existing.messages.push(submission.message);
-          }
-          // Update if this submission is more recent
-          if (new Date(submission.submitted_at) > new Date(existing.latest_submission)) {
-            existing.latest_submission = submission.submitted_at;
-            existing.source = submission.form_name;
-          }
-        }
-      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch contacts');
+      }
 
-      const uniqueContacts = Array.from(uniqueContactsMap.values());
+      const result = await response.json();
       
-      // Apply search filter if needed
-      const filteredContacts = search
-        ? uniqueContacts.filter(contact => 
-            contact.name.toLowerCase().includes(search.toLowerCase()) ||
-            contact.email.toLowerCase().includes(search.toLowerCase())
-          )
-        : uniqueContacts;
+      // Transform backend contacts to frontend format
+      const transformedContacts: Contact[] = result.contacts.map((contact: any) => ({
+        id: contact.id.toString(),
+        name: `${contact.first_name} ${contact.last_name || ''}`.trim(),
+        email: contact.email,
+        phone: contact.phone || '',
+        source: contact.source || 'form',
+        latest_submission: contact.updated_at || contact.created_at,
+        total_submissions: 1, // We'll need to get this from form submissions
+        messages: contact.notes ? [contact.notes] : []
+      }));
 
       setContactsData({
-        contacts: filteredContacts,
-        total: filteredContacts.length,
-        limit: 50,
-        offset: 0
+        contacts: transformedContacts,
+        total: result.total,
+        limit: result.limit,
+        offset: result.offset
       });
     } catch (err) {
       console.error('Error loading contacts:', err);
@@ -132,28 +105,30 @@ const ContactsManager: React.FC = () => {
 
   const loadLeads = async () => {
     try {
-      const { data: submissions, error } = await supabase
-        .from('form_submissions')
-        .select('*')
-        .order('submitted_at', { ascending: false });
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4173';
+      const response = await fetch(`${API_BASE_URL}/api/form-submissions/contact-modal`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch leads');
+      }
 
-      if (error) throw error;
+      const submissions = await response.json();
 
-      const formattedLeads = submissions?.map(sub => ({
+      const formattedLeads = submissions.map((sub: any) => ({
         id: sub.id,
-        name: sub.name,
-        email: sub.email,
-        phone: sub.phone || 'N/A',
-        message: sub.message || '',
-        source: sub.form_name,
-        created: new Date(sub.submitted_at).toLocaleString('en-SG', {
+        name: sub.data.name,
+        email: sub.data.email,
+        phone: sub.data.phone || 'N/A',
+        message: sub.data.message || '',
+        source: 'Contact Modal Form',
+        created: new Date(sub.date).toLocaleString('en-SG', {
           year: 'numeric',
           month: '2-digit',
           day: '2-digit',
           hour: '2-digit',
           minute: '2-digit'
         })
-      })) || [];
+      }));
 
       setLeadsData({ leads: formattedLeads, total: formattedLeads.length });
     } catch (err) {
