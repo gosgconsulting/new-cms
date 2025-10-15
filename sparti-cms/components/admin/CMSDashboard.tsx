@@ -24,8 +24,6 @@ import FormsManager from '../cms/FormsManager';
 // Import new components
 import SettingsManager from './SettingsManager';
 import DeveloperManager from './DeveloperManager';
-import HeaderManager from './HeaderManager';
-import FooterManager from './FooterManager';
 import AnalyticsManager from './AnalyticsManager';
 import ContactsManager from './ContactsManager';
 
@@ -53,10 +51,6 @@ const CMSDashboard: React.FC = () => {
         return <PagesManager />;
       case 'blog':
         return <BlogManager />;
-      case 'header':
-        return <HeaderManager />;
-      case 'footer':
-        return <FooterManager />;
       case 'forms':
         return <FormsManager />;
       case 'contacts':
@@ -74,8 +68,6 @@ const CMSDashboard: React.FC = () => {
     { id: 'analytics', label: 'Analytics', icon: BarChart3 },
     { id: 'pages', label: 'Pages', icon: FileText },
     { id: 'blog', label: 'Blog', icon: PenTool },
-    { id: 'header', label: 'Header', icon: Layout },
-    { id: 'footer', label: 'Footer', icon: Minus },
     { id: 'settings', label: 'Settings', icon: SettingsIcon },
     { id: 'developer', label: 'Developer', icon: Code },
   ];
