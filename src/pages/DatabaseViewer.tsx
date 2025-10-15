@@ -37,7 +37,8 @@ const DatabaseViewer: React.FC = () => {
     setError(null);
     try {
       console.log('[testing] Loading database tables...');
-      const response = await fetch('/api/database/tables');
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4173';
+      const response = await fetch(`${API_BASE_URL}/api/database/tables`);
       if (response.ok) {
         const tablesData = await response.json();
         setTables(tablesData);
@@ -66,16 +67,17 @@ const DatabaseViewer: React.FC = () => {
     setError(null);
     try {
       console.log('[testing] Loading data for table:', tableName);
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4173';
       
       // Load table structure
-      const columnsResponse = await fetch(`/api/database/tables/${tableName}/columns`);
+      const columnsResponse = await fetch(`${API_BASE_URL}/api/database/tables/${tableName}/columns`);
       if (columnsResponse.ok) {
         const columnsData = await columnsResponse.json();
         setColumns(columnsData);
       }
 
       // Load table data (limited to first 100 rows)
-      const dataResponse = await fetch(`/api/database/tables/${tableName}/data?limit=100`);
+      const dataResponse = await fetch(`${API_BASE_URL}/api/database/tables/${tableName}/data?limit=100`);
       if (dataResponse.ok) {
         const data = await dataResponse.json();
         setTableData(data);

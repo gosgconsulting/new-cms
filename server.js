@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express from 'express';
 import multer from 'multer';
 import { fileURLToPath } from 'url';
@@ -23,6 +24,7 @@ import {
   updateContact,
   deleteContact
 } from './sparti-cms/db/postgres.js';
+import pool from './sparti-cms/db/postgres.js';
 
 // Import mock data for development
 import {
@@ -82,6 +84,20 @@ const upload = multer({
 
 // Middleware
 app.use(express.json());
+
+// CORS middleware to handle OPTIONS requests
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  
+  // Handle preflight OPTIONS requests
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200);
+  } else {
+    next();
+  }
+});
 
 // Initialize database on startup
 initializeDatabase().then(success => {
@@ -400,7 +416,6 @@ app.get('/api/analytics/overview', async (req, res) => {
 app.get('/api/database/tables', async (req, res) => {
   try {
     console.log('[testing] API: Getting database tables');
-    const { pool } = await initializeDatabase();
     
     const query = `
       SELECT 
@@ -453,7 +468,6 @@ app.get('/api/database/tables/:tableName/columns', async (req, res) => {
   try {
     const { tableName } = req.params;
     console.log('[testing] API: Getting columns for table:', tableName);
-    const { pool } = await initializeDatabase();
     
     const query = `
       SELECT 
@@ -495,7 +509,6 @@ app.get('/api/database/tables/:tableName/data', async (req, res) => {
     const offset = parseInt(req.query.offset) || 0;
     
     console.log('[testing] API: Getting data for table:', tableName, 'limit:', limit);
-    const { pool } = await initializeDatabase();
     
     // Validate table name to prevent SQL injection
     const tableExistsQuery = `

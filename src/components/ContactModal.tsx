@@ -22,7 +22,8 @@ const ContactModal = ({ open, onOpenChange }: ContactModalProps) => {
     setIsSubmitting(true);
     
     try {
-      const response = await fetch('/api/form-submissions', {
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4173';
+      const response = await fetch(`${API_BASE_URL}/api/form-submissions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
