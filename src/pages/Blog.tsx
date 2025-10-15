@@ -2,9 +2,9 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Calendar, Clock, ArrowRight, Search } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ContactModal from "@/components/ContactModal";
@@ -13,6 +13,17 @@ const Blog = () => {
   const navigate = useNavigate();
   const [isContactOpen, setIsContactOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+
+  const categories = [
+    "All",
+    "SEO Strategy",
+    "Local SEO",
+    "Technical SEO",
+    "Content Marketing",
+    "Link Building",
+    "Mobile SEO"
+  ];
 
   // Static blog posts for demonstration
   const blogPosts = [
@@ -86,11 +97,15 @@ const Blog = () => {
     });
   };
 
-  const filteredPosts = blogPosts.filter(post =>
-    post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    post.excerpt.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    post.category.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredPosts = blogPosts.filter(post => {
+    const matchesSearch = post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      post.excerpt.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      post.category.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesCategory = selectedCategory === "all" || post.category === selectedCategory;
+    
+    return matchesSearch && matchesCategory;
+  });
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -113,7 +128,7 @@ const Blog = () => {
               </p>
               
               {/* Search Bar */}
-              <div className="max-w-2xl mx-auto relative">
+              <div className="max-w-2xl mx-auto relative mb-8">
                 <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
                 <Input
                   type="text"
@@ -123,6 +138,21 @@ const Blog = () => {
                   className="pl-12 pr-4 py-6 text-lg rounded-full border-2"
                 />
               </div>
+
+              {/* Category Tabs */}
+              <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="max-w-4xl mx-auto">
+                <TabsList className="grid w-full grid-cols-4 lg:grid-cols-7 gap-2 h-auto bg-transparent">
+                  {categories.map((category) => (
+                    <TabsTrigger 
+                      key={category}
+                      value={category === "All" ? "all" : category}
+                      className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-4 py-2 rounded-full"
+                    >
+                      {category}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+              </Tabs>
             </motion.div>
           </div>
         </section>
@@ -195,33 +225,6 @@ const Blog = () => {
           </div>
         </section>
 
-        {/* CTA Section */}
-        <section className="py-16 md:py-24 px-4 bg-gradient-to-br from-primary to-secondary">
-          <div className="container mx-auto text-center">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              viewport={{ once: true }}
-            >
-              <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-                Ready to Boost Your SEO?
-              </h2>
-              <p className="text-white/90 text-lg md:text-xl max-w-2xl mx-auto mb-8">
-                Get expert SEO consultation tailored to your business needs
-              </p>
-              <Button 
-                onClick={() => setIsContactOpen(true)}
-                size="lg"
-                variant="secondary"
-                className="px-8 py-6 text-lg"
-              >
-                Get Free Consultation
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-            </motion.div>
-          </div>
-        </section>
       </main>
 
       <Footer onContactClick={() => setIsContactOpen(true)} />

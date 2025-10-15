@@ -1,5 +1,5 @@
 
-import { Link, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import gosgLogo from "@/assets/go-sg-logo-official.png";
 import { useEffect, useState } from "react";
@@ -11,7 +11,6 @@ import { useEffect, useState } from "react";
  * Template Name: Header
  * 
  * Dynamic Elements:
- * - Navigation menu items (will be replaced with wp_nav_menu)
  * - Logo (will be replaced with get_custom_logo or theme option)
  */
 interface HeaderProps {
@@ -20,8 +19,6 @@ interface HeaderProps {
 
 const Header = ({ onContactClick }: HeaderProps) => {
   const [isScrolled, setIsScrolled] = useState(false);
-  const location = useLocation();
-  const isHomepage = location.pathname === '/';
 
   useEffect(() => {
     const handleScroll = () => {
@@ -48,79 +45,6 @@ const Header = ({ onContactClick }: HeaderProps) => {
             />
           </Link>
 
-          {/* Centered Navigation Menu - Hidden on homepage */}
-          {!isHomepage && (
-            <nav className="hidden md:flex items-center justify-center flex-1 mx-8">
-              <div className="flex items-center space-x-8">
-                <Link 
-                  to="/" 
-                  className={`relative font-medium transition-all duration-300 group ${
-                    isScrolled ? 'text-foreground hover:text-accent' : 'text-foreground hover:text-accent'
-                  }`}
-                >
-                  <span className="relative z-10">Home</span>
-                  <span className="absolute inset-0 w-full h-full bg-accent/20 rounded-lg scale-0 group-hover:scale-100 transition-transform duration-300 blur-sm"></span>
-                  <span className="absolute inset-0 w-full h-full bg-accent/10 rounded-lg scale-0 group-hover:scale-110 transition-transform duration-300"></span>
-                </Link>
-                
-                <Link 
-                  to="/services/website-design" 
-                  className={`relative font-medium transition-all duration-300 group ${
-                    isScrolled ? 'text-foreground hover:text-accent' : 'text-foreground hover:text-accent'
-                  }`}
-                >
-                  <span className="relative z-10">Website Design</span>
-                  <span className="absolute inset-0 w-full h-full bg-accent/20 rounded-lg scale-0 group-hover:scale-100 transition-transform duration-300 blur-sm"></span>
-                  <span className="absolute inset-0 w-full h-full bg-accent/10 rounded-lg scale-0 group-hover:scale-110 transition-transform duration-300"></span>
-                </Link>
-                
-                <Link 
-                  to="/services/seo" 
-                  className={`relative font-medium transition-all duration-300 group ${
-                    isScrolled ? 'text-foreground hover:text-accent' : 'text-foreground hover:text-accent'
-                  }`}
-                >
-                  <span className="relative z-10">SEO</span>
-                  <span className="absolute inset-0 w-full h-full bg-accent/20 rounded-lg scale-0 group-hover:scale-100 transition-transform duration-300 blur-sm"></span>
-                  <span className="absolute inset-0 w-full h-full bg-accent/10 rounded-lg scale-0 group-hover:scale-110 transition-transform duration-300"></span>
-                </Link>
-                
-                <Link 
-                  to="/services/paid-ads" 
-                  className={`relative font-medium transition-all duration-300 group ${
-                    isScrolled ? 'text-foreground hover:text-accent' : 'text-foreground hover:text-accent'
-                  }`}
-                >
-                  <span className="relative z-10">Paid Ads</span>
-                  <span className="absolute inset-0 w-full h-full bg-accent/20 rounded-lg scale-0 group-hover:scale-100 transition-transform duration-300 blur-sm"></span>
-                  <span className="absolute inset-0 w-full h-full bg-accent/10 rounded-lg scale-0 group-hover:scale-110 transition-transform duration-300"></span>
-                </Link>
-                
-                <Link 
-                  to="/services/social-media" 
-                  className={`relative font-medium transition-all duration-300 group ${
-                    isScrolled ? 'text-foreground hover:text-accent' : 'text-foreground hover:text-accent'
-                  }`}
-                >
-                  <span className="relative z-10">Social Media</span>
-                  <span className="absolute inset-0 w-full h-full bg-accent/20 rounded-lg scale-0 group-hover:scale-100 transition-transform duration-300 blur-sm"></span>
-                  <span className="absolute inset-0 w-full h-full bg-accent/10 rounded-lg scale-0 group-hover:scale-110 transition-transform duration-300"></span>
-                </Link>
-                
-                <Link 
-                  to="/services/reporting" 
-                  className={`relative font-medium transition-all duration-300 group ${
-                    isScrolled ? 'text-foreground hover:text-accent' : 'text-foreground hover:text-accent'
-                  }`}
-                >
-                  <span className="relative z-10">Reporting</span>
-                  <span className="absolute inset-0 w-full h-full bg-accent/20 rounded-lg scale-0 group-hover:scale-100 transition-transform duration-300 blur-sm"></span>
-                  <span className="absolute inset-0 w-full h-full bg-accent/10 rounded-lg scale-0 group-hover:scale-110 transition-transform duration-300"></span>
-                </Link>
-              </div>
-            </nav>
-          )}
-
           {/* Contact Us Button - Desktop Only */}
           <Button 
             onClick={onContactClick}
@@ -142,60 +66,6 @@ const Header = ({ onContactClick }: HeaderProps) => {
             Contact
           </Button>
         </div>
-
-        {/* Mobile Menu Items - Stack vertically on mobile, hidden on homepage */}
-        {!isHomepage && (
-          <nav className="md:hidden mt-6 flex flex-wrap justify-center gap-4">
-            <Link 
-              to="/" 
-              className={`font-medium transition-colors duration-300 px-3 py-1 ${
-                isScrolled ? 'text-foreground hover:text-accent' : 'text-foreground hover:text-accent'
-              }`}
-            >
-              Home
-            </Link>
-            <Link 
-              to="/services/website-design" 
-              className={`font-medium transition-colors duration-300 px-3 py-1 ${
-                isScrolled ? 'text-foreground hover:text-accent' : 'text-foreground hover:text-accent'
-              }`}
-            >
-              Design
-            </Link>
-            <Link 
-              to="/services/seo" 
-              className={`font-medium transition-colors duration-300 px-3 py-1 ${
-                isScrolled ? 'text-foreground hover:text-accent' : 'text-foreground hover:text-accent'
-              }`}
-            >
-              SEO
-            </Link>
-            <Link 
-              to="/services/paid-ads" 
-              className={`font-medium transition-colors duration-300 px-3 py-1 ${
-                isScrolled ? 'text-foreground hover:text-accent' : 'text-foreground hover:text-accent'
-              }`}
-            >
-              Paid Ads
-            </Link>
-            <Link 
-              to="/services/social-media" 
-              className={`font-medium transition-colors duration-300 px-3 py-1 ${
-                isScrolled ? 'text-foreground hover:text-accent' : 'text-foreground hover:text-accent'
-              }`}
-            >
-              Social
-            </Link>
-            <Link 
-              to="/services/reporting" 
-              className={`font-medium transition-colors duration-300 px-3 py-1 ${
-                isScrolled ? 'text-foreground hover:text-accent' : 'text-foreground hover:text-accent'
-              }`}
-            >
-              Reporting
-            </Link>
-          </nav>
-        )}
       </div>
     </header>
   );
