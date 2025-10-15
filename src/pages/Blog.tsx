@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Calendar, Clock, ArrowRight, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,7 @@ import Footer from "@/components/Footer";
 import ContactModal from "@/components/ContactModal";
 
 const Blog = () => {
+  const navigate = useNavigate();
   const [isContactOpen, setIsContactOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -16,6 +18,7 @@ const Blog = () => {
   const blogPosts = [
     {
       id: 1,
+      slug: "10-essential-seo-strategies-2024",
       title: "10 Essential SEO Strategies for 2024",
       excerpt: "Discover the latest SEO techniques that will help your website rank higher in search results and drive more organic traffic.",
       image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=500&fit=crop",
@@ -25,6 +28,7 @@ const Blog = () => {
     },
     {
       id: 2,
+      slug: "optimize-website-local-seo",
       title: "How to Optimize Your Website for Local SEO",
       excerpt: "Learn the key tactics to improve your local search visibility and attract more customers from your area.",
       image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=500&fit=crop",
@@ -34,6 +38,7 @@ const Blog = () => {
     },
     {
       id: 3,
+      slug: "complete-guide-technical-seo",
       title: "The Complete Guide to Technical SEO",
       excerpt: "Master the technical aspects of SEO to ensure your website is properly optimized for search engines.",
       image: "https://images.unsplash.com/photo-1432888622747-4eb9a8efeb07?w=800&h=500&fit=crop",
@@ -43,6 +48,7 @@ const Blog = () => {
     },
     {
       id: 4,
+      slug: "content-marketing-strategies",
       title: "Content Marketing Strategies That Actually Work",
       excerpt: "Explore proven content marketing strategies that drive engagement and boost your SEO performance.",
       image: "https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=800&h=500&fit=crop",
@@ -52,6 +58,7 @@ const Blog = () => {
     },
     {
       id: 5,
+      slug: "link-building-best-practices-2024",
       title: "Link Building Best Practices for 2024",
       excerpt: "Discover effective link building techniques that comply with search engine guidelines and deliver results.",
       image: "https://images.unsplash.com/photo-1557838923-2985c318be48?w=800&h=500&fit=crop",
@@ -61,6 +68,7 @@ const Blog = () => {
     },
     {
       id: 6,
+      slug: "mobile-first-seo-guide",
       title: "Mobile-First SEO: Why It Matters More Than Ever",
       excerpt: "Learn why mobile optimization is crucial for SEO success and how to implement mobile-first strategies.",
       image: "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=800&h=500&fit=crop",
@@ -137,7 +145,7 @@ const Blog = () => {
                     viewport={{ once: true }}
                   >
                     <Card className="h-full overflow-hidden hover:shadow-lg transition-all duration-300 group cursor-pointer"
-                      onClick={() => setIsContactOpen(true)}
+                      onClick={() => navigate(`/blog/${post.slug}`)}
                     >
                       <div className="relative overflow-hidden">
                         <img 
