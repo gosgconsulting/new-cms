@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Image, Monitor, Code, Globe, Search, FileText, Tag, Palette } from 'lucide-react';
+import { ColorSettings } from '../cms/ColorSettings';
+import { TypographySettings } from '../cms/TypographySettings';
 
 const SettingsManager: React.FC = () => {
   const [activeTab, setActiveTab] = useState('branding');
@@ -270,13 +272,19 @@ const BrandingTab: React.FC = () => {
   );
 };
 
-// Placeholder components for other tabs
-const StyleTab: React.FC = () => (
-  <div className="bg-white rounded-lg border border-gray-200 p-6">
-    <h2 className="text-lg font-semibold text-gray-900 mb-4">Style Settings</h2>
-    <p className="text-gray-600">Style settings will be implemented here.</p>
-  </div>
-);
+// Style Tab with Color and Typography Settings
+const StyleTab: React.FC = () => {
+  const handleSettingsUpdate = (settings: any) => {
+    console.log('Settings updated:', settings);
+  };
+
+  return (
+    <div className="space-y-6">
+      <ColorSettings onUpdate={handleSettingsUpdate} />
+      <TypographySettings onUpdate={handleSettingsUpdate} />
+    </div>
+  );
+};
 
 const SEOTab: React.FC = () => {
   const [seoSettings, setSeoSettings] = useState({
