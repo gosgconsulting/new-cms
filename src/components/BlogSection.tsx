@@ -14,6 +14,7 @@ const BlogSection = ({ onContactClick }: BlogSectionProps) => {
   const blogPosts = [
     {
       id: 1,
+      slug: "10-essential-seo-strategies-2024",
       title: "10 Essential SEO Strategies for 2024",
       excerpt: "Discover the latest SEO techniques that will help your website rank higher in search results and drive more organic traffic.",
       image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=500&h=300&fit=crop",
@@ -22,6 +23,7 @@ const BlogSection = ({ onContactClick }: BlogSectionProps) => {
     },
     {
       id: 2,
+      slug: "optimize-website-local-seo",
       title: "How to Optimize Your Website for Local SEO",
       excerpt: "Learn the key tactics to improve your local search visibility and attract more customers from your area.",
       image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=500&h=300&fit=crop",
@@ -30,6 +32,7 @@ const BlogSection = ({ onContactClick }: BlogSectionProps) => {
     },
     {
       id: 3,
+      slug: "complete-guide-technical-seo",
       title: "The Complete Guide to Technical SEO",
       excerpt: "Master the technical aspects of SEO to ensure your website is properly optimized for search engines.",
       image: "https://images.unsplash.com/photo-1432888622747-4eb9a8efeb07?w=500&h=300&fit=crop",
@@ -73,7 +76,7 @@ const BlogSection = ({ onContactClick }: BlogSectionProps) => {
               transition={{ duration: 0.6, delay: index * 0.1 }}
               viewport={{ once: true }}
               className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 group cursor-pointer h-full"
-              onClick={() => navigate(`/blog/${post.id}`)}
+              onClick={() => navigate(`/blog/${post.slug}`)}
             >
               <div className="relative overflow-hidden">
                 <img 
