@@ -1,10 +1,9 @@
 import React from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
-import { Database, Plus } from 'lucide-react';
+import { Database, Plus, FolderKanban, Puzzle, FileCode } from 'lucide-react';
 
 interface Project {
   id: string;
@@ -20,27 +19,60 @@ interface Project {
 }
 
 const DeveloperManager: React.FC = () => {
+  const [activeTab, setActiveTab] = React.useState('projects');
+
+  const tabs = [
+    { id: 'projects', label: 'Projects', icon: FolderKanban },
+    { id: 'integrations', label: 'Integrations', icon: Puzzle },
+    { id: 'rules', label: 'Rules', icon: FileCode },
+  ];
+
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'projects':
+        return <ProjectsTab />;
+      case 'integrations':
+        return <IntegrationsTab />;
+      case 'rules':
+        return <RulesTab />;
+      default:
+        return null;
+    }
+  };
+
   return (
-    <div className="space-y-6">
-      <Tabs defaultValue="projects" className="w-full">
-        <TabsList>
-          <TabsTrigger value="projects">Projects</TabsTrigger>
-          <TabsTrigger value="integrations">Integrations</TabsTrigger>
-          <TabsTrigger value="rules">Rules</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="projects" className="space-y-6 mt-6">
-          <ProjectsTab />
-        </TabsContent>
-
-        <TabsContent value="integrations" className="space-y-6 mt-6">
-          <IntegrationsTab />
-        </TabsContent>
-
-        <TabsContent value="rules" className="space-y-6 mt-6">
-          <RulesTab />
-        </TabsContent>
-      </Tabs>
+    <div className="max-w-6xl mx-auto">
+      {/* Tab Navigation */}
+      <div className="bg-white rounded-lg border border-gray-200 mb-6">
+        <div className="border-b border-gray-200">
+          <nav className="flex space-x-8 px-6">
+            {tabs.map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
+              
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex items-center space-x-2 py-4 px-2 border-b-2 font-medium text-sm transition-colors ${
+                    isActive
+                      ? 'border-purple-500 text-purple-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  <Icon className="h-5 w-5" />
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
+          </nav>
+        </div>
+        
+        {/* Tab Content */}
+        <div className="p-6">
+          {renderTabContent()}
+        </div>
+      </div>
     </div>
   );
 };
@@ -103,20 +135,22 @@ const ProjectsTab: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      <div>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Development Projects</h3>
+        <p className="text-sm text-gray-600 mb-6">
+          Manage your development projects with tasks and progress tracking
+        </p>
+      </div>
+
+      <div className="flex justify-end mb-4">
+        <Button onClick={() => setShowNewProjectModal(true)}>
+          <Plus className="h-4 w-4 mr-2" />
+          New Project
+        </Button>
+      </div>
+
       <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>Development Projects</CardTitle>
-              <CardDescription>Manage your development projects with tasks and progress tracking</CardDescription>
-            </div>
-            <Button onClick={() => setShowNewProjectModal(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              New Project
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           {isLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {[1, 2, 3].map((i) => (
@@ -351,12 +385,15 @@ const IntegrationsTab: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      <div>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Active Integrations</h3>
+        <p className="text-sm text-gray-600 mb-6">
+          List of all connected APIs, services, and database integrations
+        </p>
+      </div>
+
       <Card>
-        <CardHeader>
-          <CardTitle>Active Integrations</CardTitle>
-          <CardDescription>List of all connected APIs, services, and database integrations</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="pt-6 space-y-4">
           <div className="border rounded-lg p-4 flex items-start justify-between">
             <div className="flex items-start gap-4">
               <div className="p-2 bg-primary/10 rounded-lg">
@@ -396,56 +433,63 @@ const IntegrationsTab: React.FC = () => {
 const RulesTab: React.FC = () => {
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>UX/UI Rules</CardTitle>
-          <CardDescription>Design system and user experience guidelines</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ul className="space-y-2 text-sm">
-            <li className="text-muted-foreground">Always use design system tokens from index.css and tailwind.config.ts</li>
-            <li className="text-muted-foreground">Never use hardcoded colors - use semantic color tokens (bg-surface, text-foreground, etc.)</li>
-            <li className="text-muted-foreground">Maintain consistent spacing using system scale (space-xs, space-sm, space-md, etc.)</li>
-            <li className="text-muted-foreground">Ensure all interactive elements have proper hover and focus states</li>
-            <li className="text-muted-foreground">Keep typography consistent using system classes (text-h1, text-body, etc.)</li>
-            <li className="text-muted-foreground">Design mobile-first, then enhance for larger screens</li>
-          </ul>
-        </CardContent>
-      </Card>
+      <div>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Development & Design Rules</h3>
+        <p className="text-sm text-gray-600 mb-6">
+          Follow these guidelines to maintain code quality, design consistency, and best practices
+        </p>
+      </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Development Rules</CardTitle>
-          <CardDescription>Code quality and architecture standards</CardDescription>
-        </CardHeader>
-        <CardContent>
+      {/* UX/UI Rules */}
+      <div className="bg-gray-50 rounded-lg p-6">
+        <h4 className="text-base font-semibold text-gray-900 mb-4">UX/UI Rules</h4>
+        <p className="text-sm text-gray-600 mb-4">Design system and user experience guidelines</p>
+        
+        <div className="bg-white rounded-lg p-4 border border-gray-200">
           <ul className="space-y-2 text-sm">
-            <li className="text-muted-foreground">Use TypeScript for type safety</li>
-            <li className="text-muted-foreground">Create small, focused components instead of large monolithic files</li>
-            <li className="text-muted-foreground">Follow React best practices (hooks, functional components)</li>
-            <li className="text-muted-foreground">Implement proper error handling and loading states</li>
-            <li className="text-muted-foreground">Use Railway PostgreSQL for database operations (no Supabase)</li>
-            <li className="text-muted-foreground">Keep API routes in server.js with proper error handling</li>
-            <li className="text-muted-foreground">Write clean, self-documenting code with minimal comments</li>
+            <li className="text-gray-700">• Always use design system tokens from index.css and tailwind.config.ts</li>
+            <li className="text-gray-700">• Never use hardcoded colors - use semantic color tokens (bg-surface, text-foreground, etc.)</li>
+            <li className="text-gray-700">• Maintain consistent spacing using system scale (space-xs, space-sm, space-md, etc.)</li>
+            <li className="text-gray-700">• Ensure all interactive elements have proper hover and focus states</li>
+            <li className="text-gray-700">• Keep typography consistent using system classes (text-h1, text-body, etc.)</li>
+            <li className="text-gray-700">• Design mobile-first, then enhance for larger screens</li>
           </ul>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Database Rules</CardTitle>
-          <CardDescription>Database design and query standards</CardDescription>
-        </CardHeader>
-        <CardContent>
+      {/* Development Rules */}
+      <div className="bg-gray-50 rounded-lg p-6">
+        <h4 className="text-base font-semibold text-gray-900 mb-4">Development Rules</h4>
+        <p className="text-sm text-gray-600 mb-4">Code quality and architecture standards</p>
+        
+        <div className="bg-white rounded-lg p-4 border border-gray-200">
           <ul className="space-y-2 text-sm">
-            <li className="text-muted-foreground">Use Railway PostgreSQL as primary database</li>
-            <li className="text-muted-foreground">All database queries should use parameterized statements to prevent SQL injection</li>
-            <li className="text-muted-foreground">Implement proper indexing for frequently queried columns</li>
-            <li className="text-muted-foreground">Use transactions for multi-step operations</li>
-            <li className="text-muted-foreground">Keep database schema migrations in sparti-cms/db/migrations.sql</li>
+            <li className="text-gray-700">• Use TypeScript for type safety</li>
+            <li className="text-gray-700">• Create small, focused components instead of large monolithic files</li>
+            <li className="text-gray-700">• Follow React best practices (hooks, functional components)</li>
+            <li className="text-gray-700">• Implement proper error handling and loading states</li>
+            <li className="text-gray-700">• Use Railway PostgreSQL for database operations (no Supabase)</li>
+            <li className="text-gray-700">• Keep API routes in server.js with proper error handling</li>
+            <li className="text-gray-700">• Write clean, self-documenting code with minimal comments</li>
           </ul>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
+
+      {/* Database Rules */}
+      <div className="bg-gray-50 rounded-lg p-6">
+        <h4 className="text-base font-semibold text-gray-900 mb-4">Database Rules</h4>
+        <p className="text-sm text-gray-600 mb-4">Database design and query standards</p>
+        
+        <div className="bg-white rounded-lg p-4 border border-gray-200">
+          <ul className="space-y-2 text-sm">
+            <li className="text-gray-700">• Use Railway PostgreSQL as primary database</li>
+            <li className="text-gray-700">• All database queries should use parameterized statements to prevent SQL injection</li>
+            <li className="text-gray-700">• Implement proper indexing for frequently queried columns</li>
+            <li className="text-gray-700">• Use transactions for multi-step operations</li>
+            <li className="text-gray-700">• Keep database schema migrations in sparti-cms/db/migrations.sql</li>
+          </ul>
+        </div>
+      </div>
     </div>
   );
 };
