@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
-import { Database, Plus, FolderKanban, Puzzle, FileCode } from 'lucide-react';
+import { Database, Plus, FolderKanban, Puzzle, FileCode, Code, Globe, Monitor } from 'lucide-react';
 
 interface Project {
   id: string;
@@ -24,6 +24,7 @@ const DeveloperManager: React.FC = () => {
   const tabs = [
     { id: 'projects', label: 'Projects', icon: FolderKanban },
     { id: 'integrations', label: 'Integrations', icon: Puzzle },
+    { id: 'code', label: 'Code', icon: Code },
     { id: 'rules', label: 'Rules', icon: FileCode },
   ];
 
@@ -33,6 +34,8 @@ const DeveloperManager: React.FC = () => {
         return <ProjectsTab />;
       case 'integrations':
         return <IntegrationsTab />;
+      case 'code':
+        return <CodeTab />;
       case 'rules':
         return <RulesTab />;
       default:
@@ -426,6 +429,204 @@ const IntegrationsTab: React.FC = () => {
           </Button>
         </CardContent>
       </Card>
+    </div>
+  );
+};
+
+const CodeTab: React.FC = () => {
+  const [customCode, setCustomCode] = React.useState({
+    head: '',
+    body: '',
+    gtmId: '',
+    gaId: '',
+    gscVerification: ''
+  });
+
+  const handleInputChange = (field: string, value: string) => {
+    setCustomCode(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Custom Code & Analytics</h3>
+        <p className="text-sm text-gray-600 mb-6">
+          Add custom code and configure analytics services.
+        </p>
+      </div>
+      
+      {/* Custom Code Section */}
+      <div className="bg-gray-50 rounded-lg p-6">
+        <div className="mb-6">
+          <h4 className="text-base font-semibold text-gray-900 flex items-center">
+            <Code className="h-5 w-5 mr-2" />
+            Custom Code
+          </h4>
+          <p className="text-sm text-gray-600 mt-1">
+            Add custom HTML, CSS, or JavaScript to your site
+          </p>
+        </div>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Head Section */}
+          <div className="bg-white rounded-lg p-4 border border-gray-200">
+            <label className="block text-sm font-medium text-gray-700 mb-3">
+              Head Section
+            </label>
+            <p className="text-xs text-gray-500 mb-3">
+              Code added here will be inserted in the &lt;head&gt; section of your site
+            </p>
+            <textarea
+              value={customCode.head}
+              onChange={(e) => handleInputChange('head', e.target.value)}
+              placeholder={`<!-- Add your custom head code here -->
+<meta name='custom-meta' content='value'>
+<link rel='stylesheet' href='custom.css'>
+<script>
+  // Custom JavaScript
+</script>`}
+              rows={8}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent font-mono text-sm resize-none"
+            />
+          </div>
+          
+          {/* Body Section */}
+          <div className="bg-white rounded-lg p-4 border border-gray-200">
+            <label className="block text-sm font-medium text-gray-700 mb-3">
+              Body Section
+            </label>
+            <p className="text-xs text-gray-500 mb-3">
+              Code added here will be inserted before the closing &lt;/body&gt; tag
+            </p>
+            <textarea
+              value={customCode.body}
+              onChange={(e) => handleInputChange('body', e.target.value)}
+              placeholder={`<!-- Add your custom body code here -->
+<script>
+  // Analytics or tracking code
+  console.log('Custom body script loaded');
+</script>`}
+              rows={8}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent font-mono text-sm resize-none"
+            />
+          </div>
+        </div>
+      </div>
+      
+      {/* Google Services Section */}
+      <div className="bg-gray-50 rounded-lg p-6">
+        <div className="mb-6">
+          <h4 className="text-base font-semibold text-gray-900 flex items-center">
+            <Globe className="h-5 w-5 mr-2" />
+            Google Services
+          </h4>
+          <p className="text-sm text-gray-600 mt-1">
+            Configure Google analytics and tracking services
+          </p>
+        </div>
+        
+        <div className="space-y-6">
+          {/* Google Tag Manager */}
+          <div className="bg-white rounded-lg p-4 border border-gray-200">
+            <div className="flex items-start space-x-3">
+              <div className="flex-shrink-0 mt-1">
+                <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <Code className="h-4 w-4 text-blue-600" />
+                </div>
+              </div>
+              <div className="flex-1">
+                <h5 className="font-medium text-gray-900 mb-2">Google Tag Manager</h5>
+                <p className="text-sm text-gray-600 mb-3">
+                  Manage all your marketing and analytics tags in one place
+                </p>
+                <div className="space-y-2">
+                  <label className="block text-xs font-medium text-gray-700">
+                    Container ID (GTM-XXXXXXX)
+                  </label>
+                  <input
+                    type="text"
+                    value={customCode.gtmId}
+                    onChange={(e) => handleInputChange('gtmId', e.target.value)}
+                    placeholder="GTM-XXXXXXX"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Google Analytics */}
+          <div className="bg-white rounded-lg p-4 border border-gray-200">
+            <div className="flex items-start space-x-3">
+              <div className="flex-shrink-0 mt-1">
+                <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                  <Globe className="h-4 w-4 text-green-600" />
+                </div>
+              </div>
+              <div className="flex-1">
+                <h5 className="font-medium text-gray-900 mb-2">Google Analytics</h5>
+                <p className="text-sm text-gray-600 mb-3">
+                  Track website traffic and user behavior
+                </p>
+                <div className="space-y-2">
+                  <label className="block text-xs font-medium text-gray-700">
+                    Measurement ID (G-XXXXXXXXXX)
+                  </label>
+                  <input
+                    type="text"
+                    value={customCode.gaId}
+                    onChange={(e) => handleInputChange('gaId', e.target.value)}
+                    placeholder="G-XXXXXXXXXX"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Google Search Console */}
+          <div className="bg-white rounded-lg p-4 border border-gray-200">
+            <div className="flex items-start space-x-3">
+              <div className="flex-shrink-0 mt-1">
+                <div className="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center">
+                  <Monitor className="h-4 w-4 text-yellow-600" />
+                </div>
+              </div>
+              <div className="flex-1">
+                <h5 className="font-medium text-gray-900 mb-2">Google Search Console</h5>
+                <p className="text-sm text-gray-600 mb-3">
+                  Verify your site ownership for Search Console
+                </p>
+                <div className="space-y-2">
+                  <label className="block text-xs font-medium text-gray-700">
+                    Verification Meta Tag Content
+                  </label>
+                  <input
+                    type="text"
+                    value={customCode.gscVerification}
+                    onChange={(e) => handleInputChange('gscVerification', e.target.value)}
+                    placeholder="Enter the content value from the meta tag"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+                  />
+                  <p className="text-xs text-gray-500">
+                    Copy only the content value from: &lt;meta name="google-site-verification" content="<strong>this_part</strong>" /&gt;
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      {/* Save Button */}
+      <div className="flex justify-end">
+        <Button className="bg-purple-600 hover:bg-purple-700">
+          Save Changes
+        </Button>
+      </div>
     </div>
   );
 };
