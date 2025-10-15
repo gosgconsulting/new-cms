@@ -321,7 +321,7 @@ export async function createContact(contactData) {
 export async function getContacts(limit = 50, offset = 0, search = '') {
   try {
     let whereClause = '';
-    let params = [limit, offset];
+    let params = [];
     
     if (search) {
       whereClause = `WHERE 
@@ -330,6 +330,8 @@ export async function getContacts(limit = 50, offset = 0, search = '') {
         email ILIKE $1 OR 
         company ILIKE $1`;
       params = [`%${search}%`, limit, offset];
+    } else {
+      params = [limit, offset];
     }
     
     const result = await query(`
@@ -352,16 +354,10 @@ export async function getContacts(limit = 50, offset = 0, search = '') {
     `, params);
     
     // Get total count - use consistent parameter indexing
-    const countWhereClause = search ? `WHERE 
-      first_name ILIKE $1 OR 
-      last_name ILIKE $1 OR 
-      email ILIKE $1 OR 
-      company ILIKE $1` : '';
-    
     const countResult = await query(`
       SELECT COUNT(*) as total 
       FROM contacts 
-      ${countWhereClause}
+      ${whereClause}
     `, search ? [`%${search}%`] : []);
     
     return {

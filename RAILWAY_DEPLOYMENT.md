@@ -1,12 +1,54 @@
 # Railway Deployment Guide
 
-## Overview
+This guide covers deploying your GO SG website to Railway with proper database setup.
 
-This guide covers deploying the GO SG website to Railway with both frontend and backend properly configured.
+## 🚀 Quick Deploy (Recommended)
 
-## Railway Configuration Files
+### 1. **Deploy to Railway**
+```bash
+# Connect your GitHub repo to Railway
+# Railway will automatically detect your project and use railway.toml
+```
 
-### 1. railway.toml
+### 2. **Set Environment Variables in Railway Dashboard**
+Go to your Railway project → Variables tab and add:
+```env
+DATABASE_URL=your_postgres_connection_string
+NODE_ENV=production
+```
+
+### 3. **Run Database Migration**
+After deployment, run the migration script to fix database schema:
+```bash
+# In Railway dashboard → Deployments → Run Command:
+npm run migrate:railway
+```
+
+### 4. **Verify Deployment**
+- **Frontend**: `https://your-app.railway.app/`
+- **API**: `https://your-app.railway.app/api/health`
+- **Health Check**: `https://your-app.railway.app/health`
+
+---
+
+## 🔧 Manual Deployment Steps
+
+### Step 1: Prepare Your Project
+```bash
+# Ensure all files are committed
+git add .
+git commit -m "Prepare for Railway deployment"
+git push origin main
+```
+
+### Step 2: Create Railway Project
+1. Go to [Railway.app](https://railway.app)
+2. Click "New Project"
+3. Select "Deploy from GitHub repo"
+4. Choose your repository
+
+### Step 3: Configure Railway
+Railway will automatically use your `railway.toml`:
 ```toml
 [build]
 builder = "NIXPACKS"
@@ -20,117 +62,218 @@ restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 10
 ```
 
-### 2. Procfile (alternative)
+### Step 4: Add PostgreSQL Database
+1. In Railway dashboard → Add Service → Database → PostgreSQL
+2. Railway will automatically provide `DATABASE_URL` environment variable
+
+### Step 5: Set Environment Variables
+In Railway dashboard → Variables tab:
+```env
+DATABASE_URL=postgresql://username:password@host:port/database
+NODE_ENV=production
+```
+
+### Step 6: Deploy and Migrate
+1. Railway will automatically build and deploy
+2. Once deployed, run migration:
+   ```bash
+   # In Railway dashboard → Deployments → Run Command:
+   npm run migrate:railway
+   ```
+
+---
+
+## 🗄️ Database Migration
+
+### Why Migration is Needed
+Railway's PostgreSQL might not have the correct table structure. The migration script will:
+- ✅ Check existing table structure
+- ✅ Drop and recreate tables with correct schema
+- ✅ Preserve data (if any)
+- ✅ Add missing columns
+- ✅ Create all required tables
+
+### Migration Script Features
+```javascript
+// migrate-railway-db.js
+- Checks form_submissions table structure
+- Checks contacts table structure  
+- Recreates tables with correct schema
+- Creates all required tables (site_settings, projects, etc.)
+- Inserts default site settings
+- Shows final database structure
+```
+
+### Running Migration
+```bash
+# Local development
+npm run migrate
+
+# Railway production
+npm run migrate:railway
+```
+
+---
+
+## 🏗️ Railway Configuration Files
+
+### railway.toml
+```toml
+[build]
+builder = "NIXPACKS"
+buildCommand = "npm run build"
+
+[deploy]
+startCommand = "npm start"
+healthcheckPath = "/health"
+healthcheckTimeout = 300
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10
+```
+
+### Procfile (Alternative)
 ```
 web: npm start
 ```
 
-## Deployment Steps
+---
 
-### 1. Connect Repository to Railway
+## 🔍 Troubleshooting
 
-1. Go to [Railway](https://railway.app)
-2. Create a new project
-3. Connect your GitHub repository
-4. Railway will automatically detect the `railway.toml` configuration
+### Common Issues
 
-### 2. Environment Variables
-
-Set these environment variables in Railway dashboard:
-
-```
-DATABASE_URL=postgresql://username:password@host:port/database
-RESEND_API_KEY=your_resend_api_key
-SMTP_FROM_EMAIL=noreply@gosg.com
-NODE_ENV=production
-PORT=4173
-```
-
-### 3. Build Process
-
-Railway will automatically:
-1. Install dependencies (`npm install`)
-2. Run build command (`npm run build`) - creates `dist/` folder
-3. Start the server (`npm start`) - serves built files + API
-
-### 4. Verify Deployment
-
-After deployment, check:
-- **Frontend**: `https://your-app.railway.app/` - should show React app
-- **API**: `https://your-app.railway.app/health` - should return health status
-- **API**: `https://your-app.railway.app/api/contacts` - should return contacts
-
-## Troubleshooting
-
-### Issue: Frontend not loading (shows "Server is running but app not built")
-
-**Solution**: Ensure Railway runs the build command before start:
-1. Check that `railway.toml` has `buildCommand = "npm run build"`
-2. Verify the build completes successfully in Railway logs
-3. Check that `dist/` folder exists after build
-
-### Issue: API endpoints not working
-
-**Solution**: Check environment variables:
-1. Verify `DATABASE_URL` is correctly set
-2. Check Railway logs for database connection errors
-3. Ensure PostgreSQL service is running
-
-### Issue: CORS errors
-
-**Solution**: The server already includes CORS headers for all origins in production.
-
-## File Structure After Build
-
-```
-├── dist/                    # Built React app (created by npm run build)
-│   ├── index.html
-│   ├── assets/
-│   │   ├── index-*.js
-│   │   └── index-*.css
-│   └── ...
-├── server.js               # Express server (serves dist/ + API)
-├── railway.toml           # Railway configuration
-├── Procfile              # Alternative Railway config
-└── package.json          # Scripts: build, start
-```
-
-## Production Workflow
-
-1. **Build**: `npm run build` creates optimized static files in `dist/`
-2. **Start**: `npm start` runs Express server that serves:
-   - Static files from `dist/` (React app)
-   - API endpoints at `/api/*`
-   - Health check at `/health`
-
-## Single Railway App
-
-Use **one Railway app** because:
-- ✅ Simpler deployment and management
-- ✅ Lower cost
-- ✅ Single domain/subdomain
-- ✅ Server already configured to serve both frontend and API
-- ✅ No CORS issues between services
-
-## Monitoring
-
-### Health Check
+#### 1. **"column does not exist" Error**
 ```bash
-curl https://your-app.railway.app/health
+# Solution: Run migration
+npm run migrate:railway
 ```
 
-### Logs
-Check Railway dashboard logs for:
-- Build process completion
-- Server startup messages
-- Database connection status
-- API request/response logs
+#### 2. **Database Connection Failed**
+```bash
+# Check DATABASE_URL environment variable
+# Ensure PostgreSQL service is running
+```
 
-## Performance
+#### 3. **Frontend Not Loading**
+```bash
+# Check if build completed successfully
+# Verify static files are served from /dist
+```
 
-The production setup includes:
-- ✅ Gzipped static assets
-- ✅ Proper cache headers
-- ✅ Optimized React bundle
-- ✅ PostgreSQL connection pooling
-- ✅ Express compression middleware
+#### 4. **API Endpoints Not Working**
+```bash
+# Check server logs in Railway dashboard
+# Verify CORS configuration
+# Test health endpoint: /health
+```
+
+### Debug Commands
+```bash
+# Check Railway logs
+railway logs
+
+# Run health check
+curl https://your-app.railway.app/health
+
+# Test API endpoint
+curl https://your-app.railway.app/api/health
+```
+
+---
+
+## 📊 Deployment Architecture
+
+### Single App Setup (Recommended)
+```
+Railway App (Port: Auto-assigned)
+├── Frontend (React) → Served from /dist
+├── Backend (Express) → API endpoints at /api/*
+└── Database (PostgreSQL) → Connected via DATABASE_URL
+```
+
+### URL Structure
+- **Frontend**: `https://your-app.railway.app/`
+- **API**: `https://your-app.railway.app/api/*`
+- **Health**: `https://your-app.railway.app/health`
+
+---
+
+## 🚀 Production Checklist
+
+### Before Deployment
+- [ ] All code committed to git
+- [ ] `railway.toml` configured
+- [ ] Environment variables documented
+- [ ] Database migration script ready
+
+### After Deployment
+- [ ] Railway project created
+- [ ] PostgreSQL database added
+- [ ] Environment variables set
+- [ ] Build completed successfully
+- [ ] Database migration run
+- [ ] Health check passing
+- [ ] Frontend loading correctly
+- [ ] API endpoints working
+- [ ] Contact form functional
+
+---
+
+## 🔄 Continuous Deployment
+
+Railway automatically deploys when you push to your main branch:
+```bash
+git add .
+git commit -m "Update feature"
+git push origin main
+# Railway will automatically deploy
+```
+
+### Manual Deployment
+```bash
+railway up
+```
+
+---
+
+## 📝 Environment Variables Reference
+
+### Required for Production
+```env
+DATABASE_URL=postgresql://username:password@host:port/database
+NODE_ENV=production
+```
+
+### Optional (for email functionality)
+```env
+RESEND_API_KEY=your_resend_api_key
+SMTP_FROM_EMAIL=your_email@domain.com
+```
+
+---
+
+## 🎯 Success Indicators
+
+Your deployment is successful when:
+- ✅ Railway build completes without errors
+- ✅ Health endpoint returns 200: `/health`
+- ✅ Frontend loads at root URL: `/`
+- ✅ API endpoints respond: `/api/health`
+- ✅ Database migration runs successfully
+- ✅ Contact form submits without errors
+- ✅ Admin panel loads contacts correctly
+
+---
+
+## 🆘 Support
+
+If you encounter issues:
+1. Check Railway logs in dashboard
+2. Run database migration: `npm run migrate:railway`
+3. Verify environment variables
+4. Test health endpoint
+5. Check this troubleshooting guide
+
+---
+
+**🎉 Happy Deploying!**
