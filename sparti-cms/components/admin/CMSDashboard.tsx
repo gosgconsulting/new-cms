@@ -25,11 +25,14 @@ import PagesManager from '../cms/PagesManager';
 import FormsManager from '../cms/FormsManager';
 
 // Import new components
-import SettingsManager from './SettingsManager';
 import DeveloperManager from './DeveloperManager';
 import ContactsManager from './ContactsManager';
 import SMTPManager from './SMTPManager';
 import ComponentsManager from './ComponentsManager';
+import BrandingSettingsPage from './BrandingSettingsPage';
+import ButtonSettingsPage from './ButtonSettingsPage';
+import TypographySettingsPage from './TypographySettingsPage';
+import ColorSettingsPage from './ColorSettingsPage';
 
 // Placeholder components
 const BlogManager = () => (
@@ -39,8 +42,76 @@ const BlogManager = () => (
   </div>
 );
 
+const SettingsManager = () => {
+  const [activeSettingsTab, setActiveSettingsTab] = useState('branding');
 
+  const renderSettingsContent = () => {
+    switch (activeSettingsTab) {
+      case 'branding':
+        return <BrandingSettingsPage />;
+      case 'buttons':
+        return <ButtonSettingsPage />;
+      case 'typography':
+        return <TypographySettingsPage />;
+      case 'colors':
+        return <ColorSettingsPage />;
+      default:
+        return <BrandingSettingsPage />;
+    }
+  };
 
+  return (
+    <div className="space-y-6">
+      <div className="bg-white rounded-lg border border-border shadow-sm">
+        <div className="p-6 border-b border-border">
+          <h2 className="text-2xl font-semibold text-foreground">Settings</h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            Manage your site settings and appearance
+          </p>
+        </div>
+        
+        <div className="p-6">
+          <div className="flex space-x-2 border-b border-border mb-6">
+            <button 
+              onClick={() => setActiveSettingsTab('branding')}
+              className={`px-4 py-2 text-sm font-medium ${activeSettingsTab === 'branding' 
+                ? 'text-brandPurple border-b-2 border-brandPurple' 
+                : 'text-muted-foreground hover:text-foreground'}`}
+            >
+              Branding
+            </button>
+            <button 
+              onClick={() => setActiveSettingsTab('buttons')}
+              className={`px-4 py-2 text-sm font-medium ${activeSettingsTab === 'buttons' 
+                ? 'text-brandPurple border-b-2 border-brandPurple' 
+                : 'text-muted-foreground hover:text-foreground'}`}
+            >
+              Buttons
+            </button>
+            <button 
+              onClick={() => setActiveSettingsTab('typography')}
+              className={`px-4 py-2 text-sm font-medium ${activeSettingsTab === 'typography' 
+                ? 'text-brandPurple border-b-2 border-brandPurple' 
+                : 'text-muted-foreground hover:text-foreground'}`}
+            >
+              Typography
+            </button>
+            <button 
+              onClick={() => setActiveSettingsTab('colors')}
+              className={`px-4 py-2 text-sm font-medium ${activeSettingsTab === 'colors' 
+                ? 'text-brandPurple border-b-2 border-brandPurple' 
+                : 'text-muted-foreground hover:text-foreground'}`}
+            >
+              Colors
+            </button>
+          </div>
+          
+          {renderSettingsContent()}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const CMSDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>('pages');
