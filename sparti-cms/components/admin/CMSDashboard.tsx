@@ -19,6 +19,7 @@ import {
 import { useAuth } from '../auth/AuthProvider';
 import { motion } from 'framer-motion';
 import gosgLogo from "@/assets/go-sg-logo-official.png";
+import { useNavigate } from 'react-router-dom';
 
 // Import existing components
 import PagesManager from '../cms/PagesManager';
@@ -117,6 +118,17 @@ const CMSDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>('pages');
   const [crmExpanded, setCrmExpanded] = useState<boolean>(false);
   const { signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const handleBackClick = () => {
+    if (activeTab === 'components') {
+      // If on components page, navigate back to the CMS dashboard
+      setActiveTab('pages');
+    } else {
+      // For other pages, navigate to the admin root
+      navigate('/admin');
+    }
+  };
 
   const renderContent = () => {
     switch (activeTab) {
@@ -305,7 +317,10 @@ const CMSDashboard: React.FC = () => {
         {/* Top Bar */}
         <div className="bg-white/80 backdrop-blur-md border-b border-border px-6 py-4 shadow-sm">
           <div className="flex items-center space-x-4">
-            <button className="p-2 hover:bg-secondary/50 rounded-lg transition-colors">
+            <button 
+              onClick={handleBackClick}
+              className="p-2 hover:bg-secondary/50 rounded-lg transition-colors cursor-pointer"
+            >
               <ArrowLeft className="h-5 w-5 text-muted-foreground" />
             </button>
             <div>

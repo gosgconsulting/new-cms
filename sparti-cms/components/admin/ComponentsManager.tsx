@@ -1,10 +1,11 @@
 import React, { useState, useMemo } from 'react';
-import { Search, Layers, Eye, FileJson } from 'lucide-react';
+import { Search, Layers, Eye, FileJson, X, ArrowRight } from 'lucide-react';
 import { componentRegistry } from '../../registry';
 import { ComponentDefinition } from '../../registry/types';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // Import actual homepage components for preview
 import Header from '@/components/Header';
@@ -70,25 +71,153 @@ const ComponentsManager: React.FC = () => {
     return filtered;
   }, [allComponents, selectedCategory, searchQuery]);
 
+  // Component preview renderer
+  const renderComponentPreview = (componentId: string) => {
+    switch (componentId) {
+      case 'header-main':
+        return (
+          <div className="bg-white rounded-xl shadow-md overflow-hidden">
+            <Header onContactClick={() => setContactModalOpen(true)} />
+          </div>
+        );
+      case 'footer-main':
+        return (
+          <div className="bg-white rounded-xl shadow-md overflow-hidden">
+            <Footer onContactClick={() => setContactModalOpen(true)} />
+          </div>
+        );
+      case 'hero-main':
+        return (
+          <div className="bg-white rounded-xl shadow-md overflow-hidden">
+            <HeroSection onContactClick={() => setContactModalOpen(true)} />
+          </div>
+        );
+      case 'pain-point-section':
+        return (
+          <div className="bg-white rounded-xl shadow-md overflow-hidden">
+            <PainPointSection />
+          </div>
+        );
+      case 'seo-results-section':
+        return (
+          <div className="bg-white rounded-xl shadow-md overflow-hidden">
+            <SEOResultsSection />
+          </div>
+        );
+      case 'services-showcase-section':
+        return (
+          <div className="bg-white rounded-xl shadow-md overflow-hidden">
+            <SEOServicesShowcase onContactClick={() => setContactModalOpen(true)} />
+          </div>
+        );
+      case 'what-is-seo-section':
+        return (
+          <div className="bg-white rounded-xl shadow-md overflow-hidden">
+            <WhatIsSEOServicesSection onContactClick={() => setContactModalOpen(true)} />
+          </div>
+        );
+      case 'testimonials-section':
+        return (
+          <div className="bg-white rounded-xl shadow-md overflow-hidden">
+            <NewTestimonials />
+          </div>
+        );
+      case 'faq-section':
+        return (
+          <div className="bg-white rounded-xl shadow-md overflow-hidden p-8">
+            <FAQAccordion 
+              title="Frequently Asked Questions"
+              subtitle="Everything you need to know about our SEO services"
+              items={[
+                {
+                  question: "How do backlinks help my website's SEO?",
+                  answer: "Backlinks are crucial for building your website's authority and trust. When reputable websites link to yours, search engines view it as a vote of confidence. This increases your Domain Rating (DR) and Domain Authority (DA), which are key metrics that Google uses to determine your site's credibility. Higher authority means better rankings, more visibility, and increased organic traffic to your website."
+                },
+                {
+                  question: "Why are blog posts important for SEO?",
+                  answer: "Blog posts are essential for SEO because they provide fresh, relevant content that search engines love. Regular blogging helps you target long-tail keywords, answer customer questions, and establish your expertise in your industry. Each blog post is a new opportunity to rank for different search terms, attract backlinks, and engage your audience. Quality blog content also increases time-on-site and reduces bounce rates, which are positive ranking signals for search engines."
+                },
+                {
+                  question: "How much do your SEO services cost?",
+                  answer: "Our SEO services start from just 600 SGD per month, making professional SEO accessible for businesses of all sizes. This includes comprehensive keyword research, on-page optimization, quality backlink building, regular blog content creation, and detailed monthly reporting. We offer flexible packages tailored to your specific needs and goals, ensuring you get the best ROI for your investment."
+                }
+              ]}
+            />
+          </div>
+        );
+      case 'blog-preview-section':
+        return (
+          <div className="bg-white rounded-xl shadow-md overflow-hidden">
+            <BlogSection onContactClick={() => setContactModalOpen(true)} />
+          </div>
+        );
+      case 'whatsapp-button':
+        return (
+          <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl shadow-md p-16 text-center">
+            <div className="relative inline-block">
+              <WhatsAppButton />
+            </div>
+            <p className="text-sm font-medium text-gray-700 mt-8">Floating WhatsApp button (bottom-right on live site)</p>
+          </div>
+        );
+      case 'contact-modal':
+        return (
+          <div className="bg-white rounded-xl shadow-md overflow-hidden p-8">
+            <div className="max-w-md mx-auto">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">Contact Form Modal</h2>
+              <p className="text-gray-600 text-center mb-4">This modal appears when users click "Contact Us" buttons</p>
+              <button 
+                onClick={() => setContactModalOpen(true)}
+                className="w-full py-3 bg-red-500 hover:bg-red-600 text-white rounded-full font-medium transition-colors"
+              >
+                Preview Contact Modal
+              </button>
+            </div>
+          </div>
+        );
+      case 'client-logos-carousel':
+        return (
+          <div className="bg-white rounded-xl shadow-md p-12 text-center">
+            <p className="text-gray-600 mb-6">Client logos carousel is embedded in the Hero Section</p>
+            <button 
+              onClick={() => {
+                const heroComponent = componentRegistry.get('hero-main');
+                if (heroComponent) setPreviewComponent(heroComponent);
+              }}
+              className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-full font-medium transition-colors"
+            >
+              View in Hero Section
+            </button>
+          </div>
+        );
+      default:
+        return (
+          <div className="flex items-center justify-center h-64 bg-gray-50 rounded-xl border border-dashed border-gray-300">
+            <p className="text-gray-500">No preview available for this component</p>
+          </div>
+        );
+    }
+  };
+
   return (
-    <div className="flex h-full bg-gray-50">
+    <div className="flex h-full bg-background">
       {/* Sidebar */}
-      <div className="w-64 bg-white border-r border-gray-200 flex-shrink-0">
+      <div className="w-64 bg-white/80 backdrop-blur-md shadow-md border-r border-border flex-shrink-0">
         <div className="p-6">
           <div className="flex items-center space-x-2 mb-6">
-            <Layers className="h-6 w-6 text-purple-600" />
-            <h2 className="text-xl font-bold text-gray-900">Components</h2>
+            <Layers className="h-6 w-6 text-brandPurple" />
+            <h2 className="text-xl font-bold text-foreground">Components</h2>
           </div>
 
           {/* Search */}
           <div className="relative mb-6">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <input
               type="text"
               placeholder="Search components..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2 border border-input rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brandPurple focus:border-transparent"
             />
           </div>
 
@@ -100,18 +229,18 @@ const ComponentsManager: React.FC = () => {
                 onClick={() => setSelectedCategory(category.id)}
                 className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all duration-200 ${
                   selectedCategory === category.id
-                    ? 'bg-purple-50 text-purple-700 font-medium'
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                    ? 'bg-secondary text-foreground font-medium shadow-sm'
+                    : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'
                 }`}
               >
                 <div className="flex items-center space-x-2">
-                  <Layers className="h-4 w-4" />
+                  <Layers className={`h-4 w-4 ${selectedCategory === category.id ? 'text-brandPurple' : ''}`} />
                   <span className="text-sm">{category.label}</span>
                 </div>
                 <span className={`text-xs px-2 py-0.5 rounded-full ${
                   selectedCategory === category.id
-                    ? 'bg-purple-100 text-purple-700'
-                    : 'bg-gray-100 text-gray-600'
+                    ? 'bg-brandPurple/10 text-brandPurple'
+                    : 'bg-secondary text-muted-foreground'
                 }`}>
                   {category.count}
                 </span>
@@ -122,15 +251,19 @@ const ComponentsManager: React.FC = () => {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1 overflow-auto bg-gradient-to-br from-background via-secondary/10 to-background relative">
+        {/* Diagonal gradient accents */}
+        <div className="absolute top-0 right-1/4 w-96 h-96 bg-gradient-to-br from-brandPurple/5 to-transparent blur-3xl rotate-45 -z-10"></div>
+        <div className="absolute bottom-1/4 left-1/3 w-80 h-80 bg-gradient-to-tl from-brandTeal/5 to-transparent blur-3xl -rotate-45 -z-10"></div>
+        
         <div className="p-8">
           <div className="mb-6">
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            <h1 className="text-2xl font-bold text-foreground mb-2">
               {selectedCategory === 'all' 
                 ? 'All Components' 
                 : categories.find(c => c.id === selectedCategory)?.label || 'Components'}
             </h1>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-muted-foreground">
               {filteredComponents.length} component{filteredComponents.length !== 1 ? 's' : ''} found
             </p>
           </div>
@@ -138,15 +271,18 @@ const ComponentsManager: React.FC = () => {
           {/* Components List */}
           <div className="space-y-4">
             {filteredComponents.map((component) => (
-              <div
+              <motion.div
                 key={component.id}
-                className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow duration-200"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+                className="bg-white rounded-lg border border-border overflow-hidden hover:shadow-md transition-shadow duration-200"
               >
                 <div className="flex items-center p-6">
                   {/* Component Icon/Preview */}
-                  <div className="w-24 h-24 bg-gray-50 rounded-lg flex items-center justify-center border border-gray-200 flex-shrink-0">
+                  <div className="w-24 h-24 bg-secondary/20 rounded-lg flex items-center justify-center border border-border flex-shrink-0">
                     <div className="text-center">
-                      <div className="text-3xl text-gray-300 mb-1">
+                      <div className="text-3xl text-muted-foreground mb-1">
                         {component.type === 'text' ? 'T' : 
                          component.type === 'button' ? 'B' : 
                          component.type === 'image' ? 'I' : 
@@ -159,24 +295,24 @@ const ComponentsManager: React.FC = () => {
                   <div className="flex-1 ml-6">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                        <h3 className="text-xl font-semibold text-foreground mb-2">
                           {component.name}
                         </h3>
                         
                         <div className="flex items-center gap-3 mb-3">
-                          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
+                          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-secondary/50 text-foreground">
                             {component.category || 'other'}
                           </span>
-                          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
+                          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-brandTeal/10 text-brandTeal">
                             {component.type}
                           </span>
-                          <span className="text-xs text-gray-500">
+                          <span className="text-xs text-muted-foreground">
                             v{component.version}
                           </span>
                         </div>
 
                         {component.description && (
-                          <p className="text-sm text-gray-600 mb-4">
+                          <p className="text-sm text-muted-foreground mb-4">
                             {component.description}
                           </p>
                         )}
@@ -184,7 +320,7 @@ const ComponentsManager: React.FC = () => {
                         {component.tags && component.tags.length > 0 && (
                           <div className="flex flex-wrap gap-2">
                             {component.tags.map((tag, idx) => (
-                              <span key={idx} className="text-xs px-2 py-1 bg-gray-50 text-gray-600 rounded">
+                              <span key={idx} className="text-xs px-2 py-1 bg-secondary/30 text-muted-foreground rounded">
                                 {tag}
                               </span>
                             ))}
@@ -197,7 +333,7 @@ const ComponentsManager: React.FC = () => {
                         <Button
                           onClick={() => setPreviewComponent(component)}
                           variant="outline"
-                          className="flex items-center gap-2"
+                          className="flex items-center gap-2 border-brandPurple/30 text-brandPurple hover:bg-brandPurple/10"
                         >
                           <Eye className="h-4 w-4" />
                           Preview
@@ -214,15 +350,15 @@ const ComponentsManager: React.FC = () => {
                     </div>
                   </div>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
 
           {filteredComponents.length === 0 && (
             <div className="text-center py-12">
-              <Layers className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No components found</h3>
-              <p className="text-gray-500">
+              <Layers className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-foreground mb-2">No components found</h3>
+              <p className="text-muted-foreground">
                 {searchQuery 
                   ? 'Try adjusting your search query' 
                   : 'No components available in this category'}
@@ -232,205 +368,80 @@ const ComponentsManager: React.FC = () => {
         </div>
       </div>
 
-      {/* Preview Modal - Full Screen */}
+      {/* Component Preview Modal - Full Screen */}
       <Dialog open={previewComponent !== null} onOpenChange={() => setPreviewComponent(null)}>
-        <DialogContent className="max-w-full max-h-full w-screen h-screen p-0 gap-0 bg-white">
-          {/* Close Button - Top Right */}
-          <button
-            onClick={() => setPreviewComponent(null)}
-            className="absolute top-6 right-6 z-50 w-10 h-10 rounded-lg bg-white shadow-md hover:shadow-lg flex items-center justify-center transition-all duration-200 hover:bg-gray-50"
-            aria-label="Close preview"
-          >
-            <svg
-              className="w-5 h-5 text-gray-700"
-              fill="none"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path d="M6 18L18 6M6 6l12 12"></path>
-            </svg>
-          </button>
-
-          {/* Full Screen Preview Container */}
-          <div className="w-full h-full flex items-center justify-center p-8">
-            {/* Large Preview Card */}
-            <div className="relative w-full max-w-4xl h-[600px] rounded-2xl overflow-hidden shadow-2xl bg-gradient-to-br from-gray-100 to-gray-200">
-              {/* Background Pattern */}
-              <div className="absolute inset-0 opacity-10">
-                <div className="absolute inset-0 bg-gradient-to-br from-purple-500 to-blue-500"></div>
-              </div>
-
-              {/* Component Preview Content */}
-              <div className="relative w-full h-full flex flex-col items-center justify-center p-12">
-                {/* Actual Component Renders */}
-                <div className="mb-8 w-full max-w-6xl">
-                  {previewComponent?.id === 'header-main' && (
-                    <div className="bg-white rounded-xl shadow-2xl overflow-hidden">
-                      <Header onContactClick={() => setContactModalOpen(true)} />
-                    </div>
-                  )}
-                  
-                  {previewComponent?.id === 'footer-main' && (
-                    <div className="bg-white rounded-xl shadow-2xl overflow-hidden">
-                      <Footer onContactClick={() => setContactModalOpen(true)} />
-                    </div>
-                  )}
-                  
-                  {previewComponent?.id === 'hero-main' && (
-                    <div className="bg-white rounded-xl shadow-2xl overflow-hidden max-h-[500px]">
-                      <div className="scale-75 origin-top">
-                        <HeroSection onContactClick={() => setContactModalOpen(true)} />
-                      </div>
-                    </div>
-                  )}
-                  
-                  {previewComponent?.id === 'pain-point-section' && (
-                    <div className="bg-white rounded-xl shadow-2xl overflow-hidden max-h-[500px] overflow-y-auto">
-                      <PainPointSection />
-                    </div>
-                  )}
-                  
-                  {previewComponent?.id === 'seo-results-section' && (
-                    <div className="bg-white rounded-xl shadow-2xl overflow-hidden max-h-[500px] overflow-y-auto">
-                      <SEOResultsSection />
-                    </div>
-                  )}
-                  
-                  {previewComponent?.id === 'services-showcase-section' && (
-                    <div className="bg-white rounded-xl shadow-2xl overflow-hidden max-h-[500px] overflow-y-auto">
-                      <SEOServicesShowcase onContactClick={() => setContactModalOpen(true)} />
-                    </div>
-                  )}
-                  
-                  {previewComponent?.id === 'what-is-seo-section' && (
-                    <div className="bg-white rounded-xl shadow-2xl overflow-hidden max-h-[500px] overflow-y-auto">
-                      <WhatIsSEOServicesSection onContactClick={() => setContactModalOpen(true)} />
-                    </div>
-                  )}
-                  
-                  {previewComponent?.id === 'testimonials-section' && (
-                    <div className="bg-white rounded-xl shadow-2xl overflow-hidden max-h-[500px] overflow-y-auto">
-                      <NewTestimonials />
-                    </div>
-                  )}
-                  
-                  {previewComponent?.id === 'faq-section' && (
-                    <div className="bg-white rounded-xl shadow-2xl overflow-hidden max-h-[500px] overflow-y-auto p-8">
-                      <FAQAccordion 
-                        title="Frequently Asked Questions"
-                        subtitle="Everything you need to know about our SEO services"
-                        items={[
-                          {
-                            question: "How do backlinks help my website's SEO?",
-                            answer: "Backlinks are crucial for building your website's authority and trust. When reputable websites link to yours, search engines view it as a vote of confidence. This increases your Domain Rating (DR) and Domain Authority (DA), which are key metrics that Google uses to determine your site's credibility. Higher authority means better rankings, more visibility, and increased organic traffic to your website."
-                          },
-                          {
-                            question: "Why are blog posts important for SEO?",
-                            answer: "Blog posts are essential for SEO because they provide fresh, relevant content that search engines love. Regular blogging helps you target long-tail keywords, answer customer questions, and establish your expertise in your industry. Each blog post is a new opportunity to rank for different search terms, attract backlinks, and engage your audience. Quality blog content also increases time-on-site and reduces bounce rates, which are positive ranking signals for search engines."
-                          },
-                          {
-                            question: "How much do your SEO services cost?",
-                            answer: "Our SEO services start from just 600 SGD per month, making professional SEO accessible for businesses of all sizes. This includes comprehensive keyword research, on-page optimization, quality backlink building, regular blog content creation, and detailed monthly reporting. We offer flexible packages tailored to your specific needs and goals, ensuring you get the best ROI for your investment."
-                          }
-                        ]}
-                      />
-                    </div>
-                  )}
-                  
-                  {previewComponent?.id === 'blog-preview-section' && (
-                    <div className="bg-white rounded-xl shadow-2xl overflow-hidden max-h-[500px] overflow-y-auto">
-                      <BlogSection onContactClick={() => setContactModalOpen(true)} />
-                    </div>
-                  )}
-                  
-                  {previewComponent?.id === 'whatsapp-button' && (
-                    <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl shadow-2xl p-16 text-center">
-                      <div className="relative inline-block">
-                        <WhatsAppButton />
-                      </div>
-                      <p className="text-sm font-medium text-gray-700 mt-8">Floating WhatsApp button (bottom-right on live site)</p>
-                    </div>
-                  )}
-                  
-                  {previewComponent?.id === 'contact-modal' && (
-                    <div className="bg-white rounded-xl shadow-2xl overflow-hidden p-8">
-                      <div className="max-w-md mx-auto">
-                        <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">Contact Form Modal</h2>
-                        <p className="text-gray-600 text-center mb-4">This modal appears when users click "Contact Us" buttons</p>
-                        <button 
-                          onClick={() => setContactModalOpen(true)}
-                          className="w-full py-3 bg-red-500 hover:bg-red-600 text-white rounded-full font-medium transition-colors"
-                        >
-                          Preview Contact Modal
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                  
-                  {previewComponent?.id === 'client-logos-carousel' && (
-                    <div className="bg-white rounded-xl shadow-2xl p-12 text-center">
-                      <p className="text-gray-600 mb-6">Client logos carousel is embedded in the Hero Section</p>
-                      <button 
-                        onClick={() => {
-                          const heroComponent = componentRegistry.get('hero-main');
-                          if (heroComponent) setPreviewComponent(heroComponent);
-                        }}
-                        className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-full font-medium transition-colors"
-                      >
-                        View in Hero Section
-                      </button>
-                    </div>
-                  )}
-                </div>
-
-                {/* Component Info */}
-                <div className="text-center">
-                  <h2 className="text-3xl font-bold text-gray-800 mb-3">
-                    {previewComponent?.name}
-                  </h2>
-
-                  {previewComponent?.description && (
-                    <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
+        <DialogContent className="max-w-full max-h-full w-screen h-screen p-0 overflow-hidden border-border bg-white/95 backdrop-blur-md">
+          <AnimatePresence>
+            {previewComponent && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.98 }}
+                transition={{ duration: 0.2 }}
+                className="relative h-full flex flex-col"
+              >
+                {/* Header */}
+                <div className="bg-gradient-to-r from-brandPurple to-brandTeal p-6 text-white">
+                  <DialogHeader>
+                    <DialogTitle className="text-2xl font-bold text-white flex items-center">
+                      <span className="mr-2">Component Preview:</span> {previewComponent.name}
+                    </DialogTitle>
+                    <DialogDescription className="text-white/80 mt-2">
                       {previewComponent.description}
-                    </p>
-                  )}
-
-                  <button
+                    </DialogDescription>
+                  </DialogHeader>
+                </div>
+                
+                {/* Preview Area - Flex-grow to take available space */}
+                <div className="flex-grow p-6 overflow-auto">
+                  <div className="bg-white rounded-lg border border-border shadow-sm overflow-hidden h-full">
+                    {renderComponentPreview(previewComponent.id)}
+                  </div>
+                </div>
+                
+                {/* Footer */}
+                <div className="border-t border-border p-6 bg-secondary/20 flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="px-3 py-1.5 rounded-full bg-white shadow-sm text-sm">
+                      <span className="text-muted-foreground">Type:</span> <span className="font-medium text-foreground">{previewComponent.type}</span>
+                    </div>
+                    <div className="px-3 py-1.5 rounded-full bg-white shadow-sm text-sm">
+                      <span className="text-muted-foreground">Category:</span> <span className="font-medium text-foreground">{previewComponent.category || 'Other'}</span>
+                    </div>
+                  </div>
+                  
+                  <Button 
                     onClick={() => {
                       setPreviewComponent(null);
                       setSchemaComponent(previewComponent);
                     }}
-                    className="px-8 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-full font-medium transition-colors shadow-lg"
+                    variant="default"
+                    className="bg-brandPurple hover:bg-brandPurple/90 flex items-center gap-2"
                   >
-                    View Schema Details
-                  </button>
-
-                  <div className="mt-6 flex items-center justify-center gap-4 text-sm text-gray-600">
-                    <span className="px-4 py-2 bg-white rounded-full shadow">
-                      Type: <span className="font-semibold">{previewComponent?.type}</span>
-                    </span>
-                    <span className="px-4 py-2 bg-white rounded-full shadow">
-                      Category: <span className="font-semibold">{previewComponent?.category}</span>
-                    </span>
-                    <span className="px-4 py-2 bg-white rounded-full shadow">
-                      Version: <span className="font-semibold">{previewComponent?.version}</span>
-                    </span>
-                  </div>
+                    View Schema
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
                 </div>
-              </div>
-            </div>
-          </div>
+                
+                {/* Close button - Only one close button now */}
+                <button
+                  onClick={() => setPreviewComponent(null)}
+                  className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors z-50"
+                  aria-label="Close preview"
+                >
+                  <X className="w-4 h-4 text-white" />
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </DialogContent>
       </Dialog>
 
       {/* Schema Modal */}
       <Dialog open={schemaComponent !== null} onOpenChange={() => setSchemaComponent(null)}>
-        <DialogContent className="max-w-5xl max-h-[80vh] overflow-auto">
+        <DialogContent className="max-w-5xl max-h-[80vh] overflow-auto border-border">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold">
+            <DialogTitle className="text-2xl font-bold text-foreground">
               {schemaComponent?.name} Schema
             </DialogTitle>
           </DialogHeader>
@@ -455,20 +466,20 @@ const ComponentsManager: React.FC = () => {
                     <TableRow key={key}>
                       <TableCell className="font-medium">{key}</TableCell>
                       <TableCell>
-                        <span className="inline-flex items-center px-2 py-1 rounded text-xs font-mono bg-gray-100 text-gray-700">
+                        <span className="inline-flex items-center px-2 py-1 rounded text-xs font-mono bg-secondary/30 text-foreground">
                           {prop.type}
                         </span>
                       </TableCell>
                       <TableCell>
                         <span className={`inline-flex items-center px-2 py-1 rounded text-xs ${
-                          prop.editable ? 'bg-blue-50 text-blue-700' : 'bg-gray-50 text-gray-600'
+                          prop.editable ? 'bg-brandTeal/10 text-brandTeal' : 'bg-secondary/30 text-muted-foreground'
                         }`}>
                           {prop.editable ? 'Yes' : 'No'}
                         </span>
                       </TableCell>
                       <TableCell>
                         <span className={`inline-flex items-center px-2 py-1 rounded text-xs ${
-                          prop.required ? 'bg-purple-50 text-purple-700' : 'bg-gray-50 text-gray-600'
+                          prop.required ? 'bg-brandPurple/10 text-brandPurple' : 'bg-secondary/30 text-muted-foreground'
                         }`}>
                           {prop.required ? 'Yes' : 'No'}
                         </span>
@@ -482,7 +493,7 @@ const ComponentsManager: React.FC = () => {
                           {isCreated ? 'Created' : 'Not Created'}
                         </span>
                       </TableCell>
-                      <TableCell className="text-sm text-gray-600">
+                      <TableCell className="text-sm text-muted-foreground">
                         {prop.description || '-'}
                       </TableCell>
                     </TableRow>
@@ -492,24 +503,24 @@ const ComponentsManager: React.FC = () => {
             </Table>
             
             {/* Component Metadata */}
-            <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-              <h4 className="font-semibold text-gray-900 mb-3">Component Metadata</h4>
+            <div className="mt-6 p-4 bg-secondary/20 rounded-lg">
+              <h4 className="font-semibold text-foreground mb-3">Component Metadata</h4>
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <span className="text-gray-500">ID:</span>
-                  <span className="ml-2 font-mono text-gray-900">{schemaComponent?.id}</span>
+                  <span className="text-muted-foreground">ID:</span>
+                  <span className="ml-2 font-mono text-foreground">{schemaComponent?.id}</span>
                 </div>
                 <div>
-                  <span className="text-gray-500">Version:</span>
-                  <span className="ml-2 font-mono text-gray-900">{schemaComponent?.version}</span>
+                  <span className="text-muted-foreground">Version:</span>
+                  <span className="ml-2 font-mono text-foreground">{schemaComponent?.version}</span>
                 </div>
                 <div>
-                  <span className="text-gray-500">Category:</span>
-                  <span className="ml-2 text-gray-900">{schemaComponent?.category}</span>
+                  <span className="text-muted-foreground">Category:</span>
+                  <span className="ml-2 text-foreground">{schemaComponent?.category}</span>
                 </div>
                 <div>
-                  <span className="text-gray-500">Editor:</span>
-                  <span className="ml-2 text-gray-900">{schemaComponent?.editor}</span>
+                  <span className="text-muted-foreground">Editor:</span>
+                  <span className="ml-2 text-foreground">{schemaComponent?.editor}</span>
                 </div>
               </div>
             </div>
