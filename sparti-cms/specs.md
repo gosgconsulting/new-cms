@@ -347,11 +347,16 @@ See `sparti-cms/docs/database-rules.md` for complete database standards.
 
 ## Documentation References
 
-### Core Guidelines
-- **UX/UI Rules**: `sparti-cms/docs/ux-ui-guidelines.md` - Design system and user experience standards
-- **Development Rules**: `sparti-cms/docs/development-rules.md` - Code quality and architecture standards
-- **Database Rules**: `sparti-cms/docs/database-rules.md` - Database design and query standards
-- **Development Workflow**: `sparti-cms/docs/development-workflow.md` - Step-by-step SOP for projects
+### Core Development
+- [Development Workflow](./docs/development-workflow.md) - Frontend-first development process
+- [Development Rules](./docs/development-rules.md) - Code quality and standards
+- [Database Rules](./docs/database-rules.md) - Database design principles
+- [UX/UI Guidelines](./docs/ux-ui-guidelines.md) - Design and user experience standards
+
+### Homepage & SEO
+- [Homepage Audit & Restructure Plan](../docs/homepage-audit-restructure-plan.md) - Complete SEO audit and component-based restructure plan
+- [Component Migration Mapping](../docs/component-migration-mapping.md) - Detailed component-to-CMS migration strategy
+- [Homepage Quick Reference](../docs/homepage-quick-reference.md) - Quick reference guide for homepage components and schemas
 
 ### Technical References
 - Design System: `src/index.css` and `tailwind.config.ts`
@@ -366,4 +371,4 @@ See `sparti-cms/docs/database-rules.md` for complete database standards.
 - Blog Page: `src/pages/Blog.tsx`
 
 ## Last Updated
-2025-01-28 - Added comprehensive development standards and documentation references
+2025-01-28 - Added comprehensive development standards, documentation references, and homepage audit/restructure plan
