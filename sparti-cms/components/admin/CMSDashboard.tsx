@@ -14,7 +14,8 @@ import {
   ChevronDown,
   ChevronRight,
   Code,
-  Mail
+  Mail,
+  Layers
 } from 'lucide-react';
 import { useAuth } from '../auth/AuthProvider';
 
@@ -28,6 +29,7 @@ import DeveloperManager from './DeveloperManager';
 import AnalyticsManager from './AnalyticsManager';
 import ContactsManager from './ContactsManager';
 import SMTPManager from './SMTPManager';
+import ComponentsManager from './ComponentsManager';
 
 // Placeholder components
 const BlogManager = () => (
@@ -53,6 +55,8 @@ const CMSDashboard: React.FC = () => {
         return <PagesManager />;
       case 'blog':
         return <BlogManager />;
+      case 'components':
+        return <ComponentsManager />;
       case 'forms':
         return <FormsManager />;
       case 'contacts':
@@ -72,6 +76,7 @@ const CMSDashboard: React.FC = () => {
     { id: 'analytics', label: 'Analytics', icon: BarChart3 },
     { id: 'pages', label: 'Pages', icon: FileText },
     { id: 'blog', label: 'Blog', icon: PenTool },
+    { id: 'components', label: 'Components', icon: Layers },
     { id: 'settings', label: 'Settings', icon: SettingsIcon },
     { id: 'developer', label: 'Developer', icon: Code },
   ];
