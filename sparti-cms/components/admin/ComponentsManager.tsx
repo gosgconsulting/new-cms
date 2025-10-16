@@ -217,32 +217,84 @@ const ComponentsManager: React.FC = () => {
         </div>
       </div>
 
-      {/* Preview Modal */}
+      {/* Preview Modal - Full Screen */}
       <Dialog open={previewComponent !== null} onOpenChange={() => setPreviewComponent(null)}>
-        <DialogContent className="max-w-4xl">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-bold">
-              {previewComponent?.name} Preview
-            </DialogTitle>
-          </DialogHeader>
-          <div className="mt-4">
-            <div className="bg-gray-50 rounded-lg p-8 border border-gray-200 min-h-[300px] flex items-center justify-center">
-              <div className="text-center">
-                <div className="text-8xl text-gray-300 mb-4">
-                  {previewComponent?.type === 'text' ? 'T' : 
-                   previewComponent?.type === 'button' ? 'B' : 
-                   previewComponent?.type === 'image' ? 'I' : 
-                   previewComponent?.type === 'container' ? 'C' : 'T'}
+        <DialogContent className="max-w-full max-h-full w-screen h-screen p-0 gap-0 bg-white">
+          {/* Close Button - Top Right */}
+          <button
+            onClick={() => setPreviewComponent(null)}
+            className="absolute top-6 right-6 z-50 w-10 h-10 rounded-lg bg-white shadow-md hover:shadow-lg flex items-center justify-center transition-all duration-200 hover:bg-gray-50"
+            aria-label="Close preview"
+          >
+            <svg
+              className="w-5 h-5 text-gray-700"
+              fill="none"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+
+          {/* Full Screen Preview Container */}
+          <div className="w-full h-full flex items-center justify-center p-8">
+            {/* Large Preview Card */}
+            <div className="relative w-full max-w-4xl h-[600px] rounded-2xl overflow-hidden shadow-2xl bg-gradient-to-br from-gray-100 to-gray-200">
+              {/* Background Pattern */}
+              <div className="absolute inset-0 opacity-10">
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-500 to-blue-500"></div>
+              </div>
+
+              {/* Component Preview Content */}
+              <div className="relative w-full h-full flex flex-col items-center justify-center p-12">
+                {/* Component Type Icon */}
+                <div className="mb-8 w-32 h-32 rounded-full bg-white/80 backdrop-blur-sm shadow-lg flex items-center justify-center">
+                  <div className="text-6xl font-bold text-gray-600">
+                    {previewComponent?.type === 'text' ? 'T' : 
+                     previewComponent?.type === 'button' ? 'B' : 
+                     previewComponent?.type === 'image' ? 'I' : 
+                     previewComponent?.type === 'container' ? 'C' : 
+                     previewComponent?.type === 'media' ? 'M' : 'T'}
+                  </div>
                 </div>
-                <p className="text-lg text-gray-500 mb-2">Component Preview</p>
-                <p className="text-sm text-gray-400">Type: {previewComponent?.type}</p>
+
+                {/* Component Name */}
+                <h2 className="text-4xl md:text-5xl font-bold text-gray-800 mb-4 text-center">
+                  {previewComponent?.name}
+                </h2>
+
+                {/* Component Description */}
+                {previewComponent?.description && (
+                  <p className="text-lg text-gray-600 mb-8 text-center max-w-2xl">
+                    {previewComponent.description}
+                  </p>
+                )}
+
+                {/* Explore Button */}
+                <button
+                  onClick={() => setSchemaComponent(previewComponent)}
+                  className="px-8 py-4 bg-white text-gray-800 rounded-full font-medium text-lg shadow-lg hover:shadow-xl transition-all duration-200 hover:-translate-y-1"
+                >
+                  Explore Component
+                </button>
+
+                {/* Component Metadata */}
+                <div className="mt-12 flex items-center gap-6 text-sm text-gray-600">
+                  <div className="px-4 py-2 bg-white/60 backdrop-blur-sm rounded-full">
+                    Type: <span className="font-semibold">{previewComponent?.type}</span>
+                  </div>
+                  <div className="px-4 py-2 bg-white/60 backdrop-blur-sm rounded-full">
+                    Category: <span className="font-semibold">{previewComponent?.category}</span>
+                  </div>
+                  <div className="px-4 py-2 bg-white/60 backdrop-blur-sm rounded-full">
+                    Version: <span className="font-semibold">{previewComponent?.version}</span>
+                  </div>
+                </div>
               </div>
             </div>
-            {previewComponent?.description && (
-              <div className="mt-4 p-4 bg-blue-50 rounded-lg">
-                <p className="text-sm text-gray-700">{previewComponent.description}</p>
-              </div>
-            )}
           </div>
         </DialogContent>
       </Dialog>
