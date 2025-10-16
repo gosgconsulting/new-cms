@@ -9,7 +9,6 @@ import {
   LogOut, 
   Home,
   ArrowLeft,
-  BarChart3,
   Users,
   ChevronDown,
   ChevronRight,
@@ -26,7 +25,6 @@ import FormsManager from '../cms/FormsManager';
 // Import new components
 import SettingsManager from './SettingsManager';
 import DeveloperManager from './DeveloperManager';
-import AnalyticsManager from './AnalyticsManager';
 import ContactsManager from './ContactsManager';
 import SMTPManager from './SMTPManager';
 import ComponentsManager from './ComponentsManager';
@@ -43,14 +41,12 @@ const BlogManager = () => (
 
 
 const CMSDashboard: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<string>('analytics');
+  const [activeTab, setActiveTab] = useState<string>('pages');
   const [crmExpanded, setCrmExpanded] = useState<boolean>(false);
   const { signOut } = useAuth();
 
   const renderContent = () => {
     switch (activeTab) {
-      case 'analytics':
-        return <AnalyticsManager />;
       case 'pages':
         return <PagesManager />;
       case 'blog':
@@ -73,7 +69,6 @@ const CMSDashboard: React.FC = () => {
   };
 
   const navItems = [
-    { id: 'analytics', label: 'Analytics', icon: BarChart3 },
     { id: 'pages', label: 'Pages', icon: FileText },
     { id: 'blog', label: 'Blog', icon: PenTool },
     { id: 'components', label: 'Components', icon: Layers },
@@ -111,7 +106,7 @@ const CMSDashboard: React.FC = () => {
           {/* Navigation */}
           <nav className="flex-1 p-4">
             <ul className="space-y-1">
-              {navItems.slice(0, 3).map((item) => {
+              {navItems.slice(0, 2).map((item) => {
                 const Icon = item.icon;
                 const isActive = activeTab === item.id;
                 
@@ -176,7 +171,7 @@ const CMSDashboard: React.FC = () => {
               </li>
               
               {/* Remaining navigation items */}
-              {navItems.slice(3).map((item) => {
+              {navItems.slice(2).map((item) => {
                 const Icon = item.icon;
                 const isActive = activeTab === item.id;
                 
