@@ -3,6 +3,16 @@
 ## Overview
 This document defines the coding rules and design system for consistent UX/UI across all pages in Sparti CMS projects.
 
+## Core UX/UI Rules
+
+### Design System Requirements
+- **Always use design system tokens** from `index.css` and `tailwind.config.ts`
+- **Never use hardcoded colors** - use semantic color tokens (bg-surface, text-foreground, etc.)
+- **Maintain consistent spacing** using system scale (space-xs, space-sm, space-md, etc.)
+- **Ensure proper hover and focus states** for all interactive elements
+- **Keep typography consistent** using system classes (text-h1, text-body, etc.)
+- **Design mobile-first**, then enhance for larger screens
+
 ## Spacing System
 
 ### Section Spacing Rules

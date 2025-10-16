@@ -311,5 +311,59 @@ npm run migrate-components
 - `package.json` - Module dependencies (future)
 - `types.ts` - Public type definitions
 
+## Development Standards
+
+All development must follow these core guidelines:
+
+### UX/UI Rules
+- Always use design system tokens from `index.css` and `tailwind.config.ts`
+- Never use hardcoded colors - use semantic color tokens (bg-surface, text-foreground, etc.)
+- Maintain consistent spacing using system scale (space-xs, space-sm, space-md, etc.)
+- Ensure all interactive elements have proper hover and focus states
+- Keep typography consistent using system classes (text-h1, text-body, etc.)
+- Design mobile-first, then enhance for larger screens
+
+See `sparti-cms/docs/ux-ui-guidelines.md` for complete UX/UI standards.
+
+### Development Rules
+- Use TypeScript for type safety in all components
+- Create small, focused components instead of large monolithic files
+- Follow React best practices (hooks, functional components)
+- Implement proper error handling and loading states
+- Use Railway PostgreSQL for database operations (no Supabase)
+- Keep API routes in server.js with proper error handling
+- Write clean, self-documenting code with minimal comments
+
+See `sparti-cms/docs/development-rules.md` for complete development standards.
+
+### Database Rules
+- Use Railway PostgreSQL as primary database
+- All database queries should use parameterized statements to prevent SQL injection
+- Implement proper indexing for frequently queried columns
+- Use transactions for multi-step operations
+- Keep database schema migrations in `sparti-cms/db/migrations.sql`
+
+See `sparti-cms/docs/database-rules.md` for complete database standards.
+
+## Documentation References
+
+### Core Guidelines
+- **UX/UI Rules**: `sparti-cms/docs/ux-ui-guidelines.md` - Design system and user experience standards
+- **Development Rules**: `sparti-cms/docs/development-rules.md` - Code quality and architecture standards
+- **Database Rules**: `sparti-cms/docs/database-rules.md` - Database design and query standards
+- **Development Workflow**: `sparti-cms/docs/development-workflow.md` - Step-by-step SOP for projects
+
+### Technical References
+- Design System: `src/index.css` and `tailwind.config.ts`
+- Button Variants: `src/components/ui/button.tsx`
+- Component Registry: `sparti-cms/registry/`
+- Database Migrations: `sparti-cms/db/migrations.sql`
+
+### Example Implementations
+- Homepage: `src/pages/Index.tsx`
+- Hero Section: `src/components/HeroSection.tsx`
+- Standard Section: `src/components/SEOServicesShowcase.tsx`
+- Blog Page: `src/pages/Blog.tsx`
+
 ## Last Updated
-2025-01-28 - Updated with complete tech stack and modular architecture
+2025-01-28 - Added comprehensive development standards and documentation references
