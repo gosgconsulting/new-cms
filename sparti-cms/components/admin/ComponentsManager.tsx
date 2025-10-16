@@ -1,10 +1,16 @@
 import React, { useState, useMemo } from 'react';
-import { Search, Layers, Eye } from 'lucide-react';
+import { Search, Layers, Eye, FileJson } from 'lucide-react';
 import { componentRegistry } from '../../registry';
+import { ComponentDefinition } from '../../registry/types';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
 
 const ComponentsManager: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [previewComponent, setPreviewComponent] = useState<ComponentDefinition | null>(null);
+  const [schemaComponent, setSchemaComponent] = useState<ComponentDefinition | null>(null);
 
   const allComponents = componentRegistry.getAll();
 
@@ -114,46 +120,84 @@ const ComponentsManager: React.FC = () => {
             </p>
           </div>
 
-          {/* Components Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Components List */}
+          <div className="space-y-4">
             {filteredComponents.map((component) => (
               <div
                 key={component.id}
                 className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow duration-200"
               >
-                {/* Preview Area */}
-                <div className="h-40 bg-gray-50 flex items-center justify-center border-b border-gray-200">
-                  <div className="text-center">
-                    <div className="text-6xl text-gray-300 mb-2">T</div>
-                    <p className="text-sm text-gray-500">Preview</p>
-                  </div>
-                </div>
-
-                {/* Component Info */}
-                <div className="p-4">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    {component.name}
-                  </h3>
-                  
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
-                      {component.category || 'other'}
-                    </span>
-                    <span className="text-xs text-gray-500">
-                      {new Date().toLocaleDateString()}
-                    </span>
+                <div className="flex items-center p-6">
+                  {/* Component Icon/Preview */}
+                  <div className="w-24 h-24 bg-gray-50 rounded-lg flex items-center justify-center border border-gray-200 flex-shrink-0">
+                    <div className="text-center">
+                      <div className="text-3xl text-gray-300 mb-1">
+                        {component.type === 'text' ? 'T' : 
+                         component.type === 'button' ? 'B' : 
+                         component.type === 'image' ? 'I' : 
+                         component.type === 'container' ? 'C' : 'T'}
+                      </div>
+                    </div>
                   </div>
 
-                  {component.description && (
-                    <p className="text-sm text-gray-600 mb-4 line-clamp-2">
-                      {component.description}
-                    </p>
-                  )}
+                  {/* Component Info */}
+                  <div className="flex-1 ml-6">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                          {component.name}
+                        </h3>
+                        
+                        <div className="flex items-center gap-3 mb-3">
+                          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
+                            {component.category || 'other'}
+                          </span>
+                          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
+                            {component.type}
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            v{component.version}
+                          </span>
+                        </div>
 
-                  <button className="w-full flex items-center justify-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-200">
-                    <Eye className="h-4 w-4" />
-                    <span>Preview</span>
-                  </button>
+                        {component.description && (
+                          <p className="text-sm text-gray-600 mb-4">
+                            {component.description}
+                          </p>
+                        )}
+
+                        {component.tags && component.tags.length > 0 && (
+                          <div className="flex flex-wrap gap-2">
+                            {component.tags.map((tag, idx) => (
+                              <span key={idx} className="text-xs px-2 py-1 bg-gray-50 text-gray-600 rounded">
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex gap-2 ml-6">
+                        <Button
+                          onClick={() => setPreviewComponent(component)}
+                          variant="outline"
+                          className="flex items-center gap-2"
+                        >
+                          <Eye className="h-4 w-4" />
+                          Preview
+                        </Button>
+                        <Button
+                          onClick={() => setSchemaComponent(component)}
+                          variant="outline"
+                          className="flex items-center gap-2"
+                        >
+                          <FileJson className="h-4 w-4" />
+                          Schema
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             ))}
@@ -172,6 +216,127 @@ const ComponentsManager: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Preview Modal */}
+      <Dialog open={previewComponent !== null} onOpenChange={() => setPreviewComponent(null)}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold">
+              {previewComponent?.name} Preview
+            </DialogTitle>
+          </DialogHeader>
+          <div className="mt-4">
+            <div className="bg-gray-50 rounded-lg p-8 border border-gray-200 min-h-[300px] flex items-center justify-center">
+              <div className="text-center">
+                <div className="text-8xl text-gray-300 mb-4">
+                  {previewComponent?.type === 'text' ? 'T' : 
+                   previewComponent?.type === 'button' ? 'B' : 
+                   previewComponent?.type === 'image' ? 'I' : 
+                   previewComponent?.type === 'container' ? 'C' : 'T'}
+                </div>
+                <p className="text-lg text-gray-500 mb-2">Component Preview</p>
+                <p className="text-sm text-gray-400">Type: {previewComponent?.type}</p>
+              </div>
+            </div>
+            {previewComponent?.description && (
+              <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+                <p className="text-sm text-gray-700">{previewComponent.description}</p>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Schema Modal */}
+      <Dialog open={schemaComponent !== null} onOpenChange={() => setSchemaComponent(null)}>
+        <DialogContent className="max-w-5xl max-h-[80vh] overflow-auto">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold">
+              {schemaComponent?.name} Schema
+            </DialogTitle>
+          </DialogHeader>
+          <div className="mt-4">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[200px]">Property</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Editable</TableHead>
+                  <TableHead>Required</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Description</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {schemaComponent && Object.entries(schemaComponent.properties).map(([key, prop]) => {
+                  // Check if property is "created" - for now, we'll mark required and editable ones as created
+                  const isCreated = prop.required || prop.editable;
+                  
+                  return (
+                    <TableRow key={key}>
+                      <TableCell className="font-medium">{key}</TableCell>
+                      <TableCell>
+                        <span className="inline-flex items-center px-2 py-1 rounded text-xs font-mono bg-gray-100 text-gray-700">
+                          {prop.type}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <span className={`inline-flex items-center px-2 py-1 rounded text-xs ${
+                          prop.editable ? 'bg-blue-50 text-blue-700' : 'bg-gray-50 text-gray-600'
+                        }`}>
+                          {prop.editable ? 'Yes' : 'No'}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <span className={`inline-flex items-center px-2 py-1 rounded text-xs ${
+                          prop.required ? 'bg-purple-50 text-purple-700' : 'bg-gray-50 text-gray-600'
+                        }`}>
+                          {prop.required ? 'Yes' : 'No'}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
+                          isCreated 
+                            ? 'bg-green-50 text-green-700 border border-green-200' 
+                            : 'bg-orange-50 text-orange-700 border border-orange-200'
+                        }`}>
+                          {isCreated ? 'Created' : 'Not Created'}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-sm text-gray-600">
+                        {prop.description || '-'}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+            
+            {/* Component Metadata */}
+            <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+              <h4 className="font-semibold text-gray-900 mb-3">Component Metadata</h4>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <span className="text-gray-500">ID:</span>
+                  <span className="ml-2 font-mono text-gray-900">{schemaComponent?.id}</span>
+                </div>
+                <div>
+                  <span className="text-gray-500">Version:</span>
+                  <span className="ml-2 font-mono text-gray-900">{schemaComponent?.version}</span>
+                </div>
+                <div>
+                  <span className="text-gray-500">Category:</span>
+                  <span className="ml-2 text-gray-900">{schemaComponent?.category}</span>
+                </div>
+                <div>
+                  <span className="text-gray-500">Editor:</span>
+                  <span className="ml-2 text-gray-900">{schemaComponent?.editor}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
