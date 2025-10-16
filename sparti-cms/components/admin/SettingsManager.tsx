@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Image, Monitor, Code, Globe, Search, FileText, Tag, Palette } from 'lucide-react';
+import { Image, Monitor, Code, Globe, Search, FileText, Tag, Palette, Type } from 'lucide-react';
 import { ColorSettings } from '../cms/ColorSettings';
 import { TypographySettings } from '../cms/TypographySettings';
 import { ButtonSettings } from '../cms/ButtonSettings';
+import { Label } from '../ui/label';
+import { Input } from '../ui/input';
+import { Button } from '../ui/button';
 
 const SettingsManager: React.FC = () => {
   const [activeTab, setActiveTab] = useState('branding');
@@ -284,6 +287,476 @@ const StyleTab: React.FC = () => {
       <ColorSettings onUpdate={handleSettingsUpdate} />
       <TypographySettings onUpdate={handleSettingsUpdate} />
       <ButtonSettings onUpdate={handleSettingsUpdate} />
+    </div>
+  );
+};
+
+// Typography Settings Component
+const TypographySettings: React.FC = () => {
+  const [fontSettings, setFontSettings] = useState({
+    headingFont: 'Inter',
+    bodyFont: 'Inter',
+    baseFontSize: '16px',
+    headingScale: '1.25',
+    lineHeight: '1.5'
+  });
+
+  const handleInputChange = (field: string, value: string) => {
+    setFontSettings(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const fontOptions = [
+    { value: 'Inter', label: 'Inter (Default)' },
+    { value: 'Poppins', label: 'Poppins' },
+    { value: 'Roboto', label: 'Roboto' },
+    { value: 'Open Sans', label: 'Open Sans' },
+    { value: 'Montserrat', label: 'Montserrat' }
+  ];
+
+  const fontSizeOptions = [
+    { value: '14px', label: 'Small (14px)' },
+    { value: '16px', label: 'Medium (16px)' },
+    { value: '18px', label: 'Large (18px)' }
+  ];
+
+  const lineHeightOptions = [
+    { value: '1.3', label: 'Tight (1.3)' },
+    { value: '1.5', label: 'Normal (1.5)' },
+    { value: '1.7', label: 'Relaxed (1.7)' }
+  ];
+
+  const scaleOptions = [
+    { value: '1.2', label: 'Small (1.2)' },
+    { value: '1.25', label: 'Medium (1.25)' },
+    { value: '1.333', label: 'Large (1.333)' }
+  ];
+
+  return (
+    <div className="space-y-8">
+      <div>
+        <h3 className="text-xl font-semibold text-foreground mb-2">Typography Settings</h3>
+        <p className="text-muted-foreground">
+          Customize the typography and font settings for your website
+        </p>
+      </div>
+
+      {/* Font Family Settings */}
+      <div className="space-y-6">
+        <h4 className="text-lg font-medium text-foreground border-b border-border pb-2 flex items-center gap-2">
+          <Type className="h-5 w-5 text-brandPurple" />
+          Font Families
+        </h4>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="headingFont">Heading Font</Label>
+              <select
+                id="headingFont"
+                value={fontSettings.headingFont}
+                onChange={(e) => handleInputChange('headingFont', e.target.value)}
+                className="w-full px-3 py-2 bg-background border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-brandPurple focus:border-transparent"
+              >
+                {fontOptions.map(option => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-muted-foreground mt-1">Font used for headings (h1-h6)</p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="bodyFont">Body Font</Label>
+              <select
+                id="bodyFont"
+                value={fontSettings.bodyFont}
+                onChange={(e) => handleInputChange('bodyFont', e.target.value)}
+                className="w-full px-3 py-2 bg-background border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-brandPurple focus:border-transparent"
+              >
+                {fontOptions.map(option => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-muted-foreground mt-1">Font used for body text and paragraphs</p>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="baseFontSize">Base Font Size</Label>
+              <select
+                id="baseFontSize"
+                value={fontSettings.baseFontSize}
+                onChange={(e) => handleInputChange('baseFontSize', e.target.value)}
+                className="w-full px-3 py-2 bg-background border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-brandPurple focus:border-transparent"
+              >
+                {fontSizeOptions.map(option => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-muted-foreground mt-1">Base size for all text on your site</p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="lineHeight">Line Height</Label>
+              <select
+                id="lineHeight"
+                value={fontSettings.lineHeight}
+                onChange={(e) => handleInputChange('lineHeight', e.target.value)}
+                className="w-full px-3 py-2 bg-background border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-brandPurple focus:border-transparent"
+              >
+                {lineHeightOptions.map(option => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-muted-foreground mt-1">Line spacing for better readability</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Typography Preview */}
+      <div className="space-y-6">
+        <h4 className="text-lg font-medium text-foreground border-b border-border pb-2">Typography Preview</h4>
+        
+        <div className="bg-secondary/20 rounded-lg border border-border p-6">
+          <div className="space-y-6">
+            <div>
+              <h1 style={{
+                fontFamily: fontSettings.headingFont,
+                fontSize: 'calc(2.5 * 16px)',
+                lineHeight: fontSettings.lineHeight
+              }} className="font-bold text-foreground">
+                Heading 1 - Main Title
+              </h1>
+              <div className="text-xs text-muted-foreground mt-1">h1 - Used for main page titles</div>
+            </div>
+            
+            <div>
+              <h2 style={{
+                fontFamily: fontSettings.headingFont,
+                fontSize: 'calc(2 * 16px)',
+                lineHeight: fontSettings.lineHeight
+              }} className="font-bold text-foreground">
+                Heading 2 - Section Title
+              </h2>
+              <div className="text-xs text-muted-foreground mt-1">h2 - Used for section titles</div>
+            </div>
+            
+            <div>
+              <h3 style={{
+                fontFamily: fontSettings.headingFont,
+                fontSize: 'calc(1.5 * 16px)',
+                lineHeight: fontSettings.lineHeight
+              }} className="font-semibold text-foreground">
+                Heading 3 - Subsection Title
+              </h3>
+              <div className="text-xs text-muted-foreground mt-1">h3 - Used for subsection titles</div>
+            </div>
+            
+            <div>
+              <p style={{
+                fontFamily: fontSettings.bodyFont,
+                fontSize: fontSettings.baseFontSize,
+                lineHeight: fontSettings.lineHeight
+              }} className="text-foreground">
+                This is a paragraph of text that demonstrates how body text will look on your website. The font family, size, and line height can all be customized to match your brand's style. Good typography improves readability and user experience.
+              </p>
+              <div className="text-xs text-muted-foreground mt-1">Body text - Used for paragraphs and general content</div>
+            </div>
+            
+            <div>
+              <p style={{
+                fontFamily: fontSettings.bodyFont,
+                fontSize: 'calc(0.875 * 16px)',
+                lineHeight: fontSettings.lineHeight
+              }} className="text-muted-foreground">
+                This is smaller text often used for captions, footnotes, or secondary information. It should still be readable but visually distinguished from the main content.
+              </p>
+              <div className="text-xs text-muted-foreground mt-1">Small text - Used for secondary information</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex justify-end pt-4 border-t border-border">
+        <Button variant="default" className="bg-brandPurple hover:bg-brandPurple/90">
+          Save Typography Settings
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+// Color Settings Component
+const ColorSettings: React.FC = () => {
+  const [colorScheme, setColorScheme] = useState({
+    primary: '#9b87f5', // Brand Purple
+    secondary: '#e5e7eb',
+    accent: '#F94E40', // Coral
+    background: '#f8fafc',
+    foreground: '#111827',
+    muted: '#f1f5f9',
+    mutedForeground: '#64748b',
+    brandTeal: '#38bdf8',
+    brandGold: '#f59e0b'
+  });
+
+  const handleColorChange = (field: string, value: string) => {
+    setColorScheme(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  return (
+    <div className="space-y-8">
+      <div>
+        <h3 className="text-xl font-semibold text-foreground mb-2">Color Settings</h3>
+        <p className="text-muted-foreground">
+          Customize the color scheme of your website
+        </p>
+      </div>
+
+      {/* Brand Colors */}
+      <div className="space-y-6">
+        <h4 className="text-lg font-medium text-foreground border-b border-border pb-2 flex items-center gap-2">
+          <Palette className="h-5 w-5 text-brandPurple" />
+          Brand Colors
+        </h4>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="space-y-2">
+            <Label htmlFor="primary">Primary Color (Brand Purple)</Label>
+            <div className="flex items-center space-x-4">
+              <input
+                type="color"
+                id="primary"
+                value={colorScheme.primary}
+                onChange={(e) => handleColorChange('primary', e.target.value)}
+                className="w-12 h-12 rounded-md border border-input cursor-pointer"
+              />
+              <Input
+                value={colorScheme.primary}
+                onChange={(e) => handleColorChange('primary', e.target.value)}
+                className="font-mono"
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">Main brand color used for primary elements</p>
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="accent">Accent Color (Coral)</Label>
+            <div className="flex items-center space-x-4">
+              <input
+                type="color"
+                id="accent"
+                value={colorScheme.accent}
+                onChange={(e) => handleColorChange('accent', e.target.value)}
+                className="w-12 h-12 rounded-md border border-input cursor-pointer"
+              />
+              <Input
+                value={colorScheme.accent}
+                onChange={(e) => handleColorChange('accent', e.target.value)}
+                className="font-mono"
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">Used for call-to-action buttons and highlights</p>
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="brandTeal">Brand Teal</Label>
+            <div className="flex items-center space-x-4">
+              <input
+                type="color"
+                id="brandTeal"
+                value={colorScheme.brandTeal}
+                onChange={(e) => handleColorChange('brandTeal', e.target.value)}
+                className="w-12 h-12 rounded-md border border-input cursor-pointer"
+              />
+              <Input
+                value={colorScheme.brandTeal}
+                onChange={(e) => handleColorChange('brandTeal', e.target.value)}
+                className="font-mono"
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">Used for gradients and secondary accents</p>
+          </div>
+        </div>
+      </div>
+
+      {/* UI Colors */}
+      <div className="space-y-6">
+        <h4 className="text-lg font-medium text-foreground border-b border-border pb-2">UI Colors</h4>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-2">
+            <Label htmlFor="background">Background</Label>
+            <div className="flex items-center space-x-4">
+              <input
+                type="color"
+                id="background"
+                value={colorScheme.background}
+                onChange={(e) => handleColorChange('background', e.target.value)}
+                className="w-12 h-12 rounded-md border border-input cursor-pointer"
+              />
+              <Input
+                value={colorScheme.background}
+                onChange={(e) => handleColorChange('background', e.target.value)}
+                className="font-mono"
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">Main background color of the site</p>
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="foreground">Foreground</Label>
+            <div className="flex items-center space-x-4">
+              <input
+                type="color"
+                id="foreground"
+                value={colorScheme.foreground}
+                onChange={(e) => handleColorChange('foreground', e.target.value)}
+                className="w-12 h-12 rounded-md border border-input cursor-pointer"
+              />
+              <Input
+                value={colorScheme.foreground}
+                onChange={(e) => handleColorChange('foreground', e.target.value)}
+                className="font-mono"
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">Main text color</p>
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="secondary">Secondary</Label>
+            <div className="flex items-center space-x-4">
+              <input
+                type="color"
+                id="secondary"
+                value={colorScheme.secondary}
+                onChange={(e) => handleColorChange('secondary', e.target.value)}
+                className="w-12 h-12 rounded-md border border-input cursor-pointer"
+              />
+              <Input
+                value={colorScheme.secondary}
+                onChange={(e) => handleColorChange('secondary', e.target.value)}
+                className="font-mono"
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">Used for secondary UI elements</p>
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="muted">Muted Background</Label>
+            <div className="flex items-center space-x-4">
+              <input
+                type="color"
+                id="muted"
+                value={colorScheme.muted}
+                onChange={(e) => handleColorChange('muted', e.target.value)}
+                className="w-12 h-12 rounded-md border border-input cursor-pointer"
+              />
+              <Input
+                value={colorScheme.muted}
+                onChange={(e) => handleColorChange('muted', e.target.value)}
+                className="font-mono"
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">Used for subtle background areas</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Color Scheme Preview */}
+      <div className="space-y-6">
+        <h4 className="text-lg font-medium text-foreground border-b border-border pb-2">Color Scheme Preview</h4>
+        
+        <div className="bg-secondary/20 rounded-lg border border-border p-6">
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Primary Button */}
+              <div className="flex flex-col items-center space-y-2">
+                <button 
+                  style={{ backgroundColor: colorScheme.primary }} 
+                  className="px-4 py-2 rounded-lg text-white font-medium"
+                >
+                  Primary Button
+                </button>
+                <p className="text-xs text-muted-foreground">Primary Button</p>
+              </div>
+              
+              {/* Accent Button */}
+              <div className="flex flex-col items-center space-y-2">
+                <button 
+                  style={{ backgroundColor: colorScheme.accent }} 
+                  className="px-4 py-2 rounded-lg text-white font-medium"
+                >
+                  Accent Button
+                </button>
+                <p className="text-xs text-muted-foreground">Accent Button</p>
+              </div>
+              
+              {/* Gradient Button */}
+              <div className="flex flex-col items-center space-y-2">
+                <button 
+                  style={{ 
+                    background: `linear-gradient(to right, ${colorScheme.primary}, ${colorScheme.brandTeal})` 
+                  }} 
+                  className="px-4 py-2 rounded-lg text-white font-medium"
+                >
+                  Gradient Button
+                </button>
+                <p className="text-xs text-muted-foreground">Gradient Button</p>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Card Preview */}
+              <div 
+                style={{ 
+                  backgroundColor: colorScheme.background,
+                  color: colorScheme.foreground,
+                  borderColor: colorScheme.secondary
+                }} 
+                className="p-4 rounded-lg border"
+              >
+                <h3 style={{ color: colorScheme.foreground }} className="text-lg font-semibold mb-2">Card Title</h3>
+                <p style={{ color: colorScheme.mutedForeground }} className="text-sm">This is how a card would look with your color scheme.</p>
+              </div>
+              
+              {/* Muted Section */}
+              <div 
+                style={{ 
+                  backgroundColor: colorScheme.muted,
+                  color: colorScheme.foreground,
+                  borderColor: colorScheme.secondary
+                }} 
+                className="p-4 rounded-lg border"
+              >
+                <h3 style={{ color: colorScheme.foreground }} className="text-lg font-semibold mb-2">Muted Section</h3>
+                <p style={{ color: colorScheme.mutedForeground }} className="text-sm">This is how a muted section would look.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex justify-end pt-4 border-t border-border">
+        <Button variant="default" className="bg-brandPurple hover:bg-brandPurple/90">
+          Save Color Settings
+        </Button>
+      </div>
     </div>
   );
 };
