@@ -13,7 +13,8 @@ import {
   Users,
   ChevronDown,
   ChevronRight,
-  Code
+  Code,
+  Mail
 } from 'lucide-react';
 import { useAuth } from '../auth/AuthProvider';
 
@@ -26,6 +27,7 @@ import SettingsManager from './SettingsManager';
 import DeveloperManager from './DeveloperManager';
 import AnalyticsManager from './AnalyticsManager';
 import ContactsManager from './ContactsManager';
+import SMTPManager from './SMTPManager';
 
 // Placeholder components
 const BlogManager = () => (
@@ -55,6 +57,8 @@ const CMSDashboard: React.FC = () => {
         return <FormsManager />;
       case 'contacts':
         return <ContactsManager />;
+      case 'smtp':
+        return <SMTPManager />;
       case 'settings':
         return <SettingsManager />;
       case 'developer':
@@ -75,6 +79,7 @@ const CMSDashboard: React.FC = () => {
   const crmItems = [
     { id: 'contacts', label: 'Contacts', icon: Users },
     { id: 'forms', label: 'Forms', icon: FileInput },
+    { id: 'smtp', label: 'SMTP', icon: Mail },
   ];
 
   const getPageTitle = () => {

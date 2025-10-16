@@ -10,10 +10,7 @@ import {
   Download,
   Eye,
   X,
-  MessageSquare,
-  Send,
-  Key,
-  CheckCircle2
+  MessageSquare
 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
@@ -54,20 +51,10 @@ const ContactsManager: React.FC = () => {
   const [showLeadModal, setShowLeadModal] = useState(false);
   const [selectedLead, setSelectedLead] = useState<any>(null);
   const [leadsData, setLeadsData] = useState<{ leads: any[], total: number }>({ leads: [], total: 0 });
-  
-  // SMTP Configuration State
-  const [smtpConfig, setSmtpConfig] = useState({
-    resendApiKey: '',
-    fromEmail: '',
-    fromName: ''
-  });
-  const [isSaving, setIsSaving] = useState(false);
-  const [saveSuccess, setSaveSuccess] = useState(false);
 
   useEffect(() => {
     loadContacts();
     loadLeads();
-    loadSmtpConfig();
   }, []);
 
   const loadContacts = async (search = '') => {
@@ -147,68 +134,6 @@ const ContactsManager: React.FC = () => {
       setLeadsData({ leads: formattedLeads, total: formattedLeads.length });
     } catch (err) {
       console.error('Error loading leads:', err);
-    }
-  };
-
-  const loadSmtpConfig = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('project_settings')
-        .select('*')
-        .single();
-
-      if (data) {
-        setSmtpConfig({
-          resendApiKey: (data as any).smtp_resend_key || '',
-          fromEmail: (data as any).smtp_from_email || '',
-          fromName: (data as any).smtp_from_name || ''
-        });
-      }
-    } catch (err) {
-      console.error('Error loading SMTP config:', err);
-    }
-  };
-
-  const handleSaveSmtpConfig = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSaving(true);
-    setSaveSuccess(false);
-
-    try {
-      const { data: existing } = await supabase
-        .from('project_settings')
-        .select('id')
-        .single();
-
-      const updateData = {
-        smtp_resend_key: smtpConfig.resendApiKey,
-        smtp_from_email: smtpConfig.fromEmail,
-        smtp_from_name: smtpConfig.fromName,
-        updated_at: new Date().toISOString()
-      };
-
-      if (existing) {
-        const { error } = await supabase
-          .from('project_settings')
-          .update(updateData)
-          .eq('id', existing.id);
-
-        if (error) throw error;
-      } else {
-        const { error } = await supabase
-          .from('project_settings')
-          .insert(updateData);
-
-        if (error) throw error;
-      }
-
-      setSaveSuccess(true);
-      setTimeout(() => setSaveSuccess(false), 3000);
-    } catch (err) {
-      console.error('Error saving SMTP config:', err);
-      setError('Failed to save SMTP configuration');
-    } finally {
-      setIsSaving(false);
     }
   };
 
@@ -328,7 +253,6 @@ const ContactsManager: React.FC = () => {
         <TabsList className="w-full justify-start border-b rounded-none bg-white p-0">
           <TabsTrigger value="contacts" className="px-6 py-3">Contacts</TabsTrigger>
           <TabsTrigger value="leads" className="px-6 py-3">Leads</TabsTrigger>
-          <TabsTrigger value="smtp" className="px-6 py-3">SMTP</TabsTrigger>
         </TabsList>
 
         {/* Contacts Tab Content */}
@@ -582,118 +506,6 @@ const ContactsManager: React.FC = () => {
                 </tbody>
               </table>
             </div>
-          </div>
-        </TabsContent>
-
-        {/* SMTP Configuration Tab Content */}
-        <TabsContent value="smtp" className="mt-6">
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <div className="mb-6">
-              <div className="flex items-center space-x-2 mb-2">
-                <Send className="h-5 w-5 text-purple-600" />
-                <h3 className="text-lg font-semibold text-gray-900">SMTP Configuration</h3>
-              </div>
-              <p className="text-sm text-gray-600">
-                Configure Resend SMTP settings for sending emails from your CRM
-              </p>
-            </div>
-
-            <form onSubmit={handleSaveSmtpConfig} className="space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  <div className="flex items-center space-x-2">
-                    <Key className="h-4 w-4" />
-                    <span>Resend API Key</span>
-                  </div>
-                </label>
-                <input
-                  type="password"
-                  value={smtpConfig.resendApiKey}
-                  onChange={(e) => setSmtpConfig({ ...smtpConfig, resendApiKey: e.target.value })}
-                  placeholder="re_..."
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                />
-                <p className="mt-1 text-xs text-gray-500">
-                  Get your API key from{' '}
-                  <a 
-                    href="https://resend.com/api-keys" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-purple-600 hover:text-purple-800"
-                  >
-                    Resend Dashboard
-                  </a>
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  <div className="flex items-center space-x-2">
-                    <Mail className="h-4 w-4" />
-                    <span>From Email</span>
-                  </div>
-                </label>
-                <input
-                  type="email"
-                  value={smtpConfig.fromEmail}
-                  onChange={(e) => setSmtpConfig({ ...smtpConfig, fromEmail: e.target.value })}
-                  placeholder="noreply@yourdomain.com"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                />
-                <p className="mt-1 text-xs text-gray-500">
-                  Make sure this domain is verified in your{' '}
-                  <a 
-                    href="https://resend.com/domains" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-purple-600 hover:text-purple-800"
-                  >
-                    Resend Domains
-                  </a>
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  <div className="flex items-center space-x-2">
-                    <Users className="h-4 w-4" />
-                    <span>From Name</span>
-                  </div>
-                </label>
-                <input
-                  type="text"
-                  value={smtpConfig.fromName}
-                  onChange={(e) => setSmtpConfig({ ...smtpConfig, fromName: e.target.value })}
-                  placeholder="Your Company Name"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                />
-              </div>
-
-              {saveSuccess && (
-                <div className="flex items-center space-x-2 text-green-600 bg-green-50 px-4 py-3 rounded-lg">
-                  <CheckCircle2 className="h-5 w-5" />
-                  <span className="text-sm font-medium">SMTP configuration saved successfully!</span>
-                </div>
-              )}
-
-              <div className="flex justify-end pt-4 border-t border-gray-200">
-                <button
-                  type="submit"
-                  disabled={isSaving}
-                  className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-2"
-                >
-                  {isSaving ? (
-                    <>
-                      <span>Saving...</span>
-                    </>
-                  ) : (
-                    <>
-                      <span>Save Configuration</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            </form>
           </div>
         </TabsContent>
       </Tabs>
