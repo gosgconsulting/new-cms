@@ -91,7 +91,8 @@ const CMSDashboard: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex">
       {/* Sidebar */}
-      <div className="w-64 bg-white shadow-sm border-r border-gray-200 flex-shrink-0">
+      {activeTab !== 'components' && (
+        <div className="w-64 bg-white shadow-sm border-r border-gray-200 flex-shrink-0">
         <div className="flex flex-col h-full">
           {/* Header */}
           <div className="p-6 border-b border-gray-200">
@@ -217,6 +218,7 @@ const CMSDashboard: React.FC = () => {
           </div>
         </div>
       </div>
+      )}
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
