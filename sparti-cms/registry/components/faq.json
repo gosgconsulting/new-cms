@@ -1,0 +1,35 @@
+{
+  "id": "faq-section",
+  "name": "FAQ Section",
+  "type": "container",
+  "category": "interactive",
+  "description": "Frequently asked questions with accordion",
+  "properties": {
+    "sectionTitle": {
+      "type": "string",
+      "description": "Section title",
+      "editable": true,
+      "required": true,
+      "default": "Frequently Asked Questions"
+    },
+    "sectionSubtitle": {
+      "type": "string",
+      "description": "Section subtitle",
+      "editable": true,
+      "default": "Everything you need to know"
+    },
+    "faqs": {
+      "type": "array",
+      "description": "Array of FAQ items",
+      "editable": true,
+      "required": true,
+      "default": []
+    }
+  },
+  "editor": "ContainerEditor",
+  "version": "1.0.0",
+  "tenant_scope": "tenant",
+  "tags": ["faq", "questions", "accordion", "interactive"],
+  "dependencies": ["@radix-ui/react-accordion"],
+  "last_updated": "2025-01-28T12:00:00Z"
+}

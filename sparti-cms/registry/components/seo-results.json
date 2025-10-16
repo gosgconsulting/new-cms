@@ -1,0 +1,47 @@
+{
+  "id": "seo-results-section",
+  "name": "SEO Results",
+  "type": "container",
+  "category": "content",
+  "description": "Showcase of SEO results and case studies",
+  "properties": {
+    "sectionTitle": {
+      "type": "string",
+      "description": "Section title",
+      "editable": true,
+      "required": true,
+      "default": "Proven Results"
+    },
+    "sectionSubtitle": {
+      "type": "string",
+      "description": "Section subtitle",
+      "editable": true,
+      "default": "Real results from our clients"
+    },
+    "results": {
+      "type": "array",
+      "description": "Array of result items",
+      "editable": true,
+      "required": true,
+      "default": []
+    },
+    "displayStyle": {
+      "type": "string",
+      "description": "Display style (grid | slider)",
+      "editable": true,
+      "default": "slider"
+    },
+    "showStats": {
+      "type": "boolean",
+      "description": "Show statistics counter",
+      "editable": true,
+      "default": true
+    }
+  },
+  "editor": "ContainerEditor",
+  "version": "1.0.0",
+  "tenant_scope": "tenant",
+  "tags": ["results", "case-studies", "testimonials", "proof"],
+  "dependencies": ["embla-carousel-react"],
+  "last_updated": "2025-01-28T12:00:00Z"
+}

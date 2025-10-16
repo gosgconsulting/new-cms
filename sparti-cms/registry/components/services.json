@@ -1,0 +1,47 @@
+{
+  "id": "services-showcase-section",
+  "name": "Services Showcase",
+  "type": "container",
+  "category": "content",
+  "description": "Showcase of SEO services offered",
+  "properties": {
+    "sectionTitle": {
+      "type": "string",
+      "description": "Section title",
+      "editable": true,
+      "required": true,
+      "default": "Our SEO Services"
+    },
+    "sectionSubtitle": {
+      "type": "string",
+      "description": "Section subtitle",
+      "editable": true,
+      "default": "Comprehensive SEO solutions"
+    },
+    "services": {
+      "type": "array",
+      "description": "Array of service items",
+      "editable": true,
+      "required": true,
+      "default": []
+    },
+    "showCTA": {
+      "type": "boolean",
+      "description": "Show CTA button",
+      "editable": true,
+      "default": true
+    },
+    "ctaButtonText": {
+      "type": "string",
+      "description": "CTA button text",
+      "editable": true,
+      "default": "Learn More"
+    }
+  },
+  "editor": "ContainerEditor",
+  "version": "1.0.0",
+  "tenant_scope": "tenant",
+  "tags": ["services", "features", "offerings", "seo"],
+  "dependencies": ["lucide-react"],
+  "last_updated": "2025-01-28T12:00:00Z"
+}

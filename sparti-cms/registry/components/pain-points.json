@@ -1,0 +1,47 @@
+{
+  "id": "pain-point-section",
+  "name": "Pain Points",
+  "type": "container",
+  "category": "content",
+  "description": "Section highlighting customer pain points",
+  "properties": {
+    "sectionTitle": {
+      "type": "string",
+      "description": "Section title",
+      "editable": true,
+      "required": true,
+      "default": "Common SEO Challenges"
+    },
+    "sectionSubtitle": {
+      "type": "string",
+      "description": "Section subtitle",
+      "editable": true,
+      "default": "Problems we solve for businesses"
+    },
+    "painPoints": {
+      "type": "array",
+      "description": "Array of pain point items",
+      "editable": true,
+      "required": true,
+      "default": []
+    },
+    "showCTA": {
+      "type": "boolean",
+      "description": "Show CTA button",
+      "editable": true,
+      "default": true
+    },
+    "ctaButtonText": {
+      "type": "string",
+      "description": "CTA button text",
+      "editable": true,
+      "default": "Get Help Now"
+    }
+  },
+  "editor": "ContainerEditor",
+  "version": "1.0.0",
+  "tenant_scope": "tenant",
+  "tags": ["pain-points", "problems", "content", "features"],
+  "dependencies": ["lucide-react"],
+  "last_updated": "2025-01-28T12:00:00Z"
+}

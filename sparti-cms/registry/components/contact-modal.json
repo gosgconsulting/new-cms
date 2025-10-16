@@ -1,0 +1,39 @@
+{
+  "id": "contact-modal",
+  "name": "Contact Modal",
+  "type": "container",
+  "category": "interactive",
+  "description": "Contact form modal overlay",
+  "properties": {
+    "modalTitle": {
+      "type": "string",
+      "description": "Modal title",
+      "editable": true,
+      "default": "Get in Touch"
+    },
+    "formFields": {
+      "type": "array",
+      "description": "Form field configuration",
+      "editable": true,
+      "default": []
+    },
+    "submitButtonText": {
+      "type": "string",
+      "description": "Submit button text",
+      "editable": true,
+      "default": "Send Message"
+    },
+    "successMessage": {
+      "type": "string",
+      "description": "Success message after submission",
+      "editable": true,
+      "default": "Thank you! We'll be in touch soon."
+    }
+  },
+  "editor": "ContainerEditor",
+  "version": "1.0.0",
+  "tenant_scope": "tenant",
+  "tags": ["contact", "form", "modal", "lead-generation"],
+  "dependencies": ["@radix-ui/react-dialog"],
+  "last_updated": "2025-01-28T12:00:00Z"
+}

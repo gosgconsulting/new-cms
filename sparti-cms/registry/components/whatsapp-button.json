@@ -1,0 +1,34 @@
+{
+  "id": "whatsapp-button",
+  "name": "WhatsApp Button",
+  "type": "button",
+  "category": "interactive",
+  "description": "Floating WhatsApp contact button",
+  "properties": {
+    "phoneNumber": {
+      "type": "string",
+      "description": "WhatsApp phone number",
+      "editable": true,
+      "required": true,
+      "default": "+6512345678"
+    },
+    "message": {
+      "type": "string",
+      "description": "Pre-filled message",
+      "editable": true,
+      "default": "Hi, I'm interested in your SEO services"
+    },
+    "position": {
+      "type": "string",
+      "description": "Button position",
+      "editable": true,
+      "default": "bottom-right"
+    }
+  },
+  "editor": "ButtonEditor",
+  "version": "1.0.0",
+  "tenant_scope": "tenant",
+  "tags": ["whatsapp", "contact", "floating", "cta"],
+  "dependencies": ["lucide-react"],
+  "last_updated": "2025-01-28T12:00:00Z"
+}

@@ -1,0 +1,40 @@
+{
+  "id": "client-logos-carousel",
+  "name": "Client Logos",
+  "type": "media",
+  "category": "content",
+  "description": "Animated carousel of client logos",
+  "properties": {
+    "logos": {
+      "type": "array",
+      "description": "Array of logo objects",
+      "editable": true,
+      "required": true,
+      "default": []
+    },
+    "animationSpeed": {
+      "type": "number",
+      "description": "Animation duration in seconds",
+      "editable": true,
+      "default": 30
+    },
+    "pauseOnHover": {
+      "type": "boolean",
+      "description": "Pause animation on hover",
+      "editable": true,
+      "default": false
+    },
+    "logoHeight": {
+      "type": "number",
+      "description": "Logo height in pixels",
+      "editable": true,
+      "default": 40
+    }
+  },
+  "editor": "MediaEditor",
+  "version": "1.0.0",
+  "tenant_scope": "tenant",
+  "tags": ["logos", "carousel", "clients", "animation"],
+  "dependencies": ["framer-motion"],
+  "last_updated": "2025-01-28T12:00:00Z"
+}

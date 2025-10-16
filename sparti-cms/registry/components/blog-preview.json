@@ -1,0 +1,40 @@
+{
+  "id": "blog-preview-section",
+  "name": "Blog Preview",
+  "type": "container",
+  "category": "content",
+  "description": "Preview of latest blog posts",
+  "properties": {
+    "sectionTitle": {
+      "type": "string",
+      "description": "Section title",
+      "editable": true,
+      "required": true,
+      "default": "Latest from Our Blog"
+    },
+    "sectionSubtitle": {
+      "type": "string",
+      "description": "Section subtitle",
+      "editable": true,
+      "default": "SEO tips, insights, and updates"
+    },
+    "postsCount": {
+      "type": "number",
+      "description": "Number of posts to display",
+      "editable": true,
+      "default": 3
+    },
+    "showAllLink": {
+      "type": "string",
+      "description": "Link to all posts",
+      "editable": true,
+      "default": "/blog"
+    }
+  },
+  "editor": "ContainerEditor",
+  "version": "1.0.0",
+  "tenant_scope": "tenant",
+  "tags": ["blog", "posts", "articles", "content"],
+  "dependencies": ["react-router-dom"],
+  "last_updated": "2025-01-28T12:00:00Z"
+}

@@ -1,0 +1,35 @@
+{
+  "id": "testimonials-section",
+  "name": "Testimonials",
+  "type": "container",
+  "category": "content",
+  "description": "Customer testimonials and reviews",
+  "properties": {
+    "sectionTitle": {
+      "type": "string",
+      "description": "Section title",
+      "editable": true,
+      "required": true,
+      "default": "What Our Clients Say"
+    },
+    "sectionSubtitle": {
+      "type": "string",
+      "description": "Section subtitle",
+      "editable": true,
+      "default": "Real feedback from satisfied customers"
+    },
+    "testimonials": {
+      "type": "array",
+      "description": "Array of testimonial items",
+      "editable": true,
+      "required": true,
+      "default": []
+    }
+  },
+  "editor": "ContainerEditor",
+  "version": "1.0.0",
+  "tenant_scope": "tenant",
+  "tags": ["testimonials", "reviews", "social-proof", "trust"],
+  "dependencies": [],
+  "last_updated": "2025-01-28T12:00:00Z"
+}

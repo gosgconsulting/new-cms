@@ -1,0 +1,47 @@
+{
+  "id": "footer-main",
+  "name": "Footer",
+  "type": "container",
+  "category": "layout",
+  "description": "Main site footer with CTA, links, and copyright",
+  "properties": {
+    "ctaHeading": {
+      "type": "string",
+      "description": "CTA section heading",
+      "editable": true,
+      "required": true,
+      "default": "Get Your SEO Strategy"
+    },
+    "ctaDescription": {
+      "type": "string",
+      "description": "CTA section description",
+      "editable": true,
+      "required": true,
+      "default": "Ready to dominate search results? Let's discuss how we can help your business grow."
+    },
+    "ctaButtonText": {
+      "type": "string",
+      "description": "CTA button text",
+      "editable": true,
+      "default": "Start Your Journey"
+    },
+    "contactLinks": {
+      "type": "array",
+      "description": "Contact link items",
+      "editable": true,
+      "default": []
+    },
+    "copyrightText": {
+      "type": "string",
+      "description": "Copyright text",
+      "editable": true,
+      "default": "GO SG CONSULTING. All rights reserved."
+    }
+  },
+  "editor": "ContainerEditor",
+  "version": "1.0.0",
+  "tenant_scope": "tenant",
+  "tags": ["footer", "layout", "global", "cta"],
+  "dependencies": ["react-router-dom", "lucide-react"],
+  "last_updated": "2025-01-28T12:00:00Z"
+}

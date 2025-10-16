@@ -1,0 +1,44 @@
+{
+  "id": "header-main",
+  "name": "Header",
+  "type": "container",
+  "category": "layout",
+  "description": "Main site header with logo and CTA button",
+  "properties": {
+    "logo": {
+      "type": "object",
+      "description": "Logo image and alt text",
+      "editable": true,
+      "required": true,
+      "default": {
+        "src": "/assets/go-sg-logo-official.png",
+        "alt": "GO SG Digital Marketing Agency"
+      }
+    },
+    "ctaText": {
+      "type": "string",
+      "description": "Call-to-action button text",
+      "editable": true,
+      "required": true,
+      "default": "Contact Us"
+    },
+    "showCTA": {
+      "type": "boolean",
+      "description": "Show/hide CTA button",
+      "editable": true,
+      "default": true
+    },
+    "isFixed": {
+      "type": "boolean",
+      "description": "Fixed positioning on scroll",
+      "editable": true,
+      "default": true
+    }
+  },
+  "editor": "ContainerEditor",
+  "version": "1.0.0",
+  "tenant_scope": "tenant",
+  "tags": ["header", "navigation", "layout", "global"],
+  "dependencies": ["react-router-dom"],
+  "last_updated": "2025-01-28T12:00:00Z"
+}

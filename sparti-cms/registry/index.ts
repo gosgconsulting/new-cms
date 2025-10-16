@@ -1,11 +1,19 @@
 import { ComponentDefinition, RegistryConfig } from './types';
 import { syncFromDatabase, syncToDatabase } from './sync';
 
-// Import component definitions
-import textComponent from './components/text.json';
-import buttonComponent from './components/button.json';
-import containerComponent from './components/container.json';
-import imageComponent from './components/image.json';
+// Import GO SG component definitions from landing page
+import headerComponent from './components/header.json';
+import footerComponent from './components/footer.json';
+import heroComponent from './components/hero.json';
+import clientLogosComponent from './components/client-logos.json';
+import painPointsComponent from './components/pain-points.json';
+import seoResultsComponent from './components/seo-results.json';
+import servicesComponent from './components/services.json';
+import testimonialsComponent from './components/testimonials.json';
+import faqComponent from './components/faq.json';
+import blogPreviewComponent from './components/blog-preview.json';
+import whatsappButtonComponent from './components/whatsapp-button.json';
+import contactModalComponent from './components/contact-modal.json';
 
 class ComponentRegistry {
   private static instance: ComponentRegistry;
@@ -24,15 +32,32 @@ class ComponentRegistry {
   }
 
   private loadLocalComponents(): void {
-    // Load built-in components
-    const builtInComponents = [
-      textComponent as ComponentDefinition,
-      buttonComponent as ComponentDefinition,
-      containerComponent as ComponentDefinition,
-      imageComponent as ComponentDefinition,
+    // Load GO SG landing page components
+    const gosgComponents = [
+      // Layout Components
+      headerComponent as ComponentDefinition,
+      footerComponent as ComponentDefinition,
+      
+      // Hero Section Components
+      heroComponent as ComponentDefinition,
+      clientLogosComponent as ComponentDefinition,
+      
+      // Content Section Components
+      painPointsComponent as ComponentDefinition,
+      seoResultsComponent as ComponentDefinition,
+      servicesComponent as ComponentDefinition,
+      testimonialsComponent as ComponentDefinition,
+      
+      // Interactive Components
+      faqComponent as ComponentDefinition,
+      blogPreviewComponent as ComponentDefinition,
+      
+      // Utility Components
+      whatsappButtonComponent as ComponentDefinition,
+      contactModalComponent as ComponentDefinition,
     ];
 
-    builtInComponents.forEach(component => {
+    gosgComponents.forEach(component => {
       this.components.set(component.id, component);
     });
 

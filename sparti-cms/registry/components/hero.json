@@ -1,0 +1,60 @@
+{
+  "id": "hero-main",
+  "name": "Hero Section",
+  "type": "container",
+  "category": "content",
+  "description": "Main hero section with headline, description, and CTA",
+  "properties": {
+    "badgeText": {
+      "type": "string",
+      "description": "Top badge text",
+      "editable": true,
+      "default": "Results in 3 months or less"
+    },
+    "showBadge": {
+      "type": "boolean",
+      "description": "Show/hide badge",
+      "editable": true,
+      "default": true
+    },
+    "headingLine1": {
+      "type": "string",
+      "description": "First line of heading",
+      "editable": true,
+      "required": true,
+      "default": "We Boost Your SEO"
+    },
+    "headingLine2": {
+      "type": "string",
+      "description": "Second line of heading (highlighted)",
+      "editable": true,
+      "required": true,
+      "default": "In 3 Months"
+    },
+    "description": {
+      "type": "string",
+      "description": "Hero description text",
+      "editable": true,
+      "required": true,
+      "default": "We help businesses dominate search results through proven SEO strategies that increase organic traffic, boost rankings, and drive qualified leads to your website."
+    },
+    "ctaButtonText": {
+      "type": "string",
+      "description": "CTA button text",
+      "editable": true,
+      "default": "Get a Quote"
+    },
+    "showClientLogos": {
+      "type": "boolean",
+      "description": "Show client logos carousel",
+      "editable": true,
+      "default": true
+    }
+  },
+  "editor": "ContainerEditor",
+  "version": "1.0.0",
+  "tenant_scope": "tenant",
+  "tags": ["hero", "banner", "cta", "homepage"],
+  "dependencies": ["framer-motion", "lucide-react"],
+  "last_updated": "2025-01-28T12:00:00Z"
+}
