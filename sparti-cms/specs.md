@@ -123,15 +123,94 @@ function App() {
 }
 ```
 
-## Data Storage
-- **LocalStorage**: Demo data persistence
-- **In-Memory State**: Runtime data management
-- **Component Registry**: Static component definitions
+## Development Workflow (SOP)
+
+### 1. Server Setup
+- Duplicate Railway template
+- Duplicate Git repository
+- Configure environment variables
+
+### 2. Website Development (Frontend-First Approach)
+**CRITICAL: Build frontend components BEFORE database migration**
+
+1. **Design Frontend Website** (using Cursor/IDE)
+   - Create all page components in `src/components/`
+   - Design and style using design system tokens
+   - Test components in isolation
+
+2. **Create Components on Frontend**
+   - Build complete, functional React components
+   - Ensure components follow semantic HTML structure
+   - Add proper TypeScript types
+   - Implement all interactions and animations
+
+3. **Add Components to CMS Admin**
+   - Create component definition JSON files in `sparti-cms/registry/components/`
+   - Define component schema with properties, editor, and metadata
+   - Register component in ComponentRegistry
+
+4. **Create Database Schema** (After frontend is complete)
+   - Design database tables for components in `cms_components` table
+   - Create migration SQL for component metadata
+   - Define RLS policies for component access
+
+5. **Sync Pages with Components**
+   - Map frontend components to CMS registry
+   - Link pages to available components
+   - Configure component visibility and permissions
+
+6. **Sync Blog with Sparti API**
+   - Configure blog integration
+   - Map blog posts to components
+   - Setup content synchronization
+
+### 3. Setups & Configuration
+- **SMTP Setup**: Configure Resend API for email delivery
+- **Email Recipients**: Set up email notification recipients
+- **Email Content**: Design email templates
+- **Content Integration**: Upload logo, favicon, client assets
+
+### 4. Deployment
+- Deploy to Railway/production environment
+- Verify all integrations working
+- Test email delivery and forms
+
+### 5. Component Migration to Database
+**IMPORTANT: This is the LAST step, not the first**
+- Export component definitions from registry
+- Run migration script to populate database
+- Verify components appear in CMS admin
+- Test component editing and synchronization
+
+## Data Storage & Migration Strategy
+
+### Development Phase (Frontend-First)
+- **LocalStorage**: Demo data persistence during development
+- **In-Memory State**: Runtime component registry
+- **Static JSON Files**: Component definitions in `sparti-cms/registry/components/`
+
+### Production Phase (After Migration)
+- **Database Tables**: Component metadata in PostgreSQL
+- **Component Registry**: Synced with database
+- **Frontend Components**: Already built and tested
+
+### Migration Process
+```bash
+# 1. Design and build frontend components first
+npm run dev
+
+# 2. Create component definitions in registry/
+# 3. Test components thoroughly
+
+# 4. Only after frontend is complete, migrate to database:
+npm run migrate-components
+```
 
 ## Component Compatibility
 - All components must be detectable by the universal element detector
 - Components should follow semantic HTML structure
 - Support for custom data attributes for enhanced editing
+- Component definitions must exist in registry BEFORE database migration
 
 ## Module Features
 

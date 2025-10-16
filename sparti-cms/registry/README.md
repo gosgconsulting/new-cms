@@ -1,6 +1,16 @@
 # Sparti Component Registry
 
-This folder contains the local component registry that syncs with the database. It provides fast access to component definitions without requiring database queries for every operation.
+This folder contains the local component registry that serves as the **source of truth** during development. Components are designed here first, then migrated to the database for production.
+
+## Development Philosophy: Frontend-First
+
+**CRITICAL WORKFLOW:**
+1. Build and test frontend components in `src/components/`
+2. Create component definitions in `registry/components/`
+3. Test components in CMS admin interface
+4. Only after complete testing, migrate to database
+
+The registry provides fast access to component definitions without requiring database queries during development.
 
 ## Structure
 
