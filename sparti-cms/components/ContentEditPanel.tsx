@@ -4,6 +4,7 @@ import { Type, Image, Video, Link, MousePointer, Settings, X, Save } from 'lucid
 import { useSpartiBuilder } from './SpartiBuilderProvider';
 import { ElementType } from '../types';
 import { componentRegistry } from '../registry';
+import { motion } from 'framer-motion';
 
 // Specialized editor components
 import { TextEditor } from './editors/TextEditor';
@@ -96,16 +97,25 @@ export const ContentEditPanel: React.FC = () => {
   return (
     <>
       <div className="sparti-modal-backdrop" onClick={() => selectElement(null)}></div>
-      <div className="sparti-edit-panel">
+      <motion.div 
+        className="sparti-edit-panel"
+        initial={{ x: 320, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        exit={{ x: 320, opacity: 0 }}
+        transition={{ duration: 0.3 }}
+      >
         <div className="sparti-edit-panel-header">
           <div className="sparti-edit-header-content">
-            <IconComponent size={20} />
+            <IconComponent size={20} className="text-brandPurple" />
             <div>
               <h3>{elementType.charAt(0).toUpperCase() + elementType.slice(1)} Editor</h3>
               <p className="sparti-element-path">{data.tagName.toUpperCase()}</p>
               {componentRegistry.has(elementType) && (
-                <div className="sparti-registry-status">
-                  ✓ Registered Component
+                <div className="sparti-registry-status bg-brandTeal/10 border border-brandTeal/20 text-brandTeal text-xs rounded-md px-2 py-1 inline-flex items-center">
+                  <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  Registered Component
                 </div>
               )}
             </div>
@@ -113,17 +123,17 @@ export const ContentEditPanel: React.FC = () => {
           <div className="sparti-edit-panel-actions">
             {isComponent && (
               <button 
-                className={`sparti-btn sparti-btn-primary ${isSaving ? 'sparti-btn-loading' : ''}`}
+                className={`sparti-btn bg-brandTeal hover:bg-brandTeal/90 text-white px-3 py-1.5 rounded-lg transition-all duration-200 flex items-center space-x-2 shadow-sm hover:shadow-md ${isSaving ? 'opacity-70' : ''}`}
                 onClick={saveToDatabase}
                 disabled={isSaving}
                 aria-label="Save to database"
               >
-                <Save size={16} />
+                <Save size={16} className="mr-1" />
                 {isSaving ? 'Saving...' : 'Save'}
               </button>
             )}
             <button 
-              className="sparti-btn sparti-btn-ghost sparti-close-btn" 
+              className="sparti-btn bg-secondary hover:bg-secondary/80 text-foreground p-1.5 rounded-lg transition-all duration-200 flex items-center" 
               onClick={() => selectElement(null)}
               aria-label="Close editor"
             >
@@ -134,13 +144,23 @@ export const ContentEditPanel: React.FC = () => {
         
         <div className="sparti-edit-panel-content">
           {saveSuccess && (
-            <div className="sparti-alert sparti-alert-success">
-              Component saved successfully!
-            </div>
+            <motion.div 
+              className="sparti-alert bg-brandTeal/10 border border-brandTeal/20 text-brandTeal p-3 rounded-lg mb-4"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+            >
+              <div className="flex items-center">
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                Component saved successfully!
+              </div>
+            </motion.div>
           )}
           {renderSpecializedEditor()}
         </div>
-      </div>
+      </motion.div>
     </>
   );
 };

@@ -65,13 +65,13 @@ export const ElementSelector: React.FC<ElementSelectorProps> = ({ children }) =>
     targetElement.addEventListener('mouseleave', handleElementLeave, true);
 
     // Add class to body for global styling
-    document.body.classList.add('sparti-editing');
+    document.body.classList.add('gosg-editing');
 
     return () => {
       targetElement.removeEventListener('click', handleElementClick, true);
       targetElement.removeEventListener('mouseover', handleElementHover, true);
       targetElement.removeEventListener('mouseleave', handleElementLeave, true);
-      document.body.classList.remove('sparti-editing');
+      document.body.classList.remove('gosg-editing');
     };
   }, [isEditing]);
 

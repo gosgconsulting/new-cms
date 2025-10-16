@@ -1,4 +1,4 @@
-// Universal Sparti Builder Plugin - Works on any website
+// GO SG CMS Builder Plugin - Works on any website
 import React, { ReactNode, useEffect } from 'react';
 import { SpartiBuilderProvider } from './SpartiBuilderProvider';
 import { SpartiToolbar } from './SpartiToolbar';
@@ -18,24 +18,24 @@ export const SpartiBuilder: React.FC<SpartiBuilderProps> = ({
   children, 
   config = { enabled: true, toolbar: true, autoDetect: true }
 }) => {
-  console.log('SpartiBuilder rendering with config:', config);
+  console.log('GO SG CMS Builder rendering with config:', config);
   
   useEffect(() => {
     try {
       // Initialize universal compatibility
       const framework = UniversalElementDetector.detectFramework();
-      console.log(`Sparti Builder initialized on ${framework} framework`);
+      console.log(`GO SG CMS Builder initialized on ${framework} framework`);
       
       // Inject CSS styles directly into DOM for universal compatibility
       SpartiStyleManager.injectStyles();
-      console.log('Sparti styles injected successfully');
+      console.log('GO SG CMS styles injected successfully');
 
       // Cleanup on unmount
       return () => {
         SpartiStyleManager.removeStyles();
       };
     } catch (error) {
-      console.error('Error initializing Sparti Builder:', error);
+      console.error('Error initializing GO SG CMS Builder:', error);
     }
   }, []);
 

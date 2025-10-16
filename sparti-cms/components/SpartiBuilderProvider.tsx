@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { EditingContext, SpartiElement, SpartiBuilderConfig } from '../types';
 
-interface SpartiBuilderContextType extends EditingContext {
+interface GOSGBuilderContextType extends EditingContext {
   config: SpartiBuilderConfig;
   enterEditMode: () => void;
   exitEditMode: () => void;
@@ -9,7 +9,7 @@ interface SpartiBuilderContextType extends EditingContext {
   hoverElement: (element: SpartiElement | null) => void;
 }
 
-const SpartiBuilderContext = createContext<SpartiBuilderContextType | null>(null);
+const GOSGBuilderContext = createContext<GOSGBuilderContextType | null>(null);
 
 interface SpartiBuilderProviderProps {
   children: ReactNode;
@@ -26,14 +26,14 @@ export const SpartiBuilderProvider: React.FC<SpartiBuilderProviderProps> = ({
 
   const enterEditMode = () => {
     setIsEditing(true);
-    document.body.classList.add('sparti-editing');
+    document.body.classList.add('gosg-editing');
   };
 
   const exitEditMode = () => {
     setIsEditing(false);
     setSelectedElement(null);
     setHoveredElement(null);
-    document.body.classList.remove('sparti-editing');
+    document.body.classList.remove('gosg-editing');
   };
 
   const selectElement = (element: SpartiElement | null) => {
@@ -44,7 +44,7 @@ export const SpartiBuilderProvider: React.FC<SpartiBuilderProviderProps> = ({
     setHoveredElement(element);
   };
 
-  const contextValue: SpartiBuilderContextType = {
+  const contextValue: GOSGBuilderContextType = {
     config,
     isEditing,
     selectedElement,
@@ -56,14 +56,14 @@ export const SpartiBuilderProvider: React.FC<SpartiBuilderProviderProps> = ({
   };
 
   return (
-    <SpartiBuilderContext.Provider value={contextValue}>
+    <GOSGBuilderContext.Provider value={contextValue}>
       {children}
-    </SpartiBuilderContext.Provider>
+    </GOSGBuilderContext.Provider>
   );
 };
 
 export const useSpartiBuilder = () => {
-  const context = useContext(SpartiBuilderContext);
+  const context = useContext(GOSGBuilderContext);
   if (!context) {
     throw new Error('useSpartiBuilder must be used within SpartiBuilderProvider');
   }

@@ -17,6 +17,8 @@ import {
   Layers
 } from 'lucide-react';
 import { useAuth } from '../auth/AuthProvider';
+import { motion } from 'framer-motion';
+import gosgLogo from "@/assets/go-sg-logo-official.png";
 
 // Import existing components
 import PagesManager from '../cms/PagesManager';
@@ -31,9 +33,9 @@ import ComponentsManager from './ComponentsManager';
 
 // Placeholder components
 const BlogManager = () => (
-  <div className="bg-white rounded-lg border border-gray-200 p-6">
-    <h2 className="text-lg font-semibold text-gray-900 mb-4">Blog Management</h2>
-    <p className="text-gray-600">Blog management features will be implemented here.</p>
+  <div className="bg-white rounded-lg border border-border shadow-sm p-6">
+    <h2 className="text-lg font-semibold text-foreground mb-4">Blog Management</h2>
+    <p className="text-muted-foreground">Blog management features will be implemented here.</p>
   </div>
 );
 
@@ -64,7 +66,7 @@ const CMSDashboard: React.FC = () => {
       case 'developer':
         return <DeveloperManager />;
       default:
-        return <div className="text-gray-500">Select a section from the sidebar</div>;
+        return <div className="text-muted-foreground">Select a section from the sidebar</div>;
     }
   };
 
@@ -89,18 +91,25 @@ const CMSDashboard: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-background flex">
       {/* Sidebar */}
       {activeTab !== 'components' && (
-        <div className="w-64 bg-white shadow-sm border-r border-gray-200 flex-shrink-0">
+        <motion.div 
+          className="w-64 bg-white/80 backdrop-blur-md shadow-md border-r border-border flex-shrink-0"
+          initial={{ x: -20, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          transition={{ duration: 0.3 }}
+        >
         <div className="flex flex-col h-full">
           {/* Header */}
-          <div className="p-6 border-b border-gray-200">
+          <div className="p-6 border-b border-border">
             <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">S</span>
-              </div>
-              <h1 className="text-xl font-bold text-gray-900">Sparti</h1>
+              <img 
+                src={gosgLogo} 
+                alt="GO SG Digital Marketing Agency" 
+                className="h-8 w-auto"
+              />
+              <h1 className="text-xl font-bold text-foreground">Admin</h1>
             </div>
           </div>
           
@@ -117,11 +126,11 @@ const CMSDashboard: React.FC = () => {
                       onClick={() => setActiveTab(item.id)}
                       className={`w-full flex items-center px-3 py-2.5 text-left rounded-lg transition-all duration-200 ${
                         isActive
-                          ? 'bg-gray-100 text-gray-900 font-medium'
-                          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                          ? 'bg-secondary text-foreground font-medium shadow-sm'
+                          : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'
                       }`}
                     >
-                      <Icon className="mr-3 h-5 w-5" />
+                      <Icon className={`mr-3 h-5 w-5 ${isActive ? 'text-brandPurple' : ''}`} />
                       {item.label}
                     </button>
                   </li>
@@ -134,12 +143,12 @@ const CMSDashboard: React.FC = () => {
                   onClick={() => setCrmExpanded(!crmExpanded)}
                   className={`w-full flex items-center justify-between px-3 py-2.5 text-left rounded-lg transition-all duration-200 ${
                     crmItems.some(item => item.id === activeTab)
-                      ? 'bg-gray-100 text-gray-900 font-medium'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                      ? 'bg-secondary text-foreground font-medium shadow-sm'
+                      : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'
                   }`}
                 >
                   <div className="flex items-center">
-                    <Users className="mr-3 h-5 w-5" />
+                    <Users className={`mr-3 h-5 w-5 ${crmItems.some(item => item.id === activeTab) ? 'text-brandPurple' : ''}`} />
                     CRM
                   </div>
                   {crmExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
@@ -157,11 +166,11 @@ const CMSDashboard: React.FC = () => {
                             onClick={() => setActiveTab(item.id)}
                             className={`w-full flex items-center px-3 py-2.5 text-left rounded-lg transition-all duration-200 ${
                               isActive
-                                ? 'bg-gray-100 text-gray-900 font-medium'
-                                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                                ? 'bg-secondary text-foreground font-medium shadow-sm'
+                                : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'
                             }`}
                           >
-                            <Icon className="mr-3 h-4 w-4" />
+                            <Icon className={`mr-3 h-4 w-4 ${isActive ? 'text-brandTeal' : ''}`} />
                             {item.label}
                           </button>
                         </li>
@@ -182,11 +191,11 @@ const CMSDashboard: React.FC = () => {
                       onClick={() => setActiveTab(item.id)}
                       className={`w-full flex items-center px-3 py-2.5 text-left rounded-lg transition-all duration-200 ${
                         isActive
-                          ? 'bg-gray-100 text-gray-900 font-medium'
-                          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                          ? 'bg-secondary text-foreground font-medium shadow-sm'
+                          : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'
                       }`}
                     >
-                      <Icon className="mr-3 h-5 w-5" />
+                      <Icon className={`mr-3 h-5 w-5 ${isActive ? 'text-brandPurple' : ''}`} />
                       {item.label}
                     </button>
                   </li>
@@ -196,12 +205,12 @@ const CMSDashboard: React.FC = () => {
           </nav>
           
           {/* Bottom Actions */}
-          <div className="p-4 border-t border-gray-200">
+          <div className="p-4 border-t border-border">
             <div className="space-y-1">
               <a
                 href="/"
                 target="_blank"
-                className="w-full flex items-center px-3 py-2.5 text-left rounded-lg text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-all duration-200"
+                className="w-full flex items-center px-3 py-2.5 text-left rounded-lg text-muted-foreground hover:bg-secondary/50 hover:text-foreground transition-all duration-200"
               >
                 <Home className="mr-3 h-5 w-5" />
                 View Site
@@ -209,7 +218,7 @@ const CMSDashboard: React.FC = () => {
 
               <button
                 onClick={signOut}
-                className="w-full flex items-center px-3 py-2.5 text-left rounded-lg text-gray-600 hover:bg-red-50 hover:text-red-600 transition-all duration-200"
+                className="w-full flex items-center px-3 py-2.5 text-left rounded-lg text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all duration-200"
               >
                 <LogOut className="mr-3 h-5 w-5" />
                 Sign Out
@@ -217,20 +226,20 @@ const CMSDashboard: React.FC = () => {
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
       )}
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top Bar */}
-        <div className="bg-white border-b border-gray-200 px-6 py-4">
+        <div className="bg-white/80 backdrop-blur-md border-b border-border px-6 py-4 shadow-sm">
           <div className="flex items-center space-x-4">
-            <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-              <ArrowLeft className="h-5 w-5 text-gray-500" />
+            <button className="p-2 hover:bg-secondary/50 rounded-lg transition-colors">
+              <ArrowLeft className="h-5 w-5 text-muted-foreground" />
             </button>
             <div>
-              <h1 className="text-2xl font-semibold text-gray-900">{getPageTitle()}</h1>
-              <p className="text-sm text-gray-500 mt-1">
+              <h1 className="text-2xl font-semibold text-foreground">{getPageTitle()}</h1>
+              <p className="text-sm text-muted-foreground mt-1">
                 Manage settings and integrations for <span className="font-medium">your site</span>
               </p>
             </div>
@@ -238,10 +247,19 @@ const CMSDashboard: React.FC = () => {
         </div>
 
         {/* Content Area */}
-        <div className="flex-1 overflow-auto">
-          <div className="p-6">
+        <div className="flex-1 overflow-auto bg-gradient-to-br from-background via-secondary/10 to-background relative">
+          {/* Diagonal gradient accents */}
+          <div className="absolute top-0 right-1/4 w-96 h-96 bg-gradient-to-br from-brandPurple/5 to-transparent blur-3xl rotate-45 -z-10"></div>
+          <div className="absolute bottom-1/4 left-1/3 w-80 h-80 bg-gradient-to-tl from-brandTeal/5 to-transparent blur-3xl -rotate-45 -z-10"></div>
+          
+          <motion.div 
+            className="p-6"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
             {renderContent()}
-          </div>
+          </motion.div>
         </div>
       </div>
     </div>

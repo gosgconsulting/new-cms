@@ -1,4 +1,4 @@
-/* Sparti Builder Core Styles - Universal Plugin */
+/* GO SG CMS Builder Core Styles - Universal Plugin */
 .sparti-builder-wrapper {
   position: relative;
   min-height: 100vh;
@@ -12,9 +12,10 @@
   top: 0 !important;
   left: 0 !important;
   right: 0 !important;
-  background: #ffffff !important;
-  border-bottom: 1px solid #e5e7eb !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(10px) !important;
+  border-bottom: 1px solid hsl(var(--border)) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
   z-index: 2147483647 !important; /* Maximum possible z-index */
   transition: all 0.3s ease;
   font-family: inherit !important;
@@ -23,8 +24,9 @@
 
 @media (prefers-color-scheme: dark) {
   .sparti-toolbar {
-    background: #1f2937 !important;
-    border-bottom-color: #374151 !important;
+    background: rgba(31, 41, 55, 0.9) !important;
+    backdrop-filter: blur(10px) !important;
+    border-bottom-color: hsl(var(--border)) !important;
   }
 }
 
@@ -42,14 +44,14 @@
   align-items: center;
   gap: 0.5rem;
   font-weight: 600;
-  color: #111827;
+  color: hsl(var(--foreground));
   margin: 0;
   font-size: 1rem;
 }
 
 @media (prefers-color-scheme: dark) {
   .sparti-toolbar-brand {
-    color: #f9fafb;
+    color: hsl(var(--foreground));
   }
 }
 
@@ -71,20 +73,20 @@
   box-sizing: border-box;
 }
 
-body.sparti-editing .sparti-content {
+body.gosg-editing .sparti-content {
   cursor: crosshair !important;
   /* Add subtle overlay to indicate editing mode */
   position: relative;
 }
 
-body.sparti-editing .sparti-content::before {
+body.gosg-editing .sparti-content::before {
   content: '';
   position: fixed;
   top: 80px;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(59, 130, 246, 0.05);
+  background: rgba(155, 135, 245, 0.05);
   pointer-events: none;
   z-index: 100;
 }
@@ -95,7 +97,7 @@ body.sparti-editing .sparti-content::before {
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  border-radius: 0.375rem;
+  border-radius: 0.5rem;
   font-size: 0.875rem;
   font-weight: 500;
   border: none;
@@ -109,78 +111,85 @@ body.sparti-editing .sparti-content::before {
 }
 
 .sparti-btn-primary {
-  background: #3b82f6 !important;
-  color: #ffffff !important;
+  background: hsl(var(--destructive)) !important;
+  color: hsl(var(--destructive-foreground)) !important;
+  border-radius: 9999px !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
 }
 
 .sparti-btn-primary:hover {
-  background: #2563eb !important;
+  background: hsl(var(--destructive) / 0.9) !important;
+  box-shadow: 0 6px 10px -1px rgba(0, 0, 0, 0.1), 0 2px 6px -1px rgba(0, 0, 0, 0.06) !important;
 }
 
 .sparti-btn-success {
-  background: #10b981 !important;
-  color: #ffffff !important;
+  background: hsl(var(--brand-teal)) !important;
+  color: white !important;
+  border-radius: 0.5rem !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
 }
 
 .sparti-btn-success:hover {
-  background: #059669 !important;
+  background: hsl(var(--brand-teal) / 0.9) !important;
+  box-shadow: 0 6px 10px -1px rgba(0, 0, 0, 0.1), 0 2px 6px -1px rgba(0, 0, 0, 0.06) !important;
 }
 
 .sparti-btn-ghost {
-  background: transparent !important;
-  color: #6b7280 !important;
-  border: 1px solid #d1d5db !important;
+  background: hsl(var(--secondary)) !important;
+  color: hsl(var(--foreground)) !important;
+  border-radius: 0.5rem !important;
 }
 
 .sparti-btn-ghost:hover {
-  background: #f9fafb !important;
-  color: #374151 !important;
+  background: hsl(var(--secondary) / 0.8) !important;
+  color: hsl(var(--foreground)) !important;
 }
 
 .sparti-btn-outline {
   background: transparent !important;
-  color: #374151 !important;
-  border: 1px solid #d1d5db !important;
+  color: hsl(var(--foreground)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  border-radius: 0.5rem !important;
 }
 
 .sparti-btn-outline:hover {
-  background: #f3f4f6 !important;
+  background: hsl(var(--secondary) / 0.5) !important;
 }
 
 @media (prefers-color-scheme: dark) {
   .sparti-btn-ghost {
-    color: #9ca3af !important;
-    border-color: #4b5563 !important;
+    color: hsl(var(--foreground)) !important;
+    border-color: hsl(var(--border)) !important;
   }
   
   .sparti-btn-ghost:hover {
-    background: #1f2937 !important;
-    color: #f3f4f6 !important;
+    background: hsl(var(--secondary)) !important;
+    color: hsl(var(--foreground)) !important;
   }
   
   .sparti-btn-outline {
-    color: #f3f4f6 !important;
-    border-color: #4b5563 !important;
+    color: hsl(var(--foreground)) !important;
+    border-color: hsl(var(--border)) !important;
   }
   
   .sparti-btn-outline:hover {
-    background: #374151 !important;
+    background: hsl(var(--secondary)) !important;
   }
 }
 
 /* Overlay Styles - High Priority */
 .sparti-hover-overlay {
-  border: 2px dashed #3b82f6 !important;
-  background: rgba(59, 130, 246, 0.1) !important;
-  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.2) !important;
+  border: 2px dashed hsl(var(--brand-purple)) !important;
+  background: hsl(var(--brand-purple) / 0.1) !important;
+  box-shadow: 0 0 0 1px hsl(var(--brand-purple) / 0.2) !important;
   pointer-events: none !important;
   z-index: 2147483640 !important;
 }
 
 .sparti-selection-overlay {
-  border: 2px solid #3b82f6 !important;
-  background: rgba(59, 130, 246, 0.1) !important;
-  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.3), 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+  border: 2px solid hsl(var(--brand-purple)) !important;
+  background: hsl(var(--brand-purple) / 0.1) !important;
+  box-shadow: 0 0 0 1px hsl(var(--brand-purple) / 0.3), 0 0 0 3px hsl(var(--brand-purple) / 0.1) !important;
   pointer-events: none !important;
   z-index: 2147483641 !important;
 }
@@ -189,8 +198,8 @@ body.sparti-editing .sparti-content::before {
   position: absolute;
   top: -24px;
   left: 0;
-  background: #3b82f6 !important;
-  color: #ffffff !important;
+  background: hsl(var(--brand-purple)) !important;
+  color: white !important;
   padding: 0.25rem 0.5rem;
   font-size: 0.75rem;
   border-radius: 0.25rem;
@@ -207,9 +216,10 @@ body.sparti-editing .sparti-content::before {
   top: 80px !important; /* Below toolbar */
   width: 320px !important;
   height: calc(100vh - 80px) !important;
-  background: #ffffff !important;
-  border-left: 1px solid #e5e7eb !important;
-  box-shadow: -4px 0 12px rgba(0, 0, 0, 0.15) !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(10px) !important;
+  border-left: 1px solid hsl(var(--border)) !important;
+  box-shadow: -4px 0 12px rgba(0, 0, 0, 0.08) !important;
   z-index: 2147483646 !important; /* High priority but below toolbar */
   overflow-y: auto !important;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
@@ -217,8 +227,9 @@ body.sparti-editing .sparti-content::before {
 
 @media (prefers-color-scheme: dark) {
   .sparti-edit-panel {
-    background: #1f2937 !important;
-    border-left-color: #374151 !important;
+    background: rgba(31, 41, 55, 0.9) !important;
+    backdrop-filter: blur(10px) !important;
+    border-left-color: hsl(var(--border)) !important;
   }
 }
 
@@ -570,7 +581,7 @@ body.sparti-editing .sparti-content::before {
   }
 
   /* Adjust overlay positioning for mobile */
-  body.sparti-editing .sparti-content::before {
+  body.gosg-editing .sparti-content::before {
     top: 60px !important;
     bottom: 50vh !important;
   }
@@ -610,11 +621,11 @@ body.sparti-editing .sparti-content::before {
 
 /* Prevent body scroll when editing on mobile */
 @media (max-width: 768px) {
-  body.sparti-editing {
+  body.gosg-editing {
     overflow: hidden !important;
   }
   
-  body.sparti-editing .sparti-content {
+  body.gosg-editing .sparti-content {
     overflow-y: auto !important;
     height: calc(100vh - 60px) !important;
   }
@@ -651,33 +662,33 @@ body.sparti-editing .sparti-content::before {
 }
 
 /* Universal editing cursor - works across all sites */
-body.sparti-editing * {
+body.gosg-editing * {
   cursor: crosshair !important;
 }
 
 /* Reset cursor for UI elements */
-body.sparti-editing .sparti-toolbar *,
-body.sparti-editing .sparti-edit-panel *,
-body.sparti-editing .sparti-overlay *,
-body.sparti-editing .sparti-ui * {
+body.gosg-editing .sparti-toolbar *,
+body.gosg-editing .sparti-edit-panel *,
+body.gosg-editing .sparti-overlay *,
+body.gosg-editing .sparti-ui * {
   cursor: default !important;
 }
 
 /* Ensure text remains selectable in edit mode */
-body.sparti-editing input,
-body.sparti-editing textarea,
-body.sparti-editing [contenteditable] {
+body.gosg-editing input,
+body.gosg-editing textarea,
+body.gosg-editing [contenteditable] {
   cursor: text !important;
 }
 
 /* Button hover states remain interactive */
-body.sparti-editing button,
-body.sparti-editing .sparti-btn,
-body.sparti-editing a {
+body.gosg-editing button,
+body.gosg-editing .sparti-btn,
+body.gosg-editing a {
   cursor: pointer !important;
 }
 
-body.sparti-editing .sparti-btn:hover {
+body.gosg-editing .sparti-btn:hover {
   cursor: pointer !important;
 }
 
