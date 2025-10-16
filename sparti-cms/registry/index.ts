@@ -15,6 +15,11 @@ import blogPreviewComponent from './components/blog-preview.json';
 import whatsappButtonComponent from './components/whatsapp-button.json';
 import contactModalComponent from './components/contact-modal.json';
 
+// Import new schema editor components
+import richTextComponent from './components/rich-text.json';
+import imageGalleryComponent from './components/image-gallery.json';
+import backgroundImageComponent from './components/background-image.json';
+
 class ComponentRegistry {
   private static instance: ComponentRegistry;
   private components: Map<string, ComponentDefinition> = new Map();
@@ -55,6 +60,11 @@ class ComponentRegistry {
       // Utility Components
       whatsappButtonComponent as ComponentDefinition,
       contactModalComponent as ComponentDefinition,
+
+      // New Schema Editor Components
+      richTextComponent as ComponentDefinition,
+      imageGalleryComponent as ComponentDefinition,
+      backgroundImageComponent as ComponentDefinition,
     ];
 
     gosgComponents.forEach(component => {

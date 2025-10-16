@@ -18,12 +18,37 @@
       "editable": true,
       "default": "Comprehensive SEO solutions"
     },
+    "sectionDescription": {
+      "type": "string",
+      "description": "Rich text description for the section",
+      "editable": true,
+      "default": "<p>We offer a comprehensive range of SEO services designed to improve your online visibility, drive more traffic, and increase conversions.</p>"
+    },
     "services": {
       "type": "array",
       "description": "Array of service items",
       "editable": true,
       "required": true,
-      "default": []
+      "default": [
+        {
+          "title": "Keyword Research",
+          "description": "<p>We identify the most valuable keywords for your business to target based on search volume, competition, and relevance to your offerings.</p>",
+          "icon": "search",
+          "image": "/placeholder.svg"
+        },
+        {
+          "title": "On-Page Optimization",
+          "description": "<p>We optimize your website's content, meta tags, and structure to make it more appealing to search engines and users.</p>",
+          "icon": "file-text",
+          "image": "/placeholder.svg"
+        },
+        {
+          "title": "Link Building",
+          "description": "<p>We build high-quality backlinks to your website to increase its authority and improve rankings in search results.</p>",
+          "icon": "link",
+          "image": "/placeholder.svg"
+        }
+      ]
     },
     "showCTA": {
       "type": "boolean",
@@ -36,12 +61,48 @@
       "description": "CTA button text",
       "editable": true,
       "default": "Learn More"
+    },
+    "backgroundType": {
+      "type": "string",
+      "description": "Type of background (color, image, or gradient)",
+      "editable": true,
+      "default": "color"
+    },
+    "backgroundColor": {
+      "type": "string",
+      "description": "Background color for the section",
+      "editable": true,
+      "default": "#ffffff"
+    },
+    "backgroundImage": {
+      "type": "string",
+      "description": "URL of the background image",
+      "editable": true,
+      "default": ""
+    },
+    "gradientStart": {
+      "type": "string",
+      "description": "Start color for gradient background",
+      "editable": true,
+      "default": "#f8f9fa"
+    },
+    "gradientEnd": {
+      "type": "string",
+      "description": "End color for gradient background",
+      "editable": true,
+      "default": "#e9ecef"
+    },
+    "layout": {
+      "type": "string",
+      "description": "Layout style for the services",
+      "editable": true,
+      "default": "grid"
     }
   },
   "editor": "ContainerEditor",
   "version": "1.0.0",
   "tenant_scope": "tenant",
   "tags": ["services", "features", "offerings", "seo"],
-  "dependencies": ["lucide-react"],
-  "last_updated": "2025-01-28T12:00:00Z"
+  "dependencies": ["lucide-react", "@tiptap/react", "@tiptap/starter-kit"],
+  "last_updated": "2025-10-16T12:00:00Z"
 }

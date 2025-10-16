@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../..
 import { ArrowLeft, Save } from 'lucide-react';
 import { toast } from 'sonner';
 import RichTextEditor from './RichTextEditor';
+import HomepageSectionEditor from './HomepageSectionEditor';
 
 interface PageEditorProps {
   pageId: string;
@@ -100,7 +101,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
     }
 
     if (pageData.title === 'Homepage') {
-      // Homepage sections editor (placeholder)
+      // Homepage sections editor
       return (
         <Card>
           <CardHeader>
@@ -108,14 +109,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
             <CardDescription>Customize homepage sections</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              <div className="p-8 border-2 border-dashed rounded-lg text-center">
-                <p className="text-muted-foreground mb-2">Homepage Section Editor</p>
-                <p className="text-sm text-muted-foreground">
-                  Visual section editor coming soon. You'll be able to edit Hero, Services, Testimonials, and more.
-                </p>
-              </div>
-            </div>
+            <HomepageSectionEditor onSave={handleSave} />
           </CardContent>
         </Card>
       );

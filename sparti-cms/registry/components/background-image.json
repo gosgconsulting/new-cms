@@ -1,0 +1,93 @@
+{
+  "id": "background-image",
+  "name": "Background Image",
+  "type": "container",
+  "category": "layout",
+  "description": "Container with customizable background image, color, or video",
+  "properties": {
+    "backgroundType": {
+      "type": "string",
+      "description": "Type of background (color, image, or video)",
+      "editable": true,
+      "default": "image"
+    },
+    "backgroundColor": {
+      "type": "string",
+      "description": "Background color (used when type is color)",
+      "editable": true,
+      "default": "#ffffff"
+    },
+    "backgroundImage": {
+      "type": "string",
+      "description": "URL of the background image",
+      "editable": true,
+      "default": "/placeholder.svg"
+    },
+    "backgroundVideo": {
+      "type": "string",
+      "description": "URL of the background video",
+      "editable": true,
+      "default": ""
+    },
+    "backgroundSize": {
+      "type": "string",
+      "description": "Background size property",
+      "editable": true,
+      "default": "cover"
+    },
+    "backgroundPosition": {
+      "type": "string",
+      "description": "Background position property",
+      "editable": true,
+      "default": "center"
+    },
+    "backgroundRepeat": {
+      "type": "string",
+      "description": "Background repeat property",
+      "editable": true,
+      "default": "no-repeat"
+    },
+    "backgroundAttachment": {
+      "type": "string",
+      "description": "Background attachment property",
+      "editable": true,
+      "default": "scroll"
+    },
+    "overlay": {
+      "type": "boolean",
+      "description": "Add a color overlay on top of the background",
+      "editable": true,
+      "default": false
+    },
+    "overlayColor": {
+      "type": "string",
+      "description": "Color of the overlay",
+      "editable": true,
+      "default": "rgba(0,0,0,0.5)"
+    },
+    "minHeight": {
+      "type": "string",
+      "description": "Minimum height of the container",
+      "editable": true,
+      "default": "400px"
+    },
+    "padding": {
+      "type": "string",
+      "description": "Padding inside the container",
+      "editable": true,
+      "default": "2rem"
+    },
+    "content": {
+      "type": "string",
+      "description": "Content inside the container",
+      "editable": true,
+      "default": "<div class='p-4'><h2>Section with Background</h2><p>Add your content here</p></div>"
+    }
+  },
+  "editor": "ContainerEditor",
+  "version": "1.0.0",
+  "tenant_scope": "tenant",
+  "tags": ["background", "container", "layout", "section", "image", "video"],
+  "dependencies": [],
+  "last_updated": "2025-10-16T12:00:00Z"
+}

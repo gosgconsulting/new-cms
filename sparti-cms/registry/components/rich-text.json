@@ -1,0 +1,40 @@
+{
+  "id": "rich-text-editor",
+  "name": "Rich Text Editor",
+  "type": "text",
+  "category": "content",
+  "description": "Rich text editor with formatting toolbar for headings, paragraphs, lists, and styling",
+  "properties": {
+    "content": {
+      "type": "string",
+      "description": "HTML content with formatting",
+      "editable": true,
+      "required": true,
+      "default": "<h2>Add your content here</h2><p>This is a rich text editor with formatting options. You can add headings, paragraphs, lists, and more.</p>"
+    },
+    "alignment": {
+      "type": "string",
+      "description": "Text alignment",
+      "editable": true,
+      "default": "left"
+    },
+    "maxWidth": {
+      "type": "string",
+      "description": "Maximum width of the text container",
+      "editable": true,
+      "default": "100%"
+    },
+    "padding": {
+      "type": "string",
+      "description": "Padding around the text",
+      "editable": true,
+      "default": "1rem"
+    }
+  },
+  "editor": "TextEditor",
+  "version": "1.0.0",
+  "tenant_scope": "tenant",
+  "tags": ["text", "content", "rich text", "editor", "wysiwyg"],
+  "dependencies": ["@tiptap/react", "@tiptap/starter-kit", "@tiptap/extension-text-align"],
+  "last_updated": "2025-10-16T12:00:00Z"
+}

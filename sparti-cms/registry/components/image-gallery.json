@@ -1,0 +1,68 @@
+{
+  "id": "image-gallery",
+  "name": "Image Gallery",
+  "type": "media",
+  "category": "media",
+  "description": "Image gallery with multiple images that can be displayed in a grid, carousel, or masonry layout",
+  "properties": {
+    "images": {
+      "type": "array",
+      "description": "Array of image objects with src, alt, and title properties",
+      "editable": true,
+      "required": true,
+      "default": [
+        {
+          "src": "/placeholder.svg",
+          "alt": "Gallery image 1",
+          "title": "Image 1"
+        },
+        {
+          "src": "/placeholder.svg",
+          "alt": "Gallery image 2",
+          "title": "Image 2"
+        },
+        {
+          "src": "/placeholder.svg",
+          "alt": "Gallery image 3",
+          "title": "Image 3"
+        }
+      ]
+    },
+    "layout": {
+      "type": "string",
+      "description": "Gallery layout style",
+      "editable": true,
+      "default": "grid"
+    },
+    "columns": {
+      "type": "number",
+      "description": "Number of columns for grid layout",
+      "editable": true,
+      "default": 3
+    },
+    "gap": {
+      "type": "string",
+      "description": "Gap between images",
+      "editable": true,
+      "default": "1rem"
+    },
+    "aspectRatio": {
+      "type": "string",
+      "description": "Aspect ratio for images",
+      "editable": true,
+      "default": "16/9"
+    },
+    "enableLightbox": {
+      "type": "boolean",
+      "description": "Enable lightbox for image viewing",
+      "editable": true,
+      "default": true
+    }
+  },
+  "editor": "ImageEditor",
+  "version": "1.0.0",
+  "tenant_scope": "tenant",
+  "tags": ["images", "gallery", "media", "photos", "grid", "carousel"],
+  "dependencies": ["framer-motion", "react-responsive-masonry"],
+  "last_updated": "2025-10-16T12:00:00Z"
+}

@@ -33,10 +33,10 @@
     },
     "description": {
       "type": "string",
-      "description": "Hero description text",
+      "description": "Hero description text (supports rich text formatting)",
       "editable": true,
       "required": true,
-      "default": "We help businesses dominate search results through proven SEO strategies that increase organic traffic, boost rankings, and drive qualified leads to your website."
+      "default": "<p>We help businesses dominate search results through proven SEO strategies that increase organic traffic, boost rankings, and drive qualified leads to your website.</p>"
     },
     "ctaButtonText": {
       "type": "string",
@@ -49,12 +49,48 @@
       "description": "Show client logos carousel",
       "editable": true,
       "default": true
+    },
+    "backgroundType": {
+      "type": "string",
+      "description": "Type of background (color, image, or gradient)",
+      "editable": true,
+      "default": "gradient"
+    },
+    "backgroundColor": {
+      "type": "string",
+      "description": "Background color",
+      "editable": true,
+      "default": "#ffffff"
+    },
+    "backgroundImage": {
+      "type": "string",
+      "description": "URL of the background image",
+      "editable": true,
+      "default": ""
+    },
+    "gradientStart": {
+      "type": "string",
+      "description": "Start color for gradient background",
+      "editable": true,
+      "default": "#f8f9fa"
+    },
+    "gradientEnd": {
+      "type": "string",
+      "description": "End color for gradient background",
+      "editable": true,
+      "default": "#e9ecef"
+    },
+    "gradientDirection": {
+      "type": "string",
+      "description": "Direction of the gradient",
+      "editable": true,
+      "default": "to right"
     }
   },
   "editor": "ContainerEditor",
   "version": "1.0.0",
   "tenant_scope": "tenant",
   "tags": ["hero", "banner", "cta", "homepage"],
-  "dependencies": ["framer-motion", "lucide-react"],
-  "last_updated": "2025-01-28T12:00:00Z"
+  "dependencies": ["framer-motion", "lucide-react", "@tiptap/react", "@tiptap/starter-kit"],
+  "last_updated": "2025-10-16T12:00:00Z"
 }

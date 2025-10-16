@@ -18,12 +18,56 @@
       "editable": true,
       "default": "Problems we solve for businesses"
     },
+    "sectionDescription": {
+      "type": "string",
+      "description": "Rich text description for the section",
+      "editable": true,
+      "default": "<p>Many businesses struggle with these common SEO challenges. Our solutions are designed to address these pain points effectively.</p>"
+    },
     "painPoints": {
       "type": "array",
       "description": "Array of pain point items",
       "editable": true,
       "required": true,
-      "default": []
+      "default": [
+        {
+          "title": "Low Website Traffic",
+          "description": "<p>Your website isn't getting enough visitors, leading to missed opportunities and lower conversion rates.</p>",
+          "icon": "trending-down"
+        },
+        {
+          "title": "Poor Search Rankings",
+          "description": "<p>Your website doesn't appear on the first page of search results for important keywords in your industry.</p>",
+          "icon": "search"
+        },
+        {
+          "title": "Low Conversion Rates",
+          "description": "<p>Visitors come to your site but don't take action, resulting in wasted traffic and marketing spend.</p>",
+          "icon": "percent"
+        }
+      ]
+    },
+    "illustrations": {
+      "type": "array",
+      "description": "Images illustrating the pain points",
+      "editable": true,
+      "default": [
+        {
+          "src": "/placeholder.svg",
+          "alt": "Low traffic illustration",
+          "title": "Low Traffic"
+        },
+        {
+          "src": "/placeholder.svg",
+          "alt": "Poor rankings illustration",
+          "title": "Poor Rankings"
+        },
+        {
+          "src": "/placeholder.svg",
+          "alt": "Low conversion rates illustration",
+          "title": "Low Conversion"
+        }
+      ]
     },
     "showCTA": {
       "type": "boolean",
@@ -36,12 +80,24 @@
       "description": "CTA button text",
       "editable": true,
       "default": "Get Help Now"
+    },
+    "layout": {
+      "type": "string",
+      "description": "Layout style for the pain points",
+      "editable": true,
+      "default": "grid"
+    },
+    "backgroundColor": {
+      "type": "string",
+      "description": "Background color for the section",
+      "editable": true,
+      "default": "#f8f9fa"
     }
   },
   "editor": "ContainerEditor",
   "version": "1.0.0",
   "tenant_scope": "tenant",
   "tags": ["pain-points", "problems", "content", "features"],
-  "dependencies": ["lucide-react"],
-  "last_updated": "2025-01-28T12:00:00Z"
+  "dependencies": ["lucide-react", "@tiptap/react", "@tiptap/starter-kit"],
+  "last_updated": "2025-10-16T12:00:00Z"
 }
