@@ -324,42 +324,14 @@ const HomepageSectionEditor: React.FC<HomepageSectionEditorProps> = ({ onSave })
           );
         }
         
-        if (propertyName.toLowerCase().includes('color') || propertyName.toLowerCase().includes('gradient')) {
-          // Color picker
-          return (
-            <div className="space-y-2">
-              <Label>{property.description}</Label>
-              <div className="flex gap-2">
-                <input
-                  type="color"
-                  value={currentValue || '#ffffff'}
-                  onChange={(e) => {
-                    if (path.length === 0) {
-                      updateSectionData(sectionId, propertyName, e.target.value);
-                    } else {
-                      const arrayName = path[0];
-                      const index = parseInt(path[1]);
-                      updateNestedData(sectionId, arrayName, index, propertyName, e.target.value);
-                    }
-                  }}
-                  className="w-10 h-10 rounded border"
-                />
-                <Input
-                  value={currentValue || ''}
-                  onChange={(e) => {
-                    if (path.length === 0) {
-                      updateSectionData(sectionId, propertyName, e.target.value);
-                    } else {
-                      const arrayName = path[0];
-                      const index = parseInt(path[1]);
-                      updateNestedData(sectionId, arrayName, index, propertyName, e.target.value);
-                    }
-                  }}
-                  placeholder={property.default || ''}
-                />
-              </div>
-            </div>
-          );
+        // Design properties are disabled - skip color, gradient, background type, and direction fields
+        if (propertyName.toLowerCase().includes('color') || 
+            propertyName.toLowerCase().includes('gradient') ||
+            propertyName.toLowerCase().includes('backgroundtype') ||
+            (propertyName.toLowerCase().includes('direction') && 
+             (property.description?.toLowerCase().includes('gradient') || 
+              property.description?.toLowerCase().includes('background')))) {
+          return null;
         }
         
         if (propertyName.toLowerCase().includes('image') || propertyName.toLowerCase().includes('src')) {
