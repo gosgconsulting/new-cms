@@ -18,46 +18,6 @@
       "editable": true,
       "default": "Stay ahead of the curve with our expert SEO tips, strategies, and industry insights."
     },
-    "blogPosts": {
-      "type": "array",
-      "description": "Blog posts to display",
-      "editable": true,
-      "default": [
-        {
-          "id": 1,
-          "slug": "10-essential-seo-strategies-2024",
-          "title": "10 Essential SEO Strategies for 2024",
-          "excerpt": "Discover the latest SEO techniques that will help your website rank higher in search results and drive more organic traffic.",
-          "image": "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=500&h=300&fit=crop",
-          "date": "2024-01-15",
-          "readTime": "5 min read"
-        },
-        {
-          "id": 2,
-          "slug": "optimize-website-local-seo",
-          "title": "How to Optimize Your Website for Local SEO",
-          "excerpt": "Learn the key tactics to improve your local search visibility and attract more customers from your area.",
-          "image": "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=500&h=300&fit=crop",
-          "date": "2024-01-10",
-          "readTime": "7 min read"
-        },
-        {
-          "id": 3,
-          "slug": "complete-guide-technical-seo",
-          "title": "The Complete Guide to Technical SEO",
-          "excerpt": "Master the technical aspects of SEO to ensure your website is properly optimized for search engines.",
-          "image": "https://images.unsplash.com/photo-1432888622747-4eb9a8efeb07?w=500&h=300&fit=crop",
-          "date": "2024-01-05",
-          "readTime": "8 min read"
-        }
-      ]
-    },
-    "ctaButtonText": {
-      "type": "string",
-      "description": "CTA button text",
-      "editable": true,
-      "default": "Get SEO Consultation"
-    },
     "backgroundColor": {
       "type": "string",
       "description": "Background color for the section",

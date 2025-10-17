@@ -660,11 +660,39 @@ const MediaManager: React.FC = () => {
               >
                 <div className="aspect-square bg-gray-100 flex items-center justify-center">
                   {item.type === 'image' ? (
+<<<<<<< HEAD
                     <img 
                       src={item.url} 
                       alt={item.alt || item.name} 
                       className="w-full h-full object-cover"
                     />
+=======
+                    <>
+                      <img 
+                        src={item.url} 
+                        alt={item.name} 
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          console.error(`Error loading image: ${item.url}`);
+                          // Try an alternative URL format
+                          const altUrl = `/src/assets/${item.folderId}/${item.name}`;
+                          console.log(`Trying alternative URL: ${altUrl}`);
+                          e.currentTarget.src = altUrl;
+                          e.currentTarget.onerror = () => {
+                            console.error(`Alternative URL also failed: ${altUrl}`);
+                            e.currentTarget.style.display = 'none';
+                            e.currentTarget.nextSibling.style.display = 'block';
+                          };
+                        }}
+                      />
+                      <div style={{display: 'none'}} className="p-4 flex flex-col items-center justify-center h-full">
+                        <ImageIcon className="h-6 w-6 text-red-500" />
+                        <span className="mt-2 text-xs text-red-500 truncate max-w-full">
+                          Failed to load: {item.name}
+                        </span>
+                      </div>
+                    </>
+>>>>>>> 9535fca54c25f2f1c05b7a5c5eeaac4e563b6288
                   ) : (
                     <div className="p-4 flex flex-col items-center justify-center h-full">
                       {getFileIcon(item.type)}
@@ -820,6 +848,15 @@ const MediaManager: React.FC = () => {
                   title: item.title
                 })), null, 2)}
               </pre>
+              <div className="mt-2">
+                <h4 className="font-medium">Current Folder Items:</h4>
+                <pre className="bg-white p-2 rounded text-xs overflow-auto max-h-40">
+                  {JSON.stringify(filteredItems.map(item => ({ 
+                    name: item.name, 
+                    url: item.url
+                  })), null, 2)}
+                </pre>
+              </div>
             </div>
             <button 
               onClick={() => setShowDebugInfo(false)}

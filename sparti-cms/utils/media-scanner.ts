@@ -52,7 +52,10 @@ export const filePathToUrl = (filePath: string): string => {
   }
   
   // Create a relative URL that works in the browser
-  return `/src/assets/${normalizedPath}`;
+  // Make sure the path is correct for all folders
+  const url = `/src/assets/${normalizedPath}`;
+  console.log(`Converting path ${filePath} to URL ${url}`);
+  return url;
 };
 
 /**

@@ -28,6 +28,9 @@ import {
   deleteContact,
   getPublicSEOSettings,
   updateSEOSettings,
+  getAllPagesWithTypes,
+  updatePageSlug,
+  validateSlug,
   query
 } from './sparti-cms/db/postgres.js';
 import pool from './sparti-cms/db/postgres.js';

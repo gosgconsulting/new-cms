@@ -18,10 +18,9 @@
           "description": "Discover high-volume keywords with precise search data and user intent analysis. Find the perfect keywords to target for maximum organic traffic growth.",
           "buttonText": "Learn More",
           "images": [
-            "/assets/seo/keyword-research-1.png",
-            "/assets/seo/keyword-research-2.png"
-          ],
-          "reversed": false
+            "/src/assets/seo/keyword-research-1.png",
+            "/src/assets/seo/keyword-research-2.png"
+          ]
         },
         {
           "id": "content-strategy",
@@ -30,10 +29,9 @@
           "description": "Discover content opportunities by analyzing actual Google search results and user behavior. Get real insights from search data to create content that ranks and converts.",
           "buttonText": "View Analytics",
           "images": [
-            "/assets/seo/content-strategy-1.png",
-            "/assets/seo/content-strategy-2.png"
-          ],
-          "reversed": true
+            "/src/assets/seo/content-strategy-1.png",
+            "/src/assets/seo/content-strategy-2.png"
+          ]
         },
         {
           "id": "link-building",
@@ -42,10 +40,9 @@
           "description": "Strengthen your website's authority through strategic link building campaigns. Acquire high-quality backlinks from reputable sources to boost your domain authority and rankings.",
           "buttonText": "Try Link Builder",
           "images": [
-            "/assets/seo/link-building-1.png",
-            "/assets/seo/link-building-2.png"
-          ],
-          "reversed": false
+            "/src/assets/seo/link-building-1.png",
+            "/src/assets/seo/link-building-2.png"
+          ]
         }
       ]
     },
