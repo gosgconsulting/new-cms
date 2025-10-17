@@ -31,7 +31,10 @@ import {
   getAllPagesWithTypes,
   updatePageSlug,
   validateSlug,
-  query
+  updatePageName,
+  toggleSEOIndex,
+  query,
+  getTerms
 } from './sparti-cms/db/postgres.js';
 import pool from './sparti-cms/db/postgres.js';
 
@@ -631,6 +634,206 @@ app.delete('/api/contacts/:id', async (req, res) => {
   }
 });
 
+// Pages Management API Routes
+app.get('/api/pages/all', async (req, res) => {
+  try {
+    console.log('[testing] API: Fetching all pages with types');
+    const pages = await getAllPagesWithTypes();
+    res.json({ 
+      success: true, 
+      pages: pages,
+      total: pages.length 
+    });
+  } catch (error) {
+    console.error('[testing] API: Error fetching pages:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to fetch pages',
+      message: error.message 
+    });
+  }
+});
+
+app.post('/api/pages/update-slug', async (req, res) => {
+  try {
+    const { pageId, pageType, newSlug, oldSlug } = req.body;
+    
+    console.log('[testing] API: Updating page slug:', { pageId, pageType, newSlug, oldSlug });
+    
+    // Validate required fields
+    if (!pageId || !pageType || !newSlug || !oldSlug) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required fields',
+        message: 'pageId, pageType, newSlug, and oldSlug are required'
+      });
+    }
+    
+    // Validate page type
+    if (!['page', 'landing', 'legal'].includes(pageType)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid page type',
+        message: 'pageType must be one of: page, landing, legal'
+      });
+    }
+    
+    // Validate slug format
+    try {
+      const validatedSlug = validateSlug(newSlug);
+      console.log('[testing] API: Slug validated:', validatedSlug);
+    } catch (validationError) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid slug format',
+        message: validationError.message
+      });
+    }
+    
+    // Prevent homepage slug changes
+    if (oldSlug === '/' && newSlug !== '/') {
+      return res.status(400).json({
+        success: false,
+        error: 'Cannot change homepage slug',
+        message: 'The homepage slug cannot be modified'
+      });
+    }
+    
+    // Update the slug
+    const updatedPage = await updatePageSlug(pageId, pageType, newSlug, oldSlug);
+    
+    console.log('[testing] API: Page slug updated successfully:', updatedPage.id);
+    
+    res.json({
+      success: true,
+      message: 'Slug updated successfully',
+      page: updatedPage,
+      oldSlug: oldSlug,
+      newSlug: newSlug
+    });
+    
+  } catch (error) {
+    console.error('[testing] API: Error updating page slug:', error);
+    
+    // Handle specific error cases
+    if (error.message.includes('already exists')) {
+      return res.status(409).json({
+        success: false,
+        error: 'Slug already exists',
+        message: error.message
+      });
+    }
+    
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update slug',
+      message: error.message
+    });
+  }
+});
+
+// Update page name
+app.post('/api/pages/update-name', async (req, res) => {
+  try {
+    const { pageId, pageType, newName } = req.body;
+    
+    console.log('[testing] API: Updating page name:', { pageId, pageType, newName });
+    
+    // Validate required fields
+    if (!pageId || !pageType || !newName) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required fields',
+        message: 'pageId, pageType, and newName are required'
+      });
+    }
+    
+    // Validate page type
+    if (!['page', 'landing', 'legal'].includes(pageType)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid page type',
+        message: 'pageType must be one of: page, landing, legal'
+      });
+    }
+    
+    // Update the page name
+    const success = await updatePageName(pageId, pageType, newName);
+    
+    if (!success) {
+      return res.status(404).json({
+        success: false,
+        error: 'Page not found',
+        message: 'The specified page could not be found'
+      });
+    }
+    
+    console.log('[testing] API: Page name updated successfully');
+    
+    res.json({
+      success: true,
+      message: 'Page name updated successfully',
+      pageId: pageId,
+      newName: newName
+    });
+    
+  } catch (error) {
+    console.error('[testing] API: Error updating page name:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update page name',
+      message: error.message
+    });
+  }
+});
+
+// Toggle SEO index
+app.post('/api/pages/toggle-seo-index', async (req, res) => {
+  try {
+    const { pageId, pageType, currentIndex } = req.body;
+    
+    console.log('[testing] API: Toggling SEO index:', { pageId, pageType, currentIndex });
+    
+    // Validate required fields
+    if (!pageId || !pageType || currentIndex === undefined) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required fields',
+        message: 'pageId, pageType, and currentIndex are required'
+      });
+    }
+    
+    // Validate page type
+    if (!['page', 'landing', 'legal'].includes(pageType)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid page type',
+        message: 'pageType must be one of: page, landing, legal'
+      });
+    }
+    
+    // Toggle the SEO index
+    const newIndex = await toggleSEOIndex(pageId, pageType, currentIndex);
+    
+    console.log('[testing] API: SEO index toggled successfully');
+    
+    res.json({
+      success: true,
+      message: 'SEO index toggled successfully',
+      pageId: pageId,
+      newIndex: newIndex
+    });
+    
+  } catch (error) {
+    console.error('[testing] API: Error toggling SEO index:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to toggle SEO index',
+      message: error.message
+    });
+  }
+});
+
 // Analytics API Routes (Placeholder - functions not implemented yet)
 // TODO: Implement analytics functions in postgres.js
 
@@ -937,7 +1140,7 @@ Timestamp: ${new Date().toLocaleString()}
       id: result.id 
     });
 
-  } catch (error) {
+     } catch (error) {
     console.error('[testing] Contact form email error:', error);
     res.status(500).json({ 
       success: false, 
@@ -945,6 +1148,466 @@ Timestamp: ${new Date().toLocaleString()}
     });
   }
 });
+
+// SMTP Configuration endpoints
+app.get('/api/smtp-config', async (req, res) => {
+  try {
+    console.log('[testing] Loading SMTP configuration...');
+    
+    const result = await query(`
+      SELECT * FROM smtp_config 
+      WHERE id = 1
+      ORDER BY updated_at DESC 
+      LIMIT 1
+    `);
+    
+    if (result.rows.length > 0) {
+      const config = result.rows[0];
+      // Don't send the password in the response for security
+      const safeConfig = {
+        ...config,
+        password: config.password ? '••••••••' : ''
+      };
+      console.log('[testing] SMTP configuration loaded');
+      res.json(safeConfig);
+    } else {
+      console.log('[testing] No SMTP configuration found');
+      res.json({
+        host: '',
+        port: 587,
+        username: '',
+        password: '',
+        fromEmail: '',
+        fromName: '',
+        security: 'tls',
+        enabled: false
+      });
+    }
+  } catch (error) {
+    console.error('[testing] Error loading SMTP configuration:', error);
+    
+    // If table doesn't exist, create it
+    if (error.message.includes('relation "smtp_config" does not exist')) {
+      try {
+        await query(`
+          CREATE TABLE IF NOT EXISTS smtp_config (
+            id SERIAL PRIMARY KEY,
+            host VARCHAR(255) NOT NULL,
+            port INTEGER NOT NULL DEFAULT 587,
+            username VARCHAR(255) NOT NULL,
+            password TEXT NOT NULL,
+            from_email VARCHAR(255) NOT NULL,
+            from_name VARCHAR(255),
+            security VARCHAR(10) NOT NULL DEFAULT 'tls',
+            enabled BOOLEAN NOT NULL DEFAULT false,
+            created_at TIMESTAMP DEFAULT NOW(),
+            updated_at TIMESTAMP DEFAULT NOW()
+          )
+        `);
+        console.log('[testing] SMTP config table created');
+        
+        // Return default config
+        res.json({
+          host: '',
+          port: 587,
+          username: '',
+          password: '',
+          fromEmail: '',
+          fromName: '',
+          security: 'tls',
+          enabled: false
+        });
+      } catch (createError) {
+        console.error('[testing] Error creating SMTP config table:', createError);
+        res.status(500).json({ error: 'Failed to initialize SMTP configuration' });
+      }
+    } else {
+      res.status(500).json({ error: 'Failed to load SMTP configuration' });
+    }
+  }
+});
+
+app.post('/api/smtp-config', async (req, res) => {
+  try {
+    const { host, port, username, password, fromEmail, fromName, security, enabled } = req.body;
+    
+    console.log('[testing] Saving SMTP configuration...');
+    
+    // Validate required fields
+    if (enabled && (!host || !port || !username || !password || !fromEmail)) {
+      return res.status(400).json({ 
+        error: 'Missing required fields: host, port, username, password, fromEmail' 
+      });
+    }
+    
+    // Check if configuration exists
+    const existing = await query('SELECT id FROM smtp_config WHERE id = 1');
+    
+    let result;
+    if (existing.rows.length > 0) {
+      // Update existing configuration
+      result = await query(`
+        UPDATE smtp_config 
+        SET host = $1, port = $2, username = $3, password = $4, 
+            from_email = $5, from_name = $6, security = $7, enabled = $8, 
+            updated_at = NOW()
+        WHERE id = 1
+        RETURNING *
+      `, [host, port, username, password, fromEmail, fromName, security, enabled]);
+    } else {
+      // Create new configuration
+      result = await query(`
+        INSERT INTO smtp_config (host, port, username, password, from_email, from_name, security, enabled)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        RETURNING *
+      `, [host, port, username, password, fromEmail, fromName, security, enabled]);
+    }
+    
+    const savedConfig = result.rows[0];
+    // Don't send the password back
+    const safeConfig = {
+      ...savedConfig,
+      password: '••••••••'
+    };
+    
+    console.log('[testing] SMTP configuration saved successfully');
+    res.json(safeConfig);
+    
+  } catch (error) {
+    console.error('[testing] Error saving SMTP configuration:', error);
+    res.status(500).json({ error: 'Failed to save SMTP configuration' });
+  }
+});
+
+app.post('/api/smtp-test', async (req, res) => {
+  try {
+    const { host, port, username, password, fromEmail, fromName, security } = req.body;
+    
+    console.log('[testing] Testing SMTP connection...');
+    
+    // Validate required fields
+    if (!host || !port || !username || !password || !fromEmail) {
+      return res.status(400).json({ 
+        error: 'Missing required fields for SMTP test' 
+      });
+    }
+    
+    // Import nodemailer dynamically
+    const nodemailer = await import('nodemailer');
+    
+    // Create transporter
+    const transporter = nodemailer.default.createTransporter({
+      host,
+      port: parseInt(port),
+      secure: security === 'ssl', // true for 465, false for other ports
+      auth: {
+        user: username,
+        pass: password,
+      },
+      tls: security === 'tls' ? {
+        // do not fail on invalid certs
+        rejectUnauthorized: false
+      } : undefined
+    });
+    
+    // Verify connection
+    await transporter.verify();
+    
+    // Send test email
+    const testEmail = {
+      from: fromName ? `"${fromName}" <${fromEmail}>` : fromEmail,
+      to: fromEmail, // Send test email to the configured from email
+      subject: 'SMTP Configuration Test',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #333;">SMTP Test Successful!</h2>
+          <p>Your SMTP configuration is working correctly.</p>
+          <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 15px 0;">
+            <h3 style="margin-top: 0;">Configuration Details:</h3>
+            <p><strong>Host:</strong> ${host}</p>
+            <p><strong>Port:</strong> ${port}</p>
+            <p><strong>Security:</strong> ${security.toUpperCase()}</p>
+            <p><strong>Username:</strong> ${username}</p>
+          </div>
+          <p style="color: #666; font-size: 12px;">
+            This is an automated test email sent at ${new Date().toLocaleString()}
+          </p>
+        </div>
+      `,
+      text: `SMTP Test Successful!\n\nYour SMTP configuration is working correctly.\n\nHost: ${host}\nPort: ${port}\nSecurity: ${security.toUpperCase()}\nUsername: ${username}\n\nThis is an automated test email sent at ${new Date().toLocaleString()}`
+    };
+    
+    const info = await transporter.sendMail(testEmail);
+    
+    console.log('[testing] SMTP test email sent successfully:', info.messageId);
+    
+    res.json({
+      success: true,
+      message: 'SMTP connection successful! Test email sent.',
+      messageId: info.messageId
+    });
+    
+  } catch (error) {
+    console.error('[testing] SMTP test failed:', error);
+    
+    let errorMessage = 'SMTP connection failed';
+    if (error.code === 'EAUTH') {
+      errorMessage = 'Authentication failed. Check your username and password.';
+    } else if (error.code === 'ECONNECTION') {
+      errorMessage = 'Connection failed. Check your host and port settings.';
+    } else if (error.code === 'ESOCKET') {
+      errorMessage = 'Socket error. Check your network connection and firewall settings.';
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+    
+    res.status(400).json({
+      success: false,
+      error: errorMessage
+    });
+  }
+});
+
+  
+// ===== CONTENT MANAGEMENT API ENDPOINTS =====
+
+// Content Management endpoints (Posts & Terms) have been temporarily disabled
+// They can be re-enabled when the content management functions are re-implemented
+
+
+
+// ===== SEO MANAGEMENT API ENDPOINTS =====
+
+// Redirects endpoints
+app.get('/api/redirects', async (req, res) => {
+  try {
+    const filters = {};
+    if (req.query.status) filters.status = req.query.status;
+    if (req.query.search) filters.search = req.query.search;
+
+    const redirects = await getRedirects(filters);
+    res.json(redirects);
+  } catch (error) {
+    console.error('[testing] Error fetching redirects:', error);
+    res.status(500).json({ error: 'Failed to fetch redirects' });
+  }
+});
+
+app.post('/api/redirects', async (req, res) => {
+  try {
+    const redirect = await createRedirect(req.body);
+    res.status(201).json(redirect);
+  } catch (error) {
+    console.error('[testing] Error creating redirect:', error);
+    res.status(500).json({ error: 'Failed to create redirect' });
+  }
+});
+
+app.put('/api/redirects/:id', async (req, res) => {
+  try {
+    const redirectId = parseInt(req.params.id);
+    const redirect = await updateRedirect(redirectId, req.body);
+    
+    if (!redirect) {
+      return res.status(404).json({ error: 'Redirect not found' });
+    }
+    
+    res.json(redirect);
+  } catch (error) {
+    console.error('[testing] Error updating redirect:', error);
+    res.status(500).json({ error: 'Failed to update redirect' });
+  }
+});
+
+app.delete('/api/redirects/:id', async (req, res) => {
+  try {
+    const redirectId = parseInt(req.params.id);
+    const redirect = await deleteRedirect(redirectId);
+    
+    if (!redirect) {
+      return res.status(404).json({ error: 'Redirect not found' });
+    }
+    
+    res.json({ message: 'Redirect deleted successfully' });
+  } catch (error) {
+    console.error('[testing] Error deleting redirect:', error);
+    res.status(500).json({ error: 'Failed to delete redirect' });
+  }
+});
+
+// Robots.txt endpoints
+app.get('/api/robots-config', async (req, res) => {
+  try {
+    const config = await getRobotsConfig();
+    res.json(config);
+  } catch (error) {
+    console.error('[testing] Error fetching robots config:', error);
+    res.status(500).json({ error: 'Failed to fetch robots config' });
+  }
+});
+
+app.put('/api/robots-config', async (req, res) => {
+  try {
+    await updateRobotsConfig(req.body.rules);
+    res.json({ message: 'Robots config updated successfully' });
+  } catch (error) {
+    console.error('[testing] Error updating robots config:', error);
+    res.status(500).json({ error: 'Failed to update robots config' });
+  }
+});
+
+app.post('/api/robots-txt/generate', async (req, res) => {
+  try {
+    const robotsTxt = await generateRobotsTxt();
+    res.setHeader('Content-Type', 'text/plain');
+    res.send(robotsTxt);
+  } catch (error) {
+    console.error('[testing] Error generating robots.txt:', error);
+    res.status(500).json({ error: 'Failed to generate robots.txt' });
+  }
+});
+
+app.post('/api/robots-txt/update', async (req, res) => {
+  try {
+    const robotsTxt = await generateRobotsTxt();
+    
+    // Write to public/robots.txt
+    const fs = await import('fs');
+    const path = await import('path');
+    const robotsPath = path.join(process.cwd(), 'public', 'robots.txt');
+    
+    fs.writeFileSync(robotsPath, robotsTxt);
+    
+    res.json({ message: 'robots.txt file updated successfully' });
+  } catch (error) {
+    console.error('[testing] Error updating robots.txt file:', error);
+    res.status(500).json({ error: 'Failed to update robots.txt file' });
+  }
+});
+
+// Sitemap endpoints
+app.get('/api/sitemap-entries', async (req, res) => {
+  try {
+    const type = req.query.type || null;
+    const entries = await getSitemapEntries(type);
+    res.json(entries);
+  } catch (error) {
+    console.error('[testing] Error fetching sitemap entries:', error);
+    res.status(500).json({ error: 'Failed to fetch sitemap entries' });
+  }
+});
+
+app.post('/api/sitemap-entries', async (req, res) => {
+  try {
+    const entry = await createSitemapEntry(req.body);
+    res.status(201).json(entry);
+  } catch (error) {
+    console.error('[testing] Error creating sitemap entry:', error);
+    res.status(500).json({ error: 'Failed to create sitemap entry' });
+  }
+});
+
+app.put('/api/sitemap-entries/:id', async (req, res) => {
+  try {
+    const entryId = parseInt(req.params.id);
+    const result = await query(`
+      UPDATE sitemap_entries 
+      SET url = $1, changefreq = $2, priority = $3, sitemap_type = $4, 
+          title = $5, description = $6, lastmod = NOW(), updated_at = NOW()
+      WHERE id = $7
+      RETURNING *
+    `, [
+      req.body.url,
+      req.body.changefreq,
+      req.body.priority,
+      req.body.sitemap_type,
+      req.body.title,
+      req.body.description,
+      entryId
+    ]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Sitemap entry not found' });
+    }
+    
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('[testing] Error updating sitemap entry:', error);
+    res.status(500).json({ error: 'Failed to update sitemap entry' });
+  }
+});
+
+app.delete('/api/sitemap-entries/:id', async (req, res) => {
+  try {
+    const entryId = parseInt(req.params.id);
+    const result = await query('DELETE FROM sitemap_entries WHERE id = $1 RETURNING id', [entryId]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Sitemap entry not found' });
+    }
+    
+    res.json({ message: 'Sitemap entry deleted successfully' });
+  } catch (error) {
+    console.error('[testing] Error deleting sitemap entry:', error);
+    res.status(500).json({ error: 'Failed to delete sitemap entry' });
+  }
+});
+
+app.post('/api/sitemap/generate', async (req, res) => {
+  try {
+    const sitemapXML = await generateSitemapXML();
+    
+    // Write to public/sitemap.xml
+    const fs = await import('fs');
+    const path = await import('path');
+    const sitemapPath = path.join(process.cwd(), 'public', 'sitemap.xml');
+    
+    fs.writeFileSync(sitemapPath, sitemapXML);
+    
+    res.setHeader('Content-Type', 'application/xml');
+    res.send(sitemapXML);
+  } catch (error) {
+    console.error('[testing] Error generating sitemap:', error);
+    res.status(500).json({ error: 'Failed to generate sitemap' });
+  }
+});
+
+// SEO Meta endpoints
+app.get('/api/seo-meta/:objectType/:objectId', async (req, res) => {
+  try {
+    const { objectType, objectId } = req.params;
+    const seoMeta = await getSEOMeta(parseInt(objectId), objectType);
+    res.json(seoMeta || {});
+  } catch (error) {
+    console.error('[testing] Error fetching SEO meta:', error);
+    res.status(500).json({ error: 'Failed to fetch SEO meta' });
+  }
+});
+
+app.post('/api/seo-meta', async (req, res) => {
+  try {
+    const seoMeta = await createSEOMeta(req.body);
+    res.status(201).json(seoMeta);
+  } catch (error) {
+    console.error('[testing] Error creating SEO meta:', error);
+    res.status(500).json({ error: 'Failed to create SEO meta' });
+  }
+});
+
+// Get terms by taxonomy
+app.get('/api/terms/taxonomy/:taxonomy', async (req, res) => {
+  try {
+    const { taxonomy } = req.params;
+    // Use the existing getTerms function and filter by taxonomy
+    const allTerms = await getTerms();
+    const filteredTerms = allTerms.filter(term => term.taxonomy === taxonomy);
+    res.json(filteredTerms);
+  } catch (error) {
+    console.error('[testing] Error fetching terms by taxonomy:', error);
+    res.status(500).json({ error: 'Failed to fetch terms' });
+  }
+});
+
 
 // Serve static files from the dist directory - MUST come after API routes
 app.use(express.static(join(__dirname, 'dist')));
@@ -969,3 +1632,7 @@ app.listen(port, '0.0.0.0', () => {
   console.log(`Application available at http://0.0.0.0:${port}/`);
   console.log(`API endpoints available at http://0.0.0.0:${port}/api/`);
 });
+
+
+
+

@@ -1,11 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Image, Monitor, Code, Globe, Search, FileText, Tag, Palette, Type } from 'lucide-react';
-import { ColorSettings } from '../cms/ColorSettings';
-import { TypographySettings } from '../cms/TypographySettings';
-import { ButtonSettings } from '../cms/ButtonSettings';
-import { Label } from '../ui/label';
-import { Input } from '../ui/input';
-import { Button } from '../ui/button';
+import { Image, Monitor, Code, Globe, Search, FileText, Tag, Palette, Type, Shield, CheckCircle, AlertCircle, Copy, ExternalLink, RefreshCw, Plus, X } from 'lucide-react';
 
 const SettingsManager: React.FC = () => {
   const [activeTab, setActiveTab] = useState('branding');
@@ -14,6 +8,7 @@ const SettingsManager: React.FC = () => {
     { id: 'branding', label: 'Branding', icon: Image },
     { id: 'style', label: 'Style', icon: Palette },
     { id: 'seo', label: 'SEO', icon: Search },
+    { id: 'domain', label: 'Domain', icon: Globe },
   ];
 
   const renderTabContent = () => {
@@ -24,6 +19,8 @@ const SettingsManager: React.FC = () => {
         return <StyleTab />;
       case 'seo':
         return <SEOTab />;
+      case 'domain':
+        return <DomainTab />;
       default:
         return null;
     }
@@ -278,15 +275,14 @@ const BrandingTab: React.FC = () => {
 
 // Style Tab with Color, Typography, and Button Settings
 const StyleTab: React.FC = () => {
-  const handleSettingsUpdate = (settings: any) => {
-    console.log('Settings updated:', settings);
-  };
-
   return (
     <div className="space-y-6">
-      <ColorSettings onUpdate={handleSettingsUpdate} />
-      <TypographySettings onUpdate={handleSettingsUpdate} />
-      <ButtonSettings onUpdate={handleSettingsUpdate} />
+      <ColorSettings />
+      <TypographySettings />
+      <div className="bg-white rounded-lg border border-gray-200 p-6">
+        <h4 className="text-base font-semibold text-gray-900 mb-4">Button Settings</h4>
+        <p className="text-sm text-gray-600">Configure button styles and variants for your website.</p>
+      </div>
     </div>
   );
 };
@@ -353,12 +349,12 @@ const TypographySettings: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="headingFont">Heading Font</Label>
+              <label htmlFor="headingFont" className="block text-sm font-medium text-gray-700">Heading Font</label>
               <select
                 id="headingFont"
                 value={fontSettings.headingFont}
                 onChange={(e) => handleInputChange('headingFont', e.target.value)}
-                className="w-full px-3 py-2 bg-background border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-brandPurple focus:border-transparent"
+                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               >
                 {fontOptions.map(option => (
                   <option key={option.value} value={option.value}>
@@ -366,16 +362,16 @@ const TypographySettings: React.FC = () => {
                   </option>
                 ))}
               </select>
-              <p className="text-xs text-muted-foreground mt-1">Font used for headings (h1-h6)</p>
+              <p className="text-xs text-gray-500 mt-1">Font used for headings (h1-h6)</p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="bodyFont">Body Font</Label>
+              <label htmlFor="bodyFont" className="block text-sm font-medium text-gray-700">Body Font</label>
               <select
                 id="bodyFont"
                 value={fontSettings.bodyFont}
                 onChange={(e) => handleInputChange('bodyFont', e.target.value)}
-                className="w-full px-3 py-2 bg-background border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-brandPurple focus:border-transparent"
+                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               >
                 {fontOptions.map(option => (
                   <option key={option.value} value={option.value}>
@@ -383,18 +379,18 @@ const TypographySettings: React.FC = () => {
                   </option>
                 ))}
               </select>
-              <p className="text-xs text-muted-foreground mt-1">Font used for body text and paragraphs</p>
+              <p className="text-xs text-gray-500 mt-1">Font used for body text and paragraphs</p>
             </div>
           </div>
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="baseFontSize">Base Font Size</Label>
+              <label htmlFor="baseFontSize" className="block text-sm font-medium text-gray-700">Base Font Size</label>
               <select
                 id="baseFontSize"
                 value={fontSettings.baseFontSize}
                 onChange={(e) => handleInputChange('baseFontSize', e.target.value)}
-                className="w-full px-3 py-2 bg-background border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-brandPurple focus:border-transparent"
+                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               >
                 {fontSizeOptions.map(option => (
                   <option key={option.value} value={option.value}>
@@ -402,16 +398,16 @@ const TypographySettings: React.FC = () => {
                   </option>
                 ))}
               </select>
-              <p className="text-xs text-muted-foreground mt-1">Base size for all text on your site</p>
+              <p className="text-xs text-gray-500 mt-1">Base size for all text on your site</p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="lineHeight">Line Height</Label>
+              <label htmlFor="lineHeight" className="block text-sm font-medium text-gray-700">Line Height</label>
               <select
                 id="lineHeight"
                 value={fontSettings.lineHeight}
                 onChange={(e) => handleInputChange('lineHeight', e.target.value)}
-                className="w-full px-3 py-2 bg-background border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-brandPurple focus:border-transparent"
+                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               >
                 {lineHeightOptions.map(option => (
                   <option key={option.value} value={option.value}>
@@ -419,7 +415,7 @@ const TypographySettings: React.FC = () => {
                   </option>
                 ))}
               </select>
-              <p className="text-xs text-muted-foreground mt-1">Line spacing for better readability</p>
+              <p className="text-xs text-gray-500 mt-1">Line spacing for better readability</p>
             </div>
           </div>
         </div>
@@ -489,10 +485,10 @@ const TypographySettings: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex justify-end pt-4 border-t border-border">
-        <Button variant="default" className="bg-brandPurple hover:bg-brandPurple/90">
+      <div className="flex justify-end pt-4 border-t border-gray-200">
+        <button className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium">
           Save Typography Settings
-        </Button>
+        </button>
       </div>
     </div>
   );
@@ -537,60 +533,63 @@ const ColorSettings: React.FC = () => {
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="space-y-2">
-            <Label htmlFor="primary">Primary Color (Brand Purple)</Label>
+            <label htmlFor="primary" className="block text-sm font-medium text-gray-700">Primary Color (Brand Purple)</label>
             <div className="flex items-center space-x-4">
               <input
                 type="color"
                 id="primary"
                 value={colorScheme.primary}
                 onChange={(e) => handleColorChange('primary', e.target.value)}
-                className="w-12 h-12 rounded-md border border-input cursor-pointer"
+                className="w-12 h-12 rounded-md border border-gray-300 cursor-pointer"
               />
-              <Input
+              <input
+                type="text"
                 value={colorScheme.primary}
                 onChange={(e) => handleColorChange('primary', e.target.value)}
-                className="font-mono"
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg font-mono text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
               />
             </div>
-            <p className="text-xs text-muted-foreground">Main brand color used for primary elements</p>
+            <p className="text-xs text-gray-500">Main brand color used for primary elements</p>
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="accent">Accent Color (Coral)</Label>
+            <label htmlFor="accent" className="block text-sm font-medium text-gray-700">Accent Color (Coral)</label>
             <div className="flex items-center space-x-4">
               <input
                 type="color"
                 id="accent"
                 value={colorScheme.accent}
                 onChange={(e) => handleColorChange('accent', e.target.value)}
-                className="w-12 h-12 rounded-md border border-input cursor-pointer"
+                className="w-12 h-12 rounded-md border border-gray-300 cursor-pointer"
               />
-              <Input
+              <input
+                type="text"
                 value={colorScheme.accent}
                 onChange={(e) => handleColorChange('accent', e.target.value)}
-                className="font-mono"
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg font-mono text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
               />
             </div>
-            <p className="text-xs text-muted-foreground">Used for call-to-action buttons and highlights</p>
+            <p className="text-xs text-gray-500">Used for call-to-action buttons and highlights</p>
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="brandTeal">Brand Teal</Label>
+            <label htmlFor="brandTeal" className="block text-sm font-medium text-gray-700">Brand Teal</label>
             <div className="flex items-center space-x-4">
               <input
                 type="color"
                 id="brandTeal"
                 value={colorScheme.brandTeal}
                 onChange={(e) => handleColorChange('brandTeal', e.target.value)}
-                className="w-12 h-12 rounded-md border border-input cursor-pointer"
+                className="w-12 h-12 rounded-md border border-gray-300 cursor-pointer"
               />
-              <Input
+              <input
+                type="text"
                 value={colorScheme.brandTeal}
                 onChange={(e) => handleColorChange('brandTeal', e.target.value)}
-                className="font-mono"
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg font-mono text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
               />
             </div>
-            <p className="text-xs text-muted-foreground">Used for gradients and secondary accents</p>
+            <p className="text-xs text-gray-500">Used for gradients and secondary accents</p>
           </div>
         </div>
       </div>
@@ -601,79 +600,83 @@ const ColorSettings: React.FC = () => {
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
-            <Label htmlFor="background">Background</Label>
+            <label htmlFor="background" className="block text-sm font-medium text-gray-700">Background</label>
             <div className="flex items-center space-x-4">
               <input
                 type="color"
                 id="background"
                 value={colorScheme.background}
                 onChange={(e) => handleColorChange('background', e.target.value)}
-                className="w-12 h-12 rounded-md border border-input cursor-pointer"
+                className="w-12 h-12 rounded-md border border-gray-300 cursor-pointer"
               />
-              <Input
+              <input
+                type="text"
                 value={colorScheme.background}
                 onChange={(e) => handleColorChange('background', e.target.value)}
-                className="font-mono"
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg font-mono text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
               />
             </div>
-            <p className="text-xs text-muted-foreground">Main background color of the site</p>
+            <p className="text-xs text-gray-500">Main background color of the site</p>
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="foreground">Foreground</Label>
+            <label htmlFor="foreground" className="block text-sm font-medium text-gray-700">Foreground</label>
             <div className="flex items-center space-x-4">
               <input
                 type="color"
                 id="foreground"
                 value={colorScheme.foreground}
                 onChange={(e) => handleColorChange('foreground', e.target.value)}
-                className="w-12 h-12 rounded-md border border-input cursor-pointer"
+                className="w-12 h-12 rounded-md border border-gray-300 cursor-pointer"
               />
-              <Input
+              <input
+                type="text"
                 value={colorScheme.foreground}
                 onChange={(e) => handleColorChange('foreground', e.target.value)}
-                className="font-mono"
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg font-mono text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
               />
             </div>
-            <p className="text-xs text-muted-foreground">Main text color</p>
+            <p className="text-xs text-gray-500">Main text color</p>
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="secondary">Secondary</Label>
+            <label htmlFor="secondary" className="block text-sm font-medium text-gray-700">Secondary</label>
             <div className="flex items-center space-x-4">
               <input
                 type="color"
                 id="secondary"
                 value={colorScheme.secondary}
                 onChange={(e) => handleColorChange('secondary', e.target.value)}
-                className="w-12 h-12 rounded-md border border-input cursor-pointer"
+                className="w-12 h-12 rounded-md border border-gray-300 cursor-pointer"
               />
-              <Input
+              <input
+                type="text"
                 value={colorScheme.secondary}
                 onChange={(e) => handleColorChange('secondary', e.target.value)}
-                className="font-mono"
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg font-mono text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
               />
             </div>
-            <p className="text-xs text-muted-foreground">Used for secondary UI elements</p>
+            <p className="text-xs text-gray-500">Used for secondary UI elements</p>
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="muted">Muted Background</Label>
+            <label htmlFor="muted" className="block text-sm font-medium text-gray-700">Muted Background</label>
             <div className="flex items-center space-x-4">
               <input
                 type="color"
                 id="muted"
                 value={colorScheme.muted}
                 onChange={(e) => handleColorChange('muted', e.target.value)}
-                className="w-12 h-12 rounded-md border border-input cursor-pointer"
+                className="w-12 h-12 rounded-md border border-gray-300 cursor-pointer"
               />
-              <Input
+              <input
+                type="text"
                 value={colorScheme.muted}
                 onChange={(e) => handleColorChange('muted', e.target.value)}
-                className="font-mono"
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg font-mono text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
               />
             </div>
-            <p className="text-xs text-muted-foreground">Used for subtle background areas</p>
+            <p className="text-xs text-gray-500">Used for subtle background areas</p>
           </div>
         </div>
       </div>
@@ -752,10 +755,10 @@ const ColorSettings: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex justify-end pt-4 border-t border-border">
-        <Button variant="default" className="bg-brandPurple hover:bg-brandPurple/90">
+      <div className="flex justify-end pt-4 border-t border-gray-200">
+        <button className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium">
           Save Color Settings
-        </Button>
+        </button>
       </div>
     </div>
   );
@@ -1044,6 +1047,252 @@ Sitemap: {{site_url}}/sitemap.xml`,
       <div className="flex justify-end">
         <button className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium">
           Save SEO Settings
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// Domain Tab Component
+const DomainTab: React.FC = () => {
+  const [domainSettings, setDomainSettings] = useState({
+    primaryDomain: '',
+    secondaryDomains: [] as string[],
+    sslEnabled: false,
+    redirectToHttps: false,
+    wwwRedirect: false,
+    error: '',
+    isLoading: false,
+  });
+
+  const handleInputChange = (field: string, value: string | boolean) => {
+    setDomainSettings(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleAddSecondaryDomain = () => {
+    const newDomain = prompt('Enter a secondary domain (e.g., sub.example.com)');
+    if (newDomain && newDomain.trim() !== '') {
+      setDomainSettings(prev => ({
+        ...prev,
+        secondaryDomains: [...prev.secondaryDomains, newDomain.trim()]
+      }));
+    }
+  };
+
+  const handleRemoveSecondaryDomain = (index: number) => {
+    setDomainSettings(prev => ({
+      ...prev,
+      secondaryDomains: prev.secondaryDomains.filter((_, i) => i !== index)
+    }));
+  };
+
+  const handleSave = async () => {
+    setDomainSettings(prev => ({ ...prev, error: '', isLoading: true }));
+    
+    if (!domainSettings.primaryDomain) {
+      setDomainSettings(prev => ({ ...prev, error: 'Primary domain is required.', isLoading: false }));
+      return;
+    }
+
+    try {
+      console.log('[testing] Saving domain settings:', domainSettings);
+      
+      // For now, we'll use a mock API call since we're in frontend
+      // In a real implementation, this would call the backend API
+      const response = await fetch('/api/domain', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(domainSettings),
+      });
+      
+      if (response.ok) {
+        console.log('[testing] Domain settings saved successfully');
+        // Show success message (you could add a toast notification here)
+      } else {
+        throw new Error('Failed to save domain settings');
+      }
+    } catch (err) {
+      console.error('[testing] Error saving domain settings:', err);
+      setDomainSettings(prev => ({ ...prev, error: 'Failed to save domain settings.' }));
+    } finally {
+      setDomainSettings(prev => ({ ...prev, isLoading: false }));
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Domain Management</h3>
+        <p className="text-sm text-gray-600 mb-6">
+          Configure your website's domain settings, SSL certificates, and redirection rules.
+        </p>
+        {domainSettings.error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+            <p className="text-sm text-red-800">{domainSettings.error}</p>
+          </div>
+        )}
+      </div>
+      
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Primary Domain Configuration */}
+        <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <h4 className="text-base font-semibold text-gray-900 flex items-center mb-4">
+            <Globe className="h-5 w-5 mr-2 text-purple-600" />
+            Primary Domain
+          </h4>
+          
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="primaryDomain" className="block text-sm font-medium text-gray-700 mb-2">
+                Domain Name
+              </label>
+              <input
+                type="text"
+                id="primaryDomain"
+                value={domainSettings.primaryDomain}
+                onChange={(e) => handleInputChange('primaryDomain', e.target.value)}
+                placeholder="e.g., example.com"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Your main website domain. All other domains will redirect to this one.
+              </p>
+            </div>
+            
+            <div className="space-y-3">
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="sslEnabled"
+                  checked={domainSettings.sslEnabled}
+                  onChange={(e) => handleInputChange('sslEnabled', e.target.checked)}
+                  className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
+                />
+                <label htmlFor="sslEnabled" className="ml-2 text-sm text-gray-700">
+                  Enable SSL/HTTPS
+                </label>
+              </div>
+              
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="redirectToHttps"
+                  checked={domainSettings.redirectToHttps}
+                  onChange={(e) => handleInputChange('redirectToHttps', e.target.checked)}
+                  className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
+                />
+                <label htmlFor="redirectToHttps" className="ml-2 text-sm text-gray-700">
+                  Redirect HTTP to HTTPS
+                </label>
+              </div>
+              
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="wwwRedirect"
+                  checked={domainSettings.wwwRedirect}
+                  onChange={(e) => handleInputChange('wwwRedirect', e.target.checked)}
+                  className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
+                />
+                <label htmlFor="wwwRedirect" className="ml-2 text-sm text-gray-700">
+                  Redirect www to non-www
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Secondary Domains */}
+        <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <h4 className="text-base font-semibold text-gray-900 flex items-center mb-4">
+            <Copy className="h-5 w-5 mr-2 text-purple-600" />
+            Secondary Domains
+          </h4>
+          
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Additional Domains
+              </label>
+              <div className="border border-gray-300 rounded-lg p-3 min-h-[100px]">
+                {domainSettings.secondaryDomains.length === 0 ? (
+                  <p className="text-gray-500 text-sm">No secondary domains added yet.</p>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {domainSettings.secondaryDomains.map((domain, index) => (
+                      <div key={index} className="flex items-center bg-gray-100 text-sm text-gray-800 px-3 py-1 rounded-full">
+                        <span>{domain}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveSecondaryDomain(index)}
+                          className="ml-2 text-red-500 hover:text-red-700"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={handleAddSecondaryDomain}
+                className="mt-2 flex items-center px-3 py-1 bg-purple-100 text-purple-800 rounded-lg text-sm hover:bg-purple-200 transition-colors"
+              >
+                <Plus className="h-4 w-4 mr-1" /> Add Domain
+              </button>
+              <p className="text-xs text-gray-500 mt-2">
+                Add additional domains that will redirect to your primary domain.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      {/* DNS Instructions */}
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+        <h4 className="text-base font-semibold text-gray-900 flex items-center mb-4">
+          <Shield className="h-5 w-5 mr-2 text-blue-600" />
+          DNS Configuration Instructions
+        </h4>
+        <div className="space-y-3 text-sm text-gray-700">
+          <p>To connect your domain to this website, add the following DNS records at your domain registrar:</p>
+          <div className="bg-white border border-blue-200 rounded p-3 font-mono text-xs">
+            <div className="grid grid-cols-3 gap-4 font-semibold text-gray-900 border-b pb-2 mb-2">
+              <span>Type</span>
+              <span>Name</span>
+              <span>Value</span>
+            </div>
+            <div className="grid grid-cols-3 gap-4">
+              <span>CNAME</span>
+              <span>www</span>
+              <span>your-app-production.up.railway.app</span>
+            </div>
+            <div className="grid grid-cols-3 gap-4 mt-1">
+              <span>A</span>
+              <span>@</span>
+              <span>185.199.108.153</span>
+            </div>
+          </div>
+          <p className="text-xs text-gray-600">
+            Note: DNS changes can take up to 72 hours to propagate globally, but usually complete within a few hours.
+          </p>
+        </div>
+      </div>
+      
+      {/* Save Button */}
+      <div className="flex justify-end pt-4 border-t border-gray-200">
+        <button
+          onClick={handleSave}
+          disabled={domainSettings.isLoading}
+          className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {domainSettings.isLoading ? 'Saving...' : 'Save Domain Settings'}
         </button>
       </div>
     </div>

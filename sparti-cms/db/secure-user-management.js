@@ -1,8 +1,10 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
-import { RateLimiterPostgreSQL } from 'rate-limiter-flexible';
-import { query, pool } from './postgres.js';
+import rateLimiterPkg from 'rate-limiter-flexible';
+const { RateLimiterPostgreSQL } = rateLimiterPkg;
+import { query } from './postgres.js';
+import pool from './postgres.js';
 
 // Security configuration
 const JWT_SECRET = process.env.JWT_SECRET || crypto.randomBytes(64).toString('hex');

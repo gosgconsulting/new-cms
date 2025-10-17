@@ -69,6 +69,40 @@ export const PagesManager: React.FC = () => {
     );
   };
 
+  const handleSEOIndexToggle = async (pageId: string, pageType: string, currentIndex: boolean) => {
+    try {
+      const response = await fetch('/api/pages/toggle-seo-index', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          pageId,
+          pageType,
+          currentIndex
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to toggle SEO index');
+      }
+
+      const data = await response.json();
+      
+      // Update the page in state
+      setPages(prevPages => 
+        prevPages.map(page => 
+          page.id === pageId ? { ...page, seo_index: data.newIndex } : page
+        )
+      );
+
+      console.log('[testing] SEO index toggled successfully:', data.newIndex);
+    } catch (error) {
+      console.error('[testing] Error toggling SEO index:', error);
+      // You could add a toast notification here
+    }
+  };
+
   const handleEditPage = (pageId: string) => {
     setEditingPageId(pageId);
   };
@@ -87,8 +121,17 @@ export const PagesManager: React.FC = () => {
     );
   }
 
-  // Filter pages based on active tab
-  const filteredPages = pages.filter(page => page.page_type === activeTab);
+  // Filter and sort pages based on active tab
+  const filteredPages = pages
+    .filter(page => page.page_type === activeTab)
+    .sort((a, b) => {
+      // Homepage first
+      if (a.slug === '/' || a.slug === '/home') return -1;
+      if (b.slug === '/' || b.slug === '/home') return 1;
+      
+      // Then sort by created_at (newest first)
+      return new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime();
+    });
 
   if (loading) {
     return (
@@ -153,7 +196,7 @@ export const PagesManager: React.FC = () => {
                 {tabs.find(t => t.id === activeTab)?.label}
               </h3>
               <p className="text-sm text-gray-600 mb-6">
-                Manage your {tabs.find(t => t.id === activeTab)?.label.toLowerCase()}. Click on any slug to edit it.
+                Manage your {tabs.find(t => t.id === activeTab)?.label.toLowerCase()}. Click on any slug to edit it. Click on Index/No Index to toggle SEO indexing.
               </p>
             </div>
 
@@ -175,11 +218,13 @@ export const PagesManager: React.FC = () => {
                           >
                             {page.status}
                           </Badge>
-                          {page.seo_index === false && (
-                            <Badge variant="outline" className="text-xs">
-                              NOINDEX
-                            </Badge>
-                          )}
+                          <Badge 
+                            variant={page.seo_index ? 'default' : 'outline'}
+                            className="text-xs cursor-pointer hover:bg-opacity-80 transition-colors"
+                            onClick={() => handleSEOIndexToggle(page.id, page.page_type, page.seo_index || false)}
+                          >
+                            {page.seo_index ? 'Index' : 'No Index'}
+                          </Badge>
                         </div>
                         <div className="mb-1">
                           <EditableSlug
@@ -187,7 +232,7 @@ export const PagesManager: React.FC = () => {
                             pageType={page.page_type}
                             currentSlug={page.slug}
                             pageName={page.page_name}
-                            isHomepage={page.slug === '/'}
+                            isHomepage={page.slug === '/' || page.slug === '/home'}
                             onSlugUpdate={(newSlug) => handleSlugUpdate(page.id, newSlug)}
                           />
                         </div>
@@ -235,6 +280,8 @@ export const PagesManager: React.FC = () => {
               <p className="text-sm text-blue-800">
                 <strong>Slug Editing:</strong> Click on any slug to edit it. Homepage slug cannot be changed. 
                 If you change the blog slug, remember to update blog post URLs in the frontend code.
+                <br />
+                <strong>SEO Index:</strong> Click on "Index" or "No Index" badges to toggle whether the page should be indexed by search engines.
               </p>
             </div>
           </div>

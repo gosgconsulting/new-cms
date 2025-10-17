@@ -25,7 +25,7 @@ const DeveloperManager: React.FC = () => {
     { id: 'projects', label: 'Projects', icon: FolderKanban },
     { id: 'integrations', label: 'Integrations', icon: Puzzle },
     { id: 'code', label: 'Code', icon: Code },
-    { id: 'robots', label: 'Robots.txt', icon: FileText },
+
     { id: 'rules', label: 'Rules', icon: FileCode },
   ];
 
@@ -37,8 +37,7 @@ const DeveloperManager: React.FC = () => {
         return <IntegrationsTab />;
       case 'code':
         return <CodeTab />;
-      case 'robots':
-        return <RobotsTxtTab />;
+
       case 'rules':
         return <RulesTab />;
       default:
@@ -388,6 +387,7 @@ const NewProjectModal: React.FC<{ onClose: () => void; onSave: () => void }> = (
 
 const IntegrationsTab: React.FC = () => {
   const navigate = useNavigate();
+  const [showAddIntegration, setShowAddIntegration] = React.useState(false);
 
   return (
     <div className="space-y-6">
@@ -400,6 +400,7 @@ const IntegrationsTab: React.FC = () => {
 
       <Card>
         <CardContent className="pt-6 space-y-4">
+          {/* PostgreSQL Database */}
           <div className="border rounded-lg p-4 flex items-start justify-between">
             <div className="flex items-start gap-4">
               <div className="p-2 bg-primary/10 rounded-lg">
@@ -421,17 +422,43 @@ const IntegrationsTab: React.FC = () => {
                 </div>
               </div>
             </div>
-                         <Button variant="outline" size="sm" onClick={() => navigate('/database-viewer')}>
-               View
-             </Button>
+            <Button variant="outline" size="sm" onClick={() => navigate('/database-viewer')}>
+              View
+            </Button>
           </div>
 
-          <Button variant="outline" className="w-full" size="lg">
+
+
+          <Button variant="outline" className="w-full" size="lg" onClick={() => setShowAddIntegration(true)}>
             <Plus className="h-4 w-4 mr-2" />
             Add New Integration
           </Button>
         </CardContent>
       </Card>
+
+
+
+      {/* Add Integration Modal Placeholder */}
+      {showAddIntegration && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Add New Integration</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              More integrations coming soon! Currently available:
+            </p>
+            <ul className="text-sm text-gray-600 mb-4 space-y-1">
+              <li>• PostgreSQL Database (Active)</li>
+              <li>• Google APIs (Available in Integration Test)</li>
+              <li>• OpenRouter AI (Available in Integration Test)</li>
+            </ul>
+            <div className="flex justify-end">
+              <Button variant="outline" onClick={() => setShowAddIntegration(false)}>
+                Close
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -832,3 +859,4 @@ const RulesTab: React.FC = () => {
 };
 
 export default DeveloperManager;
+

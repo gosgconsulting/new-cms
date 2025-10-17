@@ -28,6 +28,16 @@ export {
   type EmailResponse 
 } from './smtp/client';
 
+// Resend Domain Management
+export {
+  ResendDomainsClient,
+  resendDomainsClient,
+  type ResendDomain,
+  type DNSRecord,
+  type SMTPConfig,
+  type CreateDomainRequest
+} from './smtp/resend-domains';
+
 // Supabase Integration (existing)
 export { supabase } from './supabase/client';
 export type { Database } from './supabase/types';

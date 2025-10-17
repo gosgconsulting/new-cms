@@ -660,17 +660,10 @@ const MediaManager: React.FC = () => {
               >
                 <div className="aspect-square bg-gray-100 flex items-center justify-center">
                   {item.type === 'image' ? (
-<<<<<<< HEAD
-                    <img 
-                      src={item.url} 
-                      alt={item.alt || item.name} 
-                      className="w-full h-full object-cover"
-                    />
-=======
                     <>
                       <img 
                         src={item.url} 
-                        alt={item.name} 
+                        alt={item.alt || item.name} 
                         className="w-full h-full object-cover"
                         onError={(e) => {
                           console.error(`Error loading image: ${item.url}`);
@@ -692,7 +685,6 @@ const MediaManager: React.FC = () => {
                         </span>
                       </div>
                     </>
->>>>>>> 9535fca54c25f2f1c05b7a5c5eeaac4e563b6288
                   ) : (
                     <div className="p-4 flex flex-col items-center justify-center h-full">
                       {getFileIcon(item.type)}
