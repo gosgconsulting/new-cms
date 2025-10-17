@@ -1,0 +1,100 @@
+{
+  "id": "what-is-seo-section",
+  "name": "What is SEO",
+  "type": "container",
+  "category": "content",
+  "description": "Section explaining SEO services with grid of service items",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Section title",
+      "editable": true,
+      "required": true,
+      "default": "What is"
+    },
+    "highlightedText": {
+      "type": "string",
+      "description": "Highlighted text in the title",
+      "editable": true,
+      "default": "SEO"
+    },
+    "subtitle": {
+      "type": "string",
+      "description": "Section subtitle",
+      "editable": true,
+      "default": "Search Engine Optimization (SEO) is the practice of optimizing your website to rank higher in search results. Here's how we make it work for your business:"
+    },
+    "services": {
+      "type": "array",
+      "description": "Array of SEO service items",
+      "editable": true,
+      "required": true,
+      "default": [
+        {
+          "icon": "Search",
+          "title": "Keyword Research",
+          "description": "In-depth analysis to identify high-value keywords that drive qualified traffic to your business."
+        },
+        {
+          "icon": "FileText",
+          "title": "On-Page Optimization",
+          "description": "Optimize your website content, meta tags, and structure for maximum search engine visibility."
+        },
+        {
+          "icon": "Code",
+          "title": "Technical SEO",
+          "description": "Fix technical issues, improve site speed, and ensure your website is crawlable by search engines."
+        },
+        {
+          "icon": "BarChart3",
+          "title": "SEO Analytics",
+          "description": "Track and measure your SEO performance with detailed reporting and actionable insights."
+        },
+        {
+          "icon": "Link2",
+          "title": "Link Building",
+          "description": "Build high-quality backlinks from authoritative websites to boost your domain authority."
+        },
+        {
+          "icon": "Users",
+          "title": "Local SEO",
+          "description": "Optimize your business for local search results and Google My Business visibility."
+        },
+        {
+          "icon": "TrendingUp",
+          "title": "Content Strategy",
+          "description": "Create SEO-optimized content that engages your audience and ranks on search engines."
+        },
+        {
+          "icon": "Target",
+          "title": "Competitor Analysis",
+          "description": "Analyze your competitors' strategies to identify opportunities and stay ahead."
+        }
+      ]
+    },
+    "ctaText": {
+      "type": "string",
+      "description": "CTA text above button",
+      "editable": true,
+      "default": "Ready to see how SEO can transform your business?"
+    },
+    "ctaButtonText": {
+      "type": "string",
+      "description": "CTA button text",
+      "editable": true,
+      "default": "Start Your SEO Partnership"
+    },
+    "backgroundColor": {
+      "type": "string",
+      "description": "Background color for the section",
+      "editable": true,
+      "default": "#ffffff"
+    }
+  },
+  "editor": "ContainerEditor",
+  "version": "1.0.0",
+  "tenant_scope": "tenant",
+  "tags": ["seo", "services", "education", "content"],
+  "dependencies": ["framer-motion", "lucide-react"],
+  "last_updated": "2025-10-17T12:00:00Z"
+}

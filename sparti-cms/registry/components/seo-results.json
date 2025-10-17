@@ -5,43 +5,82 @@
   "category": "content",
   "description": "Showcase of SEO results and case studies",
   "properties": {
-    "sectionTitle": {
+    "title": {
       "type": "string",
       "description": "Section title",
       "editable": true,
       "required": true,
-      "default": "Proven Results"
+      "default": "Real SEO Results"
     },
-    "sectionSubtitle": {
+    "highlightedText": {
+      "type": "string",
+      "description": "Highlighted text in the title",
+      "editable": true,
+      "default": "SEO Results"
+    },
+    "subtitle": {
       "type": "string",
       "description": "Section subtitle",
       "editable": true,
-      "default": "Real results from our clients"
+      "default": "See how we've helped businesses like yours achieve remarkable growth through strategic SEO implementation."
     },
     "results": {
       "type": "array",
       "description": "Array of result items",
       "editable": true,
       "required": true,
-      "default": []
+      "default": [
+        {
+          "img": "/assets/results/result-1.png",
+          "label": "+245% Organic Traffic in 6 months"
+        },
+        {
+          "img": "/assets/results/result-2.png",
+          "label": "+180% Organic Traffic in 4 months"
+        },
+        {
+          "img": "/assets/results/result-3.png",
+          "label": "+320% Organic Traffic in 5 months"
+        },
+        {
+          "img": "/assets/results/result-4.png",
+          "label": "+195% Organic Traffic in 3 months"
+        },
+        {
+          "img": "/assets/results/result-5.png",
+          "label": "+275% Organic Traffic in 6 months"
+        },
+        {
+          "img": "/assets/results/result-6.png",
+          "label": "+160% Organic Traffic in 4 months"
+        },
+        {
+          "img": "/assets/results/result-7.png",
+          "label": "+215% Organic Traffic in 5 months"
+        },
+        {
+          "img": "/assets/results/result-8.png",
+          "label": "+290% Organic Traffic in 6 months"
+        }
+      ]
     },
-    "displayStyle": {
+    "ctaButtonText": {
       "type": "string",
-      "description": "Display style (grid | slider)",
+      "description": "CTA button text",
       "editable": true,
-      "default": "slider"
+      "default": "Become Our Next Case Study"
     },
-    "showStats": {
-      "type": "boolean",
-      "description": "Show statistics counter",
+    "backgroundColor": {
+      "type": "string",
+      "description": "Background color for the section",
       "editable": true,
-      "default": true
+      "default": "bg-gradient-to-b from-background via-secondary/30 to-background"
     }
   },
   "editor": "ContainerEditor",
   "version": "1.0.0",
   "tenant_scope": "tenant",
   "tags": ["results", "case-studies", "testimonials", "proof"],
-  "dependencies": ["embla-carousel-react"],
-  "last_updated": "2025-01-28T12:00:00Z"
+  "dependencies": ["framer-motion"],
+  "last_updated": "2025-10-17T12:00:00Z"
 }

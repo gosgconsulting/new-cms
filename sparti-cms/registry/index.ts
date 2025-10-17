@@ -9,6 +9,7 @@ import clientLogosComponent from './components/client-logos.json';
 import painPointsComponent from './components/pain-points.json';
 import seoResultsComponent from './components/seo-results.json';
 import servicesComponent from './components/services.json';
+import whatIsSEOComponent from './components/what-is-seo.json';
 import testimonialsComponent from './components/testimonials.json';
 import faqComponent from './components/faq.json';
 import blogPreviewComponent from './components/blog-preview.json';
@@ -51,6 +52,7 @@ class ComponentRegistry {
       painPointsComponent as ComponentDefinition,
       seoResultsComponent as ComponentDefinition,
       servicesComponent as ComponentDefinition,
+      whatIsSEOComponent as ComponentDefinition,
       testimonialsComponent as ComponentDefinition,
       
       // Interactive Components

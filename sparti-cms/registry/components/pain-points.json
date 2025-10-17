@@ -23,6 +23,24 @@
       "editable": true,
       "default": "Nothing Happens?"
     },
+    "rotatingAnimationText1": {
+      "type": "string",
+      "description": "Rotating Animation Text 1",
+      "editable": true,
+      "default": "low traffic"
+    },
+    "rotatingAnimationText2": {
+      "type": "string",
+      "description": "Rotating Animation Text 2",
+      "editable": true,
+      "default": "stagnant"
+    },
+    "rotatingAnimationText3": {
+      "type": "string",
+      "description": "Rotating Animation Text 3",
+      "editable": true,
+      "default": "no traffic"
+    },
     "painPoints": {
       "type": "array",
       "description": "Array of pain point items",

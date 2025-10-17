@@ -68,6 +68,9 @@ const HomepageSectionEditor: React.FC<HomepageSectionEditorProps> = ({ onSave })
         badgeText: 'You have a website but it\'s not generating clicks?',
         headingLine1: 'You Invest... But',
         headingLine2: 'Nothing Happens?',
+        rotatingAnimationText1: "low traffic",
+        rotatingAnimationText2: "stagnant",
+        rotatingAnimationText3: "no traffic",
         painPoints: [
           {
             title: 'Organic traffic stuck at 0',
@@ -87,28 +90,142 @@ const HomepageSectionEditor: React.FC<HomepageSectionEditorProps> = ({ onSave })
       }
     },
     {
+      id: 'seo-results-section',
+      type: 'seo-results-section',
+      title: 'SEO Results Section',
+      visible: true,
+      data: {
+        title: 'Real',
+        highlightedText: 'SEO Results',
+        subtitle: 'See how we\'ve helped businesses like yours achieve remarkable growth through strategic SEO implementation.',
+        results: [
+          {
+            img: "/src/assets/results/result-1.png",
+            label: "+245% Organic Traffic in 6 months"
+          },
+          {
+            img: "/src/assets/results/result-2.png",
+            label: "+180% Organic Traffic in 4 months"
+          },
+          {
+            img: "/src/assets/results/result-3.png",
+            label: "+320% Organic Traffic in 5 months"
+          },
+          {
+            img: "/src/assets/results/result-4.png",
+            label: "+195% Organic Traffic in 3 months"
+          },
+          {
+            img: "/src/assets/results/result-5.png",
+            label: "+275% Organic Traffic in 6 months"
+          },
+          {
+            img: "/src/assets/results/result-6.png",
+            label: "+160% Organic Traffic in 4 months"
+          }
+        ],
+        ctaButtonText: "Become Our Next Case Study",
+        backgroundColor: "bg-gradient-to-b from-background via-secondary/30 to-background"
+      }
+    },
+    {
       id: 'services-showcase-section',
       type: 'services-showcase-section',
       title: 'Services Showcase',
       visible: true,
       data: {
-        sectionTitle: 'Our SEO Services',
-        sectionSubtitle: 'Comprehensive SEO solutions',
-        sectionDescription: '<p>We offer a comprehensive range of SEO services designed to improve your online visibility, drive more traffic, and increase conversions.</p>',
         services: [
           {
-            title: 'Keyword Research',
-            description: '<p>We identify the most valuable keywords for your business to target based on search volume, competition, and relevance to your offerings.</p>',
-            icon: 'search'
+            id: "keywords-research",
+            title: "Rank on keywords with",
+            highlight: "search volume",
+            description: "Discover high-volume keywords with precise search data and user intent analysis. Find the perfect keywords to target for maximum organic traffic growth.",
+            buttonText: "Learn More",
+            images: [
+              "/src/assets/seo/keyword-research-1.png",
+              "/src/assets/seo/keyword-research-2.png"
+            ]
           },
           {
-            title: 'On-Page Optimization',
-            description: '<p>We optimize your website\'s content, meta tags, and structure to make it more appealing to search engines and users.</p>',
-            icon: 'file-text'
+            id: "content-strategy",
+            title: "Find topics based on",
+            highlight: "real google search results",
+            description: "Discover content opportunities by analyzing actual Google search results and user behavior. Get real insights from search data to create content that ranks and converts.",
+            buttonText: "View Analytics",
+            images: [
+              "/src/assets/seo/content-strategy-1.png",
+              "/src/assets/seo/content-strategy-2.png"
+            ]
+          },
+          {
+            id: "link-building",
+            title: "Build authority with",
+            highlight: "high-quality backlinks",
+            description: "Strengthen your website's authority through strategic link building campaigns. Acquire high-quality backlinks from reputable sources to boost your domain authority and rankings.",
+            buttonText: "Try Link Builder",
+            images: [
+              "/src/assets/seo/link-building-1.png",
+              "/src/assets/seo/link-building-2.png"
+            ]
           }
         ],
-        backgroundType: 'color',
-        backgroundColor: '#ffffff'
+        backgroundColor: "#ffffff"
+      }
+    },
+    {
+      id: 'what-is-seo-section',
+      type: 'what-is-seo-section',
+      title: 'What is SEO Section',
+      visible: true,
+      data: {
+        title: "What is",
+        highlightedText: "SEO",
+        subtitle: "Search Engine Optimization (SEO) is the practice of optimizing your website to rank higher in search results. Here's how we make it work for your business:",
+        services: [
+          {
+            icon: "Search",
+            title: "Keyword Research",
+            description: "In-depth analysis to identify high-value keywords that drive qualified traffic to your business."
+          },
+          {
+            icon: "FileText",
+            title: "On-Page Optimization",
+            description: "Optimize your website content, meta tags, and structure for maximum search engine visibility."
+          },
+          {
+            icon: "Code",
+            title: "Technical SEO",
+            description: "Fix technical issues, improve site speed, and ensure your website is crawlable by search engines."
+          },
+          {
+            icon: "BarChart3",
+            title: "SEO Analytics",
+            description: "Track and measure your SEO performance with detailed reporting and actionable insights."
+          },
+          {
+            icon: "Link2",
+            title: "Link Building",
+            description: "Build high-quality backlinks from authoritative websites to boost your domain authority."
+          },
+          {
+            icon: "Users",
+            title: "Local SEO",
+            description: "Optimize your business for local search results and Google My Business visibility."
+          },
+          {
+            icon: "TrendingUp",
+            title: "Content Strategy",
+            description: "Create SEO-optimized content that engages your audience and ranks on search engines."
+          },
+          {
+            icon: "Target",
+            title: "Competitor Analysis",
+            description: "Analyze your competitors' strategies to identify opportunities and stay ahead."
+          }
+        ],
+        ctaText: "Ready to see how SEO can transform your business?",
+        ctaButtonText: "Start Your SEO Partnership",
+        backgroundColor: "#ffffff"
       }
     },
     {
@@ -117,22 +234,29 @@ const HomepageSectionEditor: React.FC<HomepageSectionEditorProps> = ({ onSave })
       title: 'Testimonials',
       visible: true,
       data: {
-        sectionTitle: 'What Our Clients Say',
-        sectionSubtitle: 'Success stories from businesses like yours',
+        sectionTitle: 'What our clients say',
+        sectionSubtitle: 'See what our customers have to say about our SEO services and results.',
         testimonials: [
           {
-            name: 'John Smith',
-            company: 'ABC Company',
-            quote: 'GO SG helped us increase our organic traffic by 200% in just 3 months. Highly recommended!',
-            image: '/placeholder.svg'
+            text: "GoSG's SEO strategies boosted our organic traffic by 400% in just 3 months. Our website now ranks #1 for our main keywords.",
+            image: "https://randomuser.me/api/portraits/women/1.jpg",
+            name: "Sarah Chen",
+            role: "Marketing Director"
           },
           {
-            name: 'Jane Doe',
-            company: 'XYZ Inc',
-            quote: 'Their SEO strategies have transformed our online presence. We\'re now ranking on the first page for our target keywords.',
-            image: '/placeholder.svg'
+            text: "Their technical SEO audit revealed critical issues we didn't know existed. After fixes, our search rankings improved dramatically.",
+            image: "https://randomuser.me/api/portraits/men/2.jpg",
+            name: "Marcus Tan",
+            role: "Business Owner"
+          },
+          {
+            text: "GoSG's local SEO expertise helped us dominate Singapore search results. We're now the top choice in our area.",
+            image: "https://randomuser.me/api/portraits/women/3.jpg",
+            name: "Priya Sharma",
+            role: "E-commerce Manager"
           }
-        ]
+        ],
+        backgroundColor: "#f9fafb"
       }
     },
     {
@@ -163,7 +287,7 @@ const HomepageSectionEditor: React.FC<HomepageSectionEditorProps> = ({ onSave })
       data: {
         title: 'Latest SEO Insights',
         subtitle: 'Stay ahead of the curve with our expert SEO tips, strategies, and industry insights.',
-        ctaButtonText: 'Get SEO Consultation'
+        backgroundColor: "bg-gradient-to-br from-gray-50 to-blue-50/30"
       }
     },
     {
@@ -172,18 +296,35 @@ const HomepageSectionEditor: React.FC<HomepageSectionEditorProps> = ({ onSave })
       title: 'Footer',
       visible: true,
       data: {
-        companyName: 'GO SG Consulting',
-        copyrightText: '© 2025 GO SG Consulting. All rights reserved.',
-        showSocialLinks: true,
-        socialLinks: [
-          { platform: 'facebook', url: 'https://facebook.com' },
-          { platform: 'twitter', url: 'https://twitter.com' },
-          { platform: 'linkedin', url: 'https://linkedin.com' }
+        ctaHeading: 'Get Your SEO Strategy',
+        ctaDescription: 'Ready to dominate search results? Let\'s discuss how we can help your business grow.',
+        ctaButtonText: 'Start Your Journey',
+        contactLinks: [
+          {
+            text: 'WhatsApp',
+            url: 'https://wa.me/1234567890'
+          },
+          {
+            text: 'Book a Meeting',
+            url: 'https://calendly.com'
+          }
         ],
-        footerLinks: [
-          { label: 'Privacy Policy', url: '/privacy-policy' },
-          { label: 'Terms of Service', url: '/terms-of-service' }
-        ]
+        legalLinks: [
+          {
+            text: 'Privacy Policy',
+            url: '/privacy-policy'
+          },
+          {
+            text: 'Terms of Service',
+            url: '/terms-of-service'
+          },
+          {
+            text: 'Blog',
+            url: '/blog'
+          }
+        ],
+        copyrightText: 'GO SG CONSULTING. All rights reserved.',
+        backgroundColor: '#0f172a'
       }
     }
   ]);
@@ -548,6 +689,125 @@ const HomepageSectionEditor: React.FC<HomepageSectionEditorProps> = ({ onSave })
         
       case 'array':
         if (!activeSectionData) return null;
+        
+        // Special case for image arrays (like in service showcase section)
+        if (propertyName === 'images') {
+          return (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Label>Image Carousel</Label>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => {
+                    const currentImages = path.length === 0 
+                      ? [...(activeSectionData.data[propertyName] || [])]
+                      : [...path.reduce((obj, key) => obj[key], activeSectionData.data)[propertyName] || []];
+                    
+                    currentImages.push('/placeholder.svg');
+                    
+                    if (path.length === 0) {
+                      updateSectionData(sectionId, propertyName, currentImages);
+                    } else {
+                      const arrayName = path[0];
+                      const index = parseInt(path[1]);
+                      updateNestedData(sectionId, arrayName, index, propertyName, currentImages);
+                    }
+                  }}
+                >
+                  <Plus className="h-4 w-4 mr-1" /> Add Image
+                </Button>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                {path.length === 0 
+                  ? (activeSectionData.data[propertyName] || []).map((img: string, idx: number) => (
+                    <div key={idx} className="relative">
+                      <div className="aspect-video bg-muted rounded-lg overflow-hidden border border-border">
+                        <img 
+                          src={img} 
+                          alt={`Image ${idx + 1}`}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = '/placeholder.svg';
+                          }}
+                        />
+                      </div>
+                      <div className="absolute top-2 right-2 flex gap-2">
+                        <Button 
+                          variant="destructive" 
+                          size="icon" 
+                          className="h-6 w-6 rounded-full"
+                          onClick={() => {
+                            const currentImages = [...(activeSectionData.data[propertyName] || [])];
+                            currentImages.splice(idx, 1);
+                            updateSectionData(sectionId, propertyName, currentImages);
+                          }}
+                        >
+                          <Trash className="h-3 w-3" />
+                        </Button>
+                      </div>
+                      <Input
+                        value={img}
+                        onChange={(e) => {
+                          const currentImages = [...(activeSectionData.data[propertyName] || [])];
+                          currentImages[idx] = e.target.value;
+                          updateSectionData(sectionId, propertyName, currentImages);
+                        }}
+                        className="mt-2"
+                        placeholder="Image URL"
+                      />
+                    </div>
+                  ))
+                  : (path.reduce((obj, key) => obj[key], activeSectionData.data)[propertyName] || []).map((img: string, idx: number) => (
+                    <div key={idx} className="relative">
+                      <div className="aspect-video bg-muted rounded-lg overflow-hidden border border-border">
+                        <img 
+                          src={img} 
+                          alt={`Image ${idx + 1}`}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = '/placeholder.svg';
+                          }}
+                        />
+                      </div>
+                      <div className="absolute top-2 right-2 flex gap-2">
+                        <Button 
+                          variant="destructive" 
+                          size="icon" 
+                          className="h-6 w-6 rounded-full"
+                          onClick={() => {
+                            const arrayName = path[0];
+                            const index = parseInt(path[1]);
+                            const currentObj = {...path.reduce((obj, key) => obj[key], activeSectionData.data)};
+                            const currentImages = [...(currentObj[propertyName] || [])];
+                            currentImages.splice(idx, 1);
+                            updateNestedData(sectionId, arrayName, index, propertyName, currentImages);
+                          }}
+                        >
+                          <Trash className="h-3 w-3" />
+                        </Button>
+                      </div>
+                      <Input
+                        value={img}
+                        onChange={(e) => {
+                          const arrayName = path[0];
+                          const index = parseInt(path[1]);
+                          const currentObj = {...path.reduce((obj, key) => obj[key], activeSectionData.data)};
+                          const currentImages = [...(currentObj[propertyName] || [])];
+                          currentImages[idx] = e.target.value;
+                          updateNestedData(sectionId, arrayName, index, propertyName, currentImages);
+                        }}
+                        className="mt-2"
+                        placeholder="Image URL"
+                      />
+                    </div>
+                  ))
+                }
+              </div>
+            </div>
+          );
+        }
         
         const arrayItems = activeSectionData.data[propertyName] || [];
         let defaultItem = {};
