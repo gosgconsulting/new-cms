@@ -27,8 +27,8 @@ const ContactModal = ({ open, onOpenChange }: ContactModalProps) => {
       
       const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4173';
       const formData = {
-        form_id: 'contact-modal',
-        form_name: 'Contact Modal Form',
+        form_id: 'Contact Form', // This matches the form name in the database
+        form_name: 'Contact Form',
         name,
         email,
         phone: phone || null,

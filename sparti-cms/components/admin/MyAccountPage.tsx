@@ -21,6 +21,7 @@ interface UserProfile {
   last_name: string;
   email: string;
   role: string;
+  status: string;
   last_login?: string;
   created_at: string;
 }
@@ -175,6 +176,21 @@ const MyAccountPage: React.FC = () => {
         return 'bg-blue-100 text-blue-800 border-blue-200';
       case 'user':
         return 'bg-green-100 text-green-800 border-green-200';
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
+
+  const getStatusBadgeColor = (status: string) => {
+    switch (status) {
+      case 'active':
+        return 'bg-green-100 text-green-800 border-green-200';
+      case 'inactive':
+        return 'bg-gray-100 text-gray-800 border-gray-200';
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'rejected':
+        return 'bg-red-100 text-red-800 border-red-200';
       default:
         return 'bg-gray-100 text-gray-800 border-gray-200';
     }
@@ -365,6 +381,17 @@ const MyAccountPage: React.FC = () => {
                     <Shield className="h-4 w-4 text-muted-foreground" />
                     <span className={`px-2 py-1 text-xs font-medium rounded-full border ${getRoleBadgeColor(profile?.role || '')}`}>
                       {profile?.role?.charAt(0).toUpperCase() + profile?.role?.slice(1)}
+                    </span>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-muted-foreground mb-1">
+                    Account Status
+                  </label>
+                  <div className="flex items-center space-x-2">
+                    <CheckCircle className="h-4 w-4 text-muted-foreground" />
+                    <span className={`px-2 py-1 text-xs font-medium rounded-full border ${getStatusBadgeColor(profile?.status || '')}`}>
+                      {profile?.status?.charAt(0).toUpperCase() + profile?.status?.slice(1)}
                     </span>
                   </div>
                 </div>

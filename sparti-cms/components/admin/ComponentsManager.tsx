@@ -177,17 +177,46 @@ const ComponentsManager: React.FC = () => {
         );
       case 'client-logos-carousel':
         return (
-          <div className="bg-white rounded-xl shadow-md p-12 text-center">
-            <p className="text-gray-600 mb-6">Client logos carousel is embedded in the Hero Section</p>
-            <button 
-              onClick={() => {
-                const heroComponent = componentRegistry.get('hero-main');
-                if (heroComponent) setPreviewComponent(heroComponent);
-              }}
-              className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-full font-medium transition-colors"
-            >
-              View in Hero Section
-            </button>
+          <div className="bg-white rounded-xl shadow-md p-8">
+            <div className="text-center mb-6">
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Client Logos Carousel</h3>
+              <p className="text-gray-600">Animated carousel showcasing client logos and testimonials</p>
+            </div>
+            
+            {/* Preview of client logos */}
+            <div className="bg-gray-50 rounded-lg p-6 mb-6">
+              <div className="flex items-center justify-center gap-8 overflow-hidden">
+                <div className="flex items-center gap-6 opacity-60">
+                  <div className="w-16 h-8 bg-gray-300 rounded flex items-center justify-center">
+                    <span className="text-xs text-gray-600">Logo</span>
+                  </div>
+                  <div className="w-20 h-8 bg-gray-300 rounded flex items-center justify-center">
+                    <span className="text-xs text-gray-600">Logo</span>
+                  </div>
+                  <div className="w-14 h-8 bg-gray-300 rounded flex items-center justify-center">
+                    <span className="text-xs text-gray-600">Logo</span>
+                  </div>
+                  <div className="w-18 h-8 bg-gray-300 rounded flex items-center justify-center">
+                    <span className="text-xs text-gray-600">Logo</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="space-y-3">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-gray-600">Animation Speed:</span>
+                <span className="text-gray-900 font-medium">30s loop</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-gray-600">Interaction:</span>
+                <span className="text-gray-900 font-medium">Pause on hover, draggable</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-gray-600">Total Logos:</span>
+                <span className="text-gray-900 font-medium">8 client logos</span>
+              </div>
+            </div>
           </div>
         );
       default:

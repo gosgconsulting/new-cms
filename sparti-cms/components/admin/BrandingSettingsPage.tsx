@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Image, Upload, Info, Globe, Languages, Clock, ChevronDown, Search, Check } from "lucide-react";
 import { Label } from "@/components/ui/label";
@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { toast } from "@/components/ui/use-toast";
 import MediaModal from "./MediaModal";
 import gosgLogo from "@/assets/go-sg-logo-official.png";
 
@@ -209,14 +210,14 @@ const BrandingSettingsPage: React.FC = () => {
   const [brandingData, setBrandingData] = useState({
     site_name: 'GO SG',
     site_tagline: 'Digital Marketing Agency',
+    site_description: 'We help businesses dominate search results through proven SEO strategies that increase organic traffic, boost rankings, and drive qualified leads to your website.',
     site_logo: '',
     site_favicon: '',
-    site_description: 'We help businesses dominate search results through proven SEO strategies that increase organic traffic, boost rankings, and drive qualified leads to your website.',
     country: 'Singapore',
     language: 'English',
     timezone: 'SGT - Singapore Standard Time'
   });
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [countrySearch, setCountrySearch] = useState('');
   const [languageSearch, setLanguageSearch] = useState('');
@@ -226,6 +227,45 @@ const BrandingSettingsPage: React.FC = () => {
   const [timezoneOpen, setTimezoneOpen] = useState(false);
   const [logoModalOpen, setLogoModalOpen] = useState(false);
   const [faviconModalOpen, setFaviconModalOpen] = useState(false);
+
+  // Load branding settings from API
+  useEffect(() => {
+    const loadBrandingSettings = async () => {
+      try {
+        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4173';
+        const response = await fetch(`${API_BASE_URL}/api/branding`);
+        
+        if (response.ok) {
+          const settings = await response.json();
+          console.log('[testing] Loaded branding settings:', settings);
+          
+          // Map the database settings to component state
+          setBrandingData(prev => ({
+            ...prev,
+            site_name: settings.branding?.site_name || settings.site_name || prev.site_name,
+            site_tagline: settings.branding?.site_tagline || settings.site_tagline || prev.site_tagline,
+            site_description: settings.branding?.site_description || settings.site_description || prev.site_description,
+            site_logo: settings.branding?.site_logo || settings.site_logo || prev.site_logo,
+            site_favicon: settings.branding?.site_favicon || settings.site_favicon || prev.site_favicon,
+            country: settings.localization?.site_country || settings.site_country || prev.country,
+            language: settings.localization?.site_language || settings.site_language || prev.language,
+            timezone: settings.localization?.site_timezone || settings.site_timezone || prev.timezone
+          }));
+        }
+      } catch (error) {
+        console.error('[testing] Error loading branding settings:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load branding settings. Using defaults.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadBrandingSettings();
+  }, []);
 
   const handleInputChange = (field: string, value: string) => {
     setBrandingData(prev => ({
@@ -341,15 +381,149 @@ const BrandingSettingsPage: React.FC = () => {
     );
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setIsSaving(true);
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4173';
+      
+      // Prepare settings for API
+      const settingsToSave = {
+        site_name: brandingData.site_name,
+        site_tagline: brandingData.site_tagline,
+        site_description: brandingData.site_description,
+        site_logo: brandingData.site_logo,
+        site_favicon: brandingData.site_favicon,
+        site_country: brandingData.country,
+        site_language: brandingData.language,
+        site_timezone: brandingData.timezone
+      };
+
+      console.log('[testing] Saving branding settings:', settingsToSave);
+
+      const response = await fetch(`${API_BASE_URL}/api/branding`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(settingsToSave),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save branding settings');
+      }
+
+      const result = await response.json();
+      console.log('[testing] Branding settings saved:', result);
+
+      toast({
+        title: "Success",
+        description: "Branding settings saved successfully!",
+      });
+    } catch (error) {
+      console.error('[testing] Error saving branding settings:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save branding settings. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
       setIsSaving(false);
-      // Show success message
-      alert('Branding settings saved successfully!');
-    }, 1000);
+    }
   };
+
+  const handleMigrateLogo = async () => {
+    try {
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4173';
+      
+      const response = await fetch(`${API_BASE_URL}/api/migrate-logo`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          logoPath: gosgLogo,
+          altText: 'GO SG Logo'
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to migrate logo');
+      }
+
+      const result = await response.json();
+      console.log('[testing] Logo migrated:', result);
+
+      // Update the logo in state
+      setBrandingData(prev => ({
+        ...prev,
+        site_logo: result.media.url
+      }));
+
+      toast({
+        title: "Success",
+        description: "Logo migrated to database successfully!",
+      });
+    } catch (error) {
+      console.error('[testing] Error migrating logo:', error);
+      toast({
+        title: "Error",
+        description: "Failed to migrate logo to database.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleMigrateFavicon = async () => {
+    try {
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4173';
+      
+      const response = await fetch(`${API_BASE_URL}/api/migrate-favicon`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          faviconPath: '/favicon.png'
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to migrate favicon');
+      }
+
+      const result = await response.json();
+      console.log('[testing] Favicon migrated:', result);
+
+      // Update the favicon in state
+      setBrandingData(prev => ({
+        ...prev,
+        site_favicon: result.media.url
+      }));
+
+      toast({
+        title: "Success",
+        description: "Favicon migrated to database successfully!",
+      });
+    } catch (error) {
+      console.error('[testing] Error migrating favicon:', error);
+      toast({
+        title: "Error",
+        description: "Failed to migrate favicon to database.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brandPurple mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading branding settings...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
@@ -452,7 +626,17 @@ const BrandingSettingsPage: React.FC = () => {
 
           {/* Logo Section */}
           <div className="space-y-4">
-            <h5 className="text-md font-medium text-foreground">Logo</h5>
+            <div className="flex items-center justify-between">
+              <h5 className="text-md font-medium text-foreground">Logo</h5>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleMigrateLogo}
+                className="text-xs"
+              >
+                Migrate Current Logo
+              </Button>
+            </div>
             <div 
               className="bg-secondary/20 rounded-lg border border-dashed border-border p-8 text-center hover:bg-secondary/30 transition-colors cursor-pointer"
               onClick={() => setLogoModalOpen(true)}
@@ -488,7 +672,17 @@ const BrandingSettingsPage: React.FC = () => {
 
           {/* Favicon Section */}
           <div className="space-y-4">
-            <h5 className="text-md font-medium text-foreground">Favicon</h5>
+            <div className="flex items-center justify-between">
+              <h5 className="text-md font-medium text-foreground">Favicon</h5>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleMigrateFavicon}
+                className="text-xs"
+              >
+                Migrate Current Favicon
+              </Button>
+            </div>
             <div 
               className="bg-secondary/20 rounded-lg border border-dashed border-border p-6 text-center hover:bg-secondary/30 transition-colors cursor-pointer"
               onClick={() => setFaviconModalOpen(true)}

@@ -3,16 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Clock, ArrowRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
-// Import client logos
-import artInBloom from "@/assets/logos/art-in-bloom.png";
-import selenightco from "@/assets/logos/selenightco.png";
-import smooy from "@/assets/logos/smooy.png";
-import solstice from "@/assets/logos/solstice.png";
-import grub from "@/assets/logos/grub.png";
-import nailQueen from "@/assets/logos/nail-queen.png";
-import caroPatisserie from "@/assets/logos/caro-patisserie.png";
-import spiritStretch from "@/assets/logos/spirit-stretch.png";
-
 /**
  * WordPress Theme Component: Hero Section
  * 
@@ -50,46 +40,41 @@ const HeroSection = ({ onContactClick }: HeroSectionProps) => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
             >
-              <Badge className="bg-secondary/80 backdrop-blur-sm border border-border hover:bg-secondary px-6 py-3 text-sm">
-                <Clock className="mr-2 h-4 w-4 text-brandTeal" />
-                <span className="text-foreground">
-                  Results in 3 months or less
-                  {/* WP: <?php echo get_field('hero_badge_text', 'option') ?: 'Results in 3 months or less'; ?> */}
-                </span>
+              <Badge variant="outline" className="px-4 py-2 text-sm font-medium border-brandPurple/20 text-brandPurple bg-brandPurple/5">
+                <Clock className="w-4 h-4 mr-2" />
+                Get Results in 3 Months
+                {/* WP: <?php echo get_field('hero_badge_text', 'option') ?: 'Get Results in 3 Months'; ?> */}
               </Badge>
             </motion.div>
-            
-            {/* Headline */}
+
+            {/* Main Headline */}
             <motion.div
+              className="space-y-4"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.1 }}
             >
-              <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold leading-tight text-foreground">
-                We Boost Your SEO{" "}
-                <span className="bg-gradient-to-r from-brandPurple to-brandTeal bg-clip-text text-transparent">
-                  In 3 Months
+              <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold leading-tight">
+                <span className="bg-gradient-to-r from-brandPurple via-brandTeal to-coral bg-clip-text text-transparent">
+                  Rank #1 on Google
                 </span>
-                {/* WP:
-                  <?php echo get_field('hero_heading_line_1'); ?>{" "}
-                  <span className="bg-gradient-to-r from-brandPurple to-brandTeal bg-clip-text text-transparent">
-                    <?php echo get_field('hero_heading_line_2'); ?>
-                  </span>
-                */}
+                <br />
+                <span className="text-foreground">In 3 Months</span>
+                {/* WP: <?php echo get_field('hero_headline', 'option') ?: 'Rank #1 on Google<br>In 3 Months'; ?> */}
               </h1>
             </motion.div>
-            
+
             {/* Description */}
-            <motion.p 
-              className="text-xl text-muted-foreground max-w-2xl"
+            <motion.p
+              className="text-lg md:text-xl text-muted-foreground max-w-3xl leading-relaxed"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
             >
               We help businesses dominate search results through proven SEO strategies that increase organic traffic, boost rankings, and drive qualified leads to your website.
-              {/* WP: <?php echo get_field('hero_description'); ?> */}
+              {/* WP: <?php echo get_field('hero_description', 'option') ?: 'We help businesses dominate search results through proven SEO strategies that increase organic traffic, boost rankings, and drive qualified leads to your website.'; ?> */}
             </motion.p>
-            
+
             {/* CTA Button */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -108,69 +93,6 @@ const HeroSection = ({ onContactClick }: HeroSectionProps) => {
                 </span>
                 {/* WP: <?php echo get_field('hero_cta_text', 'option') ?: 'Get a Quote'; ?> */}
               </Button>
-            </motion.div>
-            
-            {/* Logo Animation Strip */}
-            <motion.div
-              className="w-full mt-16 mb-16"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.6, delay: 0.5 }}
-            >
-              <div className="relative overflow-hidden py-8">
-                <motion.div
-                  className="flex gap-12 items-center"
-                  animate={{
-                    x: [0, -1400],
-                  }}
-                  transition={{
-                    x: {
-                      repeat: Infinity,
-                      repeatType: "loop",
-                      duration: 30,
-                      ease: "linear",
-                    },
-                  }}
-                >
-                  {/* Duplicate logo sets for seamless loop */}
-                  {[...Array(3)].map((_, setIndex) => (
-                    <div key={setIndex} className="flex gap-12 items-center shrink-0">
-                      <div className="flex items-center justify-center min-w-[100px]">
-                        <img src={artInBloom} alt="Art in Bloom" className="h-10 w-auto max-w-[100px] object-contain opacity-60 hover:opacity-100 transition-opacity" />
-                      </div>
-                      <div className="flex items-center justify-center min-w-[100px]">
-                        <img src={selenightco} alt="Selenightco" className="h-10 w-auto max-w-[100px] object-contain opacity-60 hover:opacity-100 transition-opacity" />
-                      </div>
-                      <div className="flex items-center justify-center min-w-[100px]">
-                        <img src={smooy} alt="Smooy" className="h-10 w-auto max-w-[100px] object-contain opacity-60 hover:opacity-100 transition-opacity" />
-                      </div>
-                      <div className="flex items-center justify-center min-w-[100px]">
-                        <img src={solstice} alt="Solstice" className="h-10 w-auto max-w-[100px] object-contain opacity-60 hover:opacity-100 transition-opacity" />
-                      </div>
-                      <div className="flex items-center justify-center min-w-[100px]">
-                        <img src={grub} alt="Grub" className="h-10 w-auto max-w-[100px] object-contain opacity-60 hover:opacity-100 transition-opacity" />
-                      </div>
-                      <div className="flex items-center justify-center min-w-[100px]">
-                        <img src={nailQueen} alt="Nail Queen" className="h-10 w-auto max-w-[100px] object-contain opacity-60 hover:opacity-100 transition-opacity" />
-                      </div>
-                      <div className="flex items-center justify-center min-w-[100px]">
-                        <img src={caroPatisserie} alt="Caro Pâtisserie" className="h-10 w-auto max-w-[100px] object-contain opacity-60 hover:opacity-100 transition-opacity" />
-                      </div>
-                      <div className="flex items-center justify-center min-w-[100px]">
-                        <img src={spiritStretch} alt="Spirit Stretch" className="h-10 w-auto max-w-[100px] object-contain opacity-60 hover:opacity-100 transition-opacity" />
-                      </div>
-                      {/* WP: <?php 
-                        $logos = get_field('client_logos', 'option');
-                        if ($logos) {
-                          foreach ($logos as $logo) {
-                            echo '<div class="flex items-center justify-center min-w-[100px]"><img src="' . esc_url($logo['url']) . '" alt="' . esc_attr($logo['alt']) . '" class="h-10 w-auto max-w-[100px] object-contain opacity-60 hover:opacity-100 transition-opacity" /></div>';
-                          }
-                        }
-                      ?> */}
-                    </div>
-                  ))}
-                </motion.div>
-              </div>
             </motion.div>
           </div>
         </div>

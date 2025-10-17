@@ -11,6 +11,7 @@ import Footer from "@/components/Footer";
 import NewTestimonials from "@/components/NewTestimonials";
 import BlogSection from "@/components/BlogSection";
 import ContactModal from "@/components/ContactModal";
+import ContactForm from "@/components/ContactForm";
 import FAQAccordion from "@/components/FAQAccordion";
 
 /**
@@ -75,6 +76,9 @@ const Index = () => {
         
         {/* WordPress: Blog section - template-parts/home/blog.php */}
         <BlogSection onContactClick={() => setContactModalOpen(true)} />
+        
+        {/* WordPress: Contact Form section - template-parts/home/contact-form.php */}
+        <ContactForm />
       </main>
       
       {/* WordPress: footer.php */}

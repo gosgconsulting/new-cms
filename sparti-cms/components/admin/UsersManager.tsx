@@ -16,7 +16,10 @@ import {
   EyeOff,
   X,
   Save,
-  Activity
+  Activity,
+  UserCheck,
+  UserX,
+  Clock
 } from 'lucide-react';
 import { useAuth } from '../auth/AuthProvider';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -27,6 +30,7 @@ interface User {
   last_name: string;
   email: string;
   role: 'admin' | 'editor' | 'user';
+  status: 'active' | 'inactive' | 'pending' | 'rejected';
   is_active: boolean;
   email_verified: boolean;
   last_login?: string;
@@ -39,6 +43,7 @@ interface UserFormData {
   last_name: string;
   email: string;
   role: 'admin' | 'editor' | 'user';
+  status: 'active' | 'inactive' | 'pending' | 'rejected';
   password?: string;
   is_active: boolean;
 }
@@ -61,6 +66,7 @@ const UsersManager: React.FC = () => {
     last_name: '',
     email: '',
     role: 'user',
+    status: 'active',
     password: '',
     is_active: true
   });
@@ -102,6 +108,7 @@ const UsersManager: React.FC = () => {
       last_name: '',
       email: '',
       role: 'user',
+      status: 'active',
       password: '',
       is_active: true
     });
@@ -116,6 +123,7 @@ const UsersManager: React.FC = () => {
       last_name: user.last_name,
       email: user.email,
       role: user.role,
+      status: user.status,
       password: '',
       is_active: user.is_active
     });
@@ -189,6 +197,57 @@ const UsersManager: React.FC = () => {
     }
   };
 
+  const handleApproveUser = async (userId: string) => {
+    try {
+      const response = await fetch(`/api/users/${userId}/approve`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          approved_by: currentUser?.id
+        }),
+      });
+
+      if (response.ok) {
+        await fetchUsers();
+        setMessage({ type: 'success', text: 'User approved successfully' });
+      } else {
+        const error = await response.json();
+        setMessage({ type: 'error', text: error.message || 'Failed to approve user' });
+      }
+    } catch (error) {
+      console.error('[testing] Error approving user:', error);
+      setMessage({ type: 'error', text: 'Failed to approve user' });
+    }
+  };
+
+  const handleRejectUser = async (userId: string) => {
+    try {
+      const response = await fetch(`/api/users/${userId}/reject`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          rejected_by: currentUser?.id,
+          reason: 'Rejected by admin'
+        }),
+      });
+
+      if (response.ok) {
+        await fetchUsers();
+        setMessage({ type: 'success', text: 'User rejected successfully' });
+      } else {
+        const error = await response.json();
+        setMessage({ type: 'error', text: error.message || 'Failed to reject user' });
+      }
+    } catch (error) {
+      console.error('[testing] Error rejecting user:', error);
+      setMessage({ type: 'error', text: 'Failed to reject user' });
+    }
+  };
+
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
       case 'admin':
@@ -199,6 +258,36 @@ const UsersManager: React.FC = () => {
         return 'bg-green-100 text-green-800 border-green-200';
       default:
         return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
+
+  const getStatusBadgeColor = (status: string) => {
+    switch (status) {
+      case 'active':
+        return 'bg-green-100 text-green-800 border-green-200';
+      case 'inactive':
+        return 'bg-gray-100 text-gray-800 border-gray-200';
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'rejected':
+        return 'bg-red-100 text-red-800 border-red-200';
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'active':
+        return <CheckCircle className="h-3 w-3" />;
+      case 'inactive':
+        return <X className="h-3 w-3" />;
+      case 'pending':
+        return <Clock className="h-3 w-3" />;
+      case 'rejected':
+        return <UserX className="h-3 w-3" />;
+      default:
+        return <AlertCircle className="h-3 w-3" />;
     }
   };
 
@@ -365,14 +454,10 @@ const UsersManager: React.FC = () => {
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div className={`h-2 w-2 rounded-full mr-2 ${
-                        user.is_active ? 'bg-green-500' : 'bg-red-500'
-                      }`} />
-                      <span className={`text-sm ${
-                        user.is_active ? 'text-green-800' : 'text-red-800'
-                      }`}>
-                        {user.is_active ? 'Active' : 'Inactive'}
+                    <div className="flex items-center space-x-2">
+                      <span className={`inline-flex items-center space-x-1 px-2 py-1 text-xs font-medium rounded-full border ${getStatusBadgeColor(user.status)}`}>
+                        {getStatusIcon(user.status)}
+                        <span>{user.status.charAt(0).toUpperCase() + user.status.slice(1)}</span>
                       </span>
                     </div>
                   </td>
@@ -394,6 +479,27 @@ const UsersManager: React.FC = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="flex items-center justify-end space-x-2">
+                      {/* Approval actions for pending users */}
+                      {user.status === 'pending' && (
+                        <>
+                          <button
+                            onClick={() => handleApproveUser(user.id)}
+                            className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                            title="Approve user"
+                          >
+                            <UserCheck className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => handleRejectUser(user.id)}
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            title="Reject user"
+                          >
+                            <UserX className="h-4 w-4" />
+                          </button>
+                        </>
+                      )}
+                      
+                      {/* Standard edit action */}
                       <button
                         onClick={() => handleEditUser(user)}
                         className="p-2 text-brandPurple hover:bg-brandPurple/10 rounded-lg transition-colors"
@@ -401,6 +507,8 @@ const UsersManager: React.FC = () => {
                       >
                         <Edit className="h-4 w-4" />
                       </button>
+                      
+                      {/* Delete action (not for own account) */}
                       {user.id !== currentUser?.id && (
                         <button
                           onClick={() => setDeleteConfirm(user.id)}
@@ -501,19 +609,37 @@ const UsersManager: React.FC = () => {
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">
-                    Role
-                  </label>
-                  <select
-                    value={formData.role}
-                    onChange={(e) => setFormData(prev => ({ ...prev, role: e.target.value as 'admin' | 'editor' | 'user' }))}
-                    className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-brandPurple focus:border-transparent"
-                  >
-                    <option value="user">User</option>
-                    <option value="editor">Editor</option>
-                    <option value="admin">Admin</option>
-                  </select>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Role
+                    </label>
+                    <select
+                      value={formData.role}
+                      onChange={(e) => setFormData(prev => ({ ...prev, role: e.target.value as 'admin' | 'editor' | 'user' }))}
+                      className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-brandPurple focus:border-transparent"
+                    >
+                      <option value="user">User</option>
+                      <option value="editor">Editor</option>
+                      <option value="admin">Admin</option>
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Status
+                    </label>
+                    <select
+                      value={formData.status}
+                      onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value as 'active' | 'inactive' | 'pending' | 'rejected' }))}
+                      className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-brandPurple focus:border-transparent"
+                    >
+                      <option value="active">Active</option>
+                      <option value="inactive">Inactive</option>
+                      <option value="pending">Pending</option>
+                      <option value="rejected">Rejected</option>
+                    </select>
+                  </div>
                 </div>
 
                 <div>

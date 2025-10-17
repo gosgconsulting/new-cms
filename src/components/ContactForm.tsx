@@ -23,8 +23,8 @@ const ContactForm = () => {
     
     try {
       const formData = {
-        form_id: 'homepage_contact',
-        form_name: 'Homepage Contact Form',
+        form_id: 'Contact Form', // This matches the form name in the database
+        form_name: 'Contact Form',
         name,
         email,
         phone: phone || null,

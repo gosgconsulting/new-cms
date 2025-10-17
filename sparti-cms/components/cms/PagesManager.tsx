@@ -1,67 +1,73 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '../../../src/components/ui/button';
 import { Card } from '../../../src/components/ui/card';
 import { Badge } from '../../../src/components/ui/badge';
 import { Edit, Eye, FileText, Rocket, Scale, Layout, Minus } from 'lucide-react';
 import PageEditor from './PageEditor';
+import EditableSlug from './EditableSlug';
 
 interface PageItem {
   id: string;
-  title: string;
+  page_name: string;
   slug: string;
-  status: 'published' | 'draft';
-  type: 'page' | 'landing' | 'legal' | 'header' | 'footer';
+  status: 'published' | 'draft' | 'archived';
+  page_type: 'page' | 'landing' | 'legal';
+  meta_title?: string;
+  meta_description?: string;
+  seo_index?: boolean;
+  campaign_source?: string;
+  conversion_goal?: string;
+  legal_type?: string;
+  version?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
-// Fixed list of pages
-const defaultPages: PageItem[] = [
-  {
-    id: '1',
-    title: 'Homepage',
-    slug: '/',
-    status: 'published',
-    type: 'page',
-  },
-  {
-    id: '2',
-    title: 'Blog',
-    slug: '/blog',
-    status: 'published',
-    type: 'page',
-  },
-  {
-    id: '3',
-    title: 'SEO Services Landing',
-    slug: '/seo-services',
-    status: 'published',
-    type: 'landing',
-  },
-  {
-    id: '4',
-    title: 'Privacy Policy',
-    slug: '/privacy-policy',
-    status: 'published',
-    type: 'legal',
-  },
-  {
-    id: '5',
-    title: 'Terms of Service',
-    slug: '/terms-of-service',
-    status: 'published',
-    type: 'legal',
-  },
-];
-
 export const PagesManager: React.FC = () => {
-  const [pages] = useState<PageItem[]>(defaultPages);
+  const [pages, setPages] = useState<PageItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [editingPageId, setEditingPageId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'page' | 'landing' | 'legal' | 'header' | 'footer'>('page');
+  const [activeTab, setActiveTab] = useState<'page' | 'landing' | 'legal'>('page');
 
   const tabs = [
     { id: 'page' as const, label: 'Pages', icon: FileText },
     { id: 'landing' as const, label: 'Landing Pages', icon: Rocket },
     { id: 'legal' as const, label: 'Legals', icon: Scale },
   ];
+
+  // Load pages from database
+  useEffect(() => {
+    loadPages();
+  }, []);
+
+  const loadPages = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const response = await fetch('/api/pages/all');
+      if (!response.ok) {
+        throw new Error('Failed to load pages');
+      }
+      
+      const data = await response.json();
+      setPages(data.pages || []);
+    } catch (error) {
+      console.error('[testing] Error loading pages:', error);
+      setError(error instanceof Error ? error.message : 'Failed to load pages');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSlugUpdate = (pageId: string, newSlug: string) => {
+    setPages(prevPages => 
+      prevPages.map(page => 
+        page.id === pageId ? { ...page, slug: newSlug } : page
+      )
+    );
+  };
 
   const handleEditPage = (pageId: string) => {
     setEditingPageId(pageId);

@@ -8,7 +8,10 @@ import {
   initializeDatabase, 
   getBrandingSettings, 
   updateMultipleBrandingSettings, 
-  saveFormSubmission, 
+  saveFormSubmission,
+  saveFormSubmissionExtended,
+  getFormById,
+  getEmailSettingsByFormId,
   getFormSubmissions,
   createProject,
   getProjects,
@@ -23,20 +26,8 @@ import {
   getContact,
   updateContact,
   deleteContact,
-  // User management functions
-  createUser,
-  getUsers,
-  getUser,
-  getUserByEmail,
-  updateUser,
-  updateUserPassword,
-  deleteUser,
-  authenticateUser,
-  // Registration functions
-  registerUser,
-  approveUser,
-  rejectUser,
-  getPendingUsers,
+  getPublicSEOSettings,
+  updateSEOSettings,
   query
 } from './sparti-cms/db/postgres.js';
 import pool from './sparti-cms/db/postgres.js';
@@ -277,6 +268,201 @@ app.get('/api/form-submissions/:formId', async (req, res) => {
   }
 });
 
+// Forms Management API Endpoints
+
+// Get all forms
+app.get('/api/forms', async (req, res) => {
+  try {
+    const result = await query('SELECT * FROM forms ORDER BY created_at DESC');
+    res.json(result.rows);
+  } catch (error) {
+    console.error('[testing] Error fetching forms:', error);
+    res.status(500).json({ error: 'Failed to fetch forms' });
+  }
+});
+
+// Get form by ID
+app.get('/api/forms/:id', async (req, res) => {
+  try {
+    const form = await getFormById(req.params.id);
+    if (form) {
+      res.json(form);
+    } else {
+      res.status(404).json({ error: 'Form not found' });
+    }
+  } catch (error) {
+    console.error('[testing] Error fetching form:', error);
+    res.status(500).json({ error: 'Failed to fetch form' });
+  }
+});
+
+// Create new form
+app.post('/api/forms', async (req, res) => {
+  try {
+    const { name, description, fields, settings, is_active } = req.body;
+    
+    const result = await query(`
+      INSERT INTO forms (name, description, fields, settings, is_active)
+      VALUES ($1, $2, $3, $4, $5)
+      RETURNING *
+    `, [name, description, JSON.stringify(fields || []), JSON.stringify(settings || {}), is_active ?? true]);
+    
+    const newForm = result.rows[0];
+    
+    // Create default email settings for new form
+    await query(`
+      INSERT INTO email_settings (
+        form_id, notification_enabled, notification_emails, notification_subject, 
+        notification_template, auto_reply_enabled, auto_reply_subject, auto_reply_template, from_name
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+    `, [
+      newForm.id,
+      true,
+      ['admin@gosg.com.sg'],
+      `New ${newForm.name} Submission`,
+      'You have received a new form submission.',
+      false,
+      'Thank you for your submission',
+      'Thank you for contacting us. We will get back to you soon.',
+      'GOSG Team'
+    ]);
+    
+    res.json(newForm);
+  } catch (error) {
+    console.error('[testing] Error creating form:', error);
+    res.status(500).json({ error: 'Failed to create form' });
+  }
+});
+
+// Update form
+app.put('/api/forms/:id', async (req, res) => {
+  try {
+    const { name, description, fields, settings, is_active } = req.body;
+    
+    const result = await query(`
+      UPDATE forms 
+      SET name = $1, description = $2, fields = $3, settings = $4, is_active = $5, updated_at = NOW()
+      WHERE id = $6
+      RETURNING *
+    `, [name, description, JSON.stringify(fields), JSON.stringify(settings), is_active, req.params.id]);
+    
+    if (result.rows.length > 0) {
+      res.json(result.rows[0]);
+    } else {
+      res.status(404).json({ error: 'Form not found' });
+    }
+  } catch (error) {
+    console.error('[testing] Error updating form:', error);
+    res.status(500).json({ error: 'Failed to update form' });
+  }
+});
+
+// Delete form
+app.delete('/api/forms/:id', async (req, res) => {
+  try {
+    const result = await query('DELETE FROM forms WHERE id = $1 RETURNING *', [req.params.id]);
+    
+    if (result.rows.length > 0) {
+      res.json({ success: true, message: 'Form deleted successfully' });
+    } else {
+      res.status(404).json({ error: 'Form not found' });
+    }
+  } catch (error) {
+    console.error('[testing] Error deleting form:', error);
+    res.status(500).json({ error: 'Failed to delete form' });
+  }
+});
+
+// Get email settings for a form
+app.get('/api/forms/:id/email-settings', async (req, res) => {
+  try {
+    const settings = await getEmailSettingsByFormId(req.params.id);
+    if (settings) {
+      res.json(settings);
+    } else {
+      res.status(404).json({ error: 'Email settings not found' });
+    }
+  } catch (error) {
+    console.error('[testing] Error fetching email settings:', error);
+    res.status(500).json({ error: 'Failed to fetch email settings' });
+  }
+});
+
+// Update email settings for a form
+app.put('/api/forms/:id/email-settings', async (req, res) => {
+  try {
+    const {
+      notification_enabled,
+      notification_emails,
+      notification_subject,
+      notification_template,
+      auto_reply_enabled,
+      auto_reply_subject,
+      auto_reply_template,
+      from_email,
+      from_name
+    } = req.body;
+    
+    // Check if settings exist
+    const existing = await getEmailSettingsByFormId(req.params.id);
+    
+    let result;
+    if (existing) {
+      // Update existing settings
+      result = await query(`
+        UPDATE email_settings 
+        SET notification_enabled = $1, notification_emails = $2, notification_subject = $3,
+            notification_template = $4, auto_reply_enabled = $5, auto_reply_subject = $6,
+            auto_reply_template = $7, from_email = $8, from_name = $9, updated_at = NOW()
+        WHERE form_id = $10
+        RETURNING *
+      `, [
+        notification_enabled, notification_emails, notification_subject, notification_template,
+        auto_reply_enabled, auto_reply_subject, auto_reply_template, from_email, from_name,
+        req.params.id
+      ]);
+    } else {
+      // Create new settings
+      result = await query(`
+        INSERT INTO email_settings (
+          form_id, notification_enabled, notification_emails, notification_subject,
+          notification_template, auto_reply_enabled, auto_reply_subject, auto_reply_template,
+          from_email, from_name
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+        RETURNING *
+      `, [
+        req.params.id, notification_enabled, notification_emails, notification_subject,
+        notification_template, auto_reply_enabled, auto_reply_subject, auto_reply_template,
+        from_email, from_name
+      ]);
+    }
+    
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('[testing] Error updating email settings:', error);
+    res.status(500).json({ error: 'Failed to update email settings' });
+  }
+});
+
+// Get form submissions
+app.get('/api/forms/:id/submissions', async (req, res) => {
+  try {
+    const result = await query(`
+      SELECT * FROM form_submissions_extended 
+      WHERE form_id = $1 
+      ORDER BY submitted_at DESC 
+      LIMIT 100
+    `, [req.params.id]);
+    
+    res.json(result.rows);
+  } catch (error) {
+    console.error('[testing] Error fetching submissions:', error);
+    res.status(500).json({ error: 'Failed to fetch submissions' });
+  }
+});
+
 // Projects API
 app.get('/api/projects', async (req, res) => {
   try {
@@ -439,151 +625,6 @@ app.delete('/api/contacts/:id', async (req, res) => {
   } catch (error) {
     console.error('[testing] API: Error deleting contact:', error);
     res.status(500).json({ error: 'Failed to delete contact' });
-  }
-});
-
-// Users API
-app.get('/api/users', async (req, res) => {
-  try {
-    const limit = parseInt(req.query.limit) || 50;
-    const offset = parseInt(req.query.offset) || 0;
-    const search = req.query.search || '';
-    
-    console.log('[testing] API: Getting users', { limit, offset, search });
-    const result = await getUsers(limit, offset, search);
-    res.json(result);
-  } catch (error) {
-    console.error('[testing] API: Error getting users:', error);
-    res.status(500).json({ error: 'Failed to get users' });
-  }
-});
-
-app.get('/api/users/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    console.log('[testing] API: Getting user:', id);
-    const user = await getUser(id);
-    
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-    
-    res.json(user);
-  } catch (error) {
-    console.error('[testing] API: Error getting user:', error);
-    res.status(500).json({ error: 'Failed to get user' });
-  }
-});
-
-app.post('/api/users', async (req, res) => {
-  try {
-    console.log('[testing] API: Creating user:', { ...req.body, password: '[REDACTED]' });
-    
-    // Hash password in production - for demo, we'll use a simple hash
-    const userData = {
-      ...req.body,
-      password_hash: req.body.password // In production, use bcrypt.hash(req.body.password, 10)
-    };
-    delete userData.password;
-    
-    const user = await createUser(userData);
-    res.json(user);
-  } catch (error) {
-    console.error('[testing] API: Error creating user:', error);
-    if (error.code === '23505') { // Unique constraint violation
-      res.status(400).json({ error: 'Email address already exists' });
-    } else {
-      res.status(500).json({ error: 'Failed to create user' });
-    }
-  }
-});
-
-app.put('/api/users/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    console.log('[testing] API: Updating user:', id, { ...req.body, password: req.body.password ? '[REDACTED]' : undefined });
-    
-    const userData = { ...req.body };
-    
-    // Handle password update separately if provided
-    if (userData.password) {
-      const passwordHash = userData.password; // In production, use bcrypt.hash(userData.password, 10)
-      delete userData.password;
-      await updateUserPassword(id, passwordHash);
-    }
-    
-    const user = await updateUser(id, userData);
-    res.json(user);
-  } catch (error) {
-    console.error('[testing] API: Error updating user:', error);
-    if (error.code === '23505') { // Unique constraint violation
-      res.status(400).json({ error: 'Email address already exists' });
-    } else {
-      res.status(500).json({ error: 'Failed to update user' });
-    }
-  }
-});
-
-app.put('/api/users/:id/password', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { current_password, new_password } = req.body;
-    
-    console.log('[testing] API: Changing password for user:', id);
-    
-    // Get user to verify current password
-    const user = await getUserByEmail((await getUser(id)).email);
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-    
-    // In production, verify current password with bcrypt.compare
-    // For demo, we'll use simple comparison
-    const isCurrentPasswordValid = current_password === 'admin123' && user.email === 'admin@gosg.com';
-    
-    if (!isCurrentPasswordValid) {
-      return res.status(400).json({ error: 'Current password is incorrect' });
-    }
-    
-    // Hash new password - in production use bcrypt.hash(new_password, 10)
-    const newPasswordHash = new_password;
-    
-    await updateUserPassword(id, newPasswordHash);
-    res.json({ success: true, message: 'Password updated successfully' });
-  } catch (error) {
-    console.error('[testing] API: Error changing password:', error);
-    res.status(500).json({ error: 'Failed to change password' });
-  }
-});
-
-app.delete('/api/users/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    console.log('[testing] API: Deleting user:', id);
-    await deleteUser(id);
-    res.json({ success: true, message: 'User deleted successfully' });
-  } catch (error) {
-    console.error('[testing] API: Error deleting user:', error);
-    res.status(500).json({ error: 'Failed to delete user' });
-  }
-});
-
-// Authentication API
-app.post('/api/auth/login', async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    console.log('[testing] API: Login attempt for:', email);
-    
-    const result = await authenticateUser(email, password);
-    
-    if (result.success) {
-      res.json({ success: true, user: result.user });
-    } else {
-      res.status(401).json({ success: false, error: result.error });
-    }
-  } catch (error) {
-    console.error('[testing] API: Login error:', error);
-    res.status(500).json({ error: 'Login failed' });
   }
 });
 

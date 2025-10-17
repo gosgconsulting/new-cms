@@ -24,7 +24,6 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { supabase } from '@/integrations/supabase/client';
 
 interface FormField {
   id?: number;
@@ -119,12 +118,13 @@ const FormsManager: React.FC = () => {
   const loadForms = async () => {
     try {
       setIsLoading(true);
-      const { data, error } = await supabase
-        .from('forms')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
+      const response = await fetch('/api/forms');
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
       setForms(data || []);
       if (data && data.length > 0 && !selectedForm) {
         setSelectedForm(data[0]);
@@ -138,32 +138,35 @@ const FormsManager: React.FC = () => {
 
   const loadEmailSettings = async (formId: number) => {
     try {
-      const { data, error } = await supabase
-        .from('email_settings')
-        .select('*')
-        .eq('form_id', formId)
-        .single();
-
-      if (error && error.code !== 'PGRST116') throw error;
-      setEmailSettings(data || null);
+      const response = await fetch(`/api/forms/${formId}/email-settings`);
+      
+      if (response.ok) {
+        const data = await response.json();
+        setEmailSettings(data);
+      } else if (response.status === 404) {
+        setEmailSettings(null);
+      } else {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
     } catch (err: any) {
       console.error('Failed to load email settings:', err.message);
+      setEmailSettings(null);
     }
   };
 
   const loadSubmissions = async (formId: number) => {
     try {
-      const { data, error } = await supabase
-        .from('form_submissions_extended')
-        .select('*')
-        .eq('form_id', formId)
-        .order('submitted_at', { ascending: false })
-        .limit(100);
-
-      if (error) throw error;
+      const response = await fetch(`/api/forms/${formId}/submissions`);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
       setSubmissions(data || []);
     } catch (err: any) {
       console.error('Failed to load submissions:', err.message);
+      setSubmissions([]);
     }
   };
 
@@ -173,53 +176,46 @@ const FormsManager: React.FC = () => {
       
       if (editingForm?.id) {
         // Update existing form
-        const { error } = await supabase
-          .from('forms')
-          .update({
+        const response = await fetch(`/api/forms/${editingForm.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
             name: formData.name,
             description: formData.description,
             fields: formData.fields,
             settings: formData.settings,
-            is_active: formData.is_active,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', editingForm.id);
+            is_active: formData.is_active
+          }),
+        });
 
-        if (error) throw error;
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
         setSuccess('Form updated successfully!');
       } else {
         // Create new form
-        const { data, error } = await supabase
-          .from('forms')
-          .insert({
+        const response = await fetch('/api/forms', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
             name: formData.name,
             description: formData.description,
             fields: formData.fields || [],
             settings: formData.settings || {},
             is_active: formData.is_active ?? true
-          })
-          .select()
-          .single();
+          }),
+        });
 
-        if (error) throw error;
-        setSuccess('Form created successfully!');
-        
-        // Create default email settings for new form
-        if (data) {
-          await supabase
-            .from('email_settings')
-            .insert({
-              form_id: data.id,
-              notification_enabled: true,
-              notification_emails: ['admin@gosg.com.sg'],
-              notification_subject: `New ${formData.name} Submission`,
-              notification_template: 'You have received a new form submission.',
-              auto_reply_enabled: false,
-              auto_reply_subject: 'Thank you for your submission',
-              auto_reply_template: 'Thank you for contacting us. We will get back to you soon.',
-              from_name: 'GOSG Team'
-            });
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
+
+        setSuccess('Form created successfully!');
       }
       
       await loadForms();
@@ -236,43 +232,26 @@ const FormsManager: React.FC = () => {
     try {
       setError(null);
       
-      if (settings.id) {
-        // Update existing settings
-        const { error } = await supabase
-          .from('email_settings')
-          .update({
-            notification_enabled: settings.notification_enabled,
-            notification_emails: settings.notification_emails,
-            notification_subject: settings.notification_subject,
-            notification_template: settings.notification_template,
-            auto_reply_enabled: settings.auto_reply_enabled,
-            auto_reply_subject: settings.auto_reply_subject,
-            auto_reply_template: settings.auto_reply_template,
-            from_email: settings.from_email,
-            from_name: settings.from_name,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', settings.id);
+      const response = await fetch(`/api/forms/${settings.form_id}/email-settings`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          notification_enabled: settings.notification_enabled,
+          notification_emails: settings.notification_emails,
+          notification_subject: settings.notification_subject,
+          notification_template: settings.notification_template,
+          auto_reply_enabled: settings.auto_reply_enabled,
+          auto_reply_subject: settings.auto_reply_subject,
+          auto_reply_template: settings.auto_reply_template,
+          from_email: settings.from_email,
+          from_name: settings.from_name
+        }),
+      });
 
-        if (error) throw error;
-      } else {
-        // Create new settings
-        const { error } = await supabase
-          .from('email_settings')
-          .insert({
-            form_id: settings.form_id,
-            notification_enabled: settings.notification_enabled,
-            notification_emails: settings.notification_emails,
-            notification_subject: settings.notification_subject,
-            notification_template: settings.notification_template,
-            auto_reply_enabled: settings.auto_reply_enabled,
-            auto_reply_subject: settings.auto_reply_subject,
-            auto_reply_template: settings.auto_reply_template,
-            from_email: settings.from_email,
-            from_name: settings.from_name
-          });
-
-        if (error) throw error;
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
       
       setSuccess('Email settings saved successfully!');
@@ -293,12 +272,13 @@ const FormsManager: React.FC = () => {
     }
 
     try {
-      const { error } = await supabase
-        .from('forms')
-        .delete()
-        .eq('id', formId);
+      const response = await fetch(`/api/forms/${formId}`, {
+        method: 'DELETE',
+      });
 
-      if (error) throw error;
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       
       setSuccess('Form deleted successfully!');
       await loadForms();
@@ -1049,7 +1029,7 @@ const EmailSettingsModal: React.FC<{
                     placeholder="Email template (use {{field_name}} for dynamic content)"
                   />
                   <p className="text-xs text-muted-foreground mt-1">
-                    Use placeholders like {{`{name}`}}, {{`{email}`}}, {{`{message}`}} for dynamic content
+                    Use placeholders like {`{{name}}`}, {`{{email}}`}, {`{{message}}`} for dynamic content
                   </p>
                 </div>
               </div>
@@ -1118,7 +1098,7 @@ const EmailSettingsModal: React.FC<{
                     placeholder="Auto-reply message template"
                   />
                   <p className="text-xs text-muted-foreground mt-1">
-                    Use placeholders like {{`{name}`}} for personalized auto-replies
+                    Use placeholders like {`{{name}}`} for personalized auto-replies
                   </p>
                 </div>
               </div>
