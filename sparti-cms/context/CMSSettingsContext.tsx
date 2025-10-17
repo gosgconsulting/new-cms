@@ -38,6 +38,13 @@ export interface MediaItem {
   url: string;
   size: number;
   dateUploaded: string;
+  folderId: string | null;
+}
+
+export interface MediaFolder {
+  id: string;
+  name: string;
+  itemCount: number;
 }
 
 export interface CMSSettings {
@@ -45,6 +52,7 @@ export interface CMSSettings {
   colors: ColorSettings;
   logo: LogoSettings;
   mediaItems: MediaItem[];
+  mediaFolders: MediaFolder[];
 }
 
 interface CMSSettingsContextType {
@@ -54,6 +62,9 @@ interface CMSSettingsContextType {
   updateLogo: (logo: Partial<LogoSettings>) => void;
   addMediaItem: (item: MediaItem) => void;
   removeMediaItem: (id: string) => void;
+  addMediaFolder: (folder: MediaFolder) => void;
+  removeMediaFolder: (id: string) => void;
+  updateMediaItemFolder: (itemId: string, folderId: string | null) => void;
   resetSettings: () => void;
 }
 
@@ -87,6 +98,9 @@ const defaultSettings: CMSSettings = {
     logoHeight: null,
   },
   mediaItems: [],
+  mediaFolders: [
+    { id: 'uncategorized', name: 'Uncategorized', itemCount: 0 }
+  ],
 };
 
 // Create the context
@@ -169,6 +183,32 @@ export const CMSSettingsProvider: React.FC<{ children: ReactNode }> = ({ childre
     }));
   };
 
+  // Add a media folder
+  const addMediaFolder = (folder: MediaFolder) => {
+    setSettings(prev => ({
+      ...prev,
+      mediaFolders: [...prev.mediaFolders, folder],
+    }));
+  };
+
+  // Remove a media folder
+  const removeMediaFolder = (id: string) => {
+    setSettings(prev => ({
+      ...prev,
+      mediaFolders: prev.mediaFolders.filter(folder => folder.id !== id),
+    }));
+  };
+
+  // Update media item folder
+  const updateMediaItemFolder = (itemId: string, folderId: string | null) => {
+    setSettings(prev => ({
+      ...prev,
+      mediaItems: prev.mediaItems.map(item =>
+        item.id === itemId ? { ...item, folderId } : item
+      ),
+    }));
+  };
+
   // Reset all settings to default
   const resetSettings = () => {
     setSettings(defaultSettings);
@@ -183,6 +223,9 @@ export const CMSSettingsProvider: React.FC<{ children: ReactNode }> = ({ childre
         updateLogo,
         addMediaItem,
         removeMediaItem,
+        addMediaFolder,
+        removeMediaFolder,
+        updateMediaItemFolder,
         resetSettings,
       }}
     >

@@ -14,7 +14,8 @@ import {
   ChevronRight,
   Code,
   Mail,
-  Layers
+  Layers,
+  Image as ImageIcon
 } from 'lucide-react';
 import { useAuth } from '../auth/AuthProvider';
 import { motion } from 'framer-motion';
@@ -24,6 +25,7 @@ import { useNavigate } from 'react-router-dom';
 // Import existing components
 import PagesManager from '../cms/PagesManager';
 import FormsManager from '../cms/FormsManager';
+import MediaManager from '../cms/MediaManager';
 
 // Import new components
 import DeveloperManager from './DeveloperManager';
@@ -144,6 +146,8 @@ const CMSDashboard: React.FC = () => {
         return <ContactsManager />;
       case 'smtp':
         return <SMTPManager />;
+      case 'media':
+        return <MediaManager />;
       case 'settings':
         return <SettingsManager />;
       case 'developer':
@@ -157,6 +161,7 @@ const CMSDashboard: React.FC = () => {
     { id: 'pages', label: 'Pages', icon: FileText },
     { id: 'blog', label: 'Blog', icon: PenTool },
     { id: 'components', label: 'Components', icon: Layers },
+    { id: 'media', label: 'Media', icon: ImageIcon },
     { id: 'settings', label: 'Settings', icon: SettingsIcon },
     { id: 'developer', label: 'Developer', icon: Code },
   ];
