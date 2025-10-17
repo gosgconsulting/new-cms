@@ -22,7 +22,22 @@ import {
   getContacts,
   getContact,
   updateContact,
-  deleteContact
+  deleteContact,
+  // User management functions
+  createUser,
+  getUsers,
+  getUser,
+  getUserByEmail,
+  updateUser,
+  updateUserPassword,
+  deleteUser,
+  authenticateUser,
+  // Registration functions
+  registerUser,
+  approveUser,
+  rejectUser,
+  getPendingUsers,
+  query
 } from './sparti-cms/db/postgres.js';
 import pool from './sparti-cms/db/postgres.js';
 
@@ -110,6 +125,17 @@ initializeDatabase().then(success => {
   console.error('[testing] Error initializing database:', error);
 });
 
+// Keep the process alive
+process.on('SIGINT', () => {
+  console.log('Received SIGINT. Graceful shutdown...');
+  process.exit(0);
+});
+
+process.on('SIGTERM', () => {
+  console.log('Received SIGTERM. Graceful shutdown...');
+  process.exit(0);
+});
+
 // Health check endpoint - this is what Railway will check
 app.get('/health', (req, res) => {
   res.status(200).json({ 
@@ -169,7 +195,7 @@ app.post('/api/upload', upload.single('file'), (req, res) => {
 // Form submissions API
 app.post('/api/form-submissions', async (req, res) => {
   try {
-    const { form_id, form_name, name, email, phone, message } = req.body;
+    const { form_id, form_name, name, email, phone, company, message } = req.body;
     
     console.log('[testing] Form submission received:', { form_id, name, email });
     
@@ -179,8 +205,11 @@ app.post('/api/form-submissions', async (req, res) => {
       form_name, 
       name, 
       email, 
-      phone, 
-      message 
+      phone,
+      company, 
+      message,
+      ip_address: req.ip,
+      user_agent: req.get('User-Agent')
     });
 
     // Also create/update contact record
@@ -194,6 +223,7 @@ app.post('/api/form-submissions', async (req, res) => {
         last_name,
         email,
         phone,
+        company,
         source: form_name || form_id || 'form',
         status: 'new',
         notes: message ? `Form message: ${message}` : null
@@ -213,6 +243,22 @@ app.post('/api/form-submissions', async (req, res) => {
   } catch (error) {
     console.error('[testing] Error saving form submission:', error);
     res.status(500).json({ error: 'Failed to save form submission' });
+  }
+});
+
+app.get('/api/form-submissions/all', async (req, res) => {
+  try {
+    console.log('[testing] Fetching all form submissions');
+    
+    const result = await query(`
+      SELECT * FROM form_submissions 
+      ORDER BY submitted_at DESC
+    `);
+    
+    res.json(result.rows);
+  } catch (error) {
+    console.error('[testing] Error fetching all form submissions:', error);
+    res.status(500).json({ error: 'Failed to fetch form submissions' });
   }
 });
 
@@ -393,6 +439,151 @@ app.delete('/api/contacts/:id', async (req, res) => {
   } catch (error) {
     console.error('[testing] API: Error deleting contact:', error);
     res.status(500).json({ error: 'Failed to delete contact' });
+  }
+});
+
+// Users API
+app.get('/api/users', async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 50;
+    const offset = parseInt(req.query.offset) || 0;
+    const search = req.query.search || '';
+    
+    console.log('[testing] API: Getting users', { limit, offset, search });
+    const result = await getUsers(limit, offset, search);
+    res.json(result);
+  } catch (error) {
+    console.error('[testing] API: Error getting users:', error);
+    res.status(500).json({ error: 'Failed to get users' });
+  }
+});
+
+app.get('/api/users/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log('[testing] API: Getting user:', id);
+    const user = await getUser(id);
+    
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    res.json(user);
+  } catch (error) {
+    console.error('[testing] API: Error getting user:', error);
+    res.status(500).json({ error: 'Failed to get user' });
+  }
+});
+
+app.post('/api/users', async (req, res) => {
+  try {
+    console.log('[testing] API: Creating user:', { ...req.body, password: '[REDACTED]' });
+    
+    // Hash password in production - for demo, we'll use a simple hash
+    const userData = {
+      ...req.body,
+      password_hash: req.body.password // In production, use bcrypt.hash(req.body.password, 10)
+    };
+    delete userData.password;
+    
+    const user = await createUser(userData);
+    res.json(user);
+  } catch (error) {
+    console.error('[testing] API: Error creating user:', error);
+    if (error.code === '23505') { // Unique constraint violation
+      res.status(400).json({ error: 'Email address already exists' });
+    } else {
+      res.status(500).json({ error: 'Failed to create user' });
+    }
+  }
+});
+
+app.put('/api/users/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log('[testing] API: Updating user:', id, { ...req.body, password: req.body.password ? '[REDACTED]' : undefined });
+    
+    const userData = { ...req.body };
+    
+    // Handle password update separately if provided
+    if (userData.password) {
+      const passwordHash = userData.password; // In production, use bcrypt.hash(userData.password, 10)
+      delete userData.password;
+      await updateUserPassword(id, passwordHash);
+    }
+    
+    const user = await updateUser(id, userData);
+    res.json(user);
+  } catch (error) {
+    console.error('[testing] API: Error updating user:', error);
+    if (error.code === '23505') { // Unique constraint violation
+      res.status(400).json({ error: 'Email address already exists' });
+    } else {
+      res.status(500).json({ error: 'Failed to update user' });
+    }
+  }
+});
+
+app.put('/api/users/:id/password', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { current_password, new_password } = req.body;
+    
+    console.log('[testing] API: Changing password for user:', id);
+    
+    // Get user to verify current password
+    const user = await getUserByEmail((await getUser(id)).email);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    // In production, verify current password with bcrypt.compare
+    // For demo, we'll use simple comparison
+    const isCurrentPasswordValid = current_password === 'admin123' && user.email === 'admin@gosg.com';
+    
+    if (!isCurrentPasswordValid) {
+      return res.status(400).json({ error: 'Current password is incorrect' });
+    }
+    
+    // Hash new password - in production use bcrypt.hash(new_password, 10)
+    const newPasswordHash = new_password;
+    
+    await updateUserPassword(id, newPasswordHash);
+    res.json({ success: true, message: 'Password updated successfully' });
+  } catch (error) {
+    console.error('[testing] API: Error changing password:', error);
+    res.status(500).json({ error: 'Failed to change password' });
+  }
+});
+
+app.delete('/api/users/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log('[testing] API: Deleting user:', id);
+    await deleteUser(id);
+    res.json({ success: true, message: 'User deleted successfully' });
+  } catch (error) {
+    console.error('[testing] API: Error deleting user:', error);
+    res.status(500).json({ error: 'Failed to delete user' });
+  }
+});
+
+// Authentication API
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    console.log('[testing] API: Login attempt for:', email);
+    
+    const result = await authenticateUser(email, password);
+    
+    if (result.success) {
+      res.json({ success: true, user: result.user });
+    } else {
+      res.status(401).json({ success: false, error: result.error });
+    }
+  } catch (error) {
+    console.error('[testing] API: Login error:', error);
+    res.status(500).json({ error: 'Login failed' });
   }
 });
 

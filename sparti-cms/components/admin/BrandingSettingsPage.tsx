@@ -1,10 +1,209 @@
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { Image, Upload, Info } from "lucide-react";
+import { Image, Upload, Info, Globe, Languages, Clock, ChevronDown, Search, Check } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import MediaModal from "./MediaModal";
 import gosgLogo from "@/assets/go-sg-logo-official.png";
+
+// Countries list
+const countries = [
+  { code: 'SG', name: 'Singapore' },
+  { code: 'US', name: 'United States' },
+  { code: 'GB', name: 'United Kingdom' },
+  { code: 'AU', name: 'Australia' },
+  { code: 'CA', name: 'Canada' },
+  { code: 'DE', name: 'Germany' },
+  { code: 'FR', name: 'France' },
+  { code: 'JP', name: 'Japan' },
+  { code: 'CN', name: 'China' },
+  { code: 'IN', name: 'India' },
+  { code: 'BR', name: 'Brazil' },
+  { code: 'MX', name: 'Mexico' },
+  { code: 'IT', name: 'Italy' },
+  { code: 'ES', name: 'Spain' },
+  { code: 'NL', name: 'Netherlands' },
+  { code: 'SE', name: 'Sweden' },
+  { code: 'NO', name: 'Norway' },
+  { code: 'DK', name: 'Denmark' },
+  { code: 'FI', name: 'Finland' },
+  { code: 'CH', name: 'Switzerland' },
+  { code: 'AT', name: 'Austria' },
+  { code: 'BE', name: 'Belgium' },
+  { code: 'IE', name: 'Ireland' },
+  { code: 'NZ', name: 'New Zealand' },
+  { code: 'ZA', name: 'South Africa' },
+  { code: 'KR', name: 'South Korea' },
+  { code: 'TH', name: 'Thailand' },
+  { code: 'MY', name: 'Malaysia' },
+  { code: 'ID', name: 'Indonesia' },
+  { code: 'PH', name: 'Philippines' },
+  { code: 'VN', name: 'Vietnam' },
+  { code: 'HK', name: 'Hong Kong' },
+  { code: 'TW', name: 'Taiwan' },
+  { code: 'AE', name: 'United Arab Emirates' },
+  { code: 'SA', name: 'Saudi Arabia' },
+  { code: 'IL', name: 'Israel' },
+  { code: 'TR', name: 'Turkey' },
+  { code: 'RU', name: 'Russia' },
+  { code: 'PL', name: 'Poland' },
+  { code: 'CZ', name: 'Czech Republic' },
+  { code: 'HU', name: 'Hungary' },
+  { code: 'GR', name: 'Greece' },
+  { code: 'PT', name: 'Portugal' },
+  { code: 'RO', name: 'Romania' },
+  { code: 'BG', name: 'Bulgaria' },
+  { code: 'HR', name: 'Croatia' },
+  { code: 'SI', name: 'Slovenia' },
+  { code: 'SK', name: 'Slovakia' },
+  { code: 'LT', name: 'Lithuania' },
+  { code: 'LV', name: 'Latvia' },
+  { code: 'EE', name: 'Estonia' }
+].sort((a, b) => a.name.localeCompare(b.name));
+
+// Languages list
+const languages = [
+  { code: 'en', name: 'English' },
+  { code: 'zh', name: 'Chinese (Mandarin)' },
+  { code: 'es', name: 'Spanish' },
+  { code: 'hi', name: 'Hindi' },
+  { code: 'ar', name: 'Arabic' },
+  { code: 'pt', name: 'Portuguese' },
+  { code: 'bn', name: 'Bengali' },
+  { code: 'ru', name: 'Russian' },
+  { code: 'ja', name: 'Japanese' },
+  { code: 'pa', name: 'Punjabi' },
+  { code: 'de', name: 'German' },
+  { code: 'jv', name: 'Javanese' },
+  { code: 'wu', name: 'Wu Chinese' },
+  { code: 'ms', name: 'Malay' },
+  { code: 'te', name: 'Telugu' },
+  { code: 'vi', name: 'Vietnamese' },
+  { code: 'ko', name: 'Korean' },
+  { code: 'fr', name: 'French' },
+  { code: 'mr', name: 'Marathi' },
+  { code: 'ta', name: 'Tamil' },
+  { code: 'ur', name: 'Urdu' },
+  { code: 'tr', name: 'Turkish' },
+  { code: 'it', name: 'Italian' },
+  { code: 'th', name: 'Thai' },
+  { code: 'gu', name: 'Gujarati' },
+  { code: 'jin', name: 'Jin Chinese' },
+  { code: 'min', name: 'Min Chinese' },
+  { code: 'kn', name: 'Kannada' },
+  { code: 'fa', name: 'Persian' },
+  { code: 'bho', name: 'Bhojpuri' },
+  { code: 'my', name: 'Burmese' },
+  { code: 'hak', name: 'Hakka Chinese' },
+  { code: 'uk', name: 'Ukrainian' },
+  { code: 'bh', name: 'Bihari' },
+  { code: 'xh', name: 'Xhosa' },
+  { code: 'hne', name: 'Chhattisgarhi' },
+  { code: 'zu', name: 'Zulu' },
+  { code: 'az', name: 'Azerbaijani' },
+  { code: 'kk', name: 'Kazakh' },
+  { code: 'zu', name: 'Zulu' },
+  { code: 'nl', name: 'Dutch' },
+  { code: 'sv', name: 'Swedish' },
+  { code: 'no', name: 'Norwegian' },
+  { code: 'da', name: 'Danish' },
+  { code: 'fi', name: 'Finnish' },
+  { code: 'pl', name: 'Polish' },
+  { code: 'cs', name: 'Czech' },
+  { code: 'hu', name: 'Hungarian' },
+  { code: 'el', name: 'Greek' },
+  { code: 'he', name: 'Hebrew' },
+  { code: 'ro', name: 'Romanian' },
+  { code: 'bg', name: 'Bulgarian' },
+  { code: 'hr', name: 'Croatian' },
+  { code: 'sk', name: 'Slovak' },
+  { code: 'sl', name: 'Slovenian' },
+  { code: 'lt', name: 'Lithuanian' },
+  { code: 'lv', name: 'Latvian' },
+  { code: 'et', name: 'Estonian' }
+].sort((a, b) => a.name.localeCompare(b.name));
+
+// Timezones list
+const timezones = [
+  { code: 'UTC', name: 'UTC - Coordinated Universal Time', offset: '+00:00' },
+  { code: 'GMT', name: 'GMT - Greenwich Mean Time', offset: '+00:00' },
+  { code: 'EST', name: 'EST - Eastern Standard Time', offset: '-05:00' },
+  { code: 'CST', name: 'CST - Central Standard Time', offset: '-06:00' },
+  { code: 'MST', name: 'MST - Mountain Standard Time', offset: '-07:00' },
+  { code: 'PST', name: 'PST - Pacific Standard Time', offset: '-08:00' },
+  { code: 'EDT', name: 'EDT - Eastern Daylight Time', offset: '-04:00' },
+  { code: 'CDT', name: 'CDT - Central Daylight Time', offset: '-05:00' },
+  { code: 'MDT', name: 'MDT - Mountain Daylight Time', offset: '-06:00' },
+  { code: 'PDT', name: 'PDT - Pacific Daylight Time', offset: '-07:00' },
+  { code: 'BST', name: 'BST - British Summer Time', offset: '+01:00' },
+  { code: 'CET', name: 'CET - Central European Time', offset: '+01:00' },
+  { code: 'EET', name: 'EET - Eastern European Time', offset: '+02:00' },
+  { code: 'MSK', name: 'MSK - Moscow Standard Time', offset: '+03:00' },
+  { code: 'GST', name: 'GST - Gulf Standard Time', offset: '+04:00' },
+  { code: 'PKT', name: 'PKT - Pakistan Standard Time', offset: '+05:00' },
+  { code: 'IST', name: 'IST - India Standard Time', offset: '+05:30' },
+  { code: 'NPT', name: 'NPT - Nepal Time', offset: '+05:45' },
+  { code: 'BST_BD', name: 'BST - Bangladesh Standard Time', offset: '+06:00' },
+  { code: 'MMT', name: 'MMT - Myanmar Time', offset: '+06:30' },
+  { code: 'ICT', name: 'ICT - Indochina Time', offset: '+07:00' },
+  { code: 'SGT', name: 'SGT - Singapore Standard Time', offset: '+08:00' },
+  { code: 'HKT', name: 'HKT - Hong Kong Time', offset: '+08:00' },
+  { code: 'CST_CN', name: 'CST - China Standard Time', offset: '+08:00' },
+  { code: 'MYT', name: 'MYT - Malaysia Time', offset: '+08:00' },
+  { code: 'PHT', name: 'PHT - Philippine Time', offset: '+08:00' },
+  { code: 'WIT', name: 'WIT - Western Indonesian Time', offset: '+07:00' },
+  { code: 'CIT', name: 'CIT - Central Indonesian Time', offset: '+08:00' },
+  { code: 'EIT', name: 'EIT - Eastern Indonesian Time', offset: '+09:00' },
+  { code: 'JST', name: 'JST - Japan Standard Time', offset: '+09:00' },
+  { code: 'KST', name: 'KST - Korea Standard Time', offset: '+09:00' },
+  { code: 'ACST', name: 'ACST - Australian Central Standard Time', offset: '+09:30' },
+  { code: 'AEST', name: 'AEST - Australian Eastern Standard Time', offset: '+10:00' },
+  { code: 'AWST', name: 'AWST - Australian Western Standard Time', offset: '+08:00' },
+  { code: 'NZST', name: 'NZST - New Zealand Standard Time', offset: '+12:00' },
+  { code: 'NZDT', name: 'NZDT - New Zealand Daylight Time', offset: '+13:00' },
+  { code: 'FIJI', name: 'FJT - Fiji Time', offset: '+12:00' },
+  { code: 'HST', name: 'HST - Hawaii Standard Time', offset: '-10:00' },
+  { code: 'AKST', name: 'AKST - Alaska Standard Time', offset: '-09:00' },
+  { code: 'AKDT', name: 'AKDT - Alaska Daylight Time', offset: '-08:00' },
+  { code: 'CAT', name: 'CAT - Central Africa Time', offset: '+02:00' },
+  { code: 'EAT', name: 'EAT - East Africa Time', offset: '+03:00' },
+  { code: 'WAT', name: 'WAT - West Africa Time', offset: '+01:00' },
+  { code: 'SAST', name: 'SAST - South Africa Standard Time', offset: '+02:00' },
+  { code: 'ART', name: 'ART - Argentina Time', offset: '-03:00' },
+  { code: 'BRT', name: 'BRT - Brasilia Time', offset: '-03:00' },
+  { code: 'CLT', name: 'CLT - Chile Standard Time', offset: '-04:00' },
+  { code: 'COT', name: 'COT - Colombia Time', offset: '-05:00' },
+  { code: 'ECT', name: 'ECT - Ecuador Time', offset: '-05:00' },
+  { code: 'PET', name: 'PET - Peru Time', offset: '-05:00' },
+  { code: 'VET', name: 'VET - Venezuela Time', offset: '-04:00' },
+  { code: 'AST', name: 'AST - Atlantic Standard Time', offset: '-04:00' },
+  { code: 'ADT', name: 'ADT - Atlantic Daylight Time', offset: '-03:00' },
+  { code: 'NST', name: 'NST - Newfoundland Standard Time', offset: '-03:30' },
+  { code: 'NDT', name: 'NDT - Newfoundland Daylight Time', offset: '-02:30' },
+  { code: 'AZOT', name: 'AZOT - Azores Time', offset: '-01:00' },
+  { code: 'CVT', name: 'CVT - Cape Verde Time', offset: '-01:00' },
+  { code: 'WET', name: 'WET - Western European Time', offset: '+00:00' },
+  { code: 'WEST', name: 'WEST - Western European Summer Time', offset: '+01:00' },
+  { code: 'CEST', name: 'CEST - Central European Summer Time', offset: '+02:00' },
+  { code: 'EEST', name: 'EEST - Eastern European Summer Time', offset: '+03:00' },
+  { code: 'TRT', name: 'TRT - Turkey Time', offset: '+03:00' },
+  { code: 'AST_AR', name: 'AST - Arabia Standard Time', offset: '+03:00' },
+  { code: 'IRST', name: 'IRST - Iran Standard Time', offset: '+03:30' },
+  { code: 'IRDT', name: 'IRDT - Iran Daylight Time', offset: '+04:30' },
+  { code: 'AFT', name: 'AFT - Afghanistan Time', offset: '+04:30' },
+  { code: 'UZT', name: 'UZT - Uzbekistan Time', offset: '+05:00' },
+  { code: 'YEKT', name: 'YEKT - Yekaterinburg Time', offset: '+05:00' },
+  { code: 'OMST', name: 'OMST - Omsk Time', offset: '+06:00' },
+  { code: 'KRAT', name: 'KRAT - Krasnoyarsk Time', offset: '+07:00' },
+  { code: 'IRKT', name: 'IRKT - Irkutsk Time', offset: '+08:00' },
+  { code: 'YAKT', name: 'YAKT - Yakutsk Time', offset: '+09:00' },
+  { code: 'VLAT', name: 'VLAT - Vladivostok Time', offset: '+10:00' },
+  { code: 'MAGT', name: 'MAGT - Magadan Time', offset: '+11:00' },
+  { code: 'PETT', name: 'PETT - Kamchatka Time', offset: '+12:00' }
+].sort((a, b) => a.name.localeCompare(b.name));
 
 const BrandingSettingsPage: React.FC = () => {
   const [brandingData, setBrandingData] = useState({
@@ -12,16 +211,134 @@ const BrandingSettingsPage: React.FC = () => {
     site_tagline: 'Digital Marketing Agency',
     site_logo: '',
     site_favicon: '',
-    site_description: 'We help businesses dominate search results through proven SEO strategies that increase organic traffic, boost rankings, and drive qualified leads to your website.'
+    site_description: 'We help businesses dominate search results through proven SEO strategies that increase organic traffic, boost rankings, and drive qualified leads to your website.',
+    country: 'Singapore',
+    language: 'English',
+    timezone: 'SGT - Singapore Standard Time'
   });
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [countrySearch, setCountrySearch] = useState('');
+  const [languageSearch, setLanguageSearch] = useState('');
+  const [timezoneSearch, setTimezoneSearch] = useState('');
+  const [countryOpen, setCountryOpen] = useState(false);
+  const [languageOpen, setLanguageOpen] = useState(false);
+  const [timezoneOpen, setTimezoneOpen] = useState(false);
+  const [logoModalOpen, setLogoModalOpen] = useState(false);
+  const [faviconModalOpen, setFaviconModalOpen] = useState(false);
 
   const handleInputChange = (field: string, value: string) => {
     setBrandingData(prev => ({
       ...prev,
       [field]: value
     }));
+  };
+
+  const filteredCountries = countries.filter(country =>
+    country.name.toLowerCase().includes(countrySearch.toLowerCase())
+  );
+
+  const filteredLanguages = languages.filter(language =>
+    language.name.toLowerCase().includes(languageSearch.toLowerCase())
+  );
+
+  const filteredTimezones = timezones.filter(timezone =>
+    timezone.name.toLowerCase().includes(timezoneSearch.toLowerCase()) ||
+    timezone.offset.includes(timezoneSearch)
+  );
+
+  const SearchableDropdown: React.FC<{
+    value: string;
+    onValueChange: (value: string) => void;
+    options: { code: string; name: string; offset?: string }[];
+    placeholder: string;
+    searchValue: string;
+    onSearchChange: (value: string) => void;
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+    icon: React.ReactNode;
+    label: string;
+    showOffset?: boolean;
+  }> = ({ 
+    value, 
+    onValueChange, 
+    options, 
+    placeholder, 
+    searchValue, 
+    onSearchChange, 
+    open, 
+    onOpenChange, 
+    icon, 
+    label,
+    showOffset = false
+  }) => {
+    return (
+      <div className="space-y-2">
+        <Label className="text-sm font-medium text-foreground flex items-center gap-2">
+          {icon}
+          {label}
+        </Label>
+        <Dialog open={open} onOpenChange={onOpenChange}>
+          <DialogTrigger asChild>
+            <Button
+              variant="outline"
+              className="w-full justify-between text-left font-normal"
+              onClick={() => onOpenChange(true)}
+            >
+              <span className={value ? "text-foreground" : "text-muted-foreground"}>
+                {value || placeholder}
+              </span>
+              <ChevronDown className="h-4 w-4 opacity-50" />
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Select {label}</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder={`Search ${label.toLowerCase()}...`}
+                  value={searchValue}
+                  onChange={(e) => onSearchChange(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+              <ScrollArea className="h-64">
+                <div className="space-y-1">
+                  {options.map((option) => (
+                    <Button
+                      key={option.code}
+                      variant="ghost"
+                      className="w-full justify-between text-left font-normal h-auto py-2"
+                      onClick={() => {
+                        onValueChange(option.name);
+                        onOpenChange(false);
+                        onSearchChange('');
+                      }}
+                    >
+                      <div className="flex flex-col items-start">
+                        <span className="text-sm">{option.name}</span>
+                        {showOffset && option.offset && (
+                          <span className="text-xs text-muted-foreground">{option.offset}</span>
+                        )}
+                      </div>
+                      {value === option.name && <Check className="h-4 w-4" />}
+                    </Button>
+                  ))}
+                  {options.length === 0 && (
+                    <div className="text-center py-4 text-muted-foreground">
+                      No {label.toLowerCase()} found
+                    </div>
+                  )}
+                </div>
+              </ScrollArea>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
+    );
   };
 
   const handleSave = () => {
@@ -44,13 +361,15 @@ const BrandingSettingsPage: React.FC = () => {
       </div>
 
       {/* Site Information */}
-      <div className="space-y-6">
+      <div className="space-y-8">
         <h4 className="text-lg font-medium text-foreground border-b border-border pb-2 flex items-center gap-2">
           <Info className="h-5 w-5 text-brandPurple" />
           Site Information
         </h4>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Single Column Layout */}
+        <div className="max-w-2xl space-y-6">
+          {/* Basic Information */}
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="site_name">Site Name</Label>
@@ -84,67 +403,122 @@ const BrandingSettingsPage: React.FC = () => {
               <p className="text-xs text-muted-foreground">Used for SEO and social sharing</p>
             </div>
           </div>
-          
-          {/* Logo & Favicon */}
-          <div className="space-y-6">
-            <div className="space-y-4">
-              <Label>Logo</Label>
-              <div className="bg-secondary/20 rounded-lg border border-dashed border-border p-8 text-center hover:bg-secondary/30 transition-colors cursor-pointer">
-                {brandingData.site_logo ? (
-                  <div className="flex flex-col items-center">
-                    <img 
-                      src={brandingData.site_logo || gosgLogo} 
-                      alt="Site Logo" 
-                      className="h-16 w-auto mb-4"
-                    />
-                    <Button variant="outline" size="sm">Replace Logo</Button>
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center">
-                    <div className="w-16 h-16 bg-secondary/40 rounded-lg flex items-center justify-center mb-4">
-                      <Image className="h-8 w-8 text-muted-foreground" />
-                    </div>
-                    <div className="flex flex-col items-center">
-                      <p className="text-sm font-medium text-foreground">Upload Logo</p>
-                      <p className="text-xs text-muted-foreground mt-1">PNG, JPG or SVG (max 2MB)</p>
-                    </div>
-                    <Button variant="outline" size="sm" className="mt-4">
-                      <Upload className="h-4 w-4 mr-2" />
-                      Choose File
-                    </Button>
-                  </div>
-                )}
-              </div>
+
+          {/* Location & Language Settings */}
+          <div className="space-y-4">
+            <h5 className="text-md font-medium text-foreground">Location & Language</h5>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <SearchableDropdown
+                value={brandingData.country}
+                onValueChange={(value) => handleInputChange('country', value)}
+                options={filteredCountries}
+                placeholder="Select country..."
+                searchValue={countrySearch}
+                onSearchChange={setCountrySearch}
+                open={countryOpen}
+                onOpenChange={setCountryOpen}
+                icon={<Globe className="h-4 w-4 text-brandTeal" />}
+                label="Country"
+              />
+
+              <SearchableDropdown
+                value={brandingData.language}
+                onValueChange={(value) => handleInputChange('language', value)}
+                options={filteredLanguages}
+                placeholder="Select language..."
+                searchValue={languageSearch}
+                onSearchChange={setLanguageSearch}
+                open={languageOpen}
+                onOpenChange={setLanguageOpen}
+                icon={<Languages className="h-4 w-4 text-brandPurple" />}
+                label="Language"
+              />
+
+              <SearchableDropdown
+                value={brandingData.timezone}
+                onValueChange={(value) => handleInputChange('timezone', value)}
+                options={filteredTimezones}
+                placeholder="Select timezone..."
+                searchValue={timezoneSearch}
+                onSearchChange={setTimezoneSearch}
+                open={timezoneOpen}
+                onOpenChange={setTimezoneOpen}
+                icon={<Clock className="h-4 w-4 text-brandGold" />}
+                label="Timezone"
+                showOffset={true}
+              />
             </div>
-            
-            <div className="space-y-4">
-              <Label>Favicon</Label>
-              <div className="bg-secondary/20 rounded-lg border border-dashed border-border p-6 text-center hover:bg-secondary/30 transition-colors cursor-pointer">
-                {brandingData.site_favicon ? (
-                  <div className="flex flex-col items-center">
-                    <img 
-                      src={brandingData.site_favicon} 
-                      alt="Favicon" 
-                      className="h-10 w-10 mb-4"
-                    />
-                    <Button variant="outline" size="sm">Replace Favicon</Button>
+          </div>
+
+          {/* Logo Section */}
+          <div className="space-y-4">
+            <h5 className="text-md font-medium text-foreground">Logo</h5>
+            <div 
+              className="bg-secondary/20 rounded-lg border border-dashed border-border p-8 text-center hover:bg-secondary/30 transition-colors cursor-pointer"
+              onClick={() => setLogoModalOpen(true)}
+            >
+              {brandingData.site_logo ? (
+                <div className="flex flex-col items-center">
+                  <img 
+                    src={brandingData.site_logo} 
+                    alt="Site Logo" 
+                    className="h-16 w-auto mb-4"
+                  />
+                  <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); setLogoModalOpen(true); }}>
+                    Replace Logo
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center">
+                  <div className="w-16 h-16 bg-secondary/40 rounded-lg flex items-center justify-center mb-4">
+                    <Image className="h-8 w-8 text-muted-foreground" />
                   </div>
-                ) : (
                   <div className="flex flex-col items-center">
-                    <div className="w-10 h-10 bg-secondary/40 rounded-md flex items-center justify-center mb-4">
-                      <Image className="h-6 w-6 text-muted-foreground" />
-                    </div>
-                    <div className="flex flex-col items-center">
-                      <p className="text-sm font-medium text-foreground">Upload Favicon</p>
-                      <p className="text-xs text-muted-foreground mt-1">PNG or ICO (32x32px)</p>
-                    </div>
-                    <Button variant="outline" size="sm" className="mt-4">
-                      <Upload className="h-4 w-4 mr-2" />
-                      Choose File
-                    </Button>
+                    <p className="text-sm font-medium text-foreground">Upload Logo</p>
+                    <p className="text-xs text-muted-foreground mt-1">PNG, JPG or SVG (max 2MB)</p>
                   </div>
-                )}
-              </div>
+                  <Button variant="outline" size="sm" className="mt-4">
+                    <Upload className="h-4 w-4 mr-2" />
+                    Choose File
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Favicon Section */}
+          <div className="space-y-4">
+            <h5 className="text-md font-medium text-foreground">Favicon</h5>
+            <div 
+              className="bg-secondary/20 rounded-lg border border-dashed border-border p-6 text-center hover:bg-secondary/30 transition-colors cursor-pointer"
+              onClick={() => setFaviconModalOpen(true)}
+            >
+              {brandingData.site_favicon ? (
+                <div className="flex flex-col items-center">
+                  <img 
+                    src={brandingData.site_favicon} 
+                    alt="Favicon" 
+                    className="h-10 w-10 mb-4"
+                  />
+                  <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); setFaviconModalOpen(true); }}>
+                    Replace Favicon
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center">
+                  <div className="w-10 h-10 bg-secondary/40 rounded-md flex items-center justify-center mb-4">
+                    <Image className="h-6 w-6 text-muted-foreground" />
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <p className="text-sm font-medium text-foreground">Upload Favicon</p>
+                    <p className="text-xs text-muted-foreground mt-1">PNG or ICO (32x32px)</p>
+                  </div>
+                  <Button variant="outline" size="sm" className="mt-4">
+                    <Upload className="h-4 w-4 mr-2" />
+                    Choose File
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -168,6 +542,22 @@ const BrandingSettingsPage: React.FC = () => {
             <div className="max-w-lg text-center mt-2">
               <p className="text-sm text-foreground">{brandingData.site_description}</p>
             </div>
+            
+            {/* Country, Language and Timezone Display */}
+            <div className="flex items-center justify-center gap-4 mt-4 pt-4 border-t border-border/50 flex-wrap">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Globe className="h-4 w-4 text-brandTeal" />
+                <span>{brandingData.country}</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Languages className="h-4 w-4 text-brandPurple" />
+                <span>{brandingData.language}</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Clock className="h-4 w-4 text-brandGold" />
+                <span>{brandingData.timezone}</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -182,6 +572,25 @@ const BrandingSettingsPage: React.FC = () => {
           {isSaving ? 'Saving...' : 'Save Branding Settings'}
         </Button>
       </div>
+
+      {/* Media Modals */}
+      <MediaModal
+        isOpen={logoModalOpen}
+        onClose={() => setLogoModalOpen(false)}
+        onSelect={(url) => handleInputChange('site_logo', url)}
+        title="Select Logo"
+        acceptedTypes={['image/*']}
+        maxFileSize={2 * 1024 * 1024} // 2MB
+      />
+
+      <MediaModal
+        isOpen={faviconModalOpen}
+        onClose={() => setFaviconModalOpen(false)}
+        onSelect={(url) => handleInputChange('site_favicon', url)}
+        title="Select Favicon"
+        acceptedTypes={['image/png', 'image/x-icon', 'image/vnd.microsoft.icon']}
+        maxFileSize={1 * 1024 * 1024} // 1MB
+      />
     </div>
   );
 };

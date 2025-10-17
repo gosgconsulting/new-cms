@@ -122,13 +122,8 @@ const ContactsManager: React.FC = () => {
         phone: sub.data.phone || 'N/A',
         message: sub.data.message || '',
         source: 'Contact Modal Form',
-        created: new Date(sub.date).toLocaleString('en-SG', {
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit',
-          hour: '2-digit',
-          minute: '2-digit'
-        })
+        created: sub.date,
+        createdFormatted: formatDateTime(sub.date)
       }));
 
       setLeadsData({ leads: formattedLeads, total: formattedLeads.length });
@@ -167,12 +162,40 @@ const ContactsManager: React.FC = () => {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-SG', {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-SG', {
       year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
+      month: 'short',
+      day: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
+      hour12: true
+    });
+  };
+
+  const formatDateTime = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
+    
+    // If less than 24 hours ago, show relative time
+    if (diffInHours < 24) {
+      if (diffInHours < 1) {
+        const minutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
+        return `${minutes} min${minutes !== 1 ? 's' : ''} ago`;
+      }
+      const hours = Math.floor(diffInHours);
+      return `${hours} hour${hours !== 1 ? 's' : ''} ago`;
+    }
+    
+    // Otherwise show full date and time
+    return date.toLocaleDateString('en-SG', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
     });
   };
 
@@ -278,7 +301,7 @@ const ContactsManager: React.FC = () => {
                       Submissions
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Latest
+                      Last Contact
                     </th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Actions
@@ -337,7 +360,9 @@ const ContactsManager: React.FC = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center text-sm text-gray-500">
                           <Calendar className="h-4 w-4 mr-2" />
-                          {formatDate(contact.latest_submission)}
+                          <span title={formatDate(contact.latest_submission)}>
+                            {formatDateTime(contact.latest_submission)}
+                          </span>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -453,7 +478,7 @@ const ContactsManager: React.FC = () => {
                       Source
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Created
+                      Submitted
                     </th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Actions
@@ -486,7 +511,9 @@ const ContactsManager: React.FC = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center text-sm text-gray-600">
                           <Calendar className="h-4 w-4 mr-2 text-gray-400" />
-                          {lead.created}
+                          <span title={formatDate(lead.created)}>
+                            {lead.createdFormatted}
+                          </span>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -541,6 +568,18 @@ const LeadDetailsModal: React.FC<{
   onClose: () => void;
 }> = ({ lead, onClose }) => {
   if (!lead) return null;
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-SG', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
+  };
   
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -587,7 +626,9 @@ const LeadDetailsModal: React.FC<{
           
           <div>
             <label className="text-sm font-medium text-gray-500">Submitted</label>
-            <p className="text-base text-gray-600 mt-1">{lead.created}</p>
+            <p className="text-base text-gray-600 mt-1" title={formatDate(lead.created)}>
+              {lead.createdFormatted}
+            </p>
           </div>
         </div>
         
@@ -610,6 +651,44 @@ const ContactDetailsModal: React.FC<{
   onClose: () => void;
 }> = ({ contact, onClose }) => {
   if (!contact) return null;
+
+  const formatDateTime = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
+    
+    // If less than 24 hours ago, show relative time
+    if (diffInHours < 24) {
+      if (diffInHours < 1) {
+        const minutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
+        return `${minutes} min${minutes !== 1 ? 's' : ''} ago`;
+      }
+      const hours = Math.floor(diffInHours);
+      return `${hours} hour${hours !== 1 ? 's' : ''} ago`;
+    }
+    
+    // Otherwise show full date and time
+    return date.toLocaleDateString('en-SG', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-SG', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
+  };
   
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -651,9 +730,9 @@ const ContactDetailsModal: React.FC<{
               <p className="text-sm text-gray-900">{contact.total_submissions}</p>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Latest Submission</label>
-              <p className="text-sm text-gray-900">
-                {new Date(contact.latest_submission).toLocaleDateString()}
+              <label className="block text-sm font-medium text-gray-700 mb-1">Last Contact</label>
+              <p className="text-sm text-gray-900" title={formatDate(contact.latest_submission)}>
+                {formatDateTime(contact.latest_submission)}
               </p>
             </div>
           </div>

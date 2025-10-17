@@ -39,6 +39,9 @@ export interface MediaItem {
   size: number;
   dateUploaded: string;
   folderId: string | null;
+  alt?: string;
+  title?: string;
+  description?: string;
 }
 
 export interface MediaFolder {
@@ -62,6 +65,7 @@ interface CMSSettingsContextType {
   updateLogo: (logo: Partial<LogoSettings>) => void;
   addMediaItem: (item: MediaItem) => void;
   removeMediaItem: (id: string) => void;
+  updateMediaItem: (id: string, updates: Partial<MediaItem>) => void;
   addMediaFolder: (folder: MediaFolder) => void;
   removeMediaFolder: (id: string) => void;
   updateMediaItemFolder: (itemId: string, folderId: string | null) => void;
@@ -198,6 +202,18 @@ export const CMSSettingsProvider: React.FC<{ children: ReactNode }> = ({ childre
     }));
   };
 
+  // Update a media item
+  const updateMediaItem = (id: string, updates: Partial<MediaItem>) => {
+    setSettings(prev => ({
+      ...prev,
+      mediaItems: Array.isArray(prev.mediaItems) 
+        ? prev.mediaItems.map(item =>
+            item.id === id ? { ...item, ...updates } : item
+          )
+        : [],
+    }));
+  };
+
   // Add a media folder
   const addMediaFolder = (folder: MediaFolder) => {
     setSettings(prev => ({
@@ -242,6 +258,7 @@ export const CMSSettingsProvider: React.FC<{ children: ReactNode }> = ({ childre
         updateLogo,
         addMediaItem,
         removeMediaItem,
+        updateMediaItem,
         addMediaFolder,
         removeMediaFolder,
         updateMediaItemFolder,

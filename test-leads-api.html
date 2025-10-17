@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Leads API</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        pre { background-color: #f8f9fa; padding: 10px; border-radius: 3px; overflow-x: auto; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Leads API Test</h1>
+        
+        <div class="section">
+            <h2>API Endpoints Test</h2>
+            <button onclick="testFormSubmissions()">Test Form Submissions API</button>
+            <button onclick="testContacts()">Test Contacts API</button>
+            <button onclick="testBoth()">Test Both APIs</button>
+        </div>
+
+        <div id="results"></div>
+    </div>
+
+    <script>
+        async function testFormSubmissions() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<div class="section">🔄 Testing Form Submissions API...</div>';
+            
+            try {
+                const response = await fetch('/api/form-submissions/all');
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultsDiv.innerHTML = `
+                        <div class="section success">
+                            <h3>✅ Form Submissions API - Success</h3>
+                            <p><strong>Status:</strong> ${response.status}</p>
+                            <p><strong>Count:</strong> ${data.length} submissions</p>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                } else {
+                    resultsDiv.innerHTML = `
+                        <div class="section error">
+                            <h3>❌ Form Submissions API - Error</h3>
+                            <p><strong>Status:</strong> ${response.status}</p>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div class="section error">
+                        <h3>💥 Form Submissions API - Network Error</h3>
+                        <p><strong>Error:</strong> ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        async function testContacts() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<div class="section">🔄 Testing Contacts API...</div>';
+            
+            try {
+                const response = await fetch('/api/contacts');
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultsDiv.innerHTML = `
+                        <div class="section success">
+                            <h3>✅ Contacts API - Success</h3>
+                            <p><strong>Status:</strong> ${response.status}</p>
+                            <p><strong>Count:</strong> ${data.contacts ? data.contacts.length : 'N/A'} contacts</p>
+                            <p><strong>Total:</strong> ${data.total || 'N/A'}</p>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                } else {
+                    resultsDiv.innerHTML = `
+                        <div class="section error">
+                            <h3>❌ Contacts API - Error</h3>
+                            <p><strong>Status:</strong> ${response.status}</p>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div class="section error">
+                        <h3>💥 Contacts API - Network Error</h3>
+                        <p><strong>Error:</strong> ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        async function testBoth() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<div class="section">🔄 Testing Both APIs...</div>';
+            
+            try {
+                const [leadsResponse, contactsResponse] = await Promise.all([
+                    fetch('/api/form-submissions/all'),
+                    fetch('/api/contacts')
+                ]);
+
+                const leadsData = await leadsResponse.json();
+                const contactsData = await contactsResponse.json();
+
+                const leadsSuccess = leadsResponse.ok;
+                const contactsSuccess = contactsResponse.ok;
+
+                resultsDiv.innerHTML = `
+                    <div class="section ${leadsSuccess && contactsSuccess ? 'success' : 'error'}">
+                        <h3>${leadsSuccess && contactsSuccess ? '✅' : '⚠️'} Both APIs Test Results</h3>
+                        
+                        <h4>Form Submissions:</h4>
+                        <p><strong>Status:</strong> ${leadsResponse.status} ${leadsSuccess ? '✅' : '❌'}</p>
+                        <p><strong>Count:</strong> ${leadsSuccess ? leadsData.length : 'Error'}</p>
+                        
+                        <h4>Contacts:</h4>
+                        <p><strong>Status:</strong> ${contactsResponse.status} ${contactsSuccess ? '✅' : '❌'}</p>
+                        <p><strong>Count:</strong> ${contactsSuccess ? (contactsData.contacts ? contactsData.contacts.length : 'N/A') : 'Error'}</p>
+                        
+                        <h4>Raw Data:</h4>
+                        <h5>Leads:</h5>
+                        <pre>${JSON.stringify(leadsData, null, 2)}</pre>
+                        <h5>Contacts:</h5>
+                        <pre>${JSON.stringify(contactsData, null, 2)}</pre>
+                    </div>
+                `;
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div class="section error">
+                        <h3>💥 Both APIs - Network Error</h3>
+                        <p><strong>Error:</strong> ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Auto-test on page load
+        window.onload = () => {
+            testBoth();
+        };
+    </script>
+</body>
+</html>

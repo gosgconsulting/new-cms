@@ -4,7 +4,6 @@ import {
   PenTool, 
   Layout, 
   Minus, 
-  FileInput, 
   Settings as SettingsIcon, 
   LogOut, 
   Home,
@@ -15,7 +14,8 @@ import {
   Code,
   Mail,
   Layers,
-  Image as ImageIcon
+  Image as ImageIcon,
+  FileInput,
 } from 'lucide-react';
 import { useAuth } from '../auth/AuthProvider';
 import { motion } from 'framer-motion';
@@ -32,6 +32,9 @@ import DeveloperManager from './DeveloperManager';
 import ContactsManager from './ContactsManager';
 import SMTPManager from './SMTPManager';
 import ComponentsManager from './ComponentsManager';
+import MyAccountPage from './MyAccountPage';
+import UsersManager from './UsersManager';
+
 import BrandingSettingsPage from './BrandingSettingsPage';
 import ButtonSettingsPage from './ButtonSettingsPage';
 import TypographySettingsPage from './TypographySettingsPage';
@@ -119,7 +122,8 @@ const SettingsManager = () => {
 const CMSDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>('pages');
   const [crmExpanded, setCrmExpanded] = useState<boolean>(false);
-  const { signOut } = useAuth();
+  const [usersExpanded, setUsersExpanded] = useState<boolean>(false);
+  const { signOut, user } = useAuth();
   const navigate = useNavigate();
 
   const handleBackClick = () => {
@@ -140,14 +144,18 @@ const CMSDashboard: React.FC = () => {
         return <BlogManager />;
       case 'components':
         return <ComponentsManager />;
-      case 'forms':
-        return <FormsManager />;
       case 'contacts':
         return <ContactsManager />;
+      case 'forms':
+        return <FormsManager />;
       case 'smtp':
         return <SMTPManager />;
       case 'media':
         return <MediaManager />;
+      case 'my-account':
+        return <MyAccountPage />;
+      case 'users':
+        return <UsersManager />;
       case 'settings':
         return <SettingsManager />;
       case 'developer':
@@ -162,8 +170,14 @@ const CMSDashboard: React.FC = () => {
     { id: 'blog', label: 'Blog', icon: PenTool },
     { id: 'components', label: 'Components', icon: Layers },
     { id: 'media', label: 'Media', icon: ImageIcon },
+
     { id: 'settings', label: 'Settings', icon: SettingsIcon },
     { id: 'developer', label: 'Developer', icon: Code },
+  ];
+
+  const usersItems = [
+    { id: 'my-account', label: 'My Account', icon: Users },
+    { id: 'users', label: 'Users', icon: Users },
   ];
 
   const crmItems = [
@@ -174,7 +188,8 @@ const CMSDashboard: React.FC = () => {
 
   const getPageTitle = () => {
     const currentItem = navItems.find(item => item.id === activeTab) || 
-                        crmItems.find(item => item.id === activeTab);
+                        crmItems.find(item => item.id === activeTab) ||
+                        usersItems.find(item => item.id === activeTab);
     return currentItem ? currentItem.label : 'Dashboard';
   };
 
@@ -225,7 +240,55 @@ const CMSDashboard: React.FC = () => {
                 );
               })}
               
-              {/* CRM Submenu - positioned after Blog */}
+              {/* Users Submenu - positioned after Blog */}
+              <li>
+                <button
+                  onClick={() => setUsersExpanded(!usersExpanded)}
+                  className={`w-full flex items-center justify-between px-3 py-2.5 text-left rounded-lg transition-all duration-200 ${
+                    usersItems.some(item => item.id === activeTab)
+                      ? 'bg-secondary text-foreground font-medium shadow-sm'
+                      : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'
+                  }`}
+                >
+                  <div className="flex items-center">
+                    <Users className={`mr-3 h-5 w-5 ${usersItems.some(item => item.id === activeTab) ? 'text-brandPurple' : ''}`} />
+                    Users
+                  </div>
+                  {usersExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                </button>
+                
+                {usersExpanded && (
+                  <ul className="mt-1 ml-4 space-y-1">
+                    {usersItems.map((item) => {
+                      const Icon = item.icon;
+                      const isActive = activeTab === item.id;
+                      
+                      // Hide Users management for non-admin users
+                      if (item.id === 'users' && user?.role !== 'admin') {
+                        return null;
+                      }
+                      
+                      return (
+                        <li key={item.id}>
+                          <button
+                            onClick={() => setActiveTab(item.id)}
+                            className={`w-full flex items-center px-3 py-2.5 text-left rounded-lg transition-all duration-200 ${
+                              isActive
+                                ? 'bg-secondary text-foreground font-medium shadow-sm'
+                                : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'
+                            }`}
+                          >
+                            <Icon className={`mr-3 h-4 w-4 ${isActive ? 'text-brandTeal' : ''}`} />
+                            {item.label}
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </li>
+
+              {/* CRM Submenu */}
               <li>
                 <button
                   onClick={() => setCrmExpanded(!crmExpanded)}
@@ -236,7 +299,7 @@ const CMSDashboard: React.FC = () => {
                   }`}
                 >
                   <div className="flex items-center">
-                    <Users className={`mr-3 h-5 w-5 ${crmItems.some(item => item.id === activeTab) ? 'text-brandPurple' : ''}`} />
+                    <Mail className={`mr-3 h-5 w-5 ${crmItems.some(item => item.id === activeTab) ? 'text-brandPurple' : ''}`} />
                     CRM
                   </div>
                   {crmExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}

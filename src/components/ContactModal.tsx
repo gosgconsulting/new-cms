@@ -13,6 +13,7 @@ const ContactModal = ({ open, onOpenChange }: ContactModalProps) => {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [company, setCompany] = useState("");
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
@@ -22,25 +23,41 @@ const ContactModal = ({ open, onOpenChange }: ContactModalProps) => {
     setIsSubmitting(true);
     
     try {
+      console.log('Submitting contact form...', { name, email, phone, company });
+      
       const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4173';
+      const formData = {
+        form_id: 'contact-modal',
+        form_name: 'Contact Modal Form',
+        name,
+        email,
+        phone: phone || null,
+        company: company || null,
+        message,
+        ip_address: null,
+        user_agent: navigator.userAgent
+      };
+
+      console.log('Form data:', formData);
+      
       const response = await fetch(`${API_BASE_URL}/api/form-submissions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          form_id: 'contact-modal',
-          form_name: 'Contact Modal Form',
-          name,
-          email,
-          phone,
-          message,
-        }),
+        body: JSON.stringify(formData),
       });
 
+      console.log('Response status:', response.status);
+
       if (!response.ok) {
-        throw new Error('Failed to submit form');
+        const errorText = await response.text();
+        console.error('Server error:', errorText);
+        throw new Error(`Server error: ${response.status} - ${errorText}`);
       }
+
+      const result = await response.json();
+      console.log('Form submission successful:', result);
 
       toast({
         title: "Thank you!",
@@ -50,13 +67,14 @@ const ContactModal = ({ open, onOpenChange }: ContactModalProps) => {
       setName("");
       setEmail("");
       setPhone("");
+      setCompany("");
       setMessage("");
       onOpenChange(false);
     } catch (error) {
       console.error('Error submitting form:', error);
       toast({
         title: "Error",
-        description: "There was a problem. Please try again.",
+        description: error instanceof Error ? error.message : "There was a problem. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -112,7 +130,20 @@ const ContactModal = ({ open, onOpenChange }: ContactModalProps) => {
               placeholder="+65 1234 5678"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              required
+              className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+            />
+          </div>
+          
+          <div>
+            <label htmlFor="modal-company" className="block text-sm font-medium text-gray-700 mb-2">
+              Company (optional)
+            </label>
+            <Input
+              id="modal-company"
+              type="text"
+              placeholder="Your Company Name"
+              value={company}
+              onChange={(e) => setCompany(e.target.value)}
               className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
             />
           </div>

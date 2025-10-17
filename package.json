@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\" --names \"backend,frontend\" --prefix-colors \"blue,green\"",
+    "dev:db": "node start-dev-with-db.js",
     "dev:backend": "node server.js",
     "dev:frontend": "vite",
     "build": "vite build",
@@ -15,7 +16,16 @@
     "deploy": "npm run build && npm start",
     "health": "curl -f http://localhost:4173/health || exit 1",
     "migrate": "node migrate-railway-db.js",
-    "migrate:railway": "NODE_ENV=production node migrate-railway-db.js"
+    "migrate:railway": "NODE_ENV=production node migrate-railway-db.js",
+    "mcp:start": "node start-mcp-direct.js",
+    "mcp:persistent": "node start-mcp-postgres-persistent.js",
+    "mcp:build": "cd mcp-database-server && npm install && npm run build",
+    "mcp:setup": "npm run mcp:build && npm run mcp:start",
+    "mcp:test": "node test-mcp-connection.js",
+    "mcp:status": "node check-mcp-status.js",
+    "test:contact": "node test-contact-form.js",
+    "test:form": "node test-form-submission.js",
+    "mcp:fix": "node fix-database-viewer.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
