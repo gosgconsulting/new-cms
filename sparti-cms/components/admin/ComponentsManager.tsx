@@ -422,15 +422,6 @@ const ComponentsManager: React.FC = () => {
                     <ArrowRight className="h-4 w-4" />
                   </Button>
                 </div>
-                
-                {/* Close button - Only one close button now */}
-                <button
-                  onClick={() => setPreviewComponent(null)}
-                  className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors z-50"
-                  aria-label="Close preview"
-                >
-                  <X className="w-4 h-4 text-white" />
-                </button>
               </motion.div>
             )}
           </AnimatePresence>
