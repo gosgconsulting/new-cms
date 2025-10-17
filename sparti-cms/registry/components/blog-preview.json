@@ -5,36 +5,70 @@
   "category": "content",
   "description": "Preview of latest blog posts",
   "properties": {
-    "sectionTitle": {
+    "title": {
       "type": "string",
       "description": "Section title",
       "editable": true,
       "required": true,
-      "default": "Latest from Our Blog"
+      "default": "Latest SEO Insights"
     },
-    "sectionSubtitle": {
+    "subtitle": {
       "type": "string",
       "description": "Section subtitle",
       "editable": true,
-      "default": "SEO tips, insights, and updates"
+      "default": "Stay ahead of the curve with our expert SEO tips, strategies, and industry insights."
     },
-    "postsCount": {
-      "type": "number",
-      "description": "Number of posts to display",
+    "blogPosts": {
+      "type": "array",
+      "description": "Blog posts to display",
       "editable": true,
-      "default": 3
+      "default": [
+        {
+          "id": 1,
+          "slug": "10-essential-seo-strategies-2024",
+          "title": "10 Essential SEO Strategies for 2024",
+          "excerpt": "Discover the latest SEO techniques that will help your website rank higher in search results and drive more organic traffic.",
+          "image": "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=500&h=300&fit=crop",
+          "date": "2024-01-15",
+          "readTime": "5 min read"
+        },
+        {
+          "id": 2,
+          "slug": "optimize-website-local-seo",
+          "title": "How to Optimize Your Website for Local SEO",
+          "excerpt": "Learn the key tactics to improve your local search visibility and attract more customers from your area.",
+          "image": "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=500&h=300&fit=crop",
+          "date": "2024-01-10",
+          "readTime": "7 min read"
+        },
+        {
+          "id": 3,
+          "slug": "complete-guide-technical-seo",
+          "title": "The Complete Guide to Technical SEO",
+          "excerpt": "Master the technical aspects of SEO to ensure your website is properly optimized for search engines.",
+          "image": "https://images.unsplash.com/photo-1432888622747-4eb9a8efeb07?w=500&h=300&fit=crop",
+          "date": "2024-01-05",
+          "readTime": "8 min read"
+        }
+      ]
     },
-    "showAllLink": {
+    "ctaButtonText": {
       "type": "string",
-      "description": "Link to all posts",
+      "description": "CTA button text",
       "editable": true,
-      "default": "/blog"
+      "default": "Get SEO Consultation"
+    },
+    "backgroundColor": {
+      "type": "string",
+      "description": "Background color for the section",
+      "editable": true,
+      "default": "bg-gradient-to-br from-gray-50 to-blue-50/30"
     }
   },
   "editor": "ContainerEditor",
   "version": "1.0.0",
   "tenant_scope": "tenant",
   "tags": ["blog", "posts", "articles", "content"],
-  "dependencies": ["react-router-dom"],
-  "last_updated": "2025-01-28T12:00:00Z"
+  "dependencies": ["react-router-dom", "framer-motion", "lucide-react"],
+  "last_updated": "2025-10-17T12:00:00Z"
 }

@@ -5,25 +5,6 @@
   "category": "content",
   "description": "Showcase of SEO services offered",
   "properties": {
-    "sectionTitle": {
-      "type": "string",
-      "description": "Section title",
-      "editable": true,
-      "required": true,
-      "default": "Our SEO Services"
-    },
-    "sectionSubtitle": {
-      "type": "string",
-      "description": "Section subtitle",
-      "editable": true,
-      "default": "Comprehensive SEO solutions"
-    },
-    "sectionDescription": {
-      "type": "string",
-      "description": "Rich text description for the section",
-      "editable": true,
-      "default": "<p>We offer a comprehensive range of SEO services designed to improve your online visibility, drive more traffic, and increase conversions.</p>"
-    },
     "services": {
       "type": "array",
       "description": "Array of service items",
@@ -31,78 +12,54 @@
       "required": true,
       "default": [
         {
-          "title": "Keyword Research",
-          "description": "<p>We identify the most valuable keywords for your business to target based on search volume, competition, and relevance to your offerings.</p>",
-          "icon": "search",
-          "image": "/placeholder.svg"
+          "id": "keywords-research",
+          "title": "Rank on keywords with",
+          "highlight": "search volume",
+          "description": "Discover high-volume keywords with precise search data and user intent analysis. Find the perfect keywords to target for maximum organic traffic growth.",
+          "buttonText": "Learn More",
+          "images": [
+            "/assets/seo/keyword-research-1.png",
+            "/assets/seo/keyword-research-2.png"
+          ],
+          "reversed": false
         },
         {
-          "title": "On-Page Optimization",
-          "description": "<p>We optimize your website's content, meta tags, and structure to make it more appealing to search engines and users.</p>",
-          "icon": "file-text",
-          "image": "/placeholder.svg"
+          "id": "content-strategy",
+          "title": "Find topics based on",
+          "highlight": "real google search results",
+          "description": "Discover content opportunities by analyzing actual Google search results and user behavior. Get real insights from search data to create content that ranks and converts.",
+          "buttonText": "View Analytics",
+          "images": [
+            "/assets/seo/content-strategy-1.png",
+            "/assets/seo/content-strategy-2.png"
+          ],
+          "reversed": true
         },
         {
-          "title": "Link Building",
-          "description": "<p>We build high-quality backlinks to your website to increase its authority and improve rankings in search results.</p>",
-          "icon": "link",
-          "image": "/placeholder.svg"
+          "id": "link-building",
+          "title": "Build authority with",
+          "highlight": "high-quality backlinks",
+          "description": "Strengthen your website's authority through strategic link building campaigns. Acquire high-quality backlinks from reputable sources to boost your domain authority and rankings.",
+          "buttonText": "Try Link Builder",
+          "images": [
+            "/assets/seo/link-building-1.png",
+            "/assets/seo/link-building-2.png"
+          ],
+          "reversed": false
         }
       ]
-    },
-    "showCTA": {
-      "type": "boolean",
-      "description": "Show CTA button",
-      "editable": true,
-      "default": true
-    },
-    "ctaButtonText": {
-      "type": "string",
-      "description": "CTA button text",
-      "editable": true,
-      "default": "Learn More"
-    },
-    "backgroundType": {
-      "type": "string",
-      "description": "Type of background (color, image, or gradient)",
-      "editable": true,
-      "default": "color"
     },
     "backgroundColor": {
       "type": "string",
       "description": "Background color for the section",
       "editable": true,
       "default": "#ffffff"
-    },
-    "backgroundImage": {
-      "type": "string",
-      "description": "URL of the background image",
-      "editable": true,
-      "default": ""
-    },
-    "gradientStart": {
-      "type": "string",
-      "description": "Start color for gradient background",
-      "editable": true,
-      "default": "#f8f9fa"
-    },
-    "gradientEnd": {
-      "type": "string",
-      "description": "End color for gradient background",
-      "editable": true,
-      "default": "#e9ecef"
-    },
-    "layout": {
-      "type": "string",
-      "description": "Layout style for the services",
-      "editable": true,
-      "default": "grid"
     }
   },
   "editor": "ContainerEditor",
   "version": "1.0.0",
   "tenant_scope": "tenant",
   "tags": ["services", "features", "offerings", "seo"],
-  "dependencies": ["lucide-react", "@tiptap/react", "@tiptap/starter-kit"],
-  "last_updated": "2025-10-16T12:00:00Z"
+  "dependencies": ["framer-motion", "lucide-react"],
+  "last_updated": "2025-10-17T12:00:00Z"
 }

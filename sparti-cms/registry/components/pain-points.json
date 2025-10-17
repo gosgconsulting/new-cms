@@ -5,24 +5,23 @@
   "category": "content",
   "description": "Section highlighting customer pain points",
   "properties": {
-    "sectionTitle": {
+    "badgeText": {
       "type": "string",
-      "description": "Section title",
+      "description": "Text for the top badge",
       "editable": true,
-      "required": true,
-      "default": "Common SEO Challenges"
+      "default": "You have a website but it's not generating clicks?"
     },
-    "sectionSubtitle": {
+    "headingLine1": {
       "type": "string",
-      "description": "Section subtitle",
+      "description": "First part of heading",
       "editable": true,
-      "default": "Problems we solve for businesses"
+      "default": "You Invest... But"
     },
-    "sectionDescription": {
+    "headingLine2": {
       "type": "string",
-      "description": "Rich text description for the section",
+      "description": "Highlighted part of heading",
       "editable": true,
-      "default": "<p>Many businesses struggle with these common SEO challenges. Our solutions are designed to address these pain points effectively.</p>"
+      "default": "Nothing Happens?"
     },
     "painPoints": {
       "type": "array",
@@ -31,73 +30,36 @@
       "required": true,
       "default": [
         {
-          "title": "Low Website Traffic",
-          "description": "<p>Your website isn't getting enough visitors, leading to missed opportunities and lower conversion rates.</p>",
-          "icon": "trending-down"
+          "title": "Organic traffic stuck at 0",
+          "icon": "x"
         },
         {
-          "title": "Poor Search Rankings",
-          "description": "<p>Your website doesn't appear on the first page of search results for important keywords in your industry.</p>",
-          "icon": "search"
+          "title": "No clicks, no leads, no sales",
+          "icon": "mouse-pointer-click"
         },
         {
-          "title": "Low Conversion Rates",
-          "description": "<p>Visitors come to your site but don't take action, resulting in wasted traffic and marketing spend.</p>",
-          "icon": "percent"
+          "title": "Competitors ranking above you",
+          "icon": "bar-chart-3"
         }
       ]
     },
-    "illustrations": {
-      "type": "array",
-      "description": "Images illustrating the pain points",
-      "editable": true,
-      "default": [
-        {
-          "src": "/placeholder.svg",
-          "alt": "Low traffic illustration",
-          "title": "Low Traffic"
-        },
-        {
-          "src": "/placeholder.svg",
-          "alt": "Poor rankings illustration",
-          "title": "Poor Rankings"
-        },
-        {
-          "src": "/placeholder.svg",
-          "alt": "Low conversion rates illustration",
-          "title": "Low Conversion"
-        }
-      ]
-    },
-    "showCTA": {
-      "type": "boolean",
-      "description": "Show CTA button",
-      "editable": true,
-      "default": true
-    },
-    "ctaButtonText": {
+    "backgroundType": {
       "type": "string",
-      "description": "CTA button text",
+      "description": "Type of background",
       "editable": true,
-      "default": "Get Help Now"
-    },
-    "layout": {
-      "type": "string",
-      "description": "Layout style for the pain points",
-      "editable": true,
-      "default": "grid"
+      "default": "gradient"
     },
     "backgroundColor": {
       "type": "string",
       "description": "Background color for the section",
       "editable": true,
-      "default": "#f8f9fa"
+      "default": "#0f172a"
     }
   },
   "editor": "ContainerEditor",
   "version": "1.0.0",
   "tenant_scope": "tenant",
   "tags": ["pain-points", "problems", "content", "features"],
-  "dependencies": ["lucide-react", "@tiptap/react", "@tiptap/starter-kit"],
-  "last_updated": "2025-10-16T12:00:00Z"
+  "dependencies": ["lucide-react", "framer-motion"],
+  "last_updated": "2025-10-17T12:00:00Z"
 }

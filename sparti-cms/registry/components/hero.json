@@ -33,10 +33,10 @@
     },
     "description": {
       "type": "string",
-      "description": "Hero description text (supports rich text formatting)",
+      "description": "Hero description text",
       "editable": true,
       "required": true,
-      "default": "<p>We help businesses dominate search results through proven SEO strategies that increase organic traffic, boost rankings, and drive qualified leads to your website.</p>"
+      "default": "We help businesses dominate search results through proven SEO strategies that increase organic traffic, boost rankings, and drive qualified leads to your website."
     },
     "ctaButtonText": {
       "type": "string",
@@ -50,6 +50,45 @@
       "editable": true,
       "default": true
     },
+    "clientLogos": {
+      "type": "array",
+      "description": "Client logos for the carousel",
+      "editable": true,
+      "default": [
+        {
+          "src": "/assets/logos/art-in-bloom.png",
+          "alt": "Art in Bloom"
+        },
+        {
+          "src": "/assets/logos/selenightco.png",
+          "alt": "Selenightco"
+        },
+        {
+          "src": "/assets/logos/smooy.png",
+          "alt": "Smooy"
+        },
+        {
+          "src": "/assets/logos/solstice.png",
+          "alt": "Solstice"
+        },
+        {
+          "src": "/assets/logos/grub.png",
+          "alt": "Grub"
+        },
+        {
+          "src": "/assets/logos/nail-queen.png",
+          "alt": "Nail Queen"
+        },
+        {
+          "src": "/assets/logos/caro-patisserie.png",
+          "alt": "Caro Pâtisserie"
+        },
+        {
+          "src": "/assets/logos/spirit-stretch.png",
+          "alt": "Spirit Stretch"
+        }
+      ]
+    },
     "backgroundType": {
       "type": "string",
       "description": "Type of background (color, image, or gradient)",
@@ -61,36 +100,12 @@
       "description": "Background color",
       "editable": true,
       "default": "#ffffff"
-    },
-    "backgroundImage": {
-      "type": "string",
-      "description": "URL of the background image",
-      "editable": true,
-      "default": ""
-    },
-    "gradientStart": {
-      "type": "string",
-      "description": "Start color for gradient background",
-      "editable": true,
-      "default": "#f8f9fa"
-    },
-    "gradientEnd": {
-      "type": "string",
-      "description": "End color for gradient background",
-      "editable": true,
-      "default": "#e9ecef"
-    },
-    "gradientDirection": {
-      "type": "string",
-      "description": "Direction of the gradient",
-      "editable": true,
-      "default": "to right"
     }
   },
   "editor": "ContainerEditor",
   "version": "1.0.0",
   "tenant_scope": "tenant",
   "tags": ["hero", "banner", "cta", "homepage"],
-  "dependencies": ["framer-motion", "lucide-react", "@tiptap/react", "@tiptap/starter-kit"],
-  "last_updated": "2025-10-16T12:00:00Z"
+  "dependencies": ["framer-motion", "lucide-react"],
+  "last_updated": "2025-10-17T12:00:00Z"
 }

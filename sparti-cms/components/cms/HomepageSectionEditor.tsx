@@ -24,27 +24,25 @@ interface Section {
 }
 
 const HomepageSectionEditor: React.FC<HomepageSectionEditorProps> = ({ onSave }) => {
-  // Default sections for the homepage
+  // Default sections for the homepage - using IDs that match the registry
   const [sections, setSections] = useState<Section[]>([
     {
-      id: 'header',
+      id: 'header-main',
       type: 'header-main',
       title: 'Header',
       visible: true,
       data: {
-        logoUrl: '/assets/go-sg-logo-official.png',
-        showContactButton: true,
-        contactButtonText: 'Contact Us',
-        navigationItems: [
-          { label: 'Home', url: '/' },
-          { label: 'Services', url: '/services' },
-          { label: 'About', url: '/about' },
-          { label: 'Blog', url: '/blog' }
-        ]
+        logo: {
+          src: '/assets/go-sg-logo-official.png',
+          alt: 'GO SG Digital Marketing Agency'
+        },
+        ctaText: 'Contact Us',
+        showCTA: true,
+        isFixed: true
       }
     },
     {
-      id: 'hero',
+      id: 'hero-main',
       type: 'hero-main',
       title: 'Hero Section',
       visible: true,
@@ -62,31 +60,34 @@ const HomepageSectionEditor: React.FC<HomepageSectionEditorProps> = ({ onSave })
       }
     },
     {
-      id: 'pain-points',
+      id: 'pain-point-section',
       type: 'pain-point-section',
       title: 'Pain Points Section',
       visible: true,
       data: {
-        sectionTitle: 'Common SEO Challenges',
-        sectionSubtitle: 'Problems we solve for businesses',
-        sectionDescription: '<p>Many businesses struggle with these common SEO challenges. Our solutions are designed to address these pain points effectively.</p>',
+        badgeText: 'You have a website but it\'s not generating clicks?',
+        headingLine1: 'You Invest... But',
+        headingLine2: 'Nothing Happens?',
         painPoints: [
           {
-            title: 'Low Website Traffic',
-            description: '<p>Your website isn\'t getting enough visitors, leading to missed opportunities and lower conversion rates.</p>',
-            icon: 'trending-down'
+            title: 'Organic traffic stuck at 0',
+            icon: 'x'
           },
           {
-            title: 'Poor Search Rankings',
-            description: '<p>Your website doesn\'t appear on the first page of search results for important keywords in your industry.</p>',
-            icon: 'search'
+            title: 'No clicks, no leads, no sales',
+            icon: 'mouse-pointer-click'
+          },
+          {
+            title: 'Competitors ranking above you',
+            icon: 'bar-chart-3'
           }
         ],
-        backgroundColor: '#f8f9fa'
+        backgroundType: 'gradient',
+        backgroundColor: '#0f172a'
       }
     },
     {
-      id: 'services',
+      id: 'services-showcase-section',
       type: 'services-showcase-section',
       title: 'Services Showcase',
       visible: true,
@@ -111,7 +112,7 @@ const HomepageSectionEditor: React.FC<HomepageSectionEditorProps> = ({ onSave })
       }
     },
     {
-      id: 'testimonials',
+      id: 'testimonials-section',
       type: 'testimonials-section',
       title: 'Testimonials',
       visible: true,
@@ -135,7 +136,7 @@ const HomepageSectionEditor: React.FC<HomepageSectionEditorProps> = ({ onSave })
       }
     },
     {
-      id: 'faq',
+      id: 'faq-section',
       type: 'faq-section',
       title: 'FAQ Section',
       visible: true,
@@ -155,18 +156,18 @@ const HomepageSectionEditor: React.FC<HomepageSectionEditorProps> = ({ onSave })
       }
     },
     {
-      id: 'blog',
+      id: 'blog-preview-section',
       type: 'blog-preview-section',
       title: 'Blog Section',
       visible: true,
       data: {
-        sectionTitle: 'Latest from Our Blog',
-        sectionSubtitle: 'SEO tips and insights',
-        showPostCount: 3
+        title: 'Latest SEO Insights',
+        subtitle: 'Stay ahead of the curve with our expert SEO tips, strategies, and industry insights.',
+        ctaButtonText: 'Get SEO Consultation'
       }
     },
     {
-      id: 'footer',
+      id: 'footer-main',
       type: 'footer-main',
       title: 'Footer',
       visible: true,
@@ -191,8 +192,79 @@ const HomepageSectionEditor: React.FC<HomepageSectionEditorProps> = ({ onSave })
 
   // Get component schemas from registry
   const getComponentSchema = (type: string) => {
-    return componentRegistry.get(type);
+    // Try to get component directly by type
+    let component = componentRegistry.get(type);
+    
+    if (!component) {
+      // If not found, try to search by name or similar ID
+      const components = componentRegistry.getAll();
+      const matchingComponent = components.find(c => 
+        c.id.includes(type) || 
+        type.includes(c.id) || 
+        c.name.toLowerCase().includes(type.toLowerCase())
+      );
+      
+      if (matchingComponent) {
+        console.log(`Found similar component for ${type}: ${matchingComponent.id}`);
+        component = matchingComponent;
+      } else {
+        console.warn(`Component schema not found for type: ${type}`);
+      }
+    }
+    
+    return component;
   };
+  
+  // Get all available components that can be added to the page
+  const getAvailableComponents = () => {
+    return componentRegistry.getAll().filter(comp => 
+      comp.category === 'content' || comp.category === 'layout'
+    );
+  };
+  
+  // Load components from registry on mount
+  useEffect(() => {
+    // Get all available components from registry
+    const registryComponents = componentRegistry.getAll();
+    
+    // Check if we need to update sections based on registry
+    const shouldUpdateSections = sections.some(section => {
+      const registryComponent = componentRegistry.get(section.type);
+      return !registryComponent; // If component not found in registry, we should update
+    });
+    
+    if (shouldUpdateSections) {
+      console.log('Updating sections from component registry');
+      
+      // Map existing section types to registry component IDs
+      const updatedSections = sections.map(section => {
+        // Try to find matching component in registry
+        let registryComponent = componentRegistry.get(section.type);
+        
+        // If not found directly, try to find by name or similar ID
+        if (!registryComponent) {
+          // Try to find by similar name
+          const similarComponents = componentRegistry.search(section.title);
+          if (similarComponents.length > 0) {
+            registryComponent = similarComponents[0];
+            console.log(`Found similar component for ${section.title}: ${registryComponent.id}`);
+          }
+        }
+        
+        // If found a matching component, update the section type
+        if (registryComponent) {
+          return {
+            ...section,
+            type: registryComponent.id
+          };
+        }
+        
+        return section;
+      });
+      
+      setSections(updatedSections);
+    }
+  }, []);
 
   // Handle section reordering
   const moveSection = (index: number, direction: 'up' | 'down') => {
@@ -223,6 +295,40 @@ const HomepageSectionEditor: React.FC<HomepageSectionEditorProps> = ({ onSave })
     const newSections = [...sections];
     newSections.splice(index, 1);
     setSections(newSections);
+  };
+  
+  // Add a new section from the registry
+  const addSectionFromRegistry = (componentId: string) => {
+    const component = componentRegistry.get(componentId);
+    
+    if (!component) {
+      console.error(`Component with ID ${componentId} not found in registry`);
+      toast.error(`Component not found in registry`);
+      return;
+    }
+    
+    // Create default data object from component properties
+    const defaultData = Object.entries(component.properties).reduce((acc, [key, prop]) => {
+      acc[key] = prop.default;
+      return acc;
+    }, {} as Record<string, any>);
+    
+    // Create new section
+    const newSection: Section = {
+      id: component.id,
+      type: component.id,
+      title: component.name,
+      visible: true,
+      data: defaultData
+    };
+    
+    // Add to sections
+    setSections([...sections, newSection]);
+    
+    // Set as active section
+    setActiveSection(component.id);
+    
+    toast.success(`Added ${component.name} section`);
   };
 
   // Handle section data update
@@ -288,6 +394,13 @@ const HomepageSectionEditor: React.FC<HomepageSectionEditorProps> = ({ onSave })
   // Get the active section
   const activeSectionData = sections.find(section => section.id === activeSection);
   const activeSectionSchema = activeSectionData ? getComponentSchema(activeSectionData.type) : null;
+  
+  // Log warning if schema not found
+  useEffect(() => {
+    if (activeSectionData && !activeSectionSchema) {
+      console.warn(`Component schema not found for section type: ${activeSectionData.type}`);
+    }
+  }, [activeSectionData, activeSectionSchema]);
 
   // Render editor for different property types
   const renderPropertyEditor = (property: any, propertyName: string, sectionId: string, path: string[] = []) => {
@@ -544,8 +657,26 @@ const HomepageSectionEditor: React.FC<HomepageSectionEditorProps> = ({ onSave })
         <div className="space-y-4">
           <h3 className="text-lg font-medium">Sections</h3>
           <div className="border rounded-lg overflow-hidden">
-            <div className="bg-secondary/20 p-3 border-b">
+            <div className="bg-secondary/20 p-3 border-b flex justify-between items-center">
               <p className="text-sm font-medium">Arrange and Configure Sections</p>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => {
+                  const availableComponents = getAvailableComponents();
+                  // For simplicity, we'll just add the first available component
+                  // In a real implementation, you'd show a dropdown or modal to select
+                  if (availableComponents.length > 0) {
+                    const randomIndex = Math.floor(Math.random() * availableComponents.length);
+                    const componentToAdd = availableComponents[randomIndex];
+                    addSectionFromRegistry(componentToAdd.id);
+                  } else {
+                    toast.error("No components available to add");
+                  }
+                }}
+              >
+                <Plus className="h-4 w-4 mr-1" /> Add Section
+              </Button>
             </div>
             <div className="divide-y">
               {sections.map((section, index) => (
@@ -561,10 +692,10 @@ const HomepageSectionEditor: React.FC<HomepageSectionEditorProps> = ({ onSave })
                     <span>{section.title}</span>
                   </div>
                   <div className="flex gap-1">
-                    <Button variant="ghost" size="icon" onClick={() => moveSection(index, 'up')}>
+                    <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); moveSection(index, 'up'); }}>
                       <ArrowUp className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="icon" onClick={() => moveSection(index, 'down')}>
+                    <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); moveSection(index, 'down'); }}>
                       <ArrowDown className="h-4 w-4" />
                     </Button>
                   </div>
@@ -611,11 +742,35 @@ const HomepageSectionEditor: React.FC<HomepageSectionEditorProps> = ({ onSave })
 
                 {/* All Properties */}
                 <div className="space-y-6">
-                  {activeSectionSchema && Object.entries(activeSectionSchema.properties).map(([key, prop]) => (
-                    <div key={key}>
-                      {renderPropertyEditor(prop, key, activeSectionData.id)}
+                  {activeSectionSchema ? (
+                    Object.entries(activeSectionSchema.properties).map(([key, prop]) => (
+                      <div key={key}>
+                        {renderPropertyEditor(prop, key, activeSectionData.id)}
+                      </div>
+                    ))
+                  ) : (
+                    <div className="p-6 border-2 border-dashed rounded-lg text-center">
+                      <p className="text-muted-foreground">
+                        Component schema not found for this section. Using fallback editor.
+                      </p>
+                      {/* Fallback editor for data properties */}
+                      {activeSectionData && Object.entries(activeSectionData.data).map(([key, value]) => {
+                        // Create a mock property based on value type
+                        const mockProp = {
+                          type: typeof value === 'object' ? 'object' : typeof value,
+                          description: key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1'),
+                          editable: true,
+                          default: value
+                        };
+                        
+                        return (
+                          <div key={key} className="mt-4">
+                            {renderPropertyEditor(mockProp, key, activeSectionData.id)}
+                          </div>
+                        );
+                      })}
                     </div>
-                  ))}
+                  )}
                 </div>
               </CardContent>
             </Card>

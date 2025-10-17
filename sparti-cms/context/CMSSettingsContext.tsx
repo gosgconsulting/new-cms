@@ -120,6 +120,19 @@ export const CMSSettingsProvider: React.FC<{ children: ReactNode }> = ({ childre
     if (storedSettings) {
       try {
         const parsedSettings = JSON.parse(storedSettings);
+        
+        // Ensure mediaFolders is always an array
+        if (!parsedSettings.mediaFolders || !Array.isArray(parsedSettings.mediaFolders)) {
+          parsedSettings.mediaFolders = [
+            { id: 'uncategorized', name: 'Uncategorized', itemCount: 0 }
+          ];
+        }
+        
+        // Ensure mediaItems is always an array
+        if (!parsedSettings.mediaItems || !Array.isArray(parsedSettings.mediaItems)) {
+          parsedSettings.mediaItems = [];
+        }
+        
         setSettings(parsedSettings);
       } catch (error) {
         console.error('Failed to parse stored settings:', error);
@@ -171,7 +184,7 @@ export const CMSSettingsProvider: React.FC<{ children: ReactNode }> = ({ childre
   const addMediaItem = (item: MediaItem) => {
     setSettings(prev => ({
       ...prev,
-      mediaItems: [item, ...prev.mediaItems],
+      mediaItems: Array.isArray(prev.mediaItems) ? [item, ...prev.mediaItems] : [item],
     }));
   };
 
@@ -179,7 +192,9 @@ export const CMSSettingsProvider: React.FC<{ children: ReactNode }> = ({ childre
   const removeMediaItem = (id: string) => {
     setSettings(prev => ({
       ...prev,
-      mediaItems: prev.mediaItems.filter(item => item.id !== id),
+      mediaItems: Array.isArray(prev.mediaItems) 
+        ? prev.mediaItems.filter(item => item.id !== id)
+        : [],
     }));
   };
 
@@ -187,7 +202,7 @@ export const CMSSettingsProvider: React.FC<{ children: ReactNode }> = ({ childre
   const addMediaFolder = (folder: MediaFolder) => {
     setSettings(prev => ({
       ...prev,
-      mediaFolders: [...prev.mediaFolders, folder],
+      mediaFolders: Array.isArray(prev.mediaFolders) ? [...prev.mediaFolders, folder] : [folder],
     }));
   };
 
@@ -195,7 +210,9 @@ export const CMSSettingsProvider: React.FC<{ children: ReactNode }> = ({ childre
   const removeMediaFolder = (id: string) => {
     setSettings(prev => ({
       ...prev,
-      mediaFolders: prev.mediaFolders.filter(folder => folder.id !== id),
+      mediaFolders: Array.isArray(prev.mediaFolders) 
+        ? prev.mediaFolders.filter(folder => folder.id !== id)
+        : [{ id: 'uncategorized', name: 'Uncategorized', itemCount: 0 }],
     }));
   };
 
@@ -203,9 +220,11 @@ export const CMSSettingsProvider: React.FC<{ children: ReactNode }> = ({ childre
   const updateMediaItemFolder = (itemId: string, folderId: string | null) => {
     setSettings(prev => ({
       ...prev,
-      mediaItems: prev.mediaItems.map(item =>
-        item.id === itemId ? { ...item, folderId } : item
-      ),
+      mediaItems: Array.isArray(prev.mediaItems) 
+        ? prev.mediaItems.map(item =>
+            item.id === itemId ? { ...item, folderId } : item
+          )
+        : [],
     }));
   };
 

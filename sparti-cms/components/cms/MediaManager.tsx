@@ -1,6 +1,7 @@
-import React, { useState, ChangeEvent } from 'react';
+import React, { useState, ChangeEvent, useEffect } from 'react';
 import { useCMSSettings } from '../../context/CMSSettingsContext';
-import { Upload, Trash2, Search, Grid, List, Image as ImageIcon, FileText, Film, Music, File, Folder, FolderPlus, X } from 'lucide-react';
+import { Upload, Trash2, Search, Grid, List, Image as ImageIcon, FileText, Film, Music, File, Folder, FolderPlus, X, RefreshCw } from 'lucide-react';
+import { scanAssetsDirectory } from '../../utils/media-scanner';
 
 interface MediaItem {
   id: string;
@@ -20,8 +21,8 @@ interface MediaFolder {
 
 const MediaManager: React.FC = () => {
   const { settings, addMediaItem, removeMediaItem, addMediaFolder, removeMediaFolder, updateMediaItemFolder } = useCMSSettings();
-  const mediaItems = settings.mediaItems || [];
-  const mediaFolders = settings.mediaFolders || [{ id: 'uncategorized', name: 'Uncategorized', itemCount: 0 }];
+  const mediaItems = Array.isArray(settings.mediaItems) ? settings.mediaItems : [];
+  const mediaFolders = Array.isArray(settings.mediaFolders) ? settings.mediaFolders : [{ id: 'uncategorized', name: 'Uncategorized', itemCount: 0 }];
   
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -31,7 +32,48 @@ const MediaManager: React.FC = () => {
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
   const [showNewFolderDialog, setShowNewFolderDialog] = useState<boolean>(false);
   const [newFolderName, setNewFolderName] = useState<string>('');
+  const [isSyncing, setIsSyncing] = useState<boolean>(false);
+  const [showDebugInfo, setShowDebugInfo] = useState<boolean>(false);
   
+  // Initial load of assets from src/assets directory
+  useEffect(() => {
+    // Always sync assets on initial load to ensure we have the latest files
+    syncAssetsDirectory();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Function to sync media items with src/assets directory
+  const syncAssetsDirectory = async () => {
+    setIsSyncing(true);
+    try {
+      const { mediaItems: scannedItems, mediaFolders: scannedFolders } = await scanAssetsDirectory();
+      
+      // Replace existing media items and folders with scanned ones
+      if (Array.isArray(scannedFolders)) {
+        scannedFolders.forEach(folder => {
+          // Only add folders that don't exist yet
+          if (!mediaFolders.find(f => f.id === folder.id)) {
+            addMediaFolder(folder);
+          }
+        });
+      }
+      
+      // Add new media items
+      if (Array.isArray(scannedItems)) {
+        scannedItems.forEach(item => {
+          // Check if item already exists by URL to avoid duplicates
+          if (!mediaItems.find(existingItem => existingItem.url === item.url)) {
+            addMediaItem(item);
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Error syncing assets directory:', error);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   const handleFileUpload = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       setUploading(true);
@@ -140,11 +182,23 @@ const MediaManager: React.FC = () => {
   // Filter media items based on search query and selected folder
   const filteredItems = mediaItems.filter(item => {
     const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesFolder = selectedFolder === null 
-      ? !item.folderId || item.folderId === 'uncategorized'
-      : item.folderId === selectedFolder;
+    let matchesFolder = false;
+    
+    if (selectedFolder === null) {
+      // Show items without a folder or with 'uncategorized' folder in the Uncategorized section
+      matchesFolder = !item.folderId || item.folderId === 'uncategorized';
+    } else {
+      // For other folders, match by folder ID
+      matchesFolder = item.folderId === selectedFolder;
+    }
+    
     return matchesSearch && matchesFolder;
   });
+  
+  // Debug: log items and their folders
+  console.log('Media items with folders:', mediaItems.map(item => ({ name: item.name, folder: item.folderId })));
+  console.log('Selected folder:', selectedFolder);
+  console.log('Filtered items:', filteredItems.map(item => item.name));
   
   // Calculate folder item counts
   const foldersWithCounts = mediaFolders.map(folder => ({
@@ -239,7 +293,7 @@ const MediaManager: React.FC = () => {
       {/* Main Content */}
       <div className="flex-1 bg-white rounded-lg shadow-sm border p-6">
         <h2 className="text-2xl font-bold text-gray-900 mb-2">Media Manager</h2>
-        <p className="text-gray-600 mb-6">Upload, organize, and manage your media files</p>
+        <p className="text-gray-600 mb-6">Upload, organize, and manage your media files from the src/assets directory.</p>
         
         {/* Upload and Actions Bar */}
         <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
@@ -254,6 +308,17 @@ const MediaManager: React.FC = () => {
                 onChange={handleFileUpload}
               />
             </label>
+            
+            {/* Sync Assets button can be commented out if not needed */}
+            {/* <button
+              onClick={syncAssetsDirectory}
+              disabled={isSyncing}
+              className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors flex items-center disabled:bg-gray-400"
+              title="Sync with src/assets directory"
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
+              {isSyncing ? 'Syncing...' : 'Sync Assets'}
+            </button> */}
             
             {selectedItems.length > 0 && (
               <button 
@@ -436,6 +501,36 @@ const MediaManager: React.FC = () => {
           </div>
         )}
         
+        {/* Debug Information */}
+        {showDebugInfo && (
+          <div className="mt-6 p-4 bg-gray-100 rounded-lg border border-gray-300 overflow-auto">
+            <h3 className="text-lg font-semibold mb-2">Debug Information</h3>
+            <div className="mb-4">
+              <h4 className="font-medium">Media Folders:</h4>
+              <pre className="bg-white p-2 rounded text-xs overflow-auto max-h-40">
+                {JSON.stringify(mediaFolders, null, 2)}
+              </pre>
+            </div>
+            <div>
+              <h4 className="font-medium">Media Items:</h4>
+              <pre className="bg-white p-2 rounded text-xs overflow-auto max-h-40">
+                {JSON.stringify(mediaItems.map(item => ({ 
+                  id: item.id,
+                  name: item.name, 
+                  folderId: item.folderId,
+                  url: item.url
+                })), null, 2)}
+              </pre>
+            </div>
+            <button 
+              onClick={() => setShowDebugInfo(false)}
+              className="mt-2 px-3 py-1 bg-gray-500 text-white rounded hover:bg-gray-600"
+            >
+              Hide Debug Info
+            </button>
+          </div>
+        )}
+        
         {/* Media Stats */}
         <div className="mt-6 flex flex-wrap gap-4">
           <div className="bg-gray-50 rounded-md p-4 flex-1">
@@ -460,6 +555,15 @@ const MediaManager: React.FC = () => {
               {formatFileSize(mediaItems.reduce((acc, item) => acc + item.size, 0))}
             </p>
           </div>
+        </div>
+        
+        <div className="mt-4 text-center">
+          <button 
+            onClick={() => setShowDebugInfo(!showDebugInfo)}
+            className="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 text-sm"
+          >
+            {showDebugInfo ? 'Hide' : 'Show'} Debug Info
+          </button>
         </div>
       </div>
     </div>

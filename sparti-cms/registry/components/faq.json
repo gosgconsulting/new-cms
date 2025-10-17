@@ -5,31 +5,44 @@
   "category": "interactive",
   "description": "Frequently asked questions with accordion",
   "properties": {
-    "sectionTitle": {
+    "title": {
       "type": "string",
       "description": "Section title",
       "editable": true,
       "required": true,
       "default": "Frequently Asked Questions"
     },
-    "sectionSubtitle": {
+    "subtitle": {
       "type": "string",
       "description": "Section subtitle",
       "editable": true,
-      "default": "Everything you need to know"
+      "default": "Everything you need to know about our SEO services"
     },
-    "faqs": {
+    "items": {
       "type": "array",
       "description": "Array of FAQ items",
       "editable": true,
       "required": true,
-      "default": []
+      "default": [
+        {
+          "question": "How long does it take to see results from SEO?",
+          "answer": "Most clients start seeing initial improvements within 1-2 months, with significant results typically appearing around the 3-4 month mark. SEO is a long-term strategy, and results continue to compound over time."
+        },
+        {
+          "question": "What services are included in your SEO packages?",
+          "answer": "Our comprehensive SEO packages include keyword research, technical SEO audits, on-page optimization, content creation, link building, local SEO, and detailed monthly reporting with actionable insights."
+        },
+        {
+          "question": "How do you measure SEO success?",
+          "answer": "We track multiple metrics including organic traffic growth, keyword rankings, conversion rates, backlink quality and quantity, page load speed, and ultimately, your return on investment from organic search."
+        }
+      ]
     }
   },
   "editor": "ContainerEditor",
   "version": "1.0.0",
   "tenant_scope": "tenant",
   "tags": ["faq", "questions", "accordion", "interactive"],
-  "dependencies": ["@radix-ui/react-accordion"],
-  "last_updated": "2025-01-28T12:00:00Z"
+  "dependencies": ["framer-motion", "lucide-react"],
+  "last_updated": "2025-10-17T12:00:00Z"
 }

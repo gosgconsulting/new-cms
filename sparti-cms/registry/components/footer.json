@@ -29,13 +29,47 @@
       "type": "array",
       "description": "Contact link items",
       "editable": true,
-      "default": []
+      "default": [
+        {
+          "text": "WhatsApp",
+          "url": "https://wa.me/1234567890"
+        },
+        {
+          "text": "Book a Meeting",
+          "url": "https://calendly.com"
+        }
+      ]
+    },
+    "legalLinks": {
+      "type": "array",
+      "description": "Legal link items",
+      "editable": true,
+      "default": [
+        {
+          "text": "Privacy Policy",
+          "url": "/privacy-policy"
+        },
+        {
+          "text": "Terms of Service",
+          "url": "/terms-of-service"
+        },
+        {
+          "text": "Blog",
+          "url": "/blog"
+        }
+      ]
     },
     "copyrightText": {
       "type": "string",
       "description": "Copyright text",
       "editable": true,
       "default": "GO SG CONSULTING. All rights reserved."
+    },
+    "backgroundColor": {
+      "type": "string",
+      "description": "Background color for the footer",
+      "editable": true,
+      "default": "#0f172a"
     }
   },
   "editor": "ContainerEditor",
@@ -43,5 +77,5 @@
   "tenant_scope": "tenant",
   "tags": ["footer", "layout", "global", "cta"],
   "dependencies": ["react-router-dom", "lucide-react"],
-  "last_updated": "2025-01-28T12:00:00Z"
+  "last_updated": "2025-10-17T12:00:00Z"
 }

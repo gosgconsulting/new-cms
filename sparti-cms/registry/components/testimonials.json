@@ -10,26 +10,63 @@
       "description": "Section title",
       "editable": true,
       "required": true,
-      "default": "What Our Clients Say"
+      "default": "What our clients say"
     },
     "sectionSubtitle": {
       "type": "string",
       "description": "Section subtitle",
       "editable": true,
-      "default": "Real feedback from satisfied customers"
+      "default": "See what our customers have to say about our SEO services and results."
     },
     "testimonials": {
       "type": "array",
       "description": "Array of testimonial items",
       "editable": true,
       "required": true,
-      "default": []
+      "default": [
+        {
+          "text": "GoSG's SEO strategies boosted our organic traffic by 400% in just 3 months. Our website now ranks #1 for our main keywords.",
+          "image": "https://randomuser.me/api/portraits/women/1.jpg",
+          "name": "Sarah Chen",
+          "role": "Marketing Director"
+        },
+        {
+          "text": "Their technical SEO audit revealed critical issues we didn't know existed. After fixes, our search rankings improved dramatically.",
+          "image": "https://randomuser.me/api/portraits/men/2.jpg",
+          "name": "Marcus Tan",
+          "role": "Business Owner"
+        },
+        {
+          "text": "GoSG's local SEO expertise helped us dominate Singapore search results. We're now the top choice in our area.",
+          "image": "https://randomuser.me/api/portraits/women/3.jpg",
+          "name": "Priya Sharma",
+          "role": "E-commerce Manager"
+        },
+        {
+          "text": "From page 5 to page 1 in Google in just 4 months. GoSG's SEO approach delivered exactly what they promised.",
+          "image": "https://randomuser.me/api/portraits/men/4.jpg",
+          "name": "David Lim",
+          "role": "CEO"
+        },
+        {
+          "text": "Their SEO content strategy doubled our organic leads. Every blog post now ranks and brings qualified traffic.",
+          "image": "https://randomuser.me/api/portraits/women/5.jpg",
+          "name": "Jennifer Wong",
+          "role": "Operations Manager"
+        }
+      ]
+    },
+    "backgroundColor": {
+      "type": "string",
+      "description": "Background color for the section",
+      "editable": true,
+      "default": "#f9fafb"
     }
   },
   "editor": "ContainerEditor",
   "version": "1.0.0",
   "tenant_scope": "tenant",
   "tags": ["testimonials", "reviews", "social-proof", "trust"],
-  "dependencies": [],
-  "last_updated": "2025-01-28T12:00:00Z"
+  "dependencies": ["framer-motion"],
+  "last_updated": "2025-10-17T12:00:00Z"
 }
