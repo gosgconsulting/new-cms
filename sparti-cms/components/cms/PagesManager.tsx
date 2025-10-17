@@ -50,20 +50,6 @@ const defaultPages: PageItem[] = [
     status: 'published',
     type: 'legal',
   },
-  {
-    id: '6',
-    title: 'Main Header',
-    slug: '/components/header',
-    status: 'published',
-    type: 'header',
-  },
-  {
-    id: '7',
-    title: 'Main Footer',
-    slug: '/components/footer',
-    status: 'published',
-    type: 'footer',
-  },
 ];
 
 export const PagesManager: React.FC = () => {
@@ -75,8 +61,6 @@ export const PagesManager: React.FC = () => {
     { id: 'page' as const, label: 'Pages', icon: FileText },
     { id: 'landing' as const, label: 'Landing Pages', icon: Rocket },
     { id: 'legal' as const, label: 'Legals', icon: Scale },
-    { id: 'header' as const, label: 'Header', icon: Layout },
-    { id: 'footer' as const, label: 'Footer', icon: Minus },
   ];
 
   const handleEditPage = (pageId: string) => {
