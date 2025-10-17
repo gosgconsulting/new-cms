@@ -88,7 +88,34 @@ export const PagesManager: React.FC = () => {
   }
 
   // Filter pages based on active tab
-  const filteredPages = pages.filter(page => page.type === activeTab);
+  const filteredPages = pages.filter(page => page.page_type === activeTab);
+
+  if (loading) {
+    return (
+      <div className="max-w-6xl mx-auto">
+        <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <div className="text-center py-12">
+            <p className="text-gray-500">Loading pages...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-6xl mx-auto">
+        <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <div className="text-center py-12">
+            <p className="text-red-600">Error: {error}</p>
+            <Button onClick={loadPages} className="mt-4">
+              Retry
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -126,7 +153,7 @@ export const PagesManager: React.FC = () => {
                 {tabs.find(t => t.id === activeTab)?.label}
               </h3>
               <p className="text-sm text-gray-600 mb-6">
-                Manage your {tabs.find(t => t.id === activeTab)?.label.toLowerCase()}
+                Manage your {tabs.find(t => t.id === activeTab)?.label.toLowerCase()}. Click on any slug to edit it.
               </p>
             </div>
 
@@ -139,17 +166,46 @@ export const PagesManager: React.FC = () => {
                 filteredPages.map((page) => (
                   <Card key={page.id} className="p-4">
                     <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-1">
-                          <h3 className="text-lg font-semibold">{page.title}</h3>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-3 mb-2">
+                          <h3 className="text-lg font-semibold">{page.page_name}</h3>
                           <Badge 
                             variant={page.status === 'published' ? 'default' : 'secondary'}
                             className="text-xs"
                           >
                             {page.status}
                           </Badge>
+                          {page.seo_index === false && (
+                            <Badge variant="outline" className="text-xs">
+                              NOINDEX
+                            </Badge>
+                          )}
                         </div>
-                        <p className="text-sm text-muted-foreground">{page.slug}</p>
+                        <div className="mb-1">
+                          <EditableSlug
+                            pageId={page.id}
+                            pageType={page.page_type}
+                            currentSlug={page.slug}
+                            pageName={page.page_name}
+                            isHomepage={page.slug === '/'}
+                            onSlugUpdate={(newSlug) => handleSlugUpdate(page.id, newSlug)}
+                          />
+                        </div>
+                        {page.meta_title && (
+                          <p className="text-xs text-gray-500 truncate">
+                            Meta: {page.meta_title}
+                          </p>
+                        )}
+                        {page.page_type === 'landing' && page.campaign_source && (
+                          <p className="text-xs text-blue-600">
+                            Campaign: {page.campaign_source} → {page.conversion_goal}
+                          </p>
+                        )}
+                        {page.page_type === 'legal' && page.version && (
+                          <p className="text-xs text-purple-600">
+                            Version: {page.version} | Type: {page.legal_type}
+                          </p>
+                        )}
                       </div>
                       <div className="flex items-center gap-2">
                         <Button
@@ -175,9 +231,10 @@ export const PagesManager: React.FC = () => {
               )}
             </div>
 
-            <div className="mt-8 p-4 bg-gray-50 rounded-lg border border-gray-200">
-              <p className="text-sm text-gray-600">
-                <strong>Note:</strong> These are the core pages of your website. To add custom pages, please contact support.
+            <div className="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <p className="text-sm text-blue-800">
+                <strong>Slug Editing:</strong> Click on any slug to edit it. Homepage slug cannot be changed. 
+                If you change the blog slug, remember to update blog post URLs in the frontend code.
               </p>
             </div>
           </div>
