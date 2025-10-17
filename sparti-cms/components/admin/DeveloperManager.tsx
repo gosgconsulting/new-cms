@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
-import { Database, Plus, FolderKanban, Puzzle, FileCode, Code, Globe, Monitor } from 'lucide-react';
+import { Database, Plus, FolderKanban, Puzzle, FileCode, Code, Globe, Monitor, FileText } from 'lucide-react';
 
 interface Project {
   id: string;
@@ -25,6 +25,7 @@ const DeveloperManager: React.FC = () => {
     { id: 'projects', label: 'Projects', icon: FolderKanban },
     { id: 'integrations', label: 'Integrations', icon: Puzzle },
     { id: 'code', label: 'Code', icon: Code },
+    { id: 'robots', label: 'Robots.txt', icon: FileText },
     { id: 'rules', label: 'Rules', icon: FileCode },
   ];
 
@@ -36,6 +37,8 @@ const DeveloperManager: React.FC = () => {
         return <IntegrationsTab />;
       case 'code':
         return <CodeTab />;
+      case 'robots':
+        return <RobotsTxtTab />;
       case 'rules':
         return <RulesTab />;
       default:
@@ -627,6 +630,139 @@ const CodeTab: React.FC = () => {
           Save Changes
         </Button>
       </div>
+    </div>
+  );
+};
+
+const RobotsTxtTab: React.FC = () => {
+  const [robotsTxt, setRobotsTxt] = React.useState('');
+  const [isLoading, setIsLoading] = React.useState(true);
+  const [isSaving, setIsSaving] = React.useState(false);
+  const [lastSaved, setLastSaved] = React.useState<string>('');
+
+  React.useEffect(() => {
+    loadRobotsTxt();
+  }, []);
+
+  const loadRobotsTxt = async () => {
+    try {
+      const response = await fetch('/robots.txt');
+      if (response.ok) {
+        const content = await response.text();
+        setRobotsTxt(content);
+      }
+    } catch (error) {
+      console.error('Error loading robots.txt:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      // In a real implementation, this would save to the server
+      // For now, we'll just simulate a save
+      await new Promise(resolve => setTimeout(resolve, 500));
+      setLastSaved(new Date().toLocaleTimeString());
+      console.log('Robots.txt saved:', robotsTxt);
+    } catch (error) {
+      console.error('Error saving robots.txt:', error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Robots.txt Configuration</h3>
+        <p className="text-sm text-gray-600 mb-6">
+          Configure how search engines crawl your website. The robots.txt file tells search engine crawlers which pages they can or can't request from your site.
+        </p>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>robots.txt Content</CardTitle>
+              <CardDescription>Edit your site's robots.txt file</CardDescription>
+            </div>
+            {lastSaved && (
+              <span className="text-xs text-muted-foreground">
+                Last saved: {lastSaved}
+              </span>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {isLoading ? (
+            <div className="h-96 flex items-center justify-center">
+              <div className="animate-pulse text-muted-foreground">Loading...</div>
+            </div>
+          ) : (
+            <>
+              <div className="bg-muted/50 rounded-lg p-4 border">
+                <textarea
+                  value={robotsTxt}
+                  onChange={(e) => setRobotsTxt(e.target.value)}
+                  className="w-full h-96 font-mono text-sm bg-transparent border-none focus:outline-none resize-none"
+                  placeholder="User-agent: *&#10;Allow: /"
+                />
+              </div>
+
+              <div className="flex items-center justify-between pt-4">
+                <div className="text-sm text-muted-foreground">
+                  <p>Current URL: <span className="font-mono">{window.location.origin}/robots.txt</span></p>
+                </div>
+                <div className="flex gap-2">
+                  <Button variant="outline" onClick={loadRobotsTxt}>
+                    Reset
+                  </Button>
+                  <Button onClick={handleSave} disabled={isSaving}>
+                    {isSaving ? 'Saving...' : 'Save Changes'}
+                  </Button>
+                </div>
+              </div>
+            </>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Common Directives</CardTitle>
+          <CardDescription>Quick reference for robots.txt syntax</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="bg-muted/50 rounded-lg p-4">
+              <h4 className="font-medium mb-2">User-agent</h4>
+              <p className="text-sm text-muted-foreground mb-2">Specifies which crawler the rules apply to</p>
+              <code className="text-xs bg-background px-2 py-1 rounded">User-agent: Googlebot</code>
+            </div>
+            
+            <div className="bg-muted/50 rounded-lg p-4">
+              <h4 className="font-medium mb-2">Allow</h4>
+              <p className="text-sm text-muted-foreground mb-2">Allows crawlers to access specific paths</p>
+              <code className="text-xs bg-background px-2 py-1 rounded">Allow: /public/</code>
+            </div>
+            
+            <div className="bg-muted/50 rounded-lg p-4">
+              <h4 className="font-medium mb-2">Disallow</h4>
+              <p className="text-sm text-muted-foreground mb-2">Blocks crawlers from accessing specific paths</p>
+              <code className="text-xs bg-background px-2 py-1 rounded">Disallow: /admin/</code>
+            </div>
+            
+            <div className="bg-muted/50 rounded-lg p-4">
+              <h4 className="font-medium mb-2">Sitemap</h4>
+              <p className="text-sm text-muted-foreground mb-2">Points to your sitemap location</p>
+              <code className="text-xs bg-background px-2 py-1 rounded">Sitemap: https://example.com/sitemap.xml</code>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
