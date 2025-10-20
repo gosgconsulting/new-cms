@@ -37,6 +37,9 @@ import {
   getTerms
 } from './sparti-cms/db/postgres.js';
 import pool from './sparti-cms/db/postgres.js';
+import { renderPageBySlug } from './sparti-cms/render/pageRenderer.js';
+import { getLayoutBySlug, upsertLayoutBySlug } from './sparti-cms/db/postgres.js';
+import cacheStore, { getPageCache, setPageCache, invalidateBySlug, invalidateAll } from './sparti-cms/cache/index.js';
 
 // Import mock data for development
 import {
@@ -160,6 +163,8 @@ app.post('/api/branding', async (req, res) => {
   try {
     console.log('[testing] API: Updating branding settings:', req.body);
     await updateMultipleBrandingSettings(req.body);
+    // Smart invalidation: settings can affect many pages; clear all for now
+    try { invalidateAll(); } catch (e) { /* no-op */ }
     res.json({ success: true, message: 'Branding settings updated successfully' });
   } catch (error) {
     console.error('[testing] API: Error updating branding settings:', error);
@@ -1581,6 +1586,105 @@ app.get('/api/seo-meta/:objectType/:objectId', async (req, res) => {
   } catch (error) {
     console.error('[testing] Error fetching SEO meta:', error);
     res.status(500).json({ error: 'Failed to fetch SEO meta' });
+  }
+});
+
+// Server-rendered page with full-page cache
+app.get('/r/*', async (req, res) => {
+  try {
+    const slug = '/' + req.params[0];
+    const cached = getPageCache(slug);
+    if (cached) {
+      res.setHeader('ETag', cached.etag);
+      res.setHeader('Cache-Control', 'public, max-age=30');
+      return res.status(200).send(cached.html);
+    }
+
+    const result = await renderPageBySlug(slug);
+    if (result.status === 404) {
+      return res.status(404).send('<h1>Not Found</h1>');
+    }
+
+    const etag = 'W/"' + Buffer.from(String(result.html.length)).toString('hex') + '"';
+    setPageCache(slug, { html: result.html, etag, renderedAt: Date.now() });
+
+    res.setHeader('ETag', etag);
+    res.setHeader('Cache-Control', 'public, max-age=30');
+    res.status(200).send(result.html);
+  } catch (error) {
+    console.error('[testing] Error rendering page:', error);
+    res.status(500).send('<h1>Internal Server Error</h1>');
+  }
+});
+
+// Cache invalidation endpoint (admin-use; add auth later)
+app.post('/api/cache/invalidate', async (req, res) => {
+  try {
+    const { slug, all } = req.body || {};
+    if (all) {
+      invalidateAll();
+      return res.json({ ok: true, cleared: 'all' });
+    }
+    if (slug) {
+      invalidateBySlug(slug);
+      return res.json({ ok: true, cleared: slug });
+    }
+    return res.status(400).json({ error: 'Provide slug or all=true' });
+  } catch (error) {
+    console.error('[testing] Cache invalidation error:', error);
+    res.status(500).json({ error: 'Failed to invalidate cache' });
+  }
+});
+
+// Layout CRUD (minimal, add auth later)
+app.get('/api/pages/:slug/layout', async (req, res) => {
+  try {
+    const layout = await getLayoutBySlug('/' + req.params.slug.replace(/^\//, ''));
+    if (!layout) return res.status(404).json({ error: 'Page not found' });
+    res.json(layout.layout_json || { components: [] });
+  } catch (error) {
+    console.error('[testing] Error getting layout:', error);
+    res.status(500).json({ error: 'Failed to get layout' });
+  }
+});
+
+app.put('/api/pages/:slug/layout', async (req, res) => {
+  try {
+    const slug = '/' + req.params.slug.replace(/^\//, '');
+    const layoutJson = req.body?.components ? req.body : { components: [] };
+    const updated = await upsertLayoutBySlug(slug, layoutJson);
+    // Invalidate cache for this page
+    invalidateBySlug(slug);
+    res.json({ ok: true, version: updated.version });
+  } catch (error) {
+    console.error('[testing] Error updating layout:', error);
+    res.status(500).json({ error: 'Failed to update layout' });
+  }
+});
+
+// Alternative layout endpoints supporting slashes via query param (slug=/ etc.)
+app.get('/api/layout', async (req, res) => {
+  try {
+    const slug = typeof req.query.slug === 'string' ? req.query.slug : '/';
+    const layout = await getLayoutBySlug(slug);
+    if (!layout) return res.status(404).json({ error: 'Page not found' });
+    res.json(layout.layout_json || { components: [] });
+  } catch (error) {
+    console.error('[testing] Error getting layout (query):', error);
+    res.status(500).json({ error: 'Failed to get layout' });
+  }
+});
+
+app.put('/api/layout', async (req, res) => {
+  try {
+    const slug = typeof req.query.slug === 'string' ? req.query.slug : '/';
+    const layoutJson = req.body && req.body.components ? req.body : { components: [] };
+    const updated = await upsertLayoutBySlug(slug, layoutJson);
+    invalidateBySlug(slug);
+    res.json({ ok: true, version: updated.version });
+  } catch (error) {
+    console.error('[testing] Error updating layout (query):', error);
+    res.status(500).json({ error: 'Failed to update layout' });
   }
 });
 

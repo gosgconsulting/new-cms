@@ -36,6 +36,41 @@ export async function query(text, params) {
   }
 }
 
+// Page Layout Helpers
+export async function getLayoutBySlug(slug) {
+  try {
+    const pageRes = await query(`SELECT id FROM pages WHERE slug = $1`, [slug]);
+    if (pageRes.rows.length === 0) return null;
+    const pageId = pageRes.rows[0].id;
+    const layoutRes = await query(`SELECT layout_json, version, updated_at FROM page_layouts WHERE page_id = $1`, [pageId]);
+    return layoutRes.rows[0] || { layout_json: { components: [] }, version: 1 };
+  } catch (error) {
+    console.error('[testing] Error fetching layout by slug:', error);
+    throw error;
+  }
+}
+
+export async function upsertLayoutBySlug(slug, layoutJson) {
+  try {
+    const pageRes = await query(`SELECT id FROM pages WHERE slug = $1`, [slug]);
+    if (pageRes.rows.length === 0) {
+      throw new Error('Page not found for slug: ' + slug);
+    }
+    const pageId = pageRes.rows[0].id;
+    const result = await query(`
+      INSERT INTO page_layouts (page_id, layout_json, version, updated_at)
+      VALUES ($1, $2, 1, NOW())
+      ON CONFLICT (page_id)
+      DO UPDATE SET layout_json = EXCLUDED.layout_json, version = page_layouts.version + 1, updated_at = NOW()
+      RETURNING layout_json, version
+    `, [pageId, layoutJson]);
+    return result.rows[0];
+  } catch (error) {
+    console.error('[testing] Error upserting layout by slug:', error);
+    throw error;
+  }
+}
+
 // Initialize database tables
 export async function initializeDatabase() {
   try {
@@ -1088,6 +1123,63 @@ export async function initializeSEOPagesTables() {
     await query(`CREATE INDEX IF NOT EXISTS idx_legal_pages_slug ON legal_pages(slug)`);
     await query(`CREATE INDEX IF NOT EXISTS idx_legal_pages_status ON legal_pages(status)`);
     await query(`CREATE INDEX IF NOT EXISTS idx_legal_pages_legal_type ON legal_pages(legal_type)`);
+
+    // Page layout tables for server-rendered pages
+    await query(`
+      CREATE TABLE IF NOT EXISTS page_layouts (
+        id SERIAL PRIMARY KEY,
+        page_id INTEGER NOT NULL REFERENCES pages(id) ON DELETE CASCADE,
+        layout_json JSONB NOT NULL DEFAULT '{"components":[]}',
+        version INTEGER NOT NULL DEFAULT 1,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        UNIQUE(page_id)
+      )
+    `);
+
+    await query(`
+      CREATE TABLE IF NOT EXISTS page_components (
+        id SERIAL PRIMARY KEY,
+        page_id INTEGER NOT NULL REFERENCES pages(id) ON DELETE CASCADE,
+        component_key VARCHAR(100) NOT NULL,
+        props JSONB NOT NULL DEFAULT '{}',
+        sort_order INTEGER NOT NULL DEFAULT 0,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      )
+    `);
+
+    // Seed a default homepage and layout if not present
+    const homePageRes = await query(`SELECT id FROM pages WHERE slug = '/'`);
+    let homePageId = homePageRes.rows[0]?.id;
+    if (!homePageId) {
+      const created = await query(`
+        INSERT INTO pages (page_name, slug, meta_title, meta_description, seo_index, status)
+        VALUES ('Homepage', '/', 'GO SG - Professional SEO Services Singapore', 'Leading SEO agency in Singapore providing comprehensive digital marketing solutions to boost your online presence and drive organic traffic.', true, 'published')
+        RETURNING id
+      `);
+      homePageId = created.rows[0].id;
+    }
+
+    const layoutCheck = await query(`SELECT 1 FROM page_layouts WHERE page_id = $1`, [homePageId]);
+    if (layoutCheck.rows.length === 0) {
+      const defaultLayout = {
+        components: [
+          { key: 'Header', props: {} },
+          { key: 'HeroSection', props: { headline: 'Rank #1 on Google' } },
+          { key: 'SEOResultsSection', props: {} },
+          { key: 'SEOServicesShowcase', props: {} },
+          { key: 'NewTestimonials', props: {} },
+          { key: 'FAQAccordion', props: { title: 'Frequently Asked Questions' } },
+          { key: 'BlogSection', props: {} },
+          { key: 'ContactForm', props: {} },
+          { key: 'Footer', props: {} },
+        ]
+      };
+      await query(`
+        INSERT INTO page_layouts (page_id, layout_json, version, updated_at)
+        VALUES ($1, $2, 1, NOW())
+        ON CONFLICT (page_id) DO NOTHING
+      `, [homePageId, defaultLayout]);
+    }
 
     console.log('[testing] SEO pages tables initialized successfully');
     return true;

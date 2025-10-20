@@ -1,5 +1,59 @@
 # Production Deployment Guide
 
+## Server-Rendered Pages (Hybrid SSR) and Caching
+
+This project supports hybrid SSR with full-page caching for fast, static-like delivery while keeping the SPA intact.
+
+### Endpoints
+
+- Rendered pages (SSR):
+  - `GET /r/:slug` → returns fully rendered HTML for the page with slug (e.g., `/r/`, `/r/blog`).
+
+- Layout API (JSON schema per page):
+  - `GET /api/pages/:slug/layout` → fetch layout JSON for slug
+  - `PUT /api/pages/:slug/layout` → update layout JSON for slug
+  - Alternative (supports encoded slashes in query):
+    - `GET /api/layout?slug=%2F`
+    - `PUT /api/layout?slug=%2F`
+
+- Cache controls:
+  - `POST /api/cache/invalidate` → body options:
+    - `{ "slug": "/" }` → clear specific page cache
+    - `{ "all": true }` → clear all cached pages
+
+### Layout JSON schema
+
+```json
+{
+  "components": [
+    { "key": "Header", "props": {} },
+    { "key": "HeroSection", "props": { "headline": "Rank #1 on Google" } },
+    { "key": "SEOResultsSection", "props": {} },
+    { "key": "SEOServicesShowcase", "props": { "cta": "Get a Quote" } },
+    { "key": "NewTestimonials", "props": {} },
+    { "key": "FAQAccordion", "props": { "title": "Frequently Asked Questions" } },
+    { "key": "BlogSection", "props": {} },
+    { "key": "ContactForm", "props": {} },
+    { "key": "Footer", "props": {} }
+  ]
+}
+```
+
+### Environment variables
+
+- `CACHE_TTL_SECONDS` (default: `600`) → in-memory page cache TTL
+
+### Invalidation rules
+
+- Updating branding/SEO via `POST /api/branding` triggers a global cache clear
+- Updating a page layout via `PUT /api/pages/:slug/layout` clears cache for that slug only
+
+### Typical production wiring
+
+- Keep SPA routes served as-is from `dist/` for interactive users
+- Point crawlers and performance-critical paths to `/r/:slug` via CDN/edge or sitemap
+- Use cache invalidation endpoint in admin tooling on content/settings changes
+
 ## Overview
 
 This guide covers how to deploy the GO SG website to production using Vite for the frontend build and Node.js/Express for the backend server.
