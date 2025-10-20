@@ -1,0 +1,3 @@
+[submodule "mcp-database-server"]
+	path = mcp-database-server
+	url = git@github.com:executeautomation/mcp-database-server.git
