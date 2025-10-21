@@ -38,9 +38,6 @@ export {
   type CreateDomainRequest
 } from './smtp/resend-domains';
 
-// Supabase Integration (existing)
-export { supabase } from './supabase/client';
-export type { Database } from './supabase/types';
 
 /**
  * Integration Status Check
@@ -50,8 +47,7 @@ export const checkIntegrationStatus = () => {
   const status = {
     openrouter: !!import.meta.env.VITE_OPENROUTER_API_KEY,
     google: !!import.meta.env.VITE_GOOGLE_API_KEY,
-    smtp: !!import.meta.env.VITE_RESEND_API_KEY,
-    supabase: !!(import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY)
+    smtp: !!import.meta.env.VITE_RESEND_API_KEY
   };
 
   console.log('[testing] Integration Status:', status);

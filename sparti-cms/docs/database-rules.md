@@ -7,7 +7,6 @@ Database design and query standards for Sparti CMS development.
 
 ### Database Platform
 - **Use Railway PostgreSQL** as primary database
-- No Supabase integration in this project
 - All database operations through Express.js API (server.js)
 - Server-side only database access (never client-side)
 

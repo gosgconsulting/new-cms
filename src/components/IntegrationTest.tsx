@@ -153,12 +153,6 @@ export const IntegrationTest: React.FC = () => {
                 {integrationStatus.smtp ? "✓ Configured" : "✗ Missing Key"}
               </Badge>
             </div>
-            <div className="text-center">
-              <div className="font-medium">Supabase</div>
-              <Badge variant={integrationStatus.supabase ? "default" : "destructive"}>
-                {integrationStatus.supabase ? "✓ Configured" : "✗ Missing Key"}
-              </Badge>
-            </div>
           </div>
         </CardContent>
       </Card>

@@ -74,8 +74,6 @@ The following environment variables are defined in the codebase but are **NOT cu
 - `VITE_OPENROUTER_API_KEY` - Only used in IntegrationTest component (not in main app)
 - `VITE_GOOGLE_API_KEY` - Only used in IntegrationTest component (not in main app)  
 - `VITE_RESEND_API_KEY` - Only used in IntegrationTest component (not in main app)
-- `VITE_SUPABASE_URL` - Only used in IntegrationTest component (not in main app)
-- `VITE_SUPABASE_PUBLISHABLE_KEY` - Only used in IntegrationTest component (not in main app)
 - `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_HOST`, `POSTGRES_PORT` - Individual PostgreSQL variables (use DATABASE_URL instead)
 
 **Note**: The IntegrationTest component exists but is not included in the main application routes, so these variables are not needed unless you specifically want to test those integrations.

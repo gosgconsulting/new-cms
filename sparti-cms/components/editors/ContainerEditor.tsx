@@ -111,7 +111,7 @@ export const ContainerEditor: React.FC<ContainerEditorProps> = ({ selectedElemen
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // For now, create a local URL - in production you'd upload to Supabase Storage
+    // For now, create a local URL - in production you'd upload to a file storage service
     const imageUrl = URL.createObjectURL(file);
     setBackgroundImage(imageUrl);
     applyBackground();

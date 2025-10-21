@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from '../../../src/components/ui/button';
-// Demo branding settings (no Supabase required)
+// Demo branding settings
 import { Input } from '../../../src/components/ui/input';
 import { Card } from '../../../src/components/ui/card';
 import { useToast } from '../../../src/hooks/use-toast';

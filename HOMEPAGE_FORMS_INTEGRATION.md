@@ -193,7 +193,7 @@ GOSG Team
 2. **Submissions not appearing in Forms Manager:**
    - Ensure forms database migration completed
    - Check form_id mapping
-   - Verify Supabase connection
+   - Verify database connection
 
 3. **Email notifications not working:**
    - Check SMTP configuration

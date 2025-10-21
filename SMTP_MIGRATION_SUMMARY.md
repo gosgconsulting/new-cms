@@ -8,7 +8,7 @@ Successfully moved the SMTP configuration from the Developer page to a dedicated
 
 ### 1. Updated SMTPManager Component
 **File:** `sparti-cms/components/admin/SMTPManager.tsx`
-- **Before:** Resend-specific configuration using Supabase
+- **Before:** Resend-specific configuration
 - **After:** Generic SMTP configuration using our comprehensive SMTPConfiguration component
 - **Features:** Now supports any SMTP provider with full configuration options
 

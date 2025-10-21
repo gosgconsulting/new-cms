@@ -832,7 +832,7 @@ const RulesTab: React.FC = () => {
             <li className="text-gray-700">• Create small, focused components instead of large monolithic files</li>
             <li className="text-gray-700">• Follow React best practices (hooks, functional components)</li>
             <li className="text-gray-700">• Implement proper error handling and loading states</li>
-            <li className="text-gray-700">• Use Railway PostgreSQL for database operations (no Supabase)</li>
+            <li className="text-gray-700">• Use Railway PostgreSQL for database operations</li>
             <li className="text-gray-700">• Keep API routes in server.js with proper error handling</li>
             <li className="text-gray-700">• Write clean, self-documenting code with minimal comments</li>
           </ul>

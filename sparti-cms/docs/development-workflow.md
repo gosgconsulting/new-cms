@@ -294,26 +294,29 @@ CREATE POLICY "Users can view components in their tenant"
 3. **Populate Database**
    ```typescript
    // Create migration script: sparti-cms/db/migrate-components.ts
-   import { supabase } from '@/integrations/supabase/client';
+   // Use API endpoints instead of direct database access
    import { componentRegistry } from '@/sparti-cms/registry';
    
    async function migrateComponents() {
      const components = componentRegistry.getAll();
      
      for (const component of components) {
-       const { error } = await supabase
-         .from('cms_components')
-         .upsert({
+       // Use API endpoints for database operations
+       const response = await fetch('/api/components', {
+         method: 'POST',
+         headers: { 'Content-Type': 'application/json' },
+         body: JSON.stringify({
            component_id: component.id,
            name: component.name,
            type: component.type,
            category: component.category,
            definition: component,
            version: component.version
-         });
+         })
+       });
        
-       if (error) {
-         console.error(`Failed to migrate ${component.id}:`, error);
+       if (!response.ok) {
+         console.error(`Failed to migrate ${component.id}:`, await response.text());
        } else {
          console.log(`✓ Migrated ${component.id}`);
        }

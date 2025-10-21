@@ -1,6 +1,6 @@
 # Database Setup - Railway PostgreSQL
 
-This project uses **Railway PostgreSQL** as its database, NOT Supabase.
+This project uses **Railway PostgreSQL** as its database.
 
 ## Database Connection
 
@@ -104,7 +104,7 @@ await updateBranding('site_name', 'New Name');
 
 ## Important Notes
 
-1. **No Supabase**: This project does NOT use Supabase. The `src/integrations/supabase/client.ts` file exists but is NOT used in the application.
+1. **Database Only**: This project uses Railway PostgreSQL directly through Express.js API routes.
 
 2. **Server-Side Only**: All database operations happen server-side through the Express API. The PostgreSQL library (`pg`) is never imported in frontend code.
 

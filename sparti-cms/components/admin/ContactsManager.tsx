@@ -13,7 +13,6 @@ import {
   MessageSquare
 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { supabase } from '@/integrations/supabase/client';
 
 interface Contact {
   id: string;
@@ -146,12 +145,14 @@ const ContactsManager: React.FC = () => {
       const contact = contactsData.contacts.find(c => c.id === contactId);
       if (!contact) return;
 
-      const { error } = await supabase
-        .from('form_submissions')
-        .delete()
-        .eq('email', contact.email);
+      // Use API endpoint to delete submissions
+      const response = await fetch(`/api/form-submissions?email=${encodeURIComponent(contact.email)}`, {
+        method: 'DELETE'
+      });
 
-      if (error) throw error;
+      if (!response.ok) {
+        throw new Error('Failed to delete submissions');
+      }
 
       loadContacts(searchTerm);
       loadLeads();

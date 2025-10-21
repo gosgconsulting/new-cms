@@ -46,7 +46,6 @@ A modern digital marketing agency website built with React, TypeScript, and Tail
 - **OpenRouter**: AI services for chat completion and text generation
 - **Google API**: Maps, Places, Reviews, and Translator services
 - **SMTP (Resend)**: Email sending capabilities for contact forms
-- **Supabase**: Database and authentication services
 
 ## 📦 Getting Started
 

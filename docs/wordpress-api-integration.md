@@ -221,14 +221,14 @@ https://cms.gosgconsulting.com/wp-json/wp/v2/posts?per_page=1
 
 ## Migration Notes
 
-### From Supabase to WordPress
-- Removed Supabase blog post queries
+### From Database to WordPress
+- Removed direct database blog post queries
 - Maintained same UI/UX experience
 - Enhanced with WordPress-specific features (rich content, media)
 - Improved SEO with proper meta data from WordPress
 
 ### Data Mapping
-| Supabase Field | WordPress Field | Notes |
+| Database Field | WordPress Field | Notes |
 |----------------|-----------------|-------|
 | `title` | `title.rendered` | HTML stripped for display |
 | `content` | `content.rendered` | Rich HTML content |

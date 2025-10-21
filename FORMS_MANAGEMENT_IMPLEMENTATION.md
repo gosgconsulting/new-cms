@@ -300,7 +300,7 @@ node test-forms-functionality.js
    - Verify database connection and permissions
 
 3. **Email settings not saving:**
-   - Check Supabase connection
+   - Check database connection
    - Verify email_settings table exists
 
 4. **Form submissions not appearing:**
@@ -339,7 +339,7 @@ node test-forms-functionality.js
 
 ## 📝 **API Endpoints**
 
-The Forms Management system uses the following Supabase tables:
+The Forms Management system uses the following database tables:
 
 - `GET /forms` - Retrieve all forms
 - `POST /forms` - Create new form

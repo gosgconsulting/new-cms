@@ -8,7 +8,6 @@ The project includes the following integrations:
 - **OpenRouter**: AI services for chat completion and text generation
 - **Google API**: Maps, Places, Reviews, and Translator services
 - **SMTP (Resend)**: Email sending capabilities
-- **Supabase**: Database and authentication (existing)
 
 ## Environment Variables
 

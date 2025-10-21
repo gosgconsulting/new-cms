@@ -32,7 +32,7 @@ Code quality and architecture standards for Sparti CMS development.
 - Implement fallback UI for error states
 
 ### Database Operations
-- **Use Railway PostgreSQL** for database operations (no Supabase)
+- **Use Railway PostgreSQL** for database operations
 - All database queries go through server.js API routes
 - Never expose database credentials to the client
 - Use parameterized queries to prevent SQL injection

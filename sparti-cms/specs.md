@@ -330,7 +330,7 @@ See `sparti-cms/docs/ux-ui-guidelines.md` for complete UX/UI standards.
 - Create small, focused components instead of large monolithic files
 - Follow React best practices (hooks, functional components)
 - Implement proper error handling and loading states
-- Use Railway PostgreSQL for database operations (no Supabase)
+- Use Railway PostgreSQL for database operations
 - Keep API routes in server.js with proper error handling
 - Write clean, self-documenting code with minimal comments
 
