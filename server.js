@@ -40,6 +40,7 @@ import pool from './sparti-cms/db/postgres.js';
 import { renderPageBySlug } from './sparti-cms/render/pageRenderer.js';
 import { getLayoutBySlug, upsertLayoutBySlug } from './sparti-cms/db/postgres.js';
 import cacheStore, { getPageCache, setPageCache, invalidateBySlug, invalidateAll } from './sparti-cms/cache/index.js';
+import tenantRoutes from './sparti-cms/db/tenant-api-routes.js';
 
 // Import mock data for development
 import {

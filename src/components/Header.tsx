@@ -37,7 +37,7 @@ const Header = ({ onContactClick }: HeaderProps) => {
       <div className="container mx-auto">
         <div className="flex items-center justify-between">
           {/* Logo */}
-          <Link to="/" className="flex items-center z-10">
+          <Link to="/dashboard" className="flex items-center z-10">
             <img 
               src={gosgLogo} 
               alt="GO SG Digital Marketing Agency" 

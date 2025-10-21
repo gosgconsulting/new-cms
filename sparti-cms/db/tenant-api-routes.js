@@ -52,7 +52,7 @@ router.get('/:id', async (req, res) => {
  */
 router.post('/', async (req, res) => {
   try {
-    const { name, plan, status, description } = req.body;
+    const { name } = req.body;
     
     // Validate required fields
     if (!name) {
@@ -60,10 +60,7 @@ router.post('/', async (req, res) => {
     }
     
     const newTenant = await createTenant({
-      name,
-      plan: plan || 'Standard',
-      status: status || 'active',
-      description: description || ''
+      name
     });
     
     res.status(201).json(newTenant);
@@ -79,7 +76,7 @@ router.post('/', async (req, res) => {
  */
 router.put('/:id', async (req, res) => {
   try {
-    const { name, plan, status, description } = req.body;
+    const { name } = req.body;
     
     // Validate required fields
     if (!name) {
@@ -87,10 +84,7 @@ router.put('/:id', async (req, res) => {
     }
     
     const updatedTenant = await updateTenant(req.params.id, {
-      name,
-      plan: plan || 'Standard',
-      status: status || 'active',
-      description: description || ''
+      name
     });
     
     if (!updatedTenant) {

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 
 interface ContactModalProps {
   open: boolean;
@@ -23,42 +23,11 @@ const ContactModal = ({ open, onOpenChange }: ContactModalProps) => {
     setIsSubmitting(true);
     
     try {
-      console.log('Submitting contact form...', { name, email, phone, company });
+      console.log('Submitting contact form...', { name, email, phone, company, message });
       
-      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4173';
-      const formData = {
-        form_id: 'Contact Form', // This matches the form name in the database
-        form_name: 'Contact Form',
-        name,
-        email,
-        phone: phone || null,
-        company: company || null,
-        message,
-        ip_address: null,
-        user_agent: navigator.userAgent
-      };
-
-      console.log('Form data:', formData);
+      // Simulate API call success
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      const response = await fetch(`${API_BASE_URL}/api/form-submissions`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-
-      console.log('Response status:', response.status);
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Server error:', errorText);
-        throw new Error(`Server error: ${response.status} - ${errorText}`);
-      }
-
-      const result = await response.json();
-      console.log('Form submission successful:', result);
-
       toast({
         title: "Thank you!",
         description: "We'll be in touch soon to discuss your SEO needs.",

@@ -4,17 +4,21 @@ import { Button } from "@/components/ui/button";
 import { Database, Key } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-// Tenant type definition
+// Simplified Tenant type definition
 export interface Tenant {
   id: string;
   name: string;
-  plan: string;
-  status: 'active' | 'maintenance' | 'suspended';
   createdAt: string;
-  description?: string;
   databaseUrl?: string;
   apiKey?: string;
 }
+
+// Default tenant for demo purposes
+const DEFAULT_TENANT: Tenant = {
+  id: 'tenant-gosg',
+  name: 'GO SG CONSULTING',
+  createdAt: new Date().toISOString().split('T')[0]
+};
 
 interface PostgresIntegrationProps {
   tenant: Tenant;
@@ -68,18 +72,16 @@ export const PostgresIntegration: React.FC<PostgresIntegrationProps> = ({ tenant
           <div>
             <div className="flex items-center gap-2 mb-1">
               <h3 className="font-semibold">PostgreSQL Database</h3>
-              <Badge variant="outline" className={`${tenant.status === 'active' ? 'bg-green-500/10 text-green-700 border-green-300' : 'bg-amber-500/10 text-amber-700 border-amber-300'}`}>
+              <Badge variant="outline" className="bg-green-500/10 text-green-700 border-green-300">
                 Tenant: {tenant.name}
               </Badge>
             </div>
             <p className="text-sm text-muted-foreground mb-1">
-              {tenant.description || 'Database for storing project data, user information, and content'}
+              Database for storing project data, user information, and content
             </p>
             <div className="flex gap-4 text-xs text-muted-foreground">
               <span>Type: Database</span>
               <span>Provider: Railway</span>
-              <span>Plan: {tenant.plan}</span>
-              <span>Status: {tenant.status.charAt(0).toUpperCase() + tenant.status.slice(1)}</span>
             </div>
           </div>
         </div>
@@ -168,7 +170,7 @@ export const PostgresIntegration: React.FC<PostgresIntegrationProps> = ({ tenant
  */
 export const PostgresIntegrationListItem: React.FC<{ tenant: Tenant }> = ({ tenant }) => {
   return (
-    <li>• PostgreSQL Database (Active - Tenant: {tenant.name})</li>
+    <li>• PostgreSQL Database (Tenant: {tenant.name})</li>
   );
 };
 

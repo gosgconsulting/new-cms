@@ -8,6 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ContactModal from "@/components/ContactModal";
+import { Alert } from "@/components/ui/alert";
 
 const Blog = () => {
   const navigate = useNavigate();
@@ -178,7 +179,9 @@ const Blog = () => {
               <div className="flex-1">
                 {filteredPosts.length === 0 ? (
                   <div className="text-center py-12">
-                    <p className="text-muted-foreground text-lg">No articles found matching your search.</p>
+                    <Alert variant="default" className="bg-amber-50 border-amber-200">
+                      <p className="text-muted-foreground text-lg">No articles found matching your search.</p>
+                    </Alert>
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">

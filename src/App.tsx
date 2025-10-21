@@ -13,6 +13,7 @@ import Admin from "./pages/Admin";
 import Auth from "./pages/Auth";
 import DatabaseViewer from "./pages/DatabaseViewer";
 import PublicDashboard from "./pages/PublicDashboard";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 const queryClient = new QueryClient();
 
@@ -41,9 +42,19 @@ const App = () => {
             {/* Public dashboard route - no authentication required */}
             <Route path="/dashboard/*" element={<PublicDashboard />} />
             
+            {/* Blog routes */}
+            <Route path="/blog" element={
+              <ErrorBoundary>
+                <Blog />
+              </ErrorBoundary>
+            } />
+            <Route path="/blog/:slug" element={
+              <ErrorBoundary>
+                <BlogPost />
+              </ErrorBoundary>
+            } />
+            
             {/* Other routes */}
-            <Route path="/blog" element={<Blog />} />
-            <Route path="/blog/:slug" element={<BlogPost />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/database-viewer" element={<DatabaseViewer />} />
             <Route path="*" element={<NotFound />} />

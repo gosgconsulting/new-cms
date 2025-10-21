@@ -20,40 +20,13 @@ interface AuthContextType {
   handleTenantChange: (tenant: Tenant) => void;
 }
 
-// Sample tenants data
+// Sample tenants data with simplified structure
 const initialTenants: Tenant[] = [
   { 
-    id: 'tenant-1', 
-    name: 'Main Website', 
-    plan: 'Standard', 
-    status: 'active',
-    createdAt: '2023-10-15',
-    description: 'Main company website with blog and contact forms'
-  },
-  { 
-    id: 'tenant-2', 
-    name: 'E-commerce Store', 
-    plan: 'Premium', 
-    status: 'active',
-    createdAt: '2023-11-20',
-    description: 'Online store with product catalog and checkout'
-  },
-  { 
-    id: 'tenant-3', 
-    name: 'Blog Platform', 
-    plan: 'Basic', 
-    status: 'active',
-    createdAt: '2024-01-05',
-    description: 'Content publishing platform for the marketing team'
-  },
-  { 
-    id: 'tenant-4', 
-    name: 'Marketing Site', 
-    plan: 'Standard', 
-    status: 'maintenance',
-    createdAt: '2024-02-10',
-    description: 'Campaign landing pages and marketing materials'
-  },
+    id: 'tenant-gosg', 
+    name: 'GO SG CONSULTING', 
+    createdAt: new Date().toISOString().split('T')[0]
+  }
 ];
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);

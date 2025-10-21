@@ -8,7 +8,7 @@ import bcrypt from 'bcrypt';
 export async function getAllTenants() {
   try {
     const result = await query(`
-      SELECT id, name, plan, status, description, created_at, updated_at
+      SELECT id, name, created_at as "createdAt", updated_at
       FROM tenants
       ORDER BY created_at DESC
     `);
@@ -24,13 +24,43 @@ export async function getAllTenants() {
  */
 export async function getTenantById(id) {
   try {
-    const result = await query(`
-      SELECT id, name, plan, status, description, created_at, updated_at
-      FROM tenants
-      WHERE id = $1
+    // Get tenant details
+    const tenantResult = await query(`
+      SELECT t.id, t.name, t.created_at as "createdAt", t.updated_at, t.database_url, t.api_key
+      FROM tenants t
+      WHERE t.id = $1
     `, [id]);
     
-    return result.rows[0] || null;
+    if (tenantResult.rows.length === 0) {
+      return null;
+    }
+    
+    const tenant = tenantResult.rows[0];
+    
+    // Get database details
+    const dbResult = await query(`
+      SELECT host, port, database_name, username, ssl
+      FROM tenant_databases
+      WHERE tenant_id = $1
+    `, [id]);
+    
+    if (dbResult.rows.length > 0) {
+      tenant.database = dbResult.rows[0];
+    }
+    
+    // Get API keys
+    const apiKeysResult = await query(`
+      SELECT id, api_key, description, expires_at, created_at
+      FROM tenant_api_keys
+      WHERE tenant_id = $1
+      ORDER BY created_at DESC
+    `, [id]);
+    
+    if (apiKeysResult.rows.length > 0) {
+      tenant.apiKeys = apiKeysResult.rows;
+    }
+    
+    return tenant;
   } catch (error) {
     console.error(`[testing] Error getting tenant with ID ${id}:`, error);
     throw error;
@@ -42,14 +72,14 @@ export async function getTenantById(id) {
  */
 export async function createTenant(tenantData) {
   try {
-    const { name, plan, status, description } = tenantData;
+    const { name } = tenantData;
     const id = `tenant-${uuidv4().split('-')[0]}`;
     
     const result = await query(`
-      INSERT INTO tenants (id, name, plan, status, description)
-      VALUES ($1, $2, $3, $4, $5)
-      RETURNING id, name, plan, status, description, created_at, updated_at
-    `, [id, name, plan, status, description]);
+      INSERT INTO tenants (id, name)
+      VALUES ($1, $2)
+      RETURNING id, name, created_at as "createdAt", updated_at
+    `, [id, name]);
     
     return result.rows[0];
   } catch (error) {
@@ -63,14 +93,14 @@ export async function createTenant(tenantData) {
  */
 export async function updateTenant(id, tenantData) {
   try {
-    const { name, plan, status, description } = tenantData;
+    const { name } = tenantData;
     
     const result = await query(`
       UPDATE tenants
-      SET name = $2, plan = $3, status = $4, description = $5, updated_at = NOW()
+      SET name = $2, updated_at = NOW()
       WHERE id = $1
-      RETURNING id, name, plan, status, description, created_at, updated_at
-    `, [id, name, plan, status, description]);
+      RETURNING id, name, created_at as "createdAt", updated_at
+    `, [id, name]);
     
     return result.rows[0] || null;
   } catch (error) {
@@ -251,7 +281,7 @@ export async function deleteTenantApiKey(keyId) {
 export async function validateApiKey(apiKey) {
   try {
     const result = await query(`
-      SELECT tak.tenant_id, t.name, t.plan, t.status
+      SELECT tak.tenant_id, t.name
       FROM tenant_api_keys tak
       JOIN tenants t ON tak.tenant_id = t.id
       WHERE tak.api_key = $1

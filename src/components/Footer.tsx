@@ -1,80 +1,9 @@
 
 import { Link } from "react-router-dom";
-import { Calendar, Phone, Instagram, Linkedin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 /**
  * WordPress Theme Component: Footer
- * 
- * Component: Will be converted to footer.php
- * Template Name: Footer
- * 
- * Dynamic Elements:
- * - Footer widgets/menus (will use WordPress widget areas)
- * - Copyright text (will use dynamic year and site name)
- * - Social links (will come from theme options)
- * 
- * WordPress Implementation:
- * <?php
- * /**
- *  * The footer for our theme
- *  *
- *  * Contains the closing of the #content div and all content after.
- *  *
- *  * @link https://developer.wordpress.org/themes/basics/template-files/#template-partials
- *  *
- *  * @package GoSG
- *  *\/
- * ?>
- * 
- * <footer class="bg-deepBlue text-white py-12 px-4 md:px-8">
- *   <div class="container mx-auto">
- *     <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
- *       <!-- First Footer Widget Area -->
- *       <div>
- *         <?php dynamic_sidebar('footer-1'); ?>
- *       </div>
- *       
- *       <!-- Second Footer Widget Area -->
- *       <div>
- *         <h3 class="text-lg font-semibold mb-4">Our Services</h3>
- *         <?php
- *           wp_nav_menu(array(
- *             'theme_location' => 'footer_services',
- *             'container' => false,
- *             'menu_class' => 'space-y-2',
- *             'walker' => new GoSG_Footer_Menu_Walker()
- *           ));
- *         ?>
- *       </div>
- *       
- *       <!-- Third Footer Widget Area -->
- *       <div>
- *         <h3 class="text-lg font-semibold mb-4">Quick Links</h3>
- *         <?php
- *           wp_nav_menu(array(
- *             'theme_location' => 'footer_links',
- *             'container' => false,
- *             'menu_class' => 'space-y-2',
- *             'walker' => new GoSG_Footer_Menu_Walker()
- *           ));
- *         ?>
- *       </div>
- *       
- *       <!-- Fourth Footer Widget Area -->
- *       <div>
- *         <?php dynamic_sidebar('footer-4'); ?>
- *       </div>
- *     </div>
- *     
- *     <!-- Copyright -->
- *     <div class="mt-12 pt-8 border-t border-gray-700 text-center text-gray-400 text-sm">
- *       <p>&copy; <?php echo date('Y'); ?> <?php echo get_bloginfo('name'); ?>. All rights reserved.</p>
- *     </div>
- *   </div>
- * </footer>
- * 
- * <?php wp_footer(); ?>
  */
 interface FooterProps {
   onContactClick?: () => void;
@@ -135,9 +64,9 @@ const Footer = ({ onContactClick }: FooterProps) => {
           <div className="pt-8 border-t border-gray-700">
             <div className="flex flex-col md:flex-row justify-between items-center gap-4">
               <div className="flex flex-wrap justify-center md:justify-start gap-6 text-sm text-gray-400">
-                <a href="#" className="hover:text-brandTeal transition-colors">Privacy Policy</a>
-                <a href="#" className="hover:text-brandTeal transition-colors">Terms of Service</a>
+                <Link to="/dashboard" className="hover:text-brandTeal transition-colors">Home</Link>
                 <Link to="/blog" className="hover:text-brandTeal transition-colors">Blog</Link>
+                <Link to="#" onClick={(e) => { e.preventDefault(); onContactClick?.(); }} className="hover:text-brandTeal transition-colors">Contact</Link>
               </div>
               
               <p className="text-sm text-gray-400">

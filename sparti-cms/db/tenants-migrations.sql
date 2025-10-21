@@ -2,31 +2,16 @@
 CREATE TABLE IF NOT EXISTS tenants (
     id VARCHAR(255) PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
-    plan VARCHAR(50) NOT NULL DEFAULT 'Standard',
-    status VARCHAR(50) NOT NULL DEFAULT 'active',
-    description TEXT,
-    database_url TEXT,
-    api_key VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    database_url TEXT,
+    api_key VARCHAR(255)
 );
 
--- Insert sample tenants if they don't exist
-INSERT INTO tenants (id, name, plan, status, description, created_at)
-SELECT 'tenant-1', 'Main Website', 'Standard', 'active', 'Main company website with blog and contact forms', '2023-10-15'::TIMESTAMP
-WHERE NOT EXISTS (SELECT 1 FROM tenants WHERE id = 'tenant-1');
-
-INSERT INTO tenants (id, name, plan, status, description, created_at)
-SELECT 'tenant-2', 'E-commerce Store', 'Premium', 'active', 'Online store with product catalog and checkout', '2023-11-20'::TIMESTAMP
-WHERE NOT EXISTS (SELECT 1 FROM tenants WHERE id = 'tenant-2');
-
-INSERT INTO tenants (id, name, plan, status, description, created_at)
-SELECT 'tenant-3', 'Blog Platform', 'Basic', 'active', 'Content publishing platform for the marketing team', '2024-01-05'::TIMESTAMP
-WHERE NOT EXISTS (SELECT 1 FROM tenants WHERE id = 'tenant-3');
-
-INSERT INTO tenants (id, name, plan, status, description, created_at)
-SELECT 'tenant-4', 'Marketing Site', 'Standard', 'maintenance', 'Campaign landing pages and marketing materials', '2024-02-10'::TIMESTAMP
-WHERE NOT EXISTS (SELECT 1 FROM tenants WHERE id = 'tenant-4');
+-- Insert GO SG CONSULTING tenant if it doesn't exist
+INSERT INTO tenants (id, name, created_at)
+SELECT 'tenant-gosg', 'GO SG CONSULTING', NOW()
+WHERE NOT EXISTS (SELECT 1 FROM tenants WHERE id = 'tenant-gosg');
 
 -- Create function to update the updated_at timestamp
 CREATE OR REPLACE FUNCTION update_updated_at_column()

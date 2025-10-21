@@ -2,89 +2,76 @@ import React, { useState, useEffect } from 'react';
 import { 
   Building2, 
   Plus, 
-  MoreVertical, 
   Trash2, 
   Edit, 
   Database, 
   Key,
-  Check,
-  X,
-  Loader2
+  Loader2,
+  AlertCircle,
+  CheckCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select } from '@/components/ui/select';
+import { useToast } from '@/components/ui/use-toast';
 
-// Tenant type definition
+// Simplified Tenant type definition
 interface Tenant {
   id: string;
   name: string;
-  plan: string;
-  status: 'active' | 'maintenance' | 'suspended';
   createdAt: string;
-  description?: string;
   databaseUrl?: string;
   apiKey?: string;
 }
 
-// Sample tenant data (in a real app, this would come from an API)
-const initialTenants: Tenant[] = [
-  { 
-    id: 'tenant-1', 
-    name: 'Main Website', 
-    plan: 'Standard', 
-    status: 'active',
-    createdAt: '2023-10-15',
-    description: 'Main company website with blog and contact forms'
-  },
-  { 
-    id: 'tenant-2', 
-    name: 'E-commerce Store', 
-    plan: 'Premium', 
-    status: 'active',
-    createdAt: '2023-11-20',
-    description: 'Online store with product catalog and checkout'
-  },
-  { 
-    id: 'tenant-3', 
-    name: 'Blog Platform', 
-    plan: 'Basic', 
-    status: 'active',
-    createdAt: '2024-01-05',
-    description: 'Content publishing platform for the marketing team'
-  },
-  { 
-    id: 'tenant-4', 
-    name: 'Marketing Site', 
-    plan: 'Standard', 
-    status: 'maintenance',
-    createdAt: '2024-02-10',
-    description: 'Campaign landing pages and marketing materials'
-  },
-];
-
 const TenantsManager: React.FC = () => {
-  const [tenants, setTenants] = useState<Tenant[]>(initialTenants);
+  const [tenants, setTenants] = useState<Tenant[]>([]);
   const [showAddTenantModal, setShowAddTenantModal] = useState(false);
   const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
   const [showDatabaseModal, setShowDatabaseModal] = useState(false);
   const [showApiKeyModal, setShowApiKeyModal] = useState(false);
   const [selectedTenant, setSelectedTenant] = useState<Tenant | null>(null);
   const [newTenant, setNewTenant] = useState<Partial<Tenant>>({
-    name: '',
-    plan: 'Standard',
-    status: 'active',
-    description: ''
+    name: ''
   });
   const [apiKey, setApiKey] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
+
+  // Fetch tenants on component mount
+  useEffect(() => {
+    fetchTenants();
+  }, []);
+
+  // Fetch all tenants from the API
+  const fetchTenants = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch('/api/tenants');
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch tenants: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      setTenants(data);
+    } catch (error) {
+      console.error('Error fetching tenants:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load tenants. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Handle input change for new tenant form
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = (field: string, value: string) => {
     setNewTenant(prev => ({
       ...prev,
       [field]: value
@@ -92,55 +79,206 @@ const TenantsManager: React.FC = () => {
   };
 
   // Add new tenant
-  const handleAddTenant = () => {
-    if (!newTenant.name) return;
+  const handleAddTenant = async () => {
+    if (!newTenant.name) {
+      toast({
+        title: "Validation Error",
+        description: "Tenant name is required",
+        variant: "destructive"
+      });
+      return;
+    }
     
-    const tenant: Tenant = {
-      id: `tenant-${Date.now()}`,
-      name: newTenant.name || '',
-      plan: newTenant.plan || 'Standard',
-      status: newTenant.status as 'active' | 'maintenance' | 'suspended' || 'active',
-      createdAt: new Date().toISOString().split('T')[0],
-      description: newTenant.description
-    };
+    setIsSubmitting(true);
     
-    setTenants([...tenants, tenant]);
-    setShowAddTenantModal(false);
-    setNewTenant({
-      name: '',
-      plan: 'Standard',
-      status: 'active',
-      description: ''
-    });
+    try {
+      const response = await fetch('/api/tenants', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          name: newTenant.name
+        })
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create tenant');
+      }
+      
+      const createdTenant = await response.json();
+      
+      // Add the new tenant to the list
+      setTenants(prev => [...prev, createdTenant]);
+      
+      // Reset form and close modal
+      setNewTenant({ name: '' });
+      setShowAddTenantModal(false);
+      
+      toast({
+        title: "Success",
+        description: "Tenant created successfully",
+        variant: "default"
+      });
+    } catch (error) {
+      console.error('Error creating tenant:', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to create tenant",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Update existing tenant
+  const handleUpdateTenant = async () => {
+    if (!selectedTenant || !newTenant.name) {
+      toast({
+        title: "Validation Error",
+        description: "Tenant name is required",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setIsSubmitting(true);
+    
+    try {
+      const response = await fetch(`/api/tenants/${selectedTenant.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          name: newTenant.name
+        })
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update tenant');
+      }
+      
+      const updatedTenant = await response.json();
+      
+      // Update the tenant in the list
+      setTenants(prev => 
+        prev.map(tenant => 
+          tenant.id === updatedTenant.id ? updatedTenant : tenant
+        )
+      );
+      
+      // Reset form and close modal
+      setNewTenant({ name: '' });
+      setSelectedTenant(null);
+      setShowAddTenantModal(false);
+      
+      toast({
+        title: "Success",
+        description: "Tenant updated successfully",
+        variant: "default"
+      });
+    } catch (error) {
+      console.error('Error updating tenant:', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to update tenant",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Delete tenant
-  const handleDeleteTenant = () => {
+  const handleDeleteTenant = async () => {
     if (!selectedTenant) return;
     
-    setTenants(tenants.filter(tenant => tenant.id !== selectedTenant.id));
-    setShowDeleteConfirmModal(false);
-    setSelectedTenant(null);
+    try {
+      const response = await fetch(`/api/tenants/${selectedTenant.id}`, {
+        method: 'DELETE'
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete tenant');
+      }
+      
+      // Remove the tenant from the list
+      setTenants(prev => prev.filter(tenant => tenant.id !== selectedTenant.id));
+      
+      // Close modal and reset selected tenant
+      setShowDeleteConfirmModal(false);
+      setSelectedTenant(null);
+      
+      toast({
+        title: "Success",
+        description: "Tenant deleted successfully",
+        variant: "default"
+      });
+    } catch (error) {
+      console.error('Error deleting tenant:', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to delete tenant",
+        variant: "destructive"
+      });
+    }
   };
 
   // Generate API key
-  const generateApiKey = () => {
+  const generateApiKey = async () => {
     if (!selectedTenant) return;
     
     setIsGenerating(true);
     
-    // Simulate API key generation
-    setTimeout(() => {
-      const newApiKey = `tenant_${selectedTenant.id}_${Math.random().toString(36).substring(2, 15)}`;
-      setApiKey(newApiKey);
+    try {
+      const response = await fetch(`/api/tenants/${selectedTenant.id}/api-keys`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          description: 'Generated from Tenant Management'
+        })
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to generate API key');
+      }
+      
+      const data = await response.json();
+      setApiKey(data.apiKey);
+      
+      toast({
+        title: "Success",
+        description: "API key generated successfully",
+        variant: "default"
+      });
+    } catch (error) {
+      console.error('Error generating API key:', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to generate API key",
+        variant: "destructive"
+      });
+    } finally {
       setIsGenerating(false);
-    }, 800);
+    }
   };
 
   // Copy to clipboard
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    // You could add a toast notification here
+    toast({
+      title: "Copied",
+      description: "Text copied to clipboard",
+      variant: "default"
+    });
   };
 
   // View database details
@@ -154,20 +292,6 @@ const TenantsManager: React.FC = () => {
     setSelectedTenant(tenant);
     setShowApiKeyModal(true);
     setApiKey(''); // Reset API key
-  };
-
-  // Get status badge color
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'active':
-        return 'bg-green-500/10 text-green-700 border-green-300';
-      case 'maintenance':
-        return 'bg-amber-500/10 text-amber-700 border-amber-300';
-      case 'suspended':
-        return 'bg-red-500/10 text-red-700 border-red-300';
-      default:
-        return 'bg-gray-500/10 text-gray-700 border-gray-300';
-    }
   };
 
   return (
@@ -185,84 +309,92 @@ const TenantsManager: React.FC = () => {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {tenants.map((tenant) => (
-          <Card key={tenant.id} className="overflow-hidden">
-            <CardHeader className="pb-3">
-              <div className="flex justify-between items-start">
-                <div className="flex items-center gap-2">
-                  <Building2 className="h-5 w-5 text-brandTeal" />
-                  <CardTitle className="text-lg">{tenant.name}</CardTitle>
+      {isLoading ? (
+        <div className="flex justify-center items-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <span className="ml-2 text-lg">Loading tenants...</span>
+        </div>
+      ) : tenants.length === 0 ? (
+        <div className="text-center py-12 border rounded-lg bg-muted/20">
+          <Building2 className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+          <h3 className="text-xl font-medium mb-2">No tenants found</h3>
+          <p className="text-muted-foreground mb-6">Create your first tenant to get started</p>
+          <Button onClick={() => setShowAddTenantModal(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add New Tenant
+          </Button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {tenants.map((tenant) => (
+            <Card key={tenant.id} className="overflow-hidden">
+              <CardHeader className="pb-3">
+                <div className="flex justify-between items-start">
+                  <div className="flex items-center gap-2">
+                    <Building2 className="h-5 w-5 text-brandTeal" />
+                    <CardTitle className="text-lg">{tenant.name}</CardTitle>
+                  </div>
                 </div>
-                <Badge className={getStatusColor(tenant.status)}>
-                  {tenant.status.charAt(0).toUpperCase() + tenant.status.slice(1)}
-                </Badge>
-              </div>
-              <CardDescription className="mt-1.5">
-                {tenant.description || 'No description provided'}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-xs text-muted-foreground grid grid-cols-2 gap-2 mb-4">
-                <div>
-                  <span className="font-medium">Plan:</span> {tenant.plan}
+              </CardHeader>
+              <CardContent>
+                <div className="text-xs text-muted-foreground mb-4">
+                  <div>
+                    <span className="font-medium">Created:</span> {tenant.createdAt}
+                  </div>
                 </div>
-                <div>
-                  <span className="font-medium">Created:</span> {tenant.createdAt}
-                </div>
-              </div>
-              
-              <div className="flex flex-col gap-2">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="w-full justify-start"
-                  onClick={() => handleViewDatabase(tenant)}
-                >
-                  <Database className="h-4 w-4 mr-2" />
-                  Database
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="w-full justify-start"
-                  onClick={() => handleViewApiKey(tenant)}
-                >
-                  <Key className="h-4 w-4 mr-2" />
-                  API Key
-                </Button>
-                <div className="flex gap-2 mt-2">
+                
+                <div className="flex flex-col gap-2">
                   <Button 
-                    variant="ghost" 
+                    variant="outline" 
                     size="sm" 
-                    className="flex-1"
-                    onClick={() => {
-                      setSelectedTenant(tenant);
-                      setNewTenant(tenant);
-                      setShowAddTenantModal(true);
-                    }}
+                    className="w-full justify-start"
+                    onClick={() => handleViewDatabase(tenant)}
                   >
-                    <Edit className="h-4 w-4 mr-2" />
-                    Edit
+                    <Database className="h-4 w-4 mr-2" />
+                    Database
                   </Button>
                   <Button 
-                    variant="ghost" 
-                    size="sm"
-                    className="flex-1 text-red-600 hover:text-red-700 hover:bg-red-50"
-                    onClick={() => {
-                      setSelectedTenant(tenant);
-                      setShowDeleteConfirmModal(true);
-                    }}
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full justify-start"
+                    onClick={() => handleViewApiKey(tenant)}
                   >
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Delete
+                    <Key className="h-4 w-4 mr-2" />
+                    API Key
                   </Button>
+                  <div className="flex gap-2 mt-2">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="flex-1"
+                      onClick={() => {
+                        setSelectedTenant(tenant);
+                        setNewTenant({ name: tenant.name });
+                        setShowAddTenantModal(true);
+                      }}
+                    >
+                      <Edit className="h-4 w-4 mr-2" />
+                      Edit
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      className="flex-1 text-red-600 hover:text-red-700 hover:bg-red-50"
+                      onClick={() => {
+                        setSelectedTenant(tenant);
+                        setShowDeleteConfirmModal(true);
+                      }}
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Delete
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
 
       {/* Add/Edit Tenant Modal */}
       {showAddTenantModal && (
@@ -282,46 +414,6 @@ const TenantsManager: React.FC = () => {
                   placeholder="Enter tenant name"
                 />
               </div>
-              
-              <div>
-                <Label htmlFor="tenant-description">Description</Label>
-                <Input 
-                  id="tenant-description"
-                  value={newTenant.description}
-                  onChange={(e) => handleInputChange('description', e.target.value)}
-                  placeholder="Enter tenant description"
-                />
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="tenant-plan">Plan</Label>
-                  <select
-                    id="tenant-plan"
-                    value={newTenant.plan}
-                    onChange={(e) => handleInputChange('plan', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                  >
-                    <option value="Basic">Basic</option>
-                    <option value="Standard">Standard</option>
-                    <option value="Premium">Premium</option>
-                  </select>
-                </div>
-                
-                <div>
-                  <Label htmlFor="tenant-status">Status</Label>
-                  <select
-                    id="tenant-status"
-                    value={newTenant.status}
-                    onChange={(e) => handleInputChange('status', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                  >
-                    <option value="active">Active</option>
-                    <option value="maintenance">Maintenance</option>
-                    <option value="suspended">Suspended</option>
-                  </select>
-                </div>
-              </div>
             </div>
             
             <div className="flex justify-end space-x-3 mt-6">
@@ -331,17 +423,25 @@ const TenantsManager: React.FC = () => {
                   setShowAddTenantModal(false);
                   setSelectedTenant(null);
                   setNewTenant({
-                    name: '',
-                    plan: 'Standard',
-                    status: 'active',
-                    description: ''
+                    name: ''
                   });
                 }}
+                disabled={isSubmitting}
               >
                 Cancel
               </Button>
-              <Button onClick={handleAddTenant}>
-                {selectedTenant ? 'Update Tenant' : 'Add Tenant'}
+              <Button 
+                onClick={selectedTenant ? handleUpdateTenant : handleAddTenant}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    {selectedTenant ? 'Updating...' : 'Creating...'}
+                  </>
+                ) : (
+                  selectedTenant ? 'Update Tenant' : 'Add Tenant'
+                )}
               </Button>
             </div>
           </div>
@@ -352,7 +452,10 @@ const TenantsManager: React.FC = () => {
       {showDeleteConfirmModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Confirm Deletion</h3>
+            <div className="flex items-center mb-4 text-red-600">
+              <AlertCircle className="h-5 w-5 mr-2" />
+              <h3 className="text-lg font-semibold">Confirm Deletion</h3>
+            </div>
             <p className="text-sm text-gray-600 mb-4">
               Are you sure you want to delete the tenant "{selectedTenant?.name}"? 
               This action cannot be undone and will delete all associated data.
@@ -392,14 +495,6 @@ const TenantsManager: React.FC = () => {
                 <div className="mt-1 flex items-center">
                   <Database className="h-4 w-4 mr-2 text-brandTeal" />
                   <span>PostgreSQL</span>
-                </div>
-              </div>
-              
-              <div>
-                <Label className="text-sm font-medium text-gray-700">Status</Label>
-                <div className="mt-1 flex items-center">
-                  <div className={`w-2 h-2 rounded-full mr-2 ${selectedTenant.status === 'active' ? 'bg-green-500' : 'bg-amber-500'}`}></div>
-                  <span>{selectedTenant.status.charAt(0).toUpperCase() + selectedTenant.status.slice(1)}</span>
                 </div>
               </div>
               
@@ -492,9 +587,10 @@ const TenantsManager: React.FC = () => {
                     Copy
                   </Button>
                 </div>
-                <p className="text-xs text-amber-600 mt-2">
-                  ⚠️ Store this key securely. For security reasons, it won't be displayed again.
-                </p>
+                <div className="flex items-center text-amber-600 mt-2 text-xs">
+                  <AlertCircle className="h-3 w-3 mr-1" />
+                  Store this key securely. For security reasons, it won't be displayed again.
+                </div>
               </div>
             ) : (
               <div className="mb-4">
