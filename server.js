@@ -114,16 +114,6 @@ app.use((req, res, next) => {
   }
 });
 
-// Initialize database on startup
-initializeDatabase().then(success => {
-  if (success) {
-    console.log('[testing] Database initialized successfully');
-  } else {
-    console.error('[testing] Failed to initialize database');
-  }
-}).catch(error => {
-  console.error('[testing] Error initializing database:', error);
-});
 
 // Keep the process alive
 process.on('SIGINT', () => {
@@ -136,13 +126,37 @@ process.on('SIGTERM', () => {
   process.exit(0);
 });
 
-// Health check endpoint - this is what Railway will check
+// Simple health check endpoint for Railway
 app.get('/health', (req, res) => {
   res.status(200).json({ 
     status: 'healthy', 
     timestamp: new Date().toISOString(),
     port: port 
   });
+});
+
+// Detailed health check with database connectivity
+app.get('/health/detailed', async (req, res) => {
+  try {
+    // Check database connectivity
+    await query('SELECT 1');
+    
+    res.status(200).json({ 
+      status: 'healthy', 
+      timestamp: new Date().toISOString(),
+      port: port,
+      database: 'connected'
+    });
+  } catch (error) {
+    console.error('[testing] Detailed health check failed:', error);
+    res.status(503).json({ 
+      status: 'unhealthy', 
+      timestamp: new Date().toISOString(),
+      port: port,
+      database: 'disconnected',
+      error: error.message
+    });
+  }
 });
 
 // API Routes - MUST come before static file serving
@@ -1590,9 +1604,9 @@ app.get('/api/seo-meta/:objectType/:objectId', async (req, res) => {
 });
 
 // Server-rendered page with full-page cache
-app.get('/r/*', async (req, res) => {
+app.get('/r/:slug', async (req, res) => {
   try {
-    const slug = '/' + req.params[0];
+    const slug = '/' + req.params.slug;
     const cached = getPageCache(slug);
     if (cached) {
       res.setHeader('ETag', cached.etag);
@@ -1730,12 +1744,35 @@ app.use((req, res) => {
   }
 });
 
-app.listen(port, '0.0.0.0', () => {
-  console.log(`Server running on port ${port}`);
-  console.log(`Health check available at http://0.0.0.0:${port}/health`);
-  console.log(`Application available at http://0.0.0.0:${port}/`);
-  console.log(`API endpoints available at http://0.0.0.0:${port}/api/`);
-});
+// Initialize database and start server
+async function startServer() {
+  try {
+    console.log('[testing] Initializing database...');
+    const dbSuccess = await initializeDatabase();
+    
+    if (!dbSuccess) {
+      console.error('[testing] Failed to initialize database, exiting...');
+      process.exit(1);
+    }
+    
+    console.log('[testing] Database initialized successfully');
+    
+    app.listen(port, '0.0.0.0', () => {
+      console.log(`Server running on port ${port}`);
+      console.log(`Health check available at http://0.0.0.0:${port}/health`);
+      console.log(`Detailed health check available at http://0.0.0.0:${port}/health/detailed`);
+      console.log(`Application available at http://0.0.0.0:${port}/`);
+      console.log(`API endpoints available at http://0.0.0.0:${port}/api/`);
+      console.log('[testing] Server fully initialized and ready for health checks');
+    });
+  } catch (error) {
+    console.error('[testing] Failed to start server:', error);
+    process.exit(1);
+  }
+}
+
+// Start the server
+startServer();
 
 
 
