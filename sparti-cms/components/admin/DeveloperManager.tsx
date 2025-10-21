@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
 import { Database, Plus, FolderKanban, Puzzle, FileCode, Code, Globe, Monitor, FileText } from 'lucide-react';
+import { PostgresIntegration, PostgresIntegrationListItem } from './PostgresIntegration';
 
 interface Project {
   id: string;
@@ -400,34 +401,8 @@ const IntegrationsTab: React.FC = () => {
 
       <Card>
         <CardContent className="pt-6 space-y-4">
-          {/* PostgreSQL Database */}
-          <div className="border rounded-lg p-4 flex items-start justify-between">
-            <div className="flex items-start gap-4">
-              <div className="p-2 bg-primary/10 rounded-lg">
-                <Database className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <h3 className="font-semibold">PostgreSQL Database</h3>
-                  <Badge variant="outline" className="bg-green-500/10 text-green-700 border-green-300">
-                    Connected
-                  </Badge>
-                </div>
-                <p className="text-sm text-muted-foreground mb-1">
-                  Main database for storing project data, user information, and content
-                </p>
-                <div className="flex gap-4 text-xs text-muted-foreground">
-                  <span>Type: Database</span>
-                  <span>Provider: Railway</span>
-                </div>
-              </div>
-            </div>
-            <Button variant="outline" size="sm" onClick={() => navigate('/database-viewer')}>
-              View
-            </Button>
-          </div>
-
-
+          {/* PostgreSQL Database - Now using the dedicated component */}
+          <PostgresIntegration onViewClick={() => navigate('/database-viewer')} />
 
           <Button variant="outline" className="w-full" size="lg" onClick={() => setShowAddIntegration(true)}>
             <Plus className="h-4 w-4 mr-2" />
@@ -435,8 +410,6 @@ const IntegrationsTab: React.FC = () => {
           </Button>
         </CardContent>
       </Card>
-
-
 
       {/* Add Integration Modal Placeholder */}
       {showAddIntegration && (
@@ -447,7 +420,7 @@ const IntegrationsTab: React.FC = () => {
               More integrations coming soon! Currently available:
             </p>
             <ul className="text-sm text-gray-600 mb-4 space-y-1">
-              <li>• PostgreSQL Database (Active)</li>
+              <PostgresIntegrationListItem />
               <li>• Google APIs (Available in Integration Test)</li>
               <li>• OpenRouter AI (Available in Integration Test)</li>
             </ul>
