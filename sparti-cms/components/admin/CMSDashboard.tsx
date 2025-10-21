@@ -194,6 +194,15 @@ const CMSDashboard: React.FC = () => {
   const { signOut, user } = useAuth();
   const navigate = useNavigate();
 
+  // Create a default user if none exists (for public dashboard)
+  const currentUser = user || {
+    id: 'public',
+    first_name: 'Public',
+    last_name: 'User',
+    email: 'public@example.com',
+    role: 'viewer'
+  };
+
   const handleBackClick = () => {
     if (activeTab === 'components') {
       setActiveTab('pages');
@@ -341,7 +350,7 @@ const CMSDashboard: React.FC = () => {
                       const Icon = item.icon;
                       const isActive = activeTab === item.id;
                       
-                      if (item.id === 'users' && user?.role !== 'admin') {
+                      if (item.id === 'users' && currentUser?.role !== 'admin') {
                         return null;
                       }
                       
@@ -477,13 +486,23 @@ const CMSDashboard: React.FC = () => {
           
           {/* Footer */}
           <div className="p-4 border-t border-border">
-            <button
-              onClick={() => signOut()}
-              className="w-full flex items-center px-3 py-2 text-left rounded-lg text-muted-foreground hover:bg-secondary/50 hover:text-foreground transition-all duration-200"
-            >
-              <LogOut className="mr-3 h-5 w-5" />
-              Sign Out
-            </button>
+            {user ? (
+              <button
+                onClick={() => signOut()}
+                className="w-full flex items-center px-3 py-2 text-left rounded-lg text-muted-foreground hover:bg-secondary/50 hover:text-foreground transition-all duration-200"
+              >
+                <LogOut className="mr-3 h-5 w-5" />
+                Sign Out
+              </button>
+            ) : (
+              <button
+                onClick={() => navigate('/auth')}
+                className="w-full flex items-center px-3 py-2 text-left rounded-lg text-muted-foreground hover:bg-secondary/50 hover:text-foreground transition-all duration-200"
+              >
+                <Users className="mr-3 h-5 w-5" />
+                Sign In
+              </button>
+            )}
           </div>
         </div>
         </motion.div>
@@ -514,7 +533,7 @@ const CMSDashboard: React.FC = () => {
             
             <div className="flex items-center space-x-4">
               <span className="text-sm text-muted-foreground">
-                Welcome back, {user?.email || 'Admin'}
+                {user ? `Welcome back, ${user.email || 'Admin'}` : 'Public Dashboard'}
               </span>
             </div>
           </div>

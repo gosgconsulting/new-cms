@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   User, 
@@ -10,10 +10,12 @@ import {
   UserPlus,
   AlertCircle,
   CheckCircle,
-  ArrowLeft
+  ArrowLeft,
+  Shield
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import gosgLogo from "@/assets/go-sg-logo-official.png";
+import { useAuth } from '../../sparti-cms/components/auth/AuthProvider';
 
 interface FormData {
   first_name: string;
@@ -23,20 +25,41 @@ interface FormData {
   confirm_password: string;
 }
 
+interface LocationState {
+  from?: {
+    pathname?: string;
+  };
+}
+
 const Auth: React.FC = () => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const { createAdminUser, signIn, user } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
   
+  // Get the intended destination from location state or default to admin
+  const locationState = location.state as LocationState;
+  const from = locationState?.from?.pathname || "/admin";
+  
+  // Initial form data
   const [formData, setFormData] = useState<FormData>({
     first_name: '',
     last_name: '',
-    email: '',
-    password: '',
+    email: 'admin',
+    password: 'admin',
     confirm_password: ''
   });
+  
+  // Handle redirect if user is already logged in
+  useEffect(() => {
+    if (user) {
+      navigate(from, { replace: true });
+    }
+  }, [user, navigate, from]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -49,27 +72,16 @@ const Auth: React.FC = () => {
     setMessage(null);
 
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
+      const result = await signIn(formData.email, formData.password);
+      
+      if (result.success) {
         setMessage({ type: 'success', text: 'Login successful! Redirecting...' });
-        // In a real app, you would redirect to dashboard or store auth state
+        // Redirect to the intended destination
         setTimeout(() => {
-          window.location.href = '/admin';
-        }, 1500);
+          navigate(from, { replace: true });
+        }, 1000);
       } else {
-        setMessage({ type: 'error', text: data.error || 'Login failed' });
+        setMessage({ type: 'error', text: result.error || 'Login failed' });
       }
     } catch (error) {
       console.error('Login error:', error);
@@ -123,8 +135,8 @@ const Auth: React.FC = () => {
         setFormData({
           first_name: '',
           last_name: '',
-          email: '',
-          password: '',
+          email: 'admin',
+          password: 'admin',
           confirm_password: ''
         });
         // Switch to sign in after successful registration
@@ -142,12 +154,46 @@ const Auth: React.FC = () => {
     }
   };
 
+  // Function to create admin user
+  const handleCreateAdmin = async () => {
+    setLoading(true);
+    setMessage(null);
+    
+    try {
+      const result = await createAdminUser('admin', 'admin');
+      
+      if (result.success) {
+        setMessage({ 
+          type: 'success', 
+          text: 'Admin user created successfully! Redirecting to dashboard...' 
+        });
+        
+        setTimeout(() => {
+          navigate('/admin', { replace: true });
+        }, 1500);
+      } else {
+        setMessage({ 
+          type: 'error', 
+          text: result.error || 'Failed to create admin user' 
+        });
+      }
+    } catch (error) {
+      console.error('Create admin error:', error);
+      setMessage({ 
+        type: 'error', 
+        text: 'Failed to create admin user. Please try again.' 
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const resetForm = () => {
     setFormData({
       first_name: '',
       last_name: '',
-      email: '',
-      password: '',
+      email: 'admin',
+      password: 'admin',
       confirm_password: ''
     });
     setMessage(null);
@@ -372,6 +418,27 @@ const Auth: React.FC = () => {
               )}
             </button>
           </form>
+
+          {/* Quick Admin Access Button */}
+          <div className="mt-6 border-t pt-6">
+            <button
+              onClick={handleCreateAdmin}
+              disabled={loading}
+              className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {loading ? (
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+              ) : (
+                <>
+                  <Shield className="h-4 w-4" />
+                  <span>Create Admin Access</span>
+                </>
+              )}
+            </button>
+            <p className="text-xs text-center text-muted-foreground mt-2">
+              Creates a demo admin user with credentials: admin/admin
+            </p>
+          </div>
 
           {/* Switch mode */}
           <div className="mt-6 text-center">

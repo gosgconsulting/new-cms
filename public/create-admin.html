@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Admin User</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 2rem;
+      line-height: 1.6;
+    }
+    .container {
+      background-color: #f9f9f9;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 2rem;
+      margin-top: 2rem;
+    }
+    h1 {
+      color: #333;
+    }
+    .success {
+      background-color: #d4edda;
+      color: #155724;
+      padding: 1rem;
+      border-radius: 4px;
+      margin-bottom: 1rem;
+    }
+    .credentials {
+      background-color: #fff;
+      border: 1px solid #ddd;
+      padding: 1rem;
+      border-radius: 4px;
+    }
+    .button {
+      background-color: #4CAF50;
+      border: none;
+      color: white;
+      padding: 15px 32px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 16px;
+      margin: 4px 2px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Create Admin User</h1>
+    <p>This page will create an admin user with predefined credentials for development purposes.</p>
+    
+    <div id="success" class="success" style="display: none;">
+      <h3>✅ Admin user created successfully!</h3>
+      <p>You can now access the admin dashboard.</p>
+    </div>
+    
+    <div class="credentials">
+      <h3>Admin Credentials:</h3>
+      <p><strong>Username:</strong> admin</p>
+      <p><strong>Password:</strong> admin</p>
+    </div>
+    
+    <p>Click the button below to create the admin user:</p>
+    <button id="createAdmin" class="button">Create Admin User</button>
+    
+    <p>After creating the admin user, you can navigate to:</p>
+    <ul>
+      <li><a href="/dashboard" id="dashboardLink">/dashboard</a></li>
+    </ul>
+  </div>
+
+  <script>
+    document.getElementById('createAdmin').addEventListener('click', function() {
+      // Create admin user with credentials: admin/admin
+      const adminUser = {
+        id: '1',
+        first_name: 'Admin',
+        last_name: 'User',
+        email: 'admin',
+        role: 'admin'
+      };
+      
+      // Store the admin user in localStorage
+      localStorage.setItem('sparti-demo-session', JSON.stringify(adminUser));
+      
+      // Store credentials in localStorage for future login (demo only)
+      localStorage.setItem('sparti-demo-credentials', JSON.stringify({ email: 'admin', password: 'admin' }));
+      
+      // Show success message
+      document.getElementById('success').style.display = 'block';
+      
+      // Disable button
+      this.disabled = true;
+      this.textContent = 'Admin User Created';
+      this.style.backgroundColor = '#888';
+    });
+  </script>
+</body>
+</html>

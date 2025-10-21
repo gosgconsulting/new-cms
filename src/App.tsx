@@ -3,16 +3,16 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import AdminTopBar from "@/components/AdminTopBar";
 import { useSEO } from "@/hooks/useSEO";
-import Index from "./pages/Index";
 import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import NotFound from "./pages/NotFound";
 import Admin from "./pages/Admin";
 import Auth from "./pages/Auth";
 import DatabaseViewer from "./pages/DatabaseViewer";
+import PublicDashboard from "./pages/PublicDashboard";
 
 const queryClient = new QueryClient();
 
@@ -32,11 +32,19 @@ const App = () => {
         <BrowserRouter>
           <AdminTopBar />
           <Routes>
-            <Route path="/" element={<Index />} />
+            {/* Redirect root to admin */}
+            <Route path="/" element={<Navigate to="/admin" replace />} />
+            
+            {/* Admin routes */}
+            <Route path="/admin/*" element={<Admin />} />
+            
+            {/* Public dashboard route - no authentication required */}
+            <Route path="/dashboard/*" element={<PublicDashboard />} />
+            
+            {/* Other routes */}
             <Route path="/blog" element={<Blog />} />
             <Route path="/blog/:slug" element={<BlogPost />} />
             <Route path="/auth" element={<Auth />} />
-            <Route path="/admin/*" element={<Admin />} />
             <Route path="/database-viewer" element={<DatabaseViewer />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

@@ -13,6 +13,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   signOut: () => void;
   loading: boolean;
+  createAdminUser: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -80,6 +81,36 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const createAdminUser = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
+    try {
+      // Create a demo admin user directly in localStorage for development purposes
+      const adminUser: User = {
+        id: '1',
+        first_name: 'Admin',
+        last_name: 'User',
+        email: email,
+        role: 'admin'
+      };
+      
+      // Store the admin user in localStorage
+      localStorage.setItem('sparti-demo-session', JSON.stringify(adminUser));
+      
+      // Set the user in state
+      setUser(adminUser);
+      
+      // Store credentials in localStorage for future login (demo only)
+      localStorage.setItem('sparti-demo-credentials', JSON.stringify({ email, password }));
+      
+      return { success: true };
+    } catch (error) {
+      console.error('Create admin user error:', error);
+      return { 
+        success: false, 
+        error: 'Failed to create admin user. Please try again.' 
+      };
+    }
+  };
+
   const signOut = () => {
     setUser(null);
     localStorage.removeItem('sparti-demo-session');
@@ -90,6 +121,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     signIn,
     signOut,
     loading,
+    createAdminUser,
   };
 
   return (
