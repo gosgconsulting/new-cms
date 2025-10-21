@@ -1,0 +1,3 @@
+@echo off
+echo Starting server with tenants support...
+node server-with-tenants.js

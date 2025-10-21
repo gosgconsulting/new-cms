@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
 import { Database, Plus, FolderKanban, Puzzle, FileCode, Code, Globe, Monitor, FileText } from 'lucide-react';
-import { PostgresIntegration, PostgresIntegrationListItem } from './PostgresIntegration';
+import { PostgresIntegration, PostgresIntegrationListItem, Tenant } from './PostgresIntegration';
+import { useAuth } from '../auth/AuthProvider';
 
 interface Project {
   id: string;
@@ -388,7 +389,8 @@ const NewProjectModal: React.FC<{ onClose: () => void; onSave: () => void }> = (
 
 const IntegrationsTab: React.FC = () => {
   const navigate = useNavigate();
-  const [showAddIntegration, setShowAddIntegration] = React.useState(false);
+  const [showAddIntegration, setShowAddIntegration] = useState(false);
+  const { currentTenant } = useAuth();
 
   return (
     <div className="space-y-6">
@@ -402,7 +404,10 @@ const IntegrationsTab: React.FC = () => {
       <Card>
         <CardContent className="pt-6 space-y-4">
           {/* PostgreSQL Database - Now using the dedicated component */}
-          <PostgresIntegration onViewClick={() => navigate('/database-viewer')} />
+          <PostgresIntegration 
+            tenant={currentTenant}
+            onViewClick={() => navigate('/database-viewer')} 
+          />
 
           <Button variant="outline" className="w-full" size="lg" onClick={() => setShowAddIntegration(true)}>
             <Plus className="h-4 w-4 mr-2" />
@@ -420,7 +425,7 @@ const IntegrationsTab: React.FC = () => {
               More integrations coming soon! Currently available:
             </p>
             <ul className="text-sm text-gray-600 mb-4 space-y-1">
-              <PostgresIntegrationListItem />
+              <PostgresIntegrationListItem tenant={currentTenant} />
               <li>• Google APIs (Available in Integration Test)</li>
               <li>• OpenRouter AI (Available in Integration Test)</li>
             </ul>

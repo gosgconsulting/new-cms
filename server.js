@@ -161,6 +161,9 @@ app.get('/health/detailed', async (req, res) => {
 
 // API Routes - MUST come before static file serving
 
+// Tenant API Routes
+app.use('/api/tenants', tenantRoutes);
+
 // Branding API
 app.get('/api/branding', async (req, res) => {
   try {

@@ -2,23 +2,21 @@ import React, { useState } from 'react';
 import { 
   FileText, 
   PenTool, 
-  Layout, 
-  Minus, 
   Settings as SettingsIcon, 
   LogOut, 
-  Home,
-  ArrowLeft,
   Users,
   ChevronDown,
   ChevronRight,
   Code,
   Mail,
-  Layers,
   Image as ImageIcon,
   FileInput,
   Shield,
   ArrowRight,
   Map,
+  Building2,
+  Check,
+  ChevronsUpDown,
 } from 'lucide-react';
 import { useAuth } from '../auth/AuthProvider';
 import { motion } from 'framer-motion';
@@ -44,9 +42,9 @@ import SitemapManager from '../seo/SitemapManager';
 import DeveloperManager from './DeveloperManager';
 import ContactsManager from './ContactsManager';
 import SMTPManager from './SMTPManager';
-import ComponentsManager from './ComponentsManager';
 import MyAccountPage from './MyAccountPage';
 import UsersManager from './UsersManager';
+import TenantsManager from './TenantsManager';
 
 import BrandingSettingsPage from './BrandingSettingsPage';
 import ButtonSettingsPage from './ButtonSettingsPage';
@@ -191,25 +189,9 @@ const CMSDashboard: React.FC = () => {
   const [crmExpanded, setCrmExpanded] = useState<boolean>(false);
   const [usersExpanded, setUsersExpanded] = useState<boolean>(false);
   const [seoExpanded, setSeoExpanded] = useState<boolean>(false);
-  const { signOut, user } = useAuth();
+  const [tenantDropdownOpen, setTenantDropdownOpen] = useState<boolean>(false);
+  const { signOut, user, tenants, currentTenant, handleTenantChange } = useAuth();
   const navigate = useNavigate();
-
-  // Create a default user if none exists (for public dashboard)
-  const currentUser = user || {
-    id: 'public',
-    first_name: 'Public',
-    last_name: 'User',
-    email: 'public@example.com',
-    role: 'viewer'
-  };
-
-  const handleBackClick = () => {
-    if (activeTab === 'components') {
-      setActiveTab('pages');
-    } else {
-      navigate('/admin');
-    }
-  };
 
   const renderContent = () => {
     switch (activeTab) {
@@ -217,16 +199,14 @@ const CMSDashboard: React.FC = () => {
         return <PagesManager />;
       case 'blog':
         return <BlogManager />;
-      case 'components':
-        return <ComponentsManager />;
+      case 'media':
+        return <MediaManager />;
       case 'contacts':
         return <ContactsManager />;
       case 'forms':
         return <FormsManager />;
       case 'smtp':
         return <SMTPManager />;
-      case 'media':
-        return <MediaManager />;
       case 'my-account':
         return <MyAccountPage />;
       case 'users':
@@ -241,6 +221,8 @@ const CMSDashboard: React.FC = () => {
         return <RobotsManager />;
       case 'sitemap':
         return <SitemapManager />;
+      case 'tenants':
+        return <TenantsManager />;
       default:
         return <div className="text-muted-foreground">Select a section from the sidebar</div>;
     }
@@ -249,10 +231,10 @@ const CMSDashboard: React.FC = () => {
   const navItems = [
     { id: 'pages', label: 'Pages', icon: FileText },
     { id: 'blog', label: 'Blog', icon: PenTool },
-    { id: 'components', label: 'Components', icon: Layers },
     { id: 'media', label: 'Media', icon: ImageIcon },
     { id: 'settings', label: 'Settings', icon: SettingsIcon },
     { id: 'developer', label: 'Developer', icon: Code },
+    { id: 'tenants', label: 'Tenants', icon: Building2 },
   ];
 
   const usersItems = [
@@ -274,239 +256,293 @@ const CMSDashboard: React.FC = () => {
 
   const getPageTitle = () => {
     const currentItem = navItems.find(item => item.id === activeTab) || 
-                        crmItems.find(item => item.id === activeTab) ||
-                        usersItems.find(item => item.id === activeTab) ||
-                        seoItems.find(item => item.id === activeTab);
+                      crmItems.find(item => item.id === activeTab) ||
+                      usersItems.find(item => item.id === activeTab) ||
+                      seoItems.find(item => item.id === activeTab);
     return currentItem ? currentItem.label : 'Dashboard';
   };
 
   return (
     <div className="min-h-screen bg-background flex">
       {/* Sidebar */}
-      {activeTab !== 'components' && (
-        <motion.div 
-          className="w-64 bg-white/80 backdrop-blur-md shadow-md border-r border-border flex-shrink-0"
-          initial={{ x: -20, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          transition={{ duration: 0.3 }}
-        >
-        <div className="flex flex-col h-full">
-          {/* Header */}
-          <div className="p-6 border-b border-border">
-            <div className="flex items-center space-x-3">
-              <img 
-                src={gosgLogo} 
-                alt="GO SG Digital Marketing Agency" 
-                className="h-8 w-auto"
-              />
-              <h1 className="text-xl font-bold text-foreground">Admin</h1>
-            </div>
-          </div>
-          
-          {/* Navigation */}
-          <nav className="flex-1 p-4">
-            <ul className="space-y-1">
-              {navItems.slice(0, 2).map((item) => {
-                const Icon = item.icon;
-                const isActive = activeTab === item.id;
-                
-                return (
-                  <li key={item.id}>
-                    <button
-                      onClick={() => setActiveTab(item.id)}
-                      className={`w-full flex items-center px-3 py-2.5 text-left rounded-lg transition-all duration-200 ${
-                        isActive
-                          ? 'bg-secondary text-foreground font-medium shadow-sm'
-                          : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'
-                      }`}
-                    >
-                      <Icon className={`mr-3 h-5 w-5 ${isActive ? 'text-brandPurple' : ''}`} />
-                      {item.label}
-                    </button>
-                  </li>
-                );
-              })}
-              
-              {/* Users Submenu */}
-              <li>
-                <button
-                  onClick={() => setUsersExpanded(!usersExpanded)}
-                  className={`w-full flex items-center justify-between px-3 py-2.5 text-left rounded-lg transition-all duration-200 ${
-                    usersItems.some(item => item.id === activeTab)
-                      ? 'bg-secondary text-foreground font-medium shadow-sm'
-                      : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'
-                  }`}
-                >
-                  <div className="flex items-center">
-                    <Users className={`mr-3 h-5 w-5 ${usersItems.some(item => item.id === activeTab) ? 'text-brandPurple' : ''}`} />
-                    Users
-                  </div>
-                  {usersExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                </button>
-                
-                {usersExpanded && (
-                  <ul className="mt-1 ml-4 space-y-1">
-                    {usersItems.map((item) => {
-                      const Icon = item.icon;
-                      const isActive = activeTab === item.id;
-                      
-                      if (item.id === 'users' && currentUser?.role !== 'admin') {
-                        return null;
-                      }
-                      
-                      return (
-                        <li key={item.id}>
-                          <button
-                            onClick={() => setActiveTab(item.id)}
-                            className={`w-full flex items-center px-3 py-2.5 text-left rounded-lg transition-all duration-200 ${
-                              isActive
-                                ? 'bg-secondary text-foreground font-medium shadow-sm'
-                                : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'
-                            }`}
-                          >
-                            <Icon className={`mr-3 h-4 w-4 ${isActive ? 'text-brandTeal' : ''}`} />
-                            {item.label}
-                          </button>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                )}
-              </li>
-
-              {/* CRM Submenu */}
-              <li>
-                <button
-                  onClick={() => setCrmExpanded(!crmExpanded)}
-                  className={`w-full flex items-center justify-between px-3 py-2.5 text-left rounded-lg transition-all duration-200 ${
-                    crmItems.some(item => item.id === activeTab)
-                      ? 'bg-secondary text-foreground font-medium shadow-sm'
-                      : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'
-                  }`}
-                >
-                  <div className="flex items-center">
-                    <Mail className={`mr-3 h-5 w-5 ${crmItems.some(item => item.id === activeTab) ? 'text-brandPurple' : ''}`} />
-                    CRM
-                  </div>
-                  {crmExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                </button>
-                
-                {crmExpanded && (
-                  <ul className="mt-1 ml-4 space-y-1">
-                    {crmItems.map((item) => {
-                      const Icon = item.icon;
-                      const isActive = activeTab === item.id;
-                      
-                      return (
-                        <li key={item.id}>
-                          <button
-                            onClick={() => setActiveTab(item.id)}
-                            className={`w-full flex items-center px-3 py-2.5 text-left rounded-lg transition-all duration-200 ${
-                              isActive
-                                ? 'bg-secondary text-foreground font-medium shadow-sm'
-                                : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'
-                            }`}
-                          >
-                            <Icon className={`mr-3 h-4 w-4 ${isActive ? 'text-brandTeal' : ''}`} />
-                            {item.label}
-                          </button>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                )}
-              </li>
-
-              {/* SEO Submenu */}
-              <li>
-                <button
-                  onClick={() => setSeoExpanded(!seoExpanded)}
-                  className={`w-full flex items-center justify-between px-3 py-2.5 text-left rounded-lg transition-all duration-200 ${
-                    seoItems.some(item => item.id === activeTab)
-                      ? 'bg-secondary text-foreground font-medium shadow-sm'
-                      : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'
-                  }`}
-                >
-                  <div className="flex items-center">
-                    <Shield className={`mr-3 h-5 w-5 ${seoItems.some(item => item.id === activeTab) ? 'text-brandPurple' : ''}`} />
-                    SEO
-                  </div>
-                  {seoExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                </button>
-                
-                {seoExpanded && (
-                  <ul className="mt-1 ml-4 space-y-1">
-                    {seoItems.map((item) => {
-                      const Icon = item.icon;
-                      const isActive = activeTab === item.id;
-                      
-                      return (
-                        <li key={item.id}>
-                          <button
-                            onClick={() => setActiveTab(item.id)}
-                            className={`w-full flex items-center px-3 py-2.5 text-left rounded-lg transition-all duration-200 ${
-                              isActive
-                                ? 'bg-secondary text-foreground font-medium shadow-sm'
-                                : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'
-                            }`}
-                          >
-                            <Icon className={`mr-3 h-4 w-4 ${isActive ? 'text-brandTeal' : ''}`} />
-                            {item.label}
-                          </button>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                )}
-              </li>
-              
-              {/* Remaining navigation items */}
-              {navItems.slice(2).map((item) => {
-                const Icon = item.icon;
-                const isActive = activeTab === item.id;
-                
-                return (
-                  <li key={item.id}>
-                    <button
-                      onClick={() => setActiveTab(item.id)}
-                      className={`w-full flex items-center px-3 py-2.5 text-left rounded-lg transition-all duration-200 ${
-                        isActive
-                          ? 'bg-secondary text-foreground font-medium shadow-sm'
-                          : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'
-                      }`}
-                    >
-                      <Icon className={`mr-3 h-5 w-5 ${isActive ? 'text-brandPurple' : ''}`} />
-                      {item.label}
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          </nav>
-          
-          {/* Footer */}
-          <div className="p-4 border-t border-border">
-            {user ? (
-              <button
-                onClick={() => signOut()}
-                className="w-full flex items-center px-3 py-2 text-left rounded-lg text-muted-foreground hover:bg-secondary/50 hover:text-foreground transition-all duration-200"
-              >
-                <LogOut className="mr-3 h-5 w-5" />
-                Sign Out
-              </button>
-            ) : (
-              <button
-                onClick={() => navigate('/auth')}
-                className="w-full flex items-center px-3 py-2 text-left rounded-lg text-muted-foreground hover:bg-secondary/50 hover:text-foreground transition-all duration-200"
-              >
-                <Users className="mr-3 h-5 w-5" />
-                Sign In
-              </button>
-            )}
+      <motion.div 
+        className="w-64 bg-white/80 backdrop-blur-md shadow-md border-r border-border flex-shrink-0"
+        initial={{ x: -20, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        transition={{ duration: 0.3 }}
+      >
+      <div className="flex flex-col h-full">
+        {/* Header */}
+        <div className="p-6 border-b border-border">
+          <div className="flex items-center space-x-3">
+            <img 
+              src={gosgLogo} 
+              alt="GO SG Digital Marketing Agency" 
+              className="h-8 w-auto"
+            />
+            <h1 className="text-xl font-bold text-foreground">Admin</h1>
           </div>
         </div>
-        </motion.div>
-      )}
+        
+        {/* Navigation */}
+        <nav className="flex-1 p-4">
+          <ul className="space-y-1">
+            {navItems.slice(0, 2).map((item) => {
+              const Icon = item.icon;
+              const isActive = activeTab === item.id;
+              
+              return (
+                <li key={item.id}>
+                  <button
+                    onClick={() => setActiveTab(item.id)}
+                    className={`w-full flex items-center px-3 py-2.5 text-left rounded-lg transition-all duration-200 ${
+                      isActive
+                        ? 'bg-secondary text-foreground font-medium shadow-sm'
+                        : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'
+                    }`}
+                  >
+                    <Icon className={`mr-3 h-5 w-5 ${isActive ? 'text-brandPurple' : ''}`} />
+                    {item.label}
+                  </button>
+                </li>
+              );
+            })}
+            
+            {/* Users Submenu */}
+            <li>
+              <button
+                onClick={() => setUsersExpanded(!usersExpanded)}
+                className={`w-full flex items-center justify-between px-3 py-2.5 text-left rounded-lg transition-all duration-200 ${
+                  usersItems.some(item => item.id === activeTab)
+                    ? 'bg-secondary text-foreground font-medium shadow-sm'
+                    : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'
+                }`}
+              >
+                <div className="flex items-center">
+                  <Users className={`mr-3 h-5 w-5 ${usersItems.some(item => item.id === activeTab) ? 'text-brandPurple' : ''}`} />
+                  Users
+                </div>
+                {usersExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+              </button>
+              
+              {usersExpanded && (
+                <ul className="mt-1 ml-4 space-y-1">
+                  {usersItems.map((item) => {
+                    const Icon = item.icon;
+                    const isActive = activeTab === item.id;
+                    
+                    if (item.id === 'users' && user?.role !== 'admin') {
+                      return null;
+                    }
+                    
+                    return (
+                      <li key={item.id}>
+                        <button
+                          onClick={() => setActiveTab(item.id)}
+                          className={`w-full flex items-center px-3 py-2.5 text-left rounded-lg transition-all duration-200 ${
+                            isActive
+                              ? 'bg-secondary text-foreground font-medium shadow-sm'
+                              : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'
+                          }`}
+                        >
+                          <Icon className={`mr-3 h-4 w-4 ${isActive ? 'text-brandTeal' : ''}`} />
+                          {item.label}
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </li>
+
+            {/* CRM Submenu */}
+            <li>
+              <button
+                onClick={() => setCrmExpanded(!crmExpanded)}
+                className={`w-full flex items-center justify-between px-3 py-2.5 text-left rounded-lg transition-all duration-200 ${
+                  crmItems.some(item => item.id === activeTab)
+                    ? 'bg-secondary text-foreground font-medium shadow-sm'
+                    : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'
+                }`}
+              >
+                <div className="flex items-center">
+                  <Mail className={`mr-3 h-5 w-5 ${crmItems.some(item => item.id === activeTab) ? 'text-brandPurple' : ''}`} />
+                  CRM
+                </div>
+                {crmExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+              </button>
+              
+              {crmExpanded && (
+                <ul className="mt-1 ml-4 space-y-1">
+                  {crmItems.map((item) => {
+                    const Icon = item.icon;
+                    const isActive = activeTab === item.id;
+                    
+                    return (
+                      <li key={item.id}>
+                        <button
+                          onClick={() => setActiveTab(item.id)}
+                          className={`w-full flex items-center px-3 py-2.5 text-left rounded-lg transition-all duration-200 ${
+                            isActive
+                              ? 'bg-secondary text-foreground font-medium shadow-sm'
+                              : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'
+                          }`}
+                        >
+                          <Icon className={`mr-3 h-4 w-4 ${isActive ? 'text-brandTeal' : ''}`} />
+                          {item.label}
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </li>
+
+            {/* SEO Submenu */}
+            <li>
+              <button
+                onClick={() => setSeoExpanded(!seoExpanded)}
+                className={`w-full flex items-center justify-between px-3 py-2.5 text-left rounded-lg transition-all duration-200 ${
+                  seoItems.some(item => item.id === activeTab)
+                    ? 'bg-secondary text-foreground font-medium shadow-sm'
+                    : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'
+                }`}
+              >
+                <div className="flex items-center">
+                  <Shield className={`mr-3 h-5 w-5 ${seoItems.some(item => item.id === activeTab) ? 'text-brandPurple' : ''}`} />
+                  SEO
+                </div>
+                {seoExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+              </button>
+              
+              {seoExpanded && (
+                <ul className="mt-1 ml-4 space-y-1">
+                  {seoItems.map((item) => {
+                    const Icon = item.icon;
+                    const isActive = activeTab === item.id;
+                    
+                    return (
+                      <li key={item.id}>
+                        <button
+                          onClick={() => setActiveTab(item.id)}
+                          className={`w-full flex items-center px-3 py-2.5 text-left rounded-lg transition-all duration-200 ${
+                            isActive
+                              ? 'bg-secondary text-foreground font-medium shadow-sm'
+                              : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'
+                          }`}
+                        >
+                          <Icon className={`mr-3 h-4 w-4 ${isActive ? 'text-brandTeal' : ''}`} />
+                          {item.label}
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </li>
+            
+            {/* Remaining navigation items */}
+            {navItems.slice(2).map((item) => {
+              const Icon = item.icon;
+              const isActive = activeTab === item.id;
+              
+              return (
+                <li key={item.id}>
+                  <button
+                    onClick={() => setActiveTab(item.id)}
+                    className={`w-full flex items-center px-3 py-2.5 text-left rounded-lg transition-all duration-200 ${
+                      isActive
+                        ? 'bg-secondary text-foreground font-medium shadow-sm'
+                        : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'
+                    }`}
+                  >
+                    <Icon className={`mr-3 h-5 w-5 ${isActive ? 'text-brandPurple' : ''}`} />
+                    {item.label}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
+        
+        {/* Footer with Tenant Switcher */}
+        <div className="p-4 border-t border-border space-y-2">
+          {/* Tenant Switcher */}
+          <div className="relative">
+            <button
+              onClick={() => setTenantDropdownOpen(!tenantDropdownOpen)}
+              className="w-full flex items-center justify-between px-3 py-2.5 text-left rounded-lg text-muted-foreground hover:bg-secondary/50 hover:text-foreground transition-all duration-200 border border-border"
+            >
+              <div className="flex items-center">
+                <Building2 className="mr-3 h-5 w-5 text-brandTeal" />
+                <div className="text-sm">
+                  <div className="font-medium text-foreground">{currentTenant.name}</div>
+                  <div className="text-xs text-muted-foreground">{currentTenant.plan} Plan</div>
+                </div>
+              </div>
+              <ChevronsUpDown className="h-4 w-4 text-muted-foreground" />
+            </button>
+            
+            {/* Dropdown */}
+            {tenantDropdownOpen && (
+              <div className="absolute bottom-full mb-1 left-0 w-full bg-white rounded-lg border border-border shadow-lg z-50">
+                <div className="p-2 border-b border-border">
+                  <h3 className="text-xs font-semibold text-muted-foreground px-2 py-1">Switch Tenant</h3>
+                </div>
+                <ul className="max-h-60 overflow-auto py-1">
+                  {tenants.map((tenant) => (
+                    <li key={tenant.id}>
+                      <button
+                        onClick={() => handleTenantChange(tenant)}
+                        className="w-full flex items-center justify-between px-3 py-2 text-left text-sm hover:bg-secondary/50 transition-colors"
+                      >
+                        <div className="flex items-center">
+                          <div className={`w-2 h-2 rounded-full mr-2 ${tenant.status === 'active' ? 'bg-green-500' : 'bg-amber-500'}`}></div>
+                          <span className="text-foreground">{tenant.name}</span>
+                        </div>
+                        {currentTenant.id === tenant.id && (
+                          <Check className="h-4 w-4 text-brandTeal" />
+                        )}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+                <div className="p-2 border-t border-border">
+                  <button
+                    className="w-full text-left text-xs px-2 py-1 text-brandPurple hover:text-brandPurple/80 transition-colors"
+                    onClick={() => {
+                      setTenantDropdownOpen(false);
+                      setActiveTab('tenants');
+                    }}
+                  >
+                    + Add New Tenant
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+          
+          {/* Sign Out Button */}
+          {user ? (
+            <button
+              onClick={() => signOut()}
+              className="w-full flex items-center px-3 py-2 text-left rounded-lg text-muted-foreground hover:bg-secondary/50 hover:text-foreground transition-all duration-200"
+            >
+              <LogOut className="mr-3 h-5 w-5" />
+              Sign Out
+            </button>
+          ) : (
+            <button
+              onClick={() => navigate('/auth')}
+              className="w-full flex items-center px-3 py-2 text-left rounded-lg text-muted-foreground hover:bg-secondary/50 hover:text-foreground transition-all duration-200"
+            >
+              <Users className="mr-3 h-5 w-5" />
+              Sign In
+            </button>
+          )}
+        </div>
+      </div>
+      </motion.div>
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-h-screen">
@@ -519,16 +555,10 @@ const CMSDashboard: React.FC = () => {
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              {activeTab === 'components' && (
-                <button
-                  onClick={handleBackClick}
-                  className="flex items-center text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <ArrowLeft className="h-5 w-5 mr-2" />
-                  Back to Dashboard
-                </button>
-              )}
               <h1 className="text-2xl font-bold text-foreground">{getPageTitle()}</h1>
+              <div className="px-2 py-1 rounded bg-secondary/50 text-xs font-medium">
+                Tenant: {currentTenant.name}
+              </div>
             </div>
             
             <div className="flex items-center space-x-4">

@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { Tenant } from '../admin/PostgresIntegration';
 
 interface User {
   id: string;
@@ -14,7 +15,46 @@ interface AuthContextType {
   signOut: () => void;
   loading: boolean;
   createAdminUser: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  tenants: Tenant[];
+  currentTenant: Tenant;
+  handleTenantChange: (tenant: Tenant) => void;
 }
+
+// Sample tenants data
+const initialTenants: Tenant[] = [
+  { 
+    id: 'tenant-1', 
+    name: 'Main Website', 
+    plan: 'Standard', 
+    status: 'active',
+    createdAt: '2023-10-15',
+    description: 'Main company website with blog and contact forms'
+  },
+  { 
+    id: 'tenant-2', 
+    name: 'E-commerce Store', 
+    plan: 'Premium', 
+    status: 'active',
+    createdAt: '2023-11-20',
+    description: 'Online store with product catalog and checkout'
+  },
+  { 
+    id: 'tenant-3', 
+    name: 'Blog Platform', 
+    plan: 'Basic', 
+    status: 'active',
+    createdAt: '2024-01-05',
+    description: 'Content publishing platform for the marketing team'
+  },
+  { 
+    id: 'tenant-4', 
+    name: 'Marketing Site', 
+    plan: 'Standard', 
+    status: 'maintenance',
+    createdAt: '2024-02-10',
+    description: 'Campaign landing pages and marketing materials'
+  },
+];
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -25,6 +65,8 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [tenants, setTenants] = useState<Tenant[]>(initialTenants);
+  const [currentTenant, setCurrentTenant] = useState<Tenant>(initialTenants[0]);
 
   useEffect(() => {
     // Check for existing session in localStorage
@@ -38,8 +80,58 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         localStorage.removeItem('sparti-demo-session');
       }
     }
+
+    // Check for saved tenant in localStorage
+    const savedTenant = localStorage.getItem('sparti-current-tenant');
+    if (savedTenant) {
+      try {
+        const tenantData = JSON.parse(savedTenant);
+        setCurrentTenant(tenantData);
+      } catch (error) {
+        console.error('Error parsing tenant data:', error);
+        localStorage.removeItem('sparti-current-tenant');
+      }
+    }
+
+    // Load tenants from API
+    fetchTenants();
+    
     setLoading(false);
   }, []);
+
+  const fetchTenants = async () => {
+    try {
+      const response = await fetch('/api/tenants');
+      if (response.ok) {
+        const tenantsData = await response.json();
+        if (Array.isArray(tenantsData) && tenantsData.length > 0) {
+          setTenants(tenantsData);
+          
+          // If we have a current tenant, find it in the new data
+          const currentTenantId = currentTenant.id;
+          const updatedCurrentTenant = tenantsData.find(t => t.id === currentTenantId);
+          if (updatedCurrentTenant) {
+            setCurrentTenant(updatedCurrentTenant);
+            localStorage.setItem('sparti-current-tenant', JSON.stringify(updatedCurrentTenant));
+          } else {
+            // If current tenant not found, use the first one
+            setCurrentTenant(tenantsData[0]);
+            localStorage.setItem('sparti-current-tenant', JSON.stringify(tenantsData[0]));
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching tenants:', error);
+      // Fall back to initial tenants if API call fails
+    }
+  };
+
+  const handleTenantChange = (tenant: Tenant) => {
+    setCurrentTenant(tenant);
+    localStorage.setItem('sparti-current-tenant', JSON.stringify(tenant));
+    // Here you would typically fetch data for the selected tenant
+    console.log(`Switched to tenant: ${tenant.name}`);
+  };
 
   const signIn = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {
@@ -98,7 +190,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Set the user in state
       setUser(adminUser);
       
-      // Store credentials in localStorage for future login (demo only)
+      // Store the credentials in localStorage for demo purposes
       localStorage.setItem('sparti-demo-credentials', JSON.stringify({ email, password }));
       
       return { success: true };
@@ -122,19 +214,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     signOut,
     loading,
     createAdminUser,
+    tenants,
+    currentTenant,
+    handleTenantChange,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-export const useAuth = (): AuthContextType => {
+export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
 };
+
+export default AuthContext;
