@@ -1,13 +1,14 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Calendar, Clock, ArrowLeft, Share2, Tag, Loader2 } from "lucide-react";
+import { Calendar, Clock, ArrowLeft, Share2, Tag, Loader2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ContactModal from "@/components/ContactModal";
 
-// Import placeholder image for fallback
+// Import placeholder images for fallback
 const placeholderImage = "/placeholder.svg";
 
 // Define BlogPost type
@@ -21,11 +22,11 @@ interface BlogPost {
   date: string;
   readTime: string;
   category: string;
-  tags: string[];
+  tags?: string[];
 }
 
-// Static blog posts data
-const blogPosts: BlogPost[] = [
+// Static blog posts for demonstration (fallback data)
+const staticBlogPosts: BlogPost[] = [
   {
     id: 1,
     slug: "10-essential-seo-strategies-2024",
@@ -207,29 +208,62 @@ const BlogPost = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [post, setPost] = useState<BlogPost | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [dbConnectionFailed, setDbConnectionFailed] = useState(false);
 
-  // Find the post based on slug
+  // Fetch post data from API
   useEffect(() => {
-    // Simulate API call with a small delay
-    const timer = setTimeout(() => {
+    const fetchPost = async () => {
       if (!slug) {
         setError("No post slug provided");
         setIsLoading(false);
         return;
       }
 
-      const foundPost = blogPosts.find(p => p.slug === slug);
-      
-      if (foundPost) {
-        setPost(foundPost);
-      } else {
-        setError(`Post with slug "${slug}" not found`);
+      try {
+        setIsLoading(true);
+        // Fetch post data from API
+        const response = await fetch(`/api/blog/posts/${slug}`);
+        
+        if (!response.ok) {
+          if (response.status === 404) {
+            setError(`Post with slug "${slug}" not found`);
+          } else {
+            setError('Failed to fetch post data');
+            setDbConnectionFailed(true);
+          }
+          
+          // Try to fall back to static data
+          const fallbackPost = staticBlogPosts.find(p => p.slug === slug);
+          if (fallbackPost) {
+            setPost(fallbackPost);
+            setDbConnectionFailed(true);
+            setError(null); // Clear error since we found a fallback
+          }
+          
+          setIsLoading(false);
+          return;
+        }
+        
+        const postData = await response.json();
+        setPost(postData);
+      } catch (err) {
+        console.error('Error fetching post:', err);
+        setDbConnectionFailed(true);
+        
+        // Try to fall back to static data
+        const fallbackPost = staticBlogPosts.find(p => p.slug === slug);
+        if (fallbackPost) {
+          setPost(fallbackPost);
+          setError(null); // Clear error since we found a fallback
+        } else {
+          setError('An error occurred while fetching the post');
+        }
+      } finally {
+        setIsLoading(false);
       }
-      
-      setIsLoading(false);
-    }, 300);
+    };
 
-    return () => clearTimeout(timer);
+    fetchPost();
   }, [slug]);
 
   const handleImageError = () => {
@@ -243,11 +277,6 @@ const BlogPost = () => {
       day: 'numeric'
     });
   };
-
-  // If there's an error, throw it to be caught by the error boundary
-  if (error) {
-    throw new Error(error);
-  }
 
   // Show loading state
   if (isLoading) {
@@ -297,16 +326,24 @@ const BlogPost = () => {
     );
   }
 
-  // Find related posts
-  const relatedPosts = blogPosts
-    .filter(p => p.id !== post.id && p.category === post.category)
-    .slice(0, 3);
-
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header onContactClick={() => setIsContactOpen(true)} />
       
       <main className="flex-1">
+        {/* Database Connection Alert */}
+        {dbConnectionFailed && (
+          <div className="container mx-auto px-4 mt-8 pt-20">
+            <Alert className="bg-amber-50 border-amber-200">
+              <AlertCircle className="h-4 w-4 text-amber-500" />
+              <AlertTitle className="text-amber-800">Database Connection Notice</AlertTitle>
+              <AlertDescription className="text-amber-700">
+                Currently displaying demo content. Database connection could not be established.
+              </AlertDescription>
+            </Alert>
+          </div>
+        )}
+        
         {/* Hero Section */}
         <section className="pt-32 md:pt-24 pb-12 px-4 bg-gradient-to-br from-primary/5 to-secondary/5">
           <div className="container mx-auto">
@@ -331,7 +368,7 @@ const BlogPost = () => {
                 <span className="bg-primary text-primary-foreground px-3 py-1 rounded-full text-sm font-medium">
                   {post.category}
                 </span>
-                {post.tags.map(tag => (
+                {post.tags && post.tags.map(tag => (
                   <span 
                     key={tag} 
                     className="bg-secondary/20 text-secondary px-3 py-1 rounded-full text-sm font-medium"
@@ -372,67 +409,16 @@ const BlogPost = () => {
         {/* Content */}
         <section className="py-8 px-4 mb-20">
           <div className="container mx-auto">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-              {/* Main Content */}
-              <div className="lg:col-span-8">
-                <div className="prose prose-lg max-w-none" dangerouslySetInnerHTML={{ __html: post.content }} />
-                
-                {/* Share Section */}
-                <div className="mt-12 pt-6 border-t border-border">
-                  <div className="flex items-center justify-between">
-                    <div className="text-sm font-medium">Share this article:</div>
-                    <div className="flex space-x-2">
-                      <Button variant="outline" size="icon" className="rounded-full">
-                        <Share2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Sidebar */}
-              <div className="lg:col-span-4">
-                <div className="bg-card rounded-lg border p-6 sticky top-8">
-                  <h3 className="text-lg font-semibold mb-4">Related Articles</h3>
-                  <div className="space-y-4">
-                    {relatedPosts.map(relatedPost => (
-                      <div 
-                        key={relatedPost.id} 
-                        className="flex items-start space-x-3 cursor-pointer hover:bg-muted/50 p-2 rounded-md transition-colors"
-                        onClick={() => navigate(`/blog/${relatedPost.slug}`)}
-                      >
-                        <div className="w-16 h-16 rounded-md overflow-hidden flex-shrink-0">
-                          <img 
-                            src={relatedPost.image} 
-                            alt={relatedPost.title}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).src = placeholderImage;
-                            }}
-                          />
-                        </div>
-                        <div>
-                          <h4 className="font-medium text-sm line-clamp-2">{relatedPost.title}</h4>
-                          <p className="text-xs text-muted-foreground mt-1">{relatedPost.readTime}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  <div className="mt-6 pt-6 border-t border-border">
-                    <h3 className="text-lg font-semibold mb-4">Categories</h3>
-                    <div className="flex flex-wrap gap-2">
-                      {Array.from(new Set(blogPosts.map(p => p.category))).map(category => (
-                        <div 
-                          key={category} 
-                          className="bg-muted px-3 py-1 rounded-full text-xs font-medium cursor-pointer hover:bg-muted/80 transition-colors"
-                          onClick={() => navigate('/blog')}
-                        >
-                          {category}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+            <div className="prose prose-lg max-w-none mx-auto" dangerouslySetInnerHTML={{ __html: post.content }} />
+            
+            {/* Share Section */}
+            <div className="mt-12 pt-6 border-t border-border max-w-3xl mx-auto">
+              <div className="flex items-center justify-between">
+                <div className="text-sm font-medium">Share this article:</div>
+                <div className="flex space-x-2">
+                  <Button variant="outline" size="icon" className="rounded-full">
+                    <Share2 className="h-4 w-4" />
+                  </Button>
                 </div>
               </div>
             </div>

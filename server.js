@@ -51,6 +51,9 @@ import {
   deleteMockContact
 } from './sparti-cms/db/mock-data.js';
 
+// Import blog schema initialization
+import { ensureBlogSchemaInitialized } from './sparti-cms/db/init-blog.js';
+
 // SMTP Configuration for server-side email sending
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const SMTP_FROM_EMAIL = process.env.SMTP_FROM_EMAIL || 'noreply@gosg.com';
@@ -1748,6 +1751,130 @@ app.use((req, res) => {
   }
 });
 
+// Blog API endpoints
+// Get all blog posts
+app.get('/api/blog/posts', async (req, res) => {
+  try {
+    // Get tenant from request or use default
+    const tenantId = req.query.tenant || 'tenant-gosg';
+    
+    // Get database connection for tenant
+    const db = await getDbForTenant(tenantId);
+    
+    // If no database connection, return 500
+    if (!db) {
+      console.error('No database connection for tenant:', tenantId);
+      return res.status(500).json({ error: 'Database connection failed' });
+    }
+    
+    // Query posts from the database
+    const query = `
+      SELECT 
+        p.id, 
+        p.title, 
+        p.slug, 
+        p.excerpt, 
+        p.content,
+        p.featured_image as image,
+        p.created_at as date,
+        '5 min read' as "readTime",
+        COALESCE(
+          (SELECT t.name FROM post_terms pt 
+           JOIN terms t ON pt.term_id = t.id 
+           WHERE pt.post_id = p.id AND t.taxonomy = 'category' 
+           LIMIT 1),
+          'Uncategorized'
+        ) as category
+      FROM posts p
+      WHERE p.status = 'published'
+      ORDER BY p.created_at DESC
+      LIMIT 20
+    `;
+    
+    const result = await db.query(query);
+    
+    // Format dates and ensure proper structure
+    const posts = result.rows.map(post => ({
+      ...post,
+      date: post.date ? new Date(post.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]
+    }));
+    
+    res.json(posts);
+  } catch (error) {
+    console.error('Error fetching blog posts:', error);
+    res.status(500).json({ error: 'Failed to fetch blog posts' });
+  }
+});
+
+// Get individual blog post by slug
+app.get('/api/blog/posts/:slug', async (req, res) => {
+  try {
+    const { slug } = req.params;
+    const tenantId = req.query.tenant || 'tenant-gosg';
+    
+    // Get database connection for tenant
+    const db = await getDbForTenant(tenantId);
+    
+    // If no database connection, return 500
+    if (!db) {
+      console.error('No database connection for tenant:', tenantId);
+      return res.status(500).json({ error: 'Database connection failed' });
+    }
+    
+    // Query post from the database
+    const query = `
+      SELECT 
+        p.id, 
+        p.title, 
+        p.slug, 
+        p.excerpt, 
+        p.content,
+        p.featured_image as image,
+        p.created_at as date,
+        '5 min read' as "readTime",
+        COALESCE(
+          (SELECT t.name FROM post_terms pt 
+           JOIN terms t ON pt.term_id = t.id 
+           WHERE pt.post_id = p.id AND t.taxonomy = 'category' 
+           LIMIT 1),
+          'Uncategorized'
+        ) as category
+      FROM posts p
+      WHERE p.slug = $1 AND p.status = 'published'
+      LIMIT 1
+    `;
+    
+    const result = await db.query(query, [slug]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Post not found' });
+    }
+    
+    // Get post tags
+    const tagsQuery = `
+      SELECT t.name
+      FROM post_terms pt
+      JOIN terms t ON pt.term_id = t.id
+      WHERE pt.post_id = $1 AND t.taxonomy = 'post_tag'
+    `;
+    
+    const tagsResult = await db.query(tagsQuery, [result.rows[0].id]);
+    const tags = tagsResult.rows.map(row => row.name);
+    
+    // Format post data
+    const post = {
+      ...result.rows[0],
+      date: result.rows[0].date ? new Date(result.rows[0].date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+      tags: tags
+    };
+    
+    res.json(post);
+  } catch (error) {
+    console.error('Error fetching blog post:', error);
+    res.status(500).json({ error: 'Failed to fetch blog post' });
+  }
+});
+
 // Initialize database and start server
 async function startServer() {
   try {
@@ -1760,6 +1887,9 @@ async function startServer() {
     }
     
     console.log('[testing] Database initialized successfully');
+    
+    // Initialize blog schema for default tenant
+    await ensureBlogSchemaInitialized('tenant-gosg');
     
     app.listen(port, '0.0.0.0', () => {
       console.log(`Server running on port ${port}`);

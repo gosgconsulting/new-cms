@@ -1,20 +1,104 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Calendar, Clock, ArrowRight, Search } from "lucide-react";
+import { Calendar, Clock, ArrowRight, Search, Loader2, AlertCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ContactModal from "@/components/ContactModal";
-import { Alert } from "@/components/ui/alert";
+
+// Import placeholder images for fallback
+const placeholderImage = "/placeholder.svg";
+
+// Define BlogPost type
+interface BlogPost {
+  id: number;
+  slug: string;
+  title: string;
+  excerpt: string;
+  image: string;
+  date: string;
+  readTime: string;
+  category: string;
+}
+
+// Static blog posts for demonstration (fallback data)
+const staticBlogPosts: BlogPost[] = [
+  {
+    id: 1,
+    slug: "10-essential-seo-strategies-2024",
+    title: "10 Essential SEO Strategies for 2024",
+    excerpt: "Discover the latest SEO techniques that will help your website rank higher in search results and drive more organic traffic.",
+    image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=500&fit=crop",
+    date: "2024-01-15",
+    readTime: "5 min read",
+    category: "SEO Strategy"
+  },
+  {
+    id: 2,
+    slug: "optimize-website-local-seo",
+    title: "How to Optimize Your Website for Local SEO",
+    excerpt: "Learn the key tactics to improve your local search visibility and attract more customers from your area.",
+    image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=500&fit=crop",
+    date: "2024-01-10",
+    readTime: "7 min read",
+    category: "Local SEO"
+  },
+  {
+    id: 3,
+    slug: "complete-guide-technical-seo",
+    title: "The Complete Guide to Technical SEO",
+    excerpt: "Master the technical aspects of SEO to ensure your website is properly optimized for search engines.",
+    image: "https://images.unsplash.com/photo-1432888622747-4eb9a8efeb07?w=800&h=500&fit=crop",
+    date: "2024-01-05",
+    readTime: "8 min read",
+    category: "Technical SEO"
+  },
+  {
+    id: 4,
+    slug: "content-marketing-strategies",
+    title: "Content Marketing Strategies That Actually Work",
+    excerpt: "Explore proven content marketing strategies that drive engagement and boost your SEO performance.",
+    image: "https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=800&h=500&fit=crop",
+    date: "2023-12-28",
+    readTime: "6 min read",
+    category: "Content Marketing"
+  },
+  {
+    id: 5,
+    slug: "link-building-best-practices-2024",
+    title: "Link Building Best Practices for 2024",
+    excerpt: "Discover effective link building techniques that comply with search engine guidelines and deliver results.",
+    image: "https://images.unsplash.com/photo-1557838923-2985c318be48?w=800&h=500&fit=crop",
+    date: "2023-12-20",
+    readTime: "9 min read",
+    category: "Link Building"
+  },
+  {
+    id: 6,
+    slug: "mobile-first-seo-guide",
+    title: "Mobile-First SEO: Why It Matters More Than Ever",
+    excerpt: "Learn why mobile optimization is crucial for SEO success and how to implement mobile-first strategies.",
+    image: "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=800&h=500&fit=crop",
+    date: "2023-12-15",
+    readTime: "5 min read",
+    category: "Mobile SEO"
+  }
+];
 
 const Blog = () => {
   const navigate = useNavigate();
   const [isContactOpen, setIsContactOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [imageErrors, setImageErrors] = useState<Record<number, boolean>>({});
+  const [blogPosts, setBlogPosts] = useState<BlogPost[]>(staticBlogPosts);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [dbConnectionFailed, setDbConnectionFailed] = useState(false);
 
   const categories = [
     "All",
@@ -26,69 +110,35 @@ const Blog = () => {
     "Mobile SEO"
   ];
 
-  // Static blog posts for demonstration
-  const blogPosts = [
-    {
-      id: 1,
-      slug: "10-essential-seo-strategies-2024",
-      title: "10 Essential SEO Strategies for 2024",
-      excerpt: "Discover the latest SEO techniques that will help your website rank higher in search results and drive more organic traffic.",
-      image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=500&fit=crop",
-      date: "2024-01-15",
-      readTime: "5 min read",
-      category: "SEO Strategy"
-    },
-    {
-      id: 2,
-      slug: "optimize-website-local-seo",
-      title: "How to Optimize Your Website for Local SEO",
-      excerpt: "Learn the key tactics to improve your local search visibility and attract more customers from your area.",
-      image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=500&fit=crop",
-      date: "2024-01-10",
-      readTime: "7 min read",
-      category: "Local SEO"
-    },
-    {
-      id: 3,
-      slug: "complete-guide-technical-seo",
-      title: "The Complete Guide to Technical SEO",
-      excerpt: "Master the technical aspects of SEO to ensure your website is properly optimized for search engines.",
-      image: "https://images.unsplash.com/photo-1432888622747-4eb9a8efeb07?w=800&h=500&fit=crop",
-      date: "2024-01-05",
-      readTime: "8 min read",
-      category: "Technical SEO"
-    },
-    {
-      id: 4,
-      slug: "content-marketing-strategies",
-      title: "Content Marketing Strategies That Actually Work",
-      excerpt: "Explore proven content marketing strategies that drive engagement and boost your SEO performance.",
-      image: "https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=800&h=500&fit=crop",
-      date: "2023-12-28",
-      readTime: "6 min read",
-      category: "Content Marketing"
-    },
-    {
-      id: 5,
-      slug: "link-building-best-practices-2024",
-      title: "Link Building Best Practices for 2024",
-      excerpt: "Discover effective link building techniques that comply with search engine guidelines and deliver results.",
-      image: "https://images.unsplash.com/photo-1557838923-2985c318be48?w=800&h=500&fit=crop",
-      date: "2023-12-20",
-      readTime: "9 min read",
-      category: "Link Building"
-    },
-    {
-      id: 6,
-      slug: "mobile-first-seo-guide",
-      title: "Mobile-First SEO: Why It Matters More Than Ever",
-      excerpt: "Learn why mobile optimization is crucial for SEO success and how to implement mobile-first strategies.",
-      image: "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=800&h=500&fit=crop",
-      date: "2023-12-15",
-      readTime: "5 min read",
-      category: "Mobile SEO"
-    }
-  ];
+  // Fetch posts from database
+  useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        setIsLoading(true);
+        // Attempt to fetch from database
+        const response = await fetch('/api/blog/posts');
+        
+        if (response.ok) {
+          const data = await response.json();
+          if (Array.isArray(data) && data.length > 0) {
+            setBlogPosts(data);
+          }
+          // If data is empty or not an array, we'll keep the static data
+        } else {
+          console.warn('Failed to fetch blog posts from database, using static data');
+          setDbConnectionFailed(true);
+        }
+      } catch (err) {
+        console.error('Error fetching blog posts:', err);
+        setDbConnectionFailed(true);
+        // We don't set error state here to ensure the UI still shows with static data
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchPosts();
+  }, []);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -98,15 +148,33 @@ const Blog = () => {
     });
   };
 
-  const filteredPosts = blogPosts.filter(post => {
-    const matchesSearch = post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      post.excerpt.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      post.category.toLowerCase().includes(searchQuery.toLowerCase());
+  const handleImageError = (postId: number) => {
+    setImageErrors(prev => ({
+      ...prev,
+      [postId]: true
+    }));
+  };
+
+  // Safely filter posts
+  const getFilteredPosts = () => {
+    if (!Array.isArray(blogPosts)) {
+      console.error("Blog posts is not an array:", blogPosts);
+      return [];
+    }
     
-    const matchesCategory = selectedCategory === "all" || post.category === selectedCategory;
-    
-    return matchesSearch && matchesCategory;
-  });
+    return blogPosts.filter(post => {
+      const matchesSearch = post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        post.excerpt.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        post.category.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      const matchesCategory = selectedCategory === "all" || post.category === selectedCategory;
+      
+      return matchesSearch && matchesCategory;
+    });
+  };
+
+  // Get filtered posts safely
+  const filteredPosts = getFilteredPosts();
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -143,6 +211,19 @@ const Blog = () => {
           </div>
         </section>
 
+        {/* Database Connection Alert */}
+        {dbConnectionFailed && (
+          <div className="container mx-auto px-4 mt-8">
+            <Alert className="bg-amber-50 border-amber-200">
+              <AlertCircle className="h-4 w-4 text-amber-500" />
+              <AlertTitle className="text-amber-800">Database Connection Notice</AlertTitle>
+              <AlertDescription className="text-amber-700">
+                Currently displaying demo content. Database connection could not be established.
+              </AlertDescription>
+            </Alert>
+          </div>
+        )}
+
         {/* Blog Posts with Sidebar */}
         <section className="py-20 px-4">
           <div className="container mx-auto">
@@ -177,11 +258,14 @@ const Blog = () => {
 
               {/* Blog Posts Grid */}
               <div className="flex-1">
-                {filteredPosts.length === 0 ? (
+                {isLoading ? (
+                  <div className="flex justify-center items-center py-12">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                    <span className="ml-2">Loading posts...</span>
+                  </div>
+                ) : filteredPosts.length === 0 ? (
                   <div className="text-center py-12">
-                    <Alert variant="default" className="bg-amber-50 border-amber-200">
-                      <p className="text-muted-foreground text-lg">No articles found matching your search.</p>
-                    </Alert>
+                    <p className="text-muted-foreground text-lg">No articles found matching your search.</p>
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
@@ -198,9 +282,10 @@ const Blog = () => {
                         >
                           <div className="relative overflow-hidden">
                             <img 
-                              src={post.image}
+                              src={imageErrors[post.id] ? placeholderImage : post.image}
                               alt={post.title}
                               className="w-full h-56 object-cover group-hover:scale-105 transition-transform duration-300"
+                              onError={() => handleImageError(post.id)}
                             />
                             <div className="absolute top-4 left-4 bg-primary text-primary-foreground px-3 py-1 rounded-full text-sm font-medium">
                               {post.category}

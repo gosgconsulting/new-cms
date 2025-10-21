@@ -71,6 +71,34 @@ export async function upsertLayoutBySlug(slug, layoutJson) {
   }
 }
 
+// Initialize tenant tables
+export async function initializeTenantTables() {
+  try {
+    console.log('[testing] Initializing tenant tables...');
+    
+    // Read the SQL schema file
+    const fs = await import('fs');
+    const path = await import('path');
+    const { fileURLToPath } = await import('url');
+    const { dirname } = await import('path');
+    
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = dirname(__filename);
+    
+    const tenantsSchemaPath = path.join(__dirname, 'tenants-migrations.sql');
+    const tenantsSql = fs.readFileSync(tenantsSchemaPath, 'utf8');
+    
+    // Execute the schema SQL
+    await query(tenantsSql);
+    
+    console.log('[testing] Tenant tables initialized successfully');
+    return true;
+  } catch (error) {
+    console.error('[testing] Error initializing tenant tables:', error);
+    return false;
+  }
+}
+
 // Initialize database tables
 export async function initializeDatabase() {
   try {
@@ -89,6 +117,9 @@ export async function initializeDatabase() {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
+    
+    // Initialize tenant tables
+    await initializeTenantTables();
 
     // Create form_submissions table if it doesn't exist
     await query(`
