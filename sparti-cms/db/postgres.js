@@ -36,6 +36,13 @@ export async function query(text, params) {
   }
 }
 
+// Helper function to check user tenant access
+export const canUserAccessTenant = (user, tenantId) => {
+  if (!user) return false;
+  if (user.is_super_admin) return true;
+  return user.tenant_id === tenantId;
+};
+
 // Page Layout Helpers
 export async function getLayoutBySlug(slug) {
   try {

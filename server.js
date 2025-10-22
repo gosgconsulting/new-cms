@@ -37,7 +37,8 @@ import {
   updatePageData,
   updatePageLayout,
   query,
-  getTerms
+  getTerms,
+  canUserAccessTenant
 } from './sparti-cms/db/postgres.js';
 import pool from './sparti-cms/db/postgres.js';
 import { renderPageBySlug } from './sparti-cms/render/pageRenderer.js';
@@ -66,6 +67,26 @@ const __dirname = dirname(__filename);
 
 const app = express();
 const port = process.env.PORT || 4173;
+
+// Tenant access control middleware
+const checkTenantAccess = (req, res, next) => {
+  const user = req.user; // From session/JWT
+  const tenantId = req.headers['x-tenant-id'] || req.body.tenant_id;
+  
+  if (!user) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  
+  if (user.is_super_admin) {
+    return next();
+  }
+  
+  if (user.tenant_id !== tenantId) {
+    return res.status(403).json({ error: 'Access denied to this tenant' });
+  }
+  
+  next();
+};
 
 // Ensure uploads directory exists
 const uploadsDir = join(__dirname, 'public', 'uploads');
@@ -172,7 +193,7 @@ app.get('/health/detailed', async (req, res) => {
 app.use('/api/tenants', tenantRoutes);
 
 // Branding API
-app.get('/api/branding', async (req, res) => {
+app.get('/api/branding', checkTenantAccess, async (req, res) => {
   try {
     console.log('[testing] API: Getting branding settings');
     const settings = await getBrandingSettings();
@@ -183,7 +204,7 @@ app.get('/api/branding', async (req, res) => {
   }
 });
 
-app.post('/api/branding', async (req, res) => {
+app.post('/api/branding', checkTenantAccess, async (req, res) => {
   try {
     console.log('[testing] API: Updating branding settings:', req.body);
     await updateMultipleBrandingSettings(req.body);
@@ -306,7 +327,7 @@ app.get('/api/form-submissions/:formId', async (req, res) => {
 // Forms Management API Endpoints
 
 // Get all forms
-app.get('/api/forms', async (req, res) => {
+app.get('/api/forms', checkTenantAccess, async (req, res) => {
   try {
     const result = await query('SELECT * FROM forms ORDER BY created_at DESC');
     res.json(result.rows);
@@ -317,7 +338,7 @@ app.get('/api/forms', async (req, res) => {
 });
 
 // Get form by ID
-app.get('/api/forms/:id', async (req, res) => {
+app.get('/api/forms/:id', checkTenantAccess, async (req, res) => {
   try {
     const form = await getFormById(req.params.id);
     if (form) {
@@ -332,7 +353,7 @@ app.get('/api/forms/:id', async (req, res) => {
 });
 
 // Create new form
-app.post('/api/forms', async (req, res) => {
+app.post('/api/forms', checkTenantAccess, async (req, res) => {
   try {
     const { name, description, fields, settings, is_active } = req.body;
     
@@ -664,7 +685,7 @@ app.delete('/api/contacts/:id', async (req, res) => {
 });
 
 // Pages Management API Routes
-app.get('/api/pages/all', async (req, res) => {
+app.get('/api/pages/all', checkTenantAccess, async (req, res) => {
   try {
     const { tenantId } = req.query;
     console.log(`[testing] API: Fetching all pages with types for tenant: ${tenantId || 'default'}`);
@@ -689,7 +710,7 @@ app.get('/api/pages/all', async (req, res) => {
 });
 
 // Get individual page with layout
-app.get('/api/pages/:pageId', async (req, res) => {
+app.get('/api/pages/:pageId', checkTenantAccess, async (req, res) => {
   try {
     const { pageId } = req.params;
     const { tenantId } = req.query;

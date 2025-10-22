@@ -73,7 +73,11 @@ export const PagesManager: React.FC = () => {
         setPages(dummyPages);
       } else {
         // Regular tenant - use API
-        const response = await fetch(`/api/pages/all?tenantId=${currentTenant.id}`);
+        const response = await fetch(`/api/pages/all?tenantId=${currentTenant.id}`, {
+          headers: {
+            'X-Tenant-Id': currentTenant.id
+          }
+        });
         if (!response.ok) {
           throw new Error('Failed to load pages');
         }

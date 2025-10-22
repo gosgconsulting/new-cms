@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '../auth/AuthProvider';
 import { 
   FileText, 
   Plus, 
@@ -74,6 +75,7 @@ interface FormSubmission {
 }
 
 const FormsManager: React.FC = () => {
+  const { currentTenant } = useAuth();
   const [forms, setForms] = useState<Form[]>([]);
   const [selectedForm, setSelectedForm] = useState<Form | null>(null);
   const [emailSettings, setEmailSettings] = useState<EmailSettings | null>(null);
@@ -118,7 +120,11 @@ const FormsManager: React.FC = () => {
       setIsLoading(true);
       setError(null);
       
-      const response = await fetch('/api/forms');
+      const response = await fetch('/api/forms', {
+        headers: {
+          'X-Tenant-Id': currentTenant.id
+        }
+      });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -202,6 +208,7 @@ const FormsManager: React.FC = () => {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            'X-Tenant-Id': currentTenant.id
           },
           body: JSON.stringify({
             name: formData.name,

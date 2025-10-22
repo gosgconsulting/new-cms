@@ -1,5 +1,6 @@
 import React, { useState, ChangeEvent, useEffect } from 'react';
 import { useCMSSettings } from '../../context/CMSSettingsContext';
+import { useAuth } from '../auth/AuthProvider';
 import { Upload, Trash2, Search, Grid, List, Image as ImageIcon, FileText, Film, Music, File, Folder, FolderPlus, X, RefreshCw, Eye, Edit3, Save } from 'lucide-react';
 import { scanAssetsDirectory } from '../../utils/media-scanner';
 
@@ -269,6 +270,7 @@ const MediaViewModal: React.FC<MediaViewModalProps> = ({ item, isOpen, onClose, 
 };
 
 const MediaManager: React.FC = () => {
+  const { currentTenant } = useAuth();
   const { settings, addMediaItem, removeMediaItem, updateMediaItem, addMediaFolder, removeMediaFolder, updateMediaItemFolder } = useCMSSettings();
   const mediaItems = Array.isArray(settings.mediaItems) ? settings.mediaItems : [];
   const mediaFolders = Array.isArray(settings.mediaFolders) ? settings.mediaFolders : [{ id: 'uncategorized', name: 'Uncategorized', itemCount: 0 }];

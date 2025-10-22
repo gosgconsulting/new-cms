@@ -7,6 +7,8 @@ interface User {
   last_name: string;
   email: string;
   role: string;
+  tenant_id: string | null;
+  is_super_admin: boolean;
 }
 
 interface AuthContextType {
@@ -163,11 +165,38 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           first_name: data.user.first_name,
           last_name: data.user.last_name,
           email: data.user.email,
-          role: data.user.role
+          role: data.user.role,
+          tenant_id: data.user.tenant_id,
+          is_super_admin: data.user.is_super_admin || false
         };
         
         setUser(userData);
         localStorage.setItem('sparti-demo-session', JSON.stringify(userData));
+        
+        // Handle tenant assignment after login
+        if (FORCED_TENANT_ID) {
+          // If forced tenant is set, verify user has access
+          if (!userData.is_super_admin && userData.tenant_id !== FORCED_TENANT_ID) {
+            return { 
+              success: false, 
+              error: 'Access denied: You do not have permission to access this tenant' 
+            };
+          }
+          // Set the forced tenant as current
+          const forcedTenant = tenants.find(t => t.id === FORCED_TENANT_ID);
+          if (forcedTenant) {
+            setCurrentTenant(forcedTenant);
+            localStorage.setItem('sparti-current-tenant', JSON.stringify(forcedTenant));
+          }
+        } else if (userData.tenant_id && !userData.is_super_admin) {
+          // If user has a specific tenant assignment, set it as current
+          const userTenant = tenants.find(t => t.id === userData.tenant_id);
+          if (userTenant) {
+            setCurrentTenant(userTenant);
+            localStorage.setItem('sparti-current-tenant', JSON.stringify(userTenant));
+          }
+        }
+        // If user is super admin, they can choose any tenant (no auto-assignment)
         
         return { success: true };
       } else {

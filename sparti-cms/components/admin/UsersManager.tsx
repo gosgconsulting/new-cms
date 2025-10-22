@@ -31,6 +31,8 @@ interface User {
   email: string;
   role: 'admin' | 'editor' | 'user';
   status: 'active' | 'inactive' | 'pending' | 'rejected';
+  tenant_id: string | null;
+  is_super_admin: boolean;
   is_active: boolean;
   email_verified: boolean;
   last_login?: string;
@@ -44,12 +46,14 @@ interface UserFormData {
   email: string;
   role: 'admin' | 'editor' | 'user';
   status: 'active' | 'inactive' | 'pending' | 'rejected';
+  tenant_id: string | null;
+  is_super_admin: boolean;
   password?: string;
   is_active: boolean;
 }
 
 const UsersManager: React.FC = () => {
-  const { user: currentUser } = useAuth();
+  const { user: currentUser, tenants } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -67,6 +71,8 @@ const UsersManager: React.FC = () => {
     email: '',
     role: 'user',
     status: 'active',
+    tenant_id: null,
+    is_super_admin: false,
     password: '',
     is_active: true
   });
@@ -109,6 +115,8 @@ const UsersManager: React.FC = () => {
       email: '',
       role: 'user',
       status: 'active',
+      tenant_id: null,
+      is_super_admin: false,
       password: '',
       is_active: true
     });
@@ -124,6 +132,8 @@ const UsersManager: React.FC = () => {
       email: user.email,
       role: user.role,
       status: user.status,
+      tenant_id: user.tenant_id,
+      is_super_admin: user.is_super_admin,
       password: '',
       is_active: user.is_active
     });
@@ -417,6 +427,9 @@ const UsersManager: React.FC = () => {
                   Status
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  Tenant
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Last Login
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
@@ -460,6 +473,17 @@ const UsersManager: React.FC = () => {
                         <span>{user.status.charAt(0).toUpperCase() + user.status.slice(1)}</span>
                       </span>
                     </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {user.is_super_admin ? (
+                      <span className="px-2 py-1 text-xs font-medium rounded-full border bg-purple-100 text-purple-800 border-purple-200">
+                        Super Admin
+                      </span>
+                    ) : (
+                      <span className="text-sm text-muted-foreground">
+                        {tenants.find(t => t.id === user.tenant_id)?.name || 'Not Assigned'}
+                      </span>
+                    )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                     {user.last_login ? (
@@ -668,6 +692,40 @@ const UsersManager: React.FC = () => {
                       Must be at least 8 characters long
                     </p>
                   )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Tenant Assignment
+                  </label>
+                  <select
+                    value={formData.tenant_id || ''}
+                    onChange={(e) => setFormData(prev => ({ ...prev, tenant_id: e.target.value || null }))}
+                    className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-brandPurple focus:border-transparent"
+                    disabled={formData.is_super_admin}
+                  >
+                    <option value="">Select Tenant</option>
+                    {tenants.map(tenant => (
+                      <option key={tenant.id} value={tenant.id}>{tenant.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="is_super_admin"
+                    checked={formData.is_super_admin}
+                    onChange={(e) => setFormData(prev => ({ 
+                      ...prev, 
+                      is_super_admin: e.target.checked,
+                      tenant_id: e.target.checked ? null : prev.tenant_id 
+                    }))}
+                    className="h-4 w-4 text-brandPurple focus:ring-brandPurple border-border rounded"
+                  />
+                  <label htmlFor="is_super_admin" className="ml-2 text-sm text-foreground">
+                    Super Admin (can access all tenants)
+                  </label>
                 </div>
 
                 <div className="flex items-center">
