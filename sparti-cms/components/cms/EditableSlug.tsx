@@ -4,6 +4,7 @@ import { Input } from '../../../src/components/ui/input';
 import { Edit2, Check, X, AlertCircle } from 'lucide-react';
 import { toast } from '../../../src/components/ui/use-toast';
 import { useAuth } from '../auth/AuthProvider';
+import api from '../../utils/api';
 
 interface EditableSlugProps {
   pageId: string;
@@ -109,18 +110,12 @@ export const EditableSlug: React.FC<EditableSlugProps> = ({
 
     try {
       // Call the backend API to update the slug
-      const response = await fetch('/api/pages/update-slug', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          pageId,
-          pageType,
-          newSlug: normalizedSlug,
-          oldSlug: currentSlug,
-          tenantId: currentTenant.id
-        }),
+      const response = await api.post('/api/pages/update-slug', {
+        pageId,
+        pageType,
+        newSlug: normalizedSlug,
+        oldSlug: currentSlug,
+        tenantId: currentTenant.id
       });
 
       if (!response.ok) {

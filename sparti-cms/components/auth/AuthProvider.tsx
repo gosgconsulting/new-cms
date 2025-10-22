@@ -174,7 +174,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         };
         
         setUser(userData);
-        localStorage.setItem('sparti-demo-session', JSON.stringify(userData));
+        localStorage.setItem('sparti-demo-session', JSON.stringify({ ...userData, token: data.token }));
         
         // Handle tenant assignment after login
         if (FORCED_TENANT_ID) {

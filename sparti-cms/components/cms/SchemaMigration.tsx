@@ -164,14 +164,8 @@ const SchemaMigration: React.FC<SchemaMigrationProps> = ({ onClose }) => {
         const page = pages.find(p => p.id === pageId);
         
         try {
-          const response = await fetch(`/api/pages/${pageId}/migrate-schema`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              tenantId: currentTenant.id
-            }),
+          const response = await api.post(`/api/pages/${pageId}/migrate-schema`, {
+            tenantId: currentTenant.id
           });
 
           const data = await response.json();

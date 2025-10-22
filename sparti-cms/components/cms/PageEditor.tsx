@@ -11,6 +11,7 @@ import SchemaEditor from './SchemaEditor';
 import { useAuth } from '../auth/AuthProvider';
 import { ComponentSchema } from '../../types/schema';
 import { needsV3Migration, getSchemaVersion, migrateOldSchemaToV3 } from '../../utils/schema-migration';
+import api from '../../utils/api';
 
 interface PageEditorProps {
   pageId: string;
@@ -57,7 +58,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
     const fetchPageData = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`/api/pages/${pageId}?tenantId=${currentTenant.id}`);
+        const response = await api.get(`/api/pages/${pageId}?tenantId=${currentTenant.id}`);
         const data = await response.json();
         
         if (data.success) {
@@ -159,18 +160,12 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
       setSaving(true);
       
       // Update page data
-      const pageResponse = await fetch(`/api/pages/${pageId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          page_name: pageData.page_name,
-          meta_title: pageData.meta_title,
-          meta_description: pageData.meta_description,
-          seo_index: pageData.seo_index,
-          tenantId: currentTenant.id
-        }),
+      const pageResponse = await api.put(`/api/pages/${pageId}`, {
+        page_name: pageData.page_name,
+        meta_title: pageData.meta_title,
+        meta_description: pageData.meta_description,
+        seo_index: pageData.seo_index,
+        tenantId: currentTenant.id
       });
 
       if (!pageResponse.ok) {
@@ -178,15 +173,9 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
       }
 
       // Update page layout with new schema format
-      const layoutResponse = await fetch(`/api/pages/${pageId}/layout`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          layout_json: { components },
-          tenantId: currentTenant.id
-        }),
+      const layoutResponse = await api.put(`/api/pages/${pageId}/layout`, {
+        layout_json: { components },
+        tenantId: currentTenant.id
       });
 
       if (!layoutResponse.ok) {

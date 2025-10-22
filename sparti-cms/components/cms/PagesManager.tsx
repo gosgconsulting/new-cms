@@ -50,6 +50,10 @@ export const PagesManager: React.FC = () => {
       setLoading(true);
       setError(null);
       
+      // Debug: Check if user is logged in
+      const session = localStorage.getItem('sparti-demo-session');
+      console.log('[testing] PagesManager - Session data:', session);
+      
       // If using Development tenant, use rich dummy data
       if (isDevelopmentTenant(currentTenant)) {
         // Convert dummy pages to PageItem format
@@ -79,11 +83,19 @@ export const PagesManager: React.FC = () => {
             'X-Tenant-Id': currentTenant.id
           }
         });
+        
+        console.log('[testing] PagesManager - Response status:', response.status);
+        console.log('[testing] PagesManager - Response ok:', response.ok);
+        console.log('[testing] PagesManager - Response headers:', response.headers);
+        
         if (!response.ok) {
-          throw new Error('Failed to load pages');
+          const errorText = await response.text();
+          console.log('[testing] PagesManager - Error response:', errorText);
+          throw new Error(`Failed to load pages: ${response.status} ${response.statusText}`);
         }
         
         const data = await response.json();
+        console.log('[testing] PagesManager - Response data:', data);
         setPages(data.pages || []);
       }
     } catch (error) {
