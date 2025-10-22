@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import AdminTopBar from "@/components/AdminTopBar";
 import { useSEO } from "@/hooks/useSEO";
+import { AuthProvider } from "../sparti-cms/components/auth/AuthProvider";
 import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import NotFound from "./pages/NotFound";
@@ -32,8 +33,9 @@ const App = () => {
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <AdminTopBar />
-          <Routes>
+          <AuthProvider>
+            <AdminTopBar />
+            <Routes>
             {/* Redirect root to admin */}
             <Route path="/" element={<Navigate to="/admin" replace />} />
             
@@ -61,6 +63,7 @@ const App = () => {
             <Route path="/components-viewer" element={<ComponentsViewer />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>

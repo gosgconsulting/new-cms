@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Database, Table, Eye, RefreshCw, Search, Filter } from 'lucide-react';
+import { ArrowLeft, Database, Table, Eye, RefreshCw, Search, Filter, Shield } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../sparti-cms/components/auth/AuthProvider';
 
 interface TableInfo {
   table_name: string;
@@ -19,6 +20,7 @@ interface ColumnInfo {
 
 const DatabaseViewer: React.FC = () => {
   const navigate = useNavigate();
+  const { user, loading } = useAuth();
   const [tables, setTables] = useState<TableInfo[]>([]);
   const [selectedTable, setSelectedTable] = useState<string | null>(null);
   const [tableData, setTableData] = useState<Record<string, unknown>[]>([]);
@@ -27,6 +29,55 @@ const DatabaseViewer: React.FC = () => {
   const [isLoadingData, setIsLoadingData] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [error, setError] = useState<string | null>(null);
+
+  // Check if user is authenticated and is super admin
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brandPurple"></div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <Shield className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+          <h2 className="text-lg font-semibold text-foreground mb-2">Authentication Required</h2>
+          <p className="text-muted-foreground mb-4">
+            You need to be logged in to access the database viewer.
+          </p>
+          <button
+            onClick={() => navigate('/auth')}
+            className="px-4 py-2 bg-brandPurple text-white rounded-lg hover:bg-brandPurple/90 transition-colors"
+          >
+            Sign In
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user.is_super_admin) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <Shield className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+          <h2 className="text-lg font-semibold text-foreground mb-2">Access Denied</h2>
+          <p className="text-muted-foreground mb-4">
+            You need super admin privileges to access the database viewer.
+          </p>
+          <button
+            onClick={() => navigate('/admin')}
+            className="px-4 py-2 bg-brandPurple text-white rounded-lg hover:bg-brandPurple/90 transition-colors"
+          >
+            Go to Admin
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   useEffect(() => {
     loadTables();
