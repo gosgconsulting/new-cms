@@ -33,6 +33,9 @@ import {
   validateSlug,
   updatePageName,
   toggleSEOIndex,
+  getPageWithLayout,
+  updatePageData,
+  updatePageLayout,
   query,
   getTerms
 } from './sparti-cms/db/postgres.js';
@@ -681,6 +684,96 @@ app.get('/api/pages/all', async (req, res) => {
       success: false, 
       error: 'Failed to fetch pages',
       message: error.message 
+    });
+  }
+});
+
+// Get individual page with layout
+app.get('/api/pages/:pageId', async (req, res) => {
+  try {
+    const { pageId } = req.params;
+    const { tenantId } = req.query;
+    console.log(`[testing] API: Fetching page ${pageId} for tenant: ${tenantId || 'default'}`);
+    
+    const page = await getPageWithLayout(pageId, tenantId);
+    
+    if (!page) {
+      return res.status(404).json({
+        success: false,
+        error: 'Page not found'
+      });
+    }
+    
+    res.json({
+      success: true,
+      page: page
+    });
+  } catch (error) {
+    console.error('[testing] API: Error fetching page:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch page',
+      message: error.message
+    });
+  }
+});
+
+// Update page data
+app.put('/api/pages/:pageId', async (req, res) => {
+  try {
+    const { pageId } = req.params;
+    const { page_name, meta_title, meta_description, seo_index, tenantId } = req.body;
+    console.log(`[testing] API: Updating page ${pageId} for tenant: ${tenantId}`);
+    
+    const success = await updatePageData(pageId, page_name, meta_title, meta_description, seo_index, tenantId);
+    
+    if (!success) {
+      return res.status(404).json({
+        success: false,
+        error: 'Page not found or update failed'
+      });
+    }
+    
+    res.json({
+      success: true,
+      message: 'Page updated successfully'
+    });
+  } catch (error) {
+    console.error('[testing] API: Error updating page:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update page',
+      message: error.message
+    });
+  }
+});
+
+// Update page layout
+app.put('/api/pages/:pageId/layout', async (req, res) => {
+  try {
+    const { pageId } = req.params;
+    const { layout_json, tenantId } = req.body;
+    console.log(`[testing] API: Updating page layout ${pageId} for tenant: ${tenantId}`);
+    
+    const success = await updatePageLayout(pageId, layout_json, tenantId);
+    
+    if (!success) {
+      return res.status(404).json({
+        success: false,
+        error: 'Page not found or layout update failed'
+      });
+    }
+    
+    res.json({
+      success: true,
+      message: 'Page layout updated successfully'
+    });
+  } catch (error) {
+    console.error('[testing] API: Error updating page layout:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update page layout',
+      message: error.message
     });
   }
 });
@@ -1880,6 +1973,120 @@ app.get('/api/blog/posts/:slug', async (req, res) => {
   } catch (error) {
     console.error('Error fetching blog post:', error);
     res.status(500).json({ error: 'Failed to fetch blog post' });
+  }
+});
+
+// Schema migration and validation endpoints
+app.post('/api/pages/:pageId/migrate-schema', async (req, res) => {
+  try {
+    const { pageId } = req.params;
+    const { tenantId } = req.body;
+    console.log(`[testing] API: Migrating schema for page ${pageId} (tenant: ${tenantId})`);
+    
+    // Get current page layout
+    const page = await getPageWithLayout(pageId, tenantId);
+    if (!page) {
+      return res.status(404).json({
+        success: false,
+        error: 'Page not found'
+      });
+    }
+    
+    // Import migration utilities
+    const { migrateOldSchemaToNew, needsMigration } = await import('./sparti-cms/utils/schema-migration.ts');
+    
+    // Check if migration is needed
+    if (!needsMigration(page.layout)) {
+      return res.json({
+        success: true,
+        message: 'Schema already in new format',
+        migrated: false
+      });
+    }
+    
+    // Migrate the schema
+    const newSchema = migrateOldSchemaToNew(page.layout);
+    
+    // Add version info
+    const schemaWithVersion = {
+      ...newSchema,
+      _version: {
+        version: '2.0',
+        migratedAt: new Date().toISOString(),
+        migratedFrom: '1.0'
+      }
+    };
+    
+    // Update the database
+    const success = await updatePageLayout(pageId, schemaWithVersion, tenantId);
+    
+    if (!success) {
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to update page layout'
+      });
+    }
+    
+    res.json({
+      success: true,
+      message: 'Schema migrated successfully',
+      migrated: true,
+      newSchema
+    });
+  } catch (error) {
+    console.error('[testing] API: Error migrating schema:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to migrate schema',
+      message: error.message
+    });
+  }
+});
+
+app.post('/api/pages/:pageId/validate-schema', async (req, res) => {
+  try {
+    const { pageId } = req.params;
+    const { tenantId } = req.body;
+    console.log(`[testing] API: Validating schema for page ${pageId} (tenant: ${tenantId})`);
+    
+    // Get current page layout
+    const page = await getPageWithLayout(pageId, tenantId);
+    if (!page) {
+      return res.status(404).json({
+        success: false,
+        error: 'Page not found'
+      });
+    }
+    
+    // Import validation utilities
+    const { validatePageSchema, getValidationSummary } = await import('./sparti-cms/utils/schema-validator.ts');
+    
+    // Validate the schema
+    const validation = validatePageSchema(page.layout);
+    const summary = getValidationSummary(page.layout);
+    
+    res.json({
+      success: true,
+      validation: {
+        isValid: validation.isValid,
+        errors: validation.errors,
+        warnings: validation.warnings
+      },
+      summary: {
+        totalComponents: summary.totalComponents,
+        totalItems: summary.totalItems,
+        itemTypeCounts: summary.itemTypeCounts,
+        hasErrors: summary.hasErrors,
+        hasWarnings: summary.hasWarnings
+      }
+    });
+  } catch (error) {
+    console.error('[testing] API: Error validating schema:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to validate schema',
+      message: error.message
+    });
   }
 });
 
