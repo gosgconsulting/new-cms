@@ -11,7 +11,7 @@ console.log('🔧 Environment: development');
 console.log('');
 
 // Start the development server
-const devProcess = spawn('npm.cmd', ['run', 'dev'], {
+const devProcess = spawn('npm', ['run', 'dev'], {
   stdio: 'inherit',
   env: process.env,
   shell: true
