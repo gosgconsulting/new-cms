@@ -12,6 +12,7 @@ import NotFound from "./pages/NotFound";
 import Admin from "./pages/Admin";
 import Auth from "./pages/Auth";
 import DatabaseViewer from "./pages/DatabaseViewer";
+import ComponentsViewer from "./pages/ComponentsViewer";
 import PublicDashboard from "./pages/PublicDashboard";
 import ErrorBoundary from "./components/ErrorBoundary";
 
@@ -57,6 +58,7 @@ const App = () => {
             {/* Other routes */}
             <Route path="/auth" element={<Auth />} />
             <Route path="/database-viewer" element={<DatabaseViewer />} />
+            <Route path="/components-viewer" element={<ComponentsViewer />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
