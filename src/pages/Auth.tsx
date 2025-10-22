@@ -49,8 +49,8 @@ const Auth: React.FC = () => {
   const [formData, setFormData] = useState<FormData>({
     first_name: '',
     last_name: '',
-    email: 'admin',
-    password: 'admin',
+    email: '',
+    password: '',
     confirm_password: ''
   });
   
@@ -420,7 +420,7 @@ const Auth: React.FC = () => {
           </form>
 
           {/* Quick Admin Access Button */}
-          <div className="mt-6 border-t pt-6">
+          {/* <div className="mt-6 border-t pt-6">
             <button
               onClick={handleCreateAdmin}
               disabled={loading}
@@ -438,7 +438,7 @@ const Auth: React.FC = () => {
             <p className="text-xs text-center text-muted-foreground mt-2">
               Creates a demo admin user with credentials: admin/admin
             </p>
-          </div>
+          </div> */}
 
           {/* Switch mode */}
           <div className="mt-6 text-center">
