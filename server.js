@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import express from 'express';
 import multer from 'multer';
+import jwt from 'jsonwebtoken';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { existsSync, mkdirSync } from 'fs';
@@ -128,11 +129,33 @@ const upload = multer({
 // Middleware
 app.use(express.json());
 
+// JWT Secret
+const JWT_SECRET = process.env.JWT_SECRET || 'sparti-demo-secret-key';
+
+// Authentication middleware
+const authenticateUser = (req, res, next) => {
+  // Check for Authorization header
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'No token provided' });
+  }
+  
+  const token = authHeader.substring(7); // Remove 'Bearer ' prefix
+  
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch (error) {
+    return res.status(401).json({ error: 'Invalid token' });
+  }
+};
+
 // CORS middleware to handle OPTIONS requests
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-Tenant-Id');
   
   // Handle preflight OPTIONS requests
   if (req.method === 'OPTIONS') {
@@ -193,7 +216,7 @@ app.get('/health/detailed', async (req, res) => {
 app.use('/api/tenants', tenantRoutes);
 
 // Branding API
-app.get('/api/branding', checkTenantAccess, async (req, res) => {
+app.get('/api/branding', authenticateUser, checkTenantAccess, async (req, res) => {
   try {
     console.log('[testing] API: Getting branding settings');
     const settings = await getBrandingSettings();
@@ -204,7 +227,7 @@ app.get('/api/branding', checkTenantAccess, async (req, res) => {
   }
 });
 
-app.post('/api/branding', checkTenantAccess, async (req, res) => {
+app.post('/api/branding', authenticateUser, checkTenantAccess, async (req, res) => {
   try {
     console.log('[testing] API: Updating branding settings:', req.body);
     await updateMultipleBrandingSettings(req.body);
@@ -327,7 +350,7 @@ app.get('/api/form-submissions/:formId', async (req, res) => {
 // Forms Management API Endpoints
 
 // Get all forms
-app.get('/api/forms', checkTenantAccess, async (req, res) => {
+app.get('/api/forms', authenticateUser, checkTenantAccess, async (req, res) => {
   try {
     const result = await query('SELECT * FROM forms ORDER BY created_at DESC');
     res.json(result.rows);
@@ -338,7 +361,7 @@ app.get('/api/forms', checkTenantAccess, async (req, res) => {
 });
 
 // Get form by ID
-app.get('/api/forms/:id', checkTenantAccess, async (req, res) => {
+app.get('/api/forms/:id', authenticateUser, checkTenantAccess, async (req, res) => {
   try {
     const form = await getFormById(req.params.id);
     if (form) {
@@ -353,7 +376,7 @@ app.get('/api/forms/:id', checkTenantAccess, async (req, res) => {
 });
 
 // Create new form
-app.post('/api/forms', checkTenantAccess, async (req, res) => {
+app.post('/api/forms', authenticateUser, checkTenantAccess, async (req, res) => {
   try {
     const { name, description, fields, settings, is_active } = req.body;
     
@@ -685,7 +708,7 @@ app.delete('/api/contacts/:id', async (req, res) => {
 });
 
 // Pages Management API Routes
-app.get('/api/pages/all', checkTenantAccess, async (req, res) => {
+app.get('/api/pages/all', authenticateUser, checkTenantAccess, async (req, res) => {
   try {
     const { tenantId } = req.query;
     console.log(`[testing] API: Fetching all pages with types for tenant: ${tenantId || 'default'}`);
@@ -710,7 +733,7 @@ app.get('/api/pages/all', checkTenantAccess, async (req, res) => {
 });
 
 // Get individual page with layout
-app.get('/api/pages/:pageId', checkTenantAccess, async (req, res) => {
+app.get('/api/pages/:pageId', authenticateUser, checkTenantAccess, async (req, res) => {
   try {
     const { pageId } = req.params;
     const { tenantId } = req.query;
@@ -1902,18 +1925,24 @@ app.post('/api/auth/login', async (req, res) => {
       });
     }
 
-    // Return user data (without password)
+    // Create JWT token
+    const userData = {
+      id: user.id,
+      first_name: user.first_name,
+      last_name: user.last_name,
+      email: user.email,
+      role: user.role,
+      tenant_id: user.tenant_id,
+      is_super_admin: user.is_super_admin
+    };
+    
+    const token = jwt.sign(userData, JWT_SECRET, { expiresIn: '24h' });
+
+    // Return user data with token
     res.json({
       success: true,
-      user: {
-        id: user.id,
-        first_name: user.first_name,
-        last_name: user.last_name,
-        email: user.email,
-        role: user.role,
-        tenant_id: user.tenant_id,
-        is_super_admin: user.is_super_admin
-      }
+      user: userData,
+      token: token
     });
 
   } catch (error) {

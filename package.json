@@ -79,6 +79,7 @@
     "dotenv": "^17.2.3",
     "embla-carousel-react": "^8.3.0",
     "express": "^5.1.0",
+    "express-session": "^1.18.2",
     "framer-motion": "^12.10.5",
     "input-otp": "^1.2.4",
     "jsonwebtoken": "^9.0.2",
