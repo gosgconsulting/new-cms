@@ -26,6 +26,12 @@ const initialTenants: Tenant[] = [
     id: 'tenant-gosg', 
     name: 'GO SG CONSULTING', 
     createdAt: new Date().toISOString().split('T')[0]
+  },
+  {
+    id: 'tenant-dev',
+    name: 'Development',
+    createdAt: new Date().toISOString().split('T')[0],
+    isDevelopment: true
   }
 ];
 

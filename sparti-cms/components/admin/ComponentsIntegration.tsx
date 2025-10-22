@@ -2,17 +2,15 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Puzzle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { Tenant } from './PostgresIntegration';
 
 interface ComponentsIntegrationProps {
-  tenant: Tenant;
   onViewClick?: () => void;
 }
 
 /**
- * Components Integration component that displays tenant components information
+ * Components Integration component that displays components information
  */
-export const ComponentsIntegration: React.FC<ComponentsIntegrationProps> = ({ tenant, onViewClick }) => {
+export const ComponentsIntegration: React.FC<ComponentsIntegrationProps> = ({ onViewClick }) => {
   const navigate = useNavigate();
   
   const handleViewClick = () => {
@@ -33,7 +31,7 @@ export const ComponentsIntegration: React.FC<ComponentsIntegrationProps> = ({ te
           <div className="flex items-center gap-2 mb-1">
             <h3 className="font-semibold">Components</h3>
             <Badge variant="outline" className="bg-purple-500/10 text-purple-700 border-purple-300">
-              Tenant: {tenant.name}
+              Library
             </Badge>
           </div>
           <p className="text-sm text-muted-foreground mb-1">
@@ -57,9 +55,9 @@ export const ComponentsIntegration: React.FC<ComponentsIntegrationProps> = ({ te
 /**
  * Components Integration list item for modals
  */
-export const ComponentsIntegrationListItem: React.FC<{ tenant: Tenant }> = ({ tenant }) => {
+export const ComponentsIntegrationListItem: React.FC = () => {
   return (
-    <li>• Components Library (Tenant: {tenant.name})</li>
+    <li>• Components Library</li>
   );
 };
 

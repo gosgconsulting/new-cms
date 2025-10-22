@@ -11,6 +11,7 @@ export interface Tenant {
   createdAt: string;
   databaseUrl?: string;
   apiKey?: string;
+  isDevelopment?: boolean;
 }
 
 // Default tenant for demo purposes

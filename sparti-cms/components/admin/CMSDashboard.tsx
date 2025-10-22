@@ -497,6 +497,9 @@ const CMSDashboard: React.FC = () => {
                       >
                         <div className="flex items-center">
                           <span className="text-foreground">{tenant.name}</span>
+                          {tenant.isDevelopment && (
+                            <span className="ml-2 px-1.5 py-0.5 text-xs bg-amber-100 text-amber-800 rounded">Dev</span>
+                          )}
                         </div>
                         {currentTenant.id === tenant.id && (
                           <Check className="h-4 w-4 text-brandTeal" />
@@ -554,8 +557,11 @@ const CMSDashboard: React.FC = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <h1 className="text-2xl font-bold text-foreground">{getPageTitle()}</h1>
-              <div className="px-2 py-1 rounded bg-secondary/50 text-xs font-medium">
-                Tenant: {currentTenant.name}
+              <div className="px-2 py-1 rounded bg-secondary/50 text-xs font-medium flex items-center">
+                <span>Tenant: {currentTenant.name}</span>
+                {currentTenant.isDevelopment && (
+                  <span className="ml-2 px-1.5 py-0.5 text-xs bg-amber-100 text-amber-800 rounded">Dev</span>
+                )}
               </div>
             </div>
             

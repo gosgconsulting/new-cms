@@ -412,7 +412,6 @@ const IntegrationsTab: React.FC = () => {
           
           {/* Components Integration */}
           <ComponentsIntegration
-            tenant={currentTenant}
             onViewClick={() => navigate('/components-viewer')}
           />
 
@@ -433,7 +432,7 @@ const IntegrationsTab: React.FC = () => {
             </p>
             <ul className="text-sm text-gray-600 mb-4 space-y-1">
               <PostgresIntegrationListItem tenant={currentTenant} />
-              <ComponentsIntegrationListItem tenant={currentTenant} />
+              <ComponentsIntegrationListItem />
               <li>• Google APIs (Available in Integration Test)</li>
               <li>• OpenRouter AI (Available in Integration Test)</li>
             </ul>

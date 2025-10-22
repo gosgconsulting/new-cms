@@ -6,6 +6,7 @@ import { Edit, Eye, FileText, Rocket, Scale, Layout, Minus } from 'lucide-react'
 import PageEditor from './PageEditor';
 import EditableSlug from './EditableSlug';
 import { useAuth } from '../auth/AuthProvider';
+import { getDummyPages, isDevelopmentTenant } from '../admin/DevelopmentTenantData';
 
 interface PageItem {
   id: string;
@@ -48,14 +49,38 @@ export const PagesManager: React.FC = () => {
       setLoading(true);
       setError(null);
       
-      // Include tenant ID in the request
-      const response = await fetch(`/api/pages/all?tenantId=${currentTenant.id}`);
-      if (!response.ok) {
-        throw new Error('Failed to load pages');
+      // If using Development tenant, use rich dummy data
+      if (isDevelopmentTenant(currentTenant)) {
+        // Convert dummy pages to PageItem format
+        const dummyPages = getDummyPages().map(page => ({
+          id: page.id,
+          page_name: page.title,
+          slug: page.slug,
+          status: page.status,
+          page_type: page.template === 'landing' ? 'landing' : 
+                    (page.template === 'legal' ? 'legal' : 'page') as 'page' | 'landing' | 'legal',
+          meta_title: page.seo?.title,
+          meta_description: page.seo?.description,
+          seo_index: true,
+          campaign_source: page.template === 'landing' ? 'development' : undefined,
+          conversion_goal: page.template === 'landing' ? 'testing' : undefined,
+          legal_type: page.template === 'legal' ? 'terms' : undefined,
+          version: page.template === 'legal' ? '1.0' : undefined,
+          created_at: page.createdAt,
+          updated_at: page.updatedAt
+        }));
+        
+        setPages(dummyPages);
+      } else {
+        // Regular tenant - use API
+        const response = await fetch(`/api/pages/all?tenantId=${currentTenant.id}`);
+        if (!response.ok) {
+          throw new Error('Failed to load pages');
+        }
+        
+        const data = await response.json();
+        setPages(data.pages || []);
       }
-      
-      const data = await response.json();
-      setPages(data.pages || []);
     } catch (error) {
       console.error('[testing] Error loading pages:', error);
       setError(error instanceof Error ? error.message : 'Failed to load pages');

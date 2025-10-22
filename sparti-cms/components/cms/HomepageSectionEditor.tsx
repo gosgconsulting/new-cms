@@ -6,26 +6,27 @@ import { Input } from '../../../src/components/ui/input';
 import { Label } from '../../../src/components/ui/label';
 import { Switch } from '../../../src/components/ui/switch';
 import { Textarea } from '../../../src/components/ui/textarea';
-import { ArrowUp, ArrowDown, Eye, Trash, Plus, Palette, Image, Type } from 'lucide-react';
+import { ArrowUp, ArrowDown, Plus, Palette, Image, Type } from 'lucide-react';
 import { componentRegistry } from '../../registry';
 import RichTextEditor from './RichTextEditor';
+import SectionTabEditor from './SectionTabEditor';
 import { toast } from 'sonner';
+import { Section } from './types';
+import { isDevelopmentTenant } from '../admin/DevelopmentTenantData';
+import { developmentSections } from '../admin/DevelopmentTenantSections';
+import { useAuth } from '../auth/AuthProvider';
 
 interface HomepageSectionEditorProps {
   onSave?: () => void;
 }
 
-interface Section {
-  id: string;
-  type: string;
-  title: string;
-  visible: boolean;
-  data: Record<string, any>;
-}
-
 const HomepageSectionEditor: React.FC<HomepageSectionEditorProps> = ({ onSave }) => {
-  // Default sections for the homepage - using IDs that match the registry
-  const [sections, setSections] = useState<Section[]>([
+  const { currentTenant } = useAuth();
+  
+  // Use Development tenant sections if applicable, otherwise use default sections
+  const initialSections = isDevelopmentTenant(currentTenant) 
+    ? developmentSections 
+    : [
     {
       id: 'header-main',
       type: 'header-main',
@@ -327,9 +328,14 @@ const HomepageSectionEditor: React.FC<HomepageSectionEditorProps> = ({ onSave })
         backgroundColor: '#0f172a'
       }
     }
-  ]);
-
-  const [activeSection, setActiveSection] = useState<string>('hero');
+  ];
+  
+  const [sections, setSections] = useState<Section[]>(initialSections);
+  
+  // Set default active section
+  const [activeSection, setActiveSection] = useState<string>(
+    isDevelopmentTenant(currentTenant) ? 'hero-section' : 'hero-main'
+  );
 
   // Get component schemas from registry
   const getComponentSchema = (type: string) => {
@@ -948,7 +954,6 @@ const HomepageSectionEditor: React.FC<HomepageSectionEditorProps> = ({ onSave })
                   onClick={() => setActiveSection(section.id)}
                 >
                   <div className="flex items-center">
-                    <div className={`w-3 h-3 rounded-full mr-3 ${section.visible ? 'bg-green-500' : 'bg-gray-300'}`} />
                     <span>{section.title}</span>
                   </div>
                   <div className="flex gap-1">
@@ -970,67 +975,20 @@ const HomepageSectionEditor: React.FC<HomepageSectionEditorProps> = ({ onSave })
           {activeSectionData ? (
             <Card>
               <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-6">
+                <div className="mb-6">
                   <h3 className="text-lg font-medium">{activeSectionData.title}</h3>
-                  <div className="flex gap-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => toggleSectionVisibility(
-                        sections.findIndex(s => s.id === activeSectionData.id)
-                      )}
-                    >
-                      <Eye className="h-4 w-4 mr-1" />
-                      {activeSectionData.visible ? 'Hide' : 'Show'}
-                    </Button>
-                    <Button 
-                      variant="destructive" 
-                      size="sm"
-                      onClick={() => {
-                        const index = sections.findIndex(s => s.id === activeSectionData.id);
-                        deleteSection(index);
-                        if (sections.length > 1) {
-                          setActiveSection(sections[Math.max(0, index - 1)].id);
-                        }
-                      }}
-                    >
-                      <Trash className="h-4 w-4 mr-1" />
-                      Delete
-                    </Button>
-                  </div>
                 </div>
 
-                {/* All Properties */}
-                <div className="space-y-6">
-                  {activeSectionSchema ? (
-                    Object.entries(activeSectionSchema.properties).map(([key, prop]) => (
-                      <div key={key}>
-                        {renderPropertyEditor(prop, key, activeSectionData.id)}
-                      </div>
-                    ))
-                  ) : (
-                    <div className="p-6 border-2 border-dashed rounded-lg text-center">
-                      <p className="text-muted-foreground">
-                        Component schema not found for this section. Using fallback editor.
-                      </p>
-                      {/* Fallback editor for data properties */}
-                      {activeSectionData && Object.entries(activeSectionData.data).map(([key, value]) => {
-                        // Create a mock property based on value type
-                        const mockProp = {
-                          type: typeof value === 'object' ? 'object' : typeof value,
-                          description: key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1'),
-                          editable: true,
-                          default: value
-                        };
-                        
-                        return (
-                          <div key={key} className="mt-4">
-                            {renderPropertyEditor(mockProp, key, activeSectionData.id)}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
+                {/* Tabbed Section Editor */}
+                <div>
+                  {/* Import SectionTabEditor at the top of the file */}
+                  <SectionTabEditor 
+                    section={activeSectionData}
+                    onUpdate={(field, value) => updateSectionData(activeSectionData.id, field, value)}
+                    onUpdateNestedData={(arrayName, index, field, value) => 
+                      updateNestedData(activeSectionData.id, arrayName, index, field, value)
+                    }
+                  />
                 </div>
               </CardContent>
             </Card>

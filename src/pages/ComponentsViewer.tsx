@@ -44,7 +44,7 @@ import {
 } from 'lucide-react';
 
 // Component placeholder types
-type PlaceholderType = 'heading' | 'paragraph' | 'image' | 'video' | 'gallery' | 'carousel' | 'section' | 'icon-text' | 'icon-heading' | 'badge' | 'button' | 'hero';
+type PlaceholderType = 'heading' | 'paragraph' | 'image' | 'video' | 'gallery' | 'carousel' | 'section' | 'icon-text' | 'icon-heading' | 'badge' | 'button' | 'hero' | 'icon';
 type CategoryType = 'Sections' | 'Components' | 'Fields' | 'All';
 type SubCategoryType = 'Text' | 'Media' | 'Layout' | 'UI' | 'Hero' | 'Feature' | 'CTA' | 'None';
 
@@ -66,72 +66,39 @@ interface Placeholder {
 const PLACEHOLDERS: Placeholder[] = [
   // FIELDS - Text Category
   {
-    id: 'field-heading-h1',
-    name: 'Heading H1',
-    type: 'heading',
-    description: 'Main heading field for content',
-    createdAt: '2023-10-15',
-    updatedAt: '2023-10-15',
-    category: 'Fields',
-    subcategory: 'Text',
-    defaultContent: 'Main Heading'
-  },
-  {
-    id: 'field-heading-h2',
-    name: 'Heading H2',
-    type: 'heading',
-    description: 'Secondary heading field',
-    createdAt: '2023-10-15',
-    updatedAt: '2023-10-15',
-    category: 'Fields',
-    subcategory: 'Text',
-    defaultContent: 'Secondary Heading'
-  },
-  {
-    id: 'field-heading-h3',
-    name: 'Heading H3',
-    type: 'heading',
-    description: 'Tertiary heading field',
-    createdAt: '2023-10-15',
-    updatedAt: '2023-10-15',
-    category: 'Fields',
-    subcategory: 'Text',
-    defaultContent: 'Tertiary Heading'
-  },
-  {
-    id: 'field-paragraph',
+    id: 'field-rich-text',
     name: 'Rich Text Editor',
     type: 'paragraph',
-    description: 'Rich text editor for formatted content',
+    description: 'Rich text editor for all content including headings, paragraphs, and quotes',
     createdAt: '2023-10-15',
     updatedAt: '2023-10-15',
     category: 'Fields',
     subcategory: 'Text',
-    defaultContent: 'This is a rich text editor field where you can add formatted content with various styling options.'
-  },
-  {
-    id: 'field-quote',
-    name: 'Quote Block',
-    type: 'paragraph',
-    description: 'Blockquote field for testimonials or highlighted text',
-    createdAt: '2023-10-15',
-    updatedAt: '2023-10-15',
-    category: 'Fields',
-    subcategory: 'Text',
-    defaultContent: 'This is a blockquote field for testimonials or highlighted text that you want to stand out from the rest of your content.'
+    defaultContent: 'This is a rich text editor field where you can add formatted content with various styling options including headings, paragraphs, and quotes.'
   },
   
-  // FIELDS - Media Category
-  {
-    id: 'field-image',
-    name: 'Image Field',
-    type: 'image',
-    description: 'Single image upload field',
-    createdAt: '2023-10-15',
-    updatedAt: '2023-10-15',
-    category: 'Fields',
-    subcategory: 'Media'
-  },
+         // FIELDS - Icon Field
+         {
+           id: 'field-icon',
+           name: 'Icon Field',
+           type: 'icon',
+           description: 'Icon selection or upload field',
+           createdAt: '2023-10-15',
+           updatedAt: '2023-10-15',
+           category: 'Fields',
+           subcategory: 'Media'
+         },
+         // FIELDS - Media Category
+         {
+           id: 'field-image',
+           name: 'Image Field',
+           type: 'image',
+           description: 'Single image upload field',
+           createdAt: '2023-10-15',
+           updatedAt: '2023-10-15',
+           category: 'Fields',
+           subcategory: 'Media'
+         },
   {
     id: 'field-gallery',
     name: 'Gallery Field',
@@ -165,7 +132,7 @@ const PLACEHOLDERS: Placeholder[] = [
     category: 'Components',
     subcategory: 'UI',
     defaultContent: '+65 8024 6850',
-    fields: ['field-paragraph', 'icon-selector']
+    fields: ['field-rich-text', 'icon-selector']
   },
   {
     id: 'component-icon-heading',
@@ -177,7 +144,7 @@ const PLACEHOLDERS: Placeholder[] = [
     category: 'Components',
     subcategory: 'UI',
     defaultContent: 'Get Results in 3 Months',
-    fields: ['field-heading-h2', 'icon-selector']
+    fields: ['field-rich-text', 'icon-selector']
   },
   {
     id: 'component-badge-icon',
@@ -189,7 +156,7 @@ const PLACEHOLDERS: Placeholder[] = [
     category: 'Components',
     subcategory: 'UI',
     defaultContent: 'Get Results in 3 Months',
-    fields: ['field-paragraph', 'icon-selector']
+    fields: ['field-rich-text', 'icon-selector']
   },
   {
     id: 'component-badge-text',
@@ -201,7 +168,7 @@ const PLACEHOLDERS: Placeholder[] = [
     category: 'Components',
     subcategory: 'UI',
     defaultContent: 'You have a website but it\'s not generating clicks?',
-    fields: ['field-paragraph']
+    fields: ['field-rich-text']
   },
   {
     id: 'component-button',
@@ -213,7 +180,7 @@ const PLACEHOLDERS: Placeholder[] = [
     category: 'Components',
     subcategory: 'UI',
     defaultContent: 'Click Me',
-    fields: ['field-paragraph', 'url-field']
+    fields: ['field-rich-text', 'url-field']
   },
   {
     id: 'component-carousel',
@@ -237,7 +204,7 @@ const PLACEHOLDERS: Placeholder[] = [
     updatedAt: '2023-10-15',
     category: 'Sections',
     subcategory: 'Hero',
-    components: ['field-heading-h1', 'field-paragraph', 'field-image', 'component-button']
+    components: ['field-rich-text', 'field-image', 'component-button']
   },
   {
     id: 'section-feature',
@@ -248,7 +215,7 @@ const PLACEHOLDERS: Placeholder[] = [
     updatedAt: '2023-10-15',
     category: 'Sections',
     subcategory: 'Feature',
-    components: ['field-heading-h2', 'field-paragraph', 'field-image', 'component-icon-text']
+    components: ['field-rich-text', 'field-image', 'component-icon-text']
   },
   {
     id: 'section-cta',
@@ -259,7 +226,7 @@ const PLACEHOLDERS: Placeholder[] = [
     updatedAt: '2023-10-15',
     category: 'Sections',
     subcategory: 'CTA',
-    components: ['field-heading-h2', 'field-paragraph', 'component-button']
+    components: ['field-rich-text', 'component-button']
   }
 ];
 
@@ -338,6 +305,41 @@ const ComponentsViewerContent = () => {
   const [selectedTextStyle, setSelectedTextStyle] = useState<string>('paragraph');
   const [selectedFontSize, setSelectedFontSize] = useState<string>('16px');
   const [activeTabIndex, setActiveTabIndex] = useState<number>(0);
+  const [customIconUrl, setCustomIconUrl] = useState<string | null>(null);
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState<boolean>(false);
+  
+  // Image field states
+  const [selectedSingleImage, setSelectedSingleImage] = useState<string | null>(null);
+  const [imageTitle, setImageTitle] = useState<string>('');
+  const [imageAlt, setImageAlt] = useState<string>('');
+  
+  // Gallery field states
+  const [galleryImages, setGalleryImages] = useState<typeof MOCK_IMAGES>([]);
+  const [galleryTitle, setGalleryTitle] = useState<string>('');
+  
+  // Function to handle gallery file selection
+  const handleGallerySelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+    
+    // Create new image objects from the selected files
+    const newImages = Array.from(files).map((file, index) => {
+      const url = URL.createObjectURL(file);
+      return {
+        id: `new-img-${Date.now()}-${index}`,
+        url: url,
+        alt: file.name
+      };
+    });
+    
+    // Add the new images to the gallery images
+    setGalleryImages([...galleryImages, ...newImages]);
+    setSelectedImages([...galleryImages, ...newImages]);
+  };
+  
+  // Carousel field states
+  const [carouselImages, setCarouselImages] = useState<typeof MOCK_IMAGES>([]);
+  const [carouselTitle, setCarouselTitle] = useState<string>('');
   
   const getPlaceholderIcon = (type: PlaceholderType) => {
     switch (type) {
@@ -664,12 +666,665 @@ const ComponentsViewerContent = () => {
     }
     return <Pilcrow className="h-5 w-5" />;
   };
+  
+  // Find a placeholder by ID
+  const findPlaceholderById = (id: string): Placeholder | undefined => {
+    return PLACEHOLDERS.find(p => p.id === id);
+  };
+  
+  // Render editor for a specific component or field by ID
+  const renderComponentEditor = (id: string) => {
+    // For debugging
+    console.log(`Rendering editor for component: ${id}`);
+    
+    // Find the corresponding placeholder for this component/field
+    const placeholder = findPlaceholderById(id);
+    
+    if (!placeholder) {
+      console.log(`No placeholder found for ${id}, creating temporary one`);
+      
+      // Handle icon field
+      if (id.includes('field-icon') || id.includes('icon-selector')) {
+        
+        // Function to handle icon file upload
+        const handleIconUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+          const files = event.target.files;
+          if (!files || files.length === 0) return;
+          
+          const file = files[0];
+          // Check if file is an image and not too large
+          if (!file.type.startsWith('image/')) {
+            alert('Please upload an image file');
+            return;
+          }
+          
+          if (file.size > 1024 * 1024) { // 1MB limit
+            alert('File size should be less than 1MB');
+            return;
+          }
+          
+          const url = URL.createObjectURL(file);
+          setCustomIconUrl(url);
+          setSelectedIcon('custom');
+          setIsUploadModalOpen(false);
+        };
+        
+        return (
+          <div className="space-y-4">
+            <div className="flex flex-wrap gap-2 mb-4">
+              {AVAILABLE_ICONS.map((icon) => {
+                const IconComponent = icon.component;
+                return (
+                  <button
+                    key={icon.name}
+                    onClick={() => {
+                      setSelectedIcon(icon.name);
+                      setCustomIconUrl(null); // Clear custom icon when selecting a built-in one
+                    }}
+                    className={`w-10 h-10 rounded flex items-center justify-center ${
+                      selectedIcon === icon.name 
+                        ? 'bg-purple-100 text-purple-600 ring-1 ring-purple-500' 
+                        : 'hover:bg-gray-100 border border-gray-200'
+                    }`}
+                    title={icon.name}
+                  >
+                    <IconComponent className="h-5 w-5" />
+                  </button>
+                );
+              })}
+              
+              {/* Custom icon button (if uploaded) */}
+              {customIconUrl && (
+                <button
+                  onClick={() => setSelectedIcon('custom')}
+                  className={`w-10 h-10 rounded flex items-center justify-center ${
+                    selectedIcon === 'custom' 
+                      ? 'bg-purple-100 ring-1 ring-purple-500' 
+                      : 'hover:bg-gray-100 border border-gray-200'
+                  }`}
+                  title="Custom Icon"
+                >
+                  <img src={customIconUrl} alt="Custom" className="h-5 w-5 object-contain" />
+                </button>
+              )}
+              
+              {/* Upload button */}
+              <label 
+                className="w-10 h-10 rounded flex items-center justify-center border border-dashed border-gray-300 text-gray-400 hover:text-gray-600 hover:border-gray-400 cursor-pointer"
+                title="Upload custom icon"
+                onClick={() => setIsUploadModalOpen(true)}
+              >
+                <Plus className="h-4 w-4" />
+              </label>
+            </div>
+            
+            <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-md border border-gray-200">
+              <div className="p-2 bg-white rounded-md border border-gray-200">
+                {selectedIcon === 'custom' && customIconUrl ? (
+                  <img src={customIconUrl} alt="Custom" className="h-5 w-5 object-contain" />
+                ) : (
+                  getIconByName(selectedIcon)
+                )}
+              </div>
+              <div>
+                <p className="text-sm font-medium">{selectedIcon === 'custom' ? 'Custom Icon' : selectedIcon}</p>
+                <p className="text-xs text-gray-500">Selected icon</p>
+              </div>
+            </div>
+            
+            {/* Upload Modal */}
+            {isUploadModalOpen && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-lg font-medium">Upload Custom Icon</h3>
+                    <button 
+                      onClick={() => setIsUploadModalOpen(false)}
+                      className="text-gray-400 hover:text-gray-600"
+                    >
+                      <X className="h-5 w-5" />
+                    </button>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-center p-8 border-2 border-dashed border-gray-300 rounded-md bg-gray-50">
+                      <div className="text-center">
+                        <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                        <p className="text-gray-600 mb-2">Upload an SVG, PNG, or JPG icon</p>
+                        <label className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors cursor-pointer inline-flex items-center">
+                          <Upload className="h-4 w-4 mr-1" />
+                          Select File
+                          <input
+                            type="file"
+                            accept="image/svg+xml,image/png,image/jpeg"
+                            className="hidden"
+                            onChange={handleIconUpload}
+                          />
+                        </label>
+                      </div>
+                    </div>
+                    
+                    <div className="text-xs text-gray-500">
+                      <p>• Recommended size: 24x24 pixels</p>
+                      <p>• Maximum file size: 1MB</p>
+                      <p>• Supported formats: SVG, PNG, JPG</p>
+                    </div>
+                    
+                    <div className="flex justify-end">
+                      <button
+                        onClick={() => setIsUploadModalOpen(false)}
+                        className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      }
+      
+      // Handle URL field
+      if (id.includes('url-field')) {
+        return (
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Link className="h-4 w-4 text-gray-500" />
+              <label className="text-sm font-medium text-gray-700">URL</label>
+            </div>
+            <div className="flex">
+              <input
+                type="text"
+                className="flex-1 p-2 border border-gray-300 rounded-md"
+                placeholder="https://example.com"
+              />
+              <button className="ml-2 px-3 py-2 bg-gray-100 text-gray-700 rounded-md border border-gray-300 hover:bg-gray-200">
+                Test
+              </button>
+            </div>
+            <div className="flex items-center gap-2 mt-1">
+              <input type="checkbox" id="open-new-tab" className="rounded text-purple-600" />
+              <label htmlFor="open-new-tab" className="text-sm text-gray-600">Open in new tab</label>
+            </div>
+          </div>
+        );
+      }
+      
+      // Rich text editor for text fields
+      if (id.includes('rich-text')) {
+        // Create a rich text editor that can handle all text types
+        return (
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 p-2 border-b border-gray-200 bg-gray-50 rounded-t-md">
+              <div className="relative">
+                <button className="flex items-center py-1 px-2 hover:bg-gray-100 rounded border border-gray-200">
+                  <Type className="h-4 w-4 mr-1 text-gray-500" />
+                  <span className="text-sm text-gray-700">Paragraph</span>
+                  <ChevronDown className="h-3 w-3 ml-1 text-gray-500" />
+                </button>
+              </div>
+              
+              <div className="h-6 border-r border-gray-300 mx-1"></div>
+              
+              <button className="p-2 hover:bg-gray-200 rounded">
+                <Bold className="h-4 w-4" />
+              </button>
+              <button className="p-2 hover:bg-gray-200 rounded">
+                <Italic className="h-4 w-4" />
+              </button>
+              <button className="p-2 hover:bg-gray-200 rounded">
+                <Underline className="h-4 w-4" />
+              </button>
+              
+              <div className="h-6 border-r border-gray-300 mx-1"></div>
+              
+              <button className="p-2 hover:bg-gray-200 rounded">
+                <AlignLeft className="h-4 w-4" />
+              </button>
+              <button className="p-2 hover:bg-gray-200 rounded">
+                <AlignCenter className="h-4 w-4" />
+              </button>
+              <button className="p-2 hover:bg-gray-200 rounded">
+                <AlignRight className="h-4 w-4" />
+              </button>
+              
+              <div className="h-6 border-r border-gray-300 mx-1"></div>
+              
+              <button className="p-2 hover:bg-gray-200 rounded">
+                <Link className="h-4 w-4" />
+              </button>
+              
+              <button className="p-2 hover:bg-gray-200 rounded">
+                <Palette className="h-4 w-4" />
+              </button>
+            </div>
+            
+            <div className="w-full p-3 border border-gray-300 rounded-b-md focus-within:ring-1 focus-within:ring-blue-400 focus-within:border-blue-400" style={{ minHeight: '200px' }}>
+              <div
+                contentEditable
+                suppressContentEditableWarning
+                className="outline-none min-h-[1.5em] w-full"
+                data-placeholder="Enter text..."
+              >
+                This is a rich text editor field. You can format text as headings, paragraphs, or quotes using the toolbar.
+              </div>
+            </div>
+          </div>
+        );
+      } else if (id.includes('image')) {
+        // Create a temporary image editor
+        return (
+          <div className="space-y-4">
+            <div className="flex items-center justify-center p-8 border-2 border-dashed border-gray-300 rounded-md bg-gray-50">
+              <div className="text-center">
+                <ImageIcon className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+                <p className="text-gray-600 mb-2">Drag and drop an image here, or click to select</p>
+                <button className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors">
+                  <Upload className="h-4 w-4 inline mr-1" />
+                  Upload Image
+                </button>
+              </div>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Image Title
+              </label>
+              <input
+                type="text"
+                className="w-full p-2 border border-gray-300 rounded-md"
+                placeholder="Enter image title (will be used as slug)"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Alt Text
+              </label>
+              <input
+                type="text"
+                className="w-full p-2 border border-gray-300 rounded-md"
+                placeholder="Descriptive text for accessibility"
+              />
+            </div>
+          </div>
+        );
+      } else if (id.includes('button')) {
+        // Create a temporary button editor
+        return (
+          <div className="space-y-4">
+            <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Button Text
+                </label>
+                <input
+                  type="text"
+                  className="w-full p-2 border border-gray-300 rounded-md"
+                  placeholder="Enter button text"
+                  defaultValue="Click Me"
+                />
+              </div>
+              
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  URL
+                </label>
+                <input
+                  type="text"
+                  className="w-full p-2 border border-gray-300 rounded-md"
+                  placeholder="https://example.com"
+                />
+              </div>
+              
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Button Style
+                </label>
+                <select className="w-full p-2 border border-gray-300 rounded-md">
+                  <option>Primary</option>
+                  <option>Secondary</option>
+                  <option>Outline</option>
+                  <option>Ghost</option>
+                </select>
+              </div>
+              
+              <div className="mt-6">
+                <h4 className="text-sm font-medium text-gray-700 mb-2">Preview:</h4>
+                <div className="p-4 bg-white rounded border border-gray-200 flex justify-center">
+                  <button className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors">
+                    Click Me
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      }
+      
+      // Default editor for unknown types
+      return (
+        <div className="p-4 bg-white rounded-md border border-gray-200">
+          <div className="flex items-center mb-4">
+            <Layout className="h-5 w-5 text-gray-500 mr-2" />
+            <h3 className="text-lg font-medium">Field Editor</h3>
+          </div>
+          <div className="p-4 border border-gray-200 rounded-md min-h-[150px]">
+            <div className="flex flex-col space-y-4">
+              <input 
+                type="text" 
+                className="w-full p-2 border border-gray-300 rounded-md" 
+                placeholder="Enter content..."
+              />
+              <textarea 
+                className="w-full p-2 border border-gray-300 rounded-md min-h-[100px]" 
+                placeholder="Additional details..."
+              />
+            </div>
+          </div>
+        </div>
+      );
+    }
+    
+    // If we found the placeholder, use its type to determine the editor
+    console.log(`Found placeholder for ${id}:`, placeholder);
+    
+    // Based on the placeholder type, return the appropriate editor
+    switch (placeholder.type) {
+      case 'heading':
+      case 'paragraph':
+        return (
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 p-2 border-b border-gray-200 bg-gray-50 rounded-t-md">
+              <div className="relative">
+                <button className="flex items-center py-1 px-2 hover:bg-gray-100 rounded border border-gray-200">
+                  <Type className="h-4 w-4 mr-1 text-gray-500" />
+                  <span className="text-sm text-gray-700">Paragraph</span>
+                  <ChevronDown className="h-3 w-3 ml-1 text-gray-500" />
+                </button>
+              </div>
+              
+              <div className="h-6 border-r border-gray-300 mx-1"></div>
+              
+              <button className="p-2 hover:bg-gray-200 rounded">
+                <Bold className="h-4 w-4" />
+              </button>
+              <button className="p-2 hover:bg-gray-200 rounded">
+                <Italic className="h-4 w-4" />
+              </button>
+              <button className="p-2 hover:bg-gray-200 rounded">
+                <Underline className="h-4 w-4" />
+              </button>
+              
+              <div className="h-6 border-r border-gray-300 mx-1"></div>
+              
+              <button className="p-2 hover:bg-gray-200 rounded">
+                <AlignLeft className="h-4 w-4" />
+              </button>
+              <button className="p-2 hover:bg-gray-200 rounded">
+                <AlignCenter className="h-4 w-4" />
+              </button>
+              <button className="p-2 hover:bg-gray-200 rounded">
+                <AlignRight className="h-4 w-4" />
+              </button>
+              
+              <div className="h-6 border-r border-gray-300 mx-1"></div>
+              
+              <button className="p-2 hover:bg-gray-200 rounded">
+                <Link className="h-4 w-4" />
+              </button>
+              
+              <button className="p-2 hover:bg-gray-200 rounded">
+                <Palette className="h-4 w-4" />
+              </button>
+            </div>
+            
+            <div className="w-full p-3 border border-gray-300 rounded-b-md focus-within:ring-1 focus-within:ring-blue-400 focus-within:border-blue-400" style={{ minHeight: '200px' }}>
+              <div
+                contentEditable
+                suppressContentEditableWarning
+                className="outline-none min-h-[1.5em] w-full"
+                data-placeholder="Enter text..."
+              >
+                {placeholder.defaultContent || 'This is a rich text editor field. You can format text as headings, paragraphs, or quotes using the toolbar.'}
+              </div>
+            </div>
+          </div>
+        );
+        
+      case 'image': {
+        // Function to handle file selection
+        const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+          const files = event.target.files;
+          if (!files || files.length === 0) return;
+          
+          const file = files[0]; // Take only the first file
+          const url = URL.createObjectURL(file);
+          setSelectedSingleImage(url);
+          
+          // Auto-fill the image title with the file name (without extension)
+          const fileName = file.name.replace(/\.[^/.]+$/, ""); // Remove extension
+          setImageTitle(fileName);
+        };
+        
+        return (
+          <div className="space-y-6">
+            {!selectedSingleImage ? (
+              // No image selected - show upload area
+              <div className="flex items-center justify-center p-8 border-2 border-dashed border-gray-300 rounded-md bg-gray-50">
+                <div className="text-center">
+                  <ImageIcon className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+                  <p className="text-gray-600 mb-2">Drag and drop an image here, or click to select</p>
+                  <label className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors cursor-pointer inline-flex items-center">
+                    <Upload className="h-4 w-4 mr-1" />
+                    Upload Image
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleImageSelect}
+                    />
+                  </label>
+                </div>
+              </div>
+            ) : (
+              // Image selected - show preview
+              <div className="space-y-4">
+                <div className="relative">
+                  <img 
+                    src={selectedSingleImage} 
+                    alt={imageAlt || imageTitle} 
+                    className="w-full h-auto max-h-64 object-contain rounded-md border border-gray-200"
+                  />
+                  <button
+                    onClick={() => setSelectedSingleImage(null)}
+                    className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+                
+                <div className="flex justify-end">
+                  <label className="px-3 py-1.5 bg-purple-100 text-purple-700 rounded-md hover:bg-purple-200 transition-colors cursor-pointer inline-flex items-center text-sm">
+                    <Upload className="h-3 w-3 mr-1" />
+                    Change Image
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleImageSelect}
+                    />
+                  </label>
+                </div>
+              </div>
+            )}
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Image Title
+              </label>
+              <input
+                type="text"
+                value={imageTitle}
+                onChange={(e) => setImageTitle(e.target.value)}
+                className="w-full p-2 border border-gray-300 rounded-md"
+                placeholder="Enter image title (will be used as slug)"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Alt Text
+              </label>
+              <input
+                type="text"
+                value={imageAlt}
+                onChange={(e) => setImageAlt(e.target.value)}
+                className="w-full p-2 border border-gray-300 rounded-md"
+                placeholder="Descriptive text for accessibility"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Image Settings
+              </label>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs text-gray-600 mb-1">Display Size</label>
+                  <select className="w-full p-2 border border-gray-300 rounded-md text-sm">
+                    <option value="full">Full Width</option>
+                    <option value="medium">Medium</option>
+                    <option value="small">Small</option>
+                    <option value="thumbnail">Thumbnail</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-600 mb-1">Alignment</label>
+                  <select className="w-full p-2 border border-gray-300 rounded-md text-sm">
+                    <option value="left">Left</option>
+                    <option value="center">Center</option>
+                    <option value="right">Right</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      }
+        
+      default:
+        // For any other type, use the default editor
+        return renderEditor();
+    }
+  };
 
   // Render appropriate editor based on placeholder type
   const renderEditor = () => {
     if (!selectedPlaceholder) return null;
 
     switch (selectedPlaceholder.type) {
+      case 'icon':
+        return (
+          <div className="space-y-6">
+            <h3 className="text-lg font-medium mb-4">Icon Selector</h3>
+            
+            <div className="flex flex-wrap gap-3 mb-6">
+              {AVAILABLE_ICONS.map((icon) => {
+                const IconComponent = icon.component;
+                return (
+                  <button
+                    key={icon.name}
+                    onClick={() => {
+                      setSelectedIcon(icon.name);
+                    }}
+                    className={`w-12 h-12 rounded flex items-center justify-center ${
+                      selectedIcon === icon.name 
+                        ? 'bg-purple-100 text-purple-600 ring-1 ring-purple-500' 
+                        : 'hover:bg-gray-100 border border-gray-200'
+                    }`}
+                    title={icon.name}
+                  >
+                    <IconComponent className="h-6 w-6" />
+                  </button>
+                );
+              })}
+              
+              {/* Upload button */}
+              <label 
+                className="w-12 h-12 rounded flex items-center justify-center border border-dashed border-gray-300 text-gray-400 hover:text-gray-600 hover:border-gray-400 cursor-pointer"
+                title="Upload custom icon"
+              >
+                <Plus className="h-5 w-5" />
+                <input
+                  type="file"
+                  accept="image/svg+xml,image/png,image/jpeg"
+                  className="hidden"
+                  onChange={(e) => {
+                    const files = e.target.files;
+                    if (!files || files.length === 0) return;
+                    
+                    const file = files[0];
+                    if (!file.type.startsWith('image/')) {
+                      alert('Please upload an image file');
+                      return;
+                    }
+                    
+                    if (file.size > 1024 * 1024) { // 1MB limit
+                      alert('File size should be less than 1MB');
+                      return;
+                    }
+                    
+                    const url = URL.createObjectURL(file);
+                    setCustomIconUrl(url);
+                    setSelectedIcon('custom');
+                  }}
+                />
+              </label>
+            </div>
+            
+            <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-md border border-gray-200">
+              <div className="p-3 bg-white rounded-md border border-gray-200 flex items-center justify-center" style={{ width: '48px', height: '48px' }}>
+                {selectedIcon === 'custom' && customIconUrl ? (
+                  <img src={customIconUrl} alt="Custom" className="h-6 w-6 object-contain" />
+                ) : (
+                  getIconByName(selectedIcon)
+                )}
+              </div>
+              <div>
+                <p className="font-medium">{selectedIcon === 'custom' ? 'Custom Icon' : selectedIcon}</p>
+                <p className="text-sm text-gray-500">Selected icon</p>
+              </div>
+            </div>
+            
+            {/* Icon settings */}
+            <div className="space-y-4">
+              <h4 className="text-sm font-medium text-gray-700">Icon Settings</h4>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs text-gray-600 mb-1">Size</label>
+                  <select className="w-full p-2 border border-gray-300 rounded-md text-sm">
+                    <option value="small">Small</option>
+                    <option value="medium" selected>Medium</option>
+                    <option value="large">Large</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-600 mb-1">Color</label>
+                  <select className="w-full p-2 border border-gray-300 rounded-md text-sm">
+                    <option value="default">Default</option>
+                    <option value="primary">Primary</option>
+                    <option value="secondary">Secondary</option>
+                    <option value="accent">Accent</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+        
       case 'icon-heading':
         return (
           <div className="space-y-4">
@@ -1274,19 +1929,84 @@ const ComponentsViewerContent = () => {
           </div>
         );
       
-      case 'gallery':
+      case 'gallery': {
+        // Function to remove an image from the gallery
+        const removeGalleryImage = (imageId: string) => {
+          const updatedImages = galleryImages.filter(img => img.id !== imageId);
+          setGalleryImages(updatedImages);
+          setSelectedImages(updatedImages);
+        };
+        
         return (
-          <div className="space-y-4">
-            <div className="flex items-center justify-center p-8 border-2 border-dashed border-gray-300 rounded-md bg-gray-50">
-              <div className="text-center">
-                <Grid className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-                <p className="text-gray-600 mb-2">Upload multiple images for gallery</p>
-                <button className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors">
-                  <Upload className="h-4 w-4 inline mr-1" />
-                  Select Images
-                </button>
+          <div className="space-y-6">
+            {galleryImages.length === 0 ? (
+              // Empty state - show upload area
+              <div className="flex items-center justify-center p-8 border-2 border-dashed border-gray-300 rounded-md bg-gray-50">
+                <div className="text-center">
+                  <Grid className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+                  <p className="text-gray-600 mb-2">Upload multiple images for gallery</p>
+                  <label className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors cursor-pointer inline-flex items-center">
+                    <Upload className="h-4 w-4 mr-1" />
+                    Select Images
+                    <input
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleGallerySelect}
+                    />
+                  </label>
+                </div>
               </div>
-            </div>
+            ) : (
+              // Images selected - show grid of images with upload button
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                  {galleryImages.map(image => (
+                    <div key={image.id} className="relative group">
+                      <img 
+                        src={image.url} 
+                        alt={image.alt} 
+                        className="w-full h-32 object-cover rounded-md border border-gray-200"
+                      />
+                      <button
+                        onClick={() => removeGalleryImage(image.id)}
+                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
+                  
+                  {/* Add more images button */}
+                  <div className="flex items-center justify-center h-32 border-2 border-dashed border-gray-300 rounded-md bg-gray-50">
+                    <label className="cursor-pointer text-center p-2">
+                      <Plus className="h-8 w-8 text-gray-400 mx-auto mb-1" />
+                      <span className="text-sm text-gray-500">Add More</span>
+                      <input
+                        type="file"
+                        multiple
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleGallerySelect}
+                      />
+                    </label>
+                  </div>
+                </div>
+                
+                <div className="flex justify-end">
+                  <button
+                    onClick={() => {
+                      setGalleryImages([]);
+                      setSelectedImages([]);
+                    }}
+                    className="text-sm text-red-600 hover:text-red-800"
+                  >
+                    Clear All
+                  </button>
+                </div>
+              </div>
+            )}
             
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -1294,26 +2014,168 @@ const ComponentsViewerContent = () => {
               </label>
               <input
                 type="text"
+                value={galleryTitle}
+                onChange={(e) => setGalleryTitle(e.target.value)}
                 className="w-full p-2 border border-gray-300 rounded-md"
                 placeholder="Enter gallery title"
               />
             </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Layout Style
+              </label>
+              <select className="w-full p-2 border border-gray-300 rounded-md">
+                <option value="grid">Grid</option>
+                <option value="masonry">Masonry</option>
+                <option value="slider">Slider</option>
+              </select>
+            </div>
           </div>
         );
+      }
         
-      case 'carousel':
+      case 'carousel': {
+        // Function to handle file selection
+        const handleCarouselSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+          const files = event.target.files;
+          if (!files || files.length === 0) return;
+          
+          // Create new image objects from the selected files
+          const newImages = Array.from(files).map((file, index) => {
+            const url = URL.createObjectURL(file);
+            return {
+              id: `new-img-${Date.now()}-${index}`,
+              url: url,
+              alt: file.name
+            };
+          });
+          
+          // Add the new images to the carousel images
+          setCarouselImages([...carouselImages, ...newImages]);
+          setSelectedImages([...carouselImages, ...newImages]);
+        };
+        
+        // Function to remove an image from the carousel
+        const removeCarouselImage = (imageId: string) => {
+          const updatedImages = carouselImages.filter(img => img.id !== imageId);
+          setCarouselImages(updatedImages);
+          setSelectedImages(updatedImages);
+        };
+        
+        // Function to reorder images
+        const moveCarouselImage = (index: number, direction: 'up' | 'down') => {
+          if (
+            (direction === 'up' && index === 0) || 
+            (direction === 'down' && index === carouselImages.length - 1)
+          ) {
+            return; // Can't move further
+          }
+          
+          const newIndex = direction === 'up' ? index - 1 : index + 1;
+          const updatedImages = [...carouselImages];
+          const temp = updatedImages[index];
+          updatedImages[index] = updatedImages[newIndex];
+          updatedImages[newIndex] = temp;
+          
+          setCarouselImages(updatedImages);
+          setSelectedImages(updatedImages);
+        };
+        
         return (
-          <div className="space-y-4">
-            <div className="flex items-center justify-center p-8 border-2 border-dashed border-gray-300 rounded-md bg-gray-50">
-              <div className="text-center">
-                <Layers className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-                <p className="text-gray-600 mb-2">Upload images for carousel</p>
-                <button className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors">
-                  <Upload className="h-4 w-4 inline mr-1" />
-                  Select Images
-                </button>
+          <div className="space-y-6">
+            {carouselImages.length === 0 ? (
+              // Empty state - show upload area
+              <div className="flex items-center justify-center p-8 border-2 border-dashed border-gray-300 rounded-md bg-gray-50">
+                <div className="text-center">
+                  <Layers className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+                  <p className="text-gray-600 mb-2">Upload images for carousel</p>
+                  <label className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors cursor-pointer inline-flex items-center">
+                    <Upload className="h-4 w-4 mr-1" />
+                    Select Images
+                    <input
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleCarouselSelect}
+                    />
+                  </label>
+                </div>
               </div>
-            </div>
+            ) : (
+              // Images selected - show carousel preview
+              <div className="space-y-4">
+                {/* Carousel preview */}
+                <div className="relative bg-gray-100 rounded-lg p-4 border border-gray-200">
+                  <div className="flex overflow-x-auto space-x-2 pb-4">
+                    {carouselImages.map((image, index) => (
+                      <div key={image.id} className="relative flex-shrink-0 w-48">
+                        <img 
+                          src={image.url} 
+                          alt={image.alt} 
+                          className="w-full h-32 object-cover rounded-md border border-gray-200"
+                        />
+                        <div className="absolute top-2 right-2 flex space-x-1">
+                          <button
+                            onClick={() => removeCarouselImage(image.id)}
+                            className="bg-red-500 text-white rounded-full p-1"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
+                        <div className="absolute bottom-2 right-2 flex space-x-1">
+                          <button
+                            onClick={() => moveCarouselImage(index, 'up')}
+                            disabled={index === 0}
+                            className={`bg-gray-800 text-white rounded-full p-1 ${index === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          >
+                            <ChevronDown className="h-3 w-3 transform rotate-180" />
+                          </button>
+                          <button
+                            onClick={() => moveCarouselImage(index, 'down')}
+                            disabled={index === carouselImages.length - 1}
+                            className={`bg-gray-800 text-white rounded-full p-1 ${index === carouselImages.length - 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          >
+                            <ChevronDown className="h-3 w-3" />
+                          </button>
+                        </div>
+                        <div className="absolute bottom-2 left-2 bg-gray-800 text-white text-xs px-2 py-1 rounded-full">
+                          {index + 1}
+                        </div>
+                      </div>
+                    ))}
+                    
+                    {/* Add more images button */}
+                    <div className="flex-shrink-0 flex items-center justify-center w-32 h-32 border-2 border-dashed border-gray-300 rounded-md bg-white">
+                      <label className="cursor-pointer text-center p-2">
+                        <Plus className="h-6 w-6 text-gray-400 mx-auto mb-1" />
+                        <span className="text-xs text-gray-500">Add More</span>
+                        <input
+                          type="file"
+                          multiple
+                          accept="image/*"
+                          className="hidden"
+                          onChange={handleCarouselSelect}
+                        />
+                      </label>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex justify-end">
+                  <button
+                    onClick={() => {
+                      setCarouselImages([]);
+                      setSelectedImages([]);
+                    }}
+                    className="text-sm text-red-600 hover:text-red-800"
+                  >
+                    Clear All
+                  </button>
+                </div>
+              </div>
+            )}
             
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -1321,12 +2183,39 @@ const ComponentsViewerContent = () => {
               </label>
               <input
                 type="text"
+                value={carouselTitle}
+                onChange={(e) => setCarouselTitle(e.target.value)}
                 className="w-full p-2 border border-gray-300 rounded-md"
                 placeholder="Enter carousel title"
               />
             </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Carousel Settings
+              </label>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs text-gray-600 mb-1">Autoplay</label>
+                  <select className="w-full p-2 border border-gray-300 rounded-md text-sm">
+                    <option value="true">Enabled</option>
+                    <option value="false">Disabled</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-600 mb-1">Navigation</label>
+                  <select className="w-full p-2 border border-gray-300 rounded-md text-sm">
+                    <option value="arrows">Arrows</option>
+                    <option value="dots">Dots</option>
+                    <option value="both">Both</option>
+                    <option value="none">None</option>
+                  </select>
+                </div>
+              </div>
+            </div>
           </div>
         );
+      }
       
       default:
         return (
@@ -1619,6 +2508,9 @@ const ComponentsViewerContent = () => {
                   <>
                     <Layout className="h-5 w-5 mr-2 text-purple-600" />
                     {selectedPlaceholder.name} Component Editor
+                    <span className="ml-2 text-sm font-normal text-gray-500">
+                      (All fields on one page)
+                    </span>
                   </>
                 )}
                 {selectedPlaceholder.category === 'Sections' && (
@@ -1676,43 +2568,13 @@ const ComponentsViewerContent = () => {
               </div>
             )}
             
-            {/* Component Tabs for Components */}
+            {/* Component Fields Header - No tabs */}
             {selectedPlaceholder.category === 'Components' && selectedPlaceholder.fields && (
               <div className="border-b border-gray-200 mb-4">
-                <div className="flex overflow-x-auto">
-                  {selectedPlaceholder.fields.map((fieldId, index) => {
-                    const fieldName = fieldId.replace('field-', '');
-                    let icon;
-                    
-                    if (fieldId.includes('heading')) {
-                      icon = <Heading1 className="h-4 w-4 mr-1" />;
-                    } else if (fieldId.includes('paragraph')) {
-                      icon = <Type className="h-4 w-4 mr-1" />;
-                    } else if (fieldId.includes('image')) {
-                      icon = <ImageIcon className="h-4 w-4 mr-1" />;
-                    } else if (fieldId.includes('icon')) {
-                      icon = <Award className="h-4 w-4 mr-1" />;
-                    } else if (fieldId.includes('url')) {
-                      icon = <Link className="h-4 w-4 mr-1" />;
-                    } else {
-                      icon = <Type className="h-4 w-4 mr-1" />;
-                    }
-                    
-                    return (
-                      <button
-                        key={fieldId}
-                        onClick={() => setActiveTabIndex(index)}
-                        className={`flex items-center px-4 py-2 border-b-2 whitespace-nowrap ${
-                          index === activeTabIndex 
-                            ? 'border-purple-500 text-purple-600 font-medium' 
-                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                        }`}
-                      >
-                        {icon}
-                        <span className="capitalize">{fieldName}</span>
-                      </button>
-                    );
-                  })}
+                <div className="px-1 py-2">
+                  <p className="text-sm text-gray-500">
+                    This component uses {selectedPlaceholder.fields.length} {selectedPlaceholder.fields.length === 1 ? 'field' : 'fields'}
+                  </p>
                 </div>
               </div>
             )}
@@ -1730,19 +2592,36 @@ const ComponentsViewerContent = () => {
                         .replace(/\b\w/g, l => l.toUpperCase())
                     }</span>
                   </div>
-                  {renderEditor()}
+                  {renderComponentEditor(selectedPlaceholder.components[activeTabIndex])}
                 </div>
               ) : selectedPlaceholder.category === 'Components' && selectedPlaceholder.fields ? (
-                <div className="bg-gray-50 p-4 rounded-md">
-                  <div className="text-sm text-gray-500 mb-2">
-                    Editing: <span className="font-medium">{
-                      selectedPlaceholder.fields[activeTabIndex]
-                        .replace('field-', '')
-                        .replace(/-/g, ' ')
-                        .replace(/\b\w/g, l => l.toUpperCase())
-                    }</span>
-                  </div>
-                  {renderEditor()}
+                <div className="space-y-8">
+                  {selectedPlaceholder.fields.map((fieldId, index) => {
+                    const fieldName = fieldId.replace('field-', '').replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                    let icon;
+                    
+                    if (fieldId.includes('rich-text')) {
+                      icon = <Type className="h-5 w-5 text-blue-600" />;
+                    } else if (fieldId.includes('image')) {
+                      icon = <ImageIcon className="h-5 w-5 text-blue-600" />;
+                    } else if (fieldId.includes('icon')) {
+                      icon = <Award className="h-5 w-5 text-blue-600" />;
+                    } else if (fieldId.includes('url')) {
+                      icon = <Link className="h-5 w-5 text-blue-600" />;
+                    } else {
+                      icon = <Type className="h-5 w-5 text-blue-600" />;
+                    }
+                    
+                    return (
+                      <div key={fieldId} className="bg-gray-50 p-4 rounded-md border border-gray-200">
+                        <div className="flex items-center mb-3 pb-2 border-b border-gray-200">
+                          {icon}
+                          <h3 className="ml-2 font-medium text-gray-900">{fieldName}</h3>
+                        </div>
+                        {renderComponentEditor(fieldId)}
+                      </div>
+                    );
+                  })}
                 </div>
               ) : (
                 renderEditor()
