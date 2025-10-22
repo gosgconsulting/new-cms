@@ -3,6 +3,7 @@ import { Button } from '../../../src/components/ui/button';
 import { Input } from '../../../src/components/ui/input';
 import { Edit2, Check, X, AlertCircle } from 'lucide-react';
 import { toast } from '../../../src/components/ui/use-toast';
+import { useAuth } from '../auth/AuthProvider';
 
 interface EditableSlugProps {
   pageId: string;
@@ -21,6 +22,7 @@ export const EditableSlug: React.FC<EditableSlugProps> = ({
   isHomepage = false,
   onSlugUpdate
 }) => {
+  const { currentTenant } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(currentSlug);
   const [isLoading, setIsLoading] = useState(false);
@@ -116,7 +118,8 @@ export const EditableSlug: React.FC<EditableSlugProps> = ({
           pageId,
           pageType,
           newSlug: normalizedSlug,
-          oldSlug: currentSlug
+          oldSlug: currentSlug,
+          tenantId: currentTenant.id
         }),
       });
 

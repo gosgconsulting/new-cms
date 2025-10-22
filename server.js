@@ -663,12 +663,17 @@ app.delete('/api/contacts/:id', async (req, res) => {
 // Pages Management API Routes
 app.get('/api/pages/all', async (req, res) => {
   try {
-    console.log('[testing] API: Fetching all pages with types');
-    const pages = await getAllPagesWithTypes();
+    const { tenantId } = req.query;
+    console.log(`[testing] API: Fetching all pages with types for tenant: ${tenantId || 'default'}`);
+    
+    // Filter pages by tenant
+    const pages = await getAllPagesWithTypes(tenantId);
+    
     res.json({ 
       success: true, 
       pages: pages,
-      total: pages.length 
+      total: pages.length,
+      tenantId: tenantId || 'default'
     });
   } catch (error) {
     console.error('[testing] API: Error fetching pages:', error);
@@ -682,7 +687,8 @@ app.get('/api/pages/all', async (req, res) => {
 
 app.post('/api/pages/update-slug', async (req, res) => {
   try {
-    const { pageId, pageType, newSlug, oldSlug } = req.body;
+    const { pageId, pageType, newSlug, oldSlug, tenantId } = req.body;
+    console.log(`[testing] API: Updating slug for tenant: ${tenantId || 'default'}`);
     
     console.log('[testing] API: Updating page slug:', { pageId, pageType, newSlug, oldSlug });
     
@@ -726,7 +732,7 @@ app.post('/api/pages/update-slug', async (req, res) => {
     }
     
     // Update the slug
-    const updatedPage = await updatePageSlug(pageId, pageType, newSlug, oldSlug);
+    const updatedPage = await updatePageSlug(pageId, pageType, newSlug, oldSlug, tenantId);
     
     console.log('[testing] API: Page slug updated successfully:', updatedPage.id);
     
@@ -761,7 +767,8 @@ app.post('/api/pages/update-slug', async (req, res) => {
 // Update page name
 app.post('/api/pages/update-name', async (req, res) => {
   try {
-    const { pageId, pageType, newName } = req.body;
+    const { pageId, pageType, newName, tenantId } = req.body;
+    console.log(`[testing] API: Updating page name for tenant: ${tenantId || 'default'}`);
     
     console.log('[testing] API: Updating page name:', { pageId, pageType, newName });
     
@@ -784,7 +791,7 @@ app.post('/api/pages/update-name', async (req, res) => {
     }
     
     // Update the page name
-    const success = await updatePageName(pageId, pageType, newName);
+    const success = await updatePageName(pageId, pageType, newName, tenantId);
     
     if (!success) {
       return res.status(404).json({
@@ -816,7 +823,8 @@ app.post('/api/pages/update-name', async (req, res) => {
 // Toggle SEO index
 app.post('/api/pages/toggle-seo-index', async (req, res) => {
   try {
-    const { pageId, pageType, currentIndex } = req.body;
+    const { pageId, pageType, currentIndex, tenantId } = req.body;
+    console.log(`[testing] API: Toggling SEO index for tenant: ${tenantId || 'default'}`);
     
     console.log('[testing] API: Toggling SEO index:', { pageId, pageType, currentIndex });
     
@@ -839,7 +847,7 @@ app.post('/api/pages/toggle-seo-index', async (req, res) => {
     }
     
     // Toggle the SEO index
-    const newIndex = await toggleSEOIndex(pageId, pageType, currentIndex);
+    const newIndex = await toggleSEOIndex(pageId, pageType, currentIndex, tenantId);
     
     console.log('[testing] API: SEO index toggled successfully');
     

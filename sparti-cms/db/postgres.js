@@ -1512,8 +1512,9 @@ export async function deleteLegalPage(pageId) {
 }
 
 // Utility function to get all pages with their types
-export async function getAllPagesWithTypes() {
+export async function getAllPagesWithTypes(tenantId = 'tenant-gosg') {
   try {
+    console.log(`[testing] Fetching pages for tenant: ${tenantId}`);
     const result = await query(`
       SELECT 
         id,
@@ -1532,6 +1533,7 @@ export async function getAllPagesWithTypes() {
         NULL::DATE as last_reviewed_date,
         NULL::VARCHAR as version
       FROM pages
+      WHERE tenant_id = $1
       UNION ALL
       SELECT 
         id,
@@ -1550,6 +1552,7 @@ export async function getAllPagesWithTypes() {
         NULL::DATE as last_reviewed_date,
         NULL::VARCHAR as version
       FROM landing_pages
+      WHERE tenant_id = $1
       UNION ALL
       SELECT 
         id,
@@ -1568,9 +1571,11 @@ export async function getAllPagesWithTypes() {
         last_reviewed_date,
         version
       FROM legal_pages
+      WHERE tenant_id = $1
       ORDER BY page_type, created_at DESC
-    `);
+    `, [tenantId]);
     
+    console.log(`[testing] Found ${result.rows.length} pages for tenant ${tenantId}`);
     return result.rows;
   } catch (error) {
     console.error('[testing] Error fetching all pages with types:', error);
@@ -1579,7 +1584,7 @@ export async function getAllPagesWithTypes() {
 }
 
 // Slug management functions
-export async function updatePageSlug(pageId, pageType, newSlug, oldSlug) {
+export async function updatePageSlug(pageId, pageType, newSlug, oldSlug, tenantId = 'tenant-gosg') {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
@@ -1589,14 +1594,14 @@ export async function updatePageSlug(pageId, pageType, newSlug, oldSlug) {
       newSlug = '/' + newSlug;
     }
     
-    // Check if slug already exists in any table
+    // Check if slug already exists in any table for this tenant
     const existingSlug = await client.query(`
-      SELECT 'page' as table_name, slug FROM pages WHERE slug = $1
+      SELECT 'page' as table_name, slug FROM pages WHERE slug = $1 AND tenant_id = $2
       UNION ALL
-      SELECT 'landing' as table_name, slug FROM landing_pages WHERE slug = $1
+      SELECT 'landing' as table_name, slug FROM landing_pages WHERE slug = $1 AND tenant_id = $2
       UNION ALL
-      SELECT 'legal' as table_name, slug FROM legal_pages WHERE slug = $1
-    `, [newSlug]);
+      SELECT 'legal' as table_name, slug FROM legal_pages WHERE slug = $1 AND tenant_id = $2
+    `, [newSlug, tenantId]);
     
     if (existingSlug.rows.length > 0) {
       throw new Error(`Slug '${newSlug}' already exists`);
@@ -1607,18 +1612,18 @@ export async function updatePageSlug(pageId, pageType, newSlug, oldSlug) {
     switch (pageType) {
       case 'page':
         updateResult = await client.query(`
-          UPDATE pages SET slug = $1, updated_at = NOW() WHERE id = $2 RETURNING *
-        `, [newSlug, pageId]);
+          UPDATE pages SET slug = $1, updated_at = NOW() WHERE id = $2 AND tenant_id = $3 RETURNING *
+        `, [newSlug, pageId, tenantId]);
         break;
       case 'landing':
         updateResult = await client.query(`
-          UPDATE landing_pages SET slug = $1, updated_at = NOW() WHERE id = $2 RETURNING *
-        `, [newSlug, pageId]);
+          UPDATE landing_pages SET slug = $1, updated_at = NOW() WHERE id = $2 AND tenant_id = $3 RETURNING *
+        `, [newSlug, pageId, tenantId]);
         break;
       case 'legal':
         updateResult = await client.query(`
-          UPDATE legal_pages SET slug = $1, updated_at = NOW() WHERE id = $2 RETURNING *
-        `, [newSlug, pageId]);
+          UPDATE legal_pages SET slug = $1, updated_at = NOW() WHERE id = $2 AND tenant_id = $3 RETURNING *
+        `, [newSlug, pageId, tenantId]);
         break;
       default:
         throw new Error(`Invalid page type: ${pageType}`);
@@ -1729,7 +1734,7 @@ export async function getSlugChangeHistory(pageId = null, pageType = null) {
 }
 
 // Update page name
-export async function updatePageName(pageId, pageType, newName) {
+export async function updatePageName(pageId, pageType, newName, tenantId = 'tenant-gosg') {
   try {
     const tableName = pageType === 'landing' ? 'landing_pages' : 
                      pageType === 'legal' ? 'legal_pages' : 'pages';
@@ -1737,10 +1742,10 @@ export async function updatePageName(pageId, pageType, newName) {
     const result = await query(`
       UPDATE ${tableName} 
       SET page_name = $1, updated_at = NOW() 
-      WHERE id = $2
-    `, [newName, pageId]);
+      WHERE id = $2 AND tenant_id = $3
+    `, [newName, pageId, tenantId]);
     
-    console.log(`[testing] Updated page name for ${pageType} page ${pageId} to: ${newName}`);
+    console.log(`[testing] Updated page name for ${pageType} page ${pageId} to: ${newName} (tenant: ${tenantId})`);
     return result.rowCount > 0;
   } catch (error) {
     console.error('[testing] Error updating page name:', error);
@@ -1749,7 +1754,7 @@ export async function updatePageName(pageId, pageType, newName) {
 }
 
 // Toggle SEO index
-export async function toggleSEOIndex(pageId, pageType, currentIndex) {
+export async function toggleSEOIndex(pageId, pageType, currentIndex, tenantId = 'tenant-gosg') {
   try {
     const tableName = pageType === 'landing' ? 'landing_pages' : 
                      pageType === 'legal' ? 'legal_pages' : 'pages';
@@ -1759,10 +1764,10 @@ export async function toggleSEOIndex(pageId, pageType, currentIndex) {
     const result = await query(`
       UPDATE ${tableName} 
       SET seo_index = $1, updated_at = NOW() 
-      WHERE id = $2
-    `, [newIndex, pageId]);
+      WHERE id = $2 AND tenant_id = $3
+    `, [newIndex, pageId, tenantId]);
     
-    console.log(`[testing] Toggled SEO index for ${pageType} page ${pageId} to: ${newIndex}`);
+    console.log(`[testing] Toggled SEO index for ${pageType} page ${pageId} to: ${newIndex} (tenant: ${tenantId})`);
     return newIndex;
   } catch (error) {
     console.error('[testing] Error toggling SEO index:', error);

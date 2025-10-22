@@ -5,6 +5,7 @@ import { Badge } from '../../../src/components/ui/badge';
 import { Edit, Eye, FileText, Rocket, Scale, Layout, Minus } from 'lucide-react';
 import PageEditor from './PageEditor';
 import EditableSlug from './EditableSlug';
+import { useAuth } from '../auth/AuthProvider';
 
 interface PageItem {
   id: string;
@@ -24,6 +25,7 @@ interface PageItem {
 }
 
 export const PagesManager: React.FC = () => {
+  const { currentTenant } = useAuth();
   const [pages, setPages] = useState<PageItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -39,14 +41,15 @@ export const PagesManager: React.FC = () => {
   // Load pages from database
   useEffect(() => {
     loadPages();
-  }, []);
+  }, [currentTenant]);
 
   const loadPages = async () => {
     try {
       setLoading(true);
       setError(null);
       
-      const response = await fetch('/api/pages/all');
+      // Include tenant ID in the request
+      const response = await fetch(`/api/pages/all?tenantId=${currentTenant.id}`);
       if (!response.ok) {
         throw new Error('Failed to load pages');
       }
@@ -79,7 +82,8 @@ export const PagesManager: React.FC = () => {
         body: JSON.stringify({
           pageId,
           pageType,
-          currentIndex
+          currentIndex,
+          tenantId: currentTenant.id
         }),
       });
 
