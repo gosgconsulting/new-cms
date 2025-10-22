@@ -26,7 +26,7 @@ interface AuthContextType {
 // Sample tenants data with simplified structure
 const initialTenants: Tenant[] = [
   { 
-    id: 'tenant-gosg', 
+    id: 'tenant-default', 
     name: 'GO SG CONSULTING', 
     createdAt: new Date().toISOString().split('T')[0]
   },

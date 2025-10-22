@@ -16,7 +16,7 @@ export interface Tenant {
 
 // Default tenant for demo purposes
 const DEFAULT_TENANT: Tenant = {
-  id: 'tenant-gosg',
+  id: 'tenant-default',
   name: 'GO SG CONSULTING',
   createdAt: new Date().toISOString().split('T')[0]
 };
