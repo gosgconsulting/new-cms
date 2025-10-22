@@ -1775,6 +1775,169 @@ export async function toggleSEOIndex(pageId, pageType, currentIndex, tenantId = 
   }
 }
 
+// Get page with layout data
+export async function getPageWithLayout(pageId, tenantId = 'tenant-gosg') {
+  try {
+    console.log(`[testing] Fetching page ${pageId} with layout for tenant: ${tenantId}`);
+    
+    // First, get the page data
+    const pageResult = await query(`
+      SELECT 
+        id,
+        page_name,
+        slug,
+        meta_title,
+        meta_description,
+        seo_index,
+        status,
+        'page' as page_type,
+        created_at,
+        updated_at
+      FROM pages
+      WHERE id = $1 AND tenant_id = $2
+      UNION ALL
+      SELECT 
+        id,
+        page_name,
+        slug,
+        meta_title,
+        meta_description,
+        seo_index,
+        status,
+        'landing' as page_type,
+        created_at,
+        updated_at
+      FROM landing_pages
+      WHERE id = $1 AND tenant_id = $2
+      UNION ALL
+      SELECT 
+        id,
+        page_name,
+        slug,
+        meta_title,
+        meta_description,
+        seo_index,
+        status,
+        'legal' as page_type,
+        created_at,
+        updated_at
+      FROM legal_pages
+      WHERE id = $1 AND tenant_id = $2
+    `, [pageId, tenantId]);
+    
+    if (pageResult.rows.length === 0) {
+      return null;
+    }
+    
+    const page = pageResult.rows[0];
+    
+    // Get the layout data
+    const layoutResult = await query(`
+      SELECT layout_json, version, updated_at
+      FROM page_layouts
+      WHERE page_id = $1
+      ORDER BY version DESC
+      LIMIT 1
+    `, [pageId]);
+    
+    if (layoutResult.rows.length > 0) {
+      page.layout = layoutResult.rows[0].layout_json;
+    }
+    
+    console.log(`[testing] Found page ${pageId} with ${page.layout?.components?.length || 0} components`);
+    return page;
+  } catch (error) {
+    console.error('[testing] Error fetching page with layout:', error);
+    throw error;
+  }
+}
+
+// Update page data
+export async function updatePageData(pageId, pageName, metaTitle, metaDescription, seoIndex, tenantId = 'tenant-gosg') {
+  try {
+    console.log(`[testing] Updating page data for ${pageId} (tenant: ${tenantId})`);
+    
+    // Try to update in pages table first
+    let result = await query(`
+      UPDATE pages 
+      SET page_name = $1, meta_title = $2, meta_description = $3, seo_index = $4, updated_at = NOW()
+      WHERE id = $5 AND tenant_id = $6
+    `, [pageName, metaTitle, metaDescription, seoIndex, pageId, tenantId]);
+    
+    if (result.rowCount > 0) {
+      console.log(`[testing] Updated page data in pages table`);
+      return true;
+    }
+    
+    // Try landing_pages table
+    result = await query(`
+      UPDATE landing_pages 
+      SET page_name = $1, meta_title = $2, meta_description = $3, seo_index = $4, updated_at = NOW()
+      WHERE id = $5 AND tenant_id = $6
+    `, [pageName, metaTitle, metaDescription, seoIndex, pageId, tenantId]);
+    
+    if (result.rowCount > 0) {
+      console.log(`[testing] Updated page data in landing_pages table`);
+      return true;
+    }
+    
+    // Try legal_pages table
+    result = await query(`
+      UPDATE legal_pages 
+      SET page_name = $1, meta_title = $2, meta_description = $3, seo_index = $4, updated_at = NOW()
+      WHERE id = $5 AND tenant_id = $6
+    `, [pageName, metaTitle, metaDescription, seoIndex, pageId, tenantId]);
+    
+    if (result.rowCount > 0) {
+      console.log(`[testing] Updated page data in legal_pages table`);
+      return true;
+    }
+    
+    console.log(`[testing] Page ${pageId} not found in any table`);
+    return false;
+  } catch (error) {
+    console.error('[testing] Error updating page data:', error);
+    throw error;
+  }
+}
+
+// Update page layout
+export async function updatePageLayout(pageId, layoutJson, tenantId = 'tenant-gosg') {
+  try {
+    console.log(`[testing] Updating page layout for ${pageId} (tenant: ${tenantId})`);
+    
+    // Check if page exists
+    const pageCheck = await query(`
+      SELECT id FROM pages WHERE id = $1 AND tenant_id = $2
+      UNION ALL
+      SELECT id FROM landing_pages WHERE id = $1 AND tenant_id = $2
+      UNION ALL
+      SELECT id FROM legal_pages WHERE id = $1 AND tenant_id = $2
+    `, [pageId, tenantId]);
+    
+    if (pageCheck.rows.length === 0) {
+      console.log(`[testing] Page ${pageId} not found for tenant ${tenantId}`);
+      return false;
+    }
+    
+    // Update existing layout or insert new one
+    const result = await query(`
+      INSERT INTO page_layouts (page_id, layout_json, version, updated_at)
+      VALUES ($1, $2, 1, NOW())
+      ON CONFLICT (page_id) 
+      DO UPDATE SET 
+        layout_json = EXCLUDED.layout_json,
+        updated_at = NOW()
+    `, [pageId, JSON.stringify(layoutJson)]);
+    
+    console.log(`[testing] Updated page layout for ${pageId}`);
+    return true;
+  } catch (error) {
+    console.error('[testing] Error updating page layout:', error);
+    throw error;
+  }
+}
+
 // Real CRUD functions for content management
 export async function getPosts() {
   try {
