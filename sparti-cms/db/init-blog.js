@@ -25,6 +25,9 @@ export async function initializeBlogSchema(tenantId = 'tenant-gosg') {
       // Begin transaction
       await client.query('BEGIN');
       
+      // Create tenant schema if it doesn't exist
+      await client.query(`CREATE SCHEMA IF NOT EXISTS "${tenantId}"`);
+      
       // Set search path to tenant schema
       await client.query(`SET search_path TO "${tenantId}"`);
       
@@ -59,6 +62,9 @@ export async function isBlogSchemaInitialized(tenantId = 'tenant-gosg') {
     const client = await pool.connect();
     
     try {
+      // Create tenant schema if it doesn't exist
+      await client.query(`CREATE SCHEMA IF NOT EXISTS "${tenantId}"`);
+      
       // Set search path to tenant schema
       await client.query(`SET search_path TO "${tenantId}"`);
       
