@@ -190,7 +190,7 @@ const CMSDashboard: React.FC = () => {
   const [usersExpanded, setUsersExpanded] = useState<boolean>(false);
   const [seoExpanded, setSeoExpanded] = useState<boolean>(false);
   const [tenantDropdownOpen, setTenantDropdownOpen] = useState<boolean>(false);
-  const { signOut, user, tenants, currentTenant, handleTenantChange } = useAuth();
+  const { signOut, user, tenants, currentTenant, handleTenantChange, isForcedTenant } = useAuth();
   const navigate = useNavigate();
 
   const renderContent = () => {
@@ -235,7 +235,7 @@ const CMSDashboard: React.FC = () => {
     { id: 'settings', label: 'Settings', icon: SettingsIcon },
     { id: 'developer', label: 'Developer', icon: Code },
     { id: 'tenants', label: 'Tenants', icon: Building2 },
-  ];
+  ].filter(item => !isForcedTenant || item.id !== 'tenants');
 
   const usersItems = [
     { id: 'my-account', label: 'My Account', icon: Users },
@@ -467,61 +467,63 @@ const CMSDashboard: React.FC = () => {
         
         {/* Footer with Tenant Switcher */}
         <div className="p-4 border-t border-border space-y-2">
-          {/* Tenant Switcher */}
-          <div className="relative">
-            <button
-              onClick={() => setTenantDropdownOpen(!tenantDropdownOpen)}
-              className="w-full flex items-center justify-between px-3 py-2.5 text-left rounded-lg text-muted-foreground hover:bg-secondary/50 hover:text-foreground transition-all duration-200 border border-border"
-            >
-              <div className="flex items-center">
-                <Building2 className="mr-3 h-5 w-5 text-brandTeal" />
-                <div className="text-sm">
-                  <div className="font-medium text-foreground">{currentTenant.name}</div>
+          {/* Tenant Switcher - Hidden when forced tenant is active */}
+          {!isForcedTenant && (
+            <div className="relative">
+              <button
+                onClick={() => setTenantDropdownOpen(!tenantDropdownOpen)}
+                className="w-full flex items-center justify-between px-3 py-2.5 text-left rounded-lg text-muted-foreground hover:bg-secondary/50 hover:text-foreground transition-all duration-200 border border-border"
+              >
+                <div className="flex items-center">
+                  <Building2 className="mr-3 h-5 w-5 text-brandTeal" />
+                  <div className="text-sm">
+                    <div className="font-medium text-foreground">{currentTenant.name}</div>
+                  </div>
                 </div>
-              </div>
-              <ChevronsUpDown className="h-4 w-4 text-muted-foreground" />
-            </button>
-            
-            {/* Dropdown */}
-            {tenantDropdownOpen && (
-              <div className="absolute bottom-full mb-1 left-0 w-full bg-white rounded-lg border border-border shadow-lg z-50">
-                <div className="p-2 border-b border-border">
-                  <h3 className="text-xs font-semibold text-muted-foreground px-2 py-1">Switch Tenant</h3>
-                </div>
-                <ul className="max-h-60 overflow-auto py-1">
-                  {tenants.map((tenant) => (
-                    <li key={tenant.id}>
-                      <button
-                        onClick={() => handleTenantChange(tenant)}
-                        className="w-full flex items-center justify-between px-3 py-2 text-left text-sm hover:bg-secondary/50 transition-colors"
-                      >
-                        <div className="flex items-center">
-                          <span className="text-foreground">{tenant.name}</span>
-                          {tenant.isDevelopment && (
-                            <span className="ml-2 px-1.5 py-0.5 text-xs bg-amber-100 text-amber-800 rounded">Dev</span>
+                <ChevronsUpDown className="h-4 w-4 text-muted-foreground" />
+              </button>
+              
+              {/* Dropdown */}
+              {tenantDropdownOpen && (
+                <div className="absolute bottom-full mb-1 left-0 w-full bg-white rounded-lg border border-border shadow-lg z-50">
+                  <div className="p-2 border-b border-border">
+                    <h3 className="text-xs font-semibold text-muted-foreground px-2 py-1">Switch Tenant</h3>
+                  </div>
+                  <ul className="max-h-60 overflow-auto py-1">
+                    {tenants.map((tenant) => (
+                      <li key={tenant.id}>
+                        <button
+                          onClick={() => handleTenantChange(tenant)}
+                          className="w-full flex items-center justify-between px-3 py-2 text-left text-sm hover:bg-secondary/50 transition-colors"
+                        >
+                          <div className="flex items-center">
+                            <span className="text-foreground">{tenant.name}</span>
+                            {tenant.isDevelopment && (
+                              <span className="ml-2 px-1.5 py-0.5 text-xs bg-amber-100 text-amber-800 rounded">Dev</span>
+                            )}
+                          </div>
+                          {currentTenant.id === tenant.id && (
+                            <Check className="h-4 w-4 text-brandTeal" />
                           )}
-                        </div>
-                        {currentTenant.id === tenant.id && (
-                          <Check className="h-4 w-4 text-brandTeal" />
-                        )}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-                <div className="p-2 border-t border-border">
-                  <button
-                    className="w-full text-left text-xs px-2 py-1 text-brandPurple hover:text-brandPurple/80 transition-colors"
-                    onClick={() => {
-                      setTenantDropdownOpen(false);
-                      setActiveTab('tenants');
-                    }}
-                  >
-                    + Add New Tenant
-                  </button>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="p-2 border-t border-border">
+                    <button
+                      className="w-full text-left text-xs px-2 py-1 text-brandPurple hover:text-brandPurple/80 transition-colors"
+                      onClick={() => {
+                        setTenantDropdownOpen(false);
+                        setActiveTab('tenants');
+                      }}
+                    >
+                      + Add New Tenant
+                    </button>
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          )}
           
           {/* Sign Out Button */}
           {user ? (
@@ -557,12 +559,14 @@ const CMSDashboard: React.FC = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <h1 className="text-2xl font-bold text-foreground">{getPageTitle()}</h1>
-              <div className="px-2 py-1 rounded bg-secondary/50 text-xs font-medium flex items-center">
-                <span>Tenant: {currentTenant.name}</span>
-                {currentTenant.isDevelopment && (
-                  <span className="ml-2 px-1.5 py-0.5 text-xs bg-amber-100 text-amber-800 rounded">Dev</span>
-                )}
-              </div>
+              {!isForcedTenant && (
+                <div className="px-2 py-1 rounded bg-secondary/50 text-xs font-medium flex items-center">
+                  <span>Tenant: {currentTenant.name}</span>
+                  {currentTenant.isDevelopment && (
+                    <span className="ml-2 px-1.5 py-0.5 text-xs bg-amber-100 text-amber-800 rounded">Dev</span>
+                  )}
+                </div>
+              )}
             </div>
             
             <div className="flex items-center space-x-4">

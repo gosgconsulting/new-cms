@@ -18,6 +18,7 @@ interface AuthContextType {
   tenants: Tenant[];
   currentTenant: Tenant;
   handleTenantChange: (tenant: Tenant) => void;
+  isForcedTenant: boolean;
 }
 
 // Sample tenants data with simplified structure
@@ -46,6 +47,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [tenants, setTenants] = useState<Tenant[]>(initialTenants);
   const [currentTenant, setCurrentTenant] = useState<Tenant>(initialTenants[0]);
+  const [isForcedTenant, setIsForcedTenant] = useState(false);
+  
+  // Check for forced tenant environment variable
+  const FORCED_TENANT_ID = import.meta.env.VITE_FORCED_TENANT_ID;
 
   useEffect(() => {
     // Check for existing session in localStorage
@@ -60,23 +65,51 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
     }
 
-    // Check for saved tenant in localStorage
-    const savedTenant = localStorage.getItem('sparti-current-tenant');
-    if (savedTenant) {
-      try {
-        const tenantData = JSON.parse(savedTenant);
-        setCurrentTenant(tenantData);
-      } catch (error) {
-        console.error('Error parsing tenant data:', error);
-        localStorage.removeItem('sparti-current-tenant');
+    // Handle forced tenant logic
+    if (FORCED_TENANT_ID) {
+      setIsForcedTenant(true);
+      fetchForcedTenant();
+    } else {
+      // Check for saved tenant in localStorage
+      const savedTenant = localStorage.getItem('sparti-current-tenant');
+      if (savedTenant) {
+        try {
+          const tenantData = JSON.parse(savedTenant);
+          setCurrentTenant(tenantData);
+        } catch (error) {
+          console.error('Error parsing tenant data:', error);
+          localStorage.removeItem('sparti-current-tenant');
+        }
       }
-    }
 
-    // Load tenants from API
-    fetchTenants();
+      // Load tenants from API
+      fetchTenants();
+    }
     
     setLoading(false);
   }, []);
+
+  const fetchForcedTenant = async () => {
+    try {
+      const response = await fetch(`/api/tenants/${FORCED_TENANT_ID}`);
+      if (response.ok) {
+        const tenantData = await response.json();
+        setCurrentTenant(tenantData);
+        setTenants([tenantData]); // Only set the forced tenant
+        localStorage.setItem('sparti-current-tenant', JSON.stringify(tenantData));
+      } else if (response.status === 404) {
+        console.error(`Forced tenant with ID '${FORCED_TENANT_ID}' not found`);
+        // Set error state - could show error UI here
+        setCurrentTenant(initialTenants[0]);
+      } else {
+        console.error('Error fetching forced tenant:', response.statusText);
+        setCurrentTenant(initialTenants[0]);
+      }
+    } catch (error) {
+      console.error('Error fetching forced tenant:', error);
+      setCurrentTenant(initialTenants[0]);
+    }
+  };
 
   const fetchTenants = async () => {
     try {
@@ -196,6 +229,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     tenants,
     currentTenant,
     handleTenantChange,
+    isForcedTenant,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
