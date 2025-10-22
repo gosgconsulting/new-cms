@@ -733,7 +733,7 @@ app.get('/api/pages/all', authenticateUser, checkTenantAccess, async (req, res) 
 });
 
 // Get individual page with layout
-app.get('/api/pages/:pageId', authenticateUser, checkTenantAccess, async (req, res) => {
+app.get('/api/pages/:pageId', async (req, res) => {
   try {
     const { pageId } = req.params;
     const { tenantId } = req.query;
