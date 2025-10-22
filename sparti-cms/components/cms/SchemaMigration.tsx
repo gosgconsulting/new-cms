@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '../auth/AuthProvider';
+import api from '../../utils/api';
 
 interface PageInfo {
   id: string;
@@ -57,7 +58,7 @@ const SchemaMigration: React.FC<SchemaMigrationProps> = ({ onClose }) => {
     const fetchPages = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`/api/pages/all?tenantId=${currentTenant.id}`);
+        const response = await api.get(`/api/pages/all?tenantId=${currentTenant.id}`);
         const data = await response.json();
         
         if (data.success) {
@@ -65,7 +66,7 @@ const SchemaMigration: React.FC<SchemaMigrationProps> = ({ onClose }) => {
           const pagesWithSchemaInfo = await Promise.all(
             data.pages.map(async (page: any) => {
               try {
-                const pageResponse = await fetch(`/api/pages/${page.id}?tenantId=${currentTenant.id}`);
+                const pageResponse = await api.get(`/api/pages/${page.id}?tenantId=${currentTenant.id}`);
                 const pageData = await pageResponse.json();
                 
                 if (pageData.success && pageData.page.layout) {

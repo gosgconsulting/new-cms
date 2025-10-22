@@ -7,6 +7,7 @@ import PageEditor from './PageEditor';
 import EditableSlug from './EditableSlug';
 import { useAuth } from '../auth/AuthProvider';
 import { getDummyPages, isDevelopmentTenant } from '../admin/DevelopmentTenantData';
+import api from '../../utils/api';
 
 interface PageItem {
   id: string;
@@ -73,7 +74,7 @@ export const PagesManager: React.FC = () => {
         setPages(dummyPages);
       } else {
         // Regular tenant - use API
-        const response = await fetch(`/api/pages/all?tenantId=${currentTenant.id}`, {
+        const response = await api.get(`/api/pages/all?tenantId=${currentTenant.id}`, {
           headers: {
             'X-Tenant-Id': currentTenant.id
           }
@@ -103,17 +104,11 @@ export const PagesManager: React.FC = () => {
 
   const handleSEOIndexToggle = async (pageId: string, pageType: string, currentIndex: boolean) => {
     try {
-      const response = await fetch('/api/pages/toggle-seo-index', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          pageId,
-          pageType,
-          currentIndex,
-          tenantId: currentTenant.id
-        }),
+      const response = await api.post('/api/pages/toggle-seo-index', {
+        pageId,
+        pageType,
+        currentIndex,
+        tenantId: currentTenant.id
       });
 
       if (!response.ok) {
