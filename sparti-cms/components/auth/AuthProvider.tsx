@@ -93,7 +93,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const fetchForcedTenant = async () => {
     try {
-      const response = await fetch(`/api/tenants/${FORCED_TENANT_ID}`);
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4173';
+      const response = await fetch(`${API_BASE_URL}/api/tenants/${FORCED_TENANT_ID}`);
       if (response.ok) {
         const tenantData = await response.json();
         setCurrentTenant(tenantData);
@@ -115,7 +116,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const fetchTenants = async () => {
     try {
-      const response = await fetch('/api/tenants');
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4173';
+      const response = await fetch(`${API_BASE_URL}/api/tenants`);
       if (response.ok) {
         const tenantsData = await response.json();
         if (Array.isArray(tenantsData) && tenantsData.length > 0) {
@@ -149,7 +151,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const signIn = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {
-      const response = await fetch('/api/auth/login', {
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4173';
+      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -222,7 +225,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         first_name: 'Admin',
         last_name: 'User',
         email: email,
-        role: 'admin'
+        role: 'admin',
+        tenant_id: null,
+        is_super_admin: true
       };
       
       // Store the admin user in localStorage

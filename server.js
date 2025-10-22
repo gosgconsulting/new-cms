@@ -1856,6 +1856,103 @@ app.get('/api/terms/taxonomy/:taxonomy', async (req, res) => {
 });
 
 
+// Authentication endpoints
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        error: 'Email and password are required'
+      });
+    }
+
+    // Find user by email
+    const userResult = await query(
+      'SELECT id, first_name, last_name, email, password_hash, role, status, tenant_id, is_super_admin FROM users WHERE email = $1',
+      [email]
+    );
+
+    if (userResult.rows.length === 0) {
+      return res.status(401).json({
+        success: false,
+        error: 'Invalid credentials'
+      });
+    }
+
+    const user = userResult.rows[0];
+
+    // Check if user is active
+    if (user.status !== 'active') {
+      return res.status(401).json({
+        success: false,
+        error: 'Account is not active'
+      });
+    }
+
+    // Verify password
+    const bcrypt = await import('bcrypt');
+    const isValidPassword = await bcrypt.compare(password, user.password_hash);
+    
+    if (!isValidPassword) {
+      return res.status(401).json({
+        success: false,
+        error: 'Invalid credentials'
+      });
+    }
+
+    // Return user data (without password)
+    res.json({
+      success: true,
+      user: {
+        id: user.id,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        email: user.email,
+        role: user.role,
+        tenant_id: user.tenant_id,
+        is_super_admin: user.is_super_admin
+      }
+    });
+
+  } catch (error) {
+    console.error('[testing] Login error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Login failed. Please try again.'
+    });
+  }
+});
+
+// Get tenants endpoint
+app.get('/api/tenants', async (req, res) => {
+  try {
+    const result = await query('SELECT id, name, created_at FROM tenants ORDER BY name');
+    res.json(result.rows);
+  } catch (error) {
+    console.error('[testing] Error fetching tenants:', error);
+    res.status(500).json({ error: 'Failed to fetch tenants' });
+  }
+});
+
+// Get specific tenant endpoint
+app.get('/api/tenants/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await query('SELECT id, name, created_at FROM tenants WHERE id = $1', [id]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Tenant not found' });
+    }
+    
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('[testing] Error fetching tenant:', error);
+    res.status(500).json({ error: 'Failed to fetch tenant' });
+  }
+});
+
 // Serve static files from the dist directory - MUST come after API routes
 app.use(express.static(join(__dirname, 'dist')));
 
