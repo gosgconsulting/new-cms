@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../../src/component
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../src/components/ui/select';
 import { Badge } from '../../../src/components/ui/badge';
 import { X, Plus, Image as ImageIcon, Link as LinkIcon, Type, MousePointer } from 'lucide-react';
-import { SchemaItem, MultiLanguageValue } from '../../types/schema';
+import { SchemaItem, MultiLanguageValue, SchemaItemType } from '../../types/schema';
 
 interface ItemEditorProps {
   item: SchemaItem;
@@ -18,7 +18,7 @@ interface ItemEditorProps {
 }
 
 interface MultiLanguageInputProps {
-  value: MultiLanguageValue;
+  value: MultiLanguageValue | undefined;
   onChange: (value: MultiLanguageValue) => void;
   placeholder?: string;
   multiline?: boolean;
@@ -31,9 +31,12 @@ const MultiLanguageInput: React.FC<MultiLanguageInputProps> = ({
   placeholder = "Enter text...",
   multiline = false
 }) => {
+  // Ensure we have a valid value object
+  const safeValue = value || { en: '', fr: '' };
+  
   const updateLanguage = (lang: 'en' | 'fr', text: string) => {
     onChange({
-      ...value,
+      ...safeValue,
       [lang]: text
     });
   };
@@ -46,7 +49,7 @@ const MultiLanguageInput: React.FC<MultiLanguageInputProps> = ({
         <div>
           <Label className="text-xs text-muted-foreground">English</Label>
           <InputComponent
-            value={value.en}
+            value={safeValue.en}
             onChange={(e) => updateLanguage('en', e.target.value)}
             placeholder={placeholder}
             className="text-sm"
@@ -55,7 +58,7 @@ const MultiLanguageInput: React.FC<MultiLanguageInputProps> = ({
         <div>
           <Label className="text-xs text-muted-foreground">French</Label>
           <InputComponent
-            value={value.fr}
+            value={safeValue.fr}
             onChange={(e) => updateLanguage('fr', e.target.value)}
             placeholder={placeholder}
             className="text-sm"
@@ -537,4 +540,233 @@ export const ItemEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove
         </Card>
       );
   }
+};
+
+// NEW V3 SCHEMA ITEM EDITORS
+
+interface NewItemEditorProps {
+  item: SchemaItem;
+  onChange: (item: SchemaItem) => void;
+  onRemove: () => void;
+}
+
+// Input field editor for form inputs
+export const InputEditor: React.FC<NewItemEditorProps> = ({ item, onChange, onRemove }) => {
+  const updateItem = (field: keyof SchemaItem, value: any) => {
+    onChange({ ...item, [field]: value });
+  };
+
+  return (
+    <Card className="bg-muted/40">
+      <CardHeader className="p-3 flex flex-row items-center justify-between">
+        <CardTitle className="text-sm flex items-center gap-2">
+          <Type className="h-4 w-4" />
+          Input Field: <span className="font-normal text-muted-foreground">{item.key}</span>
+        </CardTitle>
+        <Button variant="ghost" size="sm" onClick={onRemove} className="text-red-500 hover:text-red-700">
+          <X className="h-4 w-4" />
+        </Button>
+      </CardHeader>
+      <CardContent className="p-3 border-t space-y-3">
+        <div className="space-y-2">
+          <Label>Field Key</Label>
+          <Input
+            value={item.key}
+            onChange={(e) => updateItem('key', e.target.value)}
+            placeholder="e.g., name, email"
+          />
+        </div>
+        <MultiLanguageInput
+          label="Field Label"
+          value={item.content}
+          onChange={(val) => updateItem('content', val)}
+        />
+        <div className="flex items-center space-x-2">
+          <input
+            type="checkbox"
+            id="required"
+            checked={item.required || false}
+            onChange={(e) => updateItem('required', e.target.checked)}
+            className="rounded"
+          />
+          <Label htmlFor="required" className="text-sm">Required field</Label>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+// Textarea field editor for form textareas
+export const TextareaEditor: React.FC<NewItemEditorProps> = ({ item, onChange, onRemove }) => {
+  const updateItem = (field: keyof SchemaItem, value: any) => {
+    onChange({ ...item, [field]: value });
+  };
+
+  return (
+    <Card className="bg-muted/40">
+      <CardHeader className="p-3 flex flex-row items-center justify-between">
+        <CardTitle className="text-sm flex items-center gap-2">
+          <Type className="h-4 w-4" />
+          Textarea Field: <span className="font-normal text-muted-foreground">{item.key}</span>
+        </CardTitle>
+        <Button variant="ghost" size="sm" onClick={onRemove} className="text-red-500 hover:text-red-700">
+          <X className="h-4 w-4" />
+        </Button>
+      </CardHeader>
+      <CardContent className="p-3 border-t space-y-3">
+        <div className="space-y-2">
+          <Label>Field Key</Label>
+          <Input
+            value={item.key}
+            onChange={(e) => updateItem('key', e.target.value)}
+            placeholder="e.g., message, description"
+          />
+        </div>
+        <MultiLanguageInput
+          label="Field Label"
+          value={item.content}
+          onChange={(val) => updateItem('content', val)}
+        />
+        <div className="flex items-center space-x-2">
+          <input
+            type="checkbox"
+            id="required"
+            checked={item.required || false}
+            onChange={(e) => updateItem('required', e.target.checked)}
+            className="rounded"
+          />
+          <Label htmlFor="required" className="text-sm">Required field</Label>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+// Review item editor
+export const ReviewEditor: React.FC<NewItemEditorProps> = ({ item, onChange, onRemove }) => {
+  const updateItem = (field: keyof SchemaItem, value: any) => {
+    onChange({ ...item, [field]: value });
+  };
+
+  const updateProps = (propKey: string, value: any) => {
+    const newProps = { ...(item.props || {}), [propKey]: value };
+    updateItem('props', newProps);
+  };
+
+  return (
+    <Card className="bg-muted/40">
+      <CardHeader className="p-3 flex flex-row items-center justify-between">
+        <CardTitle className="text-sm flex items-center gap-2">
+          <MousePointer className="h-4 w-4" />
+          Review Item: <span className="font-normal text-muted-foreground">{item.key}</span>
+        </CardTitle>
+        <Button variant="ghost" size="sm" onClick={onRemove} className="text-red-500 hover:text-red-700">
+          <X className="h-4 w-4" />
+        </Button>
+      </CardHeader>
+      <CardContent className="p-3 border-t space-y-3">
+        <div className="space-y-2">
+          <Label>Review Key</Label>
+          <Input
+            value={item.key}
+            onChange={(e) => updateItem('key', e.target.value)}
+            placeholder="e.g., review_1, customer_review"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label>Reviewer Name</Label>
+          <Input
+            value={item.props?.name || ''}
+            onChange={(e) => updateProps('name', e.target.value)}
+            placeholder="e.g., John Doe"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label>Rating (1-5)</Label>
+          <Select
+            value={item.props?.rating?.toString() || '5'}
+            onValueChange={(val) => updateProps('rating', parseInt(val))}
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {[1, 2, 3, 4, 5].map(rating => (
+                <SelectItem key={rating} value={rating.toString()}>
+                  {rating} Star{rating !== 1 ? 's' : ''}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <MultiLanguageInput
+          label="Review Text"
+          value={item.props?.content}
+          onChange={(val) => updateProps('content', val)}
+        />
+        <div className="space-y-2">
+          <Label>Avatar URL</Label>
+          <Input
+            value={item.props?.avatar || ''}
+            onChange={(e) => updateProps('avatar', e.target.value)}
+            placeholder="e.g., /images/avatar.jpg"
+          />
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+// Feature item editor
+export const FeatureEditor: React.FC<NewItemEditorProps> = ({ item, onChange, onRemove }) => {
+  const updateItem = (field: keyof SchemaItem, value: any) => {
+    onChange({ ...item, [field]: value });
+  };
+
+  const updateProps = (propKey: string, value: any) => {
+    const newProps = { ...(item.props || {}), [propKey]: value };
+    updateItem('props', newProps);
+  };
+
+  return (
+    <Card className="bg-muted/40">
+      <CardHeader className="p-3 flex flex-row items-center justify-between">
+        <CardTitle className="text-sm flex items-center gap-2">
+          <MousePointer className="h-4 w-4" />
+          Feature Item: <span className="font-normal text-muted-foreground">{item.key}</span>
+        </CardTitle>
+        <Button variant="ghost" size="sm" onClick={onRemove} className="text-red-500 hover:text-red-700">
+          <X className="h-4 w-4" />
+        </Button>
+      </CardHeader>
+      <CardContent className="p-3 border-t space-y-3">
+        <div className="space-y-2">
+          <Label>Feature Key</Label>
+          <Input
+            value={item.key}
+            onChange={(e) => updateItem('key', e.target.value)}
+            placeholder="e.g., feature_1, craftsmanship"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label>Icon</Label>
+          <Input
+            value={item.props?.icon || ''}
+            onChange={(e) => updateProps('icon', e.target.value)}
+            placeholder="e.g., star, heart, award"
+          />
+        </div>
+        <MultiLanguageInput
+          label="Feature Title"
+          value={item.props?.title}
+          onChange={(val) => updateProps('title', val)}
+        />
+        <MultiLanguageInput
+          label="Feature Description"
+          value={item.props?.description}
+          onChange={(val) => updateProps('description', val)}
+        />
+      </CardContent>
+    </Card>
+  );
 };

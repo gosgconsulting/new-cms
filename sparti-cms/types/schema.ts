@@ -1,10 +1,4 @@
-// TypeScript interfaces for the new schema structure
-
-// Base interface for all schema items
-export interface BaseSchemaItem {
-  type: string;
-  value: any;
-}
+// TypeScript interfaces for the v3 schema structure
 
 // Multi-language text value
 export interface MultiLanguageValue {
@@ -12,89 +6,57 @@ export interface MultiLanguageValue {
   fr: string;
 }
 
-// Specific item types
-export interface HeadingItem extends BaseSchemaItem {
-  type: 'heading';
-  value: MultiLanguageValue;
-  level?: 1 | 2 | 3 | 4 | 5 | 6;
+// Schema item types for v3 format
+export type SchemaItemType = 
+  | 'heading' 
+  | 'text' 
+  | 'image' 
+  | 'button' 
+  | 'boolean' 
+  | 'array' 
+  | 'input' 
+  | 'textarea' 
+  | 'review' 
+  | 'feature';
+
+// Schema item interface (v3 format)
+export interface SchemaItem {
+  key: string;
+  type: SchemaItemType;
+  content?: MultiLanguageValue;  // For text/heading/button
+  src?: string;                  // For images
+  link?: string;                 // For buttons/images
+  level?: 1 | 2 | 3 | 4 | 5 | 6; // For headings
+  value?: boolean | any;         // For boolean/other types
+  items?: SchemaItem[];         // For arrays
+  props?: Record<string, any>;  // For complex types like review/feature
+  required?: boolean;           // For form fields
 }
 
-export interface TextItem extends BaseSchemaItem {
-  type: 'text';
-  value: MultiLanguageValue;
-}
-
-export interface ImageItem extends BaseSchemaItem {
-  type: 'image';
-  value: string; // URL or path
-  alt?: MultiLanguageValue;
-  caption?: MultiLanguageValue;
-}
-
-export interface LinkItem extends BaseSchemaItem {
-  type: 'link';
-  value: MultiLanguageValue; // URLs for different languages
-  label: MultiLanguageValue;
-  target?: '_blank' | '_self';
-}
-
-export interface ButtonItem extends BaseSchemaItem {
-  type: 'button';
-  value: MultiLanguageValue; // Button text
-  action: string; // URL or action
-  style?: 'primary' | 'secondary' | 'outline';
-  target?: '_blank' | '_self';
-}
-
-export interface ArrayItem extends BaseSchemaItem {
-  type: 'array';
-  value: any[]; // Array of any type
-  itemType?: string; // Type of items in the array
-}
-
-// Union type for all possible schema items
-export type SchemaItem = 
-  | HeadingItem 
-  | TextItem 
-  | ImageItem 
-  | LinkItem 
-  | ButtonItem 
-  | ArrayItem;
-
-// Component schema with items array
+// Component schema interface (v3 format)
 export interface ComponentSchema {
-  component: string;
+  key: string;
+  type: string;  // HeroSection, Showcase, ProductGrid, etc.
   items: SchemaItem[];
 }
 
-// Page schema with array of components
+// Page schema interface (v3 format)
 export interface PageSchema {
   components: ComponentSchema[];
+  _version?: {
+    version: '3.0';
+    migratedAt?: string;
+    migratedFrom?: string;
+  };
 }
 
-// Schema version for migration tracking
-export interface SchemaVersion {
-  version: '1.0' | '2.0'; // 1.0 = old format, 2.0 = new format
-  migratedAt?: string;
-  migratedFrom?: string;
-}
-
-// Extended page schema with version info
-export interface PageSchemaWithVersion extends PageSchema {
-  _version?: SchemaVersion;
-}
-
-// Validation result
-export interface ValidationResult {
-  isValid: boolean;
-  errors: string[];
-  warnings: string[];
-}
-
-// Migration result
+// Migration result interface
 export interface MigrationResult {
   success: boolean;
-  migratedComponents: number;
-  errors: string[];
-  warnings: string[];
+  message: string;
+  newSchema?: PageSchema;
+  errors?: string[];
 }
+
+// Schema version type
+export type SchemaVersion = '3.0';

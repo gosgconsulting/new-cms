@@ -10,7 +10,7 @@ import { toast } from 'sonner';
 import SchemaEditor from './SchemaEditor';
 import { useAuth } from '../auth/AuthProvider';
 import { ComponentSchema } from '../../types/schema';
-import { needsMigration, getSchemaVersion } from '../../utils/schema-migration';
+import { needsV3Migration, getSchemaVersion, migrateOldSchemaToV3 } from '../../utils/schema-migration';
 
 interface PageEditorProps {
   pageId: string;
@@ -75,19 +75,21 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
               // It's the old format, convert it using migration utility
               console.log('[testing] Old format detected, converting to new format');
               try {
-                const { migrateOldSchemaToNew } = await import('../../utils/schema-migration');
-                const newSchema = migrateOldSchemaToNew(data.page.layout);
+                const { migrateOldSchemaToV3 } = await import('../../utils/schema-migration');
+                const newSchema = migrateOldSchemaToV3(data.page.layout);
                 setComponents(newSchema.components);
               } catch (error) {
                 console.error('[testing] Migration failed, using fallback:', error);
                 // Fallback: create a simple component
                 const fallbackFormat: ComponentSchema[] = [
                   {
-                    component: 'TextBlock',
+                    key: 'component_1',
+                    type: 'TextBlock',
                     items: [
                       {
+                        key: 'text_1',
                         type: 'text' as const,
-                        value: { en: 'Content from old format', fr: 'Contenu de l\'ancien format' }
+                        content: { en: 'Content from old format', fr: 'Contenu de l\'ancien format' }
                       }
                     ]
                   }
@@ -99,7 +101,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
             // Check schema version and migration status
             const version = getSchemaVersion(data.page.layout);
             setSchemaVersion(version);
-            setNeedsMigrationFlag(needsMigration(data.page.layout));
+            setNeedsMigrationFlag(needsV3Migration(data.page.layout));
           } else {
             // No layout data, start with empty components
             setComponents([]);
@@ -125,6 +127,28 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
   const updateField = (field: keyof PageData, value: string | boolean) => {
     if (pageData) {
       setPageData({ ...pageData, [field]: value });
+    }
+  };
+
+  const migrateToV3Format = async () => {
+    try {
+      console.log('[testing] PageEditor: Migrating schema to v3 format...');
+      // Convert v3 components to old format for migration
+      const oldSchema = {
+        components: components.map(comp => ({
+          type: comp.type,
+          props: {},
+          wrapper: (comp as any).wrapper
+        }))
+      };
+      const newSchema = migrateOldSchemaToV3(oldSchema);
+      setComponents(newSchema.components);
+      setNeedsMigrationFlag(false);
+      setSchemaVersion('3.0');
+      toast.success('Schema migrated to v3 format');
+    } catch (error) {
+      console.error('[testing] PageEditor: Migration failed:', error);
+      toast.error('Migration failed: ' + error.message);
     }
   };
 
@@ -215,7 +239,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
                 Schema v{schemaVersion}
               </Badge>
               {needsMigrationFlag && (
-                <Badge variant="destructive" className="flex items-center gap-1">
+                <Badge variant="outline" className="flex items-center gap-1">
                   <AlertCircle className="h-3 w-3" />
                   Migration Available
                 </Badge>
@@ -228,13 +252,10 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
             <Button 
               variant="outline" 
               size="sm"
-              onClick={() => {
-                // Trigger migration in SchemaEditor
-                toast.info('Use the "Migrate to New Format" button in the Schema Editor below');
-              }}
+              onClick={migrateToV3Format}
             >
               <RefreshCw className="h-4 w-4 mr-2" />
-              Migrate Schema
+              Migrate to V3
             </Button>
           )}
           <Button onClick={handleSave} disabled={saving}>

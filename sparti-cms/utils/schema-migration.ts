@@ -1,4 +1,4 @@
-// Schema migration utilities for converting old format to new format
+// Schema migration utilities for converting old format to v3 format
 
 import { 
   ComponentSchema, 
@@ -6,7 +6,7 @@ import {
   SchemaItem, 
   MultiLanguageValue, 
   MigrationResult,
-  SchemaVersion 
+  SchemaVersion
 } from '../types/schema.js';
 
 // Old schema format (current MOSKI format)
@@ -21,265 +21,241 @@ interface OldPageSchema {
 }
 
 /**
- * Convert old schema format to new schema format
+ * Convert old schema format to v3 schema format
  */
-export function migrateOldSchemaToNew(oldSchema: OldPageSchema): PageSchema {
-  console.log('[testing] Migrating old schema to new format...');
+export function migrateOldSchemaToV3(oldSchema: OldPageSchema): PageSchema {
+  console.log('[testing] Migrating old schema to v3 format...');
   
   const newComponents: ComponentSchema[] = oldSchema.components.map((oldComponent, index) => {
     console.log(`[testing] Migrating component ${index + 1}: ${oldComponent.type}`);
     
     const items: SchemaItem[] = [];
     
-    // Extract items from props based on component type
-    if (oldComponent.props) {
-      // Handle title/heading fields
-      if (oldComponent.props.title) {
-        items.push({
-          type: 'heading',
-          value: ensureMultiLanguage(oldComponent.props.title),
-          level: 1
-        });
-      }
-      
-      // Handle subtitle/description fields
-      if (oldComponent.props.subtitle) {
-        items.push({
-          type: 'text',
-          value: ensureMultiLanguage(oldComponent.props.subtitle)
-        });
-      }
-      
-      // Handle button text and link
-      if (oldComponent.props.buttonText) {
-        items.push({
-          type: 'button',
-          value: ensureMultiLanguage(oldComponent.props.buttonText),
-          action: oldComponent.props.buttonLink || '#',
-          style: 'primary'
-        });
-      }
-      
-      // Handle background image
-      if (oldComponent.props.backgroundImage) {
-        items.push({
-          type: 'image',
-          value: oldComponent.props.backgroundImage,
-          alt: ensureMultiLanguage(oldComponent.props.title || { en: 'Background', fr: 'Arrière-plan' })
-        });
-      }
-      
-      // Handle other text fields
-      const textFields = ['description', 'content', 'text'];
-      textFields.forEach(field => {
-        if (oldComponent.props[field]) {
-          items.push({
-            type: 'text',
-            value: ensureMultiLanguage(oldComponent.props[field])
-          });
-        }
+    // Handle different component types
+    const componentType = oldComponent.type;
+    const componentKey = `component_${index + 1}`;
+    
+    // Map component types to new format
+    let newType = componentType;
+    switch (componentType) {
+      case 'MinimalHeroSection':
+        newType = 'HeroSection';
+        break;
+      case 'LifestyleShowcase':
+        newType = 'Showcase';
+        break;
+      case 'ProductGridShowcase':
+        newType = 'ProductGrid';
+        break;
+      case 'ReviewsSection':
+        newType = 'Reviews';
+        break;
+      case 'MinimalNewsletterSection':
+        newType = 'Newsletter';
+        break;
+      case 'PageTitle':
+        newType = 'FieldGroup';
+        break;
+      case 'ContactForm':
+        newType = 'ContactForm';
+        break;
+      case 'AboutSection':
+        newType = 'FieldGroup';
+        break;
+    }
+    
+    // Convert props to items based on component type
+    const props = oldComponent.props;
+    
+    // Convert common props to items
+    if (props.title) {
+      items.push({
+        key: 'title',
+        type: 'heading',
+        content: ensureMultiLanguage(props.title),
+        level: 1
       });
-      
-      // Handle array fields (like items in showcase components)
-      if (oldComponent.props.items && Array.isArray(oldComponent.props.items)) {
-        items.push({
-          type: 'array',
-          value: oldComponent.props.items,
-          itemType: 'showcase-item'
-        });
-      }
-      
-      // Handle reviews array
-      if (oldComponent.props.reviews && Array.isArray(oldComponent.props.reviews)) {
-        items.push({
-          type: 'array',
-          value: oldComponent.props.reviews,
-          itemType: 'review'
-        });
-      }
-      
-      // Handle form fields
-      if (oldComponent.props.fields && Array.isArray(oldComponent.props.fields)) {
-        items.push({
-          type: 'array',
-          value: oldComponent.props.fields,
-          itemType: 'form-field'
-        });
-      }
-      
-      // Handle features array
-      if (oldComponent.props.features && Array.isArray(oldComponent.props.features)) {
-        items.push({
-          type: 'array',
-          value: oldComponent.props.features,
-          itemType: 'feature'
-        });
-      }
+    }
+    
+    if (props.subtitle) {
+      items.push({
+        key: 'subtitle',
+        type: 'heading',
+        content: ensureMultiLanguage(props.subtitle),
+        level: 2
+      });
+    }
+    
+    if (props.buttonText) {
+      items.push({
+        key: 'button',
+        type: 'button',
+        content: ensureMultiLanguage(props.buttonText),
+        link: props.buttonLink || '#'
+      });
+    }
+    
+    if (props.backgroundImage) {
+      items.push({
+        key: 'backgroundImage',
+        type: 'image',
+        src: props.backgroundImage,
+        content: ensureMultiLanguage(props.title || { en: 'Background', fr: 'Arrière-plan' })
+      });
+    }
+    
+    if (props.showScrollArrow !== undefined) {
+      items.push({
+        key: 'showScrollArrow',
+        type: 'boolean',
+        value: props.showScrollArrow
+      });
+    }
+    
+    if (props.items && Array.isArray(props.items)) {
+      items.push({
+        key: 'items',
+        type: 'array',
+        items: props.items.map((item: any, itemIndex: number) => ({
+          key: `item_${itemIndex + 1}`,
+          type: 'image' as SchemaItem['type'],
+          src: item.image,
+          content: ensureMultiLanguage(item.title),
+          link: item.link
+        }))
+      });
+    }
+    
+    if (props.reviews && Array.isArray(props.reviews)) {
+      items.push({
+        key: 'reviews',
+        type: 'array',
+        items: props.reviews.map((review: any, reviewIndex: number) => ({
+          key: `review_${reviewIndex + 1}`,
+          type: 'review' as SchemaItem['type'],
+          props: {
+            name: review.name,
+            rating: review.rating,
+            content: ensureMultiLanguage(review.text),
+            avatar: review.avatar
+          }
+        }))
+      });
+    }
+    
+    if (props.features && Array.isArray(props.features)) {
+      items.push({
+        key: 'features',
+        type: 'array',
+        items: props.features.map((feature: any, featureIndex: number) => ({
+          key: `feature_${featureIndex + 1}`,
+          type: 'feature' as SchemaItem['type'],
+          props: {
+            icon: feature.icon,
+            title: ensureMultiLanguage(feature.title),
+            description: ensureMultiLanguage(feature.description)
+          }
+        }))
+      });
+    }
+    
+    if (props.content) {
+      items.push({
+        key: 'content',
+        type: 'text',
+        content: ensureMultiLanguage(props.content)
+      });
+    }
+    
+    if (props.image) {
+      items.push({
+        key: 'image',
+        type: 'image',
+        src: props.image,
+        content: ensureMultiLanguage(props.title || { en: 'Image', fr: 'Image' })
+      });
+    }
+    
+    if (props.placeholder) {
+      items.push({
+        key: 'placeholder',
+        type: 'text',
+        content: ensureMultiLanguage(props.placeholder)
+      });
+    }
+    
+    if (props.fields && Array.isArray(props.fields)) {
+      items.push({
+        key: 'fields',
+        type: 'array',
+        items: props.fields.map((field: any, fieldIndex: number) => ({
+          key: `field_${fieldIndex + 1}`,
+          type: field.type === 'textarea' ? 'textarea' as SchemaItem['type'] : 'input' as SchemaItem['type'],
+          content: ensureMultiLanguage(field.label),
+          required: field.required || false
+        }))
+      });
     }
     
     return {
-      component: oldComponent.type,
+      key: componentKey,
+      type: newType,
       items
     };
   });
   
-  console.log(`[testing] Migration complete: ${newComponents.length} components converted`);
-  return { components: newComponents };
+  return {
+    components: newComponents,
+    _version: {
+      version: '3.0',
+      migratedAt: new Date().toISOString(),
+      migratedFrom: '1.0'
+    }
+  };
 }
 
 /**
- * Ensure a value is in multi-language format
+ * Ensures a value is in MultiLanguageValue format
  */
-function ensureMultiLanguage(value: any): MultiLanguageValue {
+function ensureMultiLanguage(value: string | MultiLanguageValue): MultiLanguageValue {
   if (typeof value === 'string') {
     return { en: value, fr: value };
   }
-  
-  if (typeof value === 'object' && value !== null) {
-    // If it already has en/fr keys, return as is
-    if (value.en !== undefined || value.fr !== undefined) {
-      return {
-        en: value.en || value.fr || '',
-        fr: value.fr || value.en || ''
-      };
-    }
-    
-    // If it's an object but not multi-language, convert to string
-    return { en: String(value), fr: String(value) };
-  }
-  
-  // Fallback for any other type
-  const stringValue = String(value);
-  return { en: stringValue, fr: stringValue };
+  return value;
 }
 
 /**
- * Validate new schema structure
+ * Checks if a schema needs migration to v3 format
  */
-export function validateNewSchema(schema: PageSchema): { isValid: boolean; errors: string[] } {
-  const errors: string[] = [];
-  
-  if (!schema.components || !Array.isArray(schema.components)) {
-    errors.push('Schema must have a components array');
-    return { isValid: false, errors };
+export function needsV3Migration(schema: any): boolean {
+  if (!schema || !schema.components || !Array.isArray(schema.components)) {
+    return false;
   }
   
-  schema.components.forEach((component, componentIndex) => {
-    if (!component.component || typeof component.component !== 'string') {
-      errors.push(`Component ${componentIndex} must have a valid component name`);
-    }
-    
-    if (!component.items || !Array.isArray(component.items)) {
-      errors.push(`Component ${componentIndex} must have an items array`);
-      return;
-    }
-    
-    component.items.forEach((item, itemIndex) => {
-      if (!item.type || typeof item.type !== 'string') {
-        errors.push(`Component ${componentIndex}, item ${itemIndex} must have a valid type`);
-      }
-      
-      if (item.value === undefined || item.value === null) {
-        errors.push(`Component ${componentIndex}, item ${itemIndex} must have a value`);
-      }
-      
-      // Validate multi-language items
-      if (['heading', 'text', 'button'].includes(item.type)) {
-        if (typeof item.value !== 'object' || !item.value.en || !item.value.fr) {
-          errors.push(`Component ${componentIndex}, item ${itemIndex} (${item.type}) must have multi-language value with en and fr keys`);
-        }
-      }
-    });
-  });
-  
-  return { isValid: errors.length === 0, errors };
-}
-
-/**
- * Migrate a single page's schema
- */
-export function migratePageSchema(pageId: string, oldLayoutJson: any): MigrationResult {
-  console.log(`[testing] Migrating page ${pageId} schema...`);
-  
-  const result: MigrationResult = {
-    success: false,
-    migratedComponents: 0,
-    errors: [],
-    warnings: []
-  };
-  
-  try {
-    // Check if already in new format
-    if (oldLayoutJson._version?.version === '2.0') {
-      result.warnings.push('Schema already in new format');
-      result.success = true;
-      return result;
-    }
-    
-    // Convert old format to new format
-    const newSchema = migrateOldSchemaToNew(oldLayoutJson);
-    
-    // Validate the new schema
-    const validation = validateNewSchema(newSchema);
-    if (!validation.isValid) {
-      result.errors.push(...validation.errors);
-      return result;
-    }
-    
-    // Add version info
-    const schemaWithVersion = {
-      ...newSchema,
-      _version: {
-        version: '2.0' as const,
-        migratedAt: new Date().toISOString(),
-        migratedFrom: '1.0'
-      }
-    };
-    
-    result.migratedComponents = newSchema.components.length;
-    result.success = true;
-    
-    console.log(`[testing] Page ${pageId} migrated successfully: ${result.migratedComponents} components`);
-    
-    return result;
-  } catch (error) {
-    console.error(`[testing] Error migrating page ${pageId}:`, error);
-    result.errors.push(`Migration failed: ${error.message}`);
-    return result;
+  // Check if it's already v3 format (has key field on components)
+  if (schema.components.length > 0 && schema.components[0].key) {
+    return false;
   }
-}
-
-/**
- * Check if schema needs migration
- */
-export function needsMigration(layoutJson: any): boolean {
-  if (!layoutJson) return false;
   
-  // Check if it has the new format indicators
-  if (layoutJson._version?.version === '2.0') return false;
-  
-  // Check if it has the old format indicators
-  if (layoutJson.components && Array.isArray(layoutJson.components)) {
-    const firstComponent = layoutJson.components[0];
-    if (firstComponent && firstComponent.type && firstComponent.props) {
-      return true; // Old format
-    }
+  // Check if it's old format (has type field without key)
+  if (schema.components.length > 0 && schema.components[0].type && !schema.components[0].key) {
+    return true;
   }
   
   return false;
 }
 
 /**
- * Get schema version
+ * Gets the schema version
  */
-export function getSchemaVersion(layoutJson: any): string {
-  if (layoutJson._version?.version) {
-    return layoutJson._version.version;
+export function getSchemaVersion(schema: any): string {
+  if (schema && schema._version && schema._version.version) {
+    return schema._version.version;
   }
   
-  if (needsMigration(layoutJson)) {
+  if (needsV3Migration(schema)) {
     return '1.0';
   }
   
-  return 'unknown';
+  return '3.0';
 }

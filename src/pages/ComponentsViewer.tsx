@@ -227,6 +227,163 @@ const PLACEHOLDERS: Placeholder[] = [
     category: 'Sections',
     subcategory: 'CTA',
     components: ['field-rich-text', 'component-button']
+  },
+  
+  // NEW V3 SCHEMA COMPONENTS
+  
+  // Hero Section Components
+  {
+    id: 'section-hero-minimal',
+    name: 'Minimal Hero Section',
+    type: 'hero',
+    description: 'Minimal hero section with background image, title, button, and scroll arrow',
+    createdAt: '2023-12-01',
+    updatedAt: '2023-12-01',
+    category: 'Sections',
+    subcategory: 'Hero',
+    components: ['field-image', 'field-rich-text', 'component-button', 'field-boolean']
+  },
+  
+  // Showcase Components
+  {
+    id: 'section-lifestyle-showcase',
+    name: 'Lifestyle Showcase',
+    type: 'showcase',
+    description: 'Lifestyle showcase with title, subtitle, and image grid with links',
+    createdAt: '2023-12-01',
+    updatedAt: '2023-12-01',
+    category: 'Sections',
+    subcategory: 'Feature',
+    components: ['field-rich-text', 'field-gallery', 'component-link']
+  },
+  
+  // Product Grid Components
+  {
+    id: 'section-product-grid',
+    name: 'Product Grid',
+    type: 'product-grid',
+    description: 'Product grid with title, subtitle, and dynamic product loading',
+    createdAt: '2023-12-01',
+    updatedAt: '2023-12-01',
+    category: 'Sections',
+    subcategory: 'Feature',
+    components: ['field-rich-text', 'field-number', 'field-boolean']
+  },
+  
+  // Reviews Components
+  {
+    id: 'section-reviews',
+    name: 'Reviews Section',
+    type: 'reviews',
+    description: 'Reviews section with array of review items (name, rating, text, avatar)',
+    createdAt: '2023-12-01',
+    updatedAt: '2023-12-01',
+    category: 'Sections',
+    subcategory: 'Feature',
+    components: ['component-review-item']
+  },
+  {
+    id: 'component-review-item',
+    name: 'Review Item',
+    type: 'review',
+    description: 'Individual review component with name, rating, text, and avatar',
+    createdAt: '2023-12-01',
+    updatedAt: '2023-12-01',
+    category: 'Components',
+    subcategory: 'UI',
+    fields: ['field-rich-text', 'field-image', 'field-number']
+  },
+  
+  // Newsletter Components
+  {
+    id: 'section-newsletter',
+    name: 'Newsletter Section',
+    type: 'newsletter',
+    description: 'Newsletter signup with title, subtitle, email input, and button',
+    createdAt: '2023-12-01',
+    updatedAt: '2023-12-01',
+    category: 'Sections',
+    subcategory: 'CTA',
+    components: ['field-rich-text', 'field-input', 'component-button']
+  },
+  
+  // Form Components
+  {
+    id: 'section-contact-form',
+    name: 'Contact Form',
+    type: 'contact-form',
+    description: 'Contact form with title and field array',
+    createdAt: '2023-12-01',
+    updatedAt: '2023-12-01',
+    category: 'Sections',
+    subcategory: 'Feature',
+    components: ['field-rich-text', 'component-form-field']
+  },
+  {
+    id: 'component-form-field',
+    name: 'Form Field',
+    type: 'form-field',
+    description: 'Individual form field (input/textarea) with label and required flag',
+    createdAt: '2023-12-01',
+    updatedAt: '2023-12-01',
+    category: 'Components',
+    subcategory: 'UI',
+    fields: ['field-rich-text', 'field-boolean']
+  },
+  
+  // Feature Components
+  {
+    id: 'component-feature-item',
+    name: 'Feature Item',
+    type: 'feature',
+    description: 'Feature item with icon, title, and description',
+    createdAt: '2023-12-01',
+    updatedAt: '2023-12-01',
+    category: 'Components',
+    subcategory: 'UI',
+    fields: ['field-icon', 'field-rich-text']
+  },
+  
+  // Additional Field Types for V3 Schema
+  {
+    id: 'field-input',
+    name: 'Input Field',
+    type: 'input',
+    description: 'Text input field with label and required flag',
+    createdAt: '2023-12-01',
+    updatedAt: '2023-12-01',
+    category: 'Fields',
+    subcategory: 'Text'
+  },
+  {
+    id: 'field-textarea',
+    name: 'Textarea Field',
+    type: 'textarea',
+    description: 'Multi-line text input field with label and required flag',
+    createdAt: '2023-12-01',
+    updatedAt: '2023-12-01',
+    category: 'Fields',
+    subcategory: 'Text'
+  },
+  {
+    id: 'field-boolean',
+    name: 'Boolean Field',
+    type: 'boolean',
+    description: 'Boolean/checkbox field for true/false values',
+    createdAt: '2023-12-01',
+    updatedAt: '2023-12-01',
+    category: 'Fields',
+    subcategory: 'UI'
+  },
+  {
+    id: 'field-number',
+    name: 'Number Field',
+    type: 'number',
+    description: 'Numeric input field',
+    createdAt: '2023-12-01',
+    updatedAt: '2023-12-01',
+    category: 'Fields',
+    subcategory: 'UI'
   }
 ];
 

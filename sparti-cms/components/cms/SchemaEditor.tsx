@@ -9,10 +9,10 @@ import { Badge } from '../../../src/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../src/components/ui/tabs';
 import { Plus, Trash2, ChevronDown, ChevronRight, Code, Eye, AlertCircle, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
-import { ComponentSchema, PageSchema, SchemaItem } from '../../types/schema';
-import { ItemEditor } from './ItemEditors';
+import { ComponentSchema, PageSchema, SchemaItem, SchemaItemType } from '../../types/schema';
+import { ItemEditor, InputEditor, TextareaEditor, ReviewEditor, FeatureEditor } from './ItemEditors';
 import { validatePageSchema, getValidationSummary } from '../../utils/schema-validator';
-import { needsMigration, migrateOldSchemaToNew } from '../../utils/schema-migration';
+import { needsV3Migration, migrateOldSchemaToV3 } from '../../utils/schema-migration';
 
 interface SchemaEditorProps {
   components: ComponentSchema[];
@@ -30,7 +30,7 @@ const SchemaEditor: React.FC<SchemaEditorProps> = ({ components, onChange, onSav
   // Check if schema needs migration on mount
   useEffect(() => {
     const currentSchema = { components };
-    setNeedsMigrationFlag(needsMigration(currentSchema));
+    setNeedsMigrationFlag(needsV3Migration(currentSchema));
     
     // Update JSON input when components change
     setJsonInput(JSON.stringify({ components }, null, 2));
@@ -56,11 +56,13 @@ const SchemaEditor: React.FC<SchemaEditorProps> = ({ components, onChange, onSav
 
   const addComponent = () => {
     const newComponent: ComponentSchema = {
-      component: 'TextBlock',
+      key: `component_${components.length + 1}`,
+      type: 'TextBlock',
       items: [
         {
+          key: 'text_1',
           type: 'text',
-          value: { en: 'New text content', fr: 'Nouveau contenu texte' }
+          content: { en: 'New text content', fr: 'Nouveau contenu texte' }
         }
       ]
     };
@@ -81,14 +83,14 @@ const SchemaEditor: React.FC<SchemaEditorProps> = ({ components, onChange, onSav
   };
 
   const addItemToComponent = (componentIndex: number) => {
+    const currentComponent = components[componentIndex];
     const newItem: SchemaItem = {
+      key: `item_${currentComponent.items.length + 1}`,
       type: 'text',
-      value: { en: 'New item', fr: 'Nouvel élément' }
+      content: { en: 'New item', fr: 'Nouvel élément' }
     };
     
-    const currentComponent = components[componentIndex];
     const currentItems = currentComponent.items || [];
-    
     const updatedComponent = {
       ...currentComponent,
       items: [...currentItems, newItem]
@@ -132,20 +134,20 @@ const SchemaEditor: React.FC<SchemaEditorProps> = ({ components, onChange, onSav
     }
   };
 
-  const migrateToNewFormat = () => {
+  const migrateToV3Format = () => {
     try {
-      // Convert current components to old format for migration
+      // Convert v3 components to old format for migration
       const oldSchema = {
         components: components.map(comp => ({
-          type: comp.component,
+          type: comp.type,
           props: {},
           wrapper: (comp as any).wrapper
         }))
       };
-      const newSchema = migrateOldSchemaToNew(oldSchema);
+      const newSchema = migrateOldSchemaToV3(oldSchema);
       onChange(newSchema.components);
       setNeedsMigrationFlag(false);
-      toast.success('Schema migrated to new format');
+      toast.success('Schema migrated to v3 format');
     } catch (error) {
       toast.error('Migration failed: ' + error.message);
     }
@@ -154,17 +156,17 @@ const SchemaEditor: React.FC<SchemaEditorProps> = ({ components, onChange, onSav
   const renderVisualEditor = () => (
     <div className="space-y-4">
       {needsMigrationFlag && (
-        <Card className="border-l-4 border-l-yellow-500 bg-yellow-50">
+        <Card className="border-l-4 border-l-blue-500 bg-blue-50">
           <CardContent className="pt-4">
-            <div className="flex items-center gap-2 text-yellow-800">
+            <div className="flex items-center gap-2 text-blue-800">
               <AlertCircle className="h-4 w-4" />
               <span className="font-medium">Schema Migration Available</span>
             </div>
-            <p className="text-sm text-yellow-700 mt-1">
-              This page uses the old schema format. Migrate to the new format for better editing experience.
+            <p className="text-sm text-blue-700 mt-1">
+              This page uses an old schema format. Migrate to v3 format for enhanced component editing with key-based structure.
             </p>
-            <Button size="sm" onClick={migrateToNewFormat} className="mt-2">
-              Migrate to New Format
+            <Button size="sm" onClick={migrateToV3Format} className="mt-2">
+              Migrate to V3 Format
             </Button>
           </CardContent>
         </Card>
@@ -192,78 +194,139 @@ const SchemaEditor: React.FC<SchemaEditorProps> = ({ components, onChange, onSav
         </div>
       </div>
 
-      {components.map((component, index) => (
-        <Card key={index} className="border-l-4 border-l-blue-500">
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => toggleComponent(index)}
-                >
-                  {expandedComponents.has(index) ? (
-                    <ChevronDown className="h-4 w-4" />
-                  ) : (
-                    <ChevronRight className="h-4 w-4" />
-                  )}
-                </Button>
-                <div>
-                  <CardTitle className="text-base">{component.component}</CardTitle>
-                  <CardDescription>
-                    {component.items?.length || 0} items
-                  </CardDescription>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <Badge variant="secondary">{component.component}</Badge>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => removeComponent(index)}
-                  className="text-red-500 hover:text-red-700"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          </CardHeader>
+             {components.map((component, index) => {
+               // Handle v3 schema format
+               const componentName = component.type;
+               const componentKey = component.key;
+               const items = component.items;
+               
+               return (
+                 <Card key={index} className="border-l-4 border-l-blue-500">
+                   <CardHeader className="pb-3">
+                     <div className="flex items-center justify-between">
+                       <div className="flex items-center gap-2">
+                         <Button
+                           variant="ghost"
+                           size="sm"
+                           onClick={() => toggleComponent(index)}
+                         >
+                           {expandedComponents.has(index) ? (
+                             <ChevronDown className="h-4 w-4" />
+                           ) : (
+                             <ChevronRight className="h-4 w-4" />
+                           )}
+                         </Button>
+                         <div>
+                           <CardTitle className="text-base">{componentName}</CardTitle>
+                           <CardDescription>
+                             {componentKey} • {items?.length || 0} items
+                           </CardDescription>
+                         </div>
+                       </div>
+                       <div className="flex items-center gap-2">
+                         <Badge variant="secondary">{componentName}</Badge>
+                         <Badge variant="outline">v3</Badge>
+                         <Button
+                           variant="ghost"
+                           size="sm"
+                           onClick={() => removeComponent(index)}
+                           className="text-red-500 hover:text-red-700"
+                         >
+                           <Trash2 className="h-4 w-4" />
+                         </Button>
+                       </div>
+                     </div>
+                   </CardHeader>
 
-          {expandedComponents.has(index) && (
-            <CardContent className="space-y-4">
-              {/* Component Name */}
-              <div className="space-y-2">
-                <Label>Component Name</Label>
-                <Input
-                  value={component.component}
-                  onChange={(e) => updateComponent(index, { ...component, component: e.target.value })}
-                  placeholder="Component name"
-                />
-              </div>
+                 {expandedComponents.has(index) && (
+                   <CardContent className="space-y-4">
+                     {/* Component Key */}
+                     <div className="space-y-2">
+                       <Label>Component Key</Label>
+                       <Input
+                         value={componentKey}
+                         onChange={(e) => updateComponent(index, { ...component, key: e.target.value })}
+                         placeholder="Component key"
+                       />
+                     </div>
+                     
+                     {/* Component Type */}
+                     <div className="space-y-2">
+                       <Label>Component Type</Label>
+                       <Input
+                         value={componentName}
+                         onChange={(e) => updateComponent(index, { ...component, type: e.target.value })}
+                         placeholder="Component type"
+                       />
+                     </div>
 
-              {/* Items */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <Label className="text-sm font-medium">Items ({component.items?.length || 0})</Label>
-                  <Button size="sm" onClick={() => addItemToComponent(index)}>
-                    <Plus className="h-3 w-3 mr-1" />
-                    Add Item
-                  </Button>
-                </div>
-                
-                {component.items?.map((item, itemIndex) => (
-                  <ItemEditor
-                    key={itemIndex}
-                    item={item}
-                    onChange={(updatedItem) => updateItemInComponent(index, itemIndex, updatedItem)}
-                    onRemove={() => removeItemFromComponent(index, itemIndex)}
-                  />
-                ))}
-              </div>
-            </CardContent>
-          )}
-        </Card>
-      ))}
+                     {/* Items */}
+                     <div className="space-y-3">
+                       <div className="flex items-center justify-between">
+                         <Label className="text-sm font-medium">Items ({items?.length || 0})</Label>
+                         <Button size="sm" onClick={() => addItemToComponent(index)}>
+                           <Plus className="h-3 w-3 mr-1" />
+                           Add Item
+                         </Button>
+                       </div>
+                       
+                       {items?.map((item, itemIndex) => {
+                         // Render v3 item editors
+                         switch (item.type) {
+                           case 'input':
+                             return (
+                               <InputEditor
+                                 key={itemIndex}
+                                 item={item}
+                                 onChange={(updatedItem) => updateItemInComponent(index, itemIndex, updatedItem)}
+                                 onRemove={() => removeItemFromComponent(index, itemIndex)}
+                               />
+                             );
+                           case 'textarea':
+                             return (
+                               <TextareaEditor
+                                 key={itemIndex}
+                                 item={item}
+                                 onChange={(updatedItem) => updateItemInComponent(index, itemIndex, updatedItem)}
+                                 onRemove={() => removeItemFromComponent(index, itemIndex)}
+                               />
+                             );
+                           case 'review':
+                             return (
+                               <ReviewEditor
+                                 key={itemIndex}
+                                 item={item}
+                                 onChange={(updatedItem) => updateItemInComponent(index, itemIndex, updatedItem)}
+                                 onRemove={() => removeItemFromComponent(index, itemIndex)}
+                               />
+                             );
+                           case 'feature':
+                             return (
+                               <FeatureEditor
+                                 key={itemIndex}
+                                 item={item}
+                                 onChange={(updatedItem) => updateItemInComponent(index, itemIndex, updatedItem)}
+                                 onRemove={() => removeItemFromComponent(index, itemIndex)}
+                               />
+                             );
+                           default:
+                             // For other types, show a generic editor
+                             return (
+                               <ItemEditor
+                                 key={itemIndex}
+                                 item={item}
+                                 onChange={(updatedItem) => updateItemInComponent(index, itemIndex, updatedItem)}
+                                 onRemove={() => removeItemFromComponent(index, itemIndex)}
+                               />
+                             );
+                         }
+                       })}
+                     </div>
+                   </CardContent>
+                 )}
+               </Card>
+             );
+           })}
 
       {components.length === 0 && (
         <div className="text-center py-8 text-muted-foreground">
