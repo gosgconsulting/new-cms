@@ -709,6 +709,82 @@ export const developmentSections: Section[] = [
         }
       ]
     }
+  },
+  
+  // NEW SECTION: Content + Image Section
+  {
+    id: 'content-image-section',
+    type: 'content-image-section',
+    title: 'Content + Image Section',
+    visible: true,
+    data: {
+      // General tab content
+      backgroundColor: '#ffffff',
+      paddingTop: 'medium',
+      paddingBottom: 'medium',
+      alignment: 'left', // Options: left, center
+      contentWidth: '50%', // Width of the content side
+      
+      // Content tab
+      content: {
+        heading: 'Powerful Solutions for Your Business',
+        text: '<p>Our comprehensive solutions are designed to meet your business needs and help you achieve your goals. With our expertise and dedication, we deliver results that exceed expectations.</p><p>Contact us today to learn how we can help your business grow.</p>',
+        buttonText: 'Learn More',
+        buttonUrl: '/services',
+        buttonStyle: 'primary' // Options: primary, secondary, outline
+      },
+      
+      // Image Gallery tab
+      images: [
+        {
+          id: 'img-1',
+          src: '/assets/images/content-image-1.jpg',
+          alt: 'Business professionals in a meeting',
+          caption: 'Our team of experts'
+        },
+        {
+          id: 'img-2',
+          src: '/assets/images/content-image-2.jpg',
+          alt: 'Modern office workspace',
+          caption: 'Modern solutions for modern problems'
+        }
+      ]
+    }
+  },
+  
+  // NEW SECTION: Image + Content Section
+  {
+    id: 'image-content-section',
+    type: 'image-content-section',
+    title: 'Image + Content Section',
+    visible: true,
+    data: {
+      // General tab content
+      backgroundColor: '#f8f9fa',
+      paddingTop: 'medium',
+      paddingBottom: 'medium',
+      alignment: 'right', // Options: right, center
+      contentWidth: '50%', // Width of the content side
+      
+      // Content tab
+      content: {
+        heading: 'Innovative Approaches to Digital Marketing',
+        text: '<p>Our innovative digital marketing strategies help businesses connect with their target audience and achieve measurable results. We combine creativity with data-driven insights to create campaigns that drive engagement and conversions.</p>',
+        buttonText: 'Get Started',
+        buttonUrl: '/contact',
+        buttonStyle: 'primary' // Options: primary, secondary, outline
+      },
+      
+      // Image Gallery tab
+      images: [
+        {
+          id: 'img-1',
+          src: '/assets/images/image-content-1.jpg',
+          alt: 'Digital marketing dashboard',
+          caption: 'Data-driven marketing solutions'
+        }
+      ]
+    }
   }
 ];
 

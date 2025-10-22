@@ -1,0 +1,108 @@
+{
+  "id": "section-image-content",
+  "name": "Image + Content Section",
+  "description": "A section with images on the left and content on the right",
+  "category": "layout",
+  "subcategory": "Feature",
+  "tags": ["image", "content", "layout", "section"],
+  "version": "1.0.0",
+  "properties": {
+    "backgroundColor": {
+      "type": "string",
+      "description": "Background color of the section",
+      "default": "#f8f9fa",
+      "format": "color"
+    },
+    "paddingTop": {
+      "type": "string",
+      "description": "Top padding of the section",
+      "default": "medium",
+      "enum": ["small", "medium", "large"]
+    },
+    "paddingBottom": {
+      "type": "string",
+      "description": "Bottom padding of the section",
+      "default": "medium",
+      "enum": ["small", "medium", "large"]
+    },
+    "alignment": {
+      "type": "string",
+      "description": "Content alignment",
+      "default": "right",
+      "enum": ["right", "center"]
+    },
+    "contentWidth": {
+      "type": "string",
+      "description": "Width of the content side",
+      "default": "50%"
+    },
+    "content": {
+      "type": "object",
+      "description": "Content block with heading, text and button",
+      "properties": {
+        "heading": {
+          "type": "string",
+          "description": "Section heading",
+          "default": "Innovative Approaches to Digital Marketing"
+        },
+        "text": {
+          "type": "string",
+          "description": "Section text content",
+          "default": "<p>Our innovative digital marketing strategies help businesses connect with their target audience and achieve measurable results. We combine creativity with data-driven insights to create campaigns that drive engagement and conversions.</p>",
+          "format": "html"
+        },
+        "buttonText": {
+          "type": "string",
+          "description": "Button text",
+          "default": "Get Started"
+        },
+        "buttonUrl": {
+          "type": "string",
+          "description": "Button URL",
+          "default": "/contact"
+        },
+        "buttonStyle": {
+          "type": "string",
+          "description": "Button style",
+          "default": "primary",
+          "enum": ["primary", "secondary", "outline"]
+        }
+      }
+    },
+    "images": {
+      "type": "array",
+      "description": "Image gallery",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique ID for the image"
+          },
+          "src": {
+            "type": "string",
+            "description": "Image source URL",
+            "format": "url"
+          },
+          "alt": {
+            "type": "string",
+            "description": "Image alt text"
+          },
+          "caption": {
+            "type": "string",
+            "description": "Image caption"
+          }
+        }
+      },
+      "default": [
+        {
+          "id": "img-1",
+          "src": "/assets/images/image-content-1.jpg",
+          "alt": "Digital marketing dashboard",
+          "caption": "Data-driven marketing solutions"
+        }
+      ]
+    }
+  },
+  "components": ["field-rich-text", "field-gallery", "component-button"]
+}

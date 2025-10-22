@@ -1076,24 +1076,64 @@ const ComponentsViewerContent = () => {
                 <Link className="h-4 w-4" />
               </button>
               
-              <button className="p-2 hover:bg-gray-200 rounded">
-                <Palette className="h-4 w-4" />
-              </button>
+              {/* Color Picker */}
+              <div className="relative">
+                <button 
+                  onClick={() => setShowColorPicker(!showColorPicker)}
+                  className="flex items-center p-2 hover:bg-gray-200 rounded"
+                >
+                  <Palette className="h-4 w-4" />
+                </button>
+                
+                {showColorPicker && (
+                  <div className="absolute z-10 mt-1 w-64 bg-white rounded-md shadow-lg border border-gray-200">
+                    <div className="p-2 border-b border-gray-200">
+                      <p className="text-xs font-medium text-gray-500">Brand Colors</p>
+                    </div>
+                    <div className="p-2 grid grid-cols-4 gap-2">
+                      {BRANDING_COLORS.map((color) => (
+                        <button
+                          key={color.name}
+                          onClick={() => handleColorChange(color.value)}
+                          className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center"
+                          style={{ backgroundColor: color.value }}
+                          title={color.name}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
             
-            <div className="w-full p-3 border border-gray-300 rounded-b-md focus-within:ring-1 focus-within:ring-blue-400 focus-within:border-blue-400" style={{ minHeight: '200px' }}>
+            {/* Direct Editor with Live Preview */}
+            <div 
+              className={`w-full p-3 border border-gray-300 rounded-b-md focus-within:ring-1 focus-within:ring-blue-400 focus-within:border-blue-400`}
+              style={{ 
+                minHeight: '200px',
+                fontSize: selectedFontSize
+              }}
+            >
               <div
                 contentEditable
                 suppressContentEditableWarning
-                className="outline-none min-h-[1.5em] w-full"
-                data-placeholder="Enter text..."
-              >
-                {placeholder.defaultContent || 'This is a rich text editor field. You can format text as headings, paragraphs, or quotes using the toolbar.'}
-              </div>
+                dangerouslySetInnerHTML={{ __html: editorContent || (selectedPlaceholder.defaultContent || '') }}
+                onInput={(e) => {
+                  // Get the current content directly from the element
+                  const content = e.currentTarget.innerHTML;
+                  setEditorContent(content);
+                }}
+                className={`outline-none min-h-[1.5em] w-full ${
+                  TEXT_STYLES.find(s => s.value === selectedTextStyle)?.className || ''
+                }`}
+                data-placeholder={selectedPlaceholder.type === 'heading' ? "Enter heading text..." : "Enter paragraph text..."}
+                spellCheck="false"
+                dir="ltr" // Explicitly set left-to-right text direction
+              />
             </div>
           </div>
         );
-        
+      
       case 'image': {
         // Function to handle file selection
         const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -1215,680 +1255,6 @@ const ComponentsViewerContent = () => {
         );
       }
         
-      default:
-        // For any other type, use the default editor
-        return renderEditor();
-    }
-  };
-
-  // Render appropriate editor based on placeholder type
-  const renderEditor = () => {
-    if (!selectedPlaceholder) return null;
-
-    switch (selectedPlaceholder.type) {
-      case 'icon':
-        return (
-          <div className="space-y-6">
-            <h3 className="text-lg font-medium mb-4">Icon Selector</h3>
-            
-            <div className="flex flex-wrap gap-3 mb-6">
-              {AVAILABLE_ICONS.map((icon) => {
-                const IconComponent = icon.component;
-                return (
-                  <button
-                    key={icon.name}
-                    onClick={() => {
-                      setSelectedIcon(icon.name);
-                    }}
-                    className={`w-12 h-12 rounded flex items-center justify-center ${
-                      selectedIcon === icon.name 
-                        ? 'bg-purple-100 text-purple-600 ring-1 ring-purple-500' 
-                        : 'hover:bg-gray-100 border border-gray-200'
-                    }`}
-                    title={icon.name}
-                  >
-                    <IconComponent className="h-6 w-6" />
-                  </button>
-                );
-              })}
-              
-              {/* Upload button */}
-              <label 
-                className="w-12 h-12 rounded flex items-center justify-center border border-dashed border-gray-300 text-gray-400 hover:text-gray-600 hover:border-gray-400 cursor-pointer"
-                title="Upload custom icon"
-              >
-                <Plus className="h-5 w-5" />
-                <input
-                  type="file"
-                  accept="image/svg+xml,image/png,image/jpeg"
-                  className="hidden"
-                  onChange={(e) => {
-                    const files = e.target.files;
-                    if (!files || files.length === 0) return;
-                    
-                    const file = files[0];
-                    if (!file.type.startsWith('image/')) {
-                      alert('Please upload an image file');
-                      return;
-                    }
-                    
-                    if (file.size > 1024 * 1024) { // 1MB limit
-                      alert('File size should be less than 1MB');
-                      return;
-                    }
-                    
-                    const url = URL.createObjectURL(file);
-                    setCustomIconUrl(url);
-                    setSelectedIcon('custom');
-                  }}
-                />
-              </label>
-            </div>
-            
-            <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-md border border-gray-200">
-              <div className="p-3 bg-white rounded-md border border-gray-200 flex items-center justify-center" style={{ width: '48px', height: '48px' }}>
-                {selectedIcon === 'custom' && customIconUrl ? (
-                  <img src={customIconUrl} alt="Custom" className="h-6 w-6 object-contain" />
-                ) : (
-                  getIconByName(selectedIcon)
-                )}
-              </div>
-              <div>
-                <p className="font-medium">{selectedIcon === 'custom' ? 'Custom Icon' : selectedIcon}</p>
-                <p className="text-sm text-gray-500">Selected icon</p>
-              </div>
-            </div>
-            
-            {/* Icon settings */}
-            <div className="space-y-4">
-              <h4 className="text-sm font-medium text-gray-700">Icon Settings</h4>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs text-gray-600 mb-1">Size</label>
-                  <select className="w-full p-2 border border-gray-300 rounded-md text-sm">
-                    <option value="small">Small</option>
-                    <option value="medium" selected>Medium</option>
-                    <option value="large">Large</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs text-gray-600 mb-1">Color</label>
-                  <select className="w-full p-2 border border-gray-300 rounded-md text-sm">
-                    <option value="default">Default</option>
-                    <option value="primary">Primary</option>
-                    <option value="secondary">Secondary</option>
-                    <option value="accent">Accent</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-        
-      case 'icon-heading':
-        return (
-          <div className="space-y-4">
-            <div className="flex flex-wrap items-center gap-1 p-2 bg-gray-100 rounded-md">
-              <button onClick={handleBold} className="p-2 hover:bg-gray-200 rounded">
-                <Bold className="h-4 w-4" />
-              </button>
-              <button onClick={handleItalic} className="p-2 hover:bg-gray-200 rounded">
-                <Italic className="h-4 w-4" />
-              </button>
-              <button onClick={handleUnderline} className="p-2 hover:bg-gray-200 rounded">
-                <Underline className="h-4 w-4" />
-              </button>
-              <div className="h-6 border-r border-gray-300 mx-1"></div>
-              <button onClick={() => handleAlignment('left')} className="p-2 hover:bg-gray-200 rounded">
-                <AlignLeft className="h-4 w-4" />
-              </button>
-              <button onClick={() => handleAlignment('center')} className="p-2 hover:bg-gray-200 rounded">
-                <AlignCenter className="h-4 w-4" />
-              </button>
-              <button onClick={() => handleAlignment('right')} className="p-2 hover:bg-gray-200 rounded">
-                <AlignRight className="h-4 w-4" />
-              </button>
-              <div className="h-6 border-r border-gray-300 mx-1"></div>
-              
-              {/* Icon Picker */}
-              <div className="relative">
-                <button 
-                  onClick={() => setShowIconPicker(!showIconPicker)}
-                  className="flex items-center p-2 hover:bg-gray-200 rounded"
-                >
-                  {getIconByName(selectedIcon)}
-                </button>
-                
-                {showIconPicker && (
-                  <div className="absolute z-10 mt-1 w-64 bg-white rounded-md shadow-lg border border-gray-200">
-                    <div className="p-2 border-b border-gray-200">
-                      <p className="text-xs font-medium text-gray-500">Select Icon</p>
-                    </div>
-                    <div className="p-2 grid grid-cols-4 gap-2">
-                      {AVAILABLE_ICONS.map((icon) => (
-                        <button
-                          key={icon.name}
-                          onClick={() => handleIconSelect(icon.name)}
-                          className={`w-10 h-10 rounded flex items-center justify-center ${
-                            selectedIcon === icon.name 
-                              ? 'bg-purple-100 text-purple-600 ring-1 ring-purple-500' 
-                              : 'hover:bg-gray-100'
-                          }`}
-                          title={icon.name}
-                        >
-                          <icon.component className="h-5 w-5" />
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-              
-              {/* Color Picker */}
-              <div className="relative">
-                <button 
-                  onClick={() => setShowColorPicker(!showColorPicker)}
-                  className="flex items-center p-2 hover:bg-gray-200 rounded"
-                >
-                  <Palette className="h-4 w-4" />
-                </button>
-                
-                {showColorPicker && (
-                  <div className="absolute z-10 mt-1 w-64 bg-white rounded-md shadow-lg border border-gray-200">
-                    <div className="p-2 border-b border-gray-200">
-                      <p className="text-xs font-medium text-gray-500">Brand Colors</p>
-                    </div>
-                    <div className="p-2 grid grid-cols-4 gap-2">
-                      {BRANDING_COLORS.map((color) => (
-                        <button
-                          key={color.name}
-                          onClick={() => handleColorChange(color.value)}
-                          className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center"
-                          style={{ backgroundColor: color.value }}
-                          title={color.name}
-                        />
-                      ))}
-                    </div>
-                    <div className="p-2 border-t border-b border-gray-200">
-                      <p className="text-xs font-medium text-gray-500">Gradients</p>
-                    </div>
-                    <div className="p-2 grid grid-cols-2 gap-2">
-                      {BRANDING_COLORS.map((color) => (
-                        <button
-                          key={`gradient-${color.name}`}
-                          onClick={() => handleGradientChange(color.gradient)}
-                          className="h-8 rounded border border-gray-300"
-                          style={{ backgroundImage: color.gradient }}
-                          title={`${color.name} Gradient`}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-            
-            <div className="p-4 bg-purple-50 rounded-lg border border-purple-100">
-              <div className="flex items-center gap-2 mb-3">
-                {getIconByName(selectedIcon)}
-                <div 
-                  contentEditable
-                  suppressContentEditableWarning
-                  dangerouslySetInnerHTML={{ __html: editorContent || (selectedPlaceholder.defaultContent || '') }}
-                  onInput={(e) => {
-                    const content = e.currentTarget.innerHTML;
-                    setEditorContent(content);
-                  }}
-                  className="outline-none text-xl font-semibold"
-                  data-placeholder="Enter heading text..."
-                  spellCheck="false"
-                  dir="ltr"
-                />
-              </div>
-            </div>
-          </div>
-        );
-        
-      case 'icon-text':
-        return (
-          <div className="space-y-4">
-            <div className="flex flex-wrap items-center gap-1 p-2 bg-gray-100 rounded-md">
-              <button onClick={handleBold} className="p-2 hover:bg-gray-200 rounded">
-                <Bold className="h-4 w-4" />
-              </button>
-              <button onClick={handleItalic} className="p-2 hover:bg-gray-200 rounded">
-                <Italic className="h-4 w-4" />
-              </button>
-              <button onClick={handleUnderline} className="p-2 hover:bg-gray-200 rounded">
-                <Underline className="h-4 w-4" />
-              </button>
-              <div className="h-6 border-r border-gray-300 mx-1"></div>
-              
-              {/* Icon Picker */}
-              <div className="relative">
-                <button 
-                  onClick={() => setShowIconPicker(!showIconPicker)}
-                  className="flex items-center p-2 hover:bg-gray-200 rounded"
-                >
-                  {getIconByName(selectedIcon)}
-                </button>
-                
-                {showIconPicker && (
-                  <div className="absolute z-10 mt-1 w-64 bg-white rounded-md shadow-lg border border-gray-200">
-                    <div className="p-2 border-b border-gray-200">
-                      <p className="text-xs font-medium text-gray-500">Select Icon</p>
-                    </div>
-                    <div className="p-2 grid grid-cols-4 gap-2">
-                      {AVAILABLE_ICONS.map((icon) => (
-                        <button
-                          key={icon.name}
-                          onClick={() => handleIconSelect(icon.name)}
-                          className={`w-10 h-10 rounded flex items-center justify-center ${
-                            selectedIcon === icon.name 
-                              ? 'bg-purple-100 text-purple-600 ring-1 ring-purple-500' 
-                              : 'hover:bg-gray-100'
-                          }`}
-                          title={icon.name}
-                        >
-                          <icon.component className="h-5 w-5" />
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-              
-              {/* Color Picker */}
-              <div className="relative">
-                <button 
-                  onClick={() => setShowColorPicker(!showColorPicker)}
-                  className="flex items-center p-2 hover:bg-gray-200 rounded"
-                >
-                  <Palette className="h-4 w-4" />
-                </button>
-                
-                {showColorPicker && (
-                  <div className="absolute z-10 mt-1 w-64 bg-white rounded-md shadow-lg border border-gray-200">
-                    <div className="p-2 border-b border-gray-200">
-                      <p className="text-xs font-medium text-gray-500">Brand Colors</p>
-                    </div>
-                    <div className="p-2 grid grid-cols-4 gap-2">
-                      {BRANDING_COLORS.map((color) => (
-                        <button
-                          key={color.name}
-                          onClick={() => handleColorChange(color.value)}
-                          className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center"
-                          style={{ backgroundColor: color.value }}
-                          title={color.name}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-            
-            <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-              <div className="flex items-center gap-2">
-                <div className="text-red-500">
-                  {getIconByName(selectedIcon)}
-                </div>
-                <div 
-                  contentEditable
-                  suppressContentEditableWarning
-                  dangerouslySetInnerHTML={{ __html: editorContent || (selectedPlaceholder.defaultContent || '') }}
-                  onInput={(e) => {
-                    const content = e.currentTarget.innerHTML;
-                    setEditorContent(content);
-                  }}
-                  className="outline-none"
-                  data-placeholder="Enter text..."
-                  spellCheck="false"
-                  dir="ltr"
-                />
-              </div>
-            </div>
-          </div>
-        );
-        
-      case 'badge':
-        return (
-          <div className="space-y-4">
-            <div className="flex flex-wrap items-center gap-1 p-2 bg-gray-100 rounded-md">
-              <button onClick={handleBold} className="p-2 hover:bg-gray-200 rounded">
-                <Bold className="h-4 w-4" />
-              </button>
-              <button onClick={handleItalic} className="p-2 hover:bg-gray-200 rounded">
-                <Italic className="h-4 w-4" />
-              </button>
-              <button onClick={handleUnderline} className="p-2 hover:bg-gray-200 rounded">
-                <Underline className="h-4 w-4" />
-              </button>
-              <div className="h-6 border-r border-gray-300 mx-1"></div>
-              
-              {selectedPlaceholder.id === 'badge-icon-text' && (
-                <>
-                  {/* Icon Picker */}
-                  <div className="relative">
-                    <button 
-                      onClick={() => setShowIconPicker(!showIconPicker)}
-                      className="flex items-center p-2 hover:bg-gray-200 rounded"
-                    >
-                      {getIconByName(selectedIcon)}
-                    </button>
-                    
-                    {showIconPicker && (
-                      <div className="absolute z-10 mt-1 w-64 bg-white rounded-md shadow-lg border border-gray-200">
-                        <div className="p-2 border-b border-gray-200">
-                          <p className="text-xs font-medium text-gray-500">Select Icon</p>
-                        </div>
-                        <div className="p-2 grid grid-cols-4 gap-2">
-                          {AVAILABLE_ICONS.map((icon) => (
-                            <button
-                              key={icon.name}
-                              onClick={() => handleIconSelect(icon.name)}
-                              className={`w-10 h-10 rounded flex items-center justify-center ${
-                                selectedIcon === icon.name 
-                                  ? 'bg-purple-100 text-purple-600 ring-1 ring-purple-500' 
-                                  : 'hover:bg-gray-100'
-                              }`}
-                              title={icon.name}
-                            >
-                              <icon.component className="h-5 w-5" />
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                  <div className="h-6 border-r border-gray-300 mx-1"></div>
-                </>
-              )}
-              
-              {/* Color Picker */}
-              <div className="relative">
-                <button 
-                  onClick={() => setShowColorPicker(!showColorPicker)}
-                  className="flex items-center p-2 hover:bg-gray-200 rounded"
-                >
-                  <Palette className="h-4 w-4" />
-                </button>
-                
-                {showColorPicker && (
-                  <div className="absolute z-10 mt-1 w-64 bg-white rounded-md shadow-lg border border-gray-200">
-                    <div className="p-2 border-b border-gray-200">
-                      <p className="text-xs font-medium text-gray-500">Brand Colors</p>
-                    </div>
-                    <div className="p-2 grid grid-cols-4 gap-2">
-                      {BRANDING_COLORS.map((color) => (
-                        <button
-                          key={color.name}
-                          onClick={() => handleColorChange(color.value)}
-                          className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center"
-                          style={{ backgroundColor: color.value }}
-                          title={color.name}
-                        />
-                      ))}
-                    </div>
-                    <div className="p-2 border-t border-b border-gray-200">
-                      <p className="text-xs font-medium text-gray-500">Gradients</p>
-                    </div>
-                    <div className="p-2 grid grid-cols-2 gap-2">
-                      {BRANDING_COLORS.map((color) => (
-                        <button
-                          key={`gradient-${color.name}`}
-                          onClick={() => handleGradientChange(color.gradient)}
-                          className="h-8 rounded border border-gray-300"
-                          style={{ backgroundImage: color.gradient }}
-                          title={`${color.name} Gradient`}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-            
-            {selectedPlaceholder.id === 'badge-icon-text' && (
-              <div className="px-6 py-2 bg-purple-100 rounded-full inline-block">
-                <div className="flex items-center gap-2">
-                  {getIconByName(selectedIcon)}
-                  <div 
-                    contentEditable
-                    suppressContentEditableWarning
-                    dangerouslySetInnerHTML={{ __html: editorContent || (selectedPlaceholder.defaultContent || '') }}
-                    onInput={(e) => {
-                      const content = e.currentTarget.innerHTML;
-                      setEditorContent(content);
-                    }}
-                    className="outline-none"
-                    data-placeholder="Enter badge text..."
-                    spellCheck="false"
-                    dir="ltr"
-                  />
-                </div>
-              </div>
-            )}
-            
-            {selectedPlaceholder.id === 'badge-text' && (
-              <div className="px-6 py-3 bg-gray-800 text-white rounded-full inline-block">
-                <div 
-                  contentEditable
-                  suppressContentEditableWarning
-                  dangerouslySetInnerHTML={{ __html: editorContent || (selectedPlaceholder.defaultContent || '') }}
-                  onInput={(e) => {
-                    const content = e.currentTarget.innerHTML;
-                    setEditorContent(content);
-                  }}
-                  className="outline-none"
-                  data-placeholder="Enter badge text..."
-                  spellCheck="false"
-                  dir="ltr"
-                />
-              </div>
-            )}
-            
-            {selectedPlaceholder.id === 'badge-title' && (
-              <div className="px-4 py-1 bg-red-100 text-red-800 rounded-md inline-block">
-                <div 
-                  contentEditable
-                  suppressContentEditableWarning
-                  dangerouslySetInnerHTML={{ __html: editorContent || (selectedPlaceholder.defaultContent || '') }}
-                  onInput={(e) => {
-                    const content = e.currentTarget.innerHTML;
-                    setEditorContent(content);
-                  }}
-                  className="outline-none font-medium"
-                  data-placeholder="Enter badge title..."
-                  spellCheck="false"
-                  dir="ltr"
-                />
-              </div>
-            )}
-          </div>
-        );
-      
-      case 'heading':
-      case 'paragraph':
-        return (
-          <div className="space-y-4">
-            <div className="flex items-center gap-2 p-2 border-b border-gray-200 bg-gray-50 rounded-t-md">
-              {/* Text Style Dropdown */}
-              <div className="relative">
-                <button 
-                  onClick={() => setShowTextStylePicker(!showTextStylePicker)}
-                  className="flex items-center py-1 px-2 hover:bg-gray-100 rounded border border-gray-200"
-                >
-                  <Type className="h-4 w-4 mr-1 text-gray-500" />
-                  <span className="text-sm text-gray-700">
-                    {TEXT_STYLES.find(s => s.value === selectedTextStyle)?.name || 'Paragraph'}
-                  </span>
-                  <ChevronDown className="h-3 w-3 ml-1 text-gray-500" />
-                </button>
-                
-                {showTextStylePicker && (
-                  <div className="absolute z-10 mt-1 w-56 bg-white rounded-md shadow-lg border border-gray-200">
-                    <div className="max-h-80 overflow-auto">
-                      {TEXT_STYLES.map((style) => {
-                        return (
-                          <button
-                            key={style.value}
-                            onClick={() => handleTextStyleChange(style.value)}
-                            className={`w-full text-left px-4 py-2 hover:bg-gray-100 ${
-                              selectedTextStyle === style.value ? 'bg-blue-50 text-blue-600' : 'text-gray-800'
-                            }`}
-                          >
-                            {style.name === 'Paragraph' ? (
-                              <span className="text-base">Paragraph</span>
-                            ) : style.name === 'Heading 1' ? (
-                              <span className="text-xl font-bold">Heading 1</span>
-                            ) : style.name === 'Heading 2' ? (
-                              <span className="text-lg font-bold">Heading 2</span>
-                            ) : style.name === 'Heading 3' ? (
-                              <span className="text-base font-bold">Heading 3</span>
-                            ) : style.name === 'Heading 4' ? (
-                              <span className="text-sm font-bold">Heading 4</span>
-                            ) : style.name === 'Heading 5' ? (
-                              <span className="text-xs font-bold">Heading 5</span>
-                            ) : style.name === 'Heading 6' ? (
-                              <span className="text-xs font-bold">Heading 6</span>
-                            ) : (
-                              <span className="italic">{style.name}</span>
-                            )}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-              </div>
-              
-              <div className="h-6 border-r border-gray-300 mx-1"></div>
-              
-              <button onClick={handleBold} className="p-2 hover:bg-gray-200 rounded">
-                <Bold className="h-4 w-4" />
-              </button>
-              <button onClick={handleItalic} className="p-2 hover:bg-gray-200 rounded">
-                <Italic className="h-4 w-4" />
-              </button>
-              <button onClick={handleUnderline} className="p-2 hover:bg-gray-200 rounded">
-                <Underline className="h-4 w-4" />
-              </button>
-              
-              <div className="h-6 border-r border-gray-300 mx-1"></div>
-              
-              <button onClick={() => handleAlignment('left')} className="p-2 hover:bg-gray-200 rounded">
-                <AlignLeft className="h-4 w-4" />
-              </button>
-              <button onClick={() => handleAlignment('center')} className="p-2 hover:bg-gray-200 rounded">
-                <AlignCenter className="h-4 w-4" />
-              </button>
-              <button onClick={() => handleAlignment('right')} className="p-2 hover:bg-gray-200 rounded">
-                <AlignRight className="h-4 w-4" />
-              </button>
-              
-              <div className="h-6 border-r border-gray-300 mx-1"></div>
-              
-              <button className="p-2 hover:bg-gray-200 rounded">
-                <Link className="h-4 w-4" />
-              </button>
-              
-              {/* Color Picker */}
-              <div className="relative">
-                <button 
-                  onClick={() => setShowColorPicker(!showColorPicker)}
-                  className="flex items-center p-2 hover:bg-gray-200 rounded"
-                >
-                  <Palette className="h-4 w-4" />
-                </button>
-                
-                {showColorPicker && (
-                  <div className="absolute z-10 mt-1 w-64 bg-white rounded-md shadow-lg border border-gray-200">
-                    <div className="p-2 border-b border-gray-200">
-                      <p className="text-xs font-medium text-gray-500">Brand Colors</p>
-                    </div>
-                    <div className="p-2 grid grid-cols-4 gap-2">
-                      {BRANDING_COLORS.map((color) => (
-                        <button
-                          key={color.name}
-                          onClick={() => handleColorChange(color.value)}
-                          className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center"
-                          style={{ backgroundColor: color.value }}
-                          title={color.name}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-            
-            {/* Direct Editor with Live Preview */}
-            <div 
-              className={`w-full p-3 border border-gray-300 rounded-b-md focus-within:ring-1 focus-within:ring-blue-400 focus-within:border-blue-400`}
-              style={{ 
-                minHeight: '200px',
-                fontSize: selectedFontSize
-              }}
-            >
-              <div
-                contentEditable
-                suppressContentEditableWarning
-                dangerouslySetInnerHTML={{ __html: editorContent || (selectedPlaceholder.defaultContent || '') }}
-                onInput={(e) => {
-                  // Get the current content directly from the element
-                  const content = e.currentTarget.innerHTML;
-                  setEditorContent(content);
-                }}
-                className={`outline-none min-h-[1.5em] w-full ${
-                  TEXT_STYLES.find(s => s.value === selectedTextStyle)?.className || ''
-                }`}
-                data-placeholder={selectedPlaceholder.type === 'heading' ? "Enter heading text..." : "Enter paragraph text..."}
-                spellCheck="false"
-                dir="ltr" // Explicitly set left-to-right text direction
-              />
-            </div>
-          </div>
-        );
-      
-      case 'image':
-        return (
-          <div className="space-y-4">
-            <div className="flex items-center justify-center p-8 border-2 border-dashed border-gray-300 rounded-md bg-gray-50">
-              <div className="text-center">
-                <ImageIcon className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-                <p className="text-gray-600 mb-2">Drag and drop an image here, or click to select</p>
-                <button className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors">
-                  <Upload className="h-4 w-4 inline mr-1" />
-                  Upload Image
-                </button>
-              </div>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Image Title
-              </label>
-              <input
-                type="text"
-                className="w-full p-2 border border-gray-300 rounded-md"
-                placeholder="Enter image title (will be used as slug)"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Alt Text
-              </label>
-              <input
-                type="text"
-                className="w-full p-2 border border-gray-300 rounded-md"
-                placeholder="Descriptive text for accessibility"
-              />
-            </div>
-          </div>
-        );
-      
       case 'video':
         return (
           <div className="space-y-4">
@@ -1937,6 +1303,26 @@ const ComponentsViewerContent = () => {
           setSelectedImages(updatedImages);
         };
         
+        // Function to handle gallery image selection
+        const handleGalleryImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+          const files = event.target.files;
+          if (!files || files.length === 0) return;
+          
+          // Create new image objects from the selected files
+          const newImages = Array.from(files).map((file, index) => {
+            const url = URL.createObjectURL(file);
+            return {
+              id: `new-img-${Date.now()}-${index}`,
+              url: url,
+              alt: file.name
+            };
+          });
+          
+          // Add the new images to the gallery images
+          setGalleryImages([...galleryImages, ...newImages]);
+          setSelectedImages([...galleryImages, ...newImages]);
+        };
+        
         return (
           <div className="space-y-6">
             {galleryImages.length === 0 ? (
@@ -1953,7 +1339,7 @@ const ComponentsViewerContent = () => {
                       multiple
                       accept="image/*"
                       className="hidden"
-                      onChange={handleGallerySelect}
+                      onChange={handleGalleryImageSelect}
                     />
                   </label>
                 </div>
@@ -1988,7 +1374,7 @@ const ComponentsViewerContent = () => {
                         multiple
                         accept="image/*"
                         className="hidden"
-                        onChange={handleGallerySelect}
+                        onChange={handleGalleryImageSelect}
                       />
                     </label>
                   </div>
@@ -2216,6 +1602,60 @@ const ComponentsViewerContent = () => {
           </div>
         );
       }
+      
+      case 'button':
+        return (
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">Button Text</label>
+              <input
+                type="text"
+                defaultValue={placeholder.defaultContent || "Click Me"}
+                placeholder="Button text"
+                className="w-full p-2 border border-gray-300 rounded-md"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">Button URL</label>
+              <input
+                type="text"
+                defaultValue="/contact"
+                placeholder="https://example.com"
+                className="w-full p-2 border border-gray-300 rounded-md"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">Button Style</label>
+              <div className="flex gap-2">
+                <button className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700">Primary</button>
+                <button className="flex-1 px-4 py-2 bg-white text-purple-600 border border-purple-600 rounded-md hover:bg-purple-50">Secondary</button>
+                <button className="flex-1 px-4 py-2 bg-transparent text-purple-600 hover:bg-purple-50 rounded-md">Ghost</button>
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="block text-sm font-medium text-gray-700">Open in new tab</label>
+                <div className="relative inline-block w-10 align-middle select-none">
+                  <input type="checkbox" className="sr-only" />
+                  <div className="w-10 h-5 bg-gray-200 rounded-full shadow-inner"></div>
+                  <div className="absolute w-5 h-5 bg-white rounded-full shadow-md transform transition-transform left-0"></div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="mt-4 p-4 bg-gray-50 rounded-md border border-gray-200">
+              <p className="text-sm text-gray-500 mb-2">Preview:</p>
+              <div className="flex justify-center">
+                <button className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700">
+                  {placeholder.defaultContent || "Click Me"}
+                </button>
+              </div>
+            </div>
+          </div>
+        );
       
       default:
         return (
@@ -2624,7 +2064,10 @@ const ComponentsViewerContent = () => {
                   })}
                 </div>
               ) : (
-                renderEditor()
+                // Render the default editor for this placeholder type
+                <div className="bg-gray-50 p-4 rounded-md">
+                  {renderComponentEditor(selectedPlaceholder.id)}
+                </div>
               )}
             </div>
             

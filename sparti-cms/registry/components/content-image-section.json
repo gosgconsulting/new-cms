@@ -1,0 +1,108 @@
+{
+  "id": "section-content-image",
+  "name": "Content + Image Section",
+  "description": "A section with content on the left and images on the right",
+  "category": "layout",
+  "subcategory": "Feature",
+  "tags": ["content", "image", "layout", "section"],
+  "version": "1.0.0",
+  "properties": {
+    "backgroundColor": {
+      "type": "string",
+      "description": "Background color of the section",
+      "default": "#ffffff",
+      "format": "color"
+    },
+    "paddingTop": {
+      "type": "string",
+      "description": "Top padding of the section",
+      "default": "medium",
+      "enum": ["small", "medium", "large"]
+    },
+    "paddingBottom": {
+      "type": "string",
+      "description": "Bottom padding of the section",
+      "default": "medium",
+      "enum": ["small", "medium", "large"]
+    },
+    "alignment": {
+      "type": "string",
+      "description": "Content alignment",
+      "default": "left",
+      "enum": ["left", "center"]
+    },
+    "contentWidth": {
+      "type": "string",
+      "description": "Width of the content side",
+      "default": "50%"
+    },
+    "content": {
+      "type": "object",
+      "description": "Content block with heading, text and button",
+      "properties": {
+        "heading": {
+          "type": "string",
+          "description": "Section heading",
+          "default": "Powerful Solutions for Your Business"
+        },
+        "text": {
+          "type": "string",
+          "description": "Section text content",
+          "default": "<p>Our comprehensive solutions are designed to meet your business needs and help you achieve your goals. With our expertise and dedication, we deliver results that exceed expectations.</p><p>Contact us today to learn how we can help your business grow.</p>",
+          "format": "html"
+        },
+        "buttonText": {
+          "type": "string",
+          "description": "Button text",
+          "default": "Learn More"
+        },
+        "buttonUrl": {
+          "type": "string",
+          "description": "Button URL",
+          "default": "/services"
+        },
+        "buttonStyle": {
+          "type": "string",
+          "description": "Button style",
+          "default": "primary",
+          "enum": ["primary", "secondary", "outline"]
+        }
+      }
+    },
+    "images": {
+      "type": "array",
+      "description": "Image gallery",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique ID for the image"
+          },
+          "src": {
+            "type": "string",
+            "description": "Image source URL",
+            "format": "url"
+          },
+          "alt": {
+            "type": "string",
+            "description": "Image alt text"
+          },
+          "caption": {
+            "type": "string",
+            "description": "Image caption"
+          }
+        }
+      },
+      "default": [
+        {
+          "id": "img-1",
+          "src": "/assets/images/content-image-1.jpg",
+          "alt": "Business professionals in a meeting",
+          "caption": "Our team of experts"
+        }
+      ]
+    }
+  },
+  "components": ["field-rich-text", "field-gallery", "component-button"]
+}

@@ -120,3 +120,18 @@ export interface ProcessStep {
   description: string;
   icon: string;
 }
+
+export interface ContentBlock {
+  heading: string;
+  text: string;
+  buttonText?: string;
+  buttonUrl?: string;
+  buttonStyle?: string;
+}
+
+export interface GalleryImage {
+  id: string;
+  src: string;
+  alt: string;
+  caption?: string;
+}
