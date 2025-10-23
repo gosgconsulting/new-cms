@@ -7,13 +7,24 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../..
 import { Badge } from '../../../src/components/ui/badge';
 import { ScrollArea } from '../../../src/components/ui/scroll-area';
 import { Separator } from '../../../src/components/ui/separator';
-import { ArrowLeft, Save, Loader2, AlertCircle, CheckCircle, RefreshCw, Plus, Settings, Eye, Trash2, GripVertical } from 'lucide-react';
+import { ArrowLeft, Save, Loader2, AlertCircle, CheckCircle, RefreshCw, Settings, Eye, Trash2, GripVertical, Code } from 'lucide-react';
 import { toast } from 'sonner';
 import SchemaEditor from './SchemaEditor';
 import { useAuth } from '../auth/AuthProvider';
 import { ComponentSchema } from '../../types/schema';
 import { needsV3Migration, getSchemaVersion, migrateOldSchemaToV3 } from '../../utils/schema-migration';
 import api from '../../utils/api';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+  DialogClose,
+} from "../../../src/components/ui/dialog"
+
 
 interface PageEditorProps {
   pageId: string;
@@ -47,7 +58,7 @@ interface PageWithLayout extends PageData {
 }
 
 const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
-  const { currentTenant } = useAuth();
+  const { currentTenant, user } = useAuth();
   const [pageData, setPageData] = useState<PageWithLayout | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -56,6 +67,28 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
   const [needsMigrationFlag, setNeedsMigrationFlag] = useState(false);
   const [selectedComponentIndex, setSelectedComponentIndex] = useState<number | null>(null);
   const [showSEOForm, setShowSEOForm] = useState(false);
+  const [showJSONEditor, setShowJSONEditor] = useState(false);
+  const [jsonString, setJsonString] = useState('');
+  const [jsonError, setJsonError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (showJSONEditor) {
+      setJsonString(JSON.stringify(components, null, 2));
+      setJsonError(null);
+    }
+  }, [showJSONEditor]);
+
+  const handleJsonChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newJsonString = e.target.value;
+    setJsonString(newJsonString);
+    try {
+      const parsed = JSON.parse(newJsonString);
+      setComponents(parsed);
+      setJsonError(null);
+    } catch (error) {
+      setJsonError('Invalid JSON format.');
+    }
+  };
 
   // Fetch page data from database
   useEffect(() => {
@@ -135,21 +168,6 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
     }
   };
 
-  const addNewComponent = () => {
-    const newComponent: ComponentSchema = {
-      key: `component_${Date.now()}`,
-      type: 'TextBlock',
-      items: [
-        {
-          key: 'text_1',
-          type: 'text',
-          content: { en: 'New text content', fr: 'Nouveau contenu texte' }
-        }
-      ]
-    };
-    setComponents([...components, newComponent]);
-    setSelectedComponentIndex(components.length);
-  };
 
   const removeComponent = (index: number) => {
     const newComponents = components.filter((_, i) => i !== index);
@@ -297,6 +315,16 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
             Migrate to V3
           </Button>
         )}
+        {user?.is_super_admin && (
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setShowJSONEditor(true)}
+            >
+              <Code className="h-4 w-4 mr-2" />
+              JSON Editor
+            </Button>
+          )}
         <Button onClick={handleSave} disabled={saving}>
           {saving ? (
             <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -315,10 +343,6 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
         <div className="p-4 border-b">
           <div className="flex items-center justify-between">
             <h3 className="font-semibold">Page Components</h3>
-            <Button size="sm" onClick={addNewComponent}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Component
-            </Button>
           </div>
         </div>
         
@@ -382,8 +406,8 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
             
             {components.length === 0 && (
               <div className="text-center py-8 text-muted-foreground">
-                <p className="text-sm">No components yet</p>
-                <p className="text-xs">Click "Add Component" to get started</p>
+                <p className="text-sm">No components available</p>
+                <p className="text-xs">This page has no components to edit</p>
               </div>
             )}
           </div>
@@ -492,6 +516,41 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
         )}
       </div>
     </div>
+    <Dialog open={showJSONEditor} onOpenChange={setShowJSONEditor}>
+      <DialogContent className="max-w-4xl h-[80vh] flex flex-col">
+        <DialogHeader>
+          <DialogTitle>Page Schema JSON Editor</DialogTitle>
+          <DialogDescription>
+            Edit the complete page structure. Be careful with this editor.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="flex-1 overflow-auto p-4">
+            <Textarea
+                value={jsonString}
+                onChange={handleJsonChange}
+                className="w-full h-full font-mono text-sm resize-none"
+                placeholder="Enter page schema as JSON..."
+            />
+             {jsonError && <p className="text-destructive text-sm mt-2">{jsonError}</p>}
+        </div>
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button type="button" variant="secondary">
+              Cancel
+            </Button>
+          </DialogClose>
+          <Button
+                onClick={() => {
+                    handleSave();
+                    setShowJSONEditor(false);
+                }}
+                disabled={!!jsonError}
+            >
+                Save & Close
+            </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   </div>
   );
 };
