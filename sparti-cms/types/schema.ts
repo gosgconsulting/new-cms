@@ -11,7 +11,11 @@ export type SchemaItemType =
   | 'heading' 
   | 'text' 
   | 'image' 
+  | 'video'
+  | 'gallery'
+  | 'carousel'
   | 'button' 
+  | 'link'
   | 'boolean' 
   | 'array' 
   | 'input' 
@@ -31,6 +35,19 @@ export interface SchemaItem {
   items?: SchemaItem[];         // For arrays
   props?: Record<string, any>;  // For complex types like review/feature
   required?: boolean;           // For form fields
+  
+  // Additional properties for enhanced editors
+  title?: string;               // For video, gallery, carousel
+  caption?: string;             // For video, image
+  alt?: MultiLanguageValue;     // For images
+  label?: MultiLanguageValue;  // For links
+  action?: string;             // For buttons
+  style?: string;              // For buttons
+  target?: '_blank' | '_self'; // For buttons, links
+  autoplay?: boolean;          // For carousel
+  navigation?: string;          // For carousel
+  showNavigation?: boolean;    // For carousel
+  itemType?: string;           // For arrays
 }
 
 // Component schema interface (v3 format)

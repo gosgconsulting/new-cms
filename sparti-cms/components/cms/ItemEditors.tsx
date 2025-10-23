@@ -8,8 +8,17 @@ import { Button } from '../../../src/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../src/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../src/components/ui/select';
 import { Badge } from '../../../src/components/ui/badge';
-import { X, Plus, Image as ImageIcon, Link as LinkIcon, Type, MousePointer } from 'lucide-react';
+import { X, Plus, Image as ImageIcon, Link as LinkIcon, Type, MousePointer, Video, Grid, Layers } from 'lucide-react';
 import { SchemaItem, MultiLanguageValue, SchemaItemType } from '../../types/schema';
+// Import the new content editor components
+import {
+  TextEditor as ContentTextEditor,
+  ImageEditor as ContentImageEditor,
+  VideoEditor as ContentVideoEditor,
+  GalleryEditor as ContentGalleryEditor,
+  CarouselEditor as ContentCarouselEditor,
+  ButtonEditor as ContentButtonEditor
+} from '../content-editors';
 
 interface ItemEditorProps {
   item: SchemaItem;
@@ -506,6 +515,231 @@ export const ArrayEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemov
   );
 };
 
+// WRAPPER COMPONENTS FOR NEW CONTENT EDITORS
+// These adapt the new content editor components to work with the ItemEditorProps interface
+
+// Video item editor using the new ContentVideoEditor
+export const VideoItemEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove }) => {
+  const videoItem = item as any; // Type assertion for video item
+
+  const updateValue = (value: string) => {
+    onChange({
+      ...item,
+      value
+    });
+  };
+
+  const updateTitle = (title: string) => {
+    onChange({
+      ...item,
+      title
+    });
+  };
+
+  const updateCaption = (caption: string) => {
+    onChange({
+      ...item,
+      caption
+    });
+  };
+
+  return (
+    <Card className="border-l-4 border-l-cyan-500">
+      <CardHeader className="pb-2">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-sm flex items-center gap-2">
+            <Video className="h-4 w-4" />
+            Video
+          </CardTitle>
+          <Button variant="ghost" size="sm" onClick={onRemove}>
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <ContentVideoEditor
+          videoUrl={item.value || ''}
+          onUrlChange={updateValue}
+          videoTitle={videoItem.title || ''}
+          onTitleChange={updateTitle}
+          videoCaption={videoItem.caption || ''}
+          onCaptionChange={updateCaption}
+        />
+      </CardContent>
+    </Card>
+  );
+};
+
+// Gallery item editor using the new ContentGalleryEditor
+export const GalleryItemEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove }) => {
+  const galleryItem = item as any; // Type assertion for gallery item
+
+  const updateImages = (images: any[]) => {
+    onChange({
+      ...item,
+      value: images
+    });
+  };
+
+  const updateTitle = (title: string) => {
+    onChange({
+      ...item,
+      title
+    });
+  };
+
+  return (
+    <Card className="border-l-4 border-l-indigo-500">
+      <CardHeader className="pb-2">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-sm flex items-center gap-2">
+            <Grid className="h-4 w-4" />
+            Gallery
+          </CardTitle>
+          <Button variant="ghost" size="sm" onClick={onRemove}>
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <ContentGalleryEditor
+          images={galleryItem.value || []}
+          onImagesChange={updateImages}
+          galleryTitle={galleryItem.title || ''}
+          onTitleChange={updateTitle}
+        />
+      </CardContent>
+    </Card>
+  );
+};
+
+// Carousel item editor using the new ContentCarouselEditor
+export const CarouselItemEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove }) => {
+  const carouselItem = item as any; // Type assertion for carousel item
+
+  const updateImages = (images: any[]) => {
+    onChange({
+      ...item,
+      value: images
+    });
+  };
+
+  const updateTitle = (title: string) => {
+    onChange({
+      ...item,
+      title
+    });
+  };
+
+  const updateAutoplay = (autoplay: boolean) => {
+    onChange({
+      ...item,
+      autoplay
+    });
+  };
+
+  const updateShowNavigation = (showNavigation: boolean) => {
+    onChange({
+      ...item,
+      showNavigation
+    });
+  };
+
+  return (
+    <Card className="border-l-4 border-l-pink-500">
+      <CardHeader className="pb-2">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-sm flex items-center gap-2">
+            <Layers className="h-4 w-4" />
+            Carousel
+          </CardTitle>
+          <Button variant="ghost" size="sm" onClick={onRemove}>
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <ContentCarouselEditor
+          images={carouselItem.value || []}
+          onImagesChange={updateImages}
+          carouselTitle={carouselItem.title || ''}
+          onTitleChange={updateTitle}
+          autoplay={carouselItem.autoplay || false}
+          navigation={carouselItem.navigation || 'arrows'}
+          onSettingsChange={(settings) => {
+            updateAutoplay(settings.autoplay);
+            onChange({
+              ...item,
+              navigation: settings.navigation
+            });
+          }}
+        />
+      </CardContent>
+    </Card>
+  );
+};
+
+// Enhanced Button item editor using the new ContentButtonEditor
+export const EnhancedButtonItemEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove }) => {
+  const buttonItem = item as any; // Type assertion for button item
+
+  const updateText = (text: string) => {
+    onChange({
+      ...item,
+      value: text
+    });
+  };
+
+  const updateUrl = (url: string) => {
+    onChange({
+      ...item,
+      action: url
+    });
+  };
+
+  const updateStyle = (style: string) => {
+    onChange({
+      ...item,
+      style
+    });
+  };
+
+  const updateOpenInNewTab = (openInNewTab: boolean) => {
+    onChange({
+      ...item,
+      target: openInNewTab ? '_blank' : '_self'
+    });
+  };
+
+  return (
+    <Card className="border-l-4 border-l-red-500">
+      <CardHeader className="pb-2">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-sm flex items-center gap-2">
+            <MousePointer className="h-4 w-4" />
+            Enhanced Button
+          </CardTitle>
+          <Button variant="ghost" size="sm" onClick={onRemove}>
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <ContentButtonEditor
+          buttonText={item.value || ''}
+          buttonUrl={buttonItem.action || ''}
+          onTextChange={updateText}
+          onUrlChange={updateUrl}
+          buttonStyle={buttonItem.style || 'primary'}
+          onStyleChange={updateStyle}
+          openInNewTab={buttonItem.target === '_blank'}
+          onNewTabChange={updateOpenInNewTab}
+        />
+      </CardContent>
+    </Card>
+  );
+};
+
 // Main item editor that routes to the appropriate editor
 export const ItemEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove }) => {
   switch (item.type) {
@@ -515,12 +749,27 @@ export const ItemEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove
       return <TextEditor item={item} onChange={onChange} onRemove={onRemove} />;
     case 'image':
       return <ImageEditor item={item} onChange={onChange} onRemove={onRemove} />;
+    case 'video':
+      return <VideoItemEditor item={item} onChange={onChange} onRemove={onRemove} />;
+    case 'gallery':
+      return <GalleryItemEditor item={item} onChange={onChange} onRemove={onRemove} />;
+    case 'carousel':
+      return <CarouselItemEditor item={item} onChange={onChange} onRemove={onRemove} />;
     case 'link':
       return <LinkEditor item={item} onChange={onChange} onRemove={onRemove} />;
     case 'button':
-      return <ButtonEditor item={item} onChange={onChange} onRemove={onRemove} />;
+      return <EnhancedButtonItemEditor item={item} onChange={onChange} onRemove={onRemove} />;
     case 'array':
       return <ArrayEditor item={item} onChange={onChange} onRemove={onRemove} />;
+    // V3 Schema item types
+    case 'input':
+      return <InputEditor item={item} onChange={onChange} onRemove={onRemove} />;
+    case 'textarea':
+      return <TextareaEditor item={item} onChange={onChange} onRemove={onRemove} />;
+    case 'review':
+      return <ReviewEditor item={item} onChange={onChange} onRemove={onRemove} />;
+    case 'feature':
+      return <FeatureEditor item={item} onChange={onChange} onRemove={onRemove} />;
     default:
       return (
         <Card className="border-l-4 border-l-gray-500">
@@ -576,11 +825,14 @@ export const InputEditor: React.FC<NewItemEditorProps> = ({ item, onChange, onRe
             placeholder="e.g., name, email"
           />
         </div>
-        <MultiLanguageInput
-          label="Field Label"
-          value={item.content}
-          onChange={(val) => updateItem('content', val)}
-        />
+        <div>
+          <Label className="text-xs">Field Label</Label>
+          <MultiLanguageInput
+            value={item.content}
+            onChange={(val) => updateItem('content', val)}
+            placeholder="Enter field label..."
+          />
+        </div>
         <div className="flex items-center space-x-2">
           <input
             type="checkbox"
@@ -622,11 +874,14 @@ export const TextareaEditor: React.FC<NewItemEditorProps> = ({ item, onChange, o
             placeholder="e.g., message, description"
           />
         </div>
-        <MultiLanguageInput
-          label="Field Label"
-          value={item.content}
-          onChange={(val) => updateItem('content', val)}
-        />
+        <div>
+          <Label className="text-xs">Field Label</Label>
+          <MultiLanguageInput
+            value={item.content}
+            onChange={(val) => updateItem('content', val)}
+            placeholder="Enter field label..."
+          />
+        </div>
         <div className="flex items-center space-x-2">
           <input
             type="checkbox"
@@ -699,11 +954,14 @@ export const ReviewEditor: React.FC<NewItemEditorProps> = ({ item, onChange, onR
             </SelectContent>
           </Select>
         </div>
-        <MultiLanguageInput
-          label="Review Text"
-          value={item.props?.content}
-          onChange={(val) => updateProps('content', val)}
-        />
+        <div>
+          <Label className="text-xs">Review Text</Label>
+          <MultiLanguageInput
+            value={item.props?.content}
+            onChange={(val) => updateProps('content', val)}
+            placeholder="Enter review text..."
+          />
+        </div>
         <div className="space-y-2">
           <Label>Avatar URL</Label>
           <Input
@@ -756,16 +1014,22 @@ export const FeatureEditor: React.FC<NewItemEditorProps> = ({ item, onChange, on
             placeholder="e.g., star, heart, award"
           />
         </div>
-        <MultiLanguageInput
-          label="Feature Title"
-          value={item.props?.title}
-          onChange={(val) => updateProps('title', val)}
-        />
-        <MultiLanguageInput
-          label="Feature Description"
-          value={item.props?.description}
-          onChange={(val) => updateProps('description', val)}
-        />
+        <div>
+          <Label className="text-xs">Feature Title</Label>
+          <MultiLanguageInput
+            value={item.props?.title}
+            onChange={(val) => updateProps('title', val)}
+            placeholder="Enter feature title..."
+          />
+        </div>
+        <div>
+          <Label className="text-xs">Feature Description</Label>
+          <MultiLanguageInput
+            value={item.props?.description}
+            onChange={(val) => updateProps('description', val)}
+            placeholder="Enter feature description..."
+          />
+        </div>
       </CardContent>
     </Card>
   );

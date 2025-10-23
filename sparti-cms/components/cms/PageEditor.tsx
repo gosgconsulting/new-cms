@@ -10,6 +10,7 @@ import { Separator } from '../../../src/components/ui/separator';
 import { ArrowLeft, Save, Loader2, AlertCircle, CheckCircle, RefreshCw, Settings, Eye, Trash2, GripVertical, Code } from 'lucide-react';
 import { toast } from 'sonner';
 import SchemaEditor from './SchemaEditor';
+import ComponentEditor from './ComponentEditor';
 import { useAuth } from '../auth/AuthProvider';
 import { ComponentSchema } from '../../types/schema';
 import { needsV3Migration, getSchemaVersion, migrateOldSchemaToV3 } from '../../utils/schema-migration';
@@ -336,14 +337,11 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
                 </CardDescription>
             </CardHeader>
             <CardContent>
-                <SchemaEditor
-                components={[components[selectedComponentIndex]]}
-                onChange={(updatedComponents) => {
-                    if (updatedComponents.length > 0) {
-                    updateComponent(selectedComponentIndex, updatedComponents[0]);
-                    }
+                <ComponentEditor
+                schema={components[selectedComponentIndex]}
+                onChange={(updatedComponent) => {
+                    updateComponent(selectedComponentIndex, updatedComponent);
                 }}
-                onSave={handleSave}
                 />
             </CardContent>
         </Card>

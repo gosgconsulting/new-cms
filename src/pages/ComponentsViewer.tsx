@@ -4,6 +4,14 @@ import { useAuth } from '../../sparti-cms/components/auth/AuthProvider';
 import { Shield } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { 
+  TextEditor, 
+  ImageEditor, 
+  VideoEditor, 
+  GalleryEditor, 
+  CarouselEditor, 
+  ButtonEditor 
+} from '../../sparti-cms/components/content-editors';
+import { 
   Type, 
   Image as ImageIcon, 
   Grid, 
@@ -47,7 +55,7 @@ import {
 } from 'lucide-react';
 
 // Component placeholder types
-type PlaceholderType = 'heading' | 'paragraph' | 'image' | 'video' | 'gallery' | 'carousel' | 'section' | 'icon-text' | 'icon-heading' | 'badge' | 'button' | 'hero' | 'icon';
+type PlaceholderType = 'heading' | 'paragraph' | 'image' | 'video' | 'gallery' | 'carousel' | 'section' | 'icon-text' | 'icon-heading' | 'badge' | 'button' | 'hero' | 'icon' | 'showcase' | 'product-grid' | 'reviews' | 'review' | 'newsletter' | 'contact-form' | 'form-field' | 'feature' | 'input' | 'textarea' | 'boolean' | 'number';
 type CategoryType = 'Sections' | 'Components' | 'Fields' | 'All';
 type SubCategoryType = 'Text' | 'Media' | 'Layout' | 'UI' | 'Hero' | 'Feature' | 'CTA' | 'None';
 
@@ -1196,625 +1204,67 @@ const ComponentsViewerContent = () => {
       case 'heading':
       case 'paragraph':
         return (
-          <div className="space-y-4">
-            <div className="flex items-center gap-2 p-2 border-b border-gray-200 bg-gray-50 rounded-t-md">
-              <div className="relative">
-                <button className="flex items-center py-1 px-2 hover:bg-gray-100 rounded border border-gray-200">
-                  <Type className="h-4 w-4 mr-1 text-gray-500" />
-                  <span className="text-sm text-gray-700">Paragraph</span>
-                  <ChevronDown className="h-3 w-3 ml-1 text-gray-500" />
-                </button>
-              </div>
-              
-              <div className="h-6 border-r border-gray-300 mx-1"></div>
-              
-              <button className="p-2 hover:bg-gray-200 rounded">
-                <Bold className="h-4 w-4" />
-              </button>
-              <button className="p-2 hover:bg-gray-200 rounded">
-                <Italic className="h-4 w-4" />
-              </button>
-              <button className="p-2 hover:bg-gray-200 rounded">
-                <Underline className="h-4 w-4" />
-              </button>
-              
-              <div className="h-6 border-r border-gray-300 mx-1"></div>
-              
-              <button className="p-2 hover:bg-gray-200 rounded">
-                <AlignLeft className="h-4 w-4" />
-              </button>
-              <button className="p-2 hover:bg-gray-200 rounded">
-                <AlignCenter className="h-4 w-4" />
-              </button>
-              <button className="p-2 hover:bg-gray-200 rounded">
-                <AlignRight className="h-4 w-4" />
-              </button>
-              
-              <div className="h-6 border-r border-gray-300 mx-1"></div>
-              
-              <button className="p-2 hover:bg-gray-200 rounded">
-                <Link className="h-4 w-4" />
-              </button>
-              
-              {/* Color Picker */}
-              <div className="relative">
-                <button 
-                  onClick={() => setShowColorPicker(!showColorPicker)}
-                  className="flex items-center p-2 hover:bg-gray-200 rounded"
-                >
-                  <Palette className="h-4 w-4" />
-                </button>
-                
-                {showColorPicker && (
-                  <div className="absolute z-10 mt-1 w-64 bg-white rounded-md shadow-lg border border-gray-200">
-                    <div className="p-2 border-b border-gray-200">
-                      <p className="text-xs font-medium text-gray-500">Brand Colors</p>
-                    </div>
-                    <div className="p-2 grid grid-cols-4 gap-2">
-                      {BRANDING_COLORS.map((color) => (
-                        <button
-                          key={color.name}
-                          onClick={() => handleColorChange(color.value)}
-                          className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center"
-                          style={{ backgroundColor: color.value }}
-                          title={color.name}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-            
-            {/* Direct Editor with Live Preview */}
-            <div 
-              className={`w-full p-3 border border-gray-300 rounded-b-md focus-within:ring-1 focus-within:ring-blue-400 focus-within:border-blue-400`}
-              style={{ 
-                minHeight: '200px',
-                fontSize: selectedFontSize
-              }}
-            >
-              <div
-                contentEditable
-                suppressContentEditableWarning
-                dangerouslySetInnerHTML={{ __html: editorContent || (selectedPlaceholder.defaultContent || '') }}
-                onInput={(e) => {
-                  // Get the current content directly from the element
-                  const content = e.currentTarget.innerHTML;
-                  setEditorContent(content);
-                }}
-                className={`outline-none min-h-[1.5em] w-full ${
-                  TEXT_STYLES.find(s => s.value === selectedTextStyle)?.className || ''
-                }`}
-                data-placeholder={selectedPlaceholder.type === 'heading' ? "Enter heading text..." : "Enter paragraph text..."}
-                spellCheck="false"
-                dir="ltr" // Explicitly set left-to-right text direction
-              />
-            </div>
-          </div>
+          <TextEditor
+            content={selectedPlaceholder.defaultContent || ''}
+            onChange={(content) => setEditorContent(content)}
+            placeholder={selectedPlaceholder.type === 'heading' ? 'Enter heading text...' : 'Enter paragraph text...'}
+          />
         );
       
-      case 'image': {
-        // Function to handle file selection
-        const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-          const files = event.target.files;
-          if (!files || files.length === 0) return;
-          
-          const file = files[0]; // Take only the first file
-          const url = URL.createObjectURL(file);
-          setSelectedSingleImage(url);
-          
-          // Auto-fill the image title with the file name (without extension)
-          const fileName = file.name.replace(/\.[^/.]+$/, ""); // Remove extension
-          setImageTitle(fileName);
-        };
-        
+      case 'image':
         return (
-          <div className="space-y-6">
-            {!selectedSingleImage ? (
-              // No image selected - show upload area
-              <div className="flex items-center justify-center p-8 border-2 border-dashed border-gray-300 rounded-md bg-gray-50">
-                <div className="text-center">
-                  <ImageIcon className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-                  <p className="text-gray-600 mb-2">Drag and drop an image here, or click to select</p>
-                  <label className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors cursor-pointer inline-flex items-center">
-                    <Upload className="h-4 w-4 mr-1" />
-                    Upload Image
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={handleImageSelect}
-                    />
-                  </label>
-                </div>
-              </div>
-            ) : (
-              // Image selected - show preview
-              <div className="space-y-4">
-                <div className="relative">
-                  <img 
-                    src={selectedSingleImage} 
-                    alt={imageAlt || imageTitle} 
-                    className="w-full h-auto max-h-64 object-contain rounded-md border border-gray-200"
-                  />
-                  <button
-                    onClick={() => setSelectedSingleImage(null)}
-                    className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                </div>
-                
-                <div className="flex justify-end">
-                  <label className="px-3 py-1.5 bg-purple-100 text-purple-700 rounded-md hover:bg-purple-200 transition-colors cursor-pointer inline-flex items-center text-sm">
-                    <Upload className="h-3 w-3 mr-1" />
-                    Change Image
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={handleImageSelect}
-                    />
-                  </label>
-                </div>
-              </div>
-            )}
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Image Title
-              </label>
-              <input
-                type="text"
-                value={imageTitle}
-                onChange={(e) => setImageTitle(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-md"
-                placeholder="Enter image title (will be used as slug)"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Alt Text
-              </label>
-              <input
-                type="text"
-                value={imageAlt}
-                onChange={(e) => setImageAlt(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-md"
-                placeholder="Descriptive text for accessibility"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Image Settings
-              </label>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs text-gray-600 mb-1">Display Size</label>
-                  <select className="w-full p-2 border border-gray-300 rounded-md text-sm">
-                    <option value="full">Full Width</option>
-                    <option value="medium">Medium</option>
-                    <option value="small">Small</option>
-                    <option value="thumbnail">Thumbnail</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs text-gray-600 mb-1">Alignment</label>
-                  <select className="w-full p-2 border border-gray-300 rounded-md text-sm">
-                    <option value="left">Left</option>
-                    <option value="center">Center</option>
-                    <option value="right">Right</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-          </div>
+          <ImageEditor
+            imageUrl={selectedSingleImage || ''}
+            imageTitle={imageTitle}
+            imageAlt={imageAlt}
+            onImageChange={(imageUrl) => setSelectedSingleImage(imageUrl)}
+            onTitleChange={(title) => setImageTitle(title)}
+            onAltChange={(alt) => setImageAlt(alt)}
+          />
         );
-      }
         
       case 'video':
         return (
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Video URL (YouTube or Vimeo)
-              </label>
-              <input
-                type="text"
-                value={videoUrl}
-                onChange={(e) => setVideoUrl(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-md"
-                placeholder="https://www.youtube.com/watch?v=..."
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Video Title
-              </label>
-              <input
-                type="text"
-                className="w-full p-2 border border-gray-300 rounded-md"
-                placeholder="Enter video title"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Video Caption
-              </label>
-              <input
-                type="text"
-                className="w-full p-2 border border-gray-300 rounded-md"
-                placeholder="Enter a caption for this video"
-              />
-            </div>
-          </div>
+          <VideoEditor
+            videoUrl={videoUrl}
+            onUrlChange={(url) => setVideoUrl(url)}
+          />
         );
       
-      case 'gallery': {
-        // Function to remove an image from the gallery
-        const removeGalleryImage = (imageId: string) => {
-          const updatedImages = galleryImages.filter(img => img.id !== imageId);
-          setGalleryImages(updatedImages);
-          setSelectedImages(updatedImages);
-        };
-        
-        // Function to handle gallery image selection
-        const handleGalleryImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-          const files = event.target.files;
-          if (!files || files.length === 0) return;
-          
-          // Create new image objects from the selected files
-          const newImages = Array.from(files).map((file, index) => {
-            const url = URL.createObjectURL(file);
-            return {
-              id: `new-img-${Date.now()}-${index}`,
-              url: url,
-              alt: file.name
-            };
-          });
-          
-          // Add the new images to the gallery images
-          setGalleryImages([...galleryImages, ...newImages]);
-          setSelectedImages([...galleryImages, ...newImages]);
-        };
-        
+      case 'gallery':
         return (
-          <div className="space-y-6">
-            {galleryImages.length === 0 ? (
-              // Empty state - show upload area
-              <div className="flex items-center justify-center p-8 border-2 border-dashed border-gray-300 rounded-md bg-gray-50">
-                <div className="text-center">
-                  <Grid className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-                  <p className="text-gray-600 mb-2">Upload multiple images for gallery</p>
-                  <label className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors cursor-pointer inline-flex items-center">
-                    <Upload className="h-4 w-4 mr-1" />
-                    Select Images
-                    <input
-                      type="file"
-                      multiple
-                      accept="image/*"
-                      className="hidden"
-                      onChange={handleGalleryImageSelect}
-                    />
-                  </label>
-                </div>
-              </div>
-            ) : (
-              // Images selected - show grid of images with upload button
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                  {galleryImages.map(image => (
-                    <div key={image.id} className="relative group">
-                      <img 
-                        src={image.url} 
-                        alt={image.alt} 
-                        className="w-full h-32 object-cover rounded-md border border-gray-200"
-                      />
-                      <button
-                        onClick={() => removeGalleryImage(image.id)}
-                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
-                    </div>
-                  ))}
-                  
-                  {/* Add more images button */}
-                  <div className="flex items-center justify-center h-32 border-2 border-dashed border-gray-300 rounded-md bg-gray-50">
-                    <label className="cursor-pointer text-center p-2">
-                      <Plus className="h-8 w-8 text-gray-400 mx-auto mb-1" />
-                      <span className="text-sm text-gray-500">Add More</span>
-                      <input
-                        type="file"
-                        multiple
-                        accept="image/*"
-                        className="hidden"
-                        onChange={handleGalleryImageSelect}
-                      />
-                    </label>
-                  </div>
-                </div>
-                
-                <div className="flex justify-end">
-                  <button
-                    onClick={() => {
-                      setGalleryImages([]);
-                      setSelectedImages([]);
-                    }}
-                    className="text-sm text-red-600 hover:text-red-800"
-                  >
-                    Clear All
-                  </button>
-                </div>
-              </div>
-            )}
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Gallery Title
-              </label>
-              <input
-                type="text"
-                value={galleryTitle}
-                onChange={(e) => setGalleryTitle(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-md"
-                placeholder="Enter gallery title"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Layout Style
-              </label>
-              <select className="w-full p-2 border border-gray-300 rounded-md">
-                <option value="grid">Grid</option>
-                <option value="masonry">Masonry</option>
-                <option value="slider">Slider</option>
-              </select>
-            </div>
-          </div>
+          <GalleryEditor
+            images={galleryImages}
+            galleryTitle={galleryTitle}
+            onImagesChange={(images) => {
+              setGalleryImages(images);
+              setSelectedImages(images);
+            }}
+            onTitleChange={(title) => setGalleryTitle(title)}
+          />
         );
-      }
         
-      case 'carousel': {
-        // Function to handle file selection
-        const handleCarouselSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-          const files = event.target.files;
-          if (!files || files.length === 0) return;
-          
-          // Create new image objects from the selected files
-          const newImages = Array.from(files).map((file, index) => {
-            const url = URL.createObjectURL(file);
-            return {
-              id: `new-img-${Date.now()}-${index}`,
-              url: url,
-              alt: file.name
-            };
-          });
-          
-          // Add the new images to the carousel images
-          setCarouselImages([...carouselImages, ...newImages]);
-          setSelectedImages([...carouselImages, ...newImages]);
-        };
-        
-        // Function to remove an image from the carousel
-        const removeCarouselImage = (imageId: string) => {
-          const updatedImages = carouselImages.filter(img => img.id !== imageId);
-          setCarouselImages(updatedImages);
-          setSelectedImages(updatedImages);
-        };
-        
-        // Function to reorder images
-        const moveCarouselImage = (index: number, direction: 'up' | 'down') => {
-          if (
-            (direction === 'up' && index === 0) || 
-            (direction === 'down' && index === carouselImages.length - 1)
-          ) {
-            return; // Can't move further
-          }
-          
-          const newIndex = direction === 'up' ? index - 1 : index + 1;
-          const updatedImages = [...carouselImages];
-          const temp = updatedImages[index];
-          updatedImages[index] = updatedImages[newIndex];
-          updatedImages[newIndex] = temp;
-          
-          setCarouselImages(updatedImages);
-          setSelectedImages(updatedImages);
-        };
-        
+      case 'carousel':
         return (
-          <div className="space-y-6">
-            {carouselImages.length === 0 ? (
-              // Empty state - show upload area
-              <div className="flex items-center justify-center p-8 border-2 border-dashed border-gray-300 rounded-md bg-gray-50">
-                <div className="text-center">
-                  <Layers className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-                  <p className="text-gray-600 mb-2">Upload images for carousel</p>
-                  <label className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors cursor-pointer inline-flex items-center">
-                    <Upload className="h-4 w-4 mr-1" />
-                    Select Images
-                    <input
-                      type="file"
-                      multiple
-                      accept="image/*"
-                      className="hidden"
-                      onChange={handleCarouselSelect}
-                    />
-                  </label>
-                </div>
-              </div>
-            ) : (
-              // Images selected - show carousel preview
-              <div className="space-y-4">
-                {/* Carousel preview */}
-                <div className="relative bg-gray-100 rounded-lg p-4 border border-gray-200">
-                  <div className="flex overflow-x-auto space-x-2 pb-4">
-                    {carouselImages.map((image, index) => (
-                      <div key={image.id} className="relative flex-shrink-0 w-48">
-                        <img 
-                          src={image.url} 
-                          alt={image.alt} 
-                          className="w-full h-32 object-cover rounded-md border border-gray-200"
-                        />
-                        <div className="absolute top-2 right-2 flex space-x-1">
-                          <button
-                            onClick={() => removeCarouselImage(image.id)}
-                            className="bg-red-500 text-white rounded-full p-1"
-                          >
-                            <X className="h-3 w-3" />
-                          </button>
-                        </div>
-                        <div className="absolute bottom-2 right-2 flex space-x-1">
-                          <button
-                            onClick={() => moveCarouselImage(index, 'up')}
-                            disabled={index === 0}
-                            className={`bg-gray-800 text-white rounded-full p-1 ${index === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
-                          >
-                            <ChevronDown className="h-3 w-3 transform rotate-180" />
-                          </button>
-                          <button
-                            onClick={() => moveCarouselImage(index, 'down')}
-                            disabled={index === carouselImages.length - 1}
-                            className={`bg-gray-800 text-white rounded-full p-1 ${index === carouselImages.length - 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
-                          >
-                            <ChevronDown className="h-3 w-3" />
-                          </button>
-                        </div>
-                        <div className="absolute bottom-2 left-2 bg-gray-800 text-white text-xs px-2 py-1 rounded-full">
-                          {index + 1}
-                        </div>
-                      </div>
-                    ))}
-                    
-                    {/* Add more images button */}
-                    <div className="flex-shrink-0 flex items-center justify-center w-32 h-32 border-2 border-dashed border-gray-300 rounded-md bg-white">
-                      <label className="cursor-pointer text-center p-2">
-                        <Plus className="h-6 w-6 text-gray-400 mx-auto mb-1" />
-                        <span className="text-xs text-gray-500">Add More</span>
-                        <input
-                          type="file"
-                          multiple
-                          accept="image/*"
-                          className="hidden"
-                          onChange={handleCarouselSelect}
-                        />
-                      </label>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="flex justify-end">
-                  <button
-                    onClick={() => {
-                      setCarouselImages([]);
-                      setSelectedImages([]);
-                    }}
-                    className="text-sm text-red-600 hover:text-red-800"
-                  >
-                    Clear All
-                  </button>
-                </div>
-              </div>
-            )}
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Carousel Title
-              </label>
-              <input
-                type="text"
-                value={carouselTitle}
-                onChange={(e) => setCarouselTitle(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-md"
-                placeholder="Enter carousel title"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Carousel Settings
-              </label>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs text-gray-600 mb-1">Autoplay</label>
-                  <select className="w-full p-2 border border-gray-300 rounded-md text-sm">
-                    <option value="true">Enabled</option>
-                    <option value="false">Disabled</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs text-gray-600 mb-1">Navigation</label>
-                  <select className="w-full p-2 border border-gray-300 rounded-md text-sm">
-                    <option value="arrows">Arrows</option>
-                    <option value="dots">Dots</option>
-                    <option value="both">Both</option>
-                    <option value="none">None</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-          </div>
+          <CarouselEditor
+            images={carouselImages}
+            carouselTitle={carouselTitle}
+            onImagesChange={(images) => {
+              setCarouselImages(images);
+              setSelectedImages(images);
+            }}
+            onTitleChange={(title) => setCarouselTitle(title)}
+          />
         );
-      }
       
       case 'button':
         return (
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">Button Text</label>
-              <input
-                type="text"
-                defaultValue={placeholder.defaultContent || "Click Me"}
-                placeholder="Button text"
-                className="w-full p-2 border border-gray-300 rounded-md"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">Button URL</label>
-              <input
-                type="text"
-                defaultValue="/contact"
-                placeholder="https://example.com"
-                className="w-full p-2 border border-gray-300 rounded-md"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">Button Style</label>
-              <div className="flex gap-2">
-                <button className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700">Primary</button>
-                <button className="flex-1 px-4 py-2 bg-white text-purple-600 border border-purple-600 rounded-md hover:bg-purple-50">Secondary</button>
-                <button className="flex-1 px-4 py-2 bg-transparent text-purple-600 hover:bg-purple-50 rounded-md">Ghost</button>
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <label className="block text-sm font-medium text-gray-700">Open in new tab</label>
-                <div className="relative inline-block w-10 align-middle select-none">
-                  <input type="checkbox" className="sr-only" />
-                  <div className="w-10 h-5 bg-gray-200 rounded-full shadow-inner"></div>
-                  <div className="absolute w-5 h-5 bg-white rounded-full shadow-md transform transition-transform left-0"></div>
-                </div>
-              </div>
-            </div>
-            
-            <div className="mt-4 p-4 bg-gray-50 rounded-md border border-gray-200">
-              <p className="text-sm text-gray-500 mb-2">Preview:</p>
-              <div className="flex justify-center">
-                <button className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700">
-                  {placeholder.defaultContent || "Click Me"}
-                </button>
-              </div>
-            </div>
-          </div>
+          <ButtonEditor
+            buttonText={placeholder.defaultContent || "Click Me"}
+            buttonUrl="/contact"
+            onTextChange={(text) => console.log('Button text changed:', text)}
+            onUrlChange={(url) => console.log('Button URL changed:', url)}
+          />
         );
       
       default:
