@@ -15,9 +15,10 @@ interface SchemaEditorProps {
   components: ComponentSchema[];
   onChange: (components: ComponentSchema[]) => void;
   onSave: () => void;
+  showHeader: boolean;
 }
 
-const SchemaEditor: React.FC<SchemaEditorProps> = ({ components, onChange, onSave }) => {
+const SchemaEditor: React.FC<SchemaEditorProps> = ({ components, onChange, onSave, showHeader = false }) => {
   const [validationResult, setValidationResult] = useState<any>(null);
   const [expandedComponents, setExpandedComponents] = useState<Set<number>>(new Set([0]));
   const [needsMigrationFlag, setNeedsMigrationFlag] = useState(false);
@@ -46,22 +47,6 @@ const SchemaEditor: React.FC<SchemaEditorProps> = ({ components, onChange, onSav
     setExpandedComponents(newExpanded);
   };
 
-  const addComponent = () => {
-    const newComponent: ComponentSchema = {
-      key: `component_${components.length + 1}`,
-      type: 'TextBlock',
-      items: [
-        {
-          key: 'text_1',
-          type: 'text',
-          content: { en: 'New text content', fr: 'Nouveau contenu texte' }
-        }
-      ]
-    };
-    onChange([...components, newComponent]);
-    toast.success('Component added');
-  };
-
   const removeComponent = (index: number) => {
     const newComponents = components.filter((_, i) => i !== index);
     onChange(newComponents);
@@ -72,22 +57,6 @@ const SchemaEditor: React.FC<SchemaEditorProps> = ({ components, onChange, onSav
     const newComponents = [...components];
     newComponents[index] = updatedComponent;
     onChange(newComponents);
-  };
-
-  const addItemToComponent = (componentIndex: number) => {
-    const currentComponent = components[componentIndex];
-    const newItem: SchemaItem = {
-      key: `item_${currentComponent.items.length + 1}`,
-      type: 'text',
-      content: { en: 'New item', fr: 'Nouvel élément' }
-    };
-    
-    const currentItems = currentComponent.items || [];
-    const updatedComponent = {
-      ...currentComponent,
-      items: [...currentItems, newItem]
-    };
-    updateComponent(componentIndex, updatedComponent);
   };
 
   const removeItemFromComponent = (componentIndex: number, itemIndex: number) => {
@@ -152,7 +121,7 @@ const SchemaEditor: React.FC<SchemaEditorProps> = ({ components, onChange, onSav
         </Card>
       )}
 
-      <div className="flex items-center justify-between">
+      {/* <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold">Page Components</h3>
         <div className="flex items-center gap-2">
           {validationResult && (
@@ -167,12 +136,8 @@ const SchemaEditor: React.FC<SchemaEditorProps> = ({ components, onChange, onSav
               </span>
             </div>
           )}
-          <Button onClick={addComponent} size="sm">
-            <Plus className="h-4 w-4 mr-2" />
-            Add Component
-          </Button>
         </div>
-      </div>
+      </div> */}
 
       {components.map((component, index) => {
         // Handle v3 schema format
@@ -182,44 +147,46 @@ const SchemaEditor: React.FC<SchemaEditorProps> = ({ components, onChange, onSav
         
         return (
           <Card key={index} className="border-l-4 border-l-blue-500">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => toggleComponent(index)}
-                  >
-                    {expandedComponents.has(index) ? (
-                      <ChevronDown className="h-4 w-4" />
-                    ) : (
-                      <ChevronRight className="h-4 w-4" />
-                    )}
-                  </Button>
-                  <div>
-                    <CardTitle className="text-base">{componentName}</CardTitle>
-                    <CardDescription>
-                      {componentKey} • {items?.length || 0} items
-                    </CardDescription>
+            {showHeader && (
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => toggleComponent(index)}
+                    >
+                      {expandedComponents.has(index) ? (
+                        <ChevronDown className="h-4 w-4" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4" />
+                      )}
+                    </Button>
+                    <div>
+                      <CardTitle className="text-base">{componentName}</CardTitle>
+                      <CardDescription>
+                        {componentKey} • {items?.length || 0} items
+                      </CardDescription>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary">{componentName}</Badge>
+                    <Badge variant="outline">v3</Badge>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeComponent(index)}
+                      className="text-red-500 hover:text-red-700"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Badge variant="secondary">{componentName}</Badge>
-                  <Badge variant="outline">v3</Badge>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => removeComponent(index)}
-                    className="text-red-500 hover:text-red-700"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </CardHeader>
+              </CardHeader>
+            )}
 
           {expandedComponents.has(index) && (
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 mt-4">
               {/* Component Key */}
               <div className="space-y-2">
                 <Label>Component Key</Label>
@@ -244,10 +211,6 @@ const SchemaEditor: React.FC<SchemaEditorProps> = ({ components, onChange, onSav
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <Label className="text-sm font-medium">Items ({items?.length || 0})</Label>
-                  <Button size="sm" onClick={() => addItemToComponent(index)}>
-                    <Plus className="h-3 w-3 mr-1" />
-                    Add Item
-                  </Button>
                 </div>
                 
                 {items?.map((item, itemIndex) => {
