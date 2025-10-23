@@ -44,8 +44,18 @@ export const ImageEditor: React.FC<ImageEditorProps> = ({
     formData.append('file', file);
     
     try {
-      const response = await api.post('/api/upload', formData, {
-        headers: {} // Let the browser set Content-Type for FormData
+      // For file uploads, we need to bypass the api utility and use fetch directly
+      // because the api utility automatically sets Content-Type: application/json
+      const token = localStorage.getItem('sparti-demo-session');
+      const authToken = token ? JSON.parse(token).token : null;
+      
+      const response = await fetch(`${api.getBaseUrl()}/api/upload`, {
+        method: 'POST',
+        headers: {
+          ...(authToken && { 'Authorization': `Bearer ${authToken}` })
+          // Don't set Content-Type - let the browser set it with boundary for FormData
+        },
+        body: formData
       });
       
       if (!response.ok) {
