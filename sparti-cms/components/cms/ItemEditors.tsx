@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../../src/component
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../src/components/ui/select';
 import { Badge } from '../../../src/components/ui/badge';
 import { X, Plus, Image as ImageIcon, Link as LinkIcon, Type, MousePointer, Video, Grid, Layers } from 'lucide-react';
-import { SchemaItem, MultiLanguageValue, SchemaItemType } from '../../types/schema';
+import { SchemaItem, SchemaItemType } from '../../types/schema';
 // Import the new content editor components
 import {
   TextEditor as ContentTextEditor,
@@ -26,66 +26,13 @@ interface ItemEditorProps {
   onRemove: () => void;
 }
 
-interface MultiLanguageInputProps {
-  value: MultiLanguageValue | undefined;
-  onChange: (value: MultiLanguageValue) => void;
-  placeholder?: string;
-  multiline?: boolean;
-}
-
-// Multi-language input component
-const MultiLanguageInput: React.FC<MultiLanguageInputProps> = ({ 
-  value, 
-  onChange, 
-  placeholder = "Enter text...",
-  multiline = false
-}) => {
-  // Ensure we have a valid value object
-  const safeValue = value || { en: '', fr: '' };
-  
-  const updateLanguage = (lang: 'en' | 'fr', text: string) => {
-    onChange({
-      ...safeValue,
-      [lang]: text
-    });
-  };
-
-  const InputComponent = multiline ? Textarea : Input;
-
-  return (
-    <div className="space-y-2">
-      <div className="grid grid-cols-2 gap-2">
-        <div>
-          <Label className="text-xs text-muted-foreground">English</Label>
-          <InputComponent
-            value={safeValue.en}
-            onChange={(e) => updateLanguage('en', e.target.value)}
-            placeholder={placeholder}
-            className="text-sm"
-          />
-        </div>
-        <div>
-          <Label className="text-xs text-muted-foreground">French</Label>
-          <InputComponent
-            value={safeValue.fr}
-            onChange={(e) => updateLanguage('fr', e.target.value)}
-            placeholder={placeholder}
-            className="text-sm"
-          />
-        </div>
-      </div>
-    </div>
-  );
-};
 
 // Heading item editor
 export const HeadingEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove }) => {
-  const headingItem = item as any; // Type assertion for heading item
-
-  const updateValue = (value: MultiLanguageValue) => {
+  const updateValue = (value: string) => {
     onChange({
       ...item,
-      value
+      content: value
     });
   };
 
@@ -112,7 +59,7 @@ export const HeadingEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRem
       <CardContent className="space-y-3">
         <div>
           <Label className="text-xs">Heading Level</Label>
-          <Select value={headingItem.level?.toString() || '1'} onValueChange={updateLevel}>
+          <Select value={item.level?.toString() || '1'} onValueChange={updateLevel}>
             <SelectTrigger className="h-8">
               <SelectValue />
             </SelectTrigger>
@@ -128,10 +75,11 @@ export const HeadingEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRem
         </div>
         <div>
           <Label className="text-xs">Heading Text</Label>
-          <MultiLanguageInput
-            value={item.value}
-            onChange={updateValue}
+          <Input
+            value={item.content || ''}
+            onChange={(e) => updateValue(e.target.value)}
             placeholder="Enter heading text..."
+            className="text-sm"
           />
         </div>
       </CardContent>
@@ -141,10 +89,10 @@ export const HeadingEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRem
 
 // Text item editor
 export const TextEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove }) => {
-  const updateValue = (value: MultiLanguageValue) => {
+  const updateValue = (value: string) => {
     onChange({
       ...item,
-      value
+      content: value
     });
   };
 
@@ -164,11 +112,11 @@ export const TextEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove
       <CardContent>
         <div>
           <Label className="text-xs">Text Content</Label>
-          <MultiLanguageInput
-            value={item.value}
-            onChange={updateValue}
+          <Textarea
+            value={item.content || ''}
+            onChange={(e) => updateValue(e.target.value)}
             placeholder="Enter text content..."
-            multiline
+            className="text-sm"
           />
         </div>
       </CardContent>
@@ -178,26 +126,17 @@ export const TextEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove
 
 // Image item editor
 export const ImageEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove }) => {
-  const imageItem = item as any; // Type assertion for image item
-
   const updateValue = (value: string) => {
     onChange({
       ...item,
-      value
+      src: value
     });
   };
 
-  const updateAlt = (alt: MultiLanguageValue) => {
+  const updateAlt = (alt: string) => {
     onChange({
       ...item,
       alt
-    });
-  };
-
-  const updateCaption = (caption: MultiLanguageValue) => {
-    onChange({
-      ...item,
-      caption
     });
   };
 
@@ -218,16 +157,16 @@ export const ImageEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemov
         <div>
           <Label className="text-xs">Image URL</Label>
           <Input
-            value={item.value}
+            value={item.src || ''}
             onChange={(e) => updateValue(e.target.value)}
             placeholder="/path/to/image.jpg"
             className="text-sm"
           />
         </div>
-        {item.value && (
+        {item.src && (
           <div className="border rounded p-2">
             <img 
-              src={item.value} 
+              src={item.src} 
               alt="Preview" 
               className="max-w-full h-32 object-cover rounded"
               onError={(e) => {
@@ -238,18 +177,11 @@ export const ImageEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemov
         )}
         <div>
           <Label className="text-xs">Alt Text</Label>
-          <MultiLanguageInput
-            value={imageItem.alt || { en: '', fr: '' }}
-            onChange={updateAlt}
+          <Input
+            value={item.alt || ''}
+            onChange={(e) => updateAlt(e.target.value)}
             placeholder="Describe the image..."
-          />
-        </div>
-        <div>
-          <Label className="text-xs">Caption (Optional)</Label>
-          <MultiLanguageInput
-            value={imageItem.caption || { en: '', fr: '' }}
-            onChange={updateCaption}
-            placeholder="Image caption..."
+            className="text-sm"
           />
         </div>
       </CardContent>
@@ -259,26 +191,17 @@ export const ImageEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemov
 
 // Link item editor
 export const LinkEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove }) => {
-  const linkItem = item as any; // Type assertion for link item
-
-  const updateValue = (value: MultiLanguageValue) => {
+  const updateValue = (value: string) => {
     onChange({
       ...item,
-      value
+      link: value
     });
   };
 
-  const updateLabel = (label: MultiLanguageValue) => {
+  const updateLabel = (label: string) => {
     onChange({
       ...item,
       label
-    });
-  };
-
-  const updateTarget = (target: string) => {
-    onChange({
-      ...item,
-      target: target as '_blank' | '_self'
     });
   };
 
@@ -297,32 +220,22 @@ export const LinkEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove
       </CardHeader>
       <CardContent className="space-y-3">
         <div>
-          <Label className="text-xs">Link URLs</Label>
-          <MultiLanguageInput
-            value={item.value}
-            onChange={updateValue}
-            placeholder="/en-url or /fr-url"
+          <Label className="text-xs">Link URL</Label>
+          <Input
+            value={item.link || ''}
+            onChange={(e) => updateValue(e.target.value)}
+            placeholder="/path/to/page"
+            className="text-sm"
           />
         </div>
         <div>
-          <Label className="text-xs">Link Labels</Label>
-          <MultiLanguageInput
-            value={linkItem.label || { en: '', fr: '' }}
-            onChange={updateLabel}
+          <Label className="text-xs">Link Label</Label>
+          <Input
+            value={item.label || ''}
+            onChange={(e) => updateLabel(e.target.value)}
             placeholder="Click here"
+            className="text-sm"
           />
-        </div>
-        <div>
-          <Label className="text-xs">Target</Label>
-          <Select value={linkItem.target || '_self'} onValueChange={updateTarget}>
-            <SelectTrigger className="h-8">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="_self">Same Window</SelectItem>
-              <SelectItem value="_blank">New Window</SelectItem>
-            </SelectContent>
-          </Select>
         </div>
       </CardContent>
     </Card>
@@ -331,33 +244,17 @@ export const LinkEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove
 
 // Button item editor
 export const ButtonEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove }) => {
-  const buttonItem = item as any; // Type assertion for button item
-
-  const updateValue = (value: MultiLanguageValue) => {
+  const updateValue = (value: string) => {
     onChange({
       ...item,
-      value
+      content: value
     });
   };
 
-  const updateAction = (action: string) => {
+  const updateLink = (link: string) => {
     onChange({
       ...item,
-      action
-    });
-  };
-
-  const updateStyle = (style: string) => {
-    onChange({
-      ...item,
-      style: style as 'primary' | 'secondary' | 'outline'
-    });
-  };
-
-  const updateTarget = (target: string) => {
-    onChange({
-      ...item,
-      target: target as '_blank' | '_self'
+      link
     });
   };
 
@@ -377,47 +274,21 @@ export const ButtonEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemo
       <CardContent className="space-y-3">
         <div>
           <Label className="text-xs">Button Text</Label>
-          <MultiLanguageInput
-            value={item.value}
-            onChange={updateValue}
-            placeholder="Button text..."
-          />
-        </div>
-        <div>
-          <Label className="text-xs">Action URL</Label>
           <Input
-            value={buttonItem.action || ''}
-            onChange={(e) => updateAction(e.target.value)}
-            placeholder="/action-url"
+            value={item.content || ''}
+            onChange={(e) => updateValue(e.target.value)}
+            placeholder="Button text..."
             className="text-sm"
           />
         </div>
-        <div className="grid grid-cols-2 gap-2">
-          <div>
-            <Label className="text-xs">Style</Label>
-            <Select value={buttonItem.style || 'primary'} onValueChange={updateStyle}>
-              <SelectTrigger className="h-8">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="primary">Primary</SelectItem>
-                <SelectItem value="secondary">Secondary</SelectItem>
-                <SelectItem value="outline">Outline</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label className="text-xs">Target</Label>
-            <Select value={buttonItem.target || '_self'} onValueChange={updateTarget}>
-              <SelectTrigger className="h-8">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="_self">Same Window</SelectItem>
-                <SelectItem value="_blank">New Window</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+        <div>
+          <Label className="text-xs">Link URL</Label>
+          <Input
+            value={item.link || ''}
+            onChange={(e) => updateLink(e.target.value)}
+            placeholder="/action-url"
+            className="text-sm"
+          />
         </div>
       </CardContent>
     </Card>
@@ -426,36 +297,27 @@ export const ButtonEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemo
 
 // Array item editor
 export const ArrayEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove }) => {
-  const arrayItem = item as any; // Type assertion for array item
-
-  const updateValue = (value: any[]) => {
+  const updateItems = (items: SchemaItem[]) => {
     onChange({
       ...item,
-      value
-    });
-  };
-
-  const updateItemType = (itemType: string) => {
-    onChange({
-      ...item,
-      itemType
+      items
     });
   };
 
   const addItem = () => {
-    const newValue = [...(arrayItem.value || []), {}];
-    updateValue(newValue);
+    const newItems = [...(item.items || []), { key: `item${Date.now()}`, type: 'text' as const, content: '' }];
+    updateItems(newItems);
   };
 
   const removeItem = (index: number) => {
-    const newValue = arrayItem.value.filter((_: any, i: number) => i !== index);
-    updateValue(newValue);
+    const newItems = item.items?.filter((_, i) => i !== index) || [];
+    updateItems(newItems);
   };
 
-  const updateItem = (index: number, updatedItem: any) => {
-    const newValue = [...arrayItem.value];
-    newValue[index] = updatedItem;
-    updateValue(newValue);
+  const updateItem = (index: number, updatedItem: SchemaItem) => {
+    const newItems = [...(item.items || [])];
+    newItems[index] = updatedItem;
+    updateItems(newItems);
   };
 
   return (
@@ -464,7 +326,7 @@ export const ArrayEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemov
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm flex items-center gap-2">
             <Badge className="h-4 w-4" />
-            Array ({arrayItem.value?.length || 0} items)
+            Array ({item.items?.length || 0} items)
           </CardTitle>
           <Button variant="ghost" size="sm" onClick={onRemove}>
             <X className="h-4 w-4" />
@@ -472,15 +334,6 @@ export const ArrayEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemov
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
-        <div>
-          <Label className="text-xs">Item Type</Label>
-          <Input
-            value={arrayItem.itemType || ''}
-            onChange={(e) => updateItemType(e.target.value)}
-            placeholder="e.g., showcase-item, review"
-            className="text-sm"
-          />
-        </div>
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <Label className="text-xs">Items</Label>
@@ -489,21 +342,19 @@ export const ArrayEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemov
               Add Item
             </Button>
           </div>
-          {arrayItem.value?.map((arrayItem: any, index: number) => (
+          {item.items?.map((arrayItem: SchemaItem, index: number) => (
             <div key={index} className="border rounded p-2 flex items-center gap-2">
-              <Input
-                value={JSON.stringify(arrayItem)}
-                onChange={(e) => {
-                  try {
-                    const parsed = JSON.parse(e.target.value);
-                    updateItem(index, parsed);
-                  } catch {
-                    // Invalid JSON, keep the string value
-                  }
-                }}
-                placeholder="JSON object"
-                className="text-sm flex-1"
-              />
+              <div className="flex-1">
+                <div className="text-xs text-gray-500 mb-1">
+                  {arrayItem.type} - {arrayItem.key}
+                </div>
+                <Input
+                  value={arrayItem.content || ''}
+                  onChange={(e) => updateItem(index, { ...arrayItem, content: e.target.value })}
+                  placeholder="Item content"
+                  className="text-sm"
+                />
+              </div>
               <Button size="sm" variant="ghost" onClick={() => removeItem(index)}>
                 <X className="h-3 w-3" />
               </Button>
@@ -532,14 +383,14 @@ export const VideoItemEditor: React.FC<ItemEditorProps> = ({ item, onChange, onR
   const updateTitle = (title: string) => {
     onChange({
       ...item,
-      title
+      alt: title
     });
   };
 
   const updateCaption = (caption: string) => {
     onChange({
       ...item,
-      caption
+      alt: caption
     });
   };
 
@@ -584,7 +435,7 @@ export const GalleryItemEditor: React.FC<ItemEditorProps> = ({ item, onChange, o
   const updateTitle = (title: string) => {
     onChange({
       ...item,
-      title
+      alt: title
     });
   };
 
@@ -627,21 +478,19 @@ export const CarouselItemEditor: React.FC<ItemEditorProps> = ({ item, onChange, 
   const updateTitle = (title: string) => {
     onChange({
       ...item,
-      title
+      alt: title
     });
   };
 
   const updateAutoplay = (autoplay: boolean) => {
     onChange({
-      ...item,
-      autoplay
+      ...item
     });
   };
 
   const updateShowNavigation = (showNavigation: boolean) => {
     onChange({
-      ...item,
-      showNavigation
+      ...item
     });
   };
 
@@ -669,8 +518,7 @@ export const CarouselItemEditor: React.FC<ItemEditorProps> = ({ item, onChange, 
           onSettingsChange={(settings) => {
             updateAutoplay(settings.autoplay);
             onChange({
-              ...item,
-              navigation: settings.navigation
+              ...item
             });
           }}
         />
@@ -693,21 +541,21 @@ export const EnhancedButtonItemEditor: React.FC<ItemEditorProps> = ({ item, onCh
   const updateUrl = (url: string) => {
     onChange({
       ...item,
-      action: url
+      link: url
     });
   };
 
   const updateStyle = (style: string) => {
     onChange({
       ...item,
-      style
+      content: style
     });
   };
 
   const updateOpenInNewTab = (openInNewTab: boolean) => {
     onChange({
       ...item,
-      target: openInNewTab ? '_blank' : '_self'
+      link: openInNewTab ? '_blank' : '_self'
     });
   };
 
@@ -827,10 +675,11 @@ export const InputEditor: React.FC<NewItemEditorProps> = ({ item, onChange, onRe
         </div>
         <div>
           <Label className="text-xs">Field Label</Label>
-          <MultiLanguageInput
-            value={item.content}
-            onChange={(val) => updateItem('content', val)}
+          <Input
+            value={item.content || ''}
+            onChange={(e) => updateItem('content', e.target.value)}
             placeholder="Enter field label..."
+            className="text-sm"
           />
         </div>
         <div className="flex items-center space-x-2">
@@ -876,10 +725,11 @@ export const TextareaEditor: React.FC<NewItemEditorProps> = ({ item, onChange, o
         </div>
         <div>
           <Label className="text-xs">Field Label</Label>
-          <MultiLanguageInput
-            value={item.content}
-            onChange={(val) => updateItem('content', val)}
+          <Input
+            value={item.content || ''}
+            onChange={(e) => updateItem('content', e.target.value)}
             placeholder="Enter field label..."
+            className="text-sm"
           />
         </div>
         <div className="flex items-center space-x-2">
@@ -956,10 +806,11 @@ export const ReviewEditor: React.FC<NewItemEditorProps> = ({ item, onChange, onR
         </div>
         <div>
           <Label className="text-xs">Review Text</Label>
-          <MultiLanguageInput
-            value={item.props?.content}
-            onChange={(val) => updateProps('content', val)}
+          <Textarea
+            value={item.props?.content || ''}
+            onChange={(e) => updateProps('content', e.target.value)}
             placeholder="Enter review text..."
+            className="text-sm"
           />
         </div>
         <div className="space-y-2">
@@ -1016,18 +867,20 @@ export const FeatureEditor: React.FC<NewItemEditorProps> = ({ item, onChange, on
         </div>
         <div>
           <Label className="text-xs">Feature Title</Label>
-          <MultiLanguageInput
-            value={item.props?.title}
-            onChange={(val) => updateProps('title', val)}
+          <Input
+            value={item.props?.title || ''}
+            onChange={(e) => updateProps('title', e.target.value)}
             placeholder="Enter feature title..."
+            className="text-sm"
           />
         </div>
         <div>
           <Label className="text-xs">Feature Description</Label>
-          <MultiLanguageInput
-            value={item.props?.description}
-            onChange={(val) => updateProps('description', val)}
+          <Textarea
+            value={item.props?.description || ''}
+            onChange={(e) => updateProps('description', e.target.value)}
             placeholder="Enter feature description..."
+            className="text-sm"
           />
         </div>
       </CardContent>

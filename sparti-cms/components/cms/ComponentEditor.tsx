@@ -29,8 +29,8 @@ const renderSchemaItemEditor = (item: SchemaItem, onChange: (updatedItem: Schema
     case 'text':
       return (
         <ContentTextEditor
-          content={item.content?.en || ''}
-          onChange={(content) => handleItemChange({ ...item, content: { en: content, fr: item.content?.fr || '' } })}
+          content={item.content || ''}
+          onChange={(content) => handleItemChange({ ...item, content })}
           placeholder={item.type === 'heading' ? 'Enter heading text...' : 'Enter paragraph text...'}
           className={className}
         />
@@ -40,11 +40,11 @@ const renderSchemaItemEditor = (item: SchemaItem, onChange: (updatedItem: Schema
       return (
         <ContentImageEditor
           imageUrl={item.src || ''}
-          imageTitle={item.title || ''}
-          imageAlt={item.alt?.en || ''}
+          imageTitle={item.alt || ''}
+          imageAlt={item.alt || ''}
           onImageChange={(imageUrl) => handleItemChange({ ...item, src: imageUrl })}
-          onTitleChange={(title) => handleItemChange({ ...item, title })}
-          onAltChange={(alt) => handleItemChange({ ...item, alt: { en: alt, fr: item.alt?.fr || '' } })}
+          onTitleChange={(title) => handleItemChange({ ...item, alt: title })}
+          onAltChange={(alt) => handleItemChange({ ...item, alt })}
           className={className}
         />
       );
@@ -53,11 +53,11 @@ const renderSchemaItemEditor = (item: SchemaItem, onChange: (updatedItem: Schema
       return (
         <ContentVideoEditor
           videoUrl={item.src || ''}
-          videoTitle={item.title || ''}
-          videoCaption={item.caption || ''}
+          videoTitle={item.alt || ''}
+          videoCaption={item.alt || ''}
           onUrlChange={(videoUrl) => handleItemChange({ ...item, src: videoUrl })}
-          onTitleChange={(title) => handleItemChange({ ...item, title })}
-          onCaptionChange={(caption) => handleItemChange({ ...item, caption })}
+          onTitleChange={(title) => handleItemChange({ ...item, alt: title })}
+          onCaptionChange={(caption) => handleItemChange({ ...item, alt: caption })}
           className={className}
         />
       );
@@ -66,9 +66,9 @@ const renderSchemaItemEditor = (item: SchemaItem, onChange: (updatedItem: Schema
       return (
         <ContentGalleryEditor
           images={item.value || []}
-          galleryTitle={item.title || ''}
+          galleryTitle={item.alt || ''}
           onImagesChange={(images) => handleItemChange({ ...item, value: images })}
-          onTitleChange={(title) => handleItemChange({ ...item, title })}
+          onTitleChange={(title) => handleItemChange({ ...item, alt: title })}
           className={className}
         />
       );
@@ -77,11 +77,11 @@ const renderSchemaItemEditor = (item: SchemaItem, onChange: (updatedItem: Schema
       return (
         <ContentCarouselEditor
           images={item.value || []}
-          carouselTitle={item.title || ''}
-          autoplay={item.autoplay || false}
-          navigation={item.navigation || 'arrows'}
+          carouselTitle={item.alt || ''}
+          autoplay={false}
+          navigation="arrows"
           onImagesChange={(images) => handleItemChange({ ...item, value: images })}
-          onTitleChange={(title) => handleItemChange({ ...item, title })}
+          onTitleChange={(title) => handleItemChange({ ...item, alt: title })}
           onSettingsChange={(settings) => handleItemChange({ ...item, ...settings })}
           className={className}
         />
@@ -90,14 +90,14 @@ const renderSchemaItemEditor = (item: SchemaItem, onChange: (updatedItem: Schema
     case 'button':
       return (
         <ContentButtonEditor
-          buttonText={item.content?.en || ''}
-          buttonUrl={item.action || ''}
-          buttonStyle={item.style || 'primary'}
-          openInNewTab={item.target === '_blank'}
-          onTextChange={(text) => handleItemChange({ ...item, content: { en: text, fr: item.content?.fr || '' } })}
-          onUrlChange={(url) => handleItemChange({ ...item, action: url })}
-          onStyleChange={(style) => handleItemChange({ ...item, style })}
-          onNewTabChange={(openInNewTab) => handleItemChange({ ...item, target: openInNewTab ? '_blank' : '_self' })}
+          buttonText={item.content || ''}
+          buttonUrl={item.link || ''}
+          buttonStyle="primary"
+          openInNewTab={false}
+          onTextChange={(text) => handleItemChange({ ...item, content: text })}
+          onUrlChange={(url) => handleItemChange({ ...item, link: url })}
+          onStyleChange={(style) => handleItemChange({ ...item })}
+          onNewTabChange={(openInNewTab) => handleItemChange({ ...item })}
           className={className}
         />
       );
@@ -109,7 +109,7 @@ const renderSchemaItemEditor = (item: SchemaItem, onChange: (updatedItem: Schema
             <div className="flex items-center gap-2">
               <Badge variant="outline">Array</Badge>
               <span className="text-sm text-gray-600">
-                {item.itemType || 'items'} ({Array.isArray(item.items) ? item.items.length : 0} items)
+                items ({Array.isArray(item.items) ? item.items.length : 0} items)
               </span>
             </div>
           </div>
@@ -129,7 +129,7 @@ const renderSchemaItemEditor = (item: SchemaItem, onChange: (updatedItem: Schema
                   {renderSchemaItemEditor(arrayItem, (updatedItem) => {
                     const updatedItems = [...item.items];
                     updatedItems[index] = updatedItem;
-                    onChange({ ...item, items: updatedItems });
+                    handleItemChange({ ...item, items: updatedItems });
                   })}
                 </div>
               ))}
@@ -170,6 +170,7 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Badge variant="outline">{schema.type}</Badge>
+            {schema.name && <span className="text-sm text-gray-600">({schema.name})</span>}
             Component Editor
           </CardTitle>
         </CardHeader>

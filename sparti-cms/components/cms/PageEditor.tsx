@@ -13,7 +13,6 @@ import SchemaEditor from './SchemaEditor';
 import ComponentEditor from './ComponentEditor';
 import { useAuth } from '../auth/AuthProvider';
 import { ComponentSchema } from '../../types/schema';
-import { needsV3Migration, getSchemaVersion, migrateOldSchemaToV3 } from '../../utils/schema-migration';
 import api from '../../utils/api';
 import {
   Dialog,
@@ -64,8 +63,6 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [components, setComponents] = useState<ComponentSchema[]>([]);
-  const [schemaVersion, setSchemaVersion] = useState<string>('unknown');
-  const [needsMigrationFlag, setNeedsMigrationFlag] = useState(false);
   const [selectedComponentIndex, setSelectedComponentIndex] = useState<number | null>(null);
   const [showSEOForm, setShowSEOForm] = useState(false);
   const [showJSONEditor, setShowJSONEditor] = useState(false);
@@ -102,50 +99,12 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
         if (data.success) {
           setPageData(data.page);
           
-          // Handle layout data - check if it's the new format or old format
-          if (data.page.layout) {
-            // Check if it's the new format (has components with items array)
-            if (data.page.layout.components && Array.isArray(data.page.layout.components) && 
-                data.page.layout.components.length > 0 && 
-                data.page.layout.components[0].items) {
-              // It's the new format
-              setComponents(data.page.layout.components);
-            } else {
-              // It's the old format, convert it using migration utility
-              console.log('[testing] Old format detected, converting to new format');
-              try {
-                const { migrateOldSchemaToV3 } = await import('../../utils/schema-migration');
-                const newSchema = migrateOldSchemaToV3(data.page.layout);
-                setComponents(newSchema.components);
-              } catch (error) {
-                console.error('[testing] Migration failed, using fallback:', error);
-                // Fallback: create a simple component
-                const fallbackFormat: ComponentSchema[] = [
-                  {
-                    key: 'component_1',
-                    type: 'TextBlock',
-                    items: [
-                      {
-                        key: 'text_1',
-                        type: 'text' as const,
-                        content: { en: 'Content from old format', fr: 'Contenu de l\'ancien format' }
-                      }
-                    ]
-                  }
-                ];
-                setComponents(fallbackFormat);
-              }
-            }
-            
-            // Check schema version and migration status
-            const version = getSchemaVersion(data.page.layout);
-            setSchemaVersion(version);
-            setNeedsMigrationFlag(needsV3Migration(data.page.layout));
+          // Handle layout data
+          if (data.page.layout && data.page.layout.components) {
+            setComponents(data.page.layout.components);
           } else {
             // No layout data, start with empty components
             setComponents([]);
-            setSchemaVersion('unknown');
-            setNeedsMigrationFlag(false);
           }
         } else {
           toast.error('Failed to load page data');
@@ -200,27 +159,6 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
     return typeMap[type] || type;
   };
 
-  const migrateToV3Format = async () => {
-    try {
-      console.log('[testing] PageEditor: Migrating schema to v3 format...');
-      // Convert v3 components to old format for migration
-      const oldSchema = {
-        components: components.map(comp => ({
-          type: comp.type,
-          props: {},
-          wrapper: (comp as any).wrapper
-        }))
-      };
-      const newSchema = migrateOldSchemaToV3(oldSchema);
-      setComponents(newSchema.components);
-      setNeedsMigrationFlag(false);
-      setSchemaVersion('3.0');
-      toast.success('Schema migrated to v3 format');
-    } catch (error) {
-      console.error('[testing] PageEditor: Migration failed:', error);
-      toast.error('Migration failed: ' + error.message);
-    }
-  };
 
   const handleSave = async () => {
     if (!pageData) return;
@@ -392,29 +330,10 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
           <h2 className="text-xl font-bold">Edit Page: {pageData.page_name}</h2>
           <div className="flex items-center gap-2">
             <p className="text-sm text-muted-foreground">{pageData.slug}</p>
-            <Badge variant={schemaVersion === '2.0' ? 'default' : 'secondary'}>
-              Schema v{schemaVersion}
-            </Badge>
-            {needsMigrationFlag && (
-              <Badge variant="outline" className="flex items-center gap-1">
-                <AlertCircle className="h-3 w-3" />
-                Migration Available
-              </Badge>
-            )}
           </div>
         </div>
       </div>
       <div className="flex items-center gap-2">
-        {needsMigrationFlag && (
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={migrateToV3Format}
-          >
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Migrate to V3
-          </Button>
-        )}
         {user?.is_super_admin && (
             <Button 
               variant="outline" 
