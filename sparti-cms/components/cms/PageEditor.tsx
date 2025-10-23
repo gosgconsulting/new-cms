@@ -259,6 +259,108 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
     }
   };
 
+  const renderRightPanel = () => {
+    if (showSEOForm) {
+      return (
+        <Card>
+            <CardHeader>
+                <CardTitle>SEO & Meta Information</CardTitle>
+                <CardDescription>Configure page title and meta description for search engines</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                <div className="space-y-2">
+                <Label htmlFor="page-title">Page Title</Label>
+                <Input
+                    id="page-title"
+                    value={pageData.page_name}
+                    onChange={(e) => updateField('page_name', e.target.value)}
+                    placeholder="Page Title"
+                />
+                </div>
+                <div className="space-y-2">
+                <Label htmlFor="meta-title">Meta Title</Label>
+                <Input
+                    id="meta-title"
+                    value={pageData.meta_title}
+                    onChange={(e) => updateField('meta_title', e.target.value)}
+                    placeholder="Meta Title (60 characters max)"
+                    maxLength={60}
+                />
+                <p className="text-xs text-muted-foreground">
+                    {pageData.meta_title.length}/60 characters
+                </p>
+                </div>
+                <div className="space-y-2">
+                <Label htmlFor="meta-description">Meta Description</Label>
+                <Textarea
+                    id="meta-description"
+                    value={pageData.meta_description}
+                    onChange={(e) => updateField('meta_description', e.target.value)}
+                    placeholder="Meta Description (160 characters max)"
+                    rows={3}
+                    maxLength={160}
+                />
+                <p className="text-xs text-muted-foreground">
+                    {pageData.meta_description.length}/160 characters
+                </p>
+                </div>
+                <div className="space-y-2">
+                <Label htmlFor="seo-index">SEO Index</Label>
+                <div className="flex items-center space-x-2">
+                    <input
+                    type="checkbox"
+                    id="seo-index"
+                    checked={pageData.seo_index}
+                    onChange={(e) => updateField('seo_index', e.target.checked)}
+                    className="rounded"
+                    />
+                    <Label htmlFor="seo-index" className="text-sm">
+                    Allow search engines to index this page
+                    </Label>
+                </div>
+                </div>
+            </CardContent>
+        </Card>
+      );
+    }
+
+    if (selectedComponentIndex !== null) {
+      return (
+        <Card>
+            <CardHeader>
+                <CardTitle>
+                {getComponentTypeDisplayName(components[selectedComponentIndex].type)} Settings
+                </CardTitle>
+                <CardDescription>
+                Configure the properties of this component
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                <SchemaEditor
+                components={[components[selectedComponentIndex]]}
+                onChange={(updatedComponents) => {
+                    if (updatedComponents.length > 0) {
+                    updateComponent(selectedComponentIndex, updatedComponents[0]);
+                    }
+                }}
+                onSave={handleSave}
+                />
+            </CardContent>
+        </Card>
+      );
+    }
+
+    return (
+        <div className="flex-1 flex items-center justify-center text-muted-foreground h-full">
+            <div className="text-center">
+            <Settings className="h-12 w-12 mx-auto mb-4 opacity-50" />
+            <h3 className="text-lg font-medium mb-2">Select a Component</h3>
+            <p className="text-sm">Choose a component from the left panel to edit its settings</p>
+            </div>
+        </div>
+    );
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -418,100 +520,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
       <div className="flex-1 flex flex-col overflow-hidden">
         <ScrollArea className="h-full">
           <div className="p-6">
-            {showSEOForm ? (
-              /* SEO Settings Panel */
-              <Card>
-                  <CardHeader>
-                      <CardTitle>SEO & Meta Information</CardTitle>
-                      <CardDescription>Configure page title and meta description for search engines</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                      <div className="space-y-2">
-                      <Label htmlFor="page-title">Page Title</Label>
-                      <Input
-                          id="page-title"
-                          value={pageData.page_name}
-                          onChange={(e) => updateField('page_name', e.target.value)}
-                          placeholder="Page Title"
-                      />
-                      </div>
-                      <div className="space-y-2">
-                      <Label htmlFor="meta-title">Meta Title</Label>
-                      <Input
-                          id="meta-title"
-                          value={pageData.meta_title}
-                          onChange={(e) => updateField('meta_title', e.target.value)}
-                          placeholder="Meta Title (60 characters max)"
-                          maxLength={60}
-                      />
-                      <p className="text-xs text-muted-foreground">
-                          {pageData.meta_title.length}/60 characters
-                      </p>
-                      </div>
-                      <div className="space-y-2">
-                      <Label htmlFor="meta-description">Meta Description</Label>
-                      <Textarea
-                          id="meta-description"
-                          value={pageData.meta_description}
-                          onChange={(e) => updateField('meta_description', e.target.value)}
-                          placeholder="Meta Description (160 characters max)"
-                          rows={3}
-                          maxLength={160}
-                      />
-                      <p className="text-xs text-muted-foreground">
-                          {pageData.meta_description.length}/160 characters
-                      </p>
-                      </div>
-                      <div className="space-y-2">
-                      <Label htmlFor="seo-index">SEO Index</Label>
-                      <div className="flex items-center space-x-2">
-                          <input
-                          type="checkbox"
-                          id="seo-index"
-                          checked={pageData.seo_index}
-                          onChange={(e) => updateField('seo_index', e.target.checked)}
-                          className="rounded"
-                          />
-                          <Label htmlFor="seo-index" className="text-sm">
-                          Allow search engines to index this page
-                          </Label>
-                      </div>
-                      </div>
-                  </CardContent>
-              </Card>
-            ) : selectedComponentIndex !== null ? (
-              /* Component Settings Panel */
-              <Card>
-                  <CardHeader>
-                      <CardTitle>
-                      {getComponentTypeDisplayName(components[selectedComponentIndex].type)} Settings
-                      </CardTitle>
-                      <CardDescription>
-                      Configure the properties of this component
-                      </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                      <SchemaEditor
-                      components={[components[selectedComponentIndex]]}
-                      onChange={(updatedComponents) => {
-                          if (updatedComponents.length > 0) {
-                          updateComponent(selectedComponentIndex, updatedComponents[0]);
-                          }
-                      }}
-                      onSave={handleSave}
-                      />
-                  </CardContent>
-              </Card>
-            ) : (
-              /* Empty State */
-              <div className="flex-1 flex items-center justify-center text-muted-foreground h-full">
-                  <div className="text-center">
-                  <Settings className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <h3 className="text-lg font-medium mb-2">Select a Component</h3>
-                  <p className="text-sm">Choose a component from the left panel to edit its settings</p>
-                  </div>
-              </div>
-            )}
+            {renderRightPanel()}
           </div>
         </ScrollArea>
       </div>
