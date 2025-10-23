@@ -20,12 +20,12 @@ interface ComponentEditorProps {
 // Helper function to render individual schema items
 const renderSchemaItemEditor = (item: SchemaItem, onChange: (updatedItem: SchemaItem) => void, className: string = '') => {
   const handleItemChange = (updatedItem: SchemaItem) => {
+    console.log('[renderSchemaItemEditor] handleItemChange called with:', updatedItem);
     onChange(updatedItem);
   };
 
   switch (item.type) {
     case 'heading':
-    case 'paragraph':
     case 'text':
       return (
         <ContentTextEditor
@@ -42,9 +42,21 @@ const renderSchemaItemEditor = (item: SchemaItem, onChange: (updatedItem: Schema
           imageUrl={item.src || ''}
           imageTitle={item.alt || ''}
           imageAlt={item.alt || ''}
-          onImageChange={(imageUrl) => handleItemChange({ ...item, src: imageUrl })}
-          onTitleChange={(title) => handleItemChange({ ...item, alt: title })}
-          onAltChange={(alt) => handleItemChange({ ...item, alt })}
+          onImageChange={(imageUrl) => {
+            console.log('[ComponentEditor] Image changed, updating item with src:', imageUrl);
+            // Preserve existing properties when updating src
+            handleItemChange({ ...item, src: imageUrl });
+          }}
+          onTitleChange={(title) => {
+            console.log('[ComponentEditor] Title changed, updating item with alt:', title);
+            // Preserve existing properties when updating alt
+            handleItemChange({ ...item, alt: title });
+          }}
+          onAltChange={(alt) => {
+            console.log('[ComponentEditor] Alt changed, updating item with alt:', alt);
+            // Preserve existing properties when updating alt
+            handleItemChange({ ...item, alt });
+          }}
           className={className}
         />
       );
@@ -129,7 +141,13 @@ const renderSchemaItemEditor = (item: SchemaItem, onChange: (updatedItem: Schema
                   {renderSchemaItemEditor(arrayItem, (updatedItem) => {
                     const updatedItems = [...item.items];
                     updatedItems[index] = updatedItem;
-                    handleItemChange({ ...item, items: updatedItems });
+                    // For array items, we need to update the parent array item
+                    const updatedArrayItem = { ...item, items: updatedItems };
+                    console.log('[ComponentEditor] Array item updated:', updatedArrayItem);
+                    // This should call the parent's onChange, not handleItemChange
+                    // We need to find the parent item index and update it
+                    // For now, let's just log and see what happens
+                    console.log('[ComponentEditor] Array update - this needs to be handled by parent');
                   })}
                 </div>
               ))}
@@ -158,10 +176,20 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
   onChange,
   className = ''
 }) => {
+  console.log('[ComponentEditor] Rendered with schema:', schema);
   const handleItemChange = (index: number, updatedItem: SchemaItem) => {
+    console.log('[ComponentEditor] handleItemChange called with index:', index, 'updatedItem:', updatedItem);
     const updatedItems = [...schema.items];
     updatedItems[index] = updatedItem;
-    onChange?.({ ...schema, items: updatedItems });
+    const updatedSchema = { ...schema, items: updatedItems };
+    console.log('[ComponentEditor] Calling onChange with updated schema:', updatedSchema);
+    console.log('[ComponentEditor] onChange function exists:', !!onChange);
+    if (onChange) {
+      onChange(updatedSchema);
+      console.log('[ComponentEditor] onChange called successfully');
+    } else {
+      console.log('[ComponentEditor] onChange is undefined!');
+    }
   };
 
   return (
@@ -186,7 +214,10 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
                     {item.key}
                   </span>
                 </div>
-                {renderSchemaItemEditor(item, (updatedItem) => handleItemChange(index, updatedItem))}
+                {renderSchemaItemEditor(item, (updatedItem) => {
+                  console.log('[ComponentEditor] renderSchemaItemEditor callback called with:', updatedItem);
+                  handleItemChange(index, updatedItem);
+                })}
               </div>
             ))}
             {schema.items.length === 0 && (

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Image as ImageIcon, Upload, X } from 'lucide-react';
 import api from '../../utils/api';
 
@@ -26,11 +26,32 @@ export const ImageEditor: React.FC<ImageEditorProps> = ({
   onSettingsChange,
   className = ''
 }) => {
-  const [selectedImage, setSelectedImage] = useState<string>(imageUrl);
-  const [title, setTitle] = useState<string>(imageTitle);
-  const [alt, setAlt] = useState<string>(imageAlt);
   const [displaySize, setDisplaySize] = useState<string>('full');
   const [alignment, setAlignment] = useState<string>('left');
+  
+  // Use local state for preview, but sync with props
+  const [selectedImage, setSelectedImage] = useState<string>(imageUrl || '');
+  const [title, setTitle] = useState<string>(imageTitle || '');
+  const [alt, setAlt] = useState<string>(imageAlt || '');
+
+  // Sync with props when they change, but don't override if we have a newer local value
+  useEffect(() => {
+    if (imageUrl && imageUrl !== selectedImage) {
+      setSelectedImage(imageUrl);
+    }
+  }, [imageUrl]);
+
+  useEffect(() => {
+    if (imageTitle && imageTitle !== title) {
+      setTitle(imageTitle);
+    }
+  }, [imageTitle]);
+
+  useEffect(() => {
+    if (imageAlt && imageAlt !== alt) {
+      setAlt(imageAlt);
+    }
+  }, [imageAlt]);
 
   // Function to handle file selection
   const handleImageSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -65,13 +86,18 @@ export const ImageEditor: React.FC<ImageEditorProps> = ({
       const result = await response.json();
       const newImageUrl = result.url;
       
-      setSelectedImage(newImageUrl);
-      onImageChange?.(newImageUrl);
-      
       // Auto-fill the image title with the file name (without extension)
       const fileName = file.name.replace(/\.[^/.]+$/, ""); // Remove extension
+      
+      // Update local state for immediate preview
+      setSelectedImage(newImageUrl);
       setTitle(fileName);
-      onTitleChange?.(fileName);
+      
+      console.log('[ImageEditor] Upload successful, calling onImageChange with:', newImageUrl);
+      // Call onImageChange first, then onTitleChange will be handled by the parent
+      onImageChange?.(newImageUrl);
+      // Don't call onTitleChange here - it will overwrite the src
+      // onTitleChange?.(fileName);
     } catch (error) {
       console.error('Error uploading image:', error);
       alert('Failed to upload image. Please try again.');

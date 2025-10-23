@@ -69,6 +69,11 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
   const [jsonString, setJsonString] = useState('');
   const [jsonError, setJsonError] = useState<string | null>(null);
 
+  // Debug: Track components state changes
+  useEffect(() => {
+    console.log('[PageEditor] Components state updated:', components);
+  }, [components]);
+
   useEffect(() => {
     if (showJSONEditor) {
       setJsonString(JSON.stringify(components, null, 2));
@@ -140,9 +145,13 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
   };
 
   const updateComponent = (index: number, updatedComponent: ComponentSchema) => {
+    console.log('[PageEditor] updateComponent called with index:', index, 'updatedComponent:', updatedComponent);
+    console.log('[PageEditor] Current components before update:', components);
     const newComponents = [...components];
     newComponents[index] = updatedComponent;
+    console.log('[PageEditor] Setting new components:', newComponents);
     setComponents(newComponents);
+    console.log('[PageEditor] Components state should be updated now');
   };
 
   const getComponentTypeDisplayName = (type: string) => {
@@ -163,6 +172,8 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
   const handleSave = async () => {
     if (!pageData) return;
     
+    console.log('[PageEditor] handleSave called with components:', components);
+    
     try {
       setSaving(true);
       
@@ -180,6 +191,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
       }
 
       // Update page layout with new schema format
+      console.log('[PageEditor] Saving components:', components);
       const layoutResponse = await api.put(`/api/pages/${pageId}/layout`, {
         layout_json: { components },
         tenantId: currentTenant.id
@@ -276,8 +288,10 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
             </CardHeader>
             <CardContent>
                 <ComponentEditor
+                key={`component-${selectedComponentIndex}`}
                 schema={components[selectedComponentIndex]}
                 onChange={(updatedComponent) => {
+                    console.log('[PageEditor] ComponentEditor onChange called with:', updatedComponent);
                     updateComponent(selectedComponentIndex, updatedComponent);
                 }}
                 />
