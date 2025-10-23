@@ -5,7 +5,9 @@ import { Label } from '../../../src/components/ui/label';
 import { Textarea } from '../../../src/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../src/components/ui/card';
 import { Badge } from '../../../src/components/ui/badge';
-import { ArrowLeft, Save, Loader2, AlertCircle, CheckCircle, RefreshCw } from 'lucide-react';
+import { ScrollArea } from '../../../src/components/ui/scroll-area';
+import { Separator } from '../../../src/components/ui/separator';
+import { ArrowLeft, Save, Loader2, AlertCircle, CheckCircle, RefreshCw, Plus, Settings, Eye, Trash2, GripVertical } from 'lucide-react';
 import { toast } from 'sonner';
 import SchemaEditor from './SchemaEditor';
 import { useAuth } from '../auth/AuthProvider';
@@ -52,6 +54,8 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
   const [components, setComponents] = useState<ComponentSchema[]>([]);
   const [schemaVersion, setSchemaVersion] = useState<string>('unknown');
   const [needsMigrationFlag, setNeedsMigrationFlag] = useState(false);
+  const [selectedComponentIndex, setSelectedComponentIndex] = useState<number | null>(null);
+  const [showSEOForm, setShowSEOForm] = useState(false);
 
   // Fetch page data from database
   useEffect(() => {
@@ -129,6 +133,52 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
     if (pageData) {
       setPageData({ ...pageData, [field]: value });
     }
+  };
+
+  const addNewComponent = () => {
+    const newComponent: ComponentSchema = {
+      key: `component_${Date.now()}`,
+      type: 'TextBlock',
+      items: [
+        {
+          key: 'text_1',
+          type: 'text',
+          content: { en: 'New text content', fr: 'Nouveau contenu texte' }
+        }
+      ]
+    };
+    setComponents([...components, newComponent]);
+    setSelectedComponentIndex(components.length);
+  };
+
+  const removeComponent = (index: number) => {
+    const newComponents = components.filter((_, i) => i !== index);
+    setComponents(newComponents);
+    if (selectedComponentIndex === index) {
+      setSelectedComponentIndex(null);
+    } else if (selectedComponentIndex !== null && selectedComponentIndex > index) {
+      setSelectedComponentIndex(selectedComponentIndex - 1);
+    }
+  };
+
+  const updateComponent = (index: number, updatedComponent: ComponentSchema) => {
+    const newComponents = [...components];
+    newComponents[index] = updatedComponent;
+    setComponents(newComponents);
+  };
+
+  const getComponentTypeDisplayName = (type: string) => {
+    const typeMap: { [key: string]: string } = {
+      'TextBlock': 'Text Block',
+      'HeroSection': 'Hero Section',
+      'Showcase': 'Showcase',
+      'ProductGrid': 'Product Grid',
+      'Reviews': 'Reviews',
+      'Newsletter': 'Newsletter',
+      'ImageBlock': 'Image Block',
+      'VideoBlock': 'Video Block'
+    };
+    return typeMap[type] || type;
   };
 
   const migrateToV3Format = async () => {
@@ -213,127 +263,236 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={onBack}>
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div>
-            <h2 className="text-2xl font-bold">Edit Page: {pageData.page_name}</h2>
-            <div className="flex items-center gap-2">
-              <p className="text-muted-foreground">{pageData.slug}</p>
-              <Badge variant={schemaVersion === '2.0' ? 'default' : 'secondary'}>
-                Schema v{schemaVersion}
+    <div className="h-screen flex flex-col">
+    {/* Header */}
+    <div className="flex items-center justify-between p-4 border-b bg-background">
+      <div className="flex items-center gap-4">
+        <Button variant="ghost" size="icon" onClick={onBack}>
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+        <div>
+          <h2 className="text-xl font-bold">Edit Page: {pageData.page_name}</h2>
+          <div className="flex items-center gap-2">
+            <p className="text-sm text-muted-foreground">{pageData.slug}</p>
+            <Badge variant={schemaVersion === '2.0' ? 'default' : 'secondary'}>
+              Schema v{schemaVersion}
+            </Badge>
+            {needsMigrationFlag && (
+              <Badge variant="outline" className="flex items-center gap-1">
+                <AlertCircle className="h-3 w-3" />
+                Migration Available
               </Badge>
-              {needsMigrationFlag && (
-                <Badge variant="outline" className="flex items-center gap-1">
-                  <AlertCircle className="h-3 w-3" />
-                  Migration Available
-                </Badge>
-              )}
-            </div>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          {needsMigrationFlag && (
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={migrateToV3Format}
-            >
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Migrate to V3
-            </Button>
-          )}
-          <Button onClick={handleSave} disabled={saving}>
-            {saving ? (
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            ) : (
-              <Save className="h-4 w-4 mr-2" />
             )}
-            {saving ? 'Saving...' : 'Save Changes'}
-          </Button>
+          </div>
         </div>
       </div>
+      <div className="flex items-center gap-2">
+        {needsMigrationFlag && (
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={migrateToV3Format}
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Migrate to V3
+          </Button>
+        )}
+        <Button onClick={handleSave} disabled={saving}>
+          {saving ? (
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+          ) : (
+            <Save className="h-4 w-4 mr-2" />
+          )}
+          {saving ? 'Saving...' : 'Save Changes'}
+        </Button>
+      </div>
+    </div>
 
-      {/* SEO Meta Information */}
-      <Card>
-        <CardHeader>
-          <CardTitle>SEO & Meta Information</CardTitle>
-          <CardDescription>Configure page title and meta description for search engines</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="page-title">Page Title</Label>
-            <Input
-              id="page-title"
-              value={pageData.page_name}
-              onChange={(e) => updateField('page_name', e.target.value)}
-              placeholder="Page Title"
-            />
+    {/* Main Content */}
+    <div className="flex-1 flex overflow-hidden">
+      {/* Left Panel - Components List */}
+      <div className="w-80 border-r bg-muted/20 flex flex-col">
+        <div className="p-4 border-b">
+          <div className="flex items-center justify-between">
+            <h3 className="font-semibold">Page Components</h3>
+            <Button size="sm" onClick={addNewComponent}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Component
+            </Button>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="meta-title">Meta Title</Label>
-            <Input
-              id="meta-title"
-              value={pageData.meta_title}
-              onChange={(e) => updateField('meta_title', e.target.value)}
-              placeholder="Meta Title (60 characters max)"
-              maxLength={60}
-            />
-            <p className="text-xs text-muted-foreground">
-              {pageData.meta_title.length}/60 characters
-            </p>
+        </div>
+        
+        <ScrollArea className="flex-1">
+          <div className="p-2 space-y-2">
+            {/* SEO Settings Button */}
+            <Button
+              variant={showSEOForm ? "default" : "ghost"}
+              className="w-full justify-start"
+              onClick={() => {
+                setShowSEOForm(true);
+                setSelectedComponentIndex(null);
+              }}
+            >
+              <Settings className="h-4 w-4 mr-2" />
+              SEO Settings
+            </Button>
+            
+            <Separator className="my-2" />
+            
+            {/* Components List */}
+            {components.map((component, index) => (
+              <div
+                key={component.key}
+                className={`p-3 rounded-lg border cursor-pointer transition-colors ${
+                  selectedComponentIndex === index
+                    ? 'border-primary bg-primary/5'
+                    : 'border-border hover:bg-muted/50'
+                }`}
+                onClick={() => {
+                  setSelectedComponentIndex(index);
+                  setShowSEOForm(false);
+                }}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <GripVertical className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <p className="font-medium text-sm">
+                        {getComponentTypeDisplayName(component.type)}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {component.key}
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeComponent(index);
+                    }}
+                    className="h-6 w-6 p-0 text-destructive hover:text-destructive"
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+            
+            {components.length === 0 && (
+              <div className="text-center py-8 text-muted-foreground">
+                <p className="text-sm">No components yet</p>
+                <p className="text-xs">Click "Add Component" to get started</p>
+              </div>
+            )}
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="meta-description">Meta Description</Label>
-            <Textarea
-              id="meta-description"
-              value={pageData.meta_description}
-              onChange={(e) => updateField('meta_description', e.target.value)}
-              placeholder="Meta Description (160 characters max)"
-              rows={3}
-              maxLength={160}
-            />
-            <p className="text-xs text-muted-foreground">
-              {pageData.meta_description.length}/160 characters
-            </p>
+        </ScrollArea>
+      </div>
+
+      {/* Right Panel - Settings */}
+      <div className="flex-1 flex flex-col">
+        {showSEOForm ? (
+          /* SEO Settings Panel */
+          <div className="flex-1 p-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>SEO & Meta Information</CardTitle>
+                <CardDescription>Configure page title and meta description for search engines</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="page-title">Page Title</Label>
+                  <Input
+                    id="page-title"
+                    value={pageData.page_name}
+                    onChange={(e) => updateField('page_name', e.target.value)}
+                    placeholder="Page Title"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="meta-title">Meta Title</Label>
+                  <Input
+                    id="meta-title"
+                    value={pageData.meta_title}
+                    onChange={(e) => updateField('meta_title', e.target.value)}
+                    placeholder="Meta Title (60 characters max)"
+                    maxLength={60}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    {pageData.meta_title.length}/60 characters
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="meta-description">Meta Description</Label>
+                  <Textarea
+                    id="meta-description"
+                    value={pageData.meta_description}
+                    onChange={(e) => updateField('meta_description', e.target.value)}
+                    placeholder="Meta Description (160 characters max)"
+                    rows={3}
+                    maxLength={160}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    {pageData.meta_description.length}/160 characters
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="seo-index">SEO Index</Label>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="seo-index"
+                      checked={pageData.seo_index}
+                      onChange={(e) => updateField('seo_index', e.target.checked)}
+                      className="rounded"
+                    />
+                    <Label htmlFor="seo-index" className="text-sm">
+                      Allow search engines to index this page
+                    </Label>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="seo-index">SEO Index</Label>
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="seo-index"
-                checked={pageData.seo_index}
-                onChange={(e) => updateField('seo_index', e.target.checked)}
-                className="rounded"
-              />
-              <Label htmlFor="seo-index" className="text-sm">
-                Allow search engines to index this page
-              </Label>
+        ) : selectedComponentIndex !== null ? (
+          /* Component Settings Panel */
+          <div className="flex-1 p-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>
+                  {getComponentTypeDisplayName(components[selectedComponentIndex].type)} Settings
+                </CardTitle>
+                <CardDescription>
+                  Configure the properties of this component
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <SchemaEditor
+                  components={[components[selectedComponentIndex]]}
+                  onChange={(updatedComponents) => {
+                    if (updatedComponents.length > 0) {
+                      updateComponent(selectedComponentIndex, updatedComponents[0]);
+                    }
+                  }}
+                  onSave={handleSave}
+                />
+              </CardContent>
+            </Card>
+          </div>
+        ) : (
+          /* Empty State */
+          <div className="flex-1 flex items-center justify-center text-muted-foreground">
+            <div className="text-center">
+              <Settings className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <h3 className="text-lg font-medium mb-2">Select a Component</h3>
+              <p className="text-sm">Choose a component from the left panel to edit its settings</p>
             </div>
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Schema Editor */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Page Components</CardTitle>
-          <CardDescription>Edit the components that make up this page</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <SchemaEditor
-            components={components}
-            onChange={setComponents}
-            onSave={handleSave}
-          />
-        </CardContent>
-      </Card>
+        )}
+      </div>
     </div>
+  </div>
   );
 };
 
