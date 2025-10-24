@@ -20,7 +20,6 @@ interface ComponentEditorProps {
 // Helper function to render individual schema items
 const renderSchemaItemEditor = (item: SchemaItem, onChange: (updatedItem: SchemaItem) => void, className: string = '') => {
   const handleItemChange = (updatedItem: SchemaItem) => {
-    console.log('[renderSchemaItemEditor] handleItemChange called with:', updatedItem);
     onChange(updatedItem);
   };
 
@@ -43,18 +42,12 @@ const renderSchemaItemEditor = (item: SchemaItem, onChange: (updatedItem: Schema
           imageTitle={item.alt || ''}
           imageAlt={item.alt || ''}
           onImageChange={(imageUrl) => {
-            console.log('[ComponentEditor] Image changed, updating item with src:', imageUrl);
-            // Preserve existing properties when updating src
             handleItemChange({ ...item, src: imageUrl });
           }}
           onTitleChange={(title) => {
-            console.log('[ComponentEditor] Title changed, updating item with alt:', title);
-            // Preserve existing properties when updating alt
             handleItemChange({ ...item, alt: title });
           }}
           onAltChange={(alt) => {
-            console.log('[ComponentEditor] Alt changed, updating item with alt:', alt);
-            // Preserve existing properties when updating alt
             handleItemChange({ ...item, alt });
           }}
           className={className}
@@ -139,7 +132,7 @@ const renderSchemaItemEditor = (item: SchemaItem, onChange: (updatedItem: Schema
                     </span>
                   </div>
                   {renderSchemaItemEditor(arrayItem, (updatedItem) => {
-                    const updatedItems = [...item.items];
+                    const updatedItems = [...(item.items || [])];
                     updatedItems[index] = updatedItem;
                     // For array items, we need to update the parent array item
                     const updatedArrayItem = { ...item, items: updatedItems };
@@ -176,20 +169,11 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
   onChange,
   className = ''
 }) => {
-  console.log('[ComponentEditor] Rendered with schema:', schema);
   const handleItemChange = (index: number, updatedItem: SchemaItem) => {
-    console.log('[ComponentEditor] handleItemChange called with index:', index, 'updatedItem:', updatedItem);
     const updatedItems = [...schema.items];
     updatedItems[index] = updatedItem;
     const updatedSchema = { ...schema, items: updatedItems };
-    console.log('[ComponentEditor] Calling onChange with updated schema:', updatedSchema);
-    console.log('[ComponentEditor] onChange function exists:', !!onChange);
-    if (onChange) {
-      onChange(updatedSchema);
-      console.log('[ComponentEditor] onChange called successfully');
-    } else {
-      console.log('[ComponentEditor] onChange is undefined!');
-    }
+    onChange?.(updatedSchema);
   };
 
   return (

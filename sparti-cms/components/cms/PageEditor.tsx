@@ -69,10 +69,6 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
   const [jsonString, setJsonString] = useState('');
   const [jsonError, setJsonError] = useState<string | null>(null);
 
-  // Debug: Track components state changes
-  useEffect(() => {
-    console.log('[PageEditor] Components state updated:', components);
-  }, [components]);
 
   useEffect(() => {
     if (showJSONEditor) {
@@ -144,15 +140,11 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
     }
   };
 
-  const updateComponent = (index: number, updatedComponent: ComponentSchema) => {
-    console.log('[PageEditor] updateComponent called with index:', index, 'updatedComponent:', updatedComponent);
-    console.log('[PageEditor] Current components before update:', components);
-    const newComponents = [...components];
-    newComponents[index] = updatedComponent;
-    console.log('[PageEditor] Setting new components:', newComponents);
-    setComponents(newComponents);
-    console.log('[PageEditor] Components state should be updated now');
-  };
+        const updateComponent = (index: number, updatedComponent: ComponentSchema) => {
+          const newComponents = [...components];
+          newComponents[index] = updatedComponent;
+          setComponents(newComponents);
+        };
 
   const getComponentTypeDisplayName = (type: string) => {
     const typeMap: { [key: string]: string } = {
@@ -172,17 +164,16 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
   const handleSave = async () => {
     if (!pageData) return;
     
-    console.log('[PageEditor] handleSave called with components:', components);
     
     try {
       setSaving(true);
       
       // Update page data
       const pageResponse = await api.put(`/api/pages/${pageId}`, {
-        page_name: pageData.page_name,
-        meta_title: pageData.meta_title,
-        meta_description: pageData.meta_description,
-        seo_index: pageData.seo_index,
+        page_name: pageData?.page_name || '',
+        meta_title: pageData?.meta_title || '',
+        meta_description: pageData?.meta_description || '',
+        seo_index: pageData?.seo_index || false,
         tenantId: currentTenant.id
       });
 
@@ -191,7 +182,6 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
       }
 
       // Update page layout with new schema format
-      console.log('[PageEditor] Saving components:', components);
       const layoutResponse = await api.put(`/api/pages/${pageId}/layout`, {
         layout_json: { components },
         tenantId: currentTenant.id
@@ -223,7 +213,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
                 <Label htmlFor="page-title">Page Title</Label>
                 <Input
                     id="page-title"
-                    value={pageData.page_name}
+                    value={pageData?.page_name || ''}
                     onChange={(e) => updateField('page_name', e.target.value)}
                     placeholder="Page Title"
                 />
@@ -232,27 +222,27 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
                 <Label htmlFor="meta-title">Meta Title</Label>
                 <Input
                     id="meta-title"
-                    value={pageData.meta_title}
+                    value={pageData?.meta_title || ''}
                     onChange={(e) => updateField('meta_title', e.target.value)}
                     placeholder="Meta Title (60 characters max)"
                     maxLength={60}
                 />
                 <p className="text-xs text-muted-foreground">
-                    {pageData.meta_title.length}/60 characters
+                    {(pageData?.meta_title || '').length}/60 characters
                 </p>
                 </div>
                 <div className="space-y-2">
                 <Label htmlFor="meta-description">Meta Description</Label>
                 <Textarea
                     id="meta-description"
-                    value={pageData.meta_description}
+                    value={pageData?.meta_description || ''}
                     onChange={(e) => updateField('meta_description', e.target.value)}
                     placeholder="Meta Description (160 characters max)"
                     rows={3}
                     maxLength={160}
                 />
                 <p className="text-xs text-muted-foreground">
-                    {pageData.meta_description.length}/160 characters
+                    {(pageData?.meta_description || '').length}/160 characters
                 </p>
                 </div>
                 <div className="space-y-2">
@@ -261,7 +251,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
                     <input
                     type="checkbox"
                     id="seo-index"
-                    checked={pageData.seo_index}
+                    checked={pageData?.seo_index || false}
                     onChange={(e) => updateField('seo_index', e.target.checked)}
                     className="rounded"
                     />
@@ -291,7 +281,6 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
                 key={`component-${selectedComponentIndex}`}
                 schema={components[selectedComponentIndex]}
                 onChange={(updatedComponent) => {
-                    console.log('[PageEditor] ComponentEditor onChange called with:', updatedComponent);
                     updateComponent(selectedComponentIndex, updatedComponent);
                 }}
                 />
@@ -341,9 +330,9 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div>
-          <h2 className="text-xl font-bold">Edit Page: {pageData.page_name}</h2>
+          <h2 className="text-xl font-bold">Edit Page: {pageData?.page_name || 'Untitled'}</h2>
           <div className="flex items-center gap-2">
-            <p className="text-sm text-muted-foreground">{pageData.slug}</p>
+            <p className="text-sm text-muted-foreground">{pageData?.slug || 'no-slug'}</p>
           </div>
         </div>
       </div>

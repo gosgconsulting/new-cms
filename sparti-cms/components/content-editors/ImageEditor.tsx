@@ -93,11 +93,7 @@ export const ImageEditor: React.FC<ImageEditorProps> = ({
       setSelectedImage(newImageUrl);
       setTitle(fileName);
       
-      console.log('[ImageEditor] Upload successful, calling onImageChange with:', newImageUrl);
-      // Call onImageChange first, then onTitleChange will be handled by the parent
       onImageChange?.(newImageUrl);
-      // Don't call onTitleChange here - it will overwrite the src
-      // onTitleChange?.(fileName);
     } catch (error) {
       console.error('Error uploading image:', error);
       alert('Failed to upload image. Please try again.');
