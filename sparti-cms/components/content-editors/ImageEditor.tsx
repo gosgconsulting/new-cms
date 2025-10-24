@@ -84,7 +84,14 @@ export const ImageEditor: React.FC<ImageEditorProps> = ({
       }
       
       const result = await response.json();
-      const newImageUrl = result.url;
+      let newImageUrl = result.url;
+      
+      // Ensure the URL is a full URL with domain
+      if (newImageUrl && !newImageUrl.startsWith('http')) {
+        // If it's a relative path, make it absolute with the current domain
+        const baseUrl = window.location.origin;
+        newImageUrl = `${baseUrl}${newImageUrl.startsWith('/') ? '' : '/'}${newImageUrl}`;
+      }
       
       // Auto-fill the image title with the file name (without extension)
       const fileName = file.name.replace(/\.[^/.]+$/, ""); // Remove extension
