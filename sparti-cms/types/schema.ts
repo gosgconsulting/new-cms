@@ -15,7 +15,8 @@ export type SchemaItemType =
   | 'input' 
   | 'textarea' 
   | 'review' 
-  | 'feature';
+  | 'feature'
+  | 'ContactForm';
 
 // Schema item interface
 export interface SchemaItem {

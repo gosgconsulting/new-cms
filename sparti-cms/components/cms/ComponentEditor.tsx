@@ -67,6 +67,54 @@ const renderSchemaItemEditor = (item: SchemaItem, onChange: (updatedItem: Schema
         />
       );
 
+    case 'input':
+      return (
+        <div className={`p-4 border rounded-md ${className}`}>
+          <label className="block text-sm font-medium mb-2">Input Field: {item.key}</label>
+          <input
+            type="text"
+            value={item.content || ''}
+            onChange={(e) => handleItemChange({ ...item, content: e.target.value })}
+            placeholder="Enter field label..."
+            className="w-full p-2 border rounded"
+          />
+          <div className="mt-2 flex items-center">
+            <input
+              type="checkbox"
+              id={`required-${item.key}`}
+              checked={item.required || false}
+              onChange={(e) => handleItemChange({ ...item, required: e.target.checked })}
+              className="mr-2"
+            />
+            <label htmlFor={`required-${item.key}`} className="text-sm">Required field</label>
+          </div>
+        </div>
+      );
+
+    case 'textarea':
+      return (
+        <div className={`p-4 border rounded-md ${className}`}>
+          <label className="block text-sm font-medium mb-2">Textarea Field: {item.key}</label>
+          <textarea
+            value={item.content || ''}
+            onChange={(e) => handleItemChange({ ...item, content: e.target.value })}
+            placeholder="Enter field label..."
+            className="w-full p-2 border rounded"
+            rows={3}
+          />
+          <div className="mt-2 flex items-center">
+            <input
+              type="checkbox"
+              id={`required-${item.key}`}
+              checked={item.required || false}
+              onChange={(e) => handleItemChange({ ...item, required: e.target.checked })}
+              className="mr-2"
+            />
+            <label htmlFor={`required-${item.key}`} className="text-sm">Required field</label>
+          </div>
+        </div>
+      );
+
     case 'gallery':
       return (
         <ContentGalleryEditor
@@ -153,6 +201,96 @@ const renderSchemaItemEditor = (item: SchemaItem, onChange: (updatedItem: Schema
         </div>
       );
 
+    case 'review':
+      return (
+        <div className={`p-4 border rounded-md ${className}`}>
+          <label className="block text-sm font-medium mb-2">Review: {item.key}</label>
+          <div className="space-y-3">
+            <div>
+              <label className="block text-xs text-gray-600 mb-1">Reviewer Name</label>
+              <input
+                type="text"
+                value={item.props?.name || ''}
+                onChange={(e) => handleItemChange({ ...item, props: { ...item.props, name: e.target.value } })}
+                placeholder="Enter reviewer name..."
+                className="w-full p-2 border rounded text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-600 mb-1">Rating (1-5)</label>
+              <select
+                value={item.props?.rating || 5}
+                onChange={(e) => handleItemChange({ ...item, props: { ...item.props, rating: parseInt(e.target.value) } })}
+                className="w-full p-2 border rounded text-sm"
+              >
+                {[1, 2, 3, 4, 5].map(rating => (
+                  <option key={rating} value={rating}>{rating} Star{rating !== 1 ? 's' : ''}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs text-gray-600 mb-1">Review Text</label>
+              <textarea
+                value={item.props?.content || ''}
+                onChange={(e) => handleItemChange({ ...item, props: { ...item.props, content: e.target.value } })}
+                placeholder="Enter review text..."
+                className="w-full p-2 border rounded text-sm"
+                rows={3}
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-600 mb-1">Avatar URL</label>
+              <input
+                type="text"
+                value={item.props?.avatar || ''}
+                onChange={(e) => handleItemChange({ ...item, props: { ...item.props, avatar: e.target.value } })}
+                placeholder="e.g., /images/avatar.jpg"
+                className="w-full p-2 border rounded text-sm"
+              />
+            </div>
+          </div>
+        </div>
+      );
+
+    case 'feature':
+      return (
+        <div className={`p-4 border rounded-md ${className}`}>
+          <label className="block text-sm font-medium mb-2">Feature: {item.key}</label>
+          <div className="space-y-3">
+            <div>
+              <label className="block text-xs text-gray-600 mb-1">Icon</label>
+              <input
+                type="text"
+                value={item.props?.icon || ''}
+                onChange={(e) => handleItemChange({ ...item, props: { ...item.props, icon: e.target.value } })}
+                placeholder="e.g., star, heart, award"
+                className="w-full p-2 border rounded text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-600 mb-1">Feature Title</label>
+              <input
+                type="text"
+                value={item.props?.title || ''}
+                onChange={(e) => handleItemChange({ ...item, props: { ...item.props, title: e.target.value } })}
+                placeholder="Enter feature title..."
+                className="w-full p-2 border rounded text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-600 mb-1">Feature Description</label>
+              <textarea
+                value={item.props?.description || ''}
+                onChange={(e) => handleItemChange({ ...item, props: { ...item.props, description: e.target.value } })}
+                placeholder="Enter feature description..."
+                className="w-full p-2 border rounded text-sm"
+                rows={3}
+              />
+            </div>
+          </div>
+        </div>
+      );
+
     default:
       return (
         <div className={`p-4 bg-gray-100 rounded-md ${className}`}>
@@ -169,10 +307,19 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
   onChange,
   className = ''
 }) => {
+  // Debug logging to understand the schema structure
+  console.log('[ComponentEditor] Received schema:', schema);
+  
+  // Ensure schema has items property
+  const safeSchema = {
+    ...schema,
+    items: schema.items || []
+  };
+  
   const handleItemChange = (index: number, updatedItem: SchemaItem) => {
-    const updatedItems = [...schema.items];
+    const updatedItems = [...safeSchema.items];
     updatedItems[index] = updatedItem;
-    const updatedSchema = { ...schema, items: updatedItems };
+    const updatedSchema = { ...safeSchema, items: updatedItems };
     onChange?.(updatedSchema);
   };
 
@@ -181,14 +328,14 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Badge variant="outline">{schema.type}</Badge>
-            {schema.name && <span className="text-sm text-gray-600">({schema.name})</span>}
+            <Badge variant="outline">{safeSchema.type}</Badge>
+            {safeSchema.name && <span className="text-sm text-gray-600">({safeSchema.name})</span>}
             Component Editor
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {schema.items.map((item, index) => (
+            {safeSchema.items && safeSchema.items.length > 0 ? safeSchema.items.map((item, index) => (
               <div key={`${item.key}-${index}`} className="border rounded-lg p-4">
                 <div className="mb-2">
                   <Badge variant="secondary" className="text-xs">
@@ -203,8 +350,7 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
                   handleItemChange(index, updatedItem);
                 })}
               </div>
-            ))}
-            {schema.items.length === 0 && (
+            )) : (
               <div className="text-center py-8 text-gray-500">
                 <p>No items in this component</p>
               </div>

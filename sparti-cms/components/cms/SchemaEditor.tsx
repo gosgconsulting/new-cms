@@ -8,8 +8,8 @@ import { Plus, Trash2, ChevronDown, ChevronRight, AlertCircle, CheckCircle } fro
 import { toast } from 'sonner';
 import { ComponentSchema, SchemaItem } from '../../types/schema';
 import { ItemEditor, InputEditor, TextareaEditor, ReviewEditor, FeatureEditor } from './ItemEditors';
+import ContactFormEditor from './ContactFormEditor';
 import { validatePageSchema, getValidationSummary } from '../../utils/schema-validator';
-import { needsV3Migration, migrateOldSchemaToV3 } from '../../utils/schema-migration';
 
 interface SchemaEditorProps {
   components: ComponentSchema[];
@@ -22,11 +22,11 @@ const SchemaEditor: React.FC<SchemaEditorProps> = ({ components, onChange, onSav
   const [validationResult, setValidationResult] = useState<any>(null);
   const [expandedComponents, setExpandedComponents] = useState<Set<number>>(new Set([0]));
   const [needsMigrationFlag, setNeedsMigrationFlag] = useState(false);
+  const [jsonInput, setJsonInput] = useState('');
 
-  // Check if schema needs migration on mount
+  // Update JSON input when components change
   useEffect(() => {
-    const currentSchema = { components };
-    setNeedsMigrationFlag(needsV3Migration(currentSchema));
+    setJsonInput(JSON.stringify({ components }, null, 2));
   }, [components]);
 
   // Validate schema whenever it changes
@@ -84,22 +84,8 @@ const SchemaEditor: React.FC<SchemaEditorProps> = ({ components, onChange, onSav
   };
 
   const migrateToV3Format = () => {
-    try {
-      // Convert v3 components to old format for migration
-      const oldSchema = {
-        components: components.map(comp => ({
-          type: comp.type,
-          props: {},
-          wrapper: (comp as any).wrapper
-        }))
-      };
-      const newSchema = migrateOldSchemaToV3(oldSchema);
-      onChange(newSchema.components);
-      setNeedsMigrationFlag(false);
-      toast.success('Schema migrated to v3 format');
-    } catch (error) {
-      toast.error('Migration failed: ' + error.message);
-    }
+    // Migration functionality removed - schema is already in v3 format
+    toast.info('Schema is already in v3 format');
   };
 
   return (
@@ -144,6 +130,8 @@ const SchemaEditor: React.FC<SchemaEditorProps> = ({ components, onChange, onSav
         const componentName = component.type;
         const componentKey = component.key;
         const items = component.items;
+        
+        // ContactForm is now handled at the item level in ItemEditor
         
         return (
           <Card key={index} className="border-l-4 border-l-blue-500">
@@ -251,6 +239,20 @@ const SchemaEditor: React.FC<SchemaEditorProps> = ({ components, onChange, onSav
                           onChange={(updatedItem) => updateItemInComponent(index, itemIndex, updatedItem)}
                           onRemove={() => removeItemFromComponent(index, itemIndex)}
                         />
+                      );
+                    case 'ContactForm' as any:
+                      // Handle ContactForm as a special component type
+                      // This is actually a nested component, so we need to handle it specially
+                      return (
+                        <div key={itemIndex} className="border-l-4 border-l-blue-500 p-4 bg-blue-50 rounded">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="text-sm font-medium">Contact Form Component</span>
+                            <Badge variant="secondary">ContactForm</Badge>
+                          </div>
+                          <p className="text-sm text-muted-foreground">
+                            This is a nested ContactForm component. Use the main component editor to modify it.
+                          </p>
+                        </div>
                       );
                     default:
                       // For other types, show a generic editor

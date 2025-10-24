@@ -8,7 +8,7 @@ import { Button } from '../../../src/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../src/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../src/components/ui/select';
 import { Badge } from '../../../src/components/ui/badge';
-import { X, Plus, Image as ImageIcon, Link as LinkIcon, Type, MousePointer, Video, Grid, Layers } from 'lucide-react';
+import { X, Plus, Image as ImageIcon, Link as LinkIcon, Type, MousePointer, Video, Grid, Layers, Mail } from 'lucide-react';
 import { SchemaItem, SchemaItemType } from '../../types/schema';
 // Import the new content editor components
 import {
@@ -19,6 +19,7 @@ import {
   CarouselEditor as ContentCarouselEditor,
   ButtonEditor as ContentButtonEditor
 } from '../content-editors';
+import ContactFormEditor from './ContactFormEditor';
 
 interface ItemEditorProps {
   item: SchemaItem;
@@ -618,6 +619,8 @@ export const ItemEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove
       return <ReviewEditor item={item} onChange={onChange} onRemove={onRemove} />;
     case 'feature':
       return <FeatureEditor item={item} onChange={onChange} onRemove={onRemove} />;
+    case 'ContactForm' as any:
+      return <ContactFormEditor item={item} onChange={onChange} onRemove={onRemove} />;
     default:
       return (
         <Card className="border-l-4 border-l-gray-500">
@@ -641,14 +644,9 @@ export const ItemEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove
 
 // NEW V3 SCHEMA ITEM EDITORS
 
-interface NewItemEditorProps {
-  item: SchemaItem;
-  onChange: (item: SchemaItem) => void;
-  onRemove: () => void;
-}
 
 // Input field editor for form inputs
-export const InputEditor: React.FC<NewItemEditorProps> = ({ item, onChange, onRemove }) => {
+export const InputEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove }) => {
   const updateItem = (field: keyof SchemaItem, value: any) => {
     onChange({ ...item, [field]: value });
   };
@@ -698,7 +696,7 @@ export const InputEditor: React.FC<NewItemEditorProps> = ({ item, onChange, onRe
 };
 
 // Textarea field editor for form textareas
-export const TextareaEditor: React.FC<NewItemEditorProps> = ({ item, onChange, onRemove }) => {
+export const TextareaEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove }) => {
   const updateItem = (field: keyof SchemaItem, value: any) => {
     onChange({ ...item, [field]: value });
   };
@@ -748,7 +746,7 @@ export const TextareaEditor: React.FC<NewItemEditorProps> = ({ item, onChange, o
 };
 
 // Review item editor
-export const ReviewEditor: React.FC<NewItemEditorProps> = ({ item, onChange, onRemove }) => {
+export const ReviewEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove }) => {
   const updateItem = (field: keyof SchemaItem, value: any) => {
     onChange({ ...item, [field]: value });
   };
@@ -827,7 +825,7 @@ export const ReviewEditor: React.FC<NewItemEditorProps> = ({ item, onChange, onR
 };
 
 // Feature item editor
-export const FeatureEditor: React.FC<NewItemEditorProps> = ({ item, onChange, onRemove }) => {
+export const FeatureEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove }) => {
   const updateItem = (field: keyof SchemaItem, value: any) => {
     onChange({ ...item, [field]: value });
   };
