@@ -56,18 +56,24 @@ interface TextEditorProps {
   onChange?: (content: string) => void;
   placeholder?: string;
   className?: string;
+  link?: string;
+  onLinkChange?: (link: string) => void;
 }
 
 export const TextEditor: React.FC<TextEditorProps> = ({
   content = '',
   onChange,
   placeholder = 'Enter text...',
-  className = ''
+  className = '',
+  link = '',
+  onLinkChange
 }) => {
   const [editorContent, setEditorContent] = useState<string>(content);
   const [showColorPicker, setShowColorPicker] = useState<boolean>(false);
   const [showTextStylePicker, setShowTextStylePicker] = useState<boolean>(false);
   const [showFontSizePicker, setShowFontSizePicker] = useState<boolean>(false);
+  const [showLinkInput, setShowLinkInput] = useState<boolean>(false);
+  const [linkUrl, setLinkUrl] = useState<string>(link);
   const [selectedColor, setSelectedColor] = useState<string>('');
   const [selectedTextStyle, setSelectedTextStyle] = useState<string>('paragraph');
   const [selectedFontSize, setSelectedFontSize] = useState<string>('16px');
@@ -369,9 +375,51 @@ export const TextEditor: React.FC<TextEditorProps> = ({
         
         <div className="h-6 border-r border-gray-300 mx-1"></div>
         
-        <button className="p-2 hover:bg-gray-200 rounded" title="Link">
-          <Link className="h-4 w-4" />
-        </button>
+        <div className="relative">
+          <button 
+            onClick={() => setShowLinkInput(!showLinkInput)}
+            className={`p-2 hover:bg-gray-200 rounded ${linkUrl ? 'text-blue-600' : ''}`} 
+            title="Link"
+          >
+            <Link className="h-4 w-4" />
+          </button>
+          
+          {showLinkInput && (
+            <div className="absolute z-10 mt-1 w-72 bg-white rounded-md shadow-lg border border-gray-200 p-3">
+              <div className="space-y-2">
+                <label className="block text-xs font-medium text-gray-700">URL</label>
+                <input
+                  type="text"
+                  value={linkUrl}
+                  onChange={(e) => setLinkUrl(e.target.value)}
+                  placeholder="https://example.com"
+                  className="w-full p-2 border border-gray-300 rounded-md text-sm"
+                />
+                <div className="flex justify-end space-x-2 pt-2">
+                  <button 
+                    onClick={() => {
+                      setLinkUrl('');
+                      if (onLinkChange) onLinkChange('');
+                      setShowLinkInput(false);
+                    }}
+                    className="px-3 py-1 text-xs border border-gray-300 rounded hover:bg-gray-100"
+                  >
+                    Remove
+                  </button>
+                  <button 
+                    onClick={() => {
+                      if (onLinkChange) onLinkChange(linkUrl);
+                      setShowLinkInput(false);
+                    }}
+                    className="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
+                  >
+                    Apply
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
         
         {/* Color Picker */}
         <div className="relative">
@@ -439,6 +487,33 @@ export const TextEditor: React.FC<TextEditorProps> = ({
           dir="ltr" // Explicitly set left-to-right text direction
         />
       </div>
+      
+      {/* Link Preview */}
+      {linkUrl && (
+        <div className="mt-4 p-3 border border-gray-200 rounded-md bg-gray-50">
+          <div className="flex justify-between items-center">
+            <span className="text-sm text-gray-500">Link Preview:</span>
+            <a 
+              href={linkUrl} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-xs text-blue-600 hover:underline"
+            >
+              {linkUrl}
+            </a>
+          </div>
+          <div className="mt-2 p-2 border border-gray-200 rounded bg-white">
+            <a 
+              href={linkUrl} 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="text-blue-600 hover:underline"
+            >
+              {editorContent}
+            </a>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

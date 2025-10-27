@@ -16,7 +16,9 @@ export type SchemaItemType =
   | 'textarea' 
   | 'review' 
   | 'feature'
-  | 'ContactForm';
+  | 'ContactForm'
+  | 'faq'
+  | 'officeHours';
 
 // Schema item interface
 export interface SchemaItem {
@@ -32,6 +34,13 @@ export interface SchemaItem {
   required?: boolean;           // For form fields
   alt?: string;                 // For images
   label?: string;               // For links
+  
+  // Additional properties for specific components
+  title?: string;               // For carousel/sections titles
+  images?: string[] | any[];    // For carousel images
+  highlight?: string;           // For highlighted text
+  buttonText?: string;          // For button text
+  description?: string;         // For descriptions
 }
 
 // Component schema interface

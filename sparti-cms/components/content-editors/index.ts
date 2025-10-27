@@ -5,3 +5,5 @@ export { default as VideoEditor } from './VideoEditor';
 export { default as GalleryEditor } from './GalleryEditor';
 export { default as CarouselEditor } from './CarouselEditor';
 export { default as ButtonEditor } from './ButtonEditor';
+export { default as FAQEditor } from './FAQEditor';
+export { default as OfficeHoursEditor } from './OfficeHoursEditor';
