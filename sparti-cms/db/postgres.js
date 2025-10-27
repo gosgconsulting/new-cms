@@ -13,23 +13,21 @@ const pool = new Pool(dbConfig);
 
 // Test connection
 pool.on('connect', () => {
-  console.log('[testing] Connected to PostgreSQL database');
+  console.log('Connected to PostgreSQL database');
 });
 
 pool.on('error', (err) => {
-  console.error('[testing] PostgreSQL connection error:', err);
+  console.error('PostgreSQL connection error:', err);
 });
 
 // Helper function to execute queries
 export async function query(text, params) {
   const client = await pool.connect();
   try {
-    console.log('[testing] Executing query:', { text, params });
     const result = await client.query(text, params);
-    console.log('[testing] Query executed successfully, rows:', result.rowCount);
     return result;
   } catch (error) {
-    console.error('[testing] Query error:', error);
+    console.error('Query error:', error);
     throw error;
   } finally {
     client.release();
@@ -52,7 +50,7 @@ export async function getLayoutBySlug(slug) {
     const layoutRes = await query(`SELECT layout_json, version, updated_at FROM page_layouts WHERE page_id = $1`, [pageId]);
     return layoutRes.rows[0] || { layout_json: { components: [] }, version: 1 };
   } catch (error) {
-    console.error('[testing] Error fetching layout by slug:', error);
+    console.error('Error fetching layout by slug:', error);
     throw error;
   }
 }
@@ -73,7 +71,7 @@ export async function upsertLayoutBySlug(slug, layoutJson) {
     `, [pageId, layoutJson]);
     return result.rows[0];
   } catch (error) {
-    console.error('[testing] Error upserting layout by slug:', error);
+    console.error('Error upserting layout by slug:', error);
     throw error;
   }
 }
@@ -81,7 +79,7 @@ export async function upsertLayoutBySlug(slug, layoutJson) {
 // Initialize tenant tables
 export async function initializeTenantTables() {
   try {
-    console.log('[testing] Initializing tenant tables...');
+    console.log('Initializing tenant tables...');
     
     // Read the SQL schema file
     const fs = await import('fs');
@@ -98,10 +96,10 @@ export async function initializeTenantTables() {
     // Execute the schema SQL
     await query(tenantsSql);
     
-    console.log('[testing] Tenant tables initialized successfully');
+    console.log('Tenant tables initialized successfully');
     return true;
   } catch (error) {
-    console.error('[testing] Error initializing tenant tables:', error);
+    console.error('Error initializing tenant tables:', error);
     return false;
   }
 }
@@ -109,7 +107,7 @@ export async function initializeTenantTables() {
 // Initialize database tables
 export async function initializeDatabase() {
   try {
-    console.log('[testing] Initializing Sparti CMS database tables...');
+    console.log('Initializing Sparti CMS database tables...');
     
     // Create site_settings table for branding and configuration
     await query(`
@@ -250,20 +248,20 @@ export async function initializeDatabase() {
     try {
       await initializeMediaTables();
     } catch (error) {
-      console.log('[testing] Media tables initialization skipped:', error.message);
+      console.log('Media tables initialization skipped:', error.message);
     }
 
     // Initialize users management tables
     try {
       await initializeUsersTables();
     } catch (error) {
-      console.log('[testing] Users tables initialization skipped:', error.message);
+      console.log('Users tables initialization skipped:', error.message);
     }
 
-    console.log('[testing] Database initialization completed successfully');
+    console.log('Database initialization completed successfully');
     return true;
   } catch (error) {
-    console.error('[testing] Database initialization failed:', error);
+    console.error('Database initialization failed:', error);
     return false;
   }
 }
@@ -293,7 +291,7 @@ export async function getBrandingSettings() {
     
     return settings;
   } catch (error) {
-    console.error('[testing] Error fetching branding settings:', error);
+    console.error('Error fetching branding settings:', error);
     throw error;
   }
 }
@@ -315,7 +313,7 @@ export async function getPublicSEOSettings() {
     
     return settings;
   } catch (error) {
-    console.error('[testing] Error fetching public SEO settings:', error);
+    console.error('Error fetching public SEO settings:', error);
     throw error;
   }
 }
@@ -332,10 +330,9 @@ export async function updateBrandingSetting(key, value) {
       RETURNING *
     `, [key, value, key.includes('logo') || key.includes('favicon') || key.includes('image') ? 'media' : 'text']);
     
-    console.log('[testing] Updated branding setting:', { key, value });
     return result.rows[0];
   } catch (error) {
-    console.error('[testing] Error updating branding setting:', error);
+    console.error('Error updating branding setting:', error);
     throw error;
   }
 }
@@ -360,11 +357,10 @@ export async function updateMultipleBrandingSettings(settings) {
     }
     
     await client.query('COMMIT');
-    console.log('[testing] Updated multiple branding settings:', settings);
     return true;
   } catch (error) {
     await client.query('ROLLBACK');
-    console.error('[testing] Error updating multiple branding settings:', error);
+    console.error('Error updating multiple branding settings:', error);
     throw error;
   } finally {
     client.release();
@@ -408,11 +404,10 @@ export async function updateSEOSettings(seoData) {
     }
     
     await client.query('COMMIT');
-    console.log('[testing] Updated SEO settings:', seoSettings);
     return true;
   } catch (error) {
     await client.query('ROLLBACK');
-    console.error('[testing] Error updating SEO settings:', error);
+    console.error('Error updating SEO settings:', error);
     throw error;
   } finally {
     client.release();
@@ -445,10 +440,10 @@ export async function migrateLogoToDatabase(logoPath, altText = 'Site Logo') {
     // Update site_logo setting with media ID
     await updateBrandingSetting('site_logo', logoMedia.id.toString());
     
-    console.log('[testing] Logo migrated to database:', logoMedia.id);
+    console.log('Logo migrated to database:', logoMedia.id);
     return logoMedia;
   } catch (error) {
-    console.error('[testing] Error migrating logo to database:', error);
+    console.error('Error migrating logo to database:', error);
     throw error;
   }
 }
@@ -480,10 +475,10 @@ export async function migrateFaviconToDatabase(faviconPath) {
     // Update site_favicon setting with media ID
     await updateBrandingSetting('site_favicon', faviconMedia.id.toString());
     
-    console.log('[testing] Favicon migrated to database:', faviconMedia.id);
+    console.log('Favicon migrated to database:', faviconMedia.id);
     return faviconMedia;
   } catch (error) {
-    console.error('[testing] Error migrating favicon to database:', error);
+    console.error('Error migrating favicon to database:', error);
     throw error;
   }
 }
@@ -506,7 +501,7 @@ export async function getFormById(formId) {
     
     return result.rows[0];
   } catch (error) {
-    console.error('[testing] Error getting form:', error);
+    console.error('Error getting form:', error);
     throw error;
   }
 }
@@ -517,7 +512,7 @@ export async function getEmailSettingsByFormId(formId) {
     const result = await query('SELECT * FROM email_settings WHERE form_id = $1', [formId]);
     return result.rows[0];
   } catch (error) {
-    console.error('[testing] Error getting email settings:', error);
+    console.error('Error getting email settings:', error);
     return null; // Return null if no settings found
   }
 }
@@ -530,7 +525,7 @@ export async function saveFormSubmissionExtended(formData) {
     
     // If form doesn't exist in new table, create a default one for backward compatibility
     if (!form) {
-      console.log('[testing] Form not found in new forms table, creating default form for:', formData.form_id);
+      console.log('Form not found in new forms table, creating default form for:', formData.form_id);
       
       const defaultFormResult = await query(`
         INSERT INTO forms (name, description, fields, settings, is_active)
@@ -595,10 +590,9 @@ export async function saveFormSubmissionExtended(formData) {
       formData.user_agent
     ]);
 
-    console.log('[testing] Form submission saved to new database:', result.rows[0]);
     return result.rows[0];
   } catch (error) {
-    console.error('[testing] Error saving form submission to new database:', error);
+    console.error('Error saving form submission to new database:', error);
     throw error;
   }
 }
@@ -629,14 +623,13 @@ export async function saveFormSubmission(formData) {
     try {
       await saveFormSubmissionExtended(formData);
     } catch (newDbError) {
-      console.error('[testing] Error saving to new forms database:', newDbError);
+      console.error('Error saving to new forms database:', newDbError);
       // Don't fail the legacy save if new database fails
     }
     
-    console.log('[testing] Form submission saved:', legacyResult.rows[0].id);
     return legacyResult.rows[0];
   } catch (error) {
-    console.error('[testing] Error saving form submission:', error);
+    console.error('Error saving form submission:', error);
     throw error;
   }
 }
@@ -676,7 +669,7 @@ export async function getFormSubmissions(formId) {
     
     return formatted;
   } catch (error) {
-    console.error('[testing] Error fetching form submissions:', error);
+    console.error('Error fetching form submissions:', error);
     throw error;
   }
 }
@@ -710,10 +703,9 @@ export async function createContact(contactData) {
       contactData.tags || null
     ]);
     
-    console.log('[testing] Contact created/updated:', result.rows[0].id);
     return result.rows[0];
   } catch (error) {
-    console.error('[testing] Error creating contact:', error);
+    console.error('Error creating contact:', error);
     throw error;
   }
 }
@@ -767,7 +759,7 @@ export async function getContacts(limit = 50, offset = 0, search = '') {
       offset
     };
   } catch (error) {
-    console.error('[testing] Error fetching contacts:', error);
+    console.error('Error fetching contacts:', error);
     throw error;
   }
 }
@@ -780,7 +772,7 @@ export async function getContact(contactId) {
     
     return result.rows[0] || null;
   } catch (error) {
-    console.error('[testing] Error fetching contact:', error);
+    console.error('Error fetching contact:', error);
     throw error;
   }
 }
@@ -815,10 +807,9 @@ export async function updateContact(contactId, contactData) {
       contactData.tags
     ]);
     
-    console.log('[testing] Contact updated:', contactId);
     return result.rows[0];
   } catch (error) {
-    console.error('[testing] Error updating contact:', error);
+    console.error('Error updating contact:', error);
     throw error;
   }
 }
@@ -826,10 +817,9 @@ export async function updateContact(contactId, contactData) {
 export async function deleteContact(contactId) {
   try {
     await query(`DELETE FROM contacts WHERE id = $1`, [contactId]);
-    console.log('[testing] Contact deleted:', contactId);
     return true;
   } catch (error) {
-    console.error('[testing] Error deleting contact:', error);
+    console.error('Error deleting contact:', error);
     throw error;
   }
 }
@@ -898,7 +888,7 @@ export async function getContactsWithMessages(limit = 50, offset = 0, search = '
       offset
     };
   } catch (error) {
-    console.error('[testing] Error fetching contacts with messages:', error);
+    console.error('Error fetching contacts with messages:', error);
     throw error;
   }
 }
@@ -922,10 +912,9 @@ export async function createProject(projectData) {
       projectData.progress || 0
     ]);
     
-    console.log('[testing] Project created:', result.rows[0].id);
     return result.rows[0];
   } catch (error) {
-    console.error('[testing] Error creating project:', error);
+    console.error('Error creating project:', error);
     throw error;
   }
 }
@@ -952,7 +941,7 @@ export async function getProjects() {
         : 0
     }));
   } catch (error) {
-    console.error('[testing] Error fetching projects:', error);
+    console.error('Error fetching projects:', error);
     throw error;
   }
 }
@@ -985,10 +974,9 @@ export async function updateProject(projectId, projectData) {
       projectData.progress
     ]);
     
-    console.log('[testing] Project updated:', projectId);
     return result.rows[0];
   } catch (error) {
-    console.error('[testing] Error updating project:', error);
+    console.error('Error updating project:', error);
     throw error;
   }
 }
@@ -996,10 +984,9 @@ export async function updateProject(projectId, projectData) {
 export async function deleteProject(projectId) {
   try {
     await query(`DELETE FROM projects WHERE id = $1`, [projectId]);
-    console.log('[testing] Project deleted:', projectId);
     return true;
   } catch (error) {
-    console.error('[testing] Error deleting project:', error);
+    console.error('Error deleting project:', error);
     throw error;
   }
 }
@@ -1023,10 +1010,9 @@ export async function createProjectStep(stepData) {
       stepData.due_date || null
     ]);
     
-    console.log('[testing] Project step created:', result.rows[0].id);
     return result.rows[0];
   } catch (error) {
-    console.error('[testing] Error creating project step:', error);
+    console.error('Error creating project step:', error);
     throw error;
   }
 }
@@ -1041,7 +1027,7 @@ export async function getProjectSteps(projectId) {
     
     return result.rows;
   } catch (error) {
-    console.error('[testing] Error fetching project steps:', error);
+    console.error('Error fetching project steps:', error);
     throw error;
   }
 }
@@ -1075,10 +1061,9 @@ export async function updateProjectStep(stepId, stepData) {
       stepData.due_date
     ]);
     
-    console.log('[testing] Project step updated:', stepId);
     return result.rows[0];
   } catch (error) {
-    console.error('[testing] Error updating project step:', error);
+    console.error('Error updating project step:', error);
     throw error;
   }
 }
@@ -1086,10 +1071,9 @@ export async function updateProjectStep(stepId, stepData) {
 export async function deleteProjectStep(stepId) {
   try {
     await query(`DELETE FROM project_steps WHERE id = $1`, [stepId]);
-    console.log('[testing] Project step deleted:', stepId);
     return true;
   } catch (error) {
-    console.error('[testing] Error deleting project step:', error);
+    console.error('Error deleting project step:', error);
     throw error;
   }
 }
@@ -1097,7 +1081,7 @@ export async function deleteProjectStep(stepId) {
 // SEO Pages Management Functions
 export async function initializeSEOPagesTables() {
   try {
-    console.log('[testing] Initializing SEO pages tables...');
+    console.log('Initializing SEO pages tables...');
     
     // Create enhanced pages table with SEO metadata
     await query(`
@@ -1219,10 +1203,10 @@ export async function initializeSEOPagesTables() {
       `, [homePageId, defaultLayout]);
     }
 
-    console.log('[testing] SEO pages tables initialized successfully');
+    console.log('SEO pages tables initialized successfully');
     return true;
   } catch (error) {
-    console.error('[testing] SEO pages tables initialization failed:', error);
+    console.error('SEO pages tables initialization failed:', error);
     return false;
   }
 }
@@ -1243,10 +1227,9 @@ export async function createPage(pageData) {
       pageData.status || 'draft'
     ]);
     
-    console.log('[testing] Page created:', result.rows[0].id);
     return result.rows[0];
   } catch (error) {
-    console.error('[testing] Error creating page:', error);
+    console.error('Error creating page:', error);
     throw error;
   }
 }
@@ -1259,7 +1242,7 @@ export async function getPages() {
     `);
     return result.rows;
   } catch (error) {
-    console.error('[testing] Error fetching pages:', error);
+    console.error('Error fetching pages:', error);
     throw error;
   }
 }
@@ -1271,7 +1254,7 @@ export async function getPage(pageId) {
     `, [pageId]);
     return result.rows[0] || null;
   } catch (error) {
-    console.error('[testing] Error fetching page:', error);
+    console.error('Error fetching page:', error);
     throw error;
   }
 }
@@ -1300,10 +1283,9 @@ export async function updatePage(pageId, pageData) {
       pageData.status
     ]);
     
-    console.log('[testing] Page updated:', pageId);
     return result.rows[0];
   } catch (error) {
-    console.error('[testing] Error updating page:', error);
+    console.error('Error updating page:', error);
     throw error;
   }
 }
@@ -1311,10 +1293,9 @@ export async function updatePage(pageId, pageData) {
 export async function deletePage(pageId) {
   try {
     await query(`DELETE FROM pages WHERE id = $1`, [pageId]);
-    console.log('[testing] Page deleted:', pageId);
     return true;
   } catch (error) {
-    console.error('[testing] Error deleting page:', error);
+    console.error('Error deleting page:', error);
     throw error;
   }
 }
@@ -1337,10 +1318,9 @@ export async function createLandingPage(pageData) {
       pageData.status || 'draft'
     ]);
     
-    console.log('[testing] Landing page created:', result.rows[0].id);
     return result.rows[0];
   } catch (error) {
-    console.error('[testing] Error creating landing page:', error);
+    console.error('Error creating landing page:', error);
     throw error;
   }
 }
@@ -1353,7 +1333,7 @@ export async function getLandingPages() {
     `);
     return result.rows;
   } catch (error) {
-    console.error('[testing] Error fetching landing pages:', error);
+    console.error('Error fetching landing pages:', error);
     throw error;
   }
 }
@@ -1365,7 +1345,7 @@ export async function getLandingPage(pageId) {
     `, [pageId]);
     return result.rows[0] || null;
   } catch (error) {
-    console.error('[testing] Error fetching landing page:', error);
+    console.error('Error fetching landing page:', error);
     throw error;
   }
 }
@@ -1398,10 +1378,9 @@ export async function updateLandingPage(pageId, pageData) {
       pageData.status
     ]);
     
-    console.log('[testing] Landing page updated:', pageId);
     return result.rows[0];
   } catch (error) {
-    console.error('[testing] Error updating landing page:', error);
+    console.error('Error updating landing page:', error);
     throw error;
   }
 }
@@ -1409,10 +1388,9 @@ export async function updateLandingPage(pageId, pageData) {
 export async function deleteLandingPage(pageId) {
   try {
     await query(`DELETE FROM landing_pages WHERE id = $1`, [pageId]);
-    console.log('[testing] Landing page deleted:', pageId);
     return true;
   } catch (error) {
-    console.error('[testing] Error deleting landing page:', error);
+    console.error('Error deleting landing page:', error);
     throw error;
   }
 }
@@ -1436,10 +1414,9 @@ export async function createLegalPage(pageData) {
       pageData.status || 'draft'
     ]);
     
-    console.log('[testing] Legal page created:', result.rows[0].id);
     return result.rows[0];
   } catch (error) {
-    console.error('[testing] Error creating legal page:', error);
+    console.error('Error creating legal page:', error);
     throw error;
   }
 }
@@ -1452,7 +1429,7 @@ export async function getLegalPages() {
     `);
     return result.rows;
   } catch (error) {
-    console.error('[testing] Error fetching legal pages:', error);
+    console.error('Error fetching legal pages:', error);
     throw error;
   }
 }
@@ -1464,7 +1441,7 @@ export async function getLegalPage(pageId) {
     `, [pageId]);
     return result.rows[0] || null;
   } catch (error) {
-    console.error('[testing] Error fetching legal page:', error);
+    console.error('Error fetching legal page:', error);
     throw error;
   }
 }
@@ -1499,10 +1476,9 @@ export async function updateLegalPage(pageId, pageData) {
       pageData.status
     ]);
     
-    console.log('[testing] Legal page updated:', pageId);
     return result.rows[0];
   } catch (error) {
-    console.error('[testing] Error updating legal page:', error);
+    console.error('Error updating legal page:', error);
     throw error;
   }
 }
@@ -1510,10 +1486,9 @@ export async function updateLegalPage(pageId, pageData) {
 export async function deleteLegalPage(pageId) {
   try {
     await query(`DELETE FROM legal_pages WHERE id = $1`, [pageId]);
-    console.log('[testing] Legal page deleted:', pageId);
     return true;
   } catch (error) {
-    console.error('[testing] Error deleting legal page:', error);
+    console.error('Error deleting legal page:', error);
     throw error;
   }
 }
@@ -1521,7 +1496,6 @@ export async function deleteLegalPage(pageId) {
 // Utility function to get all pages with their types
 export async function getAllPagesWithTypes(tenantId = 'tenant-gosg') {
   try {
-    console.log(`[testing] Fetching pages for tenant: ${tenantId}`);
     const result = await query(`
       SELECT 
         id,
@@ -1582,10 +1556,9 @@ export async function getAllPagesWithTypes(tenantId = 'tenant-gosg') {
       ORDER BY page_type, created_at DESC
     `, [tenantId]);
     
-    console.log(`[testing] Found ${result.rows.length} pages for tenant ${tenantId}`);
     return result.rows;
   } catch (error) {
-    console.error('[testing] Error fetching all pages with types:', error);
+    console.error('Error fetching all pages with types:', error);
     throw error;
   }
 }
@@ -1638,19 +1611,17 @@ export async function updatePageSlug(pageId, pageType, newSlug, oldSlug, tenantI
     
     // If this is a blog page update, handle blog post slug adaptation
     if (oldSlug === '/blog' && newSlug !== '/blog') {
-      console.log('[testing] Blog slug changed, blog post adaptation needed');
+      console.log('Blog slug changed, blog post adaptation needed');
       // Note: Blog posts are currently hardcoded in frontend files
       // This would need to be implemented when blog posts are moved to database
       await logSlugChange(pageId, pageType, oldSlug, newSlug, 'Blog slug changed - manual blog post update required');
     }
     
     await client.query('COMMIT');
-    console.log('[testing] Slug updated successfully:', { pageId, pageType, oldSlug, newSlug });
-    
     return updateResult.rows[0];
   } catch (error) {
     await client.query('ROLLBACK');
-    console.error('[testing] Error updating slug:', error);
+    console.error('Error updating slug:', error);
     throw error;
   } finally {
     client.release();
@@ -1706,9 +1677,8 @@ export async function logSlugChange(pageId, pageType, oldSlug, newSlug, notes = 
       VALUES ($1, $2, $3, $4, $5)
     `, [pageId, pageType, oldSlug, newSlug, notes]);
     
-    console.log('[testing] Slug change logged:', { pageId, pageType, oldSlug, newSlug });
   } catch (error) {
-    console.error('[testing] Error logging slug change:', error);
+    console.error('Error logging slug change:', error);
     // Don't throw error here as this is just for logging
   }
 }
@@ -1735,7 +1705,7 @@ export async function getSlugChangeHistory(pageId = null, pageType = null) {
     
     return result.rows;
   } catch (error) {
-    console.error('[testing] Error fetching slug change history:', error);
+    console.error('Error fetching slug change history:', error);
     return [];
   }
 }
@@ -1752,10 +1722,9 @@ export async function updatePageName(pageId, pageType, newName, tenantId = 'tena
       WHERE id = $2 AND tenant_id = $3
     `, [newName, pageId, tenantId]);
     
-    console.log(`[testing] Updated page name for ${pageType} page ${pageId} to: ${newName} (tenant: ${tenantId})`);
     return result.rowCount > 0;
   } catch (error) {
-    console.error('[testing] Error updating page name:', error);
+    console.error('Error updating page name:', error);
     throw error;
   }
 }
@@ -1774,10 +1743,9 @@ export async function toggleSEOIndex(pageId, pageType, currentIndex, tenantId = 
       WHERE id = $2 AND tenant_id = $3
     `, [newIndex, pageId, tenantId]);
     
-    console.log(`[testing] Toggled SEO index for ${pageType} page ${pageId} to: ${newIndex} (tenant: ${tenantId})`);
     return newIndex;
   } catch (error) {
-    console.error('[testing] Error toggling SEO index:', error);
+    console.error('Error toggling SEO index:', error);
     throw error;
   }
 }
@@ -1785,8 +1753,6 @@ export async function toggleSEOIndex(pageId, pageType, currentIndex, tenantId = 
 // Get page with layout data
 export async function getPageWithLayout(pageId, tenantId = 'tenant-gosg') {
   try {
-    console.log(`[testing] Fetching page ${pageId} with layout for tenant: ${tenantId}`);
-    
     // First, get the page data
     const pageResult = await query(`
       SELECT 
@@ -1851,10 +1817,9 @@ export async function getPageWithLayout(pageId, tenantId = 'tenant-gosg') {
       page.layout = layoutResult.rows[0].layout_json;
     }
     
-    console.log(`[testing] Found page ${pageId} with ${page.layout?.components?.length || 0} components`);
     return page;
   } catch (error) {
-    console.error('[testing] Error fetching page with layout:', error);
+    console.error('Error fetching page with layout:', error);
     throw error;
   }
 }
@@ -1862,8 +1827,6 @@ export async function getPageWithLayout(pageId, tenantId = 'tenant-gosg') {
 // Update page data
 export async function updatePageData(pageId, pageName, metaTitle, metaDescription, seoIndex, tenantId = 'tenant-gosg') {
   try {
-    console.log(`[testing] Updating page data for ${pageId} (tenant: ${tenantId})`);
-    
     // Try to update in pages table first
     let result = await query(`
       UPDATE pages 
@@ -1872,7 +1835,6 @@ export async function updatePageData(pageId, pageName, metaTitle, metaDescriptio
     `, [pageName, metaTitle, metaDescription, seoIndex, pageId, tenantId]);
     
     if (result.rowCount > 0) {
-      console.log(`[testing] Updated page data in pages table`);
       return true;
     }
     
@@ -1884,7 +1846,6 @@ export async function updatePageData(pageId, pageName, metaTitle, metaDescriptio
     `, [pageName, metaTitle, metaDescription, seoIndex, pageId, tenantId]);
     
     if (result.rowCount > 0) {
-      console.log(`[testing] Updated page data in landing_pages table`);
       return true;
     }
     
@@ -1896,14 +1857,13 @@ export async function updatePageData(pageId, pageName, metaTitle, metaDescriptio
     `, [pageName, metaTitle, metaDescription, seoIndex, pageId, tenantId]);
     
     if (result.rowCount > 0) {
-      console.log(`[testing] Updated page data in legal_pages table`);
       return true;
     }
     
-    console.log(`[testing] Page ${pageId} not found in any table`);
+    console.log(`Page ${pageId} not found in any table`);
     return false;
   } catch (error) {
-    console.error('[testing] Error updating page data:', error);
+    console.error('Error updating page data:', error);
     throw error;
   }
 }
@@ -1911,8 +1871,6 @@ export async function updatePageData(pageId, pageName, metaTitle, metaDescriptio
 // Update page layout
 export async function updatePageLayout(pageId, layoutJson, tenantId = 'tenant-gosg') {
   try {
-    console.log(`[testing] Updating page layout for ${pageId} (tenant: ${tenantId})`);
-    
     // Check if page exists
     const pageCheck = await query(`
       SELECT id FROM pages WHERE id = $1 AND tenant_id = $2
@@ -1923,7 +1881,7 @@ export async function updatePageLayout(pageId, layoutJson, tenantId = 'tenant-go
     `, [pageId, tenantId]);
     
     if (pageCheck.rows.length === 0) {
-      console.log(`[testing] Page ${pageId} not found for tenant ${tenantId}`);
+      console.log(`Page ${pageId} not found for tenant ${tenantId}`);
       return false;
     }
     
@@ -1937,10 +1895,9 @@ export async function updatePageLayout(pageId, layoutJson, tenantId = 'tenant-go
         updated_at = NOW()
     `, [pageId, JSON.stringify(layoutJson)]);
     
-    console.log(`[testing] Updated page layout for ${pageId}`);
     return true;
   } catch (error) {
-    console.error('[testing] Error updating page layout:', error);
+    console.error('Error updating page layout:', error);
     throw error;
   }
 }
@@ -1974,7 +1931,7 @@ export async function getPosts() {
     `);
     return result.rows;
   } catch (error) {
-    console.error('[testing] Error fetching posts:', error);
+    console.error('Error fetching posts:', error);
     throw error;
   }
 }
@@ -2007,15 +1964,13 @@ export async function getPost(id) {
     `, [id]);
     return result.rows[0] || null;
   } catch (error) {
-    console.error('[testing] Error fetching post:', error);
+    console.error('Error fetching post:', error);
     throw error;
   }
 }
 
 export async function createPost(data) {
   try {
-    console.log('[testing] Creating post with data:', data);
-    
     // Insert the post
     const postResult = await query(`
       INSERT INTO posts (
@@ -2047,7 +2002,6 @@ export async function createPost(data) {
     ]);
 
     const post = postResult.rows[0];
-    console.log('[testing] Post created with ID:', post.id);
 
     // Handle categories
     if (data.categories && data.categories.length > 0) {
@@ -2085,15 +2039,13 @@ export async function createPost(data) {
 
     return await getPost(post.id);
   } catch (error) {
-    console.error('[testing] Error creating post:', error);
+    console.error('Error creating post:', error);
     throw error;
   }
 }
 
 export async function updatePost(id, data) {
   try {
-    console.log('[testing] Updating post:', id, data);
-    
     // Update the post
     const postResult = await query(`
       UPDATE posts SET
@@ -2157,7 +2109,7 @@ export async function updatePost(id, data) {
 
     return await getPost(id);
   } catch (error) {
-    console.error('[testing] Error updating post:', error);
+    console.error('Error updating post:', error);
     throw error;
   }
 }
@@ -2174,10 +2126,9 @@ export async function deletePost(id) {
       throw new Error('Post not found');
     }
     
-    console.log('[testing] Post deleted:', id);
     return result.rows[0];
   } catch (error) {
-    console.error('[testing] Error deleting post:', error);
+    console.error('Error deleting post:', error);
     throw error;
   }
 }
@@ -2192,7 +2143,7 @@ export async function getTerms() {
     `);
     return result.rows;
   } catch (error) {
-    console.error('[testing] Error fetching terms:', error);
+    console.error('Error fetching terms:', error);
     throw error;
   }
 }
@@ -2207,15 +2158,13 @@ export async function getTerm(id) {
     `, [id]);
     return result.rows[0] || null;
   } catch (error) {
-    console.error('[testing] Error fetching term:', error);
+    console.error('Error fetching term:', error);
     throw error;
   }
 }
 
 export async function createTerm(data) {
   try {
-    console.log('[testing] Creating term with data:', data);
-    
     // Insert the term
     const termResult = await query(`
       INSERT INTO terms (name, slug, description, meta_title, meta_description)
@@ -2239,10 +2188,9 @@ export async function createTerm(data) {
       `, [term.id, data.taxonomy, data.description || `${data.taxonomy} for ${data.name} content`]);
     }
 
-    console.log('[testing] Term created with ID:', term.id);
     return term;
   } catch (error) {
-    console.error('[testing] Error creating term:', error);
+    console.error('Error creating term:', error);
     throw error;
   }
 }
@@ -2265,10 +2213,9 @@ export async function updateTerm(id, data) {
       throw new Error('Term not found');
     }
     
-    console.log('[testing] Term updated:', id);
     return result.rows[0];
   } catch (error) {
-    console.error('[testing] Error updating term:', error);
+    console.error('Error updating term:', error);
     throw error;
   }
 }
@@ -2288,10 +2235,9 @@ export async function deleteTerm(id) {
       throw new Error('Term not found');
     }
     
-    console.log('[testing] Term deleted:', id);
     return result.rows[0];
   } catch (error) {
-    console.error('[testing] Error deleting term:', error);
+    console.error('Error deleting term:', error);
     throw error;
   }
 }
