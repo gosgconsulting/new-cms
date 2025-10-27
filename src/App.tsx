@@ -16,6 +16,7 @@ import DatabaseViewer from "./pages/DatabaseViewer";
 import ComponentsViewer from "./pages/ComponentsViewer";
 import PublicDashboard from "./pages/PublicDashboard";
 import ErrorBoundary from "./components/ErrorBoundary";
+import EmbedPagesManager from "../sparti-cms/components/embed/EmbedPagesManager";
 
 const queryClient = new QueryClient();
 
@@ -56,6 +57,9 @@ const App = () => {
                 <BlogPost />
               </ErrorBoundary>
             } />
+            
+            {/* Embed route for iframe access */}
+            <Route path="/embed/pages" element={<EmbedPagesManager />} />
             
             {/* Other routes */}
             <Route path="/auth" element={<Auth />} />
