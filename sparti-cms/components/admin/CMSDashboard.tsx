@@ -50,6 +50,7 @@ import BrandingSettingsPage from './BrandingSettingsPage';
 import ButtonSettingsPage from './ButtonSettingsPage';
 import TypographySettingsPage from './TypographySettingsPage';
 import ColorSettingsPage from './ColorSettingsPage';
+import AccessKeysManager from './AccessKeysManager';
 
 // Tenant type for local state
 interface Tenant {
@@ -133,6 +134,8 @@ const SettingsManager = () => {
         return <TypographySettingsPage />;
       case 'colors':
         return <ColorSettingsPage />;
+      case 'access-keys':
+        return <AccessKeysManager />;
       default:
         return <BrandingSettingsPage />;
     }
@@ -181,6 +184,14 @@ const SettingsManager = () => {
                 : 'text-muted-foreground hover:text-foreground'}`}
             >
               Colors
+            </button>
+            <button 
+              onClick={() => setActiveSettingsTab('access-keys')}
+              className={`px-4 py-2 text-sm font-medium ${activeSettingsTab === 'access-keys' 
+                ? 'text-brandPurple border-b-2 border-brandPurple' 
+                : 'text-muted-foreground hover:text-foreground'}`}
+            >
+              Access Keys
             </button>
           </div>
           

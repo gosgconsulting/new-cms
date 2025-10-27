@@ -14,6 +14,7 @@ interface User {
 interface AuthContextType {
   user: User | null;
   signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  signInWithAccessKey: (accessKey: string) => Promise<{ success: boolean; error?: string }>;
   signOut: () => void;
   loading: boolean;
   createAdminUser: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
@@ -40,6 +41,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const signOut = useCallback(() => {
     setUser(null);
     localStorage.removeItem('sparti-user-session');
+    localStorage.removeItem('sparti-access-key');
     setCurrentTenantId(null);
     localStorage.removeItem('sparti-current-tenant-id');
   }, []);
@@ -194,6 +196,57 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }, []);
 
+  const signInWithAccessKey = useCallback(async (accessKey: string): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4173';
+      const response = await fetch(`${API_BASE_URL}/api/auth/verify-access-key?access_key=${encodeURIComponent(accessKey)}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await response.json();
+
+      if (data.success && data.user) {
+        const userData: User = {
+          id: data.user.id.toString(),
+          first_name: data.user.first_name,
+          last_name: data.user.last_name,
+          email: data.user.email,
+          role: data.user.role,
+          tenant_id: data.user.tenant_id,
+          is_super_admin: data.user.is_super_admin || false
+        };
+        
+        setUser(userData);
+        localStorage.setItem('sparti-user-session', JSON.stringify(userData));
+        localStorage.setItem('sparti-access-key', accessKey);
+        
+        // Set tenant if needed
+        const tenantIdToSet = FORCED_TENANT_ID || (userData.tenant_id && !userData.is_super_admin ? userData.tenant_id : null);
+        
+        if (tenantIdToSet) {
+            setCurrentTenantId(tenantIdToSet);
+            localStorage.setItem('sparti-current-tenant-id', tenantIdToSet);
+        }
+        
+        return { success: true };
+      } else {
+        return { 
+          success: false, 
+          error: data.error || 'Invalid access key' 
+        };
+      }
+    } catch (error) {
+      console.error('Access key login error:', error);
+      return { 
+        success: false, 
+        error: 'Access key verification failed. Please try again.' 
+      };
+    }
+  }, [FORCED_TENANT_ID]);
+
   const createAdminUser = useCallback(async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {
       // Create a demo admin user directly in localStorage for development purposes
@@ -229,6 +282,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const value = {
     user,
     signIn,
+    signInWithAccessKey,
     signOut,
     loading,
     createAdminUser,
