@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   FileText, 
   PenTool, 
@@ -50,6 +50,13 @@ import BrandingSettingsPage from './BrandingSettingsPage';
 import ButtonSettingsPage from './ButtonSettingsPage';
 import TypographySettingsPage from './TypographySettingsPage';
 import ColorSettingsPage from './ColorSettingsPage';
+
+// Tenant type for local state
+interface Tenant {
+  id: string;
+  name: string;
+  isDevelopment?: boolean;
+}
 
 // Blog Management Component
 const BlogManager = () => {
@@ -190,8 +197,53 @@ const CMSDashboard: React.FC = () => {
   const [usersExpanded, setUsersExpanded] = useState<boolean>(false);
   const [seoExpanded, setSeoExpanded] = useState<boolean>(false);
   const [tenantDropdownOpen, setTenantDropdownOpen] = useState<boolean>(false);
-  const { signOut, user, tenants, currentTenant, handleTenantChange, isForcedTenant } = useAuth();
+  const [tenant, setTenant] = useState<Tenant | null>(null);
+  const [tenants, setTenants] = useState<Tenant[]>([]);
+  const { signOut, user, currentTenantId, handleTenantChange, isForcedTenant } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchTenantData = async () => {
+      if (currentTenantId) {
+        try {
+          const response = await fetch(`/api/tenants/${currentTenantId}`);
+          if (response.ok) {
+            const data = await response.json();
+            setTenant(data);
+          } else {
+            console.error(`Failed to fetch tenant ${currentTenantId}`);
+            setTenant(null);
+          }
+        } catch (error) {
+          console.error('Error fetching tenant data:', error);
+          setTenant(null);
+        }
+      } else {
+        setTenant(null);
+      }
+    };
+
+    const fetchAllTenants = async () => {
+      if (!isForcedTenant && user?.is_super_admin) {
+         try {
+          const response = await fetch(`/api/tenants`);
+          if (response.ok) {
+            const data = await response.json();
+            setTenants(data);
+          } else {
+            console.error(`Failed to fetch tenants`);
+            setTenants([]);
+          }
+        } catch (error) {
+          console.error('Error fetching tenants:', error);
+          setTenants([]);
+        }
+      }
+    }
+
+    fetchTenantData();
+    fetchAllTenants();
+  }, [currentTenantId, isForcedTenant, user]);
 
   const renderContent = () => {
     switch (activeTab) {
@@ -477,7 +529,7 @@ const CMSDashboard: React.FC = () => {
                 <div className="flex items-center">
                   <Building2 className="mr-3 h-5 w-5 text-brandTeal" />
                   <div className="text-sm">
-                    <div className="font-medium text-foreground">{currentTenant.name}</div>
+                    <div className="font-medium text-foreground">{tenant?.name || 'Select Tenant'}</div>
                   </div>
                 </div>
                 <ChevronsUpDown className="h-4 w-4 text-muted-foreground" />
@@ -493,7 +545,7 @@ const CMSDashboard: React.FC = () => {
                     {tenants.map((tenant) => (
                       <li key={tenant.id}>
                         <button
-                          onClick={() => handleTenantChange(tenant)}
+                          onClick={() => handleTenantChange(tenant.id)}
                           className="w-full flex items-center justify-between px-3 py-2 text-left text-sm hover:bg-secondary/50 transition-colors"
                         >
                           <div className="flex items-center">
@@ -502,7 +554,7 @@ const CMSDashboard: React.FC = () => {
                               <span className="ml-2 px-1.5 py-0.5 text-xs bg-amber-100 text-amber-800 rounded">Dev</span>
                             )}
                           </div>
-                          {currentTenant.id === tenant.id && (
+                          {currentTenantId === tenant.id && (
                             <Check className="h-4 w-4 text-brandTeal" />
                           )}
                         </button>
@@ -559,10 +611,10 @@ const CMSDashboard: React.FC = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <h1 className="text-2xl font-bold text-foreground">{getPageTitle()}</h1>
-              {!isForcedTenant && (
+              {!isForcedTenant && tenant && (
                 <div className="px-2 py-1 rounded bg-secondary/50 text-xs font-medium flex items-center">
-                  <span>Tenant: {currentTenant.name}</span>
-                  {currentTenant.isDevelopment && (
+                  <span>Tenant: {tenant.name}</span>
+                  {tenant.isDevelopment && (
                     <span className="ml-2 px-1.5 py-0.5 text-xs bg-amber-100 text-amber-800 rounded">Dev</span>
                   )}
                 </div>

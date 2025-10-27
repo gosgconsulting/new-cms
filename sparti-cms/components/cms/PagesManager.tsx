@@ -27,7 +27,7 @@ interface PageItem {
 }
 
 export const PagesManager: React.FC = () => {
-  const { currentTenant } = useAuth();
+  const { currentTenantId, user } = useAuth();
   const [pages, setPages] = useState<PageItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -42,64 +42,35 @@ export const PagesManager: React.FC = () => {
 
   // Load pages from database
   useEffect(() => {
-    loadPages();
-  }, [currentTenant]);
+    console.log('currentTenantId', currentTenantId);
+    console.log('user', user);
+    if (currentTenantId) {
+      loadPages();
+    }
+  }, [currentTenantId, user]);
 
   const loadPages = async () => {
     try {
       setLoading(true);
       setError(null);
       
-      // Debug: Check if user is logged in
-      const session = localStorage.getItem('sparti-demo-session');
-      console.log('[testing] PagesManager - Session data:', session);
-      
-      // If using Development tenant, use rich dummy data
-      if (isDevelopmentTenant(currentTenant)) {
-        // Convert dummy pages to PageItem format
-        const dummyPages = getDummyPages().map(page => ({
-          id: page.id,
-          page_name: page.title,
-          slug: page.slug,
-          status: page.status,
-          page_type: page.template === 'landing' ? 'landing' : 
-                    (page.template === 'legal' ? 'legal' : 'page') as 'page' | 'landing' | 'legal',
-          meta_title: page.seo?.title,
-          meta_description: page.seo?.description,
-          seo_index: true,
-          campaign_source: page.template === 'landing' ? 'development' : undefined,
-          conversion_goal: page.template === 'landing' ? 'testing' : undefined,
-          legal_type: page.template === 'legal' ? 'terms' : undefined,
-          version: page.template === 'legal' ? '1.0' : undefined,
-          created_at: page.createdAt,
-          updated_at: page.updatedAt
-        }));
-        
-        setPages(dummyPages);
-      } else {
-        // Regular tenant - use API
-        const response = await api.get(`/api/pages/all?tenantId=${currentTenant.id}`, {
-          headers: {
-            'X-Tenant-Id': currentTenant.id
-          }
-        });
-        
-        console.log('[testing] PagesManager - Response status:', response.status);
-        console.log('[testing] PagesManager - Response ok:', response.ok);
-        console.log('[testing] PagesManager - Response headers:', response.headers);
-        
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.log('[testing] PagesManager - Error response:', errorText);
-          throw new Error(`Failed to load pages: ${response.status} ${response.statusText}`);
+      // Regular tenant - use API
+      const response = await api.get(`/api/pages/all?tenantId=${currentTenantId}`, {
+        headers: {
+          'X-Tenant-Id': currentTenantId
         }
-        
-        const data = await response.json();
-        console.log('[testing] PagesManager - Response data:', data);
-        setPages(data.pages || []);
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Failed to load pages:', errorText);
+        throw new Error(`Failed to load pages: ${response.status} ${response.statusText}`);
       }
+      
+      const data = await response.json();
+      setPages(data.pages || []);
     } catch (error) {
-      console.error('[testing] Error loading pages:', error);
+      console.error('Error loading pages:', error);
       setError(error instanceof Error ? error.message : 'Failed to load pages');
     } finally {
       setLoading(false);
@@ -120,7 +91,7 @@ export const PagesManager: React.FC = () => {
         pageId,
         pageType,
         currentIndex,
-        tenantId: currentTenant.id
+        tenantId: currentTenantId
       });
 
       if (!response.ok) {
@@ -136,9 +107,8 @@ export const PagesManager: React.FC = () => {
         )
       );
 
-      console.log('[testing] SEO index toggled successfully:', data.newIndex);
     } catch (error) {
-      console.error('[testing] Error toggling SEO index:', error);
+      console.error('Error toggling SEO index:', error);
       // You could add a toast notification here
     }
   };
