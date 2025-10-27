@@ -1954,6 +1954,45 @@ app.post('/api/auth/login', async (req, res) => {
   }
 });
 
+// Get current user from token
+app.get('/api/auth/me', authenticateUser, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const userResult = await query(
+      'SELECT id, first_name, last_name, email, role, status, tenant_id, is_super_admin FROM users WHERE id = $1',
+      [userId]
+    );
+
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+
+    const user = userResult.rows[0];
+
+    // Check if user is active
+    if (user.status !== 'active') {
+      return res.status(401).json({ success: false, error: 'Account is not active' });
+    }
+
+    res.json({
+      success: true,
+      user: {
+        id: user.id,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        email: user.email,
+        role: user.role,
+        tenant_id: user.tenant_id,
+        is_super_admin: user.is_super_admin
+      }
+    });
+
+  } catch (error) {
+    console.error('Error fetching current user:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch user data.' });
+  }
+});
+
 // Get tenants endpoint
 app.get('/api/tenants', async (req, res) => {
   try {

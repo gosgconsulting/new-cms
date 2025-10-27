@@ -18,6 +18,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { useAuth } from '../auth/AuthProvider';
 
 // Simplified Tenant type definition
 interface Tenant {
@@ -29,6 +30,7 @@ interface Tenant {
 }
 
 const TenantsManager: React.FC = () => {
+  const { isForcedTenant, currentTenantId } = useAuth();
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [showAddTenantModal, setShowAddTenantModal] = useState(false);
   const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
@@ -48,11 +50,40 @@ const TenantsManager: React.FC = () => {
 
   // Fetch tenants on component mount
   useEffect(() => {
-    fetchTenants();
-  }, []);
+    if (isForcedTenant) {
+      if (currentTenantId) {
+        // Fetch the single forced tenant
+        const fetchForcedTenant = async () => {
+          try {
+            setIsLoading(true);
+            const response = await fetch(`/api/tenants/${currentTenantId}`);
+            if (response.ok) {
+              const tenantData = await response.json();
+              setTenants([tenantData]);
+            } else {
+              setFetchError(`Failed to load forced tenant with ID ${currentTenantId}.`);
+              setTenants([]);
+            }
+          } catch (error) {
+            setFetchError(error instanceof Error ? error.message : 'Unknown error');
+            setTenants([]);
+          } finally {
+            setIsLoading(false);
+          }
+        };
+        fetchForcedTenant();
+      } else {
+        setIsLoading(false);
+        setTenants([]);
+      }
+    } else {
+      fetchTenants();
+    }
+  }, [isForcedTenant, currentTenantId]);
 
   // Fetch all tenants from the API
   const fetchTenants = async () => {
+    if (isForcedTenant) return;
     try {
       setIsLoading(true);
       setFetchError(null);
@@ -382,10 +413,10 @@ const TenantsManager: React.FC = () => {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button onClick={() => fetchTenants()} variant="outline" size="icon" title="Refresh">
+          <Button onClick={() => fetchTenants()} variant="outline" size="icon" title="Refresh" disabled={isForcedTenant}>
             <RefreshCw className="h-4 w-4" />
           </Button>
-          <Button onClick={() => setShowAddTenantModal(true)}>
+          <Button onClick={() => setShowAddTenantModal(true)} disabled={isForcedTenant}>
             <Plus className="h-4 w-4 mr-2" />
             Add New Tenant
           </Button>

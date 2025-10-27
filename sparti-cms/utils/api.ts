@@ -3,7 +3,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4173
 
 // Get JWT token from localStorage
 const getAuthToken = () => {
-  const session = localStorage.getItem('sparti-demo-session');
+  const session = localStorage.getItem('sparti-user-session');
   console.log('[testing] API utility - Session data:', session);
   if (session) {
     try {

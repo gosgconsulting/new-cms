@@ -33,6 +33,8 @@ import {
 } from "@/components/ui/table";
 import { toast } from "@/components/ui/use-toast";
 import NewPostEditor from './NewPostEditor';
+import { useAuth } from '../auth/AuthProvider';
+import api from '../../utils/api';
 
 interface Post {
   id: number;
@@ -55,6 +57,7 @@ interface Post {
 }
 
 const PostsManager: React.FC = () => {
+  const { currentTenantId, user } = useAuth();
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -63,13 +66,18 @@ const PostsManager: React.FC = () => {
   const [editingPost, setEditingPost] = useState<Post | null>(null);
 
   useEffect(() => {
-    loadPosts();
-  }, []);
+    if (currentTenantId) {
+      loadPosts();
+    }
+  }, [currentTenantId, user]);
 
   const loadPosts = async () => {
+    if (!currentTenantId) return;
     try {
       setLoading(true);
-      const response = await fetch('/api/posts');
+      const response = await api.get(`/api/posts?tenantId=${currentTenantId}`, {
+        headers: { 'X-Tenant-Id': currentTenantId }
+      });
       if (response.ok) {
         const data = await response.json();
         setPosts(data);
@@ -81,7 +89,7 @@ const PostsManager: React.FC = () => {
         });
       }
     } catch (error) {
-      console.error('[testing] Error loading posts:', error);
+      console.error('Error loading posts:', error);
       toast({
         title: "Error",
         description: "Failed to load posts.",
@@ -94,12 +102,9 @@ const PostsManager: React.FC = () => {
 
   const handleCreatePost = async (postData: any) => {
     try {
-      const response = await fetch('/api/posts', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(postData),
+      const response = await api.post('/api/posts', {
+        ...postData,
+        tenantId: currentTenantId,
       });
 
       if (response.ok) {
@@ -123,12 +128,9 @@ const PostsManager: React.FC = () => {
     if (!editingPost) return;
 
     try {
-      const response = await fetch(`/api/posts/${editingPost.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(postData),
+      const response = await api.put(`/api/posts/${editingPost.id}`, {
+        ...postData,
+        tenantId: currentTenantId,
       });
 
       if (response.ok) {
@@ -152,8 +154,8 @@ const PostsManager: React.FC = () => {
     if (!confirm('Are you sure you want to delete this post?')) return;
 
     try {
-      const response = await fetch(`/api/posts/${postId}`, {
-        method: 'DELETE',
+      const response = await api.delete(`/api/posts/${postId}`, {
+        tenantId: currentTenantId,
       });
 
       if (response.ok) {
