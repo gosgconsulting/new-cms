@@ -36,7 +36,7 @@ export const PagesManager: React.FC = () => {
 
   const tabs = [
     { id: 'page' as const, label: 'Pages', icon: FileText },
-    { id: 'landing' as const, label: 'Landing Pages', icon: Rocket },
+    // { id: 'landing' as const, label: 'Landing Pages', icon: Rocket },
     { id: 'legal' as const, label: 'Legals', icon: Scale },
   ];
 
