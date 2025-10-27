@@ -58,7 +58,7 @@ interface PageWithLayout extends PageData {
 }
 
 const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
-  const { currentTenant, user } = useAuth();
+  const { currentTenantId, user } = useAuth();
   const [pageData, setPageData] = useState<PageWithLayout | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -94,7 +94,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
     const fetchPageData = async () => {
       try {
         setLoading(true);
-        const response = await api.get(`/api/pages/${pageId}?tenantId=${currentTenant.id}`);
+        const response = await api.get(`/api/pages/${pageId}?tenantId=${currentTenantId}`);
         const data = await response.json();
         
         if (data.success) {
@@ -118,10 +118,10 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
       }
     };
 
-    if (currentTenant.id) {
+    if (currentTenantId) {
       fetchPageData();
     }
-  }, [pageId, currentTenant.id]);
+  }, [pageId, currentTenantId]);
 
   const updateField = (field: keyof PageData, value: string | boolean) => {
     if (pageData) {
@@ -174,7 +174,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
         meta_title: pageData?.meta_title || '',
         meta_description: pageData?.meta_description || '',
         seo_index: pageData?.seo_index || false,
-        tenantId: currentTenant.id
+        tenantId: currentTenantId
       });
 
       if (!pageResponse.ok) {
@@ -184,7 +184,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
       // Update page layout with new schema format
       const layoutResponse = await api.put(`/api/pages/${pageId}/layout`, {
         layout_json: { components },
-        tenantId: currentTenant.id
+        tenantId: currentTenantId
       });
 
       if (!layoutResponse.ok) {
