@@ -5,9 +5,11 @@ import {
   VideoEditor as ContentVideoEditor, 
   GalleryEditor as ContentGalleryEditor, 
   CarouselEditor as ContentCarouselEditor, 
-  ButtonEditor as ContentButtonEditor 
+  ButtonEditor as ContentButtonEditor,
+  FAQEditor as ContentFAQEditor,
+  OfficeHoursEditor as ContentOfficeHoursEditor
 } from '../content-editors';
-import { ComponentSchema, SchemaItem } from '../../types/schema';
+import { ComponentSchema, SchemaItem, SchemaItemType } from '../../types/schema';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../src/components/ui/card';
 import { Badge } from '../../../src/components/ui/badge';
 
@@ -32,6 +34,8 @@ const renderSchemaItemEditor = (item: SchemaItem, onChange: (updatedItem: Schema
           onChange={(content) => handleItemChange({ ...item, content })}
           placeholder={item.type === 'heading' ? 'Enter heading text...' : 'Enter paragraph text...'}
           className={className}
+          link={item.link || ''}
+          onLinkChange={(link) => handleItemChange({ ...item, link })}
         />
       );
 
@@ -127,15 +131,79 @@ const renderSchemaItemEditor = (item: SchemaItem, onChange: (updatedItem: Schema
       );
 
     case 'carousel':
+      // Debug the carousel item structure
+      console.log('Carousel item:', item);
+      
+      // Check all possible places where images could be stored
+      let carouselImages: any[] = [];
+      
+      // Check if images are in a direct 'images' property (as in your JSON)
+      if (Array.isArray(item.images)) {
+        console.log('Found images in item.images:', item.images);
+        // Convert string URLs to the expected format
+        carouselImages = item.images.map((img: any, index: number) => {
+          if (typeof img === 'string') {
+            // Make sure URL is absolute
+            let url = img;
+            if (!url.startsWith('http') && !url.startsWith('/')) {
+              url = '/' + url;
+            }
+            return {
+              id: `img-${index}`,
+              url: url,
+              alt: `Carousel image ${index + 1}`
+            };
+          }
+          return img;
+        });
+      } 
+      // Otherwise check other possible locations
+      else if (Array.isArray(item.items)) {
+        carouselImages = item.items;
+      }
+      else if (Array.isArray(item.value)) {
+        carouselImages = item.value;
+      }
+      
+      console.log('Processed carousel images:', carouselImages);
+      
+      // Get settings from props or use defaults
+      const autoplayValue = item.props?.autoplay || false;
+      const navigationValue = item.props?.navigation || "arrows";
+      
       return (
         <ContentCarouselEditor
-          images={item.value || []}
-          carouselTitle={item.alt || ''}
-          autoplay={false}
-          navigation="arrows"
-          onImagesChange={(images) => handleItemChange({ ...item, value: images })}
-          onTitleChange={(title) => handleItemChange({ ...item, alt: title })}
-          onSettingsChange={(settings) => handleItemChange({ ...item, ...settings })}
+          images={carouselImages as any[]} // Type cast to avoid TypeScript errors
+          carouselTitle={item.title || item.alt || ''}
+          autoplay={autoplayValue}
+          navigation={navigationValue}
+          onImagesChange={(images) => {
+            // Update images in the same format they were found
+            if (Array.isArray(item.images)) {
+              // If original images were in item.images as strings, maintain that format
+              const imageUrls = images.map(img => img.url);
+              handleItemChange({ ...item, images: imageUrls });
+            } else {
+              // Otherwise use the items property
+              handleItemChange({ ...item, items: images as any[] });
+            }
+          }}
+          onTitleChange={(title) => {
+            // Update title in the same property it was found
+            if (item.title) {
+              handleItemChange({ ...item, title });
+            } else {
+              handleItemChange({ ...item, alt: title });
+            }
+          }}
+          onSettingsChange={(settings) => handleItemChange({ 
+            ...item, 
+            props: { 
+              ...item.props,
+              autoplay: settings.autoplay,
+              navigation: settings.navigation
+            } 
+          })}
           className={className}
         />
       );
@@ -289,6 +357,61 @@ const renderSchemaItemEditor = (item: SchemaItem, onChange: (updatedItem: Schema
             </div>
           </div>
         </div>
+      );
+      
+    case 'faq':
+      // For FAQ items, we need to handle the direct structure
+      console.log('FAQ Item to edit:', item);
+      
+      return (
+        <div className="space-y-4">
+          <div className="p-4 bg-white rounded-md border border-gray-200">
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Question</label>
+                <input
+                  type="text"
+                  value={item.props?.question || ''}
+                  onChange={(e) => handleItemChange({ 
+                    ...item, 
+                    props: { 
+                      ...item.props, 
+                      question: e.target.value 
+                    } 
+                  })}
+                  placeholder="Enter question"
+                  className="w-full p-2 border border-gray-300 rounded-md"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Answer</label>
+                <textarea
+                  value={item.props?.answer || ''}
+                  onChange={(e) => handleItemChange({ 
+                    ...item, 
+                    props: { 
+                      ...item.props, 
+                      answer: e.target.value 
+                    } 
+                  })}
+                  placeholder="Enter answer"
+                  rows={4}
+                  className="w-full p-2 border border-gray-300 rounded-md"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+      
+    case 'officeHours':
+      // Handle office hours component
+      return (
+        <ContentOfficeHoursEditor
+          items={item.items || [] as any[]}
+          onChange={(officeHoursItems) => handleItemChange({ ...item, items: officeHoursItems as any[] })}
+          className={className}
+        />
       );
 
     default:

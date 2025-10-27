@@ -17,9 +17,13 @@ import {
   VideoEditor as ContentVideoEditor,
   GalleryEditor as ContentGalleryEditor,
   CarouselEditor as ContentCarouselEditor,
-  ButtonEditor as ContentButtonEditor
+  ButtonEditor as ContentButtonEditor,
+  FAQEditor as ContentFAQEditor
 } from '../content-editors';
 import ContactFormEditor from './ContactFormEditor';
+import FAQItemEditor from './FAQItemEditor';
+import OfficeHoursItemEditor from './OfficeHoursItemEditor';
+import FAQArrayEditor from './FAQArrayEditor';
 
 interface ItemEditorProps {
   item: SchemaItem;
@@ -609,6 +613,10 @@ export const ItemEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove
     case 'button':
       return <EnhancedButtonItemEditor item={item} onChange={onChange} onRemove={onRemove} />;
     case 'array':
+      // Check if this is a FAQ array
+      if (item.key === 'faqs' && item.items?.some(i => i.type === 'faq')) {
+        return <FAQArrayEditor item={item} onChange={onChange} onRemove={onRemove} />;
+      }
       return <ArrayEditor item={item} onChange={onChange} onRemove={onRemove} />;
     // V3 Schema item types
     case 'input':
@@ -621,6 +629,10 @@ export const ItemEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove
       return <FeatureEditor item={item} onChange={onChange} onRemove={onRemove} />;
     case 'ContactForm' as any:
       return <ContactFormEditor item={item} onChange={onChange} onRemove={onRemove} />;
+    case 'faq':
+      return <FAQItemEditor item={item} onChange={onChange} onRemove={onRemove} />;
+    case 'officeHours':
+      return <OfficeHoursItemEditor item={item} onChange={onChange} onRemove={onRemove} />;
     default:
       return (
         <Card className="border-l-4 border-l-gray-500">
