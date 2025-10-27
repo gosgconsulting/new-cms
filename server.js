@@ -134,6 +134,11 @@ const JWT_SECRET = process.env.JWT_SECRET || 'sparti-demo-secret-key';
 
 // Authentication middleware
 const authenticateUser = (req, res, next) => {
+  // Check if user is already authenticated via access key
+  if (req.user) {
+    return next();
+  }
+
   // Check for Authorization header
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -155,7 +160,7 @@ const authenticateUser = (req, res, next) => {
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-Tenant-Id');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-Tenant-Id, X-Access-Key');
   
   // Handle preflight OPTIONS requests
   if (req.method === 'OPTIONS') {
@@ -165,6 +170,90 @@ app.use((req, res, next) => {
   }
 });
 
+// Access key authentication middleware
+const authenticateWithAccessKey = async (req, res, next) => {
+  try {
+    const accessKey = req.headers['x-access-key'] || req.headers['X-Access-Key'];
+    console.log('[testing] Access key middleware - Headers:', req.headers);
+    console.log('[testing] Access key middleware - Access key:', accessKey);
+    
+    if (!accessKey) {
+      console.log('[testing] No access key provided, continuing to next middleware');
+      return next(); // No access key provided, continue to next middleware
+    }
+
+    // Verify the access key
+    const result = await query(`
+      SELECT 
+        uak.id as key_id,
+        uak.access_key,
+        uak.key_name,
+        uak.last_used_at,
+        u.id,
+        u.first_name,
+        u.last_name,
+        u.email,
+        u.role,
+        u.is_active,
+        u.tenant_id,
+        u.is_super_admin
+      FROM user_access_keys uak
+      JOIN users u ON uak.user_id = u.id
+      WHERE uak.access_key = $1 AND uak.is_active = true
+    `, [accessKey]);
+
+    if (result.rows.length === 0) {
+      return res.status(401).json({
+        success: false,
+        error: 'Invalid or expired access key'
+      });
+    }
+
+    const keyData = result.rows[0];
+
+    // Check if user is active
+    if (!keyData.is_active) {
+      return res.status(401).json({
+        success: false,
+        error: 'User account is not active'
+      });
+    }
+
+    // Set user data in request object
+    req.user = {
+      id: keyData.id,
+      first_name: keyData.first_name,
+      last_name: keyData.last_name,
+      email: keyData.email,
+      role: keyData.role,
+      tenant_id: keyData.tenant_id,
+      is_super_admin: keyData.is_super_admin
+    };
+
+    // Update last_used_at timestamp
+    await query(
+      'UPDATE user_access_keys SET last_used_at = NOW() WHERE id = $1',
+      [keyData.key_id]
+    );
+
+    next();
+  } catch (error) {
+    console.error('[testing] Error in access key authentication:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Authentication error'
+    });
+  }
+};
+
+// Apply access key authentication middleware to all API routes except verify-access-key
+app.use('/api', (req, res, next) => {
+  // Skip access key authentication for the verify-access-key endpoint
+  if (req.path === '/api/auth/verify-access-key') {
+    return next();
+  }
+  return authenticateWithAccessKey(req, res, next);
+});
 
 // Keep the process alive
 process.on('SIGINT', () => {
@@ -2119,6 +2208,19 @@ app.delete('/api/access-keys/:keyId', authenticateUser, async (req, res) => {
   }
 });
 
+// Test endpoint to debug query function
+app.get('/api/test-query', async (req, res) => {
+  try {
+    console.log('[testing] Testing query function...');
+    const result = await query('SELECT COUNT(*) as count FROM user_access_keys');
+    console.log('[testing] Query result:', result.rows);
+    res.json({ success: true, result: result.rows });
+  } catch (error) {
+    console.error('[testing] Query test error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 // Verify access key and return user data
 app.get('/api/auth/verify-access-key', async (req, res) => {
   try {
@@ -2143,7 +2245,7 @@ app.get('/api/auth/verify-access-key', async (req, res) => {
         u.last_name,
         u.email,
         u.role,
-        u.status,
+        u.is_active,
         u.tenant_id,
         u.is_super_admin
       FROM user_access_keys uak
@@ -2161,7 +2263,7 @@ app.get('/api/auth/verify-access-key', async (req, res) => {
     const keyData = result.rows[0];
 
     // Check if user is active
-    if (keyData.status !== 'active') {
+    if (!keyData.is_active) {
       return res.status(401).json({
         success: false,
         error: 'User account is not active'
@@ -2193,6 +2295,8 @@ app.get('/api/auth/verify-access-key', async (req, res) => {
 
   } catch (error) {
     console.error('[testing] Error verifying access key:', error);
+    console.error('[testing] Error details:', error.message);
+    console.error('[testing] Error stack:', error.stack);
     res.status(500).json({
       success: false,
       error: 'Failed to verify access key'
