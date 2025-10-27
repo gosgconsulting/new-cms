@@ -123,13 +123,14 @@
           first_name: 'Admin',
           last_name: 'User',
           email: 'admin',
-          role: 'admin'
+          role: 'admin',
+          is_super_admin: true
         };
         
         // Store the admin user in localStorage
-        localStorage.setItem('sparti-demo-session', JSON.stringify(adminUser));
+        localStorage.setItem('sparti-user-session', JSON.stringify(adminUser));
         
-        // Store credentials in localStorage for future login (demo only)
+        // Store the credentials in localStorage for demo purposes
         localStorage.setItem('sparti-demo-credentials', JSON.stringify({ email: 'admin', password: 'admin' }));
         
         // Show success message

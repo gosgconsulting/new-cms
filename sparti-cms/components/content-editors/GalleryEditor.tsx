@@ -46,7 +46,7 @@ export const GalleryEditor: React.FC<GalleryEditorProps> = ({
       
       try {
         // For file uploads, we need to bypass the api utility and use fetch directly
-        const token = localStorage.getItem('sparti-demo-session');
+        const token = localStorage.getItem('sparti-user-session');
         const authToken = token ? JSON.parse(token).token : null;
         
         const response = await fetch(`${api.getBaseUrl()}/api/upload`, {
