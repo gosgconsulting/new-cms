@@ -19,12 +19,19 @@ const getAuthToken = () => {
   return null;
 };
 
+// Get access key from localStorage
+const getAccessKey = () => {
+  return localStorage.getItem('sparti-access-key');
+};
+
 // Get headers with authentication
 const getAuthHeaders = (additionalHeaders: Record<string, string> = {}) => {
   const token = getAuthToken();
+  const accessKey = getAccessKey();
   const headers = {
     'Content-Type': 'application/json',
     ...(token && { 'Authorization': `Bearer ${token}` }),
+    ...(accessKey && { 'X-Access-Key': accessKey }),
     ...additionalHeaders,
   };
   console.log('[testing] API utility - Headers being sent:', headers);

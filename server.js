@@ -1993,6 +1993,213 @@ app.get('/api/auth/me', authenticateUser, async (req, res) => {
   }
 });
 
+// Access Keys Management API Routes
+
+// Generate new access key
+app.post('/api/access-keys/generate', authenticateUser, async (req, res) => {
+  try {
+    const { key_name } = req.body;
+    const userId = req.user.id;
+
+    if (!key_name || key_name.trim().length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'Key name is required'
+      });
+    }
+
+    // Generate a unique access key (UUID v4)
+    const { v4: uuidv4 } = await import('uuid');
+    const accessKey = uuidv4();
+
+    // Insert the new access key
+    const result = await query(
+      'INSERT INTO user_access_keys (user_id, access_key, key_name) VALUES ($1, $2, $3) RETURNING id, access_key, key_name, created_at',
+      [userId, accessKey, key_name.trim()]
+    );
+
+    const newKey = result.rows[0];
+
+    res.json({
+      success: true,
+      access_key: newKey.access_key,
+      key_name: newKey.key_name,
+      created_at: newKey.created_at,
+      message: 'Access key generated successfully. Save this key - it won\'t be shown again.'
+    });
+
+  } catch (error) {
+    console.error('[testing] Error generating access key:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to generate access key'
+    });
+  }
+});
+
+// List user's access keys
+app.get('/api/access-keys', authenticateUser, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { include_inactive } = req.query;
+
+    let queryStr = `
+      SELECT id, key_name, access_key, is_active, last_used_at, created_at, updated_at
+      FROM user_access_keys 
+      WHERE user_id = $1
+    `;
+    const queryParams = [userId];
+
+    if (include_inactive !== 'true') {
+      queryStr += ' AND is_active = true';
+    }
+
+    queryStr += ' ORDER BY created_at DESC';
+
+    const result = await query(queryStr, queryParams);
+
+    // Mask the access keys for security
+    const maskedKeys = result.rows.map(key => ({
+      ...key,
+      access_key: key.access_key.length > 8 
+        ? key.access_key.substring(0, 4) + '...' + key.access_key.substring(key.access_key.length - 4)
+        : '****'
+    }));
+
+    res.json({
+      success: true,
+      access_keys: maskedKeys
+    });
+
+  } catch (error) {
+    console.error('[testing] Error fetching access keys:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch access keys'
+    });
+  }
+});
+
+// Revoke access key
+app.delete('/api/access-keys/:keyId', authenticateUser, async (req, res) => {
+  try {
+    const { keyId } = req.params;
+    const userId = req.user.id;
+
+    // Verify the key belongs to the user
+    const checkResult = await query(
+      'SELECT id FROM user_access_keys WHERE id = $1 AND user_id = $2',
+      [keyId, userId]
+    );
+
+    if (checkResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'Access key not found or you do not have permission to revoke it'
+      });
+    }
+
+    // Revoke the key (set is_active to false)
+    await query(
+      'UPDATE user_access_keys SET is_active = false, updated_at = NOW() WHERE id = $1',
+      [keyId]
+    );
+
+    res.json({
+      success: true,
+      message: 'Access key revoked successfully'
+    });
+
+  } catch (error) {
+    console.error('[testing] Error revoking access key:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to revoke access key'
+    });
+  }
+});
+
+// Verify access key and return user data
+app.get('/api/auth/verify-access-key', async (req, res) => {
+  try {
+    const { access_key } = req.query;
+
+    if (!access_key) {
+      return res.status(400).json({
+        success: false,
+        error: 'Access key is required'
+      });
+    }
+
+    // Find the access key and get user data
+    const result = await query(`
+      SELECT 
+        uak.id as key_id,
+        uak.access_key,
+        uak.key_name,
+        uak.last_used_at,
+        u.id,
+        u.first_name,
+        u.last_name,
+        u.email,
+        u.role,
+        u.status,
+        u.tenant_id,
+        u.is_super_admin
+      FROM user_access_keys uak
+      JOIN users u ON uak.user_id = u.id
+      WHERE uak.access_key = $1 AND uak.is_active = true
+    `, [access_key]);
+
+    if (result.rows.length === 0) {
+      return res.status(401).json({
+        success: false,
+        error: 'Invalid or expired access key'
+      });
+    }
+
+    const keyData = result.rows[0];
+
+    // Check if user is active
+    if (keyData.status !== 'active') {
+      return res.status(401).json({
+        success: false,
+        error: 'User account is not active'
+      });
+    }
+
+    // Update last_used_at timestamp
+    await query(
+      'UPDATE user_access_keys SET last_used_at = NOW() WHERE id = $1',
+      [keyData.key_id]
+    );
+
+    res.json({
+      success: true,
+      user: {
+        id: keyData.id,
+        first_name: keyData.first_name,
+        last_name: keyData.last_name,
+        email: keyData.email,
+        role: keyData.role,
+        tenant_id: keyData.tenant_id,
+        is_super_admin: keyData.is_super_admin
+      },
+      access_key_info: {
+        key_name: keyData.key_name,
+        last_used_at: keyData.last_used_at
+      }
+    });
+
+  } catch (error) {
+    console.error('[testing] Error verifying access key:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to verify access key'
+    });
+  }
+});
+
 // Get tenants endpoint
 app.get('/api/tenants', async (req, res) => {
   try {
