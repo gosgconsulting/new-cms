@@ -25,8 +25,6 @@ interface Tenant {
   id: string;
   name: string;
   createdAt: string;
-  databaseUrl?: string;
-  apiKey?: string;
 }
 
 const TenantsManager: React.FC = () => {
@@ -34,14 +32,8 @@ const TenantsManager: React.FC = () => {
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [showAddTenantModal, setShowAddTenantModal] = useState(false);
   const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
-  const [showDatabaseModal, setShowDatabaseModal] = useState(false);
-  const [showApiKeyModal, setShowApiKeyModal] = useState(false);
   const [selectedTenant, setSelectedTenant] = useState<Tenant | null>(null);
-  const [newTenant, setNewTenant] = useState<Partial<Tenant>>({
-    name: ''
-  });
-  const [apiKey, setApiKey] = useState('');
-  const [isGenerating, setIsGenerating] = useState(false);
+  const [newTenant, setNewTenant] = useState<Partial<Tenant>>({ name: '' });
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [debugMode, setDebugMode] = useState(false);
@@ -173,10 +165,10 @@ const TenantsManager: React.FC = () => {
       }
       
       const createdTenant = await response.json();
-      
+
       // Add the new tenant to the list
       setTenants(prev => [...prev, createdTenant]);
-      
+
       // Reset form and close modal
       setNewTenant({ name: '' });
       setShowAddTenantModal(false);
@@ -294,71 +286,6 @@ const TenantsManager: React.FC = () => {
     }
   };
 
-  // Generate API key
-  const generateApiKey = async () => {
-    if (!selectedTenant) return;
-    
-    setIsGenerating(true);
-    
-    try {
-      const response = await fetch(`/api/tenants/${selectedTenant.id}/api-keys`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          description: 'Generated from Tenant Management'
-        })
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to generate API key');
-      }
-      
-      const data = await response.json();
-      setApiKey(data.apiKey);
-      
-      toast({
-        title: "Success",
-        description: "API key generated successfully",
-        variant: "default"
-      });
-    } catch (error) {
-      console.error('Error generating API key:', error);
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to generate API key",
-        variant: "destructive"
-      });
-    } finally {
-      setIsGenerating(false);
-    }
-  };
-
-  // Copy to clipboard
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-    toast({
-      title: "Copied",
-      description: "Text copied to clipboard",
-      variant: "default"
-    });
-  };
-
-  // View database details
-  const handleViewDatabase = (tenant: Tenant) => {
-    setSelectedTenant(tenant);
-    setShowDatabaseModal(true);
-  };
-
-  // View API key
-  const handleViewApiKey = (tenant: Tenant) => {
-    setSelectedTenant(tenant);
-    setShowApiKeyModal(true);
-    setApiKey(''); // Reset API key
-  };
-
   // Toggle debug mode
   const toggleDebugMode = () => {
     setDebugMode(prev => !prev);
@@ -474,24 +401,6 @@ const TenantsManager: React.FC = () => {
                 </div>
                 
                 <div className="flex flex-col gap-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="w-full justify-start"
-                    onClick={() => handleViewDatabase(tenant)}
-                  >
-                    <Database className="h-4 w-4 mr-2" />
-                    Database
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="w-full justify-start"
-                    onClick={() => handleViewApiKey(tenant)}
-                  >
-                    <Key className="h-4 w-4 mr-2" />
-                    API Key
-                  </Button>
                   <div className="flex gap-2 mt-2">
                     <Button 
                       variant="ghost" 
@@ -656,157 +565,6 @@ const TenantsManager: React.FC = () => {
               >
                 Delete Tenant
               </Button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Database Modal */}
-      {showDatabaseModal && selectedTenant && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Database Details: {selectedTenant.name}
-            </h3>
-            
-            <div className="space-y-4">
-              <div>
-                <Label className="text-sm font-medium text-gray-700">Database Type</Label>
-                <div className="mt-1 flex items-center">
-                  <Database className="h-4 w-4 mr-2 text-brandTeal" />
-                  <span>PostgreSQL</span>
-                </div>
-              </div>
-              
-              <div>
-                <Label className="text-sm font-medium text-gray-700">Connection String</Label>
-                <div className="mt-1 flex">
-                  <Input
-                    type="text"
-                    readOnly
-                    value={selectedTenant.databaseUrl || `postgresql://user:password@database.railway.app:5432/${selectedTenant.name.toLowerCase().replace(/\s+/g, '_')}`}
-                    className="w-full rounded-r-none"
-                  />
-                  <Button 
-                    className="rounded-l-none"
-                    onClick={() => copyToClipboard(selectedTenant.databaseUrl || `postgresql://user:password@database.railway.app:5432/${selectedTenant.name.toLowerCase().replace(/\s+/g, '_')}`)}
-                  >
-                    Copy
-                  </Button>
-                </div>
-              </div>
-              
-              <div>
-                <Label className="text-sm font-medium text-gray-700">Database Information</Label>
-                <div className="mt-1 grid grid-cols-2 gap-2 text-sm">
-                  <div>
-                    <span className="font-medium">Host:</span> database.railway.app
-                  </div>
-                  <div>
-                    <span className="font-medium">Port:</span> 5432
-                  </div>
-                  <div>
-                    <span className="font-medium">Database:</span> {selectedTenant.name.toLowerCase().replace(/\s+/g, '_')}
-                  </div>
-                  <div>
-                    <span className="font-medium">User:</span> postgres
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div className="flex justify-end space-x-3 mt-6">
-              <Button 
-                variant="outline" 
-                onClick={() => {
-                  setShowDatabaseModal(false);
-                  setSelectedTenant(null);
-                }}
-              >
-                Close
-              </Button>
-              <Button onClick={() => {
-                setShowDatabaseModal(false);
-                handleViewApiKey(selectedTenant);
-              }}>
-                <Key className="h-4 w-4 mr-2" />
-                View API Key
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* API Key Modal */}
-      {showApiKeyModal && selectedTenant && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              API Key for {selectedTenant.name}
-            </h3>
-            <p className="text-sm text-gray-600 mb-4">
-              Generate an API key to establish a secure connection between the CMS and this tenant's database.
-            </p>
-
-            {apiKey ? (
-              <div className="mb-4">
-                <Label className="block text-sm font-medium text-gray-700 mb-1">
-                  Your API Key
-                </Label>
-                <div className="flex">
-                  <Input
-                    type="text"
-                    readOnly
-                    value={apiKey}
-                    className="w-full rounded-r-none"
-                  />
-                  <Button 
-                    className="rounded-l-none"
-                    onClick={() => copyToClipboard(apiKey)}
-                  >
-                    Copy
-                  </Button>
-                </div>
-                <div className="flex items-center text-amber-600 mt-2 text-xs">
-                  <AlertCircle className="h-3 w-3 mr-1" />
-                  Store this key securely. For security reasons, it won't be displayed again.
-                </div>
-              </div>
-            ) : (
-              <div className="mb-4">
-                <p className="text-sm text-gray-600 mb-2">
-                  Click the button below to generate a new API key.
-                </p>
-                <Button 
-                  onClick={generateApiKey}
-                  disabled={isGenerating}
-                  className="w-full"
-                >
-                  {isGenerating ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Generating...
-                    </>
-                  ) : (
-                    'Generate API Key'
-                  )}
-                </Button>
-              </div>
-            )}
-
-            <div className="border-t border-gray-200 pt-4 mt-4">
-              <div className="flex justify-end space-x-3">
-                <Button 
-                  variant="outline" 
-                  onClick={() => {
-                    setShowApiKeyModal(false);
-                    setSelectedTenant(null);
-                    setApiKey('');
-                  }}
-                >
-                  Close
-                </Button>
-              </div>
             </div>
           </div>
         </div>
