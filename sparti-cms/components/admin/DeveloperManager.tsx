@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -391,7 +391,33 @@ const NewProjectModal: React.FC<{ onClose: () => void; onSave: () => void }> = (
 const IntegrationsTab: React.FC = () => {
   const navigate = useNavigate();
   const [showAddIntegration, setShowAddIntegration] = useState(false);
-  const { currentTenant } = useAuth();
+  const [currentTenant, setCurrentTenant] = useState<Tenant | null>(null);
+  const { currentTenantId } = useAuth();
+
+  // Fetch tenant data when currentTenantId changes
+  useEffect(() => {
+    const fetchTenantData = async () => {
+      if (currentTenantId) {
+        try {
+          const response = await fetch(`/api/tenants/${currentTenantId}`);
+          if (response.ok) {
+            const data = await response.json();
+            setCurrentTenant(data);
+          } else {
+            console.error(`Failed to fetch tenant ${currentTenantId}`);
+            setCurrentTenant(null);
+          }
+        } catch (error) {
+          console.error('Error fetching tenant data:', error);
+          setCurrentTenant(null);
+        }
+      } else {
+        setCurrentTenant(null);
+      }
+    };
+
+    fetchTenantData();
+  }, [currentTenantId]);
 
   return (
     <div className="space-y-6">
@@ -405,10 +431,17 @@ const IntegrationsTab: React.FC = () => {
       <Card>
         <CardContent className="pt-6 space-y-4">
           {/* PostgreSQL Database - Now using the dedicated component */}
-          <PostgresIntegration 
-            tenant={currentTenant}
-            onViewClick={() => navigate('/database-viewer')} 
-          />
+          {currentTenant ? (
+            <PostgresIntegration 
+              tenant={currentTenant}
+              onViewClick={() => navigate('/database-viewer')} 
+            />
+          ) : (
+            <div className="p-4 border border-dashed border-gray-300 rounded-lg text-center text-gray-500">
+              <Database className="h-8 w-8 mx-auto mb-2" />
+              <p>No tenant selected. Please select a tenant to view database integration.</p>
+            </div>
+          )}
           
           {/* Components Integration */}
           <ComponentsIntegration
@@ -431,7 +464,11 @@ const IntegrationsTab: React.FC = () => {
               More integrations coming soon! Currently available:
             </p>
             <ul className="text-sm text-gray-600 mb-4 space-y-1">
-              <PostgresIntegrationListItem tenant={currentTenant} />
+              {currentTenant ? (
+                <PostgresIntegrationListItem tenant={currentTenant} />
+              ) : (
+                <li>• PostgreSQL Database (No tenant selected)</li>
+              )}
               <ComponentsIntegrationListItem />
               <li>• Google APIs (Available in Integration Test)</li>
               <li>• OpenRouter AI (Available in Integration Test)</li>
