@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Type, 
   Bold,
@@ -68,7 +68,6 @@ export const TextEditor: React.FC<TextEditorProps> = ({
   link = '',
   onLinkChange
 }) => {
-  const [editorContent, setEditorContent] = useState<string>(content);
   const [showColorPicker, setShowColorPicker] = useState<boolean>(false);
   const [showTextStylePicker, setShowTextStylePicker] = useState<boolean>(false);
   const [showFontSizePicker, setShowFontSizePicker] = useState<boolean>(false);
@@ -77,6 +76,16 @@ export const TextEditor: React.FC<TextEditorProps> = ({
   const [selectedColor, setSelectedColor] = useState<string>('');
   const [selectedTextStyle, setSelectedTextStyle] = useState<string>('paragraph');
   const [selectedFontSize, setSelectedFontSize] = useState<string>('16px');
+  
+  const editorRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<string>(content);
+
+  useEffect(() => {
+    if (editorRef.current && content !== editorRef.current.innerHTML) {
+      editorRef.current.innerHTML = content;
+    }
+    contentRef.current = content;
+  }, [content]);
 
   // Text selection and formatting handlers
   const getSelectedText = () => {
@@ -112,8 +121,7 @@ export const TextEditor: React.FC<TextEditorProps> = ({
     newRange.selectNodeContents(span);
     
     // Update the editor content after DOM manipulation
-    const editorElement = document.querySelector('[contenteditable]');
-    if (editorElement) {
+    if (editorRef.current) {
       // Preserve the selection during content update
       const tempSelection = window.getSelection();
       if (tempSelection) {
@@ -122,8 +130,8 @@ export const TextEditor: React.FC<TextEditorProps> = ({
       }
       
       // Update the editor content state
-      const newContent = editorElement.innerHTML;
-      setEditorContent(newContent);
+      const newContent = editorRef.current.innerHTML;
+      contentRef.current = newContent;
       onChange?.(newContent);
     }
     
@@ -145,8 +153,8 @@ export const TextEditor: React.FC<TextEditorProps> = ({
         span.textContent = selectionData.text;
       });
     } else {
-      const newContent = `<strong>${editorContent}</strong>`;
-      setEditorContent(newContent);
+      const newContent = `<strong>${contentRef.current}</strong>`;
+      contentRef.current = newContent;
       onChange?.(newContent);
     }
   };
@@ -159,8 +167,8 @@ export const TextEditor: React.FC<TextEditorProps> = ({
         span.textContent = selectionData.text;
       });
     } else {
-      const newContent = `<em>${editorContent}</em>`;
-      setEditorContent(newContent);
+      const newContent = `<em>${contentRef.current}</em>`;
+      contentRef.current = newContent;
       onChange?.(newContent);
     }
   };
@@ -173,15 +181,15 @@ export const TextEditor: React.FC<TextEditorProps> = ({
         span.textContent = selectionData.text;
       });
     } else {
-      const newContent = `<u>${editorContent}</u>`;
-      setEditorContent(newContent);
+      const newContent = `<u>${contentRef.current}</u>`;
+      contentRef.current = newContent;
       onChange?.(newContent);
     }
   };
 
   const handleAlignment = (alignment: string) => {
-    const newContent = `<div style="text-align: ${alignment}">${editorContent}</div>`;
-    setEditorContent(newContent);
+    const newContent = `<div style="text-align: ${alignment}">${contentRef.current}</div>`;
+    contentRef.current = newContent;
     onChange?.(newContent);
   };
   
@@ -195,8 +203,8 @@ export const TextEditor: React.FC<TextEditorProps> = ({
         span.textContent = selectionData.text;
       });
     } else {
-      const newContent = `<span style="color: ${color}">${editorContent}</span>`;
-      setEditorContent(newContent);
+      const newContent = `<span style="color: ${color}">${contentRef.current}</span>`;
+      contentRef.current = newContent;
       onChange?.(newContent);
     }
     
@@ -220,8 +228,8 @@ export const TextEditor: React.FC<TextEditorProps> = ({
       });
     } else {
       // If no selection, apply to entire content with all necessary properties
-      const newContent = `<span style="background-image: ${gradient}; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; display: inline-block;">${editorContent}</span>`;
-      setEditorContent(newContent);
+      const newContent = `<span style="background-image: ${gradient}; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; display: inline-block;">${contentRef.current}</span>`;
+      contentRef.current = newContent;
       onChange?.(newContent);
     }
     
@@ -247,8 +255,8 @@ export const TextEditor: React.FC<TextEditorProps> = ({
       // Apply to entire content
       const textStyle = TEXT_STYLES.find(s => s.value === style);
       if (textStyle) {
-        const newContent = `<div class="${textStyle.className}">${editorContent}</div>`;
-        setEditorContent(newContent);
+        const newContent = `<div class="${textStyle.className}">${contentRef.current}</div>`;
+        contentRef.current = newContent;
         onChange?.(newContent);
       }
     }
@@ -267,8 +275,8 @@ export const TextEditor: React.FC<TextEditorProps> = ({
         span.textContent = selectionData.text;
       });
     } else {
-      const newContent = `<span style="font-size: ${size}">${editorContent}</span>`;
-      setEditorContent(newContent);
+      const newContent = `<span style="font-size: ${size}">${contentRef.current}</span>`;
+      contentRef.current = newContent;
       onChange?.(newContent);
     }
   };
@@ -285,8 +293,10 @@ export const TextEditor: React.FC<TextEditorProps> = ({
 
   const handleContentChange = (e: React.FormEvent<HTMLDivElement>) => {
     const newContent = e.currentTarget.innerHTML;
-    setEditorContent(newContent);
-    onChange?.(newContent);
+    if (contentRef.current !== newContent) {
+      contentRef.current = newContent;
+      onChange?.(newContent);
+    }
   };
 
   return (
@@ -475,9 +485,9 @@ export const TextEditor: React.FC<TextEditorProps> = ({
         }}
       >
         <div
+          ref={editorRef}
           contentEditable
           suppressContentEditableWarning
-          dangerouslySetInnerHTML={{ __html: editorContent }}
           onInput={handleContentChange}
           className={`outline-none min-h-[1.5em] w-full ${
             TEXT_STYLES.find(s => s.value === selectedTextStyle)?.className || ''
@@ -509,7 +519,7 @@ export const TextEditor: React.FC<TextEditorProps> = ({
               rel="noopener noreferrer" 
               className="text-blue-600 hover:underline"
             >
-              {editorContent}
+              <div dangerouslySetInnerHTML={{ __html: content }} />
             </a>
           </div>
         </div>
