@@ -33,9 +33,9 @@ const renderSchemaItemEditor = (item: SchemaItem, onChange: (updatedItem: Schema
           content={item.content || ''}
           onChange={(content) => handleItemChange({ ...item, content })}
           placeholder={item.type === 'heading' ? 'Enter heading text...' : 'Enter paragraph text...'}
-          className={className}
           link={item.link || ''}
           onLinkChange={(link) => handleItemChange({ ...item, link })}
+          className={item.type === 'heading' ? 'text-2xl font-bold' : ''}
         />
       );
 
@@ -173,8 +173,6 @@ const renderSchemaItemEditor = (item: SchemaItem, onChange: (updatedItem: Schema
       
       return (
         <ContentCarouselEditor
-          images={carouselImages as any[]} // Type cast to avoid TypeScript errors
-          carouselTitle={item.title || item.alt || ''}
           autoplay={autoplayValue}
           navigation={navigationValue}
           onImagesChange={(images) => {
@@ -204,7 +202,9 @@ const renderSchemaItemEditor = (item: SchemaItem, onChange: (updatedItem: Schema
               navigation: settings.navigation
             } 
           })}
-          className={className}
+          images={item.value || []}
+          carouselTitle={item.alt || ''}
+          className="w-full max-w-md"
         />
       );
 
