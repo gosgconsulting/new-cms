@@ -542,7 +542,7 @@ const BrandingSettingsPage: React.FC = () => {
         </h4>
         
         {/* Single Column Layout */}
-        <div className="max-w-2xl space-y-6">
+        <div className="w-full space-y-6">
           {/* Basic Information */}
           <div className="space-y-4">
             <div className="space-y-2">
