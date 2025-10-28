@@ -67,7 +67,6 @@ const renderSchemaItemEditor = (item: SchemaItem, onChange: (updatedItem: Schema
           onUrlChange={(videoUrl) => handleItemChange({ ...item, src: videoUrl })}
           onTitleChange={(title) => handleItemChange({ ...item, alt: title })}
           onCaptionChange={(caption) => handleItemChange({ ...item, alt: caption })}
-          className="w-full max-w-md"
         />
       );
 
@@ -126,7 +125,6 @@ const renderSchemaItemEditor = (item: SchemaItem, onChange: (updatedItem: Schema
           galleryTitle={item.alt || ''}
           onImagesChange={(images) => handleItemChange({ ...item, value: images })}
           onTitleChange={(title) => handleItemChange({ ...item, alt: title })}
-          className="w-full max-w-md"
         />
       );
 
@@ -204,7 +202,6 @@ const renderSchemaItemEditor = (item: SchemaItem, onChange: (updatedItem: Schema
           })}
           images={item.value || []}
           carouselTitle={item.alt || ''}
-          className="w-full max-w-md"
         />
       );
 
@@ -219,7 +216,6 @@ const renderSchemaItemEditor = (item: SchemaItem, onChange: (updatedItem: Schema
           onUrlChange={(url) => handleItemChange({ ...item, link: url })}
           onStyleChange={(style) => handleItemChange({ ...item })}
           onNewTabChange={(openInNewTab) => handleItemChange({ ...item })}
-          className="w-full max-w-md"
         />
       );
 
