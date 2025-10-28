@@ -34,6 +34,16 @@ export const PostgresIntegration: React.FC<PostgresIntegrationProps> = ({ tenant
   const [showApiKeyModal, setShowApiKeyModal] = useState(false);
   const [apiKey, setApiKey] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
+
+  // Safety check for undefined tenant
+  if (!tenant) {
+    return (
+      <div className="p-4 border border-dashed border-gray-300 rounded-lg text-center text-gray-500">
+        <Database className="h-8 w-8 mx-auto mb-2" />
+        <p>No tenant data available</p>
+      </div>
+    );
+  }
   
   const handleViewClick = () => {
     if (onViewClick) {
@@ -170,6 +180,10 @@ export const PostgresIntegration: React.FC<PostgresIntegrationProps> = ({ tenant
  * PostgreSQL Integration list item for modals
  */
 export const PostgresIntegrationListItem: React.FC<{ tenant: Tenant }> = ({ tenant }) => {
+  if (!tenant) {
+    return <li>• PostgreSQL Database (No tenant selected)</li>;
+  }
+  
   return (
     <li>• PostgreSQL Database (Tenant: {tenant.name})</li>
   );
