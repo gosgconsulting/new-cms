@@ -20,7 +20,6 @@ interface AuthContextType {
   createAdminUser: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   currentTenantId: string | null;
   handleTenantChange: (tenantId: string) => void;
-  isForcedTenant: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -33,10 +32,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentTenantId, setCurrentTenantId] = useState<string | null>(null);
-  const [isForcedTenant, setIsForcedTenant] = useState(false);
-  
-  // Check for forced tenant environment variable
-  const FORCED_TENANT_ID = import.meta.env.VITE_FORCED_TENANT_ID;
 
   const signOut = useCallback(() => {
     setUser(null);
@@ -99,17 +94,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // 2. Determine and set tenant ID
       let tenantIdToSet: string | null = null;
       
-      console.log('FORCED_TENANT_ID', FORCED_TENANT_ID);
-      if (FORCED_TENANT_ID) {
-        setIsForcedTenant(true);
-        tenantIdToSet = FORCED_TENANT_ID;
-        if (validatedUser && !validatedUser.is_super_admin && validatedUser.tenant_id !== FORCED_TENANT_ID) {
-          console.error('Access denied to forced tenant. Forcing logout.');
-          signOut();
-          setLoading(false);
-          return;
-        }
-      } else if (validatedUser && validatedUser.tenant_id && !validatedUser.is_super_admin) {
+      if (validatedUser && validatedUser.tenant_id && !validatedUser.is_super_admin) {
         tenantIdToSet = validatedUser.tenant_id;
       } else {
         const savedTenantId = localStorage.getItem('sparti-current-tenant-id');
@@ -162,18 +147,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         localStorage.setItem('sparti-user-session', JSON.stringify({ ...userData, token: data.token }));
         
         // Handle tenant assignment after login
-        if (FORCED_TENANT_ID) {
-          // If forced tenant is set, verify user has access
-          if (!userData.is_super_admin && userData.tenant_id !== FORCED_TENANT_ID) {
-            return { 
-              success: false, 
-              error: 'Access denied: You do not have permission to access this tenant' 
-            };
-          }
-        }
-        
         // Set tenant if needed
-        const tenantIdToSet = FORCED_TENANT_ID || (userData.tenant_id && !userData.is_super_admin ? userData.tenant_id : null);
+        const tenantIdToSet = userData.tenant_id && !userData.is_super_admin ? userData.tenant_id : null;
         
         if (tenantIdToSet) {
             setCurrentTenantId(tenantIdToSet);
@@ -224,7 +199,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         localStorage.setItem('sparti-access-key', accessKey);
         
         // Set tenant if needed
-        const tenantIdToSet = FORCED_TENANT_ID || (userData.tenant_id && !userData.is_super_admin ? userData.tenant_id : null);
+        const tenantIdToSet = userData.tenant_id && !userData.is_super_admin ? userData.tenant_id : null;
         
         if (tenantIdToSet) {
             setCurrentTenantId(tenantIdToSet);
@@ -245,7 +220,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         error: 'Access key verification failed. Please try again.' 
       };
     }
-  }, [FORCED_TENANT_ID]);
+  }, []);
 
   const createAdminUser = useCallback(async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {
@@ -288,7 +263,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     createAdminUser,
     currentTenantId,
     handleTenantChange,
-    isForcedTenant,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

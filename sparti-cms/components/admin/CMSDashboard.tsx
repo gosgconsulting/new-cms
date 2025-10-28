@@ -48,6 +48,7 @@ import TenantsManager from './TenantsManager';
 
 import BrandingSettingsPage from './BrandingSettingsPage';
 import ButtonSettingsPage from './ButtonSettingsPage';
+import TenantSelector from './TenantSelector';
 import TypographySettingsPage from './TypographySettingsPage';
 import ColorSettingsPage from './ColorSettingsPage';
 import AccessKeysManager from './AccessKeysManager';
@@ -210,7 +211,7 @@ const CMSDashboard: React.FC = () => {
   const [tenantDropdownOpen, setTenantDropdownOpen] = useState<boolean>(false);
   const [tenant, setTenant] = useState<Tenant | null>(null);
   const [tenants, setTenants] = useState<Tenant[]>([]);
-  const { signOut, user, currentTenantId, handleTenantChange, isForcedTenant } = useAuth();
+  const { signOut, user, currentTenantId, handleTenantChange } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -235,7 +236,7 @@ const CMSDashboard: React.FC = () => {
     };
 
     const fetchAllTenants = async () => {
-      if (!isForcedTenant && user?.is_super_admin) {
+      if (user?.is_super_admin) {
          try {
           const response = await fetch(`/api/tenants`);
           if (response.ok) {
@@ -254,7 +255,7 @@ const CMSDashboard: React.FC = () => {
 
     fetchTenantData();
     fetchAllTenants();
-  }, [currentTenantId, isForcedTenant, user]);
+  }, [currentTenantId, user]);
 
   const renderContent = () => {
     switch (activeTab) {
@@ -298,7 +299,7 @@ const CMSDashboard: React.FC = () => {
     { id: 'settings', label: 'Settings', icon: SettingsIcon },
     { id: 'developer', label: 'Developer', icon: Code },
     { id: 'tenants', label: 'Tenants', icon: Building2 },
-  ].filter(item => !isForcedTenant || item.id !== 'tenants');
+  ].filter(item => user?.is_super_admin || item.id !== 'tenants');
 
   const usersItems = [
     { id: 'my-account', label: 'My Account', icon: Users },
@@ -531,7 +532,7 @@ const CMSDashboard: React.FC = () => {
         {/* Footer with Tenant Switcher */}
         <div className="p-4 border-t border-border space-y-2">
           {/* Tenant Switcher - Hidden when forced tenant is active */}
-          {!isForcedTenant && (
+          {user?.is_super_admin && (
             <div className="relative">
               <button
                 onClick={() => setTenantDropdownOpen(!tenantDropdownOpen)}
@@ -622,7 +623,7 @@ const CMSDashboard: React.FC = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <h1 className="text-2xl font-bold text-foreground">{getPageTitle()}</h1>
-              {!isForcedTenant && tenant && (
+              {user?.is_super_admin && tenant && (
                 <div className="px-2 py-1 rounded bg-secondary/50 text-xs font-medium flex items-center">
                   <span>Tenant: {tenant.name}</span>
                   {tenant.isDevelopment && (
@@ -633,6 +634,11 @@ const CMSDashboard: React.FC = () => {
             </div>
             
             <div className="flex items-center space-x-4">
+              <TenantSelector
+                currentTenantId={currentTenantId || user?.tenant_id || ''}
+                onTenantChange={handleTenantChange}
+                isSuperAdmin={user?.is_super_admin || false}
+              />
               <span className="text-sm text-muted-foreground">
                 {user ? `Welcome back, ${user.email || 'Admin'}` : 'Public Dashboard'}
               </span>
