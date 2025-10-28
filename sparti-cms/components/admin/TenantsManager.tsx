@@ -30,7 +30,7 @@ interface Tenant {
 }
 
 const TenantsManager: React.FC = () => {
-  const { currentTenantId } = useAuth();
+  const { currentTenantId, user } = useAuth();
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [showAddTenantModal, setShowAddTenantModal] = useState(false);
   const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
@@ -109,7 +109,6 @@ const TenantsManager: React.FC = () => {
       }
       
       const data = await response.json();
-      console.log('Tenants data:', data);
       
       if (!Array.isArray(data)) {
         console.error('Expected array of tenants but got:', data);
