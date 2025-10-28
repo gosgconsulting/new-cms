@@ -131,18 +131,16 @@ export const TextEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove
 
 // Image item editor
 export const ImageEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove }) => {
-  const updateValue = (value: string) => {
-    onChange({
-      ...item,
-      src: value
-    });
+  const handleImageChange = (imageUrl: string) => {
+    onChange({ ...item, src: imageUrl });
   };
 
-  const updateAlt = (alt: string) => {
-    onChange({
-      ...item,
-      alt
-    });
+  const handleTitleChange = (title: string) => {
+    onChange({ ...item, content: title });
+  };
+
+  const handleAltChange = (alt: string) => {
+    onChange({ ...item, alt: alt });
   };
 
   return (
@@ -158,37 +156,15 @@ export const ImageEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemov
           </Button>
         </div>
       </CardHeader>
-      <CardContent className="space-y-3">
-        <div>
-          <Label className="text-xs">Image URL</Label>
-          <Input
-            value={item.src || ''}
-            onChange={(e) => updateValue(e.target.value)}
-            placeholder="/path/to/image.jpg"
-            className="text-sm"
-          />
-        </div>
-        {item.src && (
-          <div className="border rounded p-2">
-            <img 
-              src={item.src} 
-              alt="Preview" 
-              className="max-w-full h-32 object-cover rounded"
-              onError={(e) => {
-                e.currentTarget.style.display = 'none';
-              }}
-            />
-          </div>
-        )}
-        <div>
-          <Label className="text-xs">Alt Text</Label>
-          <Input
-            value={item.alt || ''}
-            onChange={(e) => updateAlt(e.target.value)}
-            placeholder="Describe the image..."
-            className="text-sm"
-          />
-        </div>
+      <CardContent>
+        <ContentImageEditor
+          imageUrl={item.src || ''}
+          imageTitle={item.content || ''}
+          imageAlt={item.alt || ''}
+          onImageChange={handleImageChange}
+          onTitleChange={handleTitleChange}
+          onAltChange={handleAltChange}
+        />
       </CardContent>
     </Card>
   );
@@ -309,8 +285,13 @@ export const ArrayEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemov
     });
   };
 
-  const addItem = () => {
-    const newItems = [...(item.items || []), { key: `item${Date.now()}`, type: 'text' as const, content: '' }];
+  const addItem = (type: SchemaItemType = 'text') => {
+    const newItem: SchemaItem = {
+      key: `item${Date.now()}`,
+      type: type,
+      content: ''
+    };
+    const newItems = [...(item.items || []), newItem];
     updateItems(newItems);
   };
 
@@ -330,7 +311,7 @@ export const ArrayEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemov
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm flex items-center gap-2">
-            <Badge className="h-4 w-4" />
+            <Layers className="h-4 w-4" />
             Array ({item.items?.length || 0} items)
           </CardTitle>
           <Button variant="ghost" size="sm" onClick={onRemove}>
@@ -339,32 +320,34 @@ export const ArrayEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemov
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <Label className="text-xs">Items</Label>
-            <Button size="sm" onClick={addItem}>
-              <Plus className="h-3 w-3 mr-1" />
-              Add Item
-            </Button>
-          </div>
-          {item.items?.map((arrayItem: SchemaItem, index: number) => (
-            <div key={index} className="border rounded p-2 flex items-center gap-2">
-              <div className="flex-1">
-                <div className="text-xs text-gray-500 mb-1">
-                  {arrayItem.type} - {arrayItem.key}
-                </div>
-                <Input
-                  value={arrayItem.content || ''}
-                  onChange={(e) => updateItem(index, { ...arrayItem, content: e.target.value })}
-                  placeholder="Item content"
-                  className="text-sm"
-                />
-              </div>
-              <Button size="sm" variant="ghost" onClick={() => removeItem(index)}>
-                <X className="h-3 w-3" />
-              </Button>
+        <div className="space-y-4">
+          {item.items?.map((arrayItem, index) => (
+            <div key={arrayItem.key || index} className="border rounded p-4 bg-slate-50">
+              <ItemEditor
+                item={arrayItem}
+                onChange={(updatedSubItem) => updateItem(index, updatedSubItem)}
+                onRemove={() => removeItem(index)}
+              />
             </div>
           ))}
+          <div className="flex items-center gap-2">
+            <Select onValueChange={(value) => addItem(value as SchemaItemType)}>
+              <SelectTrigger className="h-8 w-40">
+                <SelectValue placeholder="Add new item..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="text">Text</SelectItem>
+                <SelectItem value="heading">Heading</SelectItem>
+                <SelectItem value="image">Image</SelectItem>
+                <SelectItem value="link">Link</SelectItem>
+                <SelectItem value="button">Button</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button size="sm" onClick={() => addItem('text')}>
+              <Plus className="h-3 w-3 mr-1" />
+              Add Text Item
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>

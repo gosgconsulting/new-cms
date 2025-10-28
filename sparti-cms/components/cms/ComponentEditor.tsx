@@ -20,7 +20,7 @@ interface ComponentEditorProps {
 }
 
 // Helper function to render individual schema items
-const renderSchemaItemEditor = (item: SchemaItem, onChange: (updatedItem: SchemaItem) => void, className: string = '') => {
+const renderSchemaItemEditor = (item: SchemaItem, onChange: (updatedItem: SchemaItem) => void, path: (string | number)[] = []) => {
   const handleItemChange = (updatedItem: SchemaItem) => {
     onChange(updatedItem);
   };
@@ -33,9 +33,9 @@ const renderSchemaItemEditor = (item: SchemaItem, onChange: (updatedItem: Schema
           content={item.content || ''}
           onChange={(content) => handleItemChange({ ...item, content })}
           placeholder={item.type === 'heading' ? 'Enter heading text...' : 'Enter paragraph text...'}
-          className={className}
           link={item.link || ''}
           onLinkChange={(link) => handleItemChange({ ...item, link })}
+          className={item.type === 'heading' ? 'text-2xl font-bold' : ''}
         />
       );
 
@@ -54,7 +54,7 @@ const renderSchemaItemEditor = (item: SchemaItem, onChange: (updatedItem: Schema
           onAltChange={(alt) => {
             handleItemChange({ ...item, alt });
           }}
-          className={className}
+          className="w-full"
         />
       );
 
@@ -67,13 +67,13 @@ const renderSchemaItemEditor = (item: SchemaItem, onChange: (updatedItem: Schema
           onUrlChange={(videoUrl) => handleItemChange({ ...item, src: videoUrl })}
           onTitleChange={(title) => handleItemChange({ ...item, alt: title })}
           onCaptionChange={(caption) => handleItemChange({ ...item, alt: caption })}
-          className={className}
+          className="w-full max-w-md"
         />
       );
 
     case 'input':
       return (
-        <div className={`p-4 border rounded-md ${className}`}>
+        <div className="p-4 border rounded-md">
           <label className="block text-sm font-medium mb-2">Input Field: {item.key}</label>
           <input
             type="text"
@@ -97,7 +97,7 @@ const renderSchemaItemEditor = (item: SchemaItem, onChange: (updatedItem: Schema
 
     case 'textarea':
       return (
-        <div className={`p-4 border rounded-md ${className}`}>
+        <div className="p-4 border rounded-md">
           <label className="block text-sm font-medium mb-2">Textarea Field: {item.key}</label>
           <textarea
             value={item.content || ''}
@@ -126,7 +126,7 @@ const renderSchemaItemEditor = (item: SchemaItem, onChange: (updatedItem: Schema
           galleryTitle={item.alt || ''}
           onImagesChange={(images) => handleItemChange({ ...item, value: images })}
           onTitleChange={(title) => handleItemChange({ ...item, alt: title })}
-          className={className}
+          className="w-full max-w-md"
         />
       );
 
@@ -173,8 +173,6 @@ const renderSchemaItemEditor = (item: SchemaItem, onChange: (updatedItem: Schema
       
       return (
         <ContentCarouselEditor
-          images={carouselImages as any[]} // Type cast to avoid TypeScript errors
-          carouselTitle={item.title || item.alt || ''}
           autoplay={autoplayValue}
           navigation={navigationValue}
           onImagesChange={(images) => {
@@ -204,7 +202,9 @@ const renderSchemaItemEditor = (item: SchemaItem, onChange: (updatedItem: Schema
               navigation: settings.navigation
             } 
           })}
-          className={className}
+          images={item.value || []}
+          carouselTitle={item.alt || ''}
+          className="w-full max-w-md"
         />
       );
 
@@ -219,13 +219,13 @@ const renderSchemaItemEditor = (item: SchemaItem, onChange: (updatedItem: Schema
           onUrlChange={(url) => handleItemChange({ ...item, link: url })}
           onStyleChange={(style) => handleItemChange({ ...item })}
           onNewTabChange={(openInNewTab) => handleItemChange({ ...item })}
-          className={className}
+          className="w-full max-w-md"
         />
       );
 
     case 'array':
       return (
-        <div className={`space-y-4 ${className}`}>
+        <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Badge variant="outline">Array</Badge>
@@ -250,14 +250,9 @@ const renderSchemaItemEditor = (item: SchemaItem, onChange: (updatedItem: Schema
                   {renderSchemaItemEditor(arrayItem, (updatedItem) => {
                     const updatedItems = [...(item.items || [])];
                     updatedItems[index] = updatedItem;
-                    // For array items, we need to update the parent array item
                     const updatedArrayItem = { ...item, items: updatedItems };
-                    console.log('[ComponentEditor] Array item updated:', updatedArrayItem);
-                    // This should call the parent's onChange, not handleItemChange
-                    // We need to find the parent item index and update it
-                    // For now, let's just log and see what happens
-                    console.log('[ComponentEditor] Array update - this needs to be handled by parent');
-                  })}
+                    onChange(updatedArrayItem);
+                  }, [...path, index])}
                 </div>
               ))}
             </div>
@@ -271,7 +266,7 @@ const renderSchemaItemEditor = (item: SchemaItem, onChange: (updatedItem: Schema
 
     case 'review':
       return (
-        <div className={`p-4 border rounded-md ${className}`}>
+        <div className="p-4 border rounded-md">
           <label className="block text-sm font-medium mb-2">Review: {item.key}</label>
           <div className="space-y-3">
             <div>
@@ -322,7 +317,7 @@ const renderSchemaItemEditor = (item: SchemaItem, onChange: (updatedItem: Schema
 
     case 'feature':
       return (
-        <div className={`p-4 border rounded-md ${className}`}>
+        <div className="p-4 border rounded-md">
           <label className="block text-sm font-medium mb-2">Feature: {item.key}</label>
           <div className="space-y-3">
             <div>
@@ -416,7 +411,7 @@ const renderSchemaItemEditor = (item: SchemaItem, onChange: (updatedItem: Schema
 
     default:
       return (
-        <div className={`p-4 bg-gray-100 rounded-md ${className}`}>
+        <div className="p-4 bg-gray-100 rounded-md">
           <p className="text-gray-600">
             Editor not available for item type: {item.type}
           </p>
@@ -430,8 +425,6 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
   onChange,
   className = ''
 }) => {
-  // Debug logging to understand the schema structure
-  console.log('[ComponentEditor] Received schema:', schema);
   
   // Ensure schema has items property
   const safeSchema = {
@@ -439,9 +432,34 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
     items: schema.items || []
   };
   
-  const handleItemChange = (index: number, updatedItem: SchemaItem) => {
+  const handleItemChange = (path: (string | number)[], updatedItem: SchemaItem) => {
     const updatedItems = [...safeSchema.items];
-    updatedItems[index] = updatedItem;
+
+    let currentLevel: any = { items: updatedItems };
+
+    for (let i = 0; i < path.length - 1; i++) {
+      const keyOrIndex = path[i];
+      if (typeof keyOrIndex === 'string') {
+        currentLevel = currentLevel.items.find((item: SchemaItem) => item.key === keyOrIndex);
+      } else {
+        currentLevel = currentLevel.items[keyOrIndex];
+      }
+      if (!currentLevel) {
+        console.error('[ComponentEditor] Invalid path, could not find item at:', path.slice(0, i + 1));
+        return;
+      }
+    }
+
+    const lastKeyOrIndex = path[path.length - 1];
+    if (typeof lastKeyOrIndex === 'string') {
+      const itemIndex = currentLevel.items.findIndex((item: SchemaItem) => item.key === lastKeyOrIndex);
+      if (itemIndex !== -1) {
+        currentLevel.items[itemIndex] = updatedItem;
+      }
+    } else {
+      currentLevel.items[lastKeyOrIndex] = updatedItem;
+    }
+
     const updatedSchema = { ...safeSchema, items: updatedItems };
     onChange?.(updatedSchema);
   };
@@ -468,10 +486,7 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
                     {item.key}
                   </span>
                 </div>
-                {renderSchemaItemEditor(item, (updatedItem) => {
-                  console.log('[ComponentEditor] renderSchemaItemEditor callback called with:', updatedItem);
-                  handleItemChange(index, updatedItem);
-                })}
+                {renderSchemaItemEditor(item, (updatedItem) => handleItemChange([index], updatedItem), [index])}
               </div>
             )) : (
               <div className="text-center py-8 text-gray-500">

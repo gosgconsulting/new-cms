@@ -327,8 +327,6 @@ app.post('/api/upload', upload.single('file'), (req, res) => {
       return res.status(400).json({ error: 'No file uploaded' });
     }
     
-    console.log('[testing] File uploaded:', req.file.filename);
-    
     res.json({ 
       success: true, 
       url: `/uploads/${req.file.filename}`,
