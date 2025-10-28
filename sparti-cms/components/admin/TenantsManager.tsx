@@ -30,7 +30,7 @@ interface Tenant {
 }
 
 const TenantsManager: React.FC = () => {
-  const { isForcedTenant, currentTenantId } = useAuth();
+  const { currentTenantId } = useAuth();
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [showAddTenantModal, setShowAddTenantModal] = useState(false);
   const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
@@ -50,7 +50,7 @@ const TenantsManager: React.FC = () => {
 
   // Fetch tenants on component mount
   useEffect(() => {
-    if (isForcedTenant) {
+    if (!user?.is_super_admin) {
       if (currentTenantId) {
         // Fetch the single forced tenant
         const fetchForcedTenant = async () => {
@@ -79,11 +79,11 @@ const TenantsManager: React.FC = () => {
     } else {
       fetchTenants();
     }
-  }, [isForcedTenant, currentTenantId]);
+  }, [currentTenantId]);
 
   // Fetch all tenants from the API
   const fetchTenants = async () => {
-    if (isForcedTenant) return;
+    if (!user?.is_super_admin) return;
     try {
       setIsLoading(true);
       setFetchError(null);
@@ -413,10 +413,10 @@ const TenantsManager: React.FC = () => {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button onClick={() => fetchTenants()} variant="outline" size="icon" title="Refresh" disabled={isForcedTenant}>
+          <Button onClick={() => fetchTenants()} variant="outline" size="icon" title="Refresh" disabled={!user?.is_super_admin}>
             <RefreshCw className="h-4 w-4" />
           </Button>
-          <Button onClick={() => setShowAddTenantModal(true)} disabled={isForcedTenant}>
+          <Button onClick={() => setShowAddTenantModal(true)} disabled={!user?.is_super_admin}>
             <Plus className="h-4 w-4 mr-2" />
             Add New Tenant
           </Button>

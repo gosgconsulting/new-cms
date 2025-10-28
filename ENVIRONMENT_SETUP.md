@@ -35,9 +35,6 @@ NODE_ENV=development
 # SMTP Configuration (REQUIRED for email functionality)
 RESEND_API_KEY=your_resend_api_key_here
 SMTP_FROM_EMAIL=noreply@gosg.com
-
-# Forced Tenant Configuration (optional - locks app to single tenant)
-VITE_FORCED_TENANT_ID=tenant-gosg
 ```
 
 **Note**: In development, the Vite server is configured with a proxy that automatically forwards `/api` requests to `http://localhost:4173`, so you can leave `VITE_API_BASE_URL` empty for local development.
@@ -65,14 +62,10 @@ SMTP_FROM_EMAIL=noreply@gosg.com
 1. **Frontend variables** must be prefixed with `VITE_` to be accessible in the browser
 2. **Backend variables** don't need the `VITE_` prefix
 3. The `VITE_API_BASE_URL` is used by the ContactModal component to determine where to send form submissions
-4. **Forced Tenant**: When `VITE_FORCED_TENANT_ID` is set, the app will be locked to that specific tenant:
-   - Tenant switcher dropdown will be hidden
-   - Tenants management page will be hidden from navigation
-   - If the specified tenant ID doesn't exist, the app will show an error
-5. If `VITE_API_BASE_URL` is not set, it defaults to an empty string (relative path)
-6. **Vite Proxy**: In development, Vite automatically proxies `/api/*` requests to `http://localhost:4173`
-7. **Database Connection**: Either `DATABASE_URL` or `DATABASE_PUBLIC_URL` is required for the backend to work
-8. **SMTP**: Required for email functionality (contact form notifications, etc.)
+4. If `VITE_API_BASE_URL` is not set, it defaults to an empty string (relative path)
+5. **Vite Proxy**: In development, Vite automatically proxies `/api/*` requests to `http://localhost:4173`
+6. **Database Connection**: Either `DATABASE_URL` or `DATABASE_PUBLIC_URL` is required for the backend to work
+7. **SMTP**: Required for email functionality (contact form notifications, etc.)
 
 ## Variables NOT Needed
 

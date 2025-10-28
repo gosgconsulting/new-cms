@@ -69,26 +69,6 @@ const __dirname = dirname(__filename);
 const app = express();
 const port = process.env.PORT || 4173;
 
-// Tenant access control middleware
-const checkTenantAccess = (req, res, next) => {
-  const user = req.user; // From session/JWT
-  const tenantId = req.headers['x-tenant-id'] || req.body.tenant_id;
-  
-  if (!user) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
-  
-  if (user.is_super_admin) {
-    return next();
-  }
-  
-  if (user.tenant_id !== tenantId) {
-    return res.status(403).json({ error: 'Access denied to this tenant' });
-  }
-  
-  next();
-};
-
 // Ensure uploads directory exists
 const uploadsDir = join(__dirname, 'public', 'uploads');
 if (!existsSync(uploadsDir)) {
@@ -136,6 +116,12 @@ const JWT_SECRET = process.env.JWT_SECRET || 'sparti-demo-secret-key';
 const authenticateUser = (req, res, next) => {
   // Check if user is already authenticated via access key
   if (req.user) {
+    // Set tenant for access key users
+    if (req.user.is_super_admin) {
+      req.tenantId = req.query.tenantId || req.headers['x-tenant-id'] || req.user.tenant_id;
+    } else {
+      req.tenantId = req.user.tenant_id;
+    }
     return next();
   }
 
@@ -150,6 +136,14 @@ const authenticateUser = (req, res, next) => {
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
     req.user = decoded;
+    
+    // Set tenant based on user type
+    if (req.user.is_super_admin) {
+      req.tenantId = req.query.tenantId || req.headers['x-tenant-id'] || req.user.tenant_id;
+    } else {
+      req.tenantId = req.user.tenant_id; // Force user's own tenant
+    }
+    
     next();
   } catch (error) {
     return res.status(401).json({ error: 'Invalid token' });
@@ -174,11 +168,8 @@ app.use((req, res, next) => {
 const authenticateWithAccessKey = async (req, res, next) => {
   try {
     const accessKey = req.headers['x-access-key'] || req.headers['X-Access-Key'];
-    console.log('[testing] Access key middleware - Headers:', req.headers);
-    console.log('[testing] Access key middleware - Access key:', accessKey);
     
     if (!accessKey) {
-      console.log('[testing] No access key provided, continuing to next middleware');
       return next(); // No access key provided, continue to next middleware
     }
 
@@ -305,7 +296,7 @@ app.get('/health/detailed', async (req, res) => {
 app.use('/api/tenants', tenantRoutes);
 
 // Branding API
-app.get('/api/branding', authenticateUser, checkTenantAccess, async (req, res) => {
+app.get('/api/branding', authenticateUser, async (req, res) => {
   try {
     console.log('[testing] API: Getting branding settings');
     const settings = await getBrandingSettings();
@@ -316,7 +307,7 @@ app.get('/api/branding', authenticateUser, checkTenantAccess, async (req, res) =
   }
 });
 
-app.post('/api/branding', authenticateUser, checkTenantAccess, async (req, res) => {
+app.post('/api/branding', authenticateUser, async (req, res) => {
   try {
     console.log('[testing] API: Updating branding settings:', req.body);
     await updateMultipleBrandingSettings(req.body);
@@ -439,7 +430,7 @@ app.get('/api/form-submissions/:formId', async (req, res) => {
 // Forms Management API Endpoints
 
 // Get all forms
-app.get('/api/forms', authenticateUser, checkTenantAccess, async (req, res) => {
+app.get('/api/forms', authenticateUser, async (req, res) => {
   try {
     const result = await query('SELECT * FROM forms ORDER BY created_at DESC');
     res.json(result.rows);
@@ -450,7 +441,7 @@ app.get('/api/forms', authenticateUser, checkTenantAccess, async (req, res) => {
 });
 
 // Get form by ID
-app.get('/api/forms/:id', authenticateUser, checkTenantAccess, async (req, res) => {
+app.get('/api/forms/:id', authenticateUser, async (req, res) => {
   try {
     const form = await getFormById(req.params.id);
     if (form) {
@@ -465,7 +456,7 @@ app.get('/api/forms/:id', authenticateUser, checkTenantAccess, async (req, res) 
 });
 
 // Create new form
-app.post('/api/forms', authenticateUser, checkTenantAccess, async (req, res) => {
+app.post('/api/forms', authenticateUser, async (req, res) => {
   try {
     const { name, description, fields, settings, is_active } = req.body;
     
@@ -797,19 +788,18 @@ app.delete('/api/contacts/:id', async (req, res) => {
 });
 
 // Pages Management API Routes
-app.get('/api/pages/all', authenticateUser, checkTenantAccess, async (req, res) => {
+app.get('/api/pages/all', authenticateUser, async (req, res) => {
   try {
-    const { tenantId } = req.query;
-    console.log(`[testing] API: Fetching all pages with types for tenant: ${tenantId || 'default'}`);
+    console.log(`[testing] API: Fetching all pages with types for tenant: ${req.tenantId}`);
     
     // Filter pages by tenant
-    const pages = await getAllPagesWithTypes(tenantId);
+    const pages = await getAllPagesWithTypes(req.tenantId);
     
     res.json({ 
       success: true, 
       pages: pages,
       total: pages.length,
-      tenantId: tenantId || 'default'
+      tenantId: req.tenantId
     });
   } catch (error) {
     console.error('[testing] API: Error fetching pages:', error);
@@ -1982,7 +1972,7 @@ app.post('/api/auth/login', async (req, res) => {
 
     // Find user by email
     const userResult = await query(
-      'SELECT id, first_name, last_name, email, password_hash, role, status, tenant_id, is_super_admin FROM users WHERE email = $1',
+      'SELECT id, first_name, last_name, email, password_hash, role, is_active, tenant_id, is_super_admin FROM users WHERE email = $1',
       [email]
     );
 
@@ -1996,7 +1986,7 @@ app.post('/api/auth/login', async (req, res) => {
     const user = userResult.rows[0];
 
     // Check if user is active
-    if (user.status !== 'active') {
+    if (!user.is_active) {
       return res.status(401).json({
         success: false,
         error: 'Account is not active'
@@ -2305,12 +2295,16 @@ app.get('/api/auth/verify-access-key', async (req, res) => {
 });
 
 // Get tenants endpoint
-app.get('/api/tenants', async (req, res) => {
+app.get('/api/tenants', authenticateUser, async (req, res) => {
   try {
-    const result = await query('SELECT id, name, created_at FROM tenants ORDER BY name');
-    res.json(result.rows);
+    if (!req.user.is_super_admin) {
+      return res.json([{ id: req.tenantId, name: req.user.tenant_id }]);
+    }
+    // Fetch all tenants for super admin
+    const tenants = await query('SELECT DISTINCT tenant_id as id, tenant_id as name FROM users ORDER BY tenant_id');
+    res.json(tenants.rows);
   } catch (error) {
-    console.error('[testing] Error fetching tenants:', error);
+    console.error('Error fetching tenants:', error);
     res.status(500).json({ error: 'Failed to fetch tenants' });
   }
 });
