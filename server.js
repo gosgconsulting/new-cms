@@ -2325,6 +2325,9 @@ app.get('/api/tenants/:id', async (req, res) => {
   }
 });
 
+// Serve static files from the 'public' directory
+app.use(express.static(join(__dirname, 'public')));
+
 // Serve static files from the dist directory - MUST come after API routes
 app.use(express.static(join(__dirname, 'dist')));
 
