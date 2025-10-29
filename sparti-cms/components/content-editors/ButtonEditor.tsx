@@ -108,10 +108,11 @@ export const ButtonEditor: React.FC<ButtonEditorProps> = ({
       
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <label className="block text-sm font-medium text-gray-700">Open in new tab</label>
-          <div className="relative inline-block w-10 align-middle select-none">
+          <label htmlFor="openInNewTab" className="block text-sm font-medium text-gray-700">Open in new tab</label>
+          <label htmlFor="openInNewTab" className="relative inline-block w-10 align-middle select-none cursor-pointer">
             <input 
               type="checkbox" 
+              id="openInNewTab"
               checked={newTab}
               onChange={handleNewTabChange}
               className="sr-only" 
@@ -119,10 +120,10 @@ export const ButtonEditor: React.FC<ButtonEditorProps> = ({
             <div className={`w-10 h-5 rounded-full shadow-inner transition-colors ${
               newTab ? 'bg-purple-600' : 'bg-gray-200'
             }`}></div>
-            <div className={`absolute w-5 h-5 bg-white rounded-full shadow-md transform transition-transform ${
+            <div className={`absolute top-0 w-5 h-5 bg-white rounded-full shadow-md transform transition-transform ${
               newTab ? 'translate-x-5' : 'translate-x-0'
             }`}></div>
-          </div>
+          </label>
         </div>
       </div>
       

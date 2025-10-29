@@ -55,3 +55,44 @@ export interface ComponentSchema {
 export interface PageSchema {
   components: ComponentSchema[];
 }
+
+// Header and Footer Schema interfaces
+export interface HeaderSchema {
+  logo: { 
+    src: string; 
+    alt: string; 
+    height: string; 
+  };
+  menu: Array<{ 
+    id: string; 
+    label: string; 
+    link: string; 
+  }>;
+  showCart: boolean;
+  showSearch: boolean;
+  showAccount: boolean;
+}
+
+export interface FooterSchema {
+  logo: { 
+    src: string; 
+    alt: string; 
+  };
+  sections: Array<{
+    title: string;
+    links: Array<{ 
+      id: string; 
+      label: string; 
+      link: string; 
+    }>;
+  }>;
+  legalLinks: Array<{ 
+    id: string; 
+    label: string; 
+    link: string; 
+  }>;
+  copyright: string;
+  description: string;
+  showCurrencySwitcher: boolean;
+  showLanguageSwitcher: boolean;
+}

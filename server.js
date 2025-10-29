@@ -71,6 +71,7 @@ const port = process.env.PORT || 4173;
 
 // Ensure uploads directory exists
 const uploadsDir = join(__dirname, 'public', 'uploads');
+console.log(`[Uploads Directory] The upload directory is located at: ${uploadsDir}`);
 if (!existsSync(uploadsDir)) {
   mkdirSync(uploadsDir, { recursive: true });
   console.log('[testing] Created uploads directory:', uploadsDir);
@@ -337,6 +338,54 @@ app.post('/api/upload', upload.single('file'), (req, res) => {
   } catch (error) {
     console.error('[testing] Error uploading file:', error);
     res.status(500).json({ error: 'Failed to upload file' });
+  }
+});
+
+// Site Schema API endpoints
+app.get('/api/site-schemas/:schemaKey', authenticateUser, async (req, res) => {
+  try {
+    const { schemaKey } = req.params;
+    const tenantId = req.headers['x-tenant-id'];
+    
+    if (!tenantId) {
+      return res.status(400).json({ error: 'Tenant ID is required' });
+    }
+    
+    const { getSiteSchema } = await import('./sparti-cms/db/postgres.js');
+    const schema = await getSiteSchema(schemaKey, tenantId);
+    
+    if (!schema) {
+      return res.status(404).json({ error: 'Schema not found' });
+    }
+    
+    res.json({ success: true, schema });
+  } catch (error) {
+    console.error('[testing] Error fetching site schema:', error);
+    res.status(500).json({ error: 'Failed to fetch site schema' });
+  }
+});
+
+app.put('/api/site-schemas/:schemaKey', authenticateUser, async (req, res) => {
+  try {
+    const { schemaKey } = req.params;
+    const { schema } = req.body;
+    const tenantId = req.headers['x-tenant-id'];
+    
+    if (!tenantId) {
+      return res.status(400).json({ error: 'Tenant ID is required' });
+    }
+    
+    if (!schema) {
+      return res.status(400).json({ error: 'Schema data is required' });
+    }
+    
+    const { updateSiteSchema } = await import('./sparti-cms/db/postgres.js');
+    await updateSiteSchema(schemaKey, schema, tenantId);
+    
+    res.json({ success: true, message: 'Schema updated successfully' });
+  } catch (error) {
+    console.error('[testing] Error updating site schema:', error);
+    res.status(500).json({ error: 'Failed to update site schema' });
   }
 });
 
@@ -2323,6 +2372,9 @@ app.get('/api/tenants/:id', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch tenant' });
   }
 });
+
+// Serve static files from the 'public' directory
+app.use(express.static(join(__dirname, 'public')));
 
 // Serve static files from the dist directory - MUST come after API routes
 app.use(express.static(join(__dirname, 'dist')));
