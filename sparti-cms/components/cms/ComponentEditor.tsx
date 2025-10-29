@@ -223,19 +223,57 @@ const renderSchemaItemEditor = (item: SchemaItem, onChange: (updatedItem: Schema
 
     case 'array': {
       const handleAddItem = () => {
-        const newReviewItem: SchemaItem = {
-          key: `review_${Date.now()}`,
-          type: 'review',
-          id: `${Date.now()}`,
-          props: {
-            name: 'New Reviewer',
-            title: 'Reviewer Title',
-            rating: 5,
-            content: 'This is a new review.',
-            avatar: '',
-          },
-        };
-        const updatedItems = [...(item.items || []), newReviewItem];
+        let newItem: SchemaItem;
+        
+        // Create different item types based on the array key
+        switch (item.key) {
+          case 'reviews':
+            newItem = {
+              key: `review_${Date.now()}`,
+              type: 'review',
+              props: {
+                name: 'New Reviewer',
+                title: 'Reviewer Title',
+                rating: 5,
+                content: 'This is a new review.',
+                avatar: '',
+              },
+            };
+            break;
+            
+          case 'faq':
+            newItem = {
+              key: `faq_${Date.now()}`,
+              type: 'faq',
+              props: {
+                question: 'New Question',
+                answer: 'New Answer',
+              },
+            };
+            break;
+            
+          case 'features':
+            newItem = {
+              key: `feature_${Date.now()}`,
+              type: 'feature',
+              props: {
+                icon: 'star',
+                title: 'New Feature',
+                description: 'Feature description',
+              },
+            };
+            break;
+            
+          default:
+            // Generic fallback - create a basic item
+            newItem = {
+              key: `item_${Date.now()}`,
+              type: 'text',
+              content: 'New item',
+            };
+        }
+        
+        const updatedItems = [...(item.items || []), newItem];
         onChange({ ...item, items: updatedItems });
       };
 
@@ -293,6 +331,12 @@ const renderSchemaItemEditor = (item: SchemaItem, onChange: (updatedItem: Schema
             <Button onClick={handleAddItem} variant="outline" size="sm">
               <Plus className="h-4 w-4 mr-2" />
               Add Review
+            </Button>
+          )}
+          {item.key === 'faq' && (
+            <Button onClick={handleAddItem} variant="outline" size="sm">
+              <Plus className="h-4 w-4 mr-2" />
+              Add FAQ
             </Button>
           )}
         </div>
@@ -476,7 +520,6 @@ const renderSchemaItemEditor = (item: SchemaItem, onChange: (updatedItem: Schema
         <ContentOfficeHoursEditor
           items={item.items || [] as any[]}
           onChange={(officeHoursItems) => handleItemChange({ ...item, items: officeHoursItems as any[] })}
-          className={className}
         />
       );
 
