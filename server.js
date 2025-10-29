@@ -39,7 +39,10 @@ import {
   updatePageLayout,
   query,
   getTerms,
-  canUserAccessTenant
+  canUserAccessTenant,
+  getSiteSettingByKey,
+  updateSiteSettingByKey,
+  getsitesettingsbytenant
 } from './sparti-cms/db/postgres.js';
 import pool from './sparti-cms/db/postgres.js';
 import { renderPageBySlug } from './sparti-cms/render/pageRenderer.js';
@@ -2258,6 +2261,7 @@ app.get('/api/test-query', async (req, res) => {
   }
 });
 
+
 // Verify access key and return user data
 app.get('/api/auth/verify-access-key', async (req, res) => {
   try {
@@ -2370,6 +2374,78 @@ app.get('/api/tenants/:id', async (req, res) => {
   } catch (error) {
     console.error('[testing] Error fetching tenant:', error);
     res.status(500).json({ error: 'Failed to fetch tenant' });
+  }
+});
+
+// Site Settings API Endpoints
+app.get('/api/site-settings/:key', async (req, res) => {
+  try {
+    const { key } = req.params;
+    console.log(`[testing] API: Getting site setting for key: ${key}`);
+    
+    const setting = await getSiteSettingByKey(key);
+    
+    if (!setting) {
+      return res.status(404).json({ error: 'Setting not found' });
+    }
+    
+    console.log(`[testing] Found site setting:`, setting);
+    res.json(setting);
+  } catch (error) {
+    console.error(`[testing] API: Error getting site setting for key ${req.params.key}:`, error);
+    res.status(500).json({ error: 'Failed to get site setting' });
+  }
+});
+
+// Get all site settings by tenant
+app.get('/api/site-settings-by-tenant/:tenantId', async (req, res) => {
+  try {
+    const { tenantId } = req.params;
+    console.log(`[testing] API: Getting all site settings for tenant: ${tenantId}`);
+    
+    const settings = await getsitesettingsbytenant(tenantId);
+    
+    console.log(`[testing] Found ${settings.length} site settings for tenant ${tenantId}`);
+    res.json(settings);
+  } catch (error) {
+    console.error(`[testing] API: Error getting site settings for tenant ${req.params.tenantId}:`, error);
+    res.status(500).json({ error: 'Failed to get site settings for tenant' });
+  }
+});
+
+// Specific endpoint for tenant-gosg site settings (for testing)
+app.get('/api/tenant-gosg-settings', async (req, res) => {
+  try {
+    console.log('[testing] API: Getting all site settings for tenant-gosg');
+    
+    const settings = await getsitesettingsbytenant('tenant-gosg');
+    
+    console.log(`[testing] Found ${settings.length} site settings for tenant-gosg`);
+    res.json(settings);
+  } catch (error) {
+    console.error('[testing] API: Error getting site settings for tenant-gosg:', error);
+    res.status(500).json({ error: 'Failed to get site settings for tenant-gosg' });
+  }
+});
+
+app.put('/api/site-settings/:key', async (req, res) => {
+  try {
+    const { key } = req.params;
+    const { setting_value, setting_type, setting_category } = req.body;
+    
+    console.log(`[testing] API: Updating site setting for key: ${key}`, req.body);
+    
+    const result = await updateSiteSettingByKey(
+      key, 
+      setting_value, 
+      setting_type || 'text', 
+      setting_category || 'general'
+    );
+    
+    res.json(result);
+  } catch (error) {
+    console.error(`[testing] API: Error updating site setting for key ${req.params.key}:`, error);
+    res.status(500).json({ error: 'Failed to update site setting' });
   }
 });
 

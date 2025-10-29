@@ -407,6 +407,54 @@ export async function updateMultipleBrandingSettings(settings) {
     client.release();
   }
 }
+export async function getsitesettingsbytenant(tenantId) {
+  try {
+    const result = await query(`
+      SELECT * FROM site_settings WHERE tenant_id = $1
+    `, [tenantId]);
+    return result.rows;
+  } catch (error) {
+    console.error('Error fetching site settings by tenant:', error);
+    throw error;
+  }
+}
+// Site Settings functions
+export async function getSiteSettingByKey(key) {
+  try {
+    const result = await query(`
+      SELECT setting_key, setting_value, setting_type, setting_category, is_public
+      FROM site_settings
+      WHERE setting_key = $1
+      LIMIT 1
+    `, [key]);
+    
+    return result.rows.length > 0 ? result.rows[0] : null;
+  } catch (error) {
+    console.error(`Error fetching site setting for key ${key}:`, error);
+    throw error;
+  }
+}
+
+export async function updateSiteSettingByKey(key, value, type = 'text', category = 'general') {
+  try {
+    const result = await query(`
+      INSERT INTO site_settings (setting_key, setting_value, setting_type, setting_category, updated_at)
+      VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP)
+      ON CONFLICT (setting_key) 
+      DO UPDATE SET 
+        setting_value = EXCLUDED.setting_value,
+        setting_type = COALESCE(EXCLUDED.setting_type, site_settings.setting_type),
+        setting_category = COALESCE(EXCLUDED.setting_category, site_settings.setting_category),
+        updated_at = CURRENT_TIMESTAMP
+      RETURNING *
+    `, [key, value, type, category]);
+    
+    return result.rows[0];
+  } catch (error) {
+    console.error(`Error updating site setting for key ${key}:`, error);
+    throw error;
+  }
+}
 
 // SEO-specific functions
 export async function updateSEOSettings(seoData) {

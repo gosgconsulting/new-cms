@@ -50,10 +50,21 @@ export interface MediaFolder {
   itemCount: number;
 }
 
+export interface Language {
+  code: string;
+  name: string;
+}
+
+export interface LanguageSettings {
+  defaultLanguage: Language;
+  additionalLanguages: Language[];
+}
+
 export interface CMSSettings {
   typography: TypographySettings;
   colors: ColorSettings;
   logo: LogoSettings;
+  language: LanguageSettings;
   mediaItems: MediaItem[];
   mediaFolders: MediaFolder[];
 }
@@ -63,6 +74,7 @@ interface CMSSettingsContextType {
   updateTypography: (typography: Partial<TypographySettings>) => void;
   updateColors: (colors: Partial<ColorSettings>) => void;
   updateLogo: (logo: Partial<LogoSettings>) => void;
+  updateLanguage: (language: Partial<LanguageSettings>) => void;
   addMediaItem: (item: MediaItem) => void;
   removeMediaItem: (id: string) => void;
   updateMediaItem: (id: string, updates: Partial<MediaItem>) => void;
@@ -101,6 +113,10 @@ const defaultSettings: CMSSettings = {
     logoWidth: 200,
     logoHeight: null,
   },
+  language: {
+    defaultLanguage: { code: 'en', name: 'English' },
+    additionalLanguages: []
+  },
   mediaItems: [],
   mediaFolders: [
     { id: 'uncategorized', name: 'Uncategorized', itemCount: 0 }
@@ -132,12 +148,20 @@ export const CMSSettingsProvider: React.FC<{ children: ReactNode }> = ({ childre
           ];
         }
         
-        // Ensure mediaItems is always an array
-        if (!parsedSettings.mediaItems || !Array.isArray(parsedSettings.mediaItems)) {
-          parsedSettings.mediaItems = [];
-        }
-        
-        setSettings(parsedSettings);
+  // Ensure mediaItems is always an array
+  if (!parsedSettings.mediaItems || !Array.isArray(parsedSettings.mediaItems)) {
+    parsedSettings.mediaItems = [];
+  }
+  
+  // Ensure language settings exist
+  if (!parsedSettings.language) {
+    parsedSettings.language = {
+      defaultLanguage: { code: 'en', name: 'English' },
+      additionalLanguages: []
+    };
+  }
+  
+  setSettings(parsedSettings);
       } catch (error) {
         console.error('Failed to parse stored settings:', error);
       }
@@ -180,6 +204,17 @@ export const CMSSettingsProvider: React.FC<{ children: ReactNode }> = ({ childre
       logo: {
         ...prev.logo,
         ...logo,
+      },
+    }));
+  };
+
+  // Update language settings
+  const updateLanguage = (language: Partial<LanguageSettings>) => {
+    setSettings(prev => ({
+      ...prev,
+      language: {
+        ...prev.language,
+        ...language,
       },
     }));
   };
@@ -256,6 +291,7 @@ export const CMSSettingsProvider: React.FC<{ children: ReactNode }> = ({ childre
         updateTypography,
         updateColors,
         updateLogo,
+        updateLanguage,
         addMediaItem,
         removeMediaItem,
         updateMediaItem,
