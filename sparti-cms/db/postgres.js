@@ -1119,73 +1119,50 @@ export async function deleteProjectStep(stepId) {
   }
 }
 
-// SEO Pages Management Functions
+// SEO Pages Management Functions - Unified Table Structure
 export async function initializeSEOPagesTables() {
   try {
-    console.log('Initializing SEO pages tables...');
+    console.log('Initializing unified pages table...');
     
-    // Create enhanced pages table with SEO metadata
+    // Create unified pages table with all page types
     await query(`
       CREATE TABLE IF NOT EXISTS pages (
         id SERIAL PRIMARY KEY,
         page_name VARCHAR(255) NOT NULL,
-        slug VARCHAR(255) NOT NULL UNIQUE,
+        slug VARCHAR(255) NOT NULL,
         meta_title VARCHAR(255),
         meta_description TEXT,
         seo_index BOOLEAN DEFAULT true,
         status VARCHAR(50) DEFAULT 'draft',
-        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-      )
-    `);
-
-    // Create landing pages table with SEO metadata
-    await query(`
-      CREATE TABLE IF NOT EXISTS landing_pages (
-        id SERIAL PRIMARY KEY,
-        page_name VARCHAR(255) NOT NULL,
-        slug VARCHAR(255) NOT NULL UNIQUE,
-        meta_title VARCHAR(255),
-        meta_description TEXT,
-        seo_index BOOLEAN DEFAULT true,
+        page_type VARCHAR(50) NOT NULL DEFAULT 'page',
+        tenant_id VARCHAR(255) NOT NULL DEFAULT 'tenant-gosg',
+        
+        -- Landing page specific fields (nullable)
         campaign_source VARCHAR(100),
         conversion_goal VARCHAR(255),
-        status VARCHAR(50) DEFAULT 'draft',
-        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-      )
-    `);
-
-    // Create legal pages table with SEO metadata
-    await query(`
-      CREATE TABLE IF NOT EXISTS legal_pages (
-        id SERIAL PRIMARY KEY,
-        page_name VARCHAR(255) NOT NULL,
-        slug VARCHAR(255) NOT NULL UNIQUE,
-        meta_title VARCHAR(255),
-        meta_description TEXT,
-        seo_index BOOLEAN DEFAULT false,
+        
+        -- Legal page specific fields (nullable)
         legal_type VARCHAR(100),
         last_reviewed_date DATE,
         version VARCHAR(20) DEFAULT '1.0',
-        status VARCHAR(50) DEFAULT 'draft',
+        
+        -- Timestamps
         created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        
+        -- Constraints
+        CONSTRAINT unique_slug_per_tenant UNIQUE (slug, tenant_id),
+        CONSTRAINT valid_page_type CHECK (page_type IN ('page', 'landing', 'legal'))
       )
     `);
 
-    // Create indexes
+    // Create indexes for performance
+    await query(`CREATE INDEX IF NOT EXISTS idx_pages_page_type ON pages(page_type)`);
     await query(`CREATE INDEX IF NOT EXISTS idx_pages_slug ON pages(slug)`);
     await query(`CREATE INDEX IF NOT EXISTS idx_pages_status ON pages(status)`);
-    await query(`CREATE INDEX IF NOT EXISTS idx_pages_seo_index ON pages(seo_index)`);
-    
-    await query(`CREATE INDEX IF NOT EXISTS idx_landing_pages_slug ON landing_pages(slug)`);
-    await query(`CREATE INDEX IF NOT EXISTS idx_landing_pages_status ON landing_pages(status)`);
-    await query(`CREATE INDEX IF NOT EXISTS idx_landing_pages_seo_index ON landing_pages(seo_index)`);
-    
-    await query(`CREATE INDEX IF NOT EXISTS idx_legal_pages_slug ON legal_pages(slug)`);
-    await query(`CREATE INDEX IF NOT EXISTS idx_legal_pages_status ON legal_pages(status)`);
-    await query(`CREATE INDEX IF NOT EXISTS idx_legal_pages_legal_type ON legal_pages(legal_type)`);
+    await query(`CREATE INDEX IF NOT EXISTS idx_pages_tenant_id ON pages(tenant_id)`);
+    await query(`CREATE INDEX IF NOT EXISTS idx_pages_tenant_type ON pages(tenant_id, page_type)`);
+    await query(`CREATE INDEX IF NOT EXISTS idx_pages_slug_tenant ON pages(slug, tenant_id)`);
 
     // Page layout tables for server-rendered pages
     await query(`
@@ -1244,28 +1221,50 @@ export async function initializeSEOPagesTables() {
       `, [homePageId, defaultLayout]);
     }
 
-    console.log('SEO pages tables initialized successfully');
+    console.log('Unified pages table initialized successfully');
     return true;
   } catch (error) {
-    console.error('SEO pages tables initialization failed:', error);
+    console.error('Pages table initialization failed:', error);
     return false;
   }
 }
 
-// Pages CRUD functions
+// Unified Pages CRUD functions
 export async function createPage(pageData) {
   try {
+    const {
+      page_type = 'page',
+      campaign_source,
+      conversion_goal,
+      legal_type,
+      last_reviewed_date,
+      version,
+      tenant_id = 'tenant-gosg',
+      ...commonFields
+    } = pageData;
+
     const result = await query(`
-      INSERT INTO pages (page_name, slug, meta_title, meta_description, seo_index, status)
-      VALUES ($1, $2, $3, $4, $5, $6)
+      INSERT INTO pages (
+        page_name, slug, meta_title, meta_description, seo_index, status,
+        page_type, tenant_id, campaign_source, conversion_goal,
+        legal_type, last_reviewed_date, version
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
       RETURNING *
     `, [
-      pageData.page_name,
-      pageData.slug,
-      pageData.meta_title || null,
-      pageData.meta_description || null,
-      pageData.seo_index !== undefined ? pageData.seo_index : true,
-      pageData.status || 'draft'
+      commonFields.page_name,
+      commonFields.slug,
+      commonFields.meta_title || null,
+      commonFields.meta_description || null,
+      commonFields.seo_index !== undefined ? commonFields.seo_index : (page_type === 'legal' ? false : true),
+      commonFields.status || 'draft',
+      page_type,
+      tenant_id,
+      campaign_source || null,
+      conversion_goal || null,
+      legal_type || null,
+      last_reviewed_date || null,
+      version || (page_type === 'legal' ? '1.0' : null)
     ]);
     
     return result.rows[0];
@@ -1275,12 +1274,21 @@ export async function createPage(pageData) {
   }
 }
 
-export async function getPages() {
+export async function getPages(pageType = null, tenantId = 'tenant-gosg') {
   try {
+    let whereClause = 'WHERE tenant_id = $1';
+    let params = [tenantId];
+    
+    if (pageType) {
+      whereClause += ' AND page_type = $2';
+      params.push(pageType);
+    }
+    
     const result = await query(`
       SELECT * FROM pages 
-      ORDER BY created_at DESC
-    `);
+      ${whereClause}
+      ORDER BY page_type, created_at DESC
+    `, params);
     return result.rows;
   } catch (error) {
     console.error('Error fetching pages:', error);
@@ -1288,11 +1296,11 @@ export async function getPages() {
   }
 }
 
-export async function getPage(pageId) {
+export async function getPage(pageId, tenantId = 'tenant-gosg') {
   try {
     const result = await query(`
-      SELECT * FROM pages WHERE id = $1
-    `, [pageId]);
+      SELECT * FROM pages WHERE id = $1 AND tenant_id = $2
+    `, [pageId, tenantId]);
     return result.rows[0] || null;
   } catch (error) {
     console.error('Error fetching page:', error);
@@ -1300,8 +1308,17 @@ export async function getPage(pageId) {
   }
 }
 
-export async function updatePage(pageId, pageData) {
+export async function updatePage(pageId, pageData, tenantId = 'tenant-gosg') {
   try {
+    const {
+      campaign_source,
+      conversion_goal,
+      legal_type,
+      last_reviewed_date,
+      version,
+      ...commonFields
+    } = pageData;
+
     const result = await query(`
       UPDATE pages 
       SET 
@@ -1311,17 +1328,28 @@ export async function updatePage(pageId, pageData) {
         meta_description = COALESCE($5, meta_description),
         seo_index = COALESCE($6, seo_index),
         status = COALESCE($7, status),
+        campaign_source = COALESCE($8, campaign_source),
+        conversion_goal = COALESCE($9, conversion_goal),
+        legal_type = COALESCE($10, legal_type),
+        last_reviewed_date = COALESCE($11, last_reviewed_date),
+        version = COALESCE($12, version),
         updated_at = NOW()
-      WHERE id = $1
+      WHERE id = $1 AND tenant_id = $13
       RETURNING *
     `, [
       pageId,
-      pageData.page_name,
-      pageData.slug,
-      pageData.meta_title,
-      pageData.meta_description,
-      pageData.seo_index,
-      pageData.status
+      commonFields.page_name,
+      commonFields.slug,
+      commonFields.meta_title,
+      commonFields.meta_description,
+      commonFields.seo_index,
+      commonFields.status,
+      campaign_source,
+      conversion_goal,
+      legal_type,
+      last_reviewed_date,
+      version,
+      tenantId
     ]);
     
     return result.rows[0];
@@ -1331,208 +1359,18 @@ export async function updatePage(pageId, pageData) {
   }
 }
 
-export async function deletePage(pageId) {
+export async function deletePage(pageId, tenantId = 'tenant-gosg') {
   try {
-    await query(`DELETE FROM pages WHERE id = $1`, [pageId]);
-    return true;
+    const result = await query(`DELETE FROM pages WHERE id = $1 AND tenant_id = $2`, [pageId, tenantId]);
+    return result.rowCount > 0;
   } catch (error) {
     console.error('Error deleting page:', error);
     throw error;
   }
 }
 
-// Landing Pages CRUD functions
-export async function createLandingPage(pageData) {
-  try {
-    const result = await query(`
-      INSERT INTO landing_pages (page_name, slug, meta_title, meta_description, seo_index, campaign_source, conversion_goal, status)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-      RETURNING *
-    `, [
-      pageData.page_name,
-      pageData.slug,
-      pageData.meta_title || null,
-      pageData.meta_description || null,
-      pageData.seo_index !== undefined ? pageData.seo_index : true,
-      pageData.campaign_source || null,
-      pageData.conversion_goal || null,
-      pageData.status || 'draft'
-    ]);
-    
-    return result.rows[0];
-  } catch (error) {
-    console.error('Error creating landing page:', error);
-    throw error;
-  }
-}
-
-export async function getLandingPages() {
-  try {
-    const result = await query(`
-      SELECT * FROM landing_pages 
-      ORDER BY created_at DESC
-    `);
-    return result.rows;
-  } catch (error) {
-    console.error('Error fetching landing pages:', error);
-    throw error;
-  }
-}
-
-export async function getLandingPage(pageId) {
-  try {
-    const result = await query(`
-      SELECT * FROM landing_pages WHERE id = $1
-    `, [pageId]);
-    return result.rows[0] || null;
-  } catch (error) {
-    console.error('Error fetching landing page:', error);
-    throw error;
-  }
-}
-
-export async function updateLandingPage(pageId, pageData) {
-  try {
-    const result = await query(`
-      UPDATE landing_pages 
-      SET 
-        page_name = COALESCE($2, page_name),
-        slug = COALESCE($3, slug),
-        meta_title = COALESCE($4, meta_title),
-        meta_description = COALESCE($5, meta_description),
-        seo_index = COALESCE($6, seo_index),
-        campaign_source = COALESCE($7, campaign_source),
-        conversion_goal = COALESCE($8, conversion_goal),
-        status = COALESCE($9, status),
-        updated_at = NOW()
-      WHERE id = $1
-      RETURNING *
-    `, [
-      pageId,
-      pageData.page_name,
-      pageData.slug,
-      pageData.meta_title,
-      pageData.meta_description,
-      pageData.seo_index,
-      pageData.campaign_source,
-      pageData.conversion_goal,
-      pageData.status
-    ]);
-    
-    return result.rows[0];
-  } catch (error) {
-    console.error('Error updating landing page:', error);
-    throw error;
-  }
-}
-
-export async function deleteLandingPage(pageId) {
-  try {
-    await query(`DELETE FROM landing_pages WHERE id = $1`, [pageId]);
-    return true;
-  } catch (error) {
-    console.error('Error deleting landing page:', error);
-    throw error;
-  }
-}
-
-// Legal Pages CRUD functions
-export async function createLegalPage(pageData) {
-  try {
-    const result = await query(`
-      INSERT INTO legal_pages (page_name, slug, meta_title, meta_description, seo_index, legal_type, last_reviewed_date, version, status)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-      RETURNING *
-    `, [
-      pageData.page_name,
-      pageData.slug,
-      pageData.meta_title || null,
-      pageData.meta_description || null,
-      pageData.seo_index !== undefined ? pageData.seo_index : false,
-      pageData.legal_type || null,
-      pageData.last_reviewed_date || null,
-      pageData.version || '1.0',
-      pageData.status || 'draft'
-    ]);
-    
-    return result.rows[0];
-  } catch (error) {
-    console.error('Error creating legal page:', error);
-    throw error;
-  }
-}
-
-export async function getLegalPages() {
-  try {
-    const result = await query(`
-      SELECT * FROM legal_pages 
-      ORDER BY created_at DESC
-    `);
-    return result.rows;
-  } catch (error) {
-    console.error('Error fetching legal pages:', error);
-    throw error;
-  }
-}
-
-export async function getLegalPage(pageId) {
-  try {
-    const result = await query(`
-      SELECT * FROM legal_pages WHERE id = $1
-    `, [pageId]);
-    return result.rows[0] || null;
-  } catch (error) {
-    console.error('Error fetching legal page:', error);
-    throw error;
-  }
-}
-
-export async function updateLegalPage(pageId, pageData) {
-  try {
-    const result = await query(`
-      UPDATE legal_pages 
-      SET 
-        page_name = COALESCE($2, page_name),
-        slug = COALESCE($3, slug),
-        meta_title = COALESCE($4, meta_title),
-        meta_description = COALESCE($5, meta_description),
-        seo_index = COALESCE($6, seo_index),
-        legal_type = COALESCE($7, legal_type),
-        last_reviewed_date = COALESCE($8, last_reviewed_date),
-        version = COALESCE($9, version),
-        status = COALESCE($10, status),
-        updated_at = NOW()
-      WHERE id = $1
-      RETURNING *
-    `, [
-      pageId,
-      pageData.page_name,
-      pageData.slug,
-      pageData.meta_title,
-      pageData.meta_description,
-      pageData.seo_index,
-      pageData.legal_type,
-      pageData.last_reviewed_date,
-      pageData.version,
-      pageData.status
-    ]);
-    
-    return result.rows[0];
-  } catch (error) {
-    console.error('Error updating legal page:', error);
-    throw error;
-  }
-}
-
-export async function deleteLegalPage(pageId) {
-  try {
-    await query(`DELETE FROM legal_pages WHERE id = $1`, [pageId]);
-    return true;
-  } catch (error) {
-    console.error('Error deleting legal page:', error);
-    throw error;
-  }
-}
+// Note: Separate CRUD functions for landing and legal pages have been removed.
+// Use the unified createPage, getPages, updatePage, deletePage functions with page_type parameter.
 
 // Utility function to get all pages with their types
 export async function getAllPagesWithTypes(tenantId = 'tenant-gosg') {
@@ -1546,53 +1384,15 @@ export async function getAllPagesWithTypes(tenantId = 'tenant-gosg') {
         meta_description,
         seo_index,
         status,
-        'page' as page_type,
-        created_at,
-        updated_at,
-        NULL::VARCHAR as campaign_source,
-        NULL::VARCHAR as conversion_goal,
-        NULL::VARCHAR as legal_type,
-        NULL::DATE as last_reviewed_date,
-        NULL::VARCHAR as version
-      FROM pages
-      WHERE tenant_id = $1
-      UNION ALL
-      SELECT 
-        id,
-        page_name,
-        slug,
-        meta_title,
-        meta_description,
-        seo_index,
-        status,
-        'landing' as page_type,
+        page_type,
         created_at,
         updated_at,
         campaign_source,
         conversion_goal,
-        NULL::VARCHAR as legal_type,
-        NULL::DATE as last_reviewed_date,
-        NULL::VARCHAR as version
-      FROM landing_pages
-      WHERE tenant_id = $1
-      UNION ALL
-      SELECT 
-        id,
-        page_name,
-        slug,
-        meta_title,
-        meta_description,
-        seo_index,
-        status,
-        'legal' as page_type,
-        created_at,
-        updated_at,
-        NULL::VARCHAR as campaign_source,
-        NULL::VARCHAR as conversion_goal,
         legal_type,
         last_reviewed_date,
         version
-      FROM legal_pages
+      FROM pages
       WHERE tenant_id = $1
       ORDER BY page_type, created_at DESC
     `, [tenantId]);
@@ -1615,39 +1415,25 @@ export async function updatePageSlug(pageId, pageType, newSlug, oldSlug, tenantI
       newSlug = '/' + newSlug;
     }
     
-    // Check if slug already exists in any table for this tenant
+    // Check if slug already exists for this tenant
     const existingSlug = await client.query(`
-      SELECT 'page' as table_name, slug FROM pages WHERE slug = $1 AND tenant_id = $2
-      UNION ALL
-      SELECT 'landing' as table_name, slug FROM landing_pages WHERE slug = $1 AND tenant_id = $2
-      UNION ALL
-      SELECT 'legal' as table_name, slug FROM legal_pages WHERE slug = $1 AND tenant_id = $2
-    `, [newSlug, tenantId]);
+      SELECT slug FROM pages WHERE slug = $1 AND tenant_id = $2 AND id != $3
+    `, [newSlug, tenantId, pageId]);
     
     if (existingSlug.rows.length > 0) {
       throw new Error(`Slug '${newSlug}' already exists`);
     }
     
-    // Update the appropriate table
-    let updateResult;
-    switch (pageType) {
-      case 'page':
-        updateResult = await client.query(`
-          UPDATE pages SET slug = $1, updated_at = NOW() WHERE id = $2 AND tenant_id = $3 RETURNING *
-        `, [newSlug, pageId, tenantId]);
-        break;
-      case 'landing':
-        updateResult = await client.query(`
-          UPDATE landing_pages SET slug = $1, updated_at = NOW() WHERE id = $2 AND tenant_id = $3 RETURNING *
-        `, [newSlug, pageId, tenantId]);
-        break;
-      case 'legal':
-        updateResult = await client.query(`
-          UPDATE legal_pages SET slug = $1, updated_at = NOW() WHERE id = $2 AND tenant_id = $3 RETURNING *
-        `, [newSlug, pageId, tenantId]);
-        break;
-      default:
-        throw new Error(`Invalid page type: ${pageType}`);
+    // Update the page slug
+    const updateResult = await client.query(`
+      UPDATE pages 
+      SET slug = $1, updated_at = NOW() 
+      WHERE id = $2 AND tenant_id = $3 AND page_type = $4
+      RETURNING *
+    `, [newSlug, pageId, tenantId, pageType]);
+    
+    if (updateResult.rows.length === 0) {
+      throw new Error(`Page not found or page type mismatch`);
     }
     
     // If this is a blog page update, handle blog post slug adaptation
@@ -1754,14 +1540,11 @@ export async function getSlugChangeHistory(pageId = null, pageType = null) {
 // Update page name
 export async function updatePageName(pageId, pageType, newName, tenantId = 'tenant-gosg') {
   try {
-    const tableName = pageType === 'landing' ? 'landing_pages' : 
-                     pageType === 'legal' ? 'legal_pages' : 'pages';
-    
     const result = await query(`
-      UPDATE ${tableName} 
+      UPDATE pages 
       SET page_name = $1, updated_at = NOW() 
-      WHERE id = $2 AND tenant_id = $3
-    `, [newName, pageId, tenantId]);
+      WHERE id = $2 AND tenant_id = $3 AND page_type = $4
+    `, [newName, pageId, tenantId, pageType]);
     
     return result.rowCount > 0;
   } catch (error) {
@@ -1773,16 +1556,13 @@ export async function updatePageName(pageId, pageType, newName, tenantId = 'tena
 // Toggle SEO index
 export async function toggleSEOIndex(pageId, pageType, currentIndex, tenantId = 'tenant-gosg') {
   try {
-    const tableName = pageType === 'landing' ? 'landing_pages' : 
-                     pageType === 'legal' ? 'legal_pages' : 'pages';
-    
     const newIndex = !currentIndex;
     
     const result = await query(`
-      UPDATE ${tableName} 
+      UPDATE pages 
       SET seo_index = $1, updated_at = NOW() 
-      WHERE id = $2 AND tenant_id = $3
-    `, [newIndex, pageId, tenantId]);
+      WHERE id = $2 AND tenant_id = $3 AND page_type = $4
+    `, [newIndex, pageId, tenantId, pageType]);
     
     return newIndex;
   } catch (error) {
@@ -1804,38 +1584,10 @@ export async function getPageWithLayout(pageId, tenantId = 'tenant-gosg') {
         meta_description,
         seo_index,
         status,
-        'page' as page_type,
+        page_type,
         created_at,
         updated_at
       FROM pages
-      WHERE id = $1 AND tenant_id = $2
-      UNION ALL
-      SELECT 
-        id,
-        page_name,
-        slug,
-        meta_title,
-        meta_description,
-        seo_index,
-        status,
-        'landing' as page_type,
-        created_at,
-        updated_at
-      FROM landing_pages
-      WHERE id = $1 AND tenant_id = $2
-      UNION ALL
-      SELECT 
-        id,
-        page_name,
-        slug,
-        meta_title,
-        meta_description,
-        seo_index,
-        status,
-        'legal' as page_type,
-        created_at,
-        updated_at
-      FROM legal_pages
       WHERE id = $1 AND tenant_id = $2
     `, [pageId, tenantId]);
     
@@ -1868,8 +1620,7 @@ export async function getPageWithLayout(pageId, tenantId = 'tenant-gosg') {
 // Update page data
 export async function updatePageData(pageId, pageName, metaTitle, metaDescription, seoIndex, tenantId = 'tenant-gosg') {
   try {
-    // Try to update in pages table first
-    let result = await query(`
+    const result = await query(`
       UPDATE pages 
       SET page_name = $1, meta_title = $2, meta_description = $3, seo_index = $4, updated_at = NOW()
       WHERE id = $5 AND tenant_id = $6
@@ -1879,29 +1630,7 @@ export async function updatePageData(pageId, pageName, metaTitle, metaDescriptio
       return true;
     }
     
-    // Try landing_pages table
-    result = await query(`
-      UPDATE landing_pages 
-      SET page_name = $1, meta_title = $2, meta_description = $3, seo_index = $4, updated_at = NOW()
-      WHERE id = $5 AND tenant_id = $6
-    `, [pageName, metaTitle, metaDescription, seoIndex, pageId, tenantId]);
-    
-    if (result.rowCount > 0) {
-      return true;
-    }
-    
-    // Try legal_pages table
-    result = await query(`
-      UPDATE legal_pages 
-      SET page_name = $1, meta_title = $2, meta_description = $3, seo_index = $4, updated_at = NOW()
-      WHERE id = $5 AND tenant_id = $6
-    `, [pageName, metaTitle, metaDescription, seoIndex, pageId, tenantId]);
-    
-    if (result.rowCount > 0) {
-      return true;
-    }
-    
-    console.log(`Page ${pageId} not found in any table`);
+    console.log(`Page ${pageId} not found for tenant ${tenantId}`);
     return false;
   } catch (error) {
     console.error('Error updating page data:', error);
@@ -1915,10 +1644,6 @@ export async function updatePageLayout(pageId, layoutJson, tenantId = 'tenant-go
     // Check if page exists
     const pageCheck = await query(`
       SELECT id FROM pages WHERE id = $1 AND tenant_id = $2
-      UNION ALL
-      SELECT id FROM landing_pages WHERE id = $1 AND tenant_id = $2
-      UNION ALL
-      SELECT id FROM legal_pages WHERE id = $1 AND tenant_id = $2
     `, [pageId, tenantId]);
     
     if (pageCheck.rows.length === 0) {
