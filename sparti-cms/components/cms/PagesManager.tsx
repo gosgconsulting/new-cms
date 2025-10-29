@@ -5,6 +5,8 @@ import { Badge } from '../../../src/components/ui/badge';
 import { Edit, Eye, FileText, Rocket, Scale, Layout, Minus } from 'lucide-react';
 import PageEditor from './PageEditor';
 import EditableSlug from './EditableSlug';
+import HeaderSchemaEditor from './HeaderSchemaEditor';
+import FooterSchemaEditor from './FooterSchemaEditor';
 import { useAuth } from '../auth/AuthProvider';
 import { getDummyPages, isDevelopmentTenant } from '../admin/DevelopmentTenantData';
 import api from '../../utils/api';
@@ -32,12 +34,14 @@ export const PagesManager: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [editingPageId, setEditingPageId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'page' | 'landing' | 'legal'>('page');
+  const [activeTab, setActiveTab] = useState<'page' | 'landing' | 'legal' | 'header' | 'footer'>('page');
 
   const tabs = [
     { id: 'page' as const, label: 'Pages', icon: FileText },
     // { id: 'landing' as const, label: 'Landing Pages', icon: Rocket },
     { id: 'legal' as const, label: 'Legals', icon: Scale },
+    { id: 'header' as const, label: 'Header', icon: Layout },
+    { id: 'footer' as const, label: 'Footer', icon: Layout },
   ];
 
   // Load pages from database
@@ -57,7 +61,7 @@ export const PagesManager: React.FC = () => {
       // Regular tenant - use API
       const response = await api.get(`/api/pages/all?tenantId=${currentTenantId}`, {
         headers: {
-          'X-Tenant-Id': currentTenantId
+          'X-Tenant-Id': currentTenantId || ''
         }
       });
       
@@ -131,17 +135,37 @@ export const PagesManager: React.FC = () => {
     );
   }
 
-  // Filter and sort pages based on active tab
-  const filteredPages = pages
-    .filter(page => page.page_type === activeTab)
-    .sort((a, b) => {
-      // Homepage first
-      if (a.slug === '/' || a.slug === '/home') return -1;
-      if (b.slug === '/' || b.slug === '/home') return 1;
-      
-      // Then sort by created_at (newest first)
-      return new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime();
-    });
+  // Show header schema editor
+  if (activeTab === 'header') {
+    return (
+      <HeaderSchemaEditor 
+        onBack={() => setActiveTab('page')} 
+      />
+    );
+  }
+
+  // Show footer schema editor
+  if (activeTab === 'footer') {
+    return (
+      <FooterSchemaEditor 
+        onBack={() => setActiveTab('page')} 
+      />
+    );
+  }
+
+  // Filter and sort pages based on active tab (only for page types)
+  const filteredPages = ['page', 'landing', 'legal'].includes(activeTab) 
+    ? pages
+        .filter(page => page.page_type === activeTab)
+        .sort((a, b) => {
+          // Homepage first
+          if (a.slug === '/' || a.slug === '/home') return -1;
+          if (b.slug === '/' || b.slug === '/home') return 1;
+          
+          // Then sort by created_at (newest first)
+          return new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime();
+        })
+    : [];
 
   if (loading) {
     return (
@@ -206,12 +230,20 @@ export const PagesManager: React.FC = () => {
                 {tabs.find(t => t.id === activeTab)?.label}
               </h3>
               <p className="text-sm text-gray-600 mb-6">
-                Manage your {tabs.find(t => t.id === activeTab)?.label.toLowerCase()}. Click on any slug to edit it. Click on Index/No Index to toggle SEO indexing.
+                {['header', 'footer'].includes(activeTab) 
+                  ? `Configure your site's ${activeTab} settings and navigation.`
+                  : `Manage your ${tabs.find(t => t.id === activeTab)?.label.toLowerCase()}. Click on any slug to edit it. Click on Index/No Index to toggle SEO indexing.`
+                }
               </p>
             </div>
 
             <div className="grid gap-4">
-              {filteredPages.length === 0 ? (
+              {['header', 'footer'].includes(activeTab) ? (
+                <div className="text-center py-12 bg-blue-50 rounded-lg border border-blue-200">
+                  <p className="text-blue-600 font-medium">Click on the {activeTab} tab to configure your site's {activeTab} settings</p>
+                  <p className="text-sm text-blue-500 mt-1">This will open the {activeTab} schema editor</p>
+                </div>
+              ) : filteredPages.length === 0 ? (
                 <div className="text-center py-12 bg-gray-50 rounded-lg border border-dashed border-gray-300">
                   <p className="text-gray-500">No {tabs.find(t => t.id === activeTab)?.label.toLowerCase()} found</p>
                 </div>

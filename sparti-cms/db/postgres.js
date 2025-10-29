@@ -337,6 +337,47 @@ export async function updateBrandingSetting(key, value) {
   }
 }
 
+// Site Schema functions
+export async function getSiteSchema(schemaKey, tenantId) {
+  try {
+    const result = await query(`
+      SELECT schema_value
+      FROM site_schemas
+      WHERE schema_key = $1 AND tenant_id = $2
+    `, [schemaKey, tenantId]);
+    
+    if (result.rows.length === 0) {
+      return null;
+    }
+    
+    // Parse the JSON schema_value
+    const schemaValue = result.rows[0].schema_value;
+    return typeof schemaValue === 'string' ? JSON.parse(schemaValue) : schemaValue;
+  } catch (error) {
+    console.error('Error fetching site schema:', error);
+    throw error;
+  }
+}
+
+export async function updateSiteSchema(schemaKey, schemaValue, tenantId) {
+  try {
+    const result = await query(`
+      INSERT INTO site_schemas (schema_key, schema_value, tenant_id, updated_at)
+      VALUES ($1, $2, $3, NOW())
+      ON CONFLICT (schema_key, tenant_id)
+      DO UPDATE SET 
+        schema_value = EXCLUDED.schema_value,
+        updated_at = NOW()
+      RETURNING *
+    `, [schemaKey, JSON.stringify(schemaValue), tenantId]);
+    
+    return result.rows[0];
+  } catch (error) {
+    console.error('Error updating site schema:', error);
+    throw error;
+  }
+}
+
 export async function updateMultipleBrandingSettings(settings) {
   const client = await pool.connect();
   try {

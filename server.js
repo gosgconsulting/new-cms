@@ -341,6 +341,54 @@ app.post('/api/upload', upload.single('file'), (req, res) => {
   }
 });
 
+// Site Schema API endpoints
+app.get('/api/site-schemas/:schemaKey', authenticateUser, async (req, res) => {
+  try {
+    const { schemaKey } = req.params;
+    const tenantId = req.headers['x-tenant-id'];
+    
+    if (!tenantId) {
+      return res.status(400).json({ error: 'Tenant ID is required' });
+    }
+    
+    const { getSiteSchema } = await import('./sparti-cms/db/postgres.js');
+    const schema = await getSiteSchema(schemaKey, tenantId);
+    
+    if (!schema) {
+      return res.status(404).json({ error: 'Schema not found' });
+    }
+    
+    res.json({ success: true, schema });
+  } catch (error) {
+    console.error('[testing] Error fetching site schema:', error);
+    res.status(500).json({ error: 'Failed to fetch site schema' });
+  }
+});
+
+app.put('/api/site-schemas/:schemaKey', authenticateUser, async (req, res) => {
+  try {
+    const { schemaKey } = req.params;
+    const { schema } = req.body;
+    const tenantId = req.headers['x-tenant-id'];
+    
+    if (!tenantId) {
+      return res.status(400).json({ error: 'Tenant ID is required' });
+    }
+    
+    if (!schema) {
+      return res.status(400).json({ error: 'Schema data is required' });
+    }
+    
+    const { updateSiteSchema } = await import('./sparti-cms/db/postgres.js');
+    await updateSiteSchema(schemaKey, schema, tenantId);
+    
+    res.json({ success: true, message: 'Schema updated successfully' });
+  } catch (error) {
+    console.error('[testing] Error updating site schema:', error);
+    res.status(500).json({ error: 'Failed to update site schema' });
+  }
+});
+
 // Form submissions API
 app.post('/api/form-submissions', async (req, res) => {
   try {
