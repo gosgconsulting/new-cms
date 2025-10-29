@@ -1,15 +1,25 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '../../../src/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../src/components/ui/card';
 import { Input } from '../../../src/components/ui/input';
 import { Label } from '../../../src/components/ui/label';
 import { Textarea } from '../../../src/components/ui/textarea';
-import { ArrowLeft, Save, Loader2, Plus, X, GripVertical } from 'lucide-react';
+import { ArrowLeft, Save, Loader2, Plus, X, GripVertical, Code } from 'lucide-react';
 import { FooterSchema } from '../../types/schema';
 import { LogoEditor } from './schema-form-helpers/LogoEditor';
 import { MenuItemsList } from './schema-form-helpers/MenuItemEditor';
 import { ToggleField } from './schema-form-helpers/ToggleField';
 import { useSchemaEditor } from '../../hooks/useSchemaEditor';
+import { useAuth } from '../auth/AuthProvider';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogClose,
+} from "../../../src/components/ui/dialog";
 
 interface FooterSchemaEditorProps {
   onBack: () => void;
@@ -34,10 +44,34 @@ const defaultFooterSchema: FooterSchema = {
 };
 
 export const FooterSchemaEditor: React.FC<FooterSchemaEditorProps> = ({ onBack }) => {
-  const { schema, loading, saving, saveSchema, updateSchema } = useSchemaEditor<FooterSchema>({
+  const { user } = useAuth();
+  const { schema, loading, saving, saveSchema, updateSchema, setSchema } = useSchemaEditor<FooterSchema>({
     schemaKey: 'footer',
     defaultSchema: defaultFooterSchema
   });
+  
+  const [showJSONEditor, setShowJSONEditor] = useState(false);
+  const [jsonString, setJsonString] = useState('');
+  const [jsonError, setJsonError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (showJSONEditor) {
+      setJsonString(JSON.stringify(schema, null, 2));
+      setJsonError(null);
+    }
+  }, [showJSONEditor, schema]);
+
+  const handleJsonChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newJsonString = e.target.value;
+    setJsonString(newJsonString);
+    try {
+      const parsed = JSON.parse(newJsonString);
+      setSchema(parsed);
+      setJsonError(null);
+    } catch (error) {
+      setJsonError('Invalid JSON format.');
+    }
+  };
 
   const handleSave = async () => {
     await saveSchema(schema);
@@ -122,18 +156,30 @@ export const FooterSchemaEditor: React.FC<FooterSchemaEditorProps> = ({ onBack }
                 </p>
               </div>
             </div>
-            <Button
-              onClick={handleSave}
-              disabled={saving}
-              className="flex items-center gap-2"
-            >
-              {saving ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Save className="h-4 w-4" />
+            <div className="flex items-center gap-2">
+              {user?.is_super_admin && (
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setShowJSONEditor(true)}
+                >
+                  <Code className="h-4 w-4 mr-2" />
+                  JSON Editor
+                </Button>
               )}
-              {saving ? 'Saving...' : 'Save Changes'}
-            </Button>
+              <Button
+                onClick={handleSave}
+                disabled={saving}
+                className="flex items-center gap-2"
+              >
+                {saving ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Save className="h-4 w-4" />
+                )}
+                {saving ? 'Saving...' : 'Save Changes'}
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -273,6 +319,43 @@ export const FooterSchemaEditor: React.FC<FooterSchemaEditorProps> = ({ onBack }
           </div>
         </div>
       </div>
+      
+      {/* JSON Editor Dialog */}
+      <Dialog open={showJSONEditor} onOpenChange={setShowJSONEditor}>
+        <DialogContent className="max-w-4xl h-[80vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle>Footer Schema JSON Editor</DialogTitle>
+            <DialogDescription>
+              Edit the complete footer schema structure. Be careful with this editor.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex-1 overflow-auto p-4">
+            <Textarea
+              value={jsonString}
+              onChange={handleJsonChange}
+              className="w-full h-full font-mono text-sm resize-none"
+              placeholder="Enter footer schema as JSON..."
+            />
+            {jsonError && <p className="text-destructive text-sm mt-2">{jsonError}</p>}
+          </div>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button type="button" variant="secondary">
+                Cancel
+              </Button>
+            </DialogClose>
+            <Button
+              onClick={() => {
+                handleSave();
+                setShowJSONEditor(false);
+              }}
+              disabled={!!jsonError}
+            >
+              Save & Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

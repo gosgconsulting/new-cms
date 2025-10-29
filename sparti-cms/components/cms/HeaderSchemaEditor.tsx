@@ -1,12 +1,23 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '../../../src/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../src/components/ui/card';
-import { ArrowLeft, Save, Loader2 } from 'lucide-react';
+import { Textarea } from '../../../src/components/ui/textarea';
+import { ArrowLeft, Save, Loader2, Code } from 'lucide-react';
 import { HeaderSchema } from '../../types/schema';
 import { LogoEditor } from './schema-form-helpers/LogoEditor';
 import { MenuItemsList } from './schema-form-helpers/MenuItemEditor';
 import { ToggleField } from './schema-form-helpers/ToggleField';
 import { useSchemaEditor } from '../../hooks/useSchemaEditor';
+import { useAuth } from '../auth/AuthProvider';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogClose,
+} from "../../../src/components/ui/dialog";
 
 interface HeaderSchemaEditorProps {
   onBack: () => void;
@@ -25,10 +36,34 @@ const defaultHeaderSchema: HeaderSchema = {
 };
 
 export const HeaderSchemaEditor: React.FC<HeaderSchemaEditorProps> = ({ onBack }) => {
-  const { schema, loading, saving, saveSchema, updateSchema } = useSchemaEditor<HeaderSchema>({
+  const { user } = useAuth();
+  const { schema, loading, saving, saveSchema, updateSchema, setSchema } = useSchemaEditor<HeaderSchema>({
     schemaKey: 'header',
     defaultSchema: defaultHeaderSchema
   });
+  
+  const [showJSONEditor, setShowJSONEditor] = useState(false);
+  const [jsonString, setJsonString] = useState('');
+  const [jsonError, setJsonError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (showJSONEditor) {
+      setJsonString(JSON.stringify(schema, null, 2));
+      setJsonError(null);
+    }
+  }, [showJSONEditor, schema]);
+
+  const handleJsonChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newJsonString = e.target.value;
+    setJsonString(newJsonString);
+    try {
+      const parsed = JSON.parse(newJsonString);
+      setSchema(parsed);
+      setJsonError(null);
+    } catch (error) {
+      setJsonError('Invalid JSON format.');
+    }
+  };
 
   const handleSave = async () => {
     await saveSchema(schema);
@@ -82,18 +117,30 @@ export const HeaderSchemaEditor: React.FC<HeaderSchemaEditorProps> = ({ onBack }
                 </p>
               </div>
             </div>
-            <Button
-              onClick={handleSave}
-              disabled={saving}
-              className="flex items-center gap-2"
-            >
-              {saving ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Save className="h-4 w-4" />
+            <div className="flex items-center gap-2">
+              {user?.is_super_admin && (
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setShowJSONEditor(true)}
+                >
+                  <Code className="h-4 w-4 mr-2" />
+                  JSON Editor
+                </Button>
               )}
-              {saving ? 'Saving...' : 'Save Changes'}
-            </Button>
+              <Button
+                onClick={handleSave}
+                disabled={saving}
+                className="flex items-center gap-2"
+              >
+                {saving ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Save className="h-4 w-4" />
+                )}
+                {saving ? 'Saving...' : 'Save Changes'}
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -152,6 +199,43 @@ export const HeaderSchemaEditor: React.FC<HeaderSchemaEditorProps> = ({ onBack }
           </div>
         </div>
       </div>
+      
+      {/* JSON Editor Dialog */}
+      <Dialog open={showJSONEditor} onOpenChange={setShowJSONEditor}>
+        <DialogContent className="max-w-4xl h-[80vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle>Header Schema JSON Editor</DialogTitle>
+            <DialogDescription>
+              Edit the complete header schema structure. Be careful with this editor.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex-1 overflow-auto p-4">
+            <Textarea
+              value={jsonString}
+              onChange={handleJsonChange}
+              className="w-full h-full font-mono text-sm resize-none"
+              placeholder="Enter header schema as JSON..."
+            />
+            {jsonError && <p className="text-destructive text-sm mt-2">{jsonError}</p>}
+          </div>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button type="button" variant="secondary">
+                Cancel
+              </Button>
+            </DialogClose>
+            <Button
+              onClick={() => {
+                handleSave();
+                setShowJSONEditor(false);
+              }}
+              disabled={!!jsonError}
+            >
+              Save & Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
