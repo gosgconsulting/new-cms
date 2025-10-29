@@ -243,7 +243,7 @@ export const SchemaItemEditor: React.FC<SchemaItemEditorProps> = ({
             };
             break;
             
-          case 'faq':
+          case 'faqs':
             newItem = {
               key: `faq_${Date.now()}`,
               type: 'faq',
@@ -335,7 +335,7 @@ export const SchemaItemEditor: React.FC<SchemaItemEditorProps> = ({
               Add Review
             </Button>
           )}
-          {item.key === 'faq' && (
+          {item.key === 'faqs' && (
             <Button onClick={handleAddItem} variant="outline" size="sm">
               <Plus className="h-4 w-4 mr-2" />
               Add FAQ
