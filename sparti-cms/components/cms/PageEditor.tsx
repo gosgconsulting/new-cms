@@ -100,10 +100,15 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
         if (data.success) {
           setPageData(data.page);
           
-          // Handle layout data
+          // Handle layout data with safety checks
           if (data.page.layout && data.page.layout.components) {
-            setComponents(data.page.layout.components);
+            // Ensure components is an array
+            const layoutComponents = Array.isArray(data.page.layout.components) 
+              ? data.page.layout.components 
+              : [];
+            setComponents(layoutComponents);
           } else {
+            console.log('No layout data found, initializing empty components array');
             // No layout data, start with empty components
             setComponents([]);
           }
@@ -131,6 +136,10 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
 
 
   const removeComponent = (index: number) => {
+    if (!Array.isArray(components)) {
+      console.error('[testing] Cannot remove component: components is not an array');
+      return;
+    }
     const newComponents = components.filter((_, i) => i !== index);
     setComponents(newComponents);
     if (selectedComponentIndex === index) {
@@ -141,6 +150,10 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
   };
 
         const updateComponent = (index: number, updatedComponent: ComponentSchema) => {
+          if (!Array.isArray(components)) {
+            console.error('[testing] Cannot update component: components is not an array');
+            return;
+          }
           const newComponents = [...components];
           newComponents[index] = updatedComponent;
           setComponents(newComponents);
@@ -266,6 +279,20 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
     }
 
     if (selectedComponentIndex !== null) {
+      if (!Array.isArray(components) || !components[selectedComponentIndex]) {
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle>Error</CardTitle>
+              <CardDescription>Component not found or components data is invalid</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-destructive">Cannot load component editor</p>
+            </CardContent>
+          </Card>
+        );
+      }
+      
       return (
         <Card>
             <CardHeader>
@@ -385,8 +412,10 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
             
             <Separator className="my-2" />
             
+            {/* Debug info - check console for components state */}
+            
             {/* Components List */}
-            {components.map((component, index) => (
+            {Array.isArray(components) && components.map((component, index) => (
               <div
                 key={component.key}
                 className={`p-3 rounded-lg border cursor-pointer transition-colors ${
@@ -426,7 +455,22 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
               </div>
             ))}
             
-            {components.length === 0 && (
+            {!Array.isArray(components) && (
+              <div className="text-center py-8 text-destructive">
+                <p className="text-sm">Error: Components data is not an array</p>
+                <p className="text-xs">Type: {typeof components}</p>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="mt-2"
+                  onClick={() => setComponents([])}
+                >
+                  Reset Components
+                </Button>
+              </div>
+            )}
+            
+            {Array.isArray(components) && components.length === 0 && (
               <div className="text-center py-8 text-muted-foreground">
                 <p className="text-sm">No components available</p>
                 <p className="text-xs">This page has no components to edit</p>
