@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
-import { Database, Plus, FolderKanban, Puzzle, FileCode, Code, Globe, Monitor, FileText } from 'lucide-react';
+import { Database, Plus, FolderKanban, Puzzle, FileCode, Code, Globe, Monitor, FileText, Languages } from 'lucide-react';
 import { PostgresIntegration, PostgresIntegrationListItem, Tenant } from './PostgresIntegration';
 import { ComponentsIntegration, ComponentsIntegrationListItem } from './ComponentsIntegration';
 import { useAuth } from '../auth/AuthProvider';
@@ -447,6 +447,9 @@ const IntegrationsTab: React.FC = () => {
           <ComponentsIntegration
             onViewClick={() => navigate('/components-viewer')}
           />
+          
+          {/* Google Translation Integration */}
+          <GoogleTranslationIntegration />
 
           <Button variant="outline" className="w-full" size="lg" onClick={() => setShowAddIntegration(true)}>
             <Plus className="h-4 w-4 mr-2" />
@@ -470,6 +473,7 @@ const IntegrationsTab: React.FC = () => {
                 <li>• PostgreSQL Database (No tenant selected)</li>
               )}
               <ComponentsIntegrationListItem />
+              <GoogleTranslationIntegrationListItem />
               <li>• Google APIs (Available in Integration Test)</li>
               <li>• OpenRouter AI (Available in Integration Test)</li>
             </ul>
@@ -877,6 +881,56 @@ const RulesTab: React.FC = () => {
         </div>
       </div>
     </div>
+  );
+};
+
+// Google Translation Integration Component
+export const GoogleTranslationIntegration: React.FC = () => {
+  // Check if the API key exists in environment variables
+  // @ts-ignore - Vite environment variables
+  const apiKeyExists = Boolean(import.meta.env?.VITE_GOOGLE_CLOUD_TRANSLATION_API_KEY);
+  
+  return (
+    <div className="bg-white rounded-lg p-4 border border-gray-200">
+      <div className="flex items-start space-x-4">
+        <div className="flex-shrink-0">
+          <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+            <Languages className="h-6 w-6 text-blue-600" />
+          </div>
+        </div>
+        
+        <div className="flex-1">
+          <div className="flex items-center justify-between">
+            <h3 className="font-medium text-gray-900">Google Translation API</h3>
+            <Badge className={apiKeyExists ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}>
+              {apiKeyExists ? "Active" : "Inactive"}
+            </Badge>
+          </div>
+          
+          <p className="text-sm text-gray-600 mt-1 mb-3">
+            Integrate Google's Translation API for multilingual content support
+          </p>
+          
+          
+          <div className="mt-4 text-xs text-gray-500">
+            <p>{apiKeyExists 
+              ? "Using API key from environment variables for security" 
+              : "Add VITE_GOOGLE_CLOUD_TRANSLATION_API_KEY to your environment variables to activate"
+            }</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Google Translation List Item Component
+export const GoogleTranslationIntegrationListItem: React.FC = () => {
+  return (
+    <li className="flex items-center space-x-2">
+      <Languages className="h-4 w-4 text-blue-600" />
+      <span>• Google Translation API (Multilingual content support)</span>
+    </li>
   );
 };
 
