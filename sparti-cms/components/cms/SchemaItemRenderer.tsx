@@ -7,7 +7,8 @@ import {
   CarouselEditor as ContentCarouselEditor, 
   ButtonEditor as ContentButtonEditor,
   FAQEditor as ContentFAQEditor,
-  OfficeHoursEditor as ContentOfficeHoursEditor
+  OfficeHoursEditor as ContentOfficeHoursEditor,
+  ContactInfoEditor as ContentContactInfoEditor
 } from '../content-editors';
 import { Plus, Trash2 } from 'lucide-react';
 import { Button } from '../../../src/components/ui/button';
@@ -522,6 +523,21 @@ export const SchemaItemEditor: React.FC<SchemaItemEditorProps> = ({
         <ContentOfficeHoursEditor
           items={item.items || [] as any[]}
           onChange={(officeHoursItems) => handleItemChange({ ...item, items: officeHoursItems as any[] })}
+        />
+      );
+
+    case 'contactInfo':
+      // Handle contact information component
+      return (
+        <ContentContactInfoEditor
+          address={item.address || ''}
+          phone={item.phone || ''}
+          email={item.email || ''}
+          hours={item.hours || []}
+          onAddressChange={(address) => handleItemChange({ ...item, address })}
+          onPhoneChange={(phone) => handleItemChange({ ...item, phone })}
+          onEmailChange={(email) => handleItemChange({ ...item, email })}
+          onHoursChange={(hours) => handleItemChange({ ...item, hours })}
         />
       );
 

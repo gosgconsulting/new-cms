@@ -7,3 +7,4 @@ export { default as CarouselEditor } from './CarouselEditor';
 export { default as ButtonEditor } from './ButtonEditor';
 export { default as FAQEditor } from './FAQEditor';
 export { default as OfficeHoursEditor } from './OfficeHoursEditor';
+export { default as ContactInfoEditor } from './ContactInfoEditor';
