@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../..
 import { Badge } from '../../../src/components/ui/badge';
 import { ScrollArea } from '../../../src/components/ui/scroll-area';
 import { Separator } from '../../../src/components/ui/separator';
-import { ArrowLeft, Save, Loader2, AlertCircle, CheckCircle, RefreshCw, Settings, Eye, Trash2, GripVertical, Code } from 'lucide-react';
+import { ArrowLeft, Save, Loader2, AlertCircle, CheckCircle, RefreshCw, Settings, Eye, Trash2, GripVertical, Code, Type, Image, Video, Grid3X3, RotateCcw, Square, Link, MessageSquare, Star, Award, Mail, Clock, MapPin, Phone, HelpCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import SchemaEditor from './SchemaEditor';
 import ComponentEditor from './ComponentEditor';
@@ -100,10 +100,15 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
         if (data.success) {
           setPageData(data.page);
           
-          // Handle layout data
+          // Handle layout data with safety checks
           if (data.page.layout && data.page.layout.components) {
-            setComponents(data.page.layout.components);
+            // Ensure components is an array
+            const layoutComponents = Array.isArray(data.page.layout.components) 
+              ? data.page.layout.components 
+              : [];
+            setComponents(layoutComponents);
           } else {
+            console.log('No layout data found, initializing empty components array');
             // No layout data, start with empty components
             setComponents([]);
           }
@@ -131,6 +136,10 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
 
 
   const removeComponent = (index: number) => {
+    if (!Array.isArray(components)) {
+      console.error('[testing] Cannot remove component: components is not an array');
+      return;
+    }
     const newComponents = components.filter((_, i) => i !== index);
     setComponents(newComponents);
     if (selectedComponentIndex === index) {
@@ -141,6 +150,10 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
   };
 
         const updateComponent = (index: number, updatedComponent: ComponentSchema) => {
+          if (!Array.isArray(components)) {
+            console.error('[testing] Cannot update component: components is not an array');
+            return;
+          }
           const newComponents = [...components];
           newComponents[index] = updatedComponent;
           setComponents(newComponents);
@@ -158,6 +171,54 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
       'VideoBlock': 'Video Block'
     };
     return typeMap[type] || type;
+  };
+
+  // Get icon for component type
+  const getComponentIcon = (type: string) => {
+    const iconMap: { [key: string]: React.ReactNode } = {
+      'TextBlock': <Type className="h-4 w-4 text-blue-500" />,
+      'HeroSection': <Square className="h-4 w-4 text-purple-500" />,
+      'Showcase': <Grid3X3 className="h-4 w-4 text-orange-500" />,
+      'ProductGrid': <Grid3X3 className="h-4 w-4 text-green-500" />,
+      'Reviews': <Star className="h-4 w-4 text-yellow-500" />,
+      'Newsletter': <Mail className="h-4 w-4 text-blue-500" />,
+      'ImageBlock': <Image className="h-4 w-4 text-green-500" />,
+      'VideoBlock': <Video className="h-4 w-4 text-purple-500" />
+    };
+    return iconMap[type] || <Square className="h-4 w-4 text-gray-400" />;
+  };
+
+  // Get component preview text
+  const getComponentPreview = (component: ComponentSchema): string => {
+    if (!component.items || component.items.length === 0) {
+      return 'No items';
+    }
+
+    const firstItem = component.items[0];
+    switch (firstItem.type) {
+      case 'heading':
+      case 'text':
+        return firstItem.content ? firstItem.content.substring(0, 40) + (firstItem.content.length > 40 ? '...' : '') : 'No content';
+      case 'image':
+        return firstItem.src ? `Image: ${firstItem.alt || 'Untitled'}` : 'No image';
+      case 'video':
+        return firstItem.src ? `Video: ${firstItem.alt || 'Untitled'}` : 'No video';
+      case 'button':
+        return firstItem.content ? `Button: ${firstItem.content}` : 'No button text';
+      case 'contactInfo':
+        const parts: string[] = [];
+        if (firstItem.address) parts.push('Address');
+        if (firstItem.phone) parts.push('Phone');
+        if (firstItem.email) parts.push('Email');
+        if (firstItem.hours?.length) parts.push('Hours');
+        return parts.length ? parts.join(', ') : 'No contact info';
+      case 'gallery':
+        return firstItem.value?.length ? `${firstItem.value.length} images` : 'No images';
+      case 'carousel':
+        return firstItem.images?.length ? `${firstItem.images.length} slides` : 'No slides';
+      default:
+        return `${component.items.length} item${component.items.length !== 1 ? 's' : ''}`;
+    }
   };
 
 
@@ -266,6 +327,20 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
     }
 
     if (selectedComponentIndex !== null) {
+      if (!Array.isArray(components) || !components[selectedComponentIndex]) {
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle>Error</CardTitle>
+              <CardDescription>Component not found or components data is invalid</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-destructive">Cannot load component editor</p>
+            </CardContent>
+          </Card>
+        );
+      }
+      
       return (
         <Card>
             <CardHeader>
@@ -385,8 +460,10 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
             
             <Separator className="my-2" />
             
+            {/* Debug info - check console for components state */}
+            
             {/* Components List */}
-            {components.map((component, index) => (
+            {Array.isArray(components) && components.map((component, index) => (
               <div
                 key={component.key}
                 className={`p-3 rounded-lg border cursor-pointer transition-colors ${
@@ -400,14 +477,23 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
                 }}
               >
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <GripVertical className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <p className="font-medium text-sm">
-                        {getComponentTypeDisplayName(component.type)}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <GripVertical className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    {getComponentIcon(component.type)}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium text-sm truncate">
+                          {getComponentTypeDisplayName(component.type)}
+                        </p>
+                        <Badge variant="outline" className="text-xs">
+                          {component.items?.length || 0}
+                        </Badge>
+                      </div>
+                      <p className="text-xs text-muted-foreground truncate">
                         {component.key}
+                      </p>
+                      <p className="text-xs text-gray-500 truncate mt-1">
+                        {getComponentPreview(component)}
                       </p>
                     </div>
                   </div>
@@ -418,7 +504,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
                       e.stopPropagation();
                       removeComponent(index);
                     }}
-                    className="h-6 w-6 p-0 text-destructive hover:text-destructive"
+                    className="h-6 w-6 p-0 text-destructive hover:text-destructive flex-shrink-0"
                   >
                     <Trash2 className="h-3 w-3" />
                   </Button>
@@ -426,7 +512,22 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
               </div>
             ))}
             
-            {components.length === 0 && (
+            {!Array.isArray(components) && (
+              <div className="text-center py-8 text-destructive">
+                <p className="text-sm">Error: Components data is not an array</p>
+                <p className="text-xs">Type: {typeof components}</p>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="mt-2"
+                  onClick={() => setComponents([])}
+                >
+                  Reset Components
+                </Button>
+              </div>
+            )}
+            
+            {Array.isArray(components) && components.length === 0 && (
               <div className="text-center py-8 text-muted-foreground">
                 <p className="text-sm">No components available</p>
                 <p className="text-xs">This page has no components to edit</p>

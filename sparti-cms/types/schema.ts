@@ -18,7 +18,8 @@ export type SchemaItemType =
   | 'feature'
   | 'ContactForm'
   | 'faq'
-  | 'officeHours';
+  | 'officeHours'
+  | 'contactInfo';
 
 // Schema item interface
 export interface SchemaItem {
@@ -41,6 +42,12 @@ export interface SchemaItem {
   highlight?: string;           // For highlighted text
   buttonText?: string;          // For button text
   description?: string;         // For descriptions
+  
+  // Contact information properties
+  address?: string;             // Physical address
+  phone?: string;               // Phone number
+  email?: string;               // Email address
+  hours?: Array<{day: string, time: string}>; // Office hours
 }
 
 // Component schema interface
