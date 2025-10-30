@@ -318,14 +318,14 @@ export const PagesManager: React.FC = () => {
               )}
             </div>
 
-            <div className="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-200">
+            {/* <div className="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-200">
               <p className="text-sm text-blue-800">
                 <strong>Slug Editing:</strong> Click on any slug to edit it. Homepage slug cannot be changed. 
                 If you change the blog slug, remember to update blog post URLs in the frontend code.
                 <br />
                 <strong>SEO Index:</strong> Click on "Index" or "No Index" badges to toggle whether the page should be indexed by search engines.
               </p>
-            </div>
+            </div> */}
           </div>
         </div>
       </div>
