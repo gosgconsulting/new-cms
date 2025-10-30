@@ -262,7 +262,7 @@ export const ContactInfoEditor: React.FC<ContactInfoEditorProps> = ({
             {officeHours.length > 0 && (
               <div className="flex items-start gap-2">
                 <Clock className="h-4 w-4 text-gray-500 mt-0.5" />
-                <div>
+                <div className="min-w-[300px]">
                   <p className="text-sm font-medium">Office Hours</p>
                   <div className="space-y-1">
                     {officeHours.map((hoursItem, index) => (
