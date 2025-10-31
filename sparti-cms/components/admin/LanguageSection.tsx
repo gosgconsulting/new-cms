@@ -6,7 +6,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/use-toast";
 import { useCMSSettings, Language } from '../../context/CMSSettingsContext';
-import { updateLanguageSettings } from '../../services/languageService';
+import { updateLanguageSettings, addLanguage } from '../../services/languageService';
+import { useAuth } from '../auth/AuthProvider';
 
 // Complete list of languages supported by Google Translate
 const availableLanguages = [
@@ -155,21 +156,9 @@ const LanguageSection: React.FC<LanguageSectionProps> = ({
   defaultLanguage: defaultLangFromProps,
   additionalLanguages: additionalLangsFromProps
 }) => {
-  console.log('[testing] LanguageSection props:', { 
-    defaultLangFromProps, 
-    additionalLangsFromProps 
-  });
-  
-  // Log the raw props for debugging
-  console.log('[testing] Raw props values:', {
-    defaultLangFromProps: String(defaultLangFromProps),
-    additionalLangsFromProps: String(additionalLangsFromProps),
-    typeofDefault: typeof defaultLangFromProps,
-    typeofAdditional: typeof additionalLangsFromProps
-  });
+  const { currentTenantId } = useAuth();
   
   const { settings, updateLanguage } = useCMSSettings();
-  console.log('[testing] Context settings:', settings.language);
   
   const [isLoading, setIsLoading] = useState(false);
   // Always prioritize props over context
@@ -189,10 +178,8 @@ const LanguageSection: React.FC<LanguageSectionProps> = ({
 
   // Helper function to get language by code or name
   function getLanguageByCodeOrName(codeOrName: string): Language {
-    console.log('[testing] Getting language for code/name:', codeOrName);
     
     if (!codeOrName) {
-      console.log('[testing] Empty code/name, using default:', { code: 'en', name: 'English' });
       return { code: 'en', name: 'English' };
     }
     
@@ -201,7 +188,6 @@ const LanguageSection: React.FC<LanguageSectionProps> = ({
       lang.code.toLowerCase() === codeOrName.toLowerCase()
     );
     if (foundByCode) {
-      console.log('[testing] Found by code:', foundByCode);
       return foundByCode;
     }
     
@@ -210,7 +196,6 @@ const LanguageSection: React.FC<LanguageSectionProps> = ({
       lang.name.toLowerCase() === codeOrName.toLowerCase()
     );
     if (foundByName) {
-      console.log('[testing] Found by name:', foundByName);
       return foundByName;
     }
     
@@ -219,7 +204,6 @@ const LanguageSection: React.FC<LanguageSectionProps> = ({
       codeOrName.toLowerCase().startsWith(lang.code.toLowerCase())
     );
     if (foundByPartialCode) {
-      console.log('[testing] Found by partial code:', foundByPartialCode);
       // Use the original code but the matched name
       return { code: codeOrName, name: foundByPartialCode.name };
     }
@@ -227,24 +211,20 @@ const LanguageSection: React.FC<LanguageSectionProps> = ({
     // If not found, return a default object with the given code and a formatted name
     // Convert code to title case for better display (e.g., "ko" -> "Ko")
     const formattedName = codeOrName.charAt(0).toUpperCase() + codeOrName.slice(1).toLowerCase();
-    console.log('[testing] No match found, using formatted name:', { code: codeOrName, name: formattedName });
     return { code: codeOrName, name: formattedName };
   }
 
   // Helper function to parse comma-separated language codes
   function parseAdditionalLanguages(langString: string, defaultLang?: string): Language[] {
-    console.log('[testing] Parsing additional languages:', { langString, defaultLang });
     
     if (!langString) {
-      console.log('[testing] Empty language string, returning empty array');
+
       return [];
     }
     
     const splitCodes = langString.split(',');
-    console.log('[testing] Split language codes:', splitCodes);
     
     const trimmedCodes = splitCodes.map(code => code.trim());
-    console.log('[testing] Trimmed language codes:', trimmedCodes);
     
     const filteredCodes = trimmedCodes.filter(code => {
       // Keep the code if:
@@ -253,18 +233,14 @@ const LanguageSection: React.FC<LanguageSectionProps> = ({
       const shouldKeep = Boolean(code) && (
         !defaultLang || code.toLowerCase() !== defaultLang.toLowerCase()
       );
-      console.log('[testing] Filtering code:', { code, defaultLang, shouldKeep });
       return shouldKeep;
     });
-    console.log('[testing] Filtered language codes:', filteredCodes);
     
     const mappedLanguages = filteredCodes.map(code => {
       const lang = getLanguageByCodeOrName(code);
-      console.log('[testing] Mapped language:', { code, lang });
       return lang;
     });
     
-    console.log('[testing] Final parsed languages:', mappedLanguages);
     return mappedLanguages;
   }
 
@@ -325,27 +301,25 @@ const LanguageSection: React.FC<LanguageSectionProps> = ({
     
     // Save to database
     try {
-      // Convert additionalLanguages to comma-separated string
-      const additionalLangCodes = newAdditionalLanguages.map(lang => lang.code).join(',');
+      // Use addLanguage instead of updateLanguageSettings to ensure page translations are created
+      console.log('[testing] Adding language to database:', language.code);
       
-      // Save to the database
-      console.log('[testing] Saving language settings to database:', {
-        defaultLanguage: defaultLanguage.code,
-        additionalLanguages: additionalLangCodes
-      });
+      // Call the addLanguage function which will create page translations
+      const result = await addLanguage(language.code, currentTenantId);
       
-      // Save to the database
-      await updateLanguageSettings(defaultLanguage.code, additionalLangCodes);
-      
-      toast({
-        title: "Success",
-        description: `${language.name} has been added.`,
-      });
+      if (result.success) {
+        toast({
+          title: "Success",
+          description: `${language.name} has been added.`,
+        });
+      } else {
+        throw new Error(result.message);
+      }
     } catch (error) {
-      console.error('[testing] Error saving language settings:', error);
+      console.error('[testing] Error adding language:', error);
       toast({
         title: "Error",
-        description: "Failed to save language settings. Please try again.",
+        description: "Failed to add language. Please try again.",
         variant: "destructive",
       });
     }
@@ -374,7 +348,7 @@ const LanguageSection: React.FC<LanguageSectionProps> = ({
       });
       
       // Save to the database
-      await updateLanguageSettings(defaultLanguage.code, additionalLangCodes);
+      await updateLanguageSettings(defaultLanguage.code, additionalLangCodes, currentTenantId);
       
       toast({
         title: "Success",
@@ -427,7 +401,7 @@ const LanguageSection: React.FC<LanguageSectionProps> = ({
       });
       
       // In a real environment, uncomment this to save to the database
-      // await updateLanguageSettings(language.code, additionalLangCodes);
+      // await updateLanguageSettings(language.code, additionalLangCodes, currentTenantId);
       
       toast({
         title: "Success",

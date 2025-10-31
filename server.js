@@ -323,11 +323,92 @@ app.get('/health/detailed', async (req, res) => {
 // Tenant API Routes
 app.use('/api/tenants', tenantRoutes);
 
+// Language Management API
+import languageManagementService from './sparti-cms/services/languageManagementService.js';
+
+app.post('/api/language/add', authenticateUser, async (req, res) => {
+  try {
+    const { languageCode } = req.body;
+    if (!languageCode) {
+      return res.status(400).json({ success: false, message: 'Language code is required' });
+    }
+    
+    // Get tenant ID from query parameter, user context, or default to tenant-gosg
+    const tenantId = req.query.tenantId || req.user?.tenant_id || 'tenant-gosg';
+    console.log(`[testing] API: Adding language ${languageCode} for tenant: ${tenantId}`);
+    
+    const result = await languageManagementService.addLanguage(languageCode, tenantId);
+    
+    if (result.success) {
+      res.json(result);
+    } else {
+      res.status(400).json(result);
+    }
+  } catch (error) {
+    console.error('[testing] API: Error adding language:', error);
+    res.status(500).json({ success: false, message: 'Failed to add language' });
+  }
+});
+
+app.post('/api/language/remove', authenticateUser, async (req, res) => {
+  try {
+    const { languageCode } = req.body;
+    if (!languageCode) {
+      return res.status(400).json({ success: false, message: 'Language code is required' });
+    }
+    
+    // Get tenant ID from query parameter, user context, or default to tenant-gosg
+    const tenantId = req.query.tenantId || req.user?.tenant_id || 'tenant-gosg';
+    console.log(`[testing] API: Removing language ${languageCode} for tenant: ${tenantId}`);
+    
+    const result = await languageManagementService.removeLanguage(languageCode, tenantId);
+    
+    if (result.success) {
+      res.json(result);
+    } else {
+      res.status(400).json(result);
+    }
+  } catch (error) {
+    console.error('[testing] API: Error removing language:', error);
+    res.status(500).json({ success: false, message: 'Failed to remove language' });
+  }
+});
+
+app.post('/api/language/set-default', authenticateUser, async (req, res) => {
+  try {
+    const { languageCode, fromAdditionalLanguages } = req.body;
+    if (!languageCode) {
+      return res.status(400).json({ success: false, message: 'Language code is required' });
+    }
+    
+    // Get tenant ID from query parameter, user context, or default to tenant-gosg
+    const tenantId = req.query.tenantId || req.user?.tenant_id || 'tenant-gosg';
+    console.log(`[testing] API: Setting default language ${languageCode} for tenant: ${tenantId}`);
+    
+    const result = await languageManagementService.setDefaultLanguage(
+      languageCode, 
+      tenantId, 
+      fromAdditionalLanguages === true
+    );
+    
+    if (result.success) {
+      res.json(result);
+    } else {
+      res.status(400).json(result);
+    }
+  } catch (error) {
+    console.error('[testing] API: Error setting default language:', error);
+    res.status(500).json({ success: false, message: 'Failed to set default language' });
+  }
+});
+
 // Branding API
 app.get('/api/branding', authenticateUser, async (req, res) => {
   try {
-    console.log('[testing] API: Getting branding settings');
-    const settings = await getBrandingSettings();
+    // Get tenant ID from query parameter, user context, or default to tenant-gosg
+    const tenantId = req.query.tenantId || req.user?.tenant_id || 'tenant-gosg';
+    console.log(`[testing] API: Getting branding settings for tenant: ${tenantId}`);
+    const settings = await getBrandingSettings(tenantId);
     res.json(settings);
   } catch (error) {
     console.error('[testing] API: Error getting branding settings:', error);
@@ -337,8 +418,10 @@ app.get('/api/branding', authenticateUser, async (req, res) => {
 
 app.post('/api/branding', authenticateUser, async (req, res) => {
   try {
-    console.log('[testing] API: Updating branding settings:', req.body);
-    await updateMultipleBrandingSettings(req.body);
+    // Get tenant ID from query parameter, user context, or default to tenant-gosg
+    const tenantId = req.query.tenantId || req.user?.tenant_id || 'tenant-gosg';
+    console.log(`[testing] API: Updating branding settings for tenant: ${tenantId}`, req.body);
+    await updateMultipleBrandingSettings(req.body, tenantId);
     // Smart invalidation: settings can affect many pages; clear all for now
     try { invalidateAll(); } catch (e) { /* no-op */ }
     res.json({ success: true, message: 'Branding settings updated successfully' });
@@ -2405,9 +2488,11 @@ app.get('/api/tenants/:id', async (req, res) => {
 app.get('/api/site-settings/:key', async (req, res) => {
   try {
     const { key } = req.params;
-    console.log(`[testing] API: Getting site setting for key: ${key}`);
+    // Get tenant ID from query parameter, user context, or default to tenant-gosg
+    const tenantId = req.query.tenantId || req.user?.tenant_id || 'tenant-gosg';
+    console.log(`[testing] API: Getting site setting for key: ${key}, tenant: ${tenantId}`);
     
-    const setting = await getSiteSettingByKey(key);
+    const setting = await getSiteSettingByKey(key, tenantId);
     
     if (!setting) {
       return res.status(404).json({ error: 'Setting not found' });
@@ -2456,14 +2541,17 @@ app.put('/api/site-settings/:key', async (req, res) => {
   try {
     const { key } = req.params;
     const { setting_value, setting_type, setting_category } = req.body;
+    // Get tenant ID from query parameter, user context, or default to tenant-gosg
+    const tenantId = req.query.tenantId || req.user?.tenant_id || 'tenant-gosg';
     
-    console.log(`[testing] API: Updating site setting for key: ${key}`, req.body);
+    console.log(`[testing] API: Updating site setting for key: ${key}, tenant: ${tenantId}`, req.body);
     
     const result = await updateSiteSettingByKey(
       key, 
       setting_value, 
       setting_type || 'text', 
-      setting_category || 'general'
+      setting_category || 'general',
+      tenantId
     );
     
     res.json(result);

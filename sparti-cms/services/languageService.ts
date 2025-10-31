@@ -20,23 +20,33 @@ interface LanguageSettings {
   additionalLanguages: string;
 }
 
+interface LanguageOperationResult {
+  success: boolean;
+  message: string;
+}
+
 /**
  * Fetches language settings from the database
+ * @param tenantId - Optional tenant ID to fetch settings for
  * @returns Promise with the language settings
  */
-export const fetchLanguageSettings = async (): Promise<LanguageSettings> => {
+export const fetchLanguageSettings = async (tenantId?: string | null): Promise<LanguageSettings> => {
   try {
     // @ts-ignore - Vite environment variables
     const API_BASE_URL = import.meta.env?.VITE_API_BASE_URL || '';
+    const tenantParam = tenantId ? `?tenantId=${tenantId}` : '';
     
-    console.log('[testing] Fetching language settings from API...');
-    console.log('[testing] API URL:', `${API_BASE_URL}/api/site-settings/site_language`);
+    console.log(`[testing] Fetching language settings from API for tenant: ${tenantId || 'default'}`);
+    console.log('[testing] API URL:', `${API_BASE_URL}/api/site-settings/site_language${tenantParam}`);
+    
+    // Import the API utility
+    const { default: api } = await import('../utils/api');
     
     // Fetch site_language (default language)
-    const defaultLangResponse = await fetch(`${API_BASE_URL}/api/site-settings/site_language`);
+    const defaultLangResponse = await api.get(`/api/site-settings/site_language${tenantParam}`);
     
     // Fetch site_content_languages (additional languages)
-    const additionalLangsResponse = await fetch(`${API_BASE_URL}/api/site-settings/site_content_languages`);
+    const additionalLangsResponse = await api.get(`/api/site-settings/site_content_languages${tenantParam}`);
     
     // Log raw responses
     console.log('[testing] Default language response status:', defaultLangResponse.status);
@@ -109,44 +119,51 @@ export const fetchLanguageSettings = async (): Promise<LanguageSettings> => {
  * Updates language settings in the database
  * @param defaultLanguage - The default language code
  * @param additionalLanguages - Comma-separated string of additional language codes
+ * @param tenantId - Optional tenant ID to update settings for
  * @returns Promise with the updated language settings
  */
 export const updateLanguageSettings = async (
   defaultLanguage: string,
-  additionalLanguages: string
+  additionalLanguages: string,
+  tenantId?: string | null
 ): Promise<LanguageSettings> => {
   try {
     // @ts-ignore - Vite environment variables
     const API_BASE_URL = import.meta.env?.VITE_API_BASE_URL || '';
+    const tenantParam = tenantId ? `?tenantId=${tenantId}` : '';
     
-    console.log('[testing] Updating language settings:', { defaultLanguage, additionalLanguages });
+    console.log(`[testing] Updating language settings for tenant ${tenantId || 'default'}:`, { defaultLanguage, additionalLanguages });
+    
+    // Ensure the default language is not in additionalLanguages
+    let additionalLangsArray = additionalLanguages ? additionalLanguages.split(',').filter(lang => lang.trim() !== '') : [];
+    additionalLangsArray = additionalLangsArray.filter(lang => lang !== defaultLanguage);
+    
+    // Make sure the default language is included in additionalLanguages
+    // This is the key fix - we need to include the default language in site_content_languages
+    if (!additionalLangsArray.includes(defaultLanguage)) {
+      additionalLangsArray.push(defaultLanguage);
+    }
+    
+    const updatedAdditionalLanguages = additionalLangsArray.join(',');
+    console.log(`[testing] Updated additionalLanguages to include default: ${updatedAdditionalLanguages}`);
+    
+    // Import the API utility
+    const { default: api } = await import('../utils/api');
     
     // Update site_language (default language)
-    const defaultLangResponse = await fetch(`${API_BASE_URL}/api/site-settings/site_language`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        setting_value: defaultLanguage,
-        setting_type: 'text',
-        setting_category: 'localization',
-        is_public: true
-      }),
+    const defaultLangResponse = await api.put(`/api/site-settings/site_language${tenantParam}`, {
+      setting_value: defaultLanguage,
+      setting_type: 'text',
+      setting_category: 'localization',
+      is_public: true
     });
     
     // Update site_content_languages (additional languages)
-    const additionalLangsResponse = await fetch(`${API_BASE_URL}/api/site-settings/site_content_languages`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        setting_value: additionalLanguages,
-        setting_type: 'text',
-        setting_category: 'localization',
-        is_public: true
-      }),
+    const additionalLangsResponse = await api.put(`/api/site-settings/site_content_languages${tenantParam}`, {
+      setting_value: updatedAdditionalLanguages,
+      setting_type: 'text',
+      setting_category: 'localization',
+      is_public: true
     });
     
     // Check if responses are ok
@@ -169,10 +186,148 @@ export const updateLanguageSettings = async (
     
     return {
       defaultLanguage,
-      additionalLanguages
+      additionalLanguages: updatedAdditionalLanguages
     };
   } catch (error) {
     console.error('[testing] Error updating language settings:', error);
     throw error;
+  }
+};
+
+/**
+ * Add a new language to the site
+ * 
+ * @param languageCode - The language code to add
+ * @param tenantId - Optional tenant ID
+ * @returns Promise with the result of the operation
+ */
+export const addLanguage = async (
+  languageCode: string,
+  tenantId?: string | null
+): Promise<LanguageOperationResult> => {
+  try {
+    console.log(`[testing] Adding language ${languageCode} for tenant ${tenantId || 'default'}`);
+    
+    // Import the API utility
+    const { default: api } = await import('../utils/api');
+    
+    // Call the API endpoint
+    const endpoint = tenantId ? `/api/language/add?tenantId=${encodeURIComponent(tenantId)}` : '/api/language/add';
+    const response = await api.post(endpoint, {
+      languageCode
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`[testing] Failed to add language ${languageCode}:`, errorText);
+      throw new Error(`Failed to add language: ${errorText}`);
+    }
+    
+    const result = await response.json();
+    console.log(`[testing] Language ${languageCode} added successfully:`, result);
+    
+    // Refresh language settings
+    await fetchLanguageSettings(tenantId);
+    
+    return result;
+  } catch (error) {
+    console.error(`[testing] Error adding language ${languageCode}:`, error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Unknown error'
+    };
+  }
+};
+
+/**
+ * Remove a language from the site
+ * 
+ * @param languageCode - The language code to remove
+ * @param tenantId - Optional tenant ID
+ * @returns Promise with the result of the operation
+ */
+export const removeLanguage = async (
+  languageCode: string,
+  tenantId?: string | null
+): Promise<LanguageOperationResult> => {
+  try {
+    console.log(`[testing] Removing language ${languageCode} for tenant ${tenantId || 'default'}`);
+    
+    // Import the API utility
+    const { default: api } = await import('../utils/api');
+    
+    // Call the API endpoint
+    const endpoint = tenantId ? `/api/language/remove?tenantId=${encodeURIComponent(tenantId)}` : '/api/language/remove';
+    const response = await api.post(endpoint, {
+      languageCode
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`[testing] Failed to remove language ${languageCode}:`, errorText);
+      throw new Error(`Failed to remove language: ${errorText}`);
+    }
+    
+    const result = await response.json();
+    console.log(`[testing] Language ${languageCode} removed successfully:`, result);
+    
+    // Refresh language settings
+    await fetchLanguageSettings(tenantId);
+    
+    return result;
+  } catch (error) {
+    console.error(`[testing] Error removing language ${languageCode}:`, error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Unknown error'
+    };
+  }
+};
+
+/**
+ * Set the default language for the site
+ * 
+ * @param languageCode - The language code to set as default
+ * @param fromAdditionalLanguages - Whether the language is being set from additional languages
+ * @param tenantId - Optional tenant ID
+ * @returns Promise with the result of the operation
+ */
+export const setDefaultLanguage = async (
+  languageCode: string,
+  fromAdditionalLanguages: boolean = false,
+  tenantId?: string | null
+): Promise<LanguageOperationResult> => {
+  try {
+    console.log(`[testing] Setting default language to ${languageCode} for tenant ${tenantId || 'default'} (from additional languages: ${fromAdditionalLanguages})`);
+    
+    // Import the API utility
+    const { default: api } = await import('../utils/api');
+    
+    // Call the API endpoint
+    const endpoint = tenantId ? `/api/language/set-default?tenantId=${encodeURIComponent(tenantId)}` : '/api/language/set-default';
+    const response = await api.post(endpoint, {
+      languageCode,
+      fromAdditionalLanguages
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`[testing] Failed to set default language to ${languageCode}:`, errorText);
+      throw new Error(`Failed to set default language: ${errorText}`);
+    }
+    
+    const result = await response.json();
+    console.log(`[testing] Default language set to ${languageCode} successfully:`, result);
+    
+    // Refresh language settings
+    await fetchLanguageSettings(tenantId);
+    
+    return result;
+  } catch (error) {
+    console.error(`[testing] Error setting default language to ${languageCode}:`, error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Unknown error'
+    };
   }
 };

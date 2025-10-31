@@ -237,7 +237,7 @@ export async function initializeDatabase() {
       await query(`
         INSERT INTO site_settings (setting_key, setting_value, setting_type, setting_category, is_public)
         VALUES ($1, $2, $3, $4, $5)
-        ON CONFLICT (setting_key) DO NOTHING
+        ON CONFLICT DO NOTHING
       `, [setting.key, setting.value, setting.type, setting.category, setting.is_public]);
     }
 
@@ -267,14 +267,16 @@ export async function initializeDatabase() {
 }
 
 // Branding-specific functions
-export async function getBrandingSettings() {
+export async function getBrandingSettings(tenantId = 'tenant-gosg') {
   try {
     const result = await query(`
-      SELECT setting_key, setting_value, setting_type, setting_category, is_public
+      SELECT setting_key, setting_value, setting_type, setting_category, is_public, tenant_id
       FROM site_settings
-      WHERE setting_category IN ('branding', 'seo', 'localization') AND is_public = true
+      WHERE setting_category IN ('branding', 'seo', 'localization') 
+        AND is_public = true
+        AND tenant_id = $1
       ORDER BY setting_category, setting_key
-    `);
+    `, [tenantId]);
     
     // Convert to object format grouped by category
     const settings = {
@@ -291,19 +293,21 @@ export async function getBrandingSettings() {
     
     return settings;
   } catch (error) {
-    console.error('Error fetching branding settings:', error);
+    console.error(`Error fetching branding settings for tenant ${tenantId}:`, error);
     throw error;
   }
 }
 
-export async function getPublicSEOSettings() {
+export async function getPublicSEOSettings(tenantId = 'tenant-gosg') {
   try {
     const result = await query(`
       SELECT setting_key, setting_value, setting_type
       FROM site_settings
-      WHERE is_public = true AND (setting_category = 'seo' OR setting_key IN ('site_name', 'site_tagline', 'site_description', 'site_logo', 'site_favicon'))
+      WHERE is_public = true 
+        AND (setting_category = 'seo' OR setting_key IN ('site_name', 'site_tagline', 'site_description', 'site_logo', 'site_favicon'))
+        AND tenant_id = $1
       ORDER BY setting_key
-    `);
+    `, [tenantId]);
     
     // Convert to flat object format for easy access
     const settings = {};
@@ -313,26 +317,31 @@ export async function getPublicSEOSettings() {
     
     return settings;
   } catch (error) {
-    console.error('Error fetching public SEO settings:', error);
+    console.error(`Error fetching public SEO settings for tenant ${tenantId}:`, error);
     throw error;
   }
 }
 
-export async function updateBrandingSetting(key, value) {
+export async function updateBrandingSetting(key, value, tenantId = 'tenant-gosg') {
   try {
     const result = await query(`
-      INSERT INTO site_settings (setting_key, setting_value, setting_type, updated_at)
-      VALUES ($1, $2, $3, CURRENT_TIMESTAMP)
-      ON CONFLICT (setting_key) 
+      INSERT INTO site_settings (setting_key, setting_value, setting_type, updated_at, tenant_id)
+      VALUES ($1, $2, $3, CURRENT_TIMESTAMP, $4)
+      ON CONFLICT (setting_key, tenant_id) 
       DO UPDATE SET 
         setting_value = EXCLUDED.setting_value,
         updated_at = CURRENT_TIMESTAMP
       RETURNING *
-    `, [key, value, key.includes('logo') || key.includes('favicon') || key.includes('image') ? 'media' : 'text']);
+    `, [
+      key, 
+      value, 
+      key.includes('logo') || key.includes('favicon') || key.includes('image') ? 'media' : 'text',
+      tenantId
+    ]);
     
     return result.rows[0];
   } catch (error) {
-    console.error('Error updating branding setting:', error);
+    console.error(`Error updating branding setting for tenant ${tenantId}:`, error);
     throw error;
   }
 }
@@ -378,7 +387,7 @@ export async function updateSiteSchema(schemaKey, schemaValue, tenantId) {
   }
 }
 
-export async function updateMultipleBrandingSettings(settings) {
+export async function updateMultipleBrandingSettings(settings, tenantId = 'tenant-gosg') {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
@@ -388,20 +397,20 @@ export async function updateMultipleBrandingSettings(settings) {
                          key.includes('description') ? 'textarea' : 'text';
       
       await client.query(`
-        INSERT INTO site_settings (setting_key, setting_value, setting_type, updated_at)
-        VALUES ($1, $2, $3, CURRENT_TIMESTAMP)
-        ON CONFLICT (setting_key) 
+        INSERT INTO site_settings (setting_key, setting_value, setting_type, updated_at, tenant_id)
+        VALUES ($1, $2, $3, CURRENT_TIMESTAMP, $4)
+        ON CONFLICT (setting_key, tenant_id) 
         DO UPDATE SET 
           setting_value = EXCLUDED.setting_value,
           updated_at = CURRENT_TIMESTAMP
-      `, [key, value, settingType]);
+      `, [key, value, settingType, tenantId]);
     }
     
     await client.query('COMMIT');
     return true;
   } catch (error) {
     await client.query('ROLLBACK');
-    console.error('Error updating multiple branding settings:', error);
+    console.error(`Error updating multiple branding settings for tenant ${tenantId}:`, error);
     throw error;
   } finally {
     client.release();
@@ -419,39 +428,39 @@ export async function getsitesettingsbytenant(tenantId) {
   }
 }
 // Site Settings functions
-export async function getSiteSettingByKey(key) {
+export async function getSiteSettingByKey(key, tenantId = 'tenant-gosg') {
   try {
     const result = await query(`
-      SELECT setting_key, setting_value, setting_type, setting_category, is_public
+      SELECT setting_key, setting_value, setting_type, setting_category, is_public, tenant_id
       FROM site_settings
-      WHERE setting_key = $1
+      WHERE setting_key = $1 AND tenant_id = $2
       LIMIT 1
-    `, [key]);
+    `, [key, tenantId]);
     
     return result.rows.length > 0 ? result.rows[0] : null;
   } catch (error) {
-    console.error(`Error fetching site setting for key ${key}:`, error);
+    console.error(`Error fetching site setting for key ${key} and tenant ${tenantId}:`, error);
     throw error;
   }
 }
 
-export async function updateSiteSettingByKey(key, value, type = 'text', category = 'general') {
+export async function updateSiteSettingByKey(key, value, type = 'text', category = 'general', tenantId = 'tenant-gosg') {
   try {
     const result = await query(`
-      INSERT INTO site_settings (setting_key, setting_value, setting_type, setting_category, updated_at)
-      VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP)
-      ON CONFLICT (setting_key) 
+      INSERT INTO site_settings (setting_key, setting_value, setting_type, setting_category, updated_at, tenant_id)
+      VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP, $5)
+      ON CONFLICT (setting_key, tenant_id) 
       DO UPDATE SET 
         setting_value = EXCLUDED.setting_value,
         setting_type = COALESCE(EXCLUDED.setting_type, site_settings.setting_type),
         setting_category = COALESCE(EXCLUDED.setting_category, site_settings.setting_category),
         updated_at = CURRENT_TIMESTAMP
       RETURNING *
-    `, [key, value, type, category]);
+    `, [key, value, type, category, tenantId]);
     
     return result.rows[0];
   } catch (error) {
-    console.error(`Error updating site setting for key ${key}:`, error);
+    console.error(`Error updating site setting for key ${key} and tenant ${tenantId}:`, error);
     throw error;
   }
 }

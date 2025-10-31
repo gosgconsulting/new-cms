@@ -39,7 +39,12 @@ This service will include the following functions:
 - Parse into array and check if language already exists
 - Add new language to array and join back to comma-separated string
 - Update site_content_languages in database
-- Process page translations for the new language
+- Process page translations for the new language:
+  - Get all pages for the tenant
+  - For each page, find the default layout in page_layouts where is_default = true
+  - Extract content, questions, and answers from the layout JSON
+  - Translate these fields using Google Translate API
+  - Store the translated layout with the new language code in page_layouts table with is_default = false
 
 #### removeLanguage
 - Get current site_content_languages from database
@@ -47,20 +52,41 @@ This service will include the following functions:
 - Join back to comma-separated string and update database
 - Delete translated page layouts for this language:
   - Get all pages for the tenant
-  - For each page, delete the layout for the removed language
+  - For each page, delete the layout for the removed language from page_layouts table
 
 #### setDefaultLanguage
-- Update site_language in database (use UPDATE for existing record)
-- Check if translations exist for this language:
-  - Get all pages for the tenant
-  - For each page, check if a translation exists for the new default language
-  - If no translation exists, generate one using the original layout and Google Translate
+This function has two paths depending on how the user sets the default language:
+
+**Path 1: Setting default from "Additional Languages" (translated version exists)**
+- Update site_language in site_settings table with the new default language
+- For all pages under the tenant:
+  - Find current default layout in page_layouts where is_default = true
+  - Set is_default = false for these layouts
+  - Find layouts with the new language
+  - Set is_default = true for these layouts
+
+**Path 2: Setting default from "Change Default" (need to check if translation exists)**
+- For each page under the tenant:
+  - Check if a translation exists for the new default language
+  - If translation exists:
+    - Follow Path 1 logic
+  - If translation doesn't exist:
+    - Update site_language in site_settings table
+    - Add the language to site_content_languages if not already present
+    - For each page:
+      - Find the current default layout (is_default = true)
+      - Extract content, questions, and answers
+      - Translate using Google Translate API
+      - Set current default to is_default = false
+      - Store new translated layout with is_default = true
 
 #### processPageTranslations
 - Get all pages for the tenant
-- For each page, get its layout from page_layouts
-- Process the layout JSON to translate text content
-- Store the translated layout with the language code
+- For each page:
+  - Find the default layout (is_default = true)
+  - Extract content fields for translation
+  - Translate content using Google Translate API
+  - Store the translated layout with the new language code
 
 #### translateLayoutContent
 - Create a deep copy of the layout JSON
@@ -71,15 +97,14 @@ This service will include the following functions:
 
 ### 3. Update Database Schema
 
-Modify the page_layouts table to include a language column:
+Add is_default column to page_layouts table:
 
 ```sql
--- Add language column to page_layouts table if it doesn't exist
-ALTER TABLE page_layouts ADD COLUMN IF NOT EXISTS language VARCHAR(10) DEFAULT 'en';
+-- Add is_default column to page_layouts table
+ALTER TABLE page_layouts ADD COLUMN IF NOT EXISTS is_default BOOLEAN NOT NULL DEFAULT false;
 
--- Update primary key to include language
-ALTER TABLE page_layouts DROP CONSTRAINT IF EXISTS page_layouts_pkey;
-ALTER TABLE page_layouts ADD PRIMARY KEY (page_id, language);
+-- Set is_default to true for existing default layouts (assuming current default is language='en')
+UPDATE page_layouts SET is_default = true WHERE language = 'en';
 ```
 
 ### 4. Add API Routes for Language Management
@@ -111,7 +136,7 @@ Update the existing languageService.ts to integrate with the new backend functio
 Add three new functions:
 - `addLanguage` - Call the API to add a language
 - `removeLanguage` - Call the API to remove a language
-- `setDefaultLanguage` - Call the API to set the default language
+- `setDefaultLanguage` - Call the API to set the default language (with parameter to indicate if coming from additional languages or change default)
 
 Each function will:
 - Make the appropriate API call
@@ -129,7 +154,7 @@ Update the LanguageSection.tsx component to use the new language management func
 Modify the following functions:
 - `handleAddLanguage` - Use the new addLanguage function
 - `handleRemoveLanguage` - Use the new removeLanguage function
-- `handleSetDefaultLanguage` - Use the new setDefaultLanguage function
+- `handleSetDefaultLanguage` - Use the new setDefaultLanguage function with source parameter
 
 Each function will:
 - Call the appropriate language service function
@@ -142,22 +167,30 @@ Each function will:
 1. Test adding a new language
    - Verify the language is added to site_content_languages
    - Verify translations are generated for all pages
+   - Verify is_default is set to false for new translations
 
 2. Test removing a language
    - Verify the language is removed from site_content_languages
    - Verify translated page layouts are deleted
 
-3. Test setting a default language
+3. Test setting a default language from additional languages
    - Verify the site_language setting is updated
-   - Verify translations are generated if they don't exist
+   - Verify is_default is updated for all page layouts (old default to false, new default to true)
 
-4. Test Google Translation integration
+4. Test setting a default language that doesn't have translations
+   - Verify the site_language setting is updated
+   - Verify site_content_languages is updated if needed
+   - Verify translations are generated
+   - Verify is_default flags are properly updated
+
+5. Test Google Translation integration
    - Verify content is correctly translated
-   - Verify translated content is stored in page_layouts with correct language
+   - Verify translated content is stored in page_layouts with correct language and is_default flags
 
 ## Implementation Notes
 
-- The implementation uses a tenant-based approach, with 'tenant-gosg' as the default tenant
+- The implementation uses a tenant-based approach, with tenant ID from the current user context
 - All database operations are performed using the query function from postgres.js
 - Error handling and logging are implemented throughout the codebase
 - The implementation follows the existing patterns in the codebase
+- The page_layouts table now includes an is_default column to easily identify the default language version for each page
