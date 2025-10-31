@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '../../../src/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../src/components/ui/card';
 import { Textarea } from '../../../src/components/ui/textarea';
+import { Input } from '../../../src/components/ui/input';
+import { Label } from '../../../src/components/ui/label';
 import { ArrowLeft, Save, Loader2, Code } from 'lucide-react';
 import { HeaderSchema } from '../../types/schema';
 import { LogoEditor } from './schema-form-helpers/LogoEditor';
@@ -75,6 +77,10 @@ export const HeaderSchemaEditor: React.FC<HeaderSchemaEditorProps> = ({ onBack }
 
   const updateMenu = (menu: HeaderSchema['menu']) => {
     updateSchema({ menu });
+  };
+  
+  const updateButton = (button: any) => {
+    updateSchema({ button });
   };
 
   const updateDisplayOption = (option: keyof Pick<HeaderSchema, 'showCart' | 'showSearch' | 'showAccount'>, value: boolean) => {
@@ -157,46 +163,85 @@ export const HeaderSchemaEditor: React.FC<HeaderSchemaEditorProps> = ({ onBack }
             />
           </div>
 
+          {/* Button Section */}
+          {schema.button !== undefined && (
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Call to Action Button</h3>
+              <Card>
+                <CardContent className="p-6 space-y-4">
+                  <div>
+                    <Label className="text-xs">Button Label</Label>
+                    <Input
+                      value={schema.button.label || ''}
+                      onChange={(e) => updateButton({...schema.button, label: e.target.value})}
+                      placeholder="e.g., Contact Us, Get Started"
+                      className="text-sm"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Button Link</Label>
+                    <Input
+                      value={schema.button.link || ''}
+                      onChange={(e) => updateButton({...schema.button, link: e.target.value})}
+                      placeholder="e.g., /contact, /get-started"
+                      className="text-sm"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+          
           {/* Menu Items Section */}
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Navigation Menu</h3>
-            <MenuItemsList
-              items={schema.menu}
-              onChange={updateMenu}
-              title="Menu Items"
-              addButtonText="Add Menu Item"
-            />
-          </div>
+          {schema.menu !== undefined && (
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Navigation Menu</h3>
+              <MenuItemsList
+                items={schema.menu}
+                onChange={updateMenu}
+                title="Menu Items"
+                addButtonText="Add Menu Item"
+              />
+            </div>
+          )}
 
           {/* Display Options Section */}
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Display Options</h3>
-            <Card>
-              <CardContent className="p-6 space-y-4">
-                <ToggleField
-                  id="show-cart"
-                  label="Show Shopping Cart"
-                  checked={schema.showCart}
-                  onChange={(checked) => updateDisplayOption('showCart', checked)}
-                  description="Display shopping cart icon in header"
-                />
-                <ToggleField
-                  id="show-search"
-                  label="Show Search"
-                  checked={schema.showSearch}
-                  onChange={(checked) => updateDisplayOption('showSearch', checked)}
-                  description="Display search icon in header"
-                />
-                <ToggleField
-                  id="show-account"
-                  label="Show Account"
-                  checked={schema.showAccount}
-                  onChange={(checked) => updateDisplayOption('showAccount', checked)}
-                  description="Display account/user icon in header"
-                />
-              </CardContent>
-            </Card>
-          </div>
+          {(schema.showCart !== undefined || schema.showSearch !== undefined || schema.showAccount !== undefined) && (
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Display Options</h3>
+              <Card>
+                <CardContent className="p-6 space-y-4">
+                  {schema.showCart !== undefined && (
+                    <ToggleField
+                      id="show-cart"
+                      label="Show Shopping Cart"
+                      checked={schema.showCart}
+                      onChange={(checked) => updateDisplayOption('showCart', checked)}
+                      description="Display shopping cart icon in header"
+                    />
+                  )}
+                  {schema.showSearch !== undefined && (
+                    <ToggleField
+                      id="show-search"
+                      label="Show Search"
+                      checked={schema.showSearch}
+                      onChange={(checked) => updateDisplayOption('showSearch', checked)}
+                      description="Display search icon in header"
+                    />
+                  )}
+                  {schema.showAccount !== undefined && (
+                    <ToggleField
+                      id="show-account"
+                      label="Show Account"
+                      checked={schema.showAccount}
+                      onChange={(checked) => updateDisplayOption('showAccount', checked)}
+                      description="Display account/user icon in header"
+                    />
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          )}
         </div>
       </div>
       

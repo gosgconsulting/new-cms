@@ -9,7 +9,9 @@ import MediaModal from "./MediaModal";
 import gosgLogo from "@/assets/go-sg-logo-official.png";
 import LocationSection from "./LocationSection";
 import LanguageSection from "./LanguageSection";
+import { useAuth } from "../auth/AuthProvider";
 import { fetchLanguageSettings, updateLanguageSettings } from "../../services/languageService";
+import api from "../../utils/api";
 
 // Countries list
 const countries = [
@@ -208,15 +210,16 @@ const timezones = [
 ].sort((a, b) => a.name.localeCompare(b.name));
 
 const BrandingSettingsPage: React.FC = () => {
+  const { currentTenantId } = useAuth();
   const [brandingData, setBrandingData] = useState({
-    site_name: 'GO SG',
-    site_tagline: 'Digital Marketing Agency',
-    site_description: 'We help businesses dominate search results through proven SEO strategies that increase organic traffic, boost rankings, and drive qualified leads to your website.',
+    site_name: '',
+    site_tagline: '',
+    site_description: '',
     site_logo: '',
     site_favicon: '',
-    country: 'Singapore',
-    language: 'English',
-    timezone: 'SGT - Singapore Standard Time'
+    country: '',
+    language: '',
+    timezone: ''
   });
   const [languageSettings, setLanguageSettings] = useState({
     defaultLanguage: '',
@@ -231,77 +234,158 @@ const BrandingSettingsPage: React.FC = () => {
   // Load branding settings from API
   useEffect(() => {
     const loadBrandingSettings = async () => {
+      console.log(`[testing] Starting to load branding settings for tenant: ${currentTenantId || 'default'}`);
       try {
-        // For now, we'll just use default values instead of making an API call
-        // This avoids the 401 Unauthorized error
-        console.log('[testing] Using default branding settings');
+        setIsLoading(true);
+        // Use the API utility with tenant ID
+        console.log(`[testing] Fetching branding settings with tenant ID: ${currentTenantId || 'default'}`);
+        const endpoint = currentTenantId 
+          ? `/api/branding?tenantId=${encodeURIComponent(currentTenantId)}`
+          : '/api/branding';
         
-        // In the future, uncomment this to use the real API
-        // const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4173';
-        // const response = await fetch(`${API_BASE_URL}/api/branding`);
+        console.log(`[testing] Making authenticated API call to: ${endpoint}`);
+        const response = await api.get(endpoint);
         
-        // if (response.ok) {
-        //   const settings = await response.json();
-        //   console.log('[testing] Loaded branding settings:', settings);
-        //   
-        //   // Map the database settings to component state
-        //   setBrandingData(prev => ({
-        //     ...prev,
-        //     site_name: settings.branding?.site_name || settings.site_name || prev.site_name,
-        //     site_tagline: settings.branding?.site_tagline || settings.site_tagline || prev.site_tagline,
-        //     site_description: settings.branding?.site_description || settings.site_description || prev.site_description,
-        //     site_logo: settings.branding?.site_logo || settings.site_logo || prev.site_logo,
-        //     site_favicon: settings.branding?.site_favicon || settings.site_favicon || prev.site_favicon,
-        //     country: settings.localization?.site_country || settings.site_country || prev.country,
-        //     language: settings.localization?.site_language || settings.site_language || prev.language,
-        //     timezone: settings.localization?.site_timezone || settings.site_timezone || prev.timezone
-        //   }));
-        // }
+        console.log(`[testing] API response status: ${response.status}`);
+        if (response.ok) {
+          const responseText = await response.text();
+          console.log(`[testing] Raw API response text: ${responseText.substring(0, 200)}${responseText.length > 200 ? '...' : ''}`);
+          
+          let settings;
+          try {
+            settings = JSON.parse(responseText);
+          } catch (parseError) {
+            console.error(`[testing] Error parsing JSON response: ${parseError.message}`);
+            console.log(`[testing] Failed JSON content: ${responseText}`);
+            throw new Error('Invalid JSON response from API');
+          }
+          
+          console.log(`[testing] Loaded branding settings for tenant ${currentTenantId}:`, settings);
+          
+          // Map the database settings to component state
+          console.log('[testing] Raw API response structure:', JSON.stringify(settings, null, 2));
+          
+          // Extract values from the appropriate categories
+          const branding = settings.branding || {};
+          const localization = settings.localization || {};
+          const seo = settings.seo || {};
+          
+          console.log('[testing] Extracted categories:', { 
+            branding, 
+            localization, 
+            seo 
+          });
+          
+          const newBrandingData = {
+            // Site Information section
+            site_name: branding.site_name || '',
+            site_tagline: branding.site_tagline || '',
+            site_description: branding.site_description || '',
+            
+            // Logo and Favicon section
+            site_logo: branding.site_logo || '',
+            site_favicon: branding.site_favicon || '',
+            
+            // Location section
+            country: localization.site_country || '',
+            language: localization.site_language || '',
+            timezone: localization.site_timezone || ''
+          };
+          
+          console.log('[testing] New branding data to set:', newBrandingData);
+          setBrandingData(newBrandingData);
+          
+          console.log('[testing] Updated brandingData state with values from API');
+          
+          // Also load language settings to ensure they're in sync
+          loadLanguageSettings();
+        } else {
+          const errorText = await response.text();
+          console.error(`[testing] Error loading branding settings for tenant ${currentTenantId}: ${response.status}`);
+          console.error(`[testing] Error response body: ${errorText}`);
+          toast({
+            title: "Error",
+            description: "Failed to load branding settings. Using default values.",
+            variant: "destructive",
+          });
+        }
       } catch (error) {
-        console.error('[testing] Error loading branding settings:', error);
+        console.error(`[testing] Error loading branding settings for tenant ${currentTenantId}:`, error);
+        toast({
+          title: "Error",
+          description: "Failed to load branding settings. Using default values.",
+          variant: "destructive",
+        });
       } finally {
         setIsLoading(false);
       }
     };
 
     loadBrandingSettings();
-  }, []);
+  }, [currentTenantId]);
   
   // Function to load language settings
   const loadLanguageSettings = async () => {
+    console.log(`[testing] Starting to load language settings for tenant: ${currentTenantId || 'default'}`);
     try {
       setIsLanguageLoading(true);
       
-      // Use the real API to fetch language settings
-      const settings = await fetchLanguageSettings();
+      // Use the real API to fetch language settings with tenant ID
+      console.log(`[testing] Calling fetchLanguageSettings with tenantId: ${currentTenantId}`);
+      const settings = await fetchLanguageSettings(currentTenantId);
       
-      console.log('[testing] Loaded language settings from API:', settings);
+      console.log(`[testing] Loaded language settings from API for tenant ${currentTenantId}:`, settings);
       
       // Log the raw values for debugging
       console.log('[testing] Raw language settings values:', {
         defaultLanguage: String(settings.defaultLanguage),
         additionalLanguages: String(settings.additionalLanguages),
         typeofDefault: typeof settings.defaultLanguage,
-        typeofAdditional: typeof settings.additionalLanguages
+        typeofAdditional: typeof settings.additionalLanguages,
+        tenantId: currentTenantId
       });
       
-      setLanguageSettings(settings);
+      // Validate the received data
+      if (settings && (settings.defaultLanguage !== undefined || settings.additionalLanguages !== undefined)) {
+        console.log('[testing] Setting language settings state with valid data');
+        setLanguageSettings({
+          defaultLanguage: settings.defaultLanguage || 'en',
+          additionalLanguages: settings.additionalLanguages || ''
+        });
+      } else {
+        console.warn('[testing] Received incomplete language settings data:', settings);
+        // Use default values for incomplete data
+        setLanguageSettings({
+          defaultLanguage: 'en',
+          additionalLanguages: ''
+        });
+        toast({
+          title: "Warning",
+          description: "Incomplete language settings data received. Using default values.",
+          variant: "warning",
+        });
+      }
     } catch (error) {
-      console.error('[testing] Error loading language settings:', error);
+      console.error(`[testing] Error loading language settings for tenant ${currentTenantId}:`, error);
       // Use default values if API call fails
       setLanguageSettings({
         defaultLanguage: 'en',
         additionalLanguages: ''
+      });
+      toast({
+        title: "Error",
+        description: "Failed to load language settings. Using default values.",
+        variant: "destructive",
       });
     } finally {
       setIsLanguageLoading(false);
     }
   };
 
-  // Load language settings on initial render
+  // Load language settings when tenant changes
   useEffect(() => {
     loadLanguageSettings();
-  }, []);
+  }, [currentTenantId]);
 
   const handleInputChange = (field: string, value: string) => {
     setBrandingData(prev => ({
@@ -315,10 +399,7 @@ const BrandingSettingsPage: React.FC = () => {
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      // For now, we'll just simulate saving without making an API call
-      // This avoids any potential API errors
-      
-      // Prepare settings for API (for future use)
+      // Prepare settings for API
       const settingsToSave = {
         site_name: brandingData.site_name,
         site_tagline: brandingData.site_tagline,
@@ -330,27 +411,24 @@ const BrandingSettingsPage: React.FC = () => {
         site_timezone: brandingData.timezone
       };
 
-      console.log('[testing] Saving branding settings:', settingsToSave);
+      console.log(`[testing] Saving branding settings for tenant ${currentTenantId}:`, settingsToSave);
       
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      // In the future, uncomment this to use the real API
-      // const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4173';
-      // const response = await fetch(`${API_BASE_URL}/api/branding`, {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //   },
-      //   body: JSON.stringify(settingsToSave),
-      // });
-      //
-      // if (!response.ok) {
-      //   throw new Error('Failed to save branding settings');
-      // }
-      //
-      // const result = await response.json();
-      // console.log('[testing] Branding settings saved:', result);
+      // Use the API utility with tenant ID
+      const endpoint = currentTenantId 
+        ? `/api/branding?tenantId=${encodeURIComponent(currentTenantId)}`
+        : '/api/branding';
+      
+      console.log(`[testing] Making authenticated API call to: ${endpoint}`);
+      const response = await api.post(endpoint, settingsToSave);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`[testing] Error response from API: ${errorText}`);
+        throw new Error(`Failed to save branding settings for tenant ${currentTenantId}`);
+      }
+      
+      const result = await response.json();
+      console.log(`[testing] Branding settings saved for tenant ${currentTenantId}:`, result);
 
       toast({
         title: "Success",
@@ -370,11 +448,24 @@ const BrandingSettingsPage: React.FC = () => {
 
   const handleMigrateLogo = async () => {
     try {
-      // For now, we'll just simulate migrating the logo
-      console.log('[testing] Simulating logo migration');
+      console.log(`[testing] Migrating logo for tenant ${currentTenantId}`);
       
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Use the API utility with tenant ID
+      const endpoint = currentTenantId 
+        ? `/api/branding?tenantId=${encodeURIComponent(currentTenantId)}`
+        : '/api/branding';
+      
+      // Update the logo in the database
+      console.log(`[testing] Making authenticated API call to: ${endpoint}`);
+      const response = await api.post(endpoint, {
+        site_logo: gosgLogo
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`[testing] Error response from API: ${errorText}`);
+        throw new Error(`Failed to migrate logo for tenant ${currentTenantId}`);
+      }
       
       // Update the logo in state with the imported logo
       setBrandingData(prev => ({
@@ -387,10 +478,10 @@ const BrandingSettingsPage: React.FC = () => {
         description: "Logo migrated successfully!",
       });
     } catch (error) {
-      console.error('[testing] Error migrating logo:', error);
+      console.error(`[testing] Error migrating logo for tenant ${currentTenantId}:`, error);
       toast({
         title: "Error",
-        description: "Failed to migrate logo.",
+        description: "Failed to migrate logo. Please try again.",
         variant: "destructive",
       });
     }
@@ -398,13 +489,26 @@ const BrandingSettingsPage: React.FC = () => {
 
   const handleMigrateFavicon = async () => {
     try {
-      // For now, we'll just simulate migrating the favicon
-      console.log('[testing] Simulating favicon migration');
+      console.log(`[testing] Migrating favicon for tenant ${currentTenantId}`);
       
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Use the API utility with tenant ID
+      const endpoint = currentTenantId 
+        ? `/api/branding?tenantId=${encodeURIComponent(currentTenantId)}`
+        : '/api/branding';
       
-      // Update the favicon in state with a default favicon path
+      // Update the favicon in the database
+      console.log(`[testing] Making authenticated API call to: ${endpoint}`);
+      const response = await api.post(endpoint, {
+        site_favicon: '/favicon.png'
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`[testing] Error response from API: ${errorText}`);
+        throw new Error(`Failed to migrate favicon for tenant ${currentTenantId}`);
+      }
+      
+      // Update the favicon in state
       setBrandingData(prev => ({
         ...prev,
         site_favicon: '/favicon.png'
@@ -415,10 +519,10 @@ const BrandingSettingsPage: React.FC = () => {
         description: "Favicon migrated successfully!",
       });
     } catch (error) {
-      console.error('[testing] Error migrating favicon:', error);
+      console.error(`[testing] Error migrating favicon for tenant ${currentTenantId}:`, error);
       toast({
         title: "Error",
-        description: "Failed to migrate favicon.",
+        description: "Failed to migrate favicon. Please try again.",
         variant: "destructive",
       });
     }
@@ -455,57 +559,93 @@ const BrandingSettingsPage: React.FC = () => {
         <div className="w-full space-y-6">
           {/* Basic Information */}
           <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="site_name">Site Name</Label>
-              <Input 
-                id="site_name"
-                value={brandingData.site_name}
-                onChange={(e) => handleInputChange('site_name', e.target.value)}
-                placeholder="Your site name"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="site_tagline">Tagline</Label>
-              <Input 
-                id="site_tagline"
-                value={brandingData.site_tagline}
-                onChange={(e) => handleInputChange('site_tagline', e.target.value)}
-                placeholder="Your site's tagline"
-              />
-            </div>
+            {isLoading ? (
+              <div className="space-y-4">
+                <div className="h-10 bg-gray-100 animate-pulse rounded-md"></div>
+                <div className="h-10 bg-gray-100 animate-pulse rounded-md"></div>
+                <div className="h-24 bg-gray-100 animate-pulse rounded-md"></div>
+              </div>
+            ) : (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="site_name">Site Name</Label>
+                  <Input 
+                    id="site_name"
+                    value={brandingData.site_name}
+                    onChange={(e) => handleInputChange('site_name', e.target.value)}
+                    placeholder="Your site name"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="site_tagline">Tagline</Label>
+                  <Input 
+                    id="site_tagline"
+                    value={brandingData.site_tagline}
+                    onChange={(e) => handleInputChange('site_tagline', e.target.value)}
+                    placeholder="Your site's tagline"
+                  />
+                </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="site_description">Site Description</Label>
-              <Textarea 
-                id="site_description"
-                value={brandingData.site_description}
-                onChange={(e) => handleInputChange('site_description', e.target.value)}
-                placeholder="Brief description of your site"
-                rows={4}
-              />
-              <p className="text-xs text-muted-foreground">Used for SEO and social sharing</p>
-            </div>
+                <div className="space-y-2">
+                  <Label htmlFor="site_description">Site Description</Label>
+                  <Textarea 
+                    id="site_description"
+                    value={brandingData.site_description}
+                    onChange={(e) => handleInputChange('site_description', e.target.value)}
+                    placeholder="Brief description of your site"
+                    rows={4}
+                  />
+                  <p className="text-xs text-muted-foreground">Used for SEO and social sharing</p>
+                </div>
+              </>
+            )}
           </div>
 
           {/* Location Settings */}
-          <LocationSection 
-            country={brandingData.country}
-            timezone={brandingData.timezone}
-            onCountryChange={(value) => handleInputChange('country', value)}
-            onTimezoneChange={(value) => handleInputChange('timezone', value)}
-          />
+          {isLoading ? (
+            <div className="space-y-6">
+              <h4 className="text-lg font-medium text-foreground border-b border-border pb-2 flex items-center gap-2">
+                <Globe className="h-5 w-5 text-brandTeal" />
+                Location
+              </h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="h-10 bg-gray-100 animate-pulse rounded-md"></div>
+                <div className="h-10 bg-gray-100 animate-pulse rounded-md"></div>
+              </div>
+            </div>
+          ) : (
+            <LocationSection 
+              country={brandingData.country}
+              timezone={brandingData.timezone}
+              onCountryChange={(value) => handleInputChange('country', value)}
+              onTimezoneChange={(value) => handleInputChange('timezone', value)}
+            />
+          )}
 
           {/* Language Settings */}
-          <LanguageSection 
-            defaultLanguage={languageSettings.defaultLanguage}
-            additionalLanguages={languageSettings.additionalLanguages}
-            onSave={() => {
-              console.log('[testing] Language settings saved callback, refreshing data');
-              // Refresh the language settings from the database
-              loadLanguageSettings();
-            }}
-          />
+          {isLanguageLoading ? (
+            <div className="space-y-6">
+              <h4 className="text-lg font-medium text-foreground border-b border-border pb-2 flex items-center gap-2">
+                <Languages className="h-5 w-5 text-brandPurple" />
+                Languages
+              </h4>
+              <div className="space-y-4">
+                <div className="h-10 bg-gray-100 animate-pulse rounded-md"></div>
+                <div className="h-24 bg-gray-100 animate-pulse rounded-md"></div>
+              </div>
+            </div>
+          ) : (
+            <LanguageSection 
+              defaultLanguage={languageSettings.defaultLanguage}
+              additionalLanguages={languageSettings.additionalLanguages}
+              onSave={() => {
+                console.log('[testing] Language settings saved callback, refreshing data');
+                // Refresh the language settings from the database
+                loadLanguageSettings();
+              }}
+            />
+          )}
 
           {/* Logo Section */}
           <div className="space-y-4">
@@ -607,34 +747,72 @@ const BrandingSettingsPage: React.FC = () => {
         
         <div className="bg-secondary/20 rounded-lg border border-border p-6">
           <div className="flex flex-col items-center space-y-4">
-            <img 
-              src={brandingData.site_logo || gosgLogo} 
-              alt="Site Logo" 
-              className="h-16 w-auto"
-            />
+            {/* Logo - Use database value with fallback */}
+            {brandingData.site_logo ? (
+              <img 
+                src={brandingData.site_logo} 
+                alt="Site Logo" 
+                className="h-16 w-auto"
+                onError={(e) => {
+                  console.error('Error loading logo from database, using fallback');
+                  e.currentTarget.src = gosgLogo;
+                }}
+              />
+            ) : (
+              <img 
+                src={gosgLogo} 
+                alt="Default Site Logo" 
+                className="h-16 w-auto opacity-60"
+              />
+            )}
+            
+            {/* Site Name and Tagline */}
             <div className="text-center">
-              <h2 className="text-2xl font-bold text-foreground">{brandingData.site_name}</h2>
-              <p className="text-muted-foreground">{brandingData.site_tagline}</p>
+              <h2 className="text-2xl font-bold text-foreground">
+                {brandingData.site_name || 'Your Site Name'}
+              </h2>
+              <p className="text-muted-foreground">
+                {brandingData.site_tagline || 'Your site tagline goes here'}
+              </p>
             </div>
+            
+            {/* Site Description */}
             <div className="max-w-lg text-center mt-2">
-              <p className="text-sm text-foreground">{brandingData.site_description}</p>
+              <p className="text-sm text-foreground">
+                {brandingData.site_description || 'Your site description will appear here. Add a compelling description to engage your visitors.'}
+              </p>
             </div>
             
             {/* Country, Language and Timezone Display */}
             <div className="flex items-center justify-center gap-4 mt-4 pt-4 border-t border-border/50 flex-wrap">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Globe className="h-4 w-4 text-brandTeal" />
-                <span>{brandingData.country}</span>
+                <span>{brandingData.country || 'Country'}</span>
               </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Languages className="h-4 w-4 text-brandPurple" />
-                <span>{brandingData.language}</span>
+                <span>{brandingData.language || 'Language'}</span>
               </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Clock className="h-4 w-4 text-brandGold" />
-                <span>{brandingData.timezone}</span>
+                <span>{brandingData.timezone || 'Timezone'}</span>
               </div>
             </div>
+            
+            {/* Favicon preview */}
+            {brandingData.site_favicon && (
+              <div className="mt-2 flex items-center gap-2">
+                <img 
+                  src={brandingData.site_favicon} 
+                  alt="Favicon" 
+                  className="h-6 w-6"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+                <span className="text-xs text-muted-foreground">Favicon preview</span>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -673,3 +851,4 @@ const BrandingSettingsPage: React.FC = () => {
 };
 
 export default BrandingSettingsPage;
+

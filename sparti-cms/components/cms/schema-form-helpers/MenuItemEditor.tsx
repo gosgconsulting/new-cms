@@ -119,7 +119,7 @@ interface MenuItemsListProps {
 }
 
 export const MenuItemsList: React.FC<MenuItemsListProps> = ({
-  items,
+  items = [], // Add default empty array for safety
   onChange,
   title = "Menu Items",
   addButtonText = "Add Menu Item"
@@ -130,22 +130,22 @@ export const MenuItemsList: React.FC<MenuItemsListProps> = ({
       label: 'New Item',
       link: '/'
     };
-    onChange([...items, newItem]);
+    onChange([...(items || []), newItem]);
   };
 
   const updateItem = (index: number, updatedItem: MenuItem) => {
-    const newItems = [...items];
+    const newItems = [...(items || [])];
     newItems[index] = updatedItem;
     onChange(newItems);
   };
 
   const removeItem = (index: number) => {
-    const newItems = items.filter((_, i) => i !== index);
+    const newItems = (items || []).filter((_, i) => i !== index);
     onChange(newItems);
   };
 
   const moveItem = (fromIndex: number, toIndex: number) => {
-    const newItems = [...items];
+    const newItems = [...(items || [])];
     const [movedItem] = newItems.splice(fromIndex, 1);
     newItems.splice(toIndex, 0, movedItem);
     onChange(newItems);
@@ -154,14 +154,14 @@ export const MenuItemsList: React.FC<MenuItemsListProps> = ({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h4 className="text-sm font-medium">{title} ({items.length})</h4>
+        <h4 className="text-sm font-medium">{title} ({items?.length || 0})</h4>
         <Button onClick={addItem} size="sm" variant="outline">
           {addButtonText}
         </Button>
       </div>
       
       <div className="space-y-3">
-        {items.map((item, index) => (
+        {(items || []).map((item, index) => (
           <MenuItemEditor
             key={`${item.id}-${index}`}
             item={item}
@@ -169,14 +169,14 @@ export const MenuItemsList: React.FC<MenuItemsListProps> = ({
             onChange={updateItem}
             onRemove={removeItem}
             onMoveUp={index > 0 ? (idx) => moveItem(idx, idx - 1) : undefined}
-            onMoveDown={index < items.length - 1 ? (idx) => moveItem(idx, idx + 1) : undefined}
+            onMoveDown={index < (items?.length || 0) - 1 ? (idx) => moveItem(idx, idx + 1) : undefined}
             canMoveUp={index > 0}
-            canMoveDown={index < items.length - 1}
+            canMoveDown={index < (items?.length || 0) - 1}
           />
         ))}
       </div>
       
-      {items.length === 0 && (
+      {(items?.length === 0 || !items) && (
         <div className="text-center py-8 text-gray-500 border-2 border-dashed border-gray-200 rounded-lg">
           <p className="text-sm">No {title.toLowerCase()} added yet</p>
           <Button onClick={addItem} size="sm" variant="outline" className="mt-2">

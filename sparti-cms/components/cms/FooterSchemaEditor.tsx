@@ -25,9 +25,31 @@ interface FooterSchemaEditorProps {
   onBack: () => void;
 }
 
-interface FooterSection {
+// Define interfaces for different section types
+interface StandardFooterSection {
   title: string;
   links: Array<{ id: string; label: string; link: string }>;
+}
+
+interface CustomFooterSection {
+  id: string;
+  title: string;
+  subtitle?: string;
+  button?: {
+    label: string;
+    link: string;
+  };
+  links?: Array<{ id?: string; label: string; link: string }>;
+}
+
+// Union type to handle both section formats
+type FooterSection = StandardFooterSection | CustomFooterSection;
+
+// Interface for blog link
+interface BlogLink {
+  id: string;
+  label: string;
+  link: string;
 }
 
 const defaultFooterSchema: FooterSchema = {
@@ -88,6 +110,38 @@ export const FooterSchemaEditor: React.FC<FooterSchemaEditorProps> = ({ onBack }
   const updateLegalLinks = (legalLinks: FooterSchema['legalLinks']) => {
     updateSchema({ legalLinks });
   };
+  
+  // Helper function to check if a property exists in the schema
+  const hasProperty = (prop: string): boolean => {
+    return schema.hasOwnProperty(prop);
+  };
+  
+  // Helper function to detect if a section is a custom section with section_x format
+  const isCustomSectionFormat = (): boolean => {
+    if (!schema.sections || !Array.isArray(schema.sections)) return false;
+    
+    // Check if any section has a section_1, section_2, etc. key
+    return schema.sections.some(section => {
+      return Object.keys(section).some(key => key.startsWith('section_'));
+    });
+  };
+  
+  // Helper function to get the appropriate section data based on format
+  const getSectionData = (section: any, index: number): FooterSection => {
+    if (isCustomSectionFormat()) {
+      // For custom format, extract the section_x object
+      const sectionKey = Object.keys(section)[0]; // e.g., "section_1"
+      return section[sectionKey] as CustomFooterSection;
+    } else {
+      // For standard format, return as is
+      return section as StandardFooterSection;
+    }
+  };
+  
+  // Helper function to update a blog link
+  const updateBlog = (blog: BlogLink) => {
+    updateSchema({ blog });
+  };
 
   const updateCopyright = (copyright: string) => {
     updateSchema({ copyright });
@@ -102,21 +156,38 @@ export const FooterSchemaEditor: React.FC<FooterSchemaEditorProps> = ({ onBack }
   };
 
   const addSection = () => {
-    const newSection: FooterSection = {
-      title: 'New Section',
-      links: []
-    };
-    updateSections([...schema.sections, newSection]);
+    let newSection;
+    
+    if (isCustomSectionFormat()) {
+      // For custom format, create a new section with section_x key
+      const nextSectionNum = (schema.sections?.length || 0) + 1;
+      const sectionKey = `section_${nextSectionNum}`;
+      newSection = {
+        [sectionKey]: {
+          id: sectionKey,
+          title: 'New Section',
+          links: []
+        }
+      };
+    } else {
+      // For standard format
+      newSection = {
+        title: 'New Section',
+        links: []
+      };
+    }
+    
+    updateSections([...(schema.sections || []), newSection]);
   };
 
-  const updateSection = (index: number, updatedSection: FooterSection) => {
-    const newSections = [...schema.sections];
+  const updateSection = (index: number, updatedSection: any) => {
+    const newSections = [...(schema.sections || [])];
     newSections[index] = updatedSection;
     updateSections(newSections);
   };
 
   const removeSection = (index: number) => {
-    const newSections = schema.sections.filter((_, i) => i !== index);
+    const newSections = (schema.sections || []).filter((_, i) => i !== index);
     updateSections(newSections);
   };
 
@@ -186,137 +257,267 @@ export const FooterSchemaEditor: React.FC<FooterSchemaEditorProps> = ({ onBack }
         {/* Content */}
         <div className="p-6 space-y-8">
           {/* Logo Section */}
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Footer Logo</h3>
-            <LogoEditor
-              logo={schema.logo}
-              onChange={updateLogo}
-              showHeight={false}
-              title="Footer Logo"
-            />
-          </div>
+          {schema.logo !== undefined && (
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Footer Logo</h3>
+              <LogoEditor
+                logo={schema.logo}
+                onChange={updateLogo}
+                showHeight={false}
+                title="Footer Logo"
+              />
+            </div>
+          )}
 
           {/* Navigation Sections */}
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Navigation Sections</h3>
-              <Button onClick={addSection} size="sm" variant="outline">
-                <Plus className="h-4 w-4 mr-2" />
-                Add Section
-              </Button>
-            </div>
-            
-            <div className="space-y-4">
-              {schema.sections.map((section, sectionIndex) => (
-                <Card key={sectionIndex} className="border-l-4 border-l-green-500">
-                  <CardHeader className="pb-2">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-sm flex items-center gap-2">
-                        <GripVertical className="h-4 w-4 text-gray-400" />
-                        Section #{sectionIndex + 1}
-                      </CardTitle>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeSection(sectionIndex)}
-                        className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div>
-                      <Label className="text-xs">Section Title</Label>
-                      <Input
-                        value={section.title}
-                        onChange={(e) => updateSection(sectionIndex, { ...section, title: e.target.value })}
-                        placeholder="e.g., Navigation, Support, Company"
-                        className="text-sm"
-                      />
-                    </div>
-                    <MenuItemsList
-                      items={section.links}
-                      onChange={(links) => updateSection(sectionIndex, { ...section, links })}
-                      title="Section Links"
-                      addButtonText="Add Link"
-                    />
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-            
-            {schema.sections.length === 0 && (
-              <div className="text-center py-8 text-gray-500 border-2 border-dashed border-gray-200 rounded-lg">
-                <p className="text-sm">No sections added yet</p>
-                <Button onClick={addSection} size="sm" variant="outline" className="mt-2">
+          {schema.sections !== undefined && (
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">Navigation Sections</h3>
+                <Button onClick={addSection} size="sm" variant="outline">
+                  <Plus className="h-4 w-4 mr-2" />
                   Add Section
                 </Button>
               </div>
-            )}
-          </div>
+              
+              <div className="space-y-4">
+                {(schema.sections || []).map((sectionObj, sectionIndex) => {
+                  const section = getSectionData(sectionObj, sectionIndex);
+                  const isCustomFormat = isCustomSectionFormat();
+                  const sectionKey = isCustomFormat ? Object.keys(sectionObj)[0] : null;
+                  
+                  return (
+                    <Card key={sectionIndex} className="border-l-4 border-l-green-500">
+                      <CardHeader className="pb-2">
+                        <div className="flex items-center justify-between">
+                          <CardTitle className="text-sm flex items-center gap-2">
+                            <GripVertical className="h-4 w-4 text-gray-400" />
+                            Section #{sectionIndex + 1} {sectionKey && `(${sectionKey})`}
+                          </CardTitle>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeSection(sectionIndex)}
+                            className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div>
+                          <Label className="text-xs">Section Title</Label>
+                          <Input
+                            value={section.title || ''}
+                            onChange={(e) => {
+                              const updatedSection = isCustomFormat 
+                                ? { ...sectionObj, [sectionKey!]: { ...section, title: e.target.value } }
+                                : { ...section, title: e.target.value };
+                              updateSection(sectionIndex, updatedSection);
+                            }}
+                            placeholder="e.g., Navigation, Support, Company"
+                            className="text-sm"
+                          />
+                        </div>
+                        
+                        {/* Subtitle field for custom format */}
+                        {isCustomFormat && 'subtitle' in section && (
+                          <div>
+                            <Label className="text-xs">Section Subtitle</Label>
+                            <Textarea
+                              value={section.subtitle || ''}
+                              onChange={(e) => {
+                                const updatedSection = { 
+                                  ...sectionObj, 
+                                  [sectionKey!]: { ...section, subtitle: e.target.value } 
+                                };
+                                updateSection(sectionIndex, updatedSection);
+                              }}
+                              placeholder="Enter subtitle text..."
+                              className="text-sm"
+                              rows={2}
+                            />
+                          </div>
+                        )}
+                        
+                        {/* Button field for custom format */}
+                        {isCustomFormat && section.button && (
+                          <div className="space-y-3 border border-gray-200 rounded-md p-3">
+                            <h4 className="text-sm font-medium">Button</h4>
+                            <div>
+                              <Label className="text-xs">Label</Label>
+                              <Input
+                                value={section.button.label || ''}
+                                onChange={(e) => {
+                                  const updatedSection = { 
+                                    ...sectionObj, 
+                                    [sectionKey!]: { 
+                                      ...section, 
+                                      button: { ...section.button, label: e.target.value } 
+                                    } 
+                                  };
+                                  updateSection(sectionIndex, updatedSection);
+                                }}
+                                placeholder="e.g., Learn More, Contact Us"
+                                className="text-sm"
+                              />
+                            </div>
+                            <div>
+                              <Label className="text-xs">Link</Label>
+                              <Input
+                                value={section.button.link || ''}
+                                onChange={(e) => {
+                                  const updatedSection = { 
+                                    ...sectionObj, 
+                                    [sectionKey!]: { 
+                                      ...section, 
+                                      button: { ...section.button, link: e.target.value } 
+                                    } 
+                                  };
+                                  updateSection(sectionIndex, updatedSection);
+                                }}
+                                placeholder="e.g., /contact, https://example.com"
+                                className="text-sm"
+                              />
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Links section - only show if links exist or it's a standard format */}
+                        {(section.links || !isCustomFormat) && (
+                          <MenuItemsList
+                            items={section.links || []}
+                            onChange={(links) => {
+                              const updatedSection = isCustomFormat 
+                                ? { ...sectionObj, [sectionKey!]: { ...section, links } }
+                                : { ...section, links };
+                              updateSection(sectionIndex, updatedSection);
+                            }}
+                            title="Section Links"
+                            addButtonText="Add Link"
+                          />
+                        )}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+              
+              {(schema.sections?.length === 0 || !schema.sections) && (
+                <div className="text-center py-8 text-gray-500 border-2 border-dashed border-gray-200 rounded-lg">
+                  <p className="text-sm">No sections added yet</p>
+                  <Button onClick={addSection} size="sm" variant="outline" className="mt-2">
+                    Add Section
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Blog Link Section */}
+          {schema.blog !== undefined && (
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Blog Link</h3>
+              <Card>
+                <CardContent className="p-6 space-y-4">
+                  <div>
+                    <Label className="text-xs">Label</Label>
+                    <Input
+                      value={schema.blog.label || ''}
+                      onChange={(e) => updateBlog({...schema.blog, label: e.target.value})}
+                      placeholder="e.g., Blog, News, Articles"
+                      className="text-sm"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Link</Label>
+                    <Input
+                      value={schema.blog.link || ''}
+                      onChange={(e) => updateBlog({...schema.blog, link: e.target.value})}
+                      placeholder="e.g., /blog, /news"
+                      className="text-sm"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
 
           {/* Legal Links Section */}
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Legal Links</h3>
-            <MenuItemsList
-              items={schema.legalLinks}
-              onChange={updateLegalLinks}
-              title="Legal Links"
-              addButtonText="Add Legal Link"
-            />
-          </div>
+          {schema.legalLinks !== undefined && (
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Legal Links</h3>
+              <MenuItemsList
+                items={schema.legalLinks}
+                onChange={updateLegalLinks}
+                title="Legal Links"
+                addButtonText="Add Legal Link"
+              />
+            </div>
+          )}
 
           {/* Content Section */}
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Footer Content</h3>
-            <Card>
-              <CardContent className="p-6 space-y-4">
-                <div>
-                  <Label className="text-xs">Copyright Text</Label>
-                  <Input
-                    value={schema.copyright}
-                    onChange={(e) => updateCopyright(e.target.value)}
-                    placeholder="e.g., © 2024 Company Name. All rights reserved."
-                    className="text-sm"
-                  />
-                </div>
-                <div>
-                  <Label className="text-xs">Description</Label>
-                  <Textarea
-                    value={schema.description}
-                    onChange={(e) => updateDescription(e.target.value)}
-                    placeholder="Brief description of your company or website..."
-                    className="text-sm"
-                    rows={3}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          {(schema.copyright !== undefined || schema.description !== undefined) && (
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Footer Content</h3>
+              <Card>
+                <CardContent className="p-6 space-y-4">
+                  {schema.copyright !== undefined && (
+                    <div>
+                      <Label className="text-xs">Copyright Text</Label>
+                      <Input
+                        value={schema.copyright}
+                        onChange={(e) => updateCopyright(e.target.value)}
+                        placeholder="e.g., © 2024 Company Name. All rights reserved."
+                        className="text-sm"
+                      />
+                    </div>
+                  )}
+                  {schema.description !== undefined && (
+                    <div>
+                      <Label className="text-xs">Description</Label>
+                      <Textarea
+                        value={schema.description}
+                        onChange={(e) => updateDescription(e.target.value)}
+                        placeholder="Brief description of your company or website..."
+                        className="text-sm"
+                        rows={3}
+                      />
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          )}
 
           {/* Display Options Section */}
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Display Options</h3>
-            <Card>
-              <CardContent className="p-6 space-y-4">
-                <ToggleField
-                  id="show-currency-switcher"
-                  label="Show Currency Switcher"
-                  checked={schema.showCurrencySwitcher}
-                  onChange={(checked) => updateDisplayOption('showCurrencySwitcher', checked)}
-                  description="Display currency selection dropdown"
-                />
-                <ToggleField
-                  id="show-language-switcher"
-                  label="Show Language Switcher"
-                  checked={schema.showLanguageSwitcher}
-                  onChange={(checked) => updateDisplayOption('showLanguageSwitcher', checked)}
-                  description="Display language selection dropdown"
-                />
-              </CardContent>
-            </Card>
-          </div>
+          {(schema.showCurrencySwitcher !== undefined || schema.showLanguageSwitcher !== undefined) && (
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Display Options</h3>
+              <Card>
+                <CardContent className="p-6 space-y-4">
+                  {schema.showCurrencySwitcher !== undefined && (
+                    <ToggleField
+                      id="show-currency-switcher"
+                      label="Show Currency Switcher"
+                      checked={schema.showCurrencySwitcher}
+                      onChange={(checked) => updateDisplayOption('showCurrencySwitcher', checked)}
+                      description="Display currency selection dropdown"
+                    />
+                  )}
+                  {schema.showLanguageSwitcher !== undefined && (
+                    <ToggleField
+                      id="show-language-switcher"
+                      label="Show Language Switcher"
+                      checked={schema.showLanguageSwitcher}
+                      onChange={(checked) => updateDisplayOption('showLanguageSwitcher', checked)}
+                      description="Display language selection dropdown"
+                    />
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          )}
         </div>
       </div>
       
