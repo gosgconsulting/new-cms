@@ -9,8 +9,10 @@ import { FooterSchema } from '../../types/schema';
 import { LogoEditor } from './schema-form-helpers/LogoEditor';
 import { MenuItemsList } from './schema-form-helpers/MenuItemEditor';
 import { ToggleField } from './schema-form-helpers/ToggleField';
+import { DynamicFieldsSection } from './schema-form-helpers/DynamicFieldsSection';
 import { useSchemaEditor } from '../../hooks/useSchemaEditor';
 import { useAuth } from '../auth/AuthProvider';
+import { getKnownFields } from '../../utils/schemaHelpers';
 import {
   Dialog,
   DialogContent,
@@ -153,6 +155,28 @@ export const FooterSchemaEditor: React.FC<FooterSchemaEditorProps> = ({ onBack }
 
   const updateDisplayOption = (option: keyof Pick<FooterSchema, 'showCurrencySwitcher' | 'showLanguageSwitcher'>, value: boolean) => {
     updateSchema({ [option]: value });
+  };
+
+  // Handler for dynamic fields that can handle field deletion
+  const handleDynamicFieldsUpdate = (updates: Record<string, any>) => {
+    // Check if any field is being deleted (undefined value)
+    const hasDeletions = Object.values(updates).some(v => v === undefined);
+    
+    if (hasDeletions) {
+      // For deletions, we need to reconstruct the schema without deleted fields
+      const updatedSchema = { ...schema };
+      for (const [key, value] of Object.entries(updates)) {
+        if (value === undefined) {
+          delete updatedSchema[key];
+        } else {
+          updatedSchema[key] = value;
+        }
+      }
+      setSchema(updatedSchema);
+    } else {
+      // Regular partial update
+      updateSchema(updates);
+    }
   };
 
   const addSection = () => {
@@ -341,7 +365,7 @@ export const FooterSchemaEditor: React.FC<FooterSchemaEditorProps> = ({ onBack }
                         )}
                         
                         {/* Button field for custom format */}
-                        {isCustomFormat && section.button && (
+                        {isCustomFormat && 'button' in section && section.button && (
                           <div className="space-y-3 border border-gray-200 rounded-md p-3">
                             <h4 className="text-sm font-medium">Button</h4>
                             <div>
@@ -386,7 +410,11 @@ export const FooterSchemaEditor: React.FC<FooterSchemaEditorProps> = ({ onBack }
                         {/* Links section - only show if links exist or it's a standard format */}
                         {(section.links || !isCustomFormat) && (
                           <MenuItemsList
-                            items={section.links || []}
+                            items={(section.links || []).map(link => ({
+                              id: link.id || `link_${Date.now()}_${Math.random()}`,
+                              label: link.label,
+                              link: link.link
+                            }))}
                             onChange={(links) => {
                               const updatedSection = isCustomFormat 
                                 ? { ...sectionObj, [sectionKey!]: { ...section, links } }
@@ -518,6 +546,14 @@ export const FooterSchemaEditor: React.FC<FooterSchemaEditorProps> = ({ onBack }
               </Card>
             </div>
           )}
+
+          {/* Custom Fields Section */}
+          <DynamicFieldsSection
+            schema={schema}
+            knownFields={getKnownFields('footer')}
+            onUpdateSchema={handleDynamicFieldsUpdate}
+            title="Custom Fields"
+          />
         </div>
       </div>
       

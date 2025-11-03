@@ -78,6 +78,7 @@ export interface HeaderSchema {
   showCart: boolean;
   showSearch: boolean;
   showAccount: boolean;
+  [key: string]: any; // Allow dynamic fields
 }
 
 export interface FooterSchema {
@@ -102,4 +103,5 @@ export interface FooterSchema {
   description: string;
   showCurrencySwitcher: boolean;
   showLanguageSwitcher: boolean;
+  [key: string]: any; // Allow dynamic fields
 }
