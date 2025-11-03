@@ -106,17 +106,92 @@ async function migrateDatabase() {
       console.log('✅ contacts table already has correct structure');
     }
     
-    // Create other tables if they don't exist
+    // Check if site_settings table exists and has the right structure
+    const siteSettingsCheck = await query(`
+      SELECT column_name
+      FROM information_schema.columns 
+      WHERE table_name = 'site_settings'
+      ORDER BY ordinal_position
+    `);
+    
+    const siteSettingsColumns = siteSettingsCheck.rows.map(row => row.column_name);
+    console.log('📝 Existing site_settings columns:', siteSettingsColumns);
+    
+    const hasTenantIdColumn = siteSettingsColumns.includes('tenant_id');
+    
+    // Check for UNIQUE constraint on setting_key and tenant_id
+    const uniqueConstraintCheck = await query(`
+      SELECT COUNT(*) as count
+      FROM information_schema.table_constraints
+      WHERE table_name = 'site_settings'
+        AND constraint_type = 'UNIQUE'
+    `);
+    
+    const hasUniqueConstraint = parseInt(uniqueConstraintCheck.rows[0].count) > 0;
+    
+    let needsRecreation = !hasUniqueConstraint || !hasTenantIdColumn;
+    
+    if (!hasTenantIdColumn) {
+      console.log('⚠️  Missing tenant_id column in site_settings table');
+    }
+    
+    if (!hasUniqueConstraint) {
+      console.log('⚠️  Missing UNIQUE constraint on site_settings table');
+    }
+    
+    if (needsRecreation) {
+      // First, backup existing settings if any
+      const existingSettings = await query(`SELECT * FROM site_settings`);
+      
+      // Drop and recreate the table with the UNIQUE constraint
+      console.log('🗑️  Dropping existing site_settings table...');
+      await query('DROP TABLE IF EXISTS site_settings CASCADE');
+      
+      console.log('🏗️  Creating new site_settings table with tenant_id and UNIQUE constraint...');
+      
+      // Restore settings after table creation if there were any
+      if (existingSettings.rows.length > 0) {
+        console.log(`💾 Will restore ${existingSettings.rows.length} existing settings after table creation`);
+      }
+    }
+    
+    // Create site_settings table if it doesn't exist
     await query(`
       CREATE TABLE IF NOT EXISTS site_settings (
         id SERIAL PRIMARY KEY,
-        setting_key VARCHAR(255) UNIQUE NOT NULL,
+        setting_key VARCHAR(255) NOT NULL,
         setting_value TEXT,
         setting_type VARCHAR(50) DEFAULT 'text',
+        tenant_id VARCHAR(255) DEFAULT 'tenant-gosg',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(setting_key, tenant_id)
       )
     `);
+    
+    if (needsRecreation) {
+      console.log('✅ site_settings table created successfully with tenant_id and UNIQUE constraint');
+      
+      // Restore settings if there were any
+      if (existingSettings && existingSettings.rows.length > 0) {
+        console.log(`🔄 Restoring ${existingSettings.rows.length} existing settings...`);
+        
+        for (const setting of existingSettings.rows) {
+          await query(`
+            INSERT INTO site_settings (setting_key, setting_value, setting_type, tenant_id)
+            VALUES ($1, $2, $3, $4)
+            ON CONFLICT (setting_key, tenant_id) DO NOTHING
+          `, [
+            setting.setting_key, 
+            setting.setting_value, 
+            setting.setting_type,
+            setting.tenant_id || 'tenant-gosg'
+          ]);
+        }
+        
+        console.log('✅ Settings restored successfully');
+      }
+    }
     
     await query(`
       CREATE TABLE IF NOT EXISTS projects (
@@ -154,13 +229,13 @@ async function migrateDatabase() {
     
     // Insert default site settings if they don't exist
     await query(`
-      INSERT INTO site_settings (setting_key, setting_value, setting_type)
+      INSERT INTO site_settings (setting_key, setting_value, setting_type, tenant_id)
       VALUES 
-        ('site_name', 'GO SG', 'text'),
-        ('site_tagline', 'Digital Marketing Agency', 'text'),
-        ('site_logo', '', 'file'),
-        ('site_favicon', '', 'file')
-      ON CONFLICT (setting_key) DO NOTHING
+        ('site_name', 'GO SG', 'text', 'tenant-gosg'),
+        ('site_tagline', 'Digital Marketing Agency', 'text', 'tenant-gosg'),
+        ('site_logo', '', 'file', 'tenant-gosg'),
+        ('site_favicon', '', 'file', 'tenant-gosg')
+      ON CONFLICT (setting_key, tenant_id) DO NOTHING
     `);
     
     console.log('🎉 Railway database migration completed successfully!');
