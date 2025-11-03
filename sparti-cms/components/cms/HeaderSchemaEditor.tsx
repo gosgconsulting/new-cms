@@ -9,8 +9,10 @@ import { HeaderSchema } from '../../types/schema';
 import { LogoEditor } from './schema-form-helpers/LogoEditor';
 import { MenuItemsList } from './schema-form-helpers/MenuItemEditor';
 import { ToggleField } from './schema-form-helpers/ToggleField';
+import { DynamicFieldsSection } from './schema-form-helpers/DynamicFieldsSection';
 import { useSchemaEditor } from '../../hooks/useSchemaEditor';
 import { useAuth } from '../auth/AuthProvider';
+import { getKnownFields } from '../../utils/schemaHelpers';
 import {
   Dialog,
   DialogContent,
@@ -85,6 +87,28 @@ export const HeaderSchemaEditor: React.FC<HeaderSchemaEditorProps> = ({ onBack }
 
   const updateDisplayOption = (option: keyof Pick<HeaderSchema, 'showCart' | 'showSearch' | 'showAccount'>, value: boolean) => {
     updateSchema({ [option]: value });
+  };
+
+  // Handler for dynamic fields that can handle field deletion
+  const handleDynamicFieldsUpdate = (updates: Record<string, any>) => {
+    // Check if any field is being deleted (undefined value)
+    const hasDeletions = Object.values(updates).some(v => v === undefined);
+    
+    if (hasDeletions) {
+      // For deletions, we need to reconstruct the schema without deleted fields
+      const updatedSchema = { ...schema };
+      for (const [key, value] of Object.entries(updates)) {
+        if (value === undefined) {
+          delete updatedSchema[key];
+        } else {
+          updatedSchema[key] = value;
+        }
+      }
+      setSchema(updatedSchema);
+    } else {
+      // Regular partial update
+      updateSchema(updates);
+    }
   };
 
   if (loading) {
@@ -242,6 +266,14 @@ export const HeaderSchemaEditor: React.FC<HeaderSchemaEditorProps> = ({ onBack }
               </Card>
             </div>
           )}
+
+          {/* Custom Fields Section */}
+          <DynamicFieldsSection
+            schema={schema}
+            knownFields={getKnownFields('header')}
+            onUpdateSchema={handleDynamicFieldsUpdate}
+            title="Custom Fields"
+          />
         </div>
       </div>
       
