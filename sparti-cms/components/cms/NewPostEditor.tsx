@@ -41,6 +41,7 @@ import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "@/components/ui/use-toast";
 import { useAuth } from '../auth/AuthProvider';
+import TiptapEditor from './TiptapEditor';
 
 interface Category {
   id: number;
@@ -100,7 +101,7 @@ const NewPostEditor: React.FC<NewPostEditorProps> = ({ onBack, onSave, initialDa
     content: '',
     excerpt: '',
     status: 'draft',
-    author_id: user?.id || 1,
+    author_id: (typeof user?.id === 'number' ? user.id : 1),
     published_at: null,
     categories: [],
     tags: [],
@@ -280,6 +281,18 @@ const NewPostEditor: React.FC<NewPostEditorProps> = ({ onBack, onSave, initialDa
     }
   };
 
+  // Helper function to strip HTML tags for text analysis
+  const stripHTML = (html: string): string => {
+    if (!html) return '';
+    if (typeof window === 'undefined') {
+      // SSR fallback: simple regex to remove HTML tags
+      return html.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
+    }
+    const tmp = document.createElement('DIV');
+    tmp.innerHTML = html;
+    return tmp.textContent || tmp.innerText || '';
+  };
+
   const getSelectedCategories = () => {
     return categories.filter(cat => postData.categories.includes(cat.id));
   };
@@ -396,13 +409,13 @@ const NewPostEditor: React.FC<NewPostEditorProps> = ({ onBack, onSave, initialDa
                   <div className="space-y-4">
                     <div>
                       <Label htmlFor="content">Post Content</Label>
-                      <Textarea
-                        id="content"
-                        placeholder="Write your post content here..."
-                        value={postData.content}
-                        onChange={(e) => handleInputChange('content', e.target.value)}
-                        className="min-h-[400px] mt-2"
-                      />
+                      <div className="mt-2">
+                        <TiptapEditor
+                          content={postData.content}
+                          onChange={(html) => handleInputChange('content', html)}
+                          placeholder="Write your post content here..."
+                        />
+                      </div>
                     </div>
                     
                     <div>
@@ -561,9 +574,12 @@ const NewPostEditor: React.FC<NewPostEditorProps> = ({ onBack, onSave, initialDa
                       </div>
                     )}
                     
-                    <div className="whitespace-pre-wrap">
-                      {postData.content || 'No content yet...'}
-                    </div>
+                    <div 
+                      className="prose prose-lg max-w-none"
+                      dangerouslySetInnerHTML={{ 
+                        __html: postData.content || '<p class="text-muted-foreground">No content yet...</p>' 
+                      }}
+                    />
                     
                     {(getSelectedCategories().length > 0 || getSelectedTags().length > 0) && (
                       <div className="mt-8 pt-6 border-t">
@@ -764,15 +780,15 @@ const NewPostEditor: React.FC<NewPostEditorProps> = ({ onBack, onSave, initialDa
             <CardContent className="space-y-3">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Word Count:</span>
-                <span>{postData.content.split(/\s+/).filter(word => word.length > 0).length}</span>
+                <span>{stripHTML(postData.content).split(/\s+/).filter(word => word.length > 0).length}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Character Count:</span>
-                <span>{postData.content.length}</span>
+                <span>{stripHTML(postData.content).length}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Reading Time:</span>
-                <span>{Math.ceil(postData.content.split(/\s+/).length / 200)} min</span>
+                <span>{Math.ceil(stripHTML(postData.content).split(/\s+/).length / 200)} min</span>
               </div>
             </CardContent>
           </Card>
