@@ -104,6 +104,63 @@ export async function initializeTenantTables() {
   }
 }
 
+// Initialize users management tables
+export async function initializeUsersTables() {
+  try {
+    console.log('Initializing users tables...');
+    
+    // Read the SQL schema file
+    const fs = await import('fs');
+    const path = await import('path');
+    const { fileURLToPath } = await import('url');
+    const { dirname } = await import('path');
+    
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = dirname(__filename);
+    
+    const usersSchemaPath = path.join(__dirname, 'users-migrations.sql');
+    const usersSql = fs.readFileSync(usersSchemaPath, 'utf8');
+    
+    // Execute the schema SQL
+    await query(usersSql);
+    
+    // Add tenant_id, is_super_admin, and status columns if they don't exist (for backward compatibility)
+    try {
+      await query(`
+        ALTER TABLE users 
+        ADD COLUMN IF NOT EXISTS tenant_id VARCHAR(255);
+      `);
+      await query(`
+        ALTER TABLE users 
+        ADD COLUMN IF NOT EXISTS is_super_admin BOOLEAN DEFAULT false;
+      `);
+      await query(`
+        ALTER TABLE users 
+        ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'active';
+      `);
+    } catch (err) {
+      // Columns might already exist, that's okay
+      console.log('[testing] Some user columns may already exist:', err.message);
+    }
+    
+    // Initialize user_access_keys table if it doesn't exist
+    try {
+      const accessKeysSchemaPath = path.join(__dirname, 'access-keys-migrations.sql');
+      const accessKeysSql = fs.readFileSync(accessKeysSchemaPath, 'utf8');
+      await query(accessKeysSql);
+      console.log('User access keys table initialized');
+    } catch (err) {
+      console.log('[testing] Access keys table initialization skipped:', err.message);
+    }
+    
+    console.log('Users tables initialized successfully');
+    return true;
+  } catch (error) {
+    console.error('Error initializing users tables:', error);
+    throw error; // Re-throw so it can be caught and logged properly
+  }
+}
+
 // Initialize database tables
 export async function initializeDatabase() {
   try {
@@ -255,7 +312,9 @@ export async function initializeDatabase() {
     try {
       await initializeUsersTables();
     } catch (error) {
-      console.log('Users tables initialization skipped:', error.message);
+      console.error('[testing] Error initializing users tables:', error);
+      // Don't fail the entire initialization, but log the error
+      // The table might already exist or there might be a schema issue
     }
 
     console.log('Database initialization completed successfully');

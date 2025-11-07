@@ -69,7 +69,7 @@ A modern digital marketing agency website built with React, TypeScript, and Tail
 
 3. **Environment Setup**
    - For local development, ensure you have PostgreSQL running
-   - For Railway deployment, use the environment variables from `railway-env-variables.txt`
+   - For Railway deployment, see `docs/deployment/` for environment setup guides
 
 4. **Build the application**
    ```bash
@@ -88,7 +88,7 @@ The application will be available at `http://localhost:4173`
 ### Railway Deployment
 
 1. **Create a Railway project** with PostgreSQL service
-2. **Set environment variables** from `railway-env-variables.txt`:
+2. **Set environment variables** (see `docs/deployment/` for details):
    ```
    DATABASE_PUBLIC_URL=${{Postgres.DATABASE_PUBLIC_URL}}
    DATABASE_URL=${{Postgres.DATABASE_URL}}
@@ -171,15 +171,58 @@ sparti-cms/
 ├── hooks/              # CMS hooks
 └── styles/             # CMS styles
 
+docs/                   # Documentation
+├── implementation/     # Feature implementation summaries
+├── setup/              # Setup and configuration guides
+├── deployment/         # Deployment documentation
+└── features/           # Feature documentation
+
+scripts/                 # Utility scripts
+├── migrations/         # Database migration scripts
+├── setup/              # Setup and initialization scripts
+├── mcp/                # MCP-related scripts
+├── servers/            # Server startup scripts
+├── tests/              # Test scripts
+├── utilities/          # Utility scripts
+└── windows/            # Windows-specific scripts (.bat, .ps1)
+
 server.js               # Express server
 ```
 
+For detailed documentation, see [docs/README.md](docs/README.md).
+
 ### Available Scripts
 
-- `npm run dev` - Start development server (Vite)
+**Development:**
+- `npm run dev` - Start development server (Vite + backend)
+- `npm run dev:db` - Start development server with database
+- `npm run dev:backend` - Start backend server only
+- `npm run dev:frontend` - Start frontend dev server only
+
+**Build & Deploy:**
 - `npm run build` - Build for production
 - `npm start` - Start production server
 - `npm run preview` - Preview production build locally
+- `npm run deploy` - Build and start production server
+
+**Database & Migrations:**
+- `npm run migrate` - Run database migrations
+- `npm run migrate:railway` - Run migrations in production
+
+**MCP (Model Context Protocol):**
+- `npm run mcp:start` - Start MCP server
+- `npm run mcp:persistent` - Start persistent MCP server
+- `npm run mcp:test` - Test MCP connection
+- `npm run mcp:status` - Check MCP status
+- `npm run mcp:fix` - Fix database viewer issues
+
+**Testing:**
+- `npm run health:test` - Test health endpoint
+- `npm run test:deployment` - Test deployment
+- `npm run test:contact` - Test contact form
+- `npm run test:form` - Test form submission
+
+All scripts are organized in the `scripts/` directory. See `docs/README.md` for more information.
 
 ## 🎨 Admin Dashboard
 

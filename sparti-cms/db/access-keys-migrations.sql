@@ -19,7 +19,8 @@ CREATE INDEX IF NOT EXISTS idx_user_access_keys_access_key ON user_access_keys(a
 CREATE INDEX IF NOT EXISTS idx_user_access_keys_is_active ON user_access_keys(is_active);
 CREATE INDEX IF NOT EXISTS idx_user_access_keys_created_at ON user_access_keys(created_at);
 
--- Create trigger for updated_at
+-- Create trigger for updated_at (drop first if it exists)
+DROP TRIGGER IF EXISTS update_user_access_keys_updated_at ON user_access_keys;
 CREATE TRIGGER update_user_access_keys_updated_at 
   BEFORE UPDATE ON user_access_keys 
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();

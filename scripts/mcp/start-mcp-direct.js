@@ -28,7 +28,7 @@ console.log('🔒 SSL: Configured for Railway (rejectUnauthorized: false)');
 console.log('');
 
 // Path to the MCP Database Server
-const serverPath = path.join(__dirname, 'mcp-database-server', 'dist', 'src', 'index.js');
+const serverPath = path.join(__dirname, '../../mcp-database-server', 'dist', 'src', 'index.js');
 
 // Command arguments with proper SSL configuration for Railway
 const args = [

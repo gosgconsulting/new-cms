@@ -14,7 +14,7 @@ console.log('[testing] Database URL configured:', process.env.DATABASE_URL ? 'Ye
 console.log('[testing] Environment:', process.env.NODE_ENV);
 
 // Import and run the main server
-import('./server.js').catch(error => {
+import('../../server.js').catch(error => {
   console.error('[testing] Failed to start server:', error);
   process.exit(1);
 });

@@ -1,4 +1,4 @@
-import { query } from './sparti-cms/db/postgres.js';
+import { query } from '../../sparti-cms/db/postgres.js';
 import dotenv from 'dotenv';
 
 // Load environment variables

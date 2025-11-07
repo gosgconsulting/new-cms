@@ -24,3 +24,7 @@ dist-ssr
 *.sw?
 .env
 wordpress-plugin/*
+
+# Temporary files
+cookies.txt
+*.tmp

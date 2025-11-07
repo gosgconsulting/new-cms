@@ -42,13 +42,20 @@ import {
   canUserAccessTenant,
   getSiteSettingByKey,
   updateSiteSettingByKey,
-  getsitesettingsbytenant
+  getsitesettingsbytenant,
+  getPosts,
+  getPost,
+  createPost,
+  updatePost,
+  deletePost
 } from './sparti-cms/db/postgres.js';
 import pool from './sparti-cms/db/postgres.js';
 import { renderPageBySlug } from './sparti-cms/render/pageRenderer.js';
 import { getLayoutBySlug, upsertLayoutBySlug } from './sparti-cms/db/postgres.js';
 import cacheStore, { getPageCache, setPageCache, invalidateBySlug, invalidateAll } from './sparti-cms/cache/index.js';
 import tenantRoutes from './sparti-cms/db/tenant-api-routes.js';
+import publicApiRoutes from './sparti-cms/db/public-api-routes.js';
+import { validateApiKey } from './sparti-cms/db/tenant-management.js';
 
 // Import mock data for development
 import {
@@ -171,6 +178,22 @@ app.use((req, res, next) => {
 // Access key authentication middleware
 const authenticateWithAccessKey = async (req, res, next) => {
   try {
+    // Check if database is ready first
+    if (!dbInitialized) {
+      if (dbInitializationError) {
+        return res.status(503).json({
+          success: false,
+          error: 'Database initialization failed',
+          message: 'Please try again later'
+        });
+      }
+      return res.status(503).json({
+        success: false,
+        error: 'Database is initializing',
+        message: 'Please try again in a moment'
+      });
+    }
+
     const accessKey = req.headers['x-access-key'] || req.headers['X-Access-Key'];
     
     if (!accessKey) {
@@ -225,6 +248,11 @@ const authenticateWithAccessKey = async (req, res, next) => {
       is_super_admin: keyData.is_super_admin
     };
 
+    // Set tenant ID based on user type (same logic as authenticateUser)
+    if (keyData.is_super_admin) {
+      req.tenantId = req.query.tenantId || req.headers['x-tenant-id'] || keyData.tenant_id;
+    }
+
     // Update last_used_at timestamp
     await query(
       'UPDATE user_access_keys SET last_used_at = NOW() WHERE id = $1',
@@ -234,6 +262,19 @@ const authenticateWithAccessKey = async (req, res, next) => {
     next();
   } catch (error) {
     console.error('[testing] Error in access key authentication:', error);
+    
+    // Handle database not ready errors gracefully
+    if (error.code === '42P01' || error.message?.includes('does not exist')) {
+      // Table doesn't exist yet - database might still be initializing
+      if (!dbInitialized) {
+        return res.status(503).json({
+          success: false,
+          error: 'Database is initializing',
+          message: 'Please try again in a moment'
+        });
+      }
+    }
+    
     return res.status(500).json({
       success: false,
       error: 'Authentication error'
@@ -241,10 +282,53 @@ const authenticateWithAccessKey = async (req, res, next) => {
   }
 };
 
-// Apply access key authentication middleware to all API routes except verify-access-key
+// Tenant API key authentication middleware for public API
+const authenticateTenantApiKey = async (req, res, next) => {
+  try {
+    // Extract API key from headers
+    const apiKey = req.headers['x-api-key'] || 
+                   req.headers['X-API-Key'] ||
+                   (req.headers.authorization && req.headers.authorization.startsWith('Bearer ') 
+                     ? req.headers.authorization.substring(7) 
+                     : null);
+    
+    if (!apiKey) {
+      return res.status(401).json({
+        success: false,
+        error: 'API key is required',
+        code: 'MISSING_API_KEY'
+      });
+    }
+
+    // Validate the API key
+    const validation = await validateApiKey(apiKey);
+    
+    if (!validation.valid) {
+      return res.status(401).json({
+        success: false,
+        error: 'Invalid or expired API key',
+        code: 'INVALID_API_KEY'
+      });
+    }
+
+    // Set tenant ID from validated key
+    req.tenantId = validation.tenant.tenant_id;
+    
+    next();
+  } catch (error) {
+    console.error('[testing] Error in tenant API key authentication:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Authentication error',
+      code: 'AUTH_ERROR'
+    });
+  }
+};
+
+// Apply access key authentication middleware to all API routes except verify-access-key and v1 routes
 app.use('/api', (req, res, next) => {
-  // Skip access key authentication for the verify-access-key endpoint
-  if (req.path === '/api/auth/verify-access-key') {
+  // Skip access key authentication for the verify-access-key endpoint and v1 routes
+  if (req.path === '/auth/verify-access-key' || req.path.startsWith('/v1/')) {
     return next();
   }
   return authenticateWithAccessKey(req, res, next);
@@ -264,6 +348,25 @@ process.on('SIGTERM', () => {
 // Track database initialization state
 let dbInitialized = false;
 let dbInitializationError = null;
+
+// Middleware to check if database is initialized before processing requests
+const requireDatabaseReady = (req, res, next) => {
+  if (!dbInitialized) {
+    if (dbInitializationError) {
+      return res.status(503).json({
+        success: false,
+        error: 'Database initialization failed',
+        message: 'Please try again later'
+      });
+    }
+    return res.status(503).json({
+      success: false,
+      error: 'Database is initializing',
+      message: 'Please try again in a moment'
+    });
+  }
+  next();
+};
 
 // Simple health check endpoint for Railway
 app.get('/health', (req, res) => {
@@ -322,6 +425,9 @@ app.get('/health/detailed', async (req, res) => {
 
 // Tenant API Routes
 app.use('/api/tenants', tenantRoutes);
+
+// Public API Routes (v1) - requires tenant API key authentication
+app.use('/api/v1', authenticateTenantApiKey, publicApiRoutes);
 
 // Language Management API
 import languageManagementService from './sparti-cms/services/languageManagementService.js';
@@ -2114,10 +2220,676 @@ app.get('/api/terms/taxonomy/:taxonomy', async (req, res) => {
   }
 });
 
+// Posts API endpoints
+// Get all posts
+app.get('/api/posts', async (req, res) => {
+  try {
+    // Check if database is ready
+    if (!dbInitialized) {
+      if (dbInitializationError) {
+        return res.status(503).json({
+          error: 'Database initialization failed',
+          message: 'Please try again later'
+        });
+      }
+      return res.status(503).json({
+        error: 'Database is initializing',
+        message: 'Please try again in a moment'
+      });
+    }
+
+    // Get tenant from authenticated user
+    const tenantId = req.tenantId || req.user?.tenant_id || req.query.tenantId;
+    
+    if (!tenantId) {
+      return res.status(400).json({
+        error: 'Tenant ID is required',
+        message: 'Please provide tenant ID via authentication or query parameter'
+      });
+    }
+
+    console.log('[testing] Fetching all posts for tenant:', tenantId);
+    
+    // Check if posts table has tenant_id column
+    let hasTenantId = false;
+    try {
+      const columnCheck = await query(`
+        SELECT column_name 
+        FROM information_schema.columns 
+        WHERE table_name = 'posts' AND column_name = 'tenant_id'
+      `);
+      hasTenantId = columnCheck.rows.length > 0;
+    } catch (err) {
+      console.log('[testing] Could not check for tenant_id column in posts table');
+    }
+    
+    // Build query with conditional tenant filtering
+    let queryText = `
+      SELECT 
+        p.*,
+        COALESCE(
+          JSON_AGG(
+            CASE 
+              WHEN t.id IS NOT NULL THEN 
+                JSON_BUILD_OBJECT(
+                  'id', t.id,
+                  'name', t.name,
+                  'taxonomy', tt.taxonomy
+                )
+              ELSE NULL 
+            END
+          ) FILTER (WHERE t.id IS NOT NULL), 
+          '[]'
+        ) as terms
+      FROM posts p
+      LEFT JOIN term_relationships tr ON p.id = tr.object_id
+      LEFT JOIN term_taxonomy tt ON tr.term_taxonomy_id = tt.id
+      LEFT JOIN terms t ON tt.term_id = t.id
+      WHERE 1=1
+    `;
+    
+    const params = [];
+    if (hasTenantId) {
+      queryText += ` AND (p.tenant_id = $1 OR p.tenant_id IS NULL)`;
+      params.push(tenantId);
+    }
+    
+    queryText += ` GROUP BY p.id ORDER BY p.created_at DESC`;
+    
+    const result = await query(queryText, params);
+    
+    const posts = result.rows;
+    res.json(posts);
+  } catch (error) {
+    console.error('[testing] Error fetching posts:', error);
+    
+    // Handle database not ready errors
+    if (error.code === '42P01' || error.message?.includes('does not exist')) {
+      if (!dbInitialized) {
+        return res.status(503).json({
+          error: 'Database is initializing',
+          message: 'Please try again in a moment'
+        });
+      }
+    }
+    
+    res.status(500).json({ error: 'Failed to fetch posts' });
+  }
+});
+
+// Get single post by ID
+app.get('/api/posts/:id', async (req, res) => {
+  try {
+    // Check if database is ready
+    if (!dbInitialized) {
+      if (dbInitializationError) {
+        return res.status(503).json({
+          error: 'Database initialization failed',
+          message: 'Please try again later'
+        });
+      }
+      return res.status(503).json({
+        error: 'Database is initializing',
+        message: 'Please try again in a moment'
+      });
+    }
+
+    // Get tenant from authenticated user
+    const tenantId = req.tenantId || req.user?.tenant_id || req.query.tenantId;
+    
+    if (!tenantId) {
+      return res.status(400).json({
+        error: 'Tenant ID is required',
+        message: 'Please provide tenant ID via authentication or query parameter'
+      });
+    }
+
+    const { id } = req.params;
+    console.log('[testing] Fetching post:', id, 'for tenant:', tenantId);
+    
+    // Fetch post with tenant filtering
+    const result = await query(`
+      SELECT 
+        p.*,
+        COALESCE(
+          JSON_AGG(
+            CASE 
+              WHEN t.id IS NOT NULL THEN 
+                JSON_BUILD_OBJECT(
+                  'id', t.id,
+                  'name', t.name,
+                  'taxonomy', tt.taxonomy
+                )
+              ELSE NULL 
+            END
+          ) FILTER (WHERE t.id IS NOT NULL), 
+          '[]'
+        ) as terms
+      FROM posts p
+      LEFT JOIN term_relationships tr ON p.id = tr.object_id
+      LEFT JOIN term_taxonomy tt ON tr.term_taxonomy_id = tt.id
+      LEFT JOIN terms t ON tt.term_id = t.id
+      WHERE p.id = $1 AND (p.tenant_id = $2 OR p.tenant_id IS NULL)
+      GROUP BY p.id
+    `, [parseInt(id), tenantId]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Post not found' });
+    }
+    
+    const post = result.rows[0];
+    res.json(post);
+  } catch (error) {
+    console.error('[testing] Error fetching post:', error);
+    
+    // Handle database not ready errors
+    if (error.code === '42P01' || error.message?.includes('does not exist')) {
+      if (!dbInitialized) {
+        return res.status(503).json({
+          error: 'Database is initializing',
+          message: 'Please try again in a moment'
+        });
+      }
+    }
+    
+    res.status(500).json({ error: 'Failed to fetch post' });
+  }
+});
+
+// Create new post
+app.post('/api/posts', async (req, res) => {
+  try {
+    // Check if database is ready
+    if (!dbInitialized) {
+      if (dbInitializationError) {
+        return res.status(503).json({
+          error: 'Database initialization failed',
+          message: 'Please try again later'
+        });
+      }
+      return res.status(503).json({
+        error: 'Database is initializing',
+        message: 'Please try again in a moment'
+      });
+    }
+
+    // Get tenant from authenticated user
+    const tenantId = req.tenantId || req.user?.tenant_id || req.body.tenantId;
+    
+    if (!tenantId) {
+      return res.status(400).json({
+        error: 'Tenant ID is required',
+        message: 'Please provide tenant ID via authentication or request body'
+      });
+    }
+
+    console.log('[testing] Creating new post for tenant:', tenantId);
+    
+    const {
+      title,
+      slug,
+      content,
+      excerpt,
+      status,
+      author_id,
+      published_at,
+      categories = [],
+      tags = [],
+      meta_title,
+      meta_description,
+      meta_keywords,
+      og_title,
+      og_description,
+      twitter_title,
+      twitter_description
+    } = req.body;
+    
+    // Validate required fields
+    if (!title || !slug) {
+      return res.status(400).json({ 
+        error: 'Title and slug are required' 
+      });
+    }
+    
+    // Check if posts table has tenant_id column
+    let hasTenantId = false;
+    try {
+      const columnCheck = await query(`
+        SELECT column_name 
+        FROM information_schema.columns 
+        WHERE table_name = 'posts' AND column_name = 'tenant_id'
+      `);
+      hasTenantId = columnCheck.rows.length > 0;
+    } catch (err) {
+      console.log('[testing] Could not check for tenant_id column in posts table');
+    }
+    
+    // Build INSERT query conditionally including tenant_id
+    let insertColumns = `
+      title, slug, content, excerpt, status, post_type, author_id,
+      meta_title, meta_description, meta_keywords, canonical_url,
+      og_title, og_description, og_image, twitter_title, twitter_description, twitter_image,
+      published_at
+    `;
+    let insertValues = `$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18`;
+    const insertParams = [
+      title,
+      slug,
+      content || '',
+      excerpt || '',
+      status || 'draft',
+      'post',
+      author_id || req.user?.id || 1,
+      meta_title || '',
+      meta_description || '',
+      meta_keywords || '',
+      '',
+      og_title || '',
+      og_description || '',
+      '',
+      twitter_title || '',
+      twitter_description || '',
+      published_at || null
+    ];
+    
+    if (hasTenantId) {
+      insertColumns += `, tenant_id`;
+      insertValues += `, $19`;
+      insertParams.push(tenantId);
+    }
+    
+    const postResult = await query(`
+      INSERT INTO posts (${insertColumns})
+      VALUES (${insertValues})
+      RETURNING *
+    `, insertParams);
+
+    const post = postResult.rows[0];
+
+    // Handle categories
+    if (Array.isArray(categories) && categories.length > 0) {
+      for (const categoryId of categories) {
+        const taxonomyResult = await query(`
+          SELECT id FROM term_taxonomy WHERE term_id = $1 AND taxonomy = 'category'
+        `, [categoryId]);
+        
+        if (taxonomyResult.rows.length > 0) {
+          await query(`
+            INSERT INTO term_relationships (object_id, term_taxonomy_id)
+            VALUES ($1, $2)
+          `, [post.id, taxonomyResult.rows[0].id]);
+        }
+      }
+    }
+
+    // Handle tags
+    if (Array.isArray(tags) && tags.length > 0) {
+      for (const tagId of tags) {
+        const taxonomyResult = await query(`
+          SELECT id FROM term_taxonomy WHERE term_id = $1 AND taxonomy = 'post_tag'
+        `, [tagId]);
+        
+        if (taxonomyResult.rows.length > 0) {
+          await query(`
+            INSERT INTO term_relationships (object_id, term_taxonomy_id)
+            VALUES ($1, $2)
+          `, [post.id, taxonomyResult.rows[0].id]);
+        }
+      }
+    }
+
+    // Fetch the complete post with terms
+    const completePostResult = await query(`
+      SELECT 
+        p.*,
+        COALESCE(
+          JSON_AGG(
+            CASE 
+              WHEN t.id IS NOT NULL THEN 
+                JSON_BUILD_OBJECT(
+                  'id', t.id,
+                  'name', t.name,
+                  'taxonomy', tt.taxonomy
+                )
+              ELSE NULL 
+            END
+          ) FILTER (WHERE t.id IS NOT NULL), 
+          '[]'
+        ) as terms
+      FROM posts p
+      LEFT JOIN term_relationships tr ON p.id = tr.object_id
+      LEFT JOIN term_taxonomy tt ON tr.term_taxonomy_id = tt.id
+      LEFT JOIN terms t ON tt.term_id = t.id
+      WHERE p.id = $1
+      GROUP BY p.id
+    `, [post.id]);
+    
+    const newPost = completePostResult.rows[0];
+    
+    res.status(201).json(newPost);
+  } catch (error) {
+    console.error('[testing] Error creating post:', error);
+    
+    // Handle database not ready errors
+    if (error.code === '42P01' || error.message?.includes('does not exist')) {
+      if (!dbInitialized) {
+        return res.status(503).json({
+          error: 'Database is initializing',
+          message: 'Please try again in a moment'
+        });
+      }
+    }
+    
+    // Handle unique constraint violations (duplicate slug)
+    if (error.code === '23505' || error.message.includes('unique')) {
+      return res.status(409).json({ 
+        error: 'A post with this slug already exists' 
+      });
+    }
+    
+    res.status(500).json({ 
+      error: 'Failed to create post',
+      message: error.message 
+    });
+  }
+});
+
+// Update existing post
+app.put('/api/posts/:id', async (req, res) => {
+  try {
+    // Check if database is ready
+    if (!dbInitialized) {
+      if (dbInitializationError) {
+        return res.status(503).json({
+          error: 'Database initialization failed',
+          message: 'Please try again later'
+        });
+      }
+      return res.status(503).json({
+        error: 'Database is initializing',
+        message: 'Please try again in a moment'
+      });
+    }
+
+    // Get tenant from authenticated user
+    const tenantId = req.tenantId || req.user?.tenant_id || req.body.tenantId;
+    
+    if (!tenantId) {
+      return res.status(400).json({
+        error: 'Tenant ID is required',
+        message: 'Please provide tenant ID via authentication or request body'
+      });
+    }
+
+    const { id } = req.params;
+    console.log('[testing] Updating post:', id, 'for tenant:', tenantId);
+    
+    const {
+      title,
+      slug,
+      content,
+      excerpt,
+      status,
+      author_id,
+      published_at,
+      categories = [],
+      tags = [],
+      meta_title,
+      meta_description,
+      meta_keywords,
+      og_title,
+      og_description,
+      twitter_title,
+      twitter_description
+    } = req.body;
+    
+    // Validate required fields
+    if (!title || !slug) {
+      return res.status(400).json({ 
+        error: 'Title and slug are required' 
+      });
+    }
+    
+    // First verify the post exists and belongs to this tenant
+    const checkResult = await query(`
+      SELECT id FROM posts WHERE id = $1 AND (tenant_id = $2 OR tenant_id IS NULL)
+    `, [parseInt(id), tenantId]);
+    
+    if (checkResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Post not found' });
+    }
+    
+    // Update the post
+    const updateResult = await query(`
+      UPDATE posts SET
+        title = $2,
+        slug = $3,
+        content = $4,
+        excerpt = $5,
+        status = $6,
+        author_id = $7,
+        meta_title = $8,
+        meta_description = $9,
+        meta_keywords = $10,
+        og_title = $11,
+        og_description = $12,
+        twitter_title = $13,
+        twitter_description = $14,
+        published_at = $15,
+        updated_at = NOW()
+      WHERE id = $1 AND (tenant_id = $16 OR tenant_id IS NULL)
+      RETURNING *
+    `, [
+      parseInt(id),
+      title,
+      slug,
+      content || '',
+      excerpt || '',
+      status || 'draft',
+      author_id || req.user?.id || 1,
+      meta_title || '',
+      meta_description || '',
+      meta_keywords || '',
+      og_title || '',
+      og_description || '',
+      twitter_title || '',
+      twitter_description || '',
+      published_at || null,
+      tenantId
+    ]);
+
+    if (updateResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Post not found' });
+    }
+
+    // Clear existing relationships
+    await query(`DELETE FROM term_relationships WHERE object_id = $1`, [parseInt(id)]);
+
+    // Handle categories
+    if (Array.isArray(categories) && categories.length > 0) {
+      for (const categoryId of categories) {
+        const taxonomyResult = await query(`
+          SELECT id FROM term_taxonomy WHERE term_id = $1 AND taxonomy = 'category'
+        `, [categoryId]);
+        
+        if (taxonomyResult.rows.length > 0) {
+          await query(`
+            INSERT INTO term_relationships (object_id, term_taxonomy_id)
+            VALUES ($1, $2)
+          `, [parseInt(id), taxonomyResult.rows[0].id]);
+        }
+      }
+    }
+
+    // Handle tags
+    if (Array.isArray(tags) && tags.length > 0) {
+      for (const tagId of tags) {
+        const taxonomyResult = await query(`
+          SELECT id FROM term_taxonomy WHERE term_id = $1 AND taxonomy = 'post_tag'
+        `, [tagId]);
+        
+        if (taxonomyResult.rows.length > 0) {
+          await query(`
+            INSERT INTO term_relationships (object_id, term_taxonomy_id)
+            VALUES ($1, $2)
+          `, [parseInt(id), taxonomyResult.rows[0].id]);
+        }
+      }
+    }
+
+    // Fetch the complete post with terms
+    const completePostResult = await query(`
+      SELECT 
+        p.*,
+        COALESCE(
+          JSON_AGG(
+            CASE 
+              WHEN t.id IS NOT NULL THEN 
+                JSON_BUILD_OBJECT(
+                  'id', t.id,
+                  'name', t.name,
+                  'taxonomy', tt.taxonomy
+                )
+              ELSE NULL 
+            END
+          ) FILTER (WHERE t.id IS NOT NULL), 
+          '[]'
+        ) as terms
+      FROM posts p
+      LEFT JOIN term_relationships tr ON p.id = tr.object_id
+      LEFT JOIN term_taxonomy tt ON tr.term_taxonomy_id = tt.id
+      LEFT JOIN terms t ON tt.term_id = t.id
+      WHERE p.id = $1
+      GROUP BY p.id
+    `, [parseInt(id)]);
+    
+    const updatedPost = completePostResult.rows[0];
+    
+    res.json(updatedPost);
+  } catch (error) {
+    console.error('[testing] Error updating post:', error);
+    
+    // Handle database not ready errors
+    if (error.code === '42P01' || error.message?.includes('does not exist')) {
+      if (!dbInitialized) {
+        return res.status(503).json({
+          error: 'Database is initializing',
+          message: 'Please try again in a moment'
+        });
+      }
+    }
+    
+    // Handle post not found
+    if (error.message === 'Post not found') {
+      return res.status(404).json({ error: 'Post not found' });
+    }
+    
+    // Handle unique constraint violations (duplicate slug)
+    if (error.code === '23505' || error.message.includes('unique')) {
+      return res.status(409).json({ 
+        error: 'A post with this slug already exists' 
+      });
+    }
+    
+    res.status(500).json({ 
+      error: 'Failed to update post',
+      message: error.message 
+    });
+  }
+});
+
+// Delete post
+app.delete('/api/posts/:id', async (req, res) => {
+  try {
+    // Check if database is ready
+    if (!dbInitialized) {
+      if (dbInitializationError) {
+        return res.status(503).json({
+          error: 'Database initialization failed',
+          message: 'Please try again later'
+        });
+      }
+      return res.status(503).json({
+        error: 'Database is initializing',
+        message: 'Please try again in a moment'
+      });
+    }
+
+    // Get tenant from authenticated user
+    const tenantId = req.tenantId || req.user?.tenant_id || req.query.tenantId;
+    
+    if (!tenantId) {
+      return res.status(400).json({
+        error: 'Tenant ID is required',
+        message: 'Please provide tenant ID via authentication or query parameter'
+      });
+    }
+
+    const { id } = req.params;
+    console.log('[testing] Deleting post:', id, 'for tenant:', tenantId);
+    
+    // Delete relationships first
+    await query(`DELETE FROM term_relationships WHERE object_id = $1`, [parseInt(id)]);
+    
+    // Delete the post (only if it belongs to this tenant)
+    const result = await query(`
+      DELETE FROM posts 
+      WHERE id = $1 AND (tenant_id = $2 OR tenant_id IS NULL)
+      RETURNING *
+    `, [parseInt(id), tenantId]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Post not found' });
+    }
+    
+    res.json({ 
+      success: true,
+      message: 'Post deleted successfully' 
+    });
+  } catch (error) {
+    console.error('[testing] Error deleting post:', error);
+    
+    // Handle database not ready errors
+    if (error.code === '42P01' || error.message?.includes('does not exist')) {
+      if (!dbInitialized) {
+        return res.status(503).json({
+          error: 'Database is initializing',
+          message: 'Please try again in a moment'
+        });
+      }
+    }
+    
+    // Handle post not found
+    if (error.message === 'Post not found') {
+      return res.status(404).json({ error: 'Post not found' });
+    }
+    
+    res.status(500).json({ 
+      error: 'Failed to delete post',
+      message: error.message 
+    });
+  }
+});
 
 // Authentication endpoints
 app.post('/api/auth/login', async (req, res) => {
   try {
+    // Check if database is ready
+    if (!dbInitialized) {
+      if (dbInitializationError) {
+        return res.status(503).json({
+          success: false,
+          error: 'Database initialization failed',
+          message: 'Please try again later'
+        });
+      }
+      return res.status(503).json({
+        success: false,
+        error: 'Database is initializing',
+        message: 'Please try again in a moment'
+      });
+    }
+
     const { email, password } = req.body;
     
     if (!email || !password) {
@@ -2183,6 +2955,18 @@ app.post('/api/auth/login', async (req, res) => {
 
   } catch (error) {
     console.error('[testing] Login error:', error);
+    
+    // Handle database not ready errors
+    if (error.code === '42P01' || error.message?.includes('does not exist')) {
+      if (!dbInitialized) {
+        return res.status(503).json({
+          success: false,
+          error: 'Database is initializing',
+          message: 'Please try again in a moment'
+        });
+      }
+    }
+    
     res.status(500).json({
       success: false,
       error: 'Login failed. Please try again.'
@@ -2193,6 +2977,22 @@ app.post('/api/auth/login', async (req, res) => {
 // Get current user from token
 app.get('/api/auth/me', authenticateUser, async (req, res) => {
   try {
+    // Check if database is ready
+    if (!dbInitialized) {
+      if (dbInitializationError) {
+        return res.status(503).json({
+          success: false,
+          error: 'Database initialization failed',
+          message: 'Please try again later'
+        });
+      }
+      return res.status(503).json({
+        success: false,
+        error: 'Database is initializing',
+        message: 'Please try again in a moment'
+      });
+    }
+
     const userId = req.user.id;
     const userResult = await query(
       'SELECT id, first_name, last_name, email, role, status, tenant_id, is_super_admin FROM users WHERE id = $1',
@@ -2224,8 +3024,23 @@ app.get('/api/auth/me', authenticateUser, async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error fetching current user:', error);
-    res.status(500).json({ success: false, error: 'Failed to fetch user data.' });
+    console.error('[testing] Error fetching current user:', error);
+    
+    // Handle database not ready errors gracefully
+    if (error.code === '42P01' || error.message?.includes('does not exist')) {
+      if (!dbInitialized) {
+        return res.status(503).json({
+          success: false,
+          error: 'Database is initializing',
+          message: 'Please try again in a moment'
+        });
+      }
+    }
+    
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to fetch user data.' 
+    });
   }
 });
 
