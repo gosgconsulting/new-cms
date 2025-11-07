@@ -1,28 +1,28 @@
 #!/usr/bin/env node
 
 /**
- * Script to start MCP Database Server for GO SG Website PostgreSQL
+ * Script to start MCP Database Server for Railway PostgreSQL
  * 
  * This script starts the MCP Database Server with the correct configuration
- * for connecting to the GO SG website's PostgreSQL database.
+ * for connecting to a Railway PostgreSQL database with self-signed certificate.
  */
 
 const { spawn } = require('child_process');
 const path = require('path');
 
-// PostgreSQL connection details
+// Railway PostgreSQL connection details
 const config = {
   host: 'trolley.proxy.rlwy.net',
   port: '58867',
   database: 'railway',
   user: 'postgres',
   password: 'bFiBuCeLqCnTWwMEAQxnVJWGPZZkHXkG',
-  ssl: true,
+  ssl: { rejectUnauthorized: false },
   connectionTimeout: 30000
 };
 
 // Path to the MCP Database Server
-const serverPath = path.join(__dirname, 'mcp-database-server', 'dist', 'src', 'index.js');
+const serverPath = path.join(__dirname, '../../mcp-database-server', 'dist', 'src', 'index.js');
 
 // Build command arguments
 const args = [
@@ -33,12 +33,13 @@ const args = [
   '--database', config.database,
   '--user', config.user,
   '--password', config.password,
-  '--ssl', config.ssl.toString(),
+  '--ssl', JSON.stringify(config.ssl),
   '--connection-timeout', config.connectionTimeout.toString()
 ];
 
-console.log('Starting MCP Database Server for GO SG Website PostgreSQL...');
+console.log('Starting MCP Database Server for Railway PostgreSQL...');
 console.log(`Connecting to: ${config.host}:${config.port}/${config.database}`);
+console.log('SSL config:', JSON.stringify(config.ssl));
 
 // Spawn the process
 const serverProcess = spawn('node', args, {

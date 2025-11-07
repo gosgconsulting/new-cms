@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import 'dotenv/config';
-import { query } from './sparti-cms/db/postgres.js';
+import { query } from '../../sparti-cms/db/postgres.js';
 
 async function migrateDatabase() {
   try {

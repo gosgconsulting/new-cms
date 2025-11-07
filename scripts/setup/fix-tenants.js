@@ -5,7 +5,7 @@
  * and creates a default tenant if none exists.
  */
 
-import { initializeTenantTables, query } from './sparti-cms/db/postgres.js';
+import { initializeTenantTables, query } from '../../sparti-cms/db/postgres.js';
 
 async function fixTenants() {
   console.log('Starting tenants fix script...');

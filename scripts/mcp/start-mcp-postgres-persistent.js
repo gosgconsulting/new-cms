@@ -29,7 +29,7 @@ const config = {
 // Configuration
 const MAX_RESTARTS = 10;
 const RESTART_DELAY = 5000; // 5 seconds
-const LOG_FILE = path.join(__dirname, 'mcp-postgres.log');
+const LOG_FILE = path.join(__dirname, '../../mcp-postgres.log');
 
 let restartCount = 0;
 let serverProcess = null;
@@ -47,7 +47,7 @@ function log(message) {
 
 // Start the MCP server
 function startServer() {
-  const serverPath = path.join(__dirname, 'mcp-database-server', 'dist', 'src', 'index.js');
+  const serverPath = path.join(__dirname, '../../mcp-database-server', 'dist', 'src', 'index.js');
   
   // Check if server file exists
   if (!fs.existsSync(serverPath)) {
