@@ -2250,8 +2250,21 @@ app.get('/api/posts', async (req, res) => {
 
     console.log('[testing] Fetching all posts for tenant:', tenantId);
     
-    // Fetch posts with tenant filtering
-    const result = await query(`
+    // Check if posts table has tenant_id column
+    let hasTenantId = false;
+    try {
+      const columnCheck = await query(`
+        SELECT column_name 
+        FROM information_schema.columns 
+        WHERE table_name = 'posts' AND column_name = 'tenant_id'
+      `);
+      hasTenantId = columnCheck.rows.length > 0;
+    } catch (err) {
+      console.log('[testing] Could not check for tenant_id column in posts table');
+    }
+    
+    // Build query with conditional tenant filtering
+    let queryText = `
       SELECT 
         p.*,
         COALESCE(
@@ -2272,10 +2285,18 @@ app.get('/api/posts', async (req, res) => {
       LEFT JOIN term_relationships tr ON p.id = tr.object_id
       LEFT JOIN term_taxonomy tt ON tr.term_taxonomy_id = tt.id
       LEFT JOIN terms t ON tt.term_id = t.id
-      WHERE p.tenant_id = $1 OR p.tenant_id IS NULL
-      GROUP BY p.id
-      ORDER BY p.created_at DESC
-    `, [tenantId]);
+      WHERE 1=1
+    `;
+    
+    const params = [];
+    if (hasTenantId) {
+      queryText += ` AND (p.tenant_id = $1 OR p.tenant_id IS NULL)`;
+      params.push(tenantId);
+    }
+    
+    queryText += ` GROUP BY p.id ORDER BY p.created_at DESC`;
+    
+    const result = await query(queryText, params);
     
     const posts = result.rows;
     res.json(posts);
@@ -2430,16 +2451,28 @@ app.post('/api/posts', async (req, res) => {
       });
     }
     
-    // Create the post with tenant_id
-    const postResult = await query(`
-      INSERT INTO posts (
-        title, slug, content, excerpt, status, post_type, author_id,
-        meta_title, meta_description, meta_keywords, canonical_url,
-        og_title, og_description, og_image, twitter_title, twitter_description, twitter_image,
-        published_at, tenant_id
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
-      RETURNING *
-    `, [
+    // Check if posts table has tenant_id column
+    let hasTenantId = false;
+    try {
+      const columnCheck = await query(`
+        SELECT column_name 
+        FROM information_schema.columns 
+        WHERE table_name = 'posts' AND column_name = 'tenant_id'
+      `);
+      hasTenantId = columnCheck.rows.length > 0;
+    } catch (err) {
+      console.log('[testing] Could not check for tenant_id column in posts table');
+    }
+    
+    // Build INSERT query conditionally including tenant_id
+    let insertColumns = `
+      title, slug, content, excerpt, status, post_type, author_id,
+      meta_title, meta_description, meta_keywords, canonical_url,
+      og_title, og_description, og_image, twitter_title, twitter_description, twitter_image,
+      published_at
+    `;
+    let insertValues = `$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18`;
+    const insertParams = [
       title,
       slug,
       content || '',
@@ -2456,9 +2489,20 @@ app.post('/api/posts', async (req, res) => {
       '',
       twitter_title || '',
       twitter_description || '',
-      published_at || null,
-      tenantId
-    ]);
+      published_at || null
+    ];
+    
+    if (hasTenantId) {
+      insertColumns += `, tenant_id`;
+      insertValues += `, $19`;
+      insertParams.push(tenantId);
+    }
+    
+    const postResult = await query(`
+      INSERT INTO posts (${insertColumns})
+      VALUES (${insertValues})
+      RETURNING *
+    `, insertParams);
 
     const post = postResult.rows[0];
 
