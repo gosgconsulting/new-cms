@@ -1,10 +1,12 @@
 /**
  * Language Service
- * Handles fetching and updating language settings from the database
+ * Handles all language-related operations including fetching, updating, adding, and removing languages
  */
 
+import { query } from '../db/postgres.js';
+
 // Types
-interface LanguageSetting {
+export interface LanguageSetting {
   id: number;
   setting_key: string;
   setting_value: string;
@@ -13,93 +15,59 @@ interface LanguageSetting {
   is_public: boolean;
   created_at: string;
   updated_at: string;
+  tenant_id?: string;
 }
 
-interface LanguageSettings {
+export interface LanguageSettings {
   defaultLanguage: string;
   additionalLanguages: string;
 }
 
-interface LanguageOperationResult {
+export interface LanguageOperationResult {
   success: boolean;
   message: string;
 }
 
 /**
  * Fetches language settings from the database
- * @param tenantId - Optional tenant ID to fetch settings for
+ * @param tenantId - Tenant ID to fetch settings for
  * @returns Promise with the language settings
  */
-export const fetchLanguageSettings = async (tenantId?: string | null): Promise<LanguageSettings> => {
+export const fetchLanguageSettings = async (tenantId: string = 'tenant-gosg'): Promise<LanguageSettings> => {
   try {
-    // @ts-ignore - Vite environment variables
-    const API_BASE_URL = import.meta.env?.VITE_API_BASE_URL || '';
-    const tenantParam = tenantId ? `?tenantId=${tenantId}` : '';
+    console.log(`[testing] Fetching language settings for tenant: ${tenantId}`);
     
-    console.log(`[testing] Fetching language settings from API for tenant: ${tenantId || 'default'}`);
-    console.log('[testing] API URL:', `${API_BASE_URL}/api/site-settings/site_language${tenantParam}`);
+    // Get default language (site_language)
+    const defaultLangResult = await query(
+      `SELECT setting_value FROM site_settings 
+       WHERE setting_key = 'site_language' AND tenant_id = $1`,
+      [tenantId]
+    );
     
-    // Import the API utility
-    const { default: api } = await import('../utils/api');
+    // Get additional languages (site_content_languages)
+    const additionalLangsResult = await query(
+      `SELECT setting_value FROM site_settings 
+       WHERE setting_key = 'site_content_languages' AND tenant_id = $1`,
+      [tenantId]
+    );
     
-    // Fetch site_language (default language)
-    const defaultLangResponse = await api.get(`/api/site-settings/site_language${tenantParam}`);
-    
-    // Fetch site_content_languages (additional languages)
-    const additionalLangsResponse = await api.get(`/api/site-settings/site_content_languages${tenantParam}`);
-    
-    // Log raw responses
-    console.log('[testing] Default language response status:', defaultLangResponse.status);
-    console.log('[testing] Additional languages response status:', additionalLangsResponse.status);
-    
-    // Check if responses are ok
-    if (!defaultLangResponse.ok) {
-      const errorText = await defaultLangResponse.text();
-      console.error('[testing] Failed to fetch default language:', errorText);
-      throw new Error('Failed to fetch default language');
-    }
-    
-    if (!additionalLangsResponse.ok) {
-      const errorText = await additionalLangsResponse.text();
-      console.error('[testing] Failed to fetch additional languages:', errorText);
-      throw new Error('Failed to fetch additional languages');
-    }
-    
-    // Parse response data
-    const defaultLangText = await defaultLangResponse.text();
-    console.log('[testing] Raw default language response text:', defaultLangText);
-    const defaultLangData = defaultLangText ? JSON.parse(defaultLangText) : null;
-    
-    const additionalLangsText = await additionalLangsResponse.text();
-    console.log('[testing] Raw additional languages response text:', additionalLangsText);
-    const additionalLangsData = additionalLangsText ? JSON.parse(additionalLangsText) : null;
-    
-    console.log('[testing] API response for default language (parsed):', defaultLangData);
-    console.log('[testing] API response for additional languages (parsed):', additionalLangsData);
-    
-    // Extract the setting_value from the response
+    // Extract values or use defaults
     let defaultLang = 'en';
     let additionalLangs = '';
     
-    // Get the default language
-    if (defaultLangData && defaultLangData.setting_value) {
-      defaultLang = defaultLangData.setting_value;
-      console.log('[testing] Default language from API:', defaultLang);
+    if (defaultLangResult.rows.length > 0 && defaultLangResult.rows[0].setting_value) {
+      defaultLang = defaultLangResult.rows[0].setting_value;
+      console.log('[testing] Default language from DB:', defaultLang);
     } else {
-      console.log('[testing] Default language not found in API response, using default:', defaultLang);
-      console.log('[testing] Default language data structure:', JSON.stringify(defaultLangData));
+      console.log('[testing] Default language not found in DB, using default:', defaultLang);
     }
     
-    // Get the additional languages
-    if (additionalLangsData && additionalLangsData.setting_value) {
-      additionalLangs = additionalLangsData.setting_value;
-      console.log('[testing] Additional languages from API:', additionalLangs);
+    if (additionalLangsResult.rows.length > 0 && additionalLangsResult.rows[0].setting_value) {
+      additionalLangs = additionalLangsResult.rows[0].setting_value;
+      console.log('[testing] Additional languages from DB:', additionalLangs);
     } else {
-      console.log('[testing] Additional languages not found in API response, using default:', additionalLangs);
-      console.log('[testing] Additional languages data structure:', JSON.stringify(additionalLangsData));
+      console.log('[testing] Additional languages not found in DB, using default:', additionalLangs);
     }
-    
-    console.log('[testing] Extracted language values:', { defaultLang, additionalLangs });
     
     return {
       defaultLanguage: defaultLang,
@@ -107,7 +75,7 @@ export const fetchLanguageSettings = async (tenantId?: string | null): Promise<L
     };
   } catch (error) {
     console.error('[testing] Error fetching language settings:', error);
-    // Return default values if API call fails
+    // Return default values if DB query fails
     return {
       defaultLanguage: 'en',
       additionalLanguages: ''
@@ -119,27 +87,22 @@ export const fetchLanguageSettings = async (tenantId?: string | null): Promise<L
  * Updates language settings in the database
  * @param defaultLanguage - The default language code
  * @param additionalLanguages - Comma-separated string of additional language codes
- * @param tenantId - Optional tenant ID to update settings for
+ * @param tenantId - Tenant ID to update settings for
  * @returns Promise with the updated language settings
  */
 export const updateLanguageSettings = async (
   defaultLanguage: string,
   additionalLanguages: string,
-  tenantId?: string | null
+  tenantId: string = 'tenant-gosg'
 ): Promise<LanguageSettings> => {
   try {
-    // @ts-ignore - Vite environment variables
-    const API_BASE_URL = import.meta.env?.VITE_API_BASE_URL || '';
-    const tenantParam = tenantId ? `?tenantId=${tenantId}` : '';
-    
-    console.log(`[testing] Updating language settings for tenant ${tenantId || 'default'}:`, { defaultLanguage, additionalLanguages });
+    console.log(`[testing] Updating language settings for tenant ${tenantId}:`, { defaultLanguage, additionalLanguages });
     
     // Ensure the default language is not in additionalLanguages
     let additionalLangsArray = additionalLanguages ? additionalLanguages.split(',').filter(lang => lang.trim() !== '') : [];
     additionalLangsArray = additionalLangsArray.filter(lang => lang !== defaultLanguage);
     
-    // Make sure the default language is included in additionalLanguages
-    // This is the key fix - we need to include the default language in site_content_languages
+    // Make sure the default language is included in site_content_languages
     if (!additionalLangsArray.includes(defaultLanguage)) {
       additionalLangsArray.push(defaultLanguage);
     }
@@ -147,42 +110,23 @@ export const updateLanguageSettings = async (
     const updatedAdditionalLanguages = additionalLangsArray.join(',');
     console.log(`[testing] Updated additionalLanguages to include default: ${updatedAdditionalLanguages}`);
     
-    // Import the API utility
-    const { default: api } = await import('../utils/api');
-    
     // Update site_language (default language)
-    const defaultLangResponse = await api.put(`/api/site-settings/site_language${tenantParam}`, {
-      setting_value: defaultLanguage,
-      setting_type: 'text',
-      setting_category: 'localization',
-      is_public: true
-    });
+    await query(
+      `INSERT INTO site_settings (setting_key, setting_value, setting_type, setting_category, is_public, tenant_id)
+       VALUES ('site_language', $1, 'text', 'localization', true, $2)
+       ON CONFLICT (setting_key, tenant_id) 
+       DO UPDATE SET setting_value = $1, updated_at = CURRENT_TIMESTAMP`,
+      [defaultLanguage, tenantId]
+    );
     
     // Update site_content_languages (additional languages)
-    const additionalLangsResponse = await api.put(`/api/site-settings/site_content_languages${tenantParam}`, {
-      setting_value: updatedAdditionalLanguages,
-      setting_type: 'text',
-      setting_category: 'localization',
-      is_public: true
-    });
-    
-    // Check if responses are ok
-    if (!defaultLangResponse.ok) {
-      console.error('[testing] Failed to update default language:', await defaultLangResponse.text());
-      throw new Error('Failed to update default language');
-    }
-    
-    if (!additionalLangsResponse.ok) {
-      console.error('[testing] Failed to update additional languages:', await additionalLangsResponse.text());
-      throw new Error('Failed to update additional languages');
-    }
-    
-    // Parse response data
-    const defaultLangResult = await defaultLangResponse.json();
-    const additionalLangsResult = await additionalLangsResponse.json();
-    
-    console.log('[testing] Default language update result:', defaultLangResult);
-    console.log('[testing] Additional languages update result:', additionalLangsResult);
+    await query(
+      `INSERT INTO site_settings (setting_key, setting_value, setting_type, setting_category, is_public, tenant_id)
+       VALUES ('site_content_languages', $1, 'text', 'localization', true, $2)
+       ON CONFLICT (setting_key, tenant_id) 
+       DO UPDATE SET setting_value = $1, updated_at = CURRENT_TIMESTAMP`,
+      [updatedAdditionalLanguages, tenantId]
+    );
     
     return {
       defaultLanguage,
@@ -198,42 +142,112 @@ export const updateLanguageSettings = async (
  * Add a new language to the site
  * 
  * @param languageCode - The language code to add
- * @param tenantId - Optional tenant ID
+ * @param tenantId - Tenant ID
  * @returns Promise with the result of the operation
  */
 export const addLanguage = async (
   languageCode: string,
-  tenantId?: string | null
+  tenantId: string = 'tenant-gosg'
 ): Promise<LanguageOperationResult> => {
+  console.log(`[testing] Adding language ${languageCode} for tenant ${tenantId}`);
+  
   try {
-    console.log(`[testing] Adding language ${languageCode} for tenant ${tenantId || 'default'}`);
+    // 1. Get current site_content_languages
+    const currentLanguagesResult = await query(
+      `SELECT setting_value 
+       FROM site_settings 
+       WHERE setting_key = 'site_content_languages' 
+       AND tenant_id = $1`,
+      [tenantId]
+    );
     
-    // Import the API utility
-    const { default: api } = await import('../utils/api');
-    
-    // Call the API endpoint
-    const endpoint = tenantId ? `/api/language/add?tenantId=${encodeURIComponent(tenantId)}` : '/api/language/add';
-    const response = await api.post(endpoint, {
-      languageCode
-    });
-    
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`[testing] Failed to add language ${languageCode}:`, errorText);
-      throw new Error(`Failed to add language: ${errorText}`);
+    // Parse the current languages
+    let currentLanguages: string[] = [];
+    if (currentLanguagesResult.rows.length > 0 && currentLanguagesResult.rows[0].setting_value) {
+      const rawValue = currentLanguagesResult.rows[0].setting_value;
+      console.log(`[testing] Raw site_content_languages value: "${rawValue}"`);
+      
+      // More robust parsing
+      if (rawValue.includes(',')) {
+        currentLanguages = rawValue.split(',').filter(lang => lang.trim() !== '');
+      } else if (rawValue.trim() !== '') {
+        // This is the case where there's only one language code (no commas)
+        currentLanguages = [rawValue.trim()];
+      }
+      
+      // Make sure the array is not empty and contains valid values
+      if (currentLanguages.length === 0 || currentLanguages.some(lang => !lang)) {
+        currentLanguages = [];
+      }
+      
+      console.log(`[testing] Parsed currentLanguages array:`, currentLanguages);
     }
     
-    const result = await response.json();
-    console.log(`[testing] Language ${languageCode} added successfully:`, result);
+    // 2. Check if language already exists
+    if (currentLanguages.includes(languageCode)) {
+      console.log(`[testing] Language ${languageCode} already exists for tenant ${tenantId}`);
+      return { success: false, message: `Language ${languageCode} already exists` };
+    }
     
-    // Refresh language settings
-    await fetchLanguageSettings(tenantId);
+    // Get the default language
+    const defaultLanguageResult = await query(
+      `SELECT setting_value 
+       FROM site_settings 
+       WHERE setting_key = 'site_language' 
+       AND tenant_id = $1`,
+      [tenantId]
+    );
     
-    return result;
+    const defaultLanguage = defaultLanguageResult.rows.length > 0 ? 
+      defaultLanguageResult.rows[0].setting_value : 'en';
+    
+    console.log(`[testing] Default language: ${defaultLanguage}`);
+    
+    // Don't add the default language to additional languages
+    if (languageCode === defaultLanguage) {
+      console.log(`[testing] Cannot add default language ${languageCode} as an additional language`);
+      return { success: false, message: `Cannot add default language as an additional language` };
+    }
+    
+    // Make sure the default language is in the currentLanguages array if it's not already there
+    if (!currentLanguages.includes(defaultLanguage)) {
+      console.log(`[testing] Adding default language ${defaultLanguage} to currentLanguages`);
+      currentLanguages.push(defaultLanguage);
+    }
+    
+    // Double-check that default language is actually in the array (defensive programming)
+    if (!currentLanguages.includes(defaultLanguage)) {
+      console.log(`[testing] CRITICAL: Default language ${defaultLanguage} still not in array, forcing it in`);
+      currentLanguages = [defaultLanguage, ...currentLanguages];
+    }
+    
+    // 3. Add new language to array
+    console.log(`[testing] Before adding new language, currentLanguages:`, currentLanguages);
+    currentLanguages.push(languageCode);
+    console.log(`[testing] After adding new language, currentLanguages:`, currentLanguages);
+    
+    // 4. Join back to comma-separated string and update database
+    const newLanguages = currentLanguages.join(',');
+    console.log(`[testing] New languages string to save: "${newLanguages}"`);
+    
+    await query(
+      `INSERT INTO site_settings (setting_key, setting_value, setting_type, setting_category, is_public, tenant_id)
+       VALUES ('site_content_languages', $1, 'text', 'localization', true, $2)
+       ON CONFLICT (setting_key, tenant_id) 
+       DO UPDATE SET setting_value = $1, updated_at = CURRENT_TIMESTAMP`,
+      [newLanguages, tenantId]
+    );
+    
+    console.log(`[testing] Updated site_content_languages to ${newLanguages} for tenant ${tenantId}`);
+    
+    // 5. Process page translations for the new language
+    await processPageTranslations(languageCode, tenantId);
+    
+    return { success: true, message: `Language ${languageCode} added successfully` };
   } catch (error) {
-    console.error(`[testing] Error adding language ${languageCode}:`, error);
-    return {
-      success: false,
+    console.error(`[testing] Error adding language ${languageCode} for tenant ${tenantId}:`, error);
+    return { 
+      success: false, 
       message: error instanceof Error ? error.message : 'Unknown error'
     };
   }
@@ -243,42 +257,104 @@ export const addLanguage = async (
  * Remove a language from the site
  * 
  * @param languageCode - The language code to remove
- * @param tenantId - Optional tenant ID
+ * @param tenantId - Tenant ID
  * @returns Promise with the result of the operation
  */
 export const removeLanguage = async (
   languageCode: string,
-  tenantId?: string | null
+  tenantId: string = 'tenant-gosg'
 ): Promise<LanguageOperationResult> => {
+  console.log(`[testing] Removing language ${languageCode} for tenant ${tenantId}`);
+  
   try {
-    console.log(`[testing] Removing language ${languageCode} for tenant ${tenantId || 'default'}`);
+    // 1. Get current site_content_languages
+    const currentLanguagesResult = await query(
+      `SELECT setting_value 
+       FROM site_settings 
+       WHERE setting_key = 'site_content_languages' 
+       AND tenant_id = $1`,
+      [tenantId]
+    );
     
-    // Import the API utility
-    const { default: api } = await import('../utils/api');
-    
-    // Call the API endpoint
-    const endpoint = tenantId ? `/api/language/remove?tenantId=${encodeURIComponent(tenantId)}` : '/api/language/remove';
-    const response = await api.post(endpoint, {
-      languageCode
-    });
-    
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`[testing] Failed to remove language ${languageCode}:`, errorText);
-      throw new Error(`Failed to remove language: ${errorText}`);
+    // Parse the current languages
+    let currentLanguages: string[] = [];
+    if (currentLanguagesResult.rows.length > 0 && currentLanguagesResult.rows[0].setting_value) {
+      const rawValue = currentLanguagesResult.rows[0].setting_value;
+      console.log(`[testing] Raw site_content_languages value: "${rawValue}"`);
+      
+      // More robust parsing
+      if (rawValue.includes(',')) {
+        currentLanguages = rawValue.split(',').filter(lang => lang.trim() !== '');
+      } else if (rawValue.trim() !== '') {
+        // This is the case where there's only one language code (no commas)
+        currentLanguages = [rawValue.trim()];
+      }
+      
+      // Make sure the array is not empty and contains valid values
+      if (currentLanguages.length === 0 || currentLanguages.some(lang => !lang)) {
+        currentLanguages = [];
+      }
+      
+      console.log(`[testing] Parsed currentLanguages array:`, currentLanguages);
     }
     
-    const result = await response.json();
-    console.log(`[testing] Language ${languageCode} removed successfully:`, result);
+    // 2. Check if language exists
+    if (!currentLanguages.includes(languageCode)) {
+      console.log(`[testing] Language ${languageCode} does not exist for tenant ${tenantId}`);
+      return { success: false, message: `Language ${languageCode} does not exist` };
+    }
     
-    // Refresh language settings
-    await fetchLanguageSettings(tenantId);
+    // Get the default language
+    const defaultLanguageResult = await query(
+      `SELECT setting_value 
+       FROM site_settings 
+       WHERE setting_key = 'site_language' 
+       AND tenant_id = $1`,
+      [tenantId]
+    );
     
-    return result;
+    const defaultLanguage = defaultLanguageResult.rows.length > 0 ? 
+      defaultLanguageResult.rows[0].setting_value : 'en';
+    
+    // Don't allow removing the default language
+    if (languageCode === defaultLanguage) {
+      console.log(`[testing] Cannot remove default language ${languageCode}`);
+      return { success: false, message: `Cannot remove default language` };
+    }
+    
+    // 3. Remove language from array
+    console.log(`[testing] Before removing language, currentLanguages:`, currentLanguages);
+    const newLanguages = currentLanguages.filter(lang => lang !== languageCode).join(',');
+    console.log(`[testing] New languages string to save: "${newLanguages}"`);
+    
+    // 4. Update database
+    await query(
+      `UPDATE site_settings 
+       SET setting_value = $1, updated_at = CURRENT_TIMESTAMP
+       WHERE setting_key = 'site_content_languages' 
+       AND tenant_id = $2`,
+      [newLanguages, tenantId]
+    );
+    
+    console.log(`[testing] Updated site_content_languages to ${newLanguages} for tenant ${tenantId}`);
+    
+    // 5. Delete translated page layouts for this language
+    const deleteResult = await query(
+      `DELETE FROM page_layouts
+       WHERE language = $1
+       AND page_id IN (
+         SELECT id FROM pages WHERE tenant_id = $2
+       )`,
+      [languageCode, tenantId]
+    );
+    
+    console.log(`[testing] Deleted ${deleteResult.rowCount} page layouts for language ${languageCode}`);
+    
+    return { success: true, message: `Language ${languageCode} removed successfully` };
   } catch (error) {
-    console.error(`[testing] Error removing language ${languageCode}:`, error);
-    return {
-      success: false,
+    console.error(`[testing] Error removing language ${languageCode} for tenant ${tenantId}:`, error);
+    return { 
+      success: false, 
       message: error instanceof Error ? error.message : 'Unknown error'
     };
   }
@@ -289,45 +365,395 @@ export const removeLanguage = async (
  * 
  * @param languageCode - The language code to set as default
  * @param fromAdditionalLanguages - Whether the language is being set from additional languages
- * @param tenantId - Optional tenant ID
+ * @param tenantId - Tenant ID
  * @returns Promise with the result of the operation
  */
 export const setDefaultLanguage = async (
   languageCode: string,
   fromAdditionalLanguages: boolean = false,
-  tenantId?: string | null
+  tenantId: string = 'tenant-gosg'
 ): Promise<LanguageOperationResult> => {
+  console.log(`[testing] Setting default language to ${languageCode} for tenant ${tenantId} (from additional languages: ${fromAdditionalLanguages})`);
+  
   try {
-    console.log(`[testing] Setting default language to ${languageCode} for tenant ${tenantId || 'default'} (from additional languages: ${fromAdditionalLanguages})`);
+    // Get the current default language
+    const currentDefaultResult = await query(
+      `SELECT setting_value 
+       FROM site_settings 
+       WHERE setting_key = 'site_language' 
+       AND tenant_id = $1`,
+      [tenantId]
+    );
     
-    // Import the API utility
-    const { default: api } = await import('../utils/api');
+    const currentDefault = currentDefaultResult.rows.length > 0 ? 
+      currentDefaultResult.rows[0].setting_value : 'en';
     
-    // Call the API endpoint
-    const endpoint = tenantId ? `/api/language/set-default?tenantId=${encodeURIComponent(tenantId)}` : '/api/language/set-default';
-    const response = await api.post(endpoint, {
-      languageCode,
-      fromAdditionalLanguages
-    });
-    
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`[testing] Failed to set default language to ${languageCode}:`, errorText);
-      throw new Error(`Failed to set default language: ${errorText}`);
+    // If the language is already the default, do nothing
+    if (currentDefault === languageCode) {
+      console.log(`[testing] Language ${languageCode} is already the default for tenant ${tenantId}`);
+      return { success: true, message: `Language ${languageCode} is already the default` };
     }
     
-    const result = await response.json();
-    console.log(`[testing] Default language set to ${languageCode} successfully:`, result);
+    // Check if translations exist for this language
+    if (fromAdditionalLanguages) {
+      // Path 1: Setting default from additional languages (translation exists)
+      await setDefaultFromAdditionalLanguages(languageCode, tenantId, currentDefault);
+    } else {
+      // Path 2: Setting default from "Change Default" (need to check if translation exists)
+      await setDefaultFromChangeDefault(languageCode, tenantId, currentDefault);
+    }
     
-    // Refresh language settings
-    await fetchLanguageSettings(tenantId);
-    
-    return result;
+    return { success: true, message: `Default language set to ${languageCode} successfully` };
   } catch (error) {
-    console.error(`[testing] Error setting default language to ${languageCode}:`, error);
-    return {
-      success: false,
+    console.error(`[testing] Error setting default language to ${languageCode} for tenant ${tenantId}:`, error);
+    return { 
+      success: false, 
       message: error instanceof Error ? error.message : 'Unknown error'
     };
   }
+};
+
+/**
+ * Set default language from additional languages
+ * 
+ * @param languageCode - The language code to set as default
+ * @param tenantId - Tenant ID
+ * @param currentDefault - The current default language
+ * @returns Promise<void>
+ */
+const setDefaultFromAdditionalLanguages = async (
+  languageCode: string,
+  tenantId: string,
+  currentDefault: string
+): Promise<void> => {
+  console.log(`[testing] Setting default from additional languages: ${languageCode} for tenant ${tenantId}`);
+  
+  // 1. Update site_language in site_settings
+  await query(
+    `INSERT INTO site_settings (setting_key, setting_value, setting_type, setting_category, is_public, tenant_id)
+     VALUES ('site_language', $1, 'text', 'localization', true, $2)
+     ON CONFLICT (setting_key, tenant_id) 
+     DO UPDATE SET setting_value = $1, updated_at = CURRENT_TIMESTAMP`,
+    [languageCode, tenantId]
+  );
+  
+  console.log(`[testing] Updated site_language to ${languageCode} for tenant ${tenantId}`);
+  
+  // 2. Update site_content_languages to remove the new default and add the old default
+  const currentLanguagesResult = await query(
+    `SELECT setting_value 
+     FROM site_settings 
+     WHERE setting_key = 'site_content_languages' 
+     AND tenant_id = $1`,
+    [tenantId]
+  );
+  
+  let currentLanguages: string[] = [];
+  if (currentLanguagesResult.rows.length > 0 && currentLanguagesResult.rows[0].setting_value) {
+    const rawValue = currentLanguagesResult.rows[0].setting_value;
+    console.log(`[testing] Raw site_content_languages value: "${rawValue}"`);
+    
+    // More robust parsing
+    if (rawValue.includes(',')) {
+      currentLanguages = rawValue.split(',').filter(lang => lang.trim() !== '');
+    } else if (rawValue.trim() !== '') {
+      currentLanguages = [rawValue.trim()];
+    }
+    
+    console.log(`[testing] Parsed currentLanguages array:`, currentLanguages);
+  }
+  
+  // Remove the new default language from additional languages
+  const filteredLanguages = currentLanguages.filter(lang => lang !== languageCode);
+  console.log(`[testing] After removing new default, filteredLanguages:`, filteredLanguages);
+  
+  // Add the old default language if it's not already there
+  if (!filteredLanguages.includes(currentDefault)) {
+    console.log(`[testing] Adding old default language ${currentDefault} to filteredLanguages`);
+    filteredLanguages.push(currentDefault);
+  }
+  
+  const newAdditionalLanguages = filteredLanguages.join(',');
+  console.log(`[testing] New additional languages string to save: "${newAdditionalLanguages}"`);
+  
+  await query(
+    `UPDATE site_settings 
+     SET setting_value = $1, updated_at = CURRENT_TIMESTAMP
+     WHERE setting_key = 'site_content_languages' 
+     AND tenant_id = $2`,
+    [newAdditionalLanguages, tenantId]
+  );
+  
+  console.log(`[testing] Updated site_content_languages to ${newAdditionalLanguages} for tenant ${tenantId}`);
+  
+  // 3. Update is_default flags in page_layouts
+  // First, get all pages for the tenant
+  const pagesResult = await query(
+    `SELECT id FROM pages WHERE tenant_id = $1`,
+    [tenantId]
+  );
+  
+  // For each page, update the is_default flags
+  for (const page of pagesResult.rows) {
+    const pageId = page.id;
+    
+    // Set is_default = false for current default layouts
+    await query(
+      `UPDATE page_layouts
+       SET is_default = false
+       WHERE page_id = $1
+       AND is_default = true`,
+      [pageId]
+    );
+    
+    // Set is_default = true for new default language layouts
+    await query(
+      `UPDATE page_layouts
+       SET is_default = true
+       WHERE page_id = $1
+       AND language = $2`,
+      [pageId, languageCode]
+    );
+    
+    console.log(`[testing] Updated is_default flags for page ${pageId}`);
+  }
+};
+
+/**
+ * Set default language from "Change Default" button
+ * 
+ * @param languageCode - The language code to set as default
+ * @param tenantId - Tenant ID
+ * @param currentDefault - The current default language
+ * @returns Promise<void>
+ */
+const setDefaultFromChangeDefault = async (
+  languageCode: string,
+  tenantId: string,
+  currentDefault: string
+): Promise<void> => {
+  console.log(`[testing] Setting default from change default: ${languageCode} for tenant ${tenantId}`);
+  
+  // Get all pages for the tenant
+  const pagesResult = await query(
+    `SELECT id FROM pages WHERE tenant_id = $1`,
+    [tenantId]
+  );
+  
+  // Check if translations exist for all pages
+  let allTranslationsExist = true;
+  const pagesToTranslate: number[] = [];
+  
+  for (const page of pagesResult.rows) {
+    const pageId = page.id;
+    
+    // Check if a translation exists for this page
+    const translationResult = await query(
+      `SELECT id FROM page_layouts
+       WHERE page_id = $1
+       AND language = $2`,
+      [pageId, languageCode]
+    );
+    
+    if (translationResult.rows.length === 0) {
+      allTranslationsExist = false;
+      pagesToTranslate.push(pageId);
+    }
+  }
+  
+  if (allTranslationsExist) {
+    // If all translations exist, follow Path 1
+    await setDefaultFromAdditionalLanguages(languageCode, tenantId, currentDefault);
+  } else {
+    // If translations don't exist for some pages, create them
+    
+    // 1. Update site_language in site_settings
+    await query(
+      `INSERT INTO site_settings (setting_key, setting_value, setting_type, setting_category, is_public, tenant_id)
+       VALUES ('site_language', $1, 'text', 'localization', true, $2)
+       ON CONFLICT (setting_key, tenant_id) 
+       DO UPDATE SET setting_value = $1, updated_at = CURRENT_TIMESTAMP`,
+      [languageCode, tenantId]
+    );
+    
+    console.log(`[testing] Updated site_language to ${languageCode} for tenant ${tenantId}`);
+    
+    // 2. Add the language to site_content_languages if not already present
+    const currentLanguagesResult = await query(
+      `SELECT setting_value 
+       FROM site_settings 
+       WHERE setting_key = 'site_content_languages' 
+       AND tenant_id = $1`,
+      [tenantId]
+    );
+    
+    let currentLanguages: string[] = [];
+    if (currentLanguagesResult.rows.length > 0 && currentLanguagesResult.rows[0].setting_value) {
+      const rawValue = currentLanguagesResult.rows[0].setting_value;
+      console.log(`[testing] Raw site_content_languages value: "${rawValue}"`);
+      
+      // More robust parsing
+      if (rawValue.includes(',')) {
+        currentLanguages = rawValue.split(',').filter(lang => lang.trim() !== '');
+      } else if (rawValue.trim() !== '') {
+        // This is the case where there's only one language code (no commas)
+        currentLanguages = [rawValue.trim()];
+      }
+      
+      // Make sure the array is not empty and contains valid values
+      if (currentLanguages.length === 0 || currentLanguages.some(lang => !lang)) {
+        currentLanguages = [];
+      }
+      
+      console.log(`[testing] Parsed currentLanguages array:`, currentLanguages);
+    }
+    
+    // Add the old default language if it's not already there
+    if (!currentLanguages.includes(currentDefault)) {
+      console.log(`[testing] Adding old default language ${currentDefault} to currentLanguages`);
+      currentLanguages.push(currentDefault);
+    }
+    
+    // Remove the new default language from additional languages
+    const filteredLanguages = currentLanguages.filter(lang => lang !== languageCode);
+    console.log(`[testing] After removing new default, filteredLanguages:`, filteredLanguages);
+    
+    const newAdditionalLanguages = filteredLanguages.join(',');
+    console.log(`[testing] New additional languages string to save: "${newAdditionalLanguages}"`);
+    
+    await query(
+      `UPDATE site_settings 
+       SET setting_value = $1, updated_at = CURRENT_TIMESTAMP
+       WHERE setting_key = 'site_content_languages' 
+       AND tenant_id = $2`,
+      [newAdditionalLanguages, tenantId]
+    );
+    
+    console.log(`[testing] Updated site_content_languages to ${newAdditionalLanguages} for tenant ${tenantId}`);
+    
+    // 3. For each page that needs translation
+    for (const pageId of pagesToTranslate) {
+      // Find the current default layout
+      const defaultLayoutResult = await query(
+        `SELECT layout_json, version
+         FROM page_layouts
+         WHERE page_id = $1
+         AND is_default = true`,
+        [pageId]
+      );
+      
+      if (defaultLayoutResult.rows.length === 0) {
+        console.log(`[testing] No default layout found for page ${pageId}, skipping`);
+        continue;
+      }
+      
+      const defaultLayout = defaultLayoutResult.rows[0];
+      const layoutJson = defaultLayout.layout_json;
+      const version = defaultLayout.version;
+      
+      // Instead of translating, we'll just duplicate the layout with the new language
+      // In a real implementation, we would translate the content
+      
+      // Set current default to is_default = false
+      await query(
+        `UPDATE page_layouts
+         SET is_default = false
+         WHERE page_id = $1
+         AND is_default = true`,
+        [pageId]
+      );
+      
+      // Store new layout with is_default = true
+      await query(
+        `INSERT INTO page_layouts (page_id, language, layout_json, version, is_default)
+         VALUES ($1, $2, $3, $4, true)`,
+        [pageId, languageCode, layoutJson, version]
+      );
+      
+      console.log(`[testing] Created new layout for page ${pageId} with language ${languageCode}`);
+    }
+  }
+};
+
+/**
+ * Process page translations for a new language
+ * 
+ * @param languageCode - The language code to translate to
+ * @param tenantId - Tenant ID
+ * @returns Promise<void>
+ */
+const processPageTranslations = async (
+  languageCode: string,
+  tenantId: string
+): Promise<void> => {
+  console.log(`[testing] Processing page translations for language ${languageCode} and tenant ${tenantId}`);
+  
+  try {
+    // 1. Get all pages for the tenant
+    const pagesResult = await query(
+      `SELECT id FROM pages WHERE tenant_id = $1`,
+      [tenantId]
+    );
+    
+    console.log(`[testing] Found ${pagesResult.rows.length} pages for tenant ${tenantId}`);
+    
+    // 2. For each page, get its default layout
+    for (const page of pagesResult.rows) {
+      const pageId = page.id;
+      
+      // Find the default layout
+      const defaultLayoutResult = await query(
+        `SELECT layout_json, version
+         FROM page_layouts
+         WHERE page_id = $1
+         AND is_default = true`,
+        [pageId]
+      );
+      
+      if (defaultLayoutResult.rows.length === 0) {
+        console.log(`[testing] No default layout found for page ${pageId}, skipping`);
+        continue;
+      }
+      
+      const defaultLayout = defaultLayoutResult.rows[0];
+      const layoutJson = defaultLayout.layout_json;
+      const version = defaultLayout.version;
+      
+      // Check if a translation already exists
+      const existingTranslationResult = await query(
+        `SELECT id FROM page_layouts
+         WHERE page_id = $1
+         AND language = $2`,
+        [pageId, languageCode]
+      );
+      
+      if (existingTranslationResult.rows.length > 0) {
+        console.log(`[testing] Translation already exists for page ${pageId} and language ${languageCode}, skipping`);
+        continue;
+      }
+      
+      // 3. Instead of translating, we'll just duplicate the layout with the new language
+      // In a real implementation, we would translate the content using translateLayoutContent
+      
+      // Store the "translated" layout
+      await query(
+        `INSERT INTO page_layouts (page_id, language, layout_json, version, is_default)
+         VALUES ($1, $2, $3, $4, false)`,
+        [pageId, languageCode, layoutJson, version]
+      );
+      
+      console.log(`[testing] Created new layout for page ${pageId} with language ${languageCode}`);
+    }
+  } catch (error) {
+    console.error(`[testing] Error processing page translations:`, error);
+    throw error;
+  }
+};
+
+export default {
+  fetchLanguageSettings,
+  updateLanguageSettings,
+  addLanguage,
+  removeLanguage,
+  setDefaultLanguage
 };

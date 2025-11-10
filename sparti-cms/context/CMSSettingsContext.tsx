@@ -1,4 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { fetchLanguageSettings } from '../services/languageServiceBridge';
+import { useAuth } from '../components/auth/AuthProvider';
 
 // Define types for our CMS settings
 export interface TypographySettings {
@@ -131,6 +133,7 @@ const STORAGE_KEY = 'cms_settings';
 
 // Provider component
 export const CMSSettingsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const { currentTenantId } = useAuth();
   const [settings, setSettings] = useState<CMSSettings>(defaultSettings);
   const [isInitialized, setIsInitialized] = useState(false);
 
@@ -148,26 +151,125 @@ export const CMSSettingsProvider: React.FC<{ children: ReactNode }> = ({ childre
           ];
         }
         
-  // Ensure mediaItems is always an array
-  if (!parsedSettings.mediaItems || !Array.isArray(parsedSettings.mediaItems)) {
-    parsedSettings.mediaItems = [];
-  }
-  
-  // Ensure language settings exist
-  if (!parsedSettings.language) {
-    parsedSettings.language = {
-      defaultLanguage: { code: 'en', name: 'English' },
-      additionalLanguages: []
-    };
-  }
-  
-  setSettings(parsedSettings);
+        // Ensure mediaItems is always an array
+        if (!parsedSettings.mediaItems || !Array.isArray(parsedSettings.mediaItems)) {
+          parsedSettings.mediaItems = [];
+        }
+        
+        // Ensure language settings exist
+        if (!parsedSettings.language) {
+          parsedSettings.language = {
+            defaultLanguage: { code: 'en', name: 'English' },
+            additionalLanguages: []
+          };
+        }
+        
+        setSettings(parsedSettings);
       } catch (error) {
         console.error('Failed to parse stored settings:', error);
       }
     }
     setIsInitialized(true);
   }, []);
+
+  // Load language settings from database
+  useEffect(() => {
+    const loadLanguageSettings = async () => {
+      try {
+        console.log(`[testing] CMSSettingsContext: Loading language settings for tenant: ${currentTenantId || 'default'}`);
+        const langSettings = await fetchLanguageSettings(currentTenantId);
+        
+        if (langSettings) {
+          console.log('[testing] CMSSettingsContext: Loaded language settings:', langSettings);
+          
+          // Convert defaultLanguage string to Language object
+          const defaultLang = langSettings.defaultLanguage || 'en';
+          const defaultLanguage = { 
+            code: defaultLang, 
+            name: getLanguageNameFromCode(defaultLang) 
+          };
+          
+          // Convert additionalLanguages string to array of Language objects
+          const additionalLangs = langSettings.additionalLanguages || '';
+          const additionalLanguages = additionalLangs
+            .split(',')
+            .filter(code => code.trim() !== '' && code.trim() !== defaultLang)
+            .map(code => ({
+              code: code.trim(),
+              name: getLanguageNameFromCode(code.trim())
+            }));
+          
+          console.log('[testing] CMSSettingsContext: Processed language settings:', {
+            defaultLanguage,
+            additionalLanguages
+          });
+          
+          // Update settings with language data from database
+          setSettings(prev => ({
+            ...prev,
+            language: {
+              defaultLanguage,
+              additionalLanguages
+            }
+          }));
+        }
+      } catch (error) {
+        console.error('[testing] CMSSettingsContext: Error loading language settings:', error);
+      }
+    };
+    
+    if (isInitialized) {
+      loadLanguageSettings();
+    }
+  }, [currentTenantId, isInitialized]);
+  
+  // Helper function to get language name from code
+  function getLanguageNameFromCode(code: string): string {
+    // This is a simplified version - in a real implementation, you would have a more complete mapping
+    const languageMap: {[key: string]: string} = {
+      'en': 'English',
+      'fr': 'French',
+      'es': 'Spanish',
+      'de': 'German',
+      'it': 'Italian',
+      'pt': 'Portuguese',
+      'ru': 'Russian',
+      'zh': 'Chinese',
+      'ja': 'Japanese',
+      'ko': 'Korean',
+      'ar': 'Arabic',
+      'hi': 'Hindi',
+      'bn': 'Bengali',
+      'pa': 'Punjabi',
+      'ta': 'Tamil',
+      'te': 'Telugu',
+      'ml': 'Malayalam',
+      'th': 'Thai',
+      'vi': 'Vietnamese',
+      'id': 'Indonesian',
+      'ms': 'Malay',
+      'tr': 'Turkish',
+      'pl': 'Polish',
+      'uk': 'Ukrainian',
+      'nl': 'Dutch',
+      'sv': 'Swedish',
+      'no': 'Norwegian',
+      'da': 'Danish',
+      'fi': 'Finnish',
+      'cs': 'Czech',
+      'sk': 'Slovak',
+      'hu': 'Hungarian',
+      'ro': 'Romanian',
+      'bg': 'Bulgarian',
+      'el': 'Greek',
+      'he': 'Hebrew',
+      'ur': 'Urdu',
+      'fa': 'Persian',
+      'sw': 'Swahili'
+    };
+    
+    return languageMap[code] || code.charAt(0).toUpperCase() + code.slice(1);
+  }
 
   // Save settings to localStorage whenever they change
   useEffect(() => {

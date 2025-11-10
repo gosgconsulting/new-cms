@@ -10,7 +10,7 @@ import gosgLogo from "@/assets/go-sg-logo-official.png";
 import LocationSection from "./LocationSection";
 import LanguageSection from "./LanguageSection";
 import { useAuth } from "../auth/AuthProvider";
-import { fetchLanguageSettings, updateLanguageSettings } from "../../services/languageService";
+import { fetchLanguageSettings, updateLanguageSettings } from "../../services/languageServiceBridge";
 import api from "../../utils/api";
 
 // Countries list

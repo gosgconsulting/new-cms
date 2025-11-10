@@ -25,12 +25,31 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      "pg": path.resolve(__dirname, "./pg-shim.js"),
     },
     dedupe: ['react', 'react-dom'],
   },
   optimizeDeps: {
+    esbuildOptions: {
+      // Node.js global to browser globalThis
+      define: {
+        global: 'globalThis',
+      },
+      // Tell esbuild to ignore these modules
+      plugins: [
+        {
+          name: 'node-modules-polyfill',
+          setup(build) {
+            // Mark pg as external to prevent bundling
+            build.onResolve({ filter: /^pg$/ }, () => {
+              return { external: true };
+            });
+          },
+        },
+      ],
+    },
     // Exclude server-side packages from frontend bundle
-    exclude: ['pg', 'express'],
+    exclude: ['pg', 'express', 'node:*'],
     // Force React and React-DOM to be pre-bundled together
     include: ['react', 'react-dom', 'react/jsx-runtime'],
     force: true // Force re-optimization to clear cache
@@ -38,6 +57,15 @@ export default defineConfig(({ mode }) => ({
   build: {
     commonjsOptions: {
       include: [/node_modules/],
+      transformMixedEsModules: true,
+    },
+    rollupOptions: {
+      external: ['pg', 'express'],
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+        },
+      },
     },
   },
 }));

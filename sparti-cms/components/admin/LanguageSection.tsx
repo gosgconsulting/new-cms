@@ -6,7 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/use-toast";
 import { useCMSSettings, Language } from '../../context/CMSSettingsContext';
-import { updateLanguageSettings, addLanguage } from '../../services/languageService';
+import { updateLanguageSettings, addLanguage, fetchLanguageSettings } from '../../services/languageServiceBridge';
 import { useAuth } from '../auth/AuthProvider';
 
 // Complete list of languages supported by Google Translate
@@ -160,26 +160,31 @@ const LanguageSection: React.FC<LanguageSectionProps> = ({
   
   const { settings, updateLanguage } = useCMSSettings();
   
+  // Log props and context for debugging
+  console.log('[testing] LanguageSection props:', {
+    defaultLangFromProps,
+    additionalLangsFromProps
+  });
+  console.log('[testing] LanguageSection context:', {
+    contextDefaultLang: settings.language.defaultLanguage,
+    contextAdditionalLangs: settings.language.additionalLanguages
+  });
+  
   const [isLoading, setIsLoading] = useState(false);
   // Always prioritize props over context
-  const [defaultLanguage, setDefaultLanguage] = useState<Language>(
-    defaultLangFromProps !== undefined
-      ? getLanguageByCodeOrName(defaultLangFromProps) 
-      : settings.language.defaultLanguage
-  );
-  const [additionalLanguages, setAdditionalLanguages] = useState<Language[]>(
-    additionalLangsFromProps !== undefined
-      ? parseAdditionalLanguages(additionalLangsFromProps, defaultLangFromProps) 
-      : settings.language.additionalLanguages
-  );
+  // Initialize with empty values, will be populated in useEffect
+  const [defaultLanguage, setDefaultLanguage] = useState<Language>({ code: 'en', name: 'English' });
+  const [additionalLanguages, setAdditionalLanguages] = useState<Language[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [isAddLanguageModalOpen, setIsAddLanguageModalOpen] = useState(false);
   const [isChangeDefaultModalOpen, setIsChangeDefaultModalOpen] = useState(false);
 
   // Helper function to get language by code or name
   function getLanguageByCodeOrName(codeOrName: string): Language {
+    console.log('[testing] Getting language by code or name:', codeOrName);
     
     if (!codeOrName) {
+      console.log('[testing] No code or name provided, returning English default');
       return { code: 'en', name: 'English' };
     }
     
@@ -188,6 +193,7 @@ const LanguageSection: React.FC<LanguageSectionProps> = ({
       lang.code.toLowerCase() === codeOrName.toLowerCase()
     );
     if (foundByCode) {
+      console.log('[testing] Found exact code match:', foundByCode);
       return foundByCode;
     }
     
@@ -196,6 +202,7 @@ const LanguageSection: React.FC<LanguageSectionProps> = ({
       lang.name.toLowerCase() === codeOrName.toLowerCase()
     );
     if (foundByName) {
+      console.log('[testing] Found name match:', foundByName);
       return foundByName;
     }
     
@@ -205,26 +212,33 @@ const LanguageSection: React.FC<LanguageSectionProps> = ({
     );
     if (foundByPartialCode) {
       // Use the original code but the matched name
-      return { code: codeOrName, name: foundByPartialCode.name };
+      const result = { code: codeOrName, name: foundByPartialCode.name };
+      console.log('[testing] Found partial code match:', result);
+      return result;
     }
     
     // If not found, return a default object with the given code and a formatted name
     // Convert code to title case for better display (e.g., "ko" -> "Ko")
     const formattedName = codeOrName.charAt(0).toUpperCase() + codeOrName.slice(1).toLowerCase();
-    return { code: codeOrName, name: formattedName };
+    const result = { code: codeOrName, name: formattedName };
+    console.log('[testing] No match found, using formatted name:', result);
+    return result;
   }
 
   // Helper function to parse comma-separated language codes
   function parseAdditionalLanguages(langString: string, defaultLang?: string): Language[] {
+    console.log('[testing] Parsing additional languages:', { langString, defaultLang });
     
     if (!langString) {
-
+      console.log('[testing] No additional languages to parse');
       return [];
     }
     
     const splitCodes = langString.split(',');
+    console.log('[testing] Split language codes:', splitCodes);
     
     const trimmedCodes = splitCodes.map(code => code.trim());
+    console.log('[testing] Trimmed language codes:', trimmedCodes);
     
     const filteredCodes = trimmedCodes.filter(code => {
       // Keep the code if:
@@ -233,39 +247,78 @@ const LanguageSection: React.FC<LanguageSectionProps> = ({
       const shouldKeep = Boolean(code) && (
         !defaultLang || code.toLowerCase() !== defaultLang.toLowerCase()
       );
+      console.log(`[testing] Filtering code ${code}: keep=${shouldKeep}, defaultLang=${defaultLang}`);
       return shouldKeep;
     });
+    console.log('[testing] Filtered language codes:', filteredCodes);
     
     const mappedLanguages = filteredCodes.map(code => {
       const lang = getLanguageByCodeOrName(code);
+      console.log(`[testing] Mapped language code ${code} to:`, lang);
       return lang;
     });
     
+    console.log('[testing] Final mapped languages:', mappedLanguages);
     return mappedLanguages;
   }
 
-  // Update local state when context settings change
+  // Load language settings directly from the database when tenant changes
   useEffect(() => {
-    console.log('[testing] useEffect triggered with:', {
+    const loadLanguageSettings = async () => {
+      if (!currentTenantId) return;
+      
+      console.log(`[testing] Loading language settings directly from DB for tenant: ${currentTenantId}`);
+      setIsLoading(true);
+      
+      try {
+        const langSettings = await fetchLanguageSettings(currentTenantId);
+        
+        console.log(`[testing] Fetched language settings for tenant ${currentTenantId}:`, langSettings);
+        
+        if (langSettings && langSettings.defaultLanguage) {
+          const defaultLang = getLanguageByCodeOrName(langSettings.defaultLanguage);
+          console.log(`[testing] Setting default language to:`, defaultLang);
+          setDefaultLanguage(defaultLang);
+          
+          // Parse additional languages
+          if (langSettings.additionalLanguages) {
+            const additionalLangs = parseAdditionalLanguages(
+              langSettings.additionalLanguages, 
+              langSettings.defaultLanguage
+            );
+            console.log(`[testing] Setting additional languages to:`, additionalLangs);
+            setAdditionalLanguages(additionalLangs);
+          }
+        }
+      } catch (error) {
+        console.error(`[testing] Error loading language settings for tenant ${currentTenantId}:`, error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadLanguageSettings();
+  }, [currentTenantId]);
+  
+  // Update local state when props or context change
+  useEffect(() => {
+    console.log('[testing] Props/context change effect triggered with:', {
       defaultLangFromProps,
       additionalLangsFromProps,
       contextLanguage: settings.language
     });
     
-    // Only use context if props are not provided
-    if (defaultLangFromProps === undefined && additionalLangsFromProps === undefined) {
-      setDefaultLanguage(settings.language.defaultLanguage);
-      setAdditionalLanguages(settings.language.additionalLanguages);
-    } else {
-      // If props are provided, use them
-      if (defaultLangFromProps !== undefined) {
+    // Only use context/props if we're not loading from DB directly
+    if (!isLoading) {
+      // Priority: props > direct DB load > context
+      if (defaultLangFromProps !== undefined && additionalLangsFromProps !== undefined) {
+        // If props are provided, use them
+        console.log('[testing] Using props for language settings');
         setDefaultLanguage(getLanguageByCodeOrName(defaultLangFromProps));
-      }
-      if (additionalLangsFromProps !== undefined) {
         setAdditionalLanguages(parseAdditionalLanguages(additionalLangsFromProps, defaultLangFromProps));
       }
     }
-  }, [settings.language, defaultLangFromProps, additionalLangsFromProps]);
+  }, [settings.language, defaultLangFromProps, additionalLangsFromProps, isLoading]);
 
   const handleAddLanguage = async (language: Language) => {
     // Check if language is already added
@@ -305,7 +358,7 @@ const LanguageSection: React.FC<LanguageSectionProps> = ({
       console.log('[testing] Adding language to database:', language.code);
       
       // Call the addLanguage function which will create page translations
-      const result = await addLanguage(language.code, currentTenantId);
+      const result = await addLanguage(language.code, currentTenantId || undefined);
       
       if (result.success) {
         toast({
@@ -348,7 +401,7 @@ const LanguageSection: React.FC<LanguageSectionProps> = ({
       });
       
       // Save to the database
-      await updateLanguageSettings(defaultLanguage.code, additionalLangCodes, currentTenantId);
+      await updateLanguageSettings(defaultLanguage.code, additionalLangCodes, currentTenantId || undefined);
       
       toast({
         title: "Success",
@@ -400,8 +453,8 @@ const LanguageSection: React.FC<LanguageSectionProps> = ({
         additionalLanguages: additionalLangCodes
       });
       
-      // In a real environment, uncomment this to save to the database
-      // await updateLanguageSettings(language.code, additionalLangCodes, currentTenantId);
+      // Save to the database
+      await updateLanguageSettings(language.code, additionalLangCodes, currentTenantId || undefined);
       
       toast({
         title: "Success",
