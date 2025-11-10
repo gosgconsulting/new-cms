@@ -42,12 +42,12 @@ export const canUserAccessTenant = (user, tenantId) => {
 };
 
 // Page Layout Helpers
-export async function getLayoutBySlug(slug) {
+export async function getLayoutBySlug(slug, language = 'default') {
   try {
     const pageRes = await query(`SELECT id FROM pages WHERE slug = $1`, [slug]);
     if (pageRes.rows.length === 0) return null;
     const pageId = pageRes.rows[0].id;
-    const layoutRes = await query(`SELECT layout_json, version, updated_at FROM page_layouts WHERE page_id = $1`, [pageId]);
+    const layoutRes = await query(`SELECT layout_json, version, updated_at FROM page_layouts WHERE page_id = $1 AND language = $2`, [pageId, language]);
     return layoutRes.rows[0] || { layout_json: { components: [] }, version: 1 };
   } catch (error) {
     console.error('Error fetching layout by slug:', error);
@@ -55,7 +55,7 @@ export async function getLayoutBySlug(slug) {
   }
 }
 
-export async function upsertLayoutBySlug(slug, layoutJson) {
+export async function upsertLayoutBySlug(slug, layoutJson, language = 'default') {
   try {
     const pageRes = await query(`SELECT id FROM pages WHERE slug = $1`, [slug]);
     if (pageRes.rows.length === 0) {
@@ -63,12 +63,12 @@ export async function upsertLayoutBySlug(slug, layoutJson) {
     }
     const pageId = pageRes.rows[0].id;
     const result = await query(`
-      INSERT INTO page_layouts (page_id, layout_json, version, updated_at)
-      VALUES ($1, $2, 1, NOW())
-      ON CONFLICT (page_id)
+      INSERT INTO page_layouts (page_id, language, layout_json, version, updated_at)
+      VALUES ($1, $2, $3, 1, NOW())
+      ON CONFLICT (page_id, language)
       DO UPDATE SET layout_json = EXCLUDED.layout_json, version = page_layouts.version + 1, updated_at = NOW()
       RETURNING layout_json, version
-    `, [pageId, layoutJson]);
+    `, [pageId, language, layoutJson]);
     return result.rows[0];
   } catch (error) {
     console.error('Error upserting layout by slug:', error);
@@ -1285,12 +1285,65 @@ export async function initializeSEOPagesTables() {
       CREATE TABLE IF NOT EXISTS page_layouts (
         id SERIAL PRIMARY KEY,
         page_id INTEGER NOT NULL REFERENCES pages(id) ON DELETE CASCADE,
+        language VARCHAR(50) NOT NULL DEFAULT 'default',
         layout_json JSONB NOT NULL DEFAULT '{"components":[]}',
         version INTEGER NOT NULL DEFAULT 1,
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-        UNIQUE(page_id)
+        UNIQUE(page_id, language)
       )
     `);
+    
+    // Migration: Add language column if it doesn't exist (for existing tables)
+    try {
+      await query(`
+        ALTER TABLE page_layouts 
+        ADD COLUMN IF NOT EXISTS language VARCHAR(50) NOT NULL DEFAULT 'default'
+      `);
+    } catch (error) {
+      // Column might already exist, ignore
+      if (!error.message.includes('already exists') && error.code !== '42701') {
+        console.log('[testing] Note: Could not add language column:', error.message);
+      }
+    }
+    
+    // Migration: Drop old unique constraint on page_id if it exists
+    try {
+      // Check if constraint exists and drop it
+      const constraintCheck = await query(`
+        SELECT constraint_name 
+        FROM information_schema.table_constraints 
+        WHERE table_name = 'page_layouts' 
+        AND constraint_type = 'UNIQUE'
+        AND constraint_name LIKE '%page_id%'
+        AND constraint_name NOT LIKE '%language%'
+      `);
+      
+      for (const constraint of constraintCheck.rows) {
+        await query(`
+          ALTER TABLE page_layouts 
+          DROP CONSTRAINT IF EXISTS ${constraint.constraint_name}
+        `);
+        console.log(`[testing] Dropped old unique constraint: ${constraint.constraint_name}`);
+      }
+    } catch (error) {
+      console.log('[testing] Note: Could not drop old constraint (may not exist):', error.message);
+    }
+    
+    // Migration: Add composite unique constraint on (page_id, language) if it doesn't exist
+    try {
+      await query(`
+        ALTER TABLE page_layouts 
+        ADD CONSTRAINT page_layouts_page_id_language_unique UNIQUE (page_id, language)
+      `);
+      console.log('[testing] Composite unique constraint on (page_id, language) added successfully');
+    } catch (error) {
+      // Constraint already exists, ignore
+      if (error.code === '42710' || error.code === '42P16' || error.message.includes('already exists')) {
+        console.log('[testing] Composite unique constraint on (page_id, language) already exists');
+      } else {
+        console.log('[testing] Note: Could not add composite unique constraint:', error.message);
+      }
+    }
 
     await query(`
       CREATE TABLE IF NOT EXISTS page_components (
@@ -1315,7 +1368,7 @@ export async function initializeSEOPagesTables() {
       homePageId = created.rows[0].id;
     }
 
-    const layoutCheck = await query(`SELECT 1 FROM page_layouts WHERE page_id = $1`, [homePageId]);
+    const layoutCheck = await query(`SELECT 1 FROM page_layouts WHERE page_id = $1 AND language = 'default'`, [homePageId]);
     if (layoutCheck.rows.length === 0) {
       const defaultLayout = {
         components: [
@@ -1331,10 +1384,10 @@ export async function initializeSEOPagesTables() {
         ]
       };
       await query(`
-        INSERT INTO page_layouts (page_id, layout_json, version, updated_at)
-        VALUES ($1, $2, 1, NOW())
-        ON CONFLICT (page_id) DO NOTHING
-      `, [homePageId, defaultLayout]);
+        INSERT INTO page_layouts (page_id, language, layout_json, version, updated_at)
+        VALUES ($1, 'default', $2, 1, NOW())
+        ON CONFLICT (page_id, language) DO NOTHING
+      `, [homePageId, JSON.stringify(defaultLayout)]);
     }
 
     console.log('Unified pages table initialized successfully');
@@ -1713,11 +1766,11 @@ export async function getPageWithLayout(pageId, tenantId = 'tenant-gosg') {
     
     const page = pageResult.rows[0];
     
-    // Get the layout data
+    // Get the layout data (default language)
     const layoutResult = await query(`
       SELECT layout_json, version, updated_at
       FROM page_layouts
-      WHERE page_id = $1
+      WHERE page_id = $1 AND language = 'default'
       ORDER BY version DESC
       LIMIT 1
     `, [pageId]);
@@ -1755,7 +1808,7 @@ export async function updatePageData(pageId, pageName, metaTitle, metaDescriptio
 }
 
 // Update page layout
-export async function updatePageLayout(pageId, layoutJson, tenantId = 'tenant-gosg') {
+export async function updatePageLayout(pageId, layoutJson, tenantId = 'tenant-gosg', language = 'default') {
   try {
     // Check if page exists
     const pageCheck = await query(`
@@ -1767,15 +1820,110 @@ export async function updatePageLayout(pageId, layoutJson, tenantId = 'tenant-go
       return false;
     }
     
-    // Update existing layout or insert new one
-    const result = await query(`
-      INSERT INTO page_layouts (page_id, layout_json, version, updated_at)
-      VALUES ($1, $2, 1, NOW())
-      ON CONFLICT (page_id) 
-      DO UPDATE SET 
-        layout_json = EXCLUDED.layout_json,
+    // Ensure language column exists (migration safety)
+    try {
+      await query(`
+        ALTER TABLE page_layouts 
+        ADD COLUMN IF NOT EXISTS language VARCHAR(50) NOT NULL DEFAULT 'default'
+      `);
+    } catch (error) {
+      // Column already exists, ignore
+      if (error.code !== '42701' && !error.message.includes('already exists')) {
+        console.log('[testing] Note: Could not ensure language column exists:', error.message);
+      }
+    }
+    
+    // Ensure composite unique constraint exists (migration safety)
+    try {
+      const constraintCheck = await query(`
+        SELECT constraint_name 
+        FROM information_schema.table_constraints 
+        WHERE table_name = 'page_layouts' 
+        AND constraint_type = 'UNIQUE'
+        AND constraint_name = 'page_layouts_page_id_language_unique'
+      `);
+      
+      if (constraintCheck.rows.length === 0) {
+        // Try to add the constraint
+        try {
+          await query(`
+            ALTER TABLE page_layouts 
+            ADD CONSTRAINT page_layouts_page_id_language_unique UNIQUE (page_id, language)
+          `);
+          console.log('[testing] Added composite unique constraint at runtime');
+        } catch (constraintError) {
+          // If constraint creation fails due to duplicates, clean them up first
+          if (constraintError.code === '23505') {
+            console.log('[testing] Cleaning up duplicates before adding constraint...');
+            const duplicates = await query(`
+              SELECT page_id, COUNT(*) as count
+              FROM page_layouts
+              GROUP BY page_id, language
+              HAVING COUNT(*) > 1
+            `);
+            
+            for (const dup of duplicates.rows) {
+              await query(`
+                WITH ranked_layouts AS (
+                  SELECT id, 
+                         ROW_NUMBER() OVER (PARTITION BY page_id, language ORDER BY updated_at DESC, id DESC) as rn
+                  FROM page_layouts
+                  WHERE page_id = $1 AND language = $2
+                )
+                DELETE FROM page_layouts
+                WHERE page_id = $1 AND language = $2
+                AND id IN (
+                  SELECT id FROM ranked_layouts WHERE rn > 1
+                )
+              `, [dup.page_id, language]);
+            }
+            
+            // Try again after cleanup
+            await query(`
+              ALTER TABLE page_layouts 
+              ADD CONSTRAINT page_layouts_page_id_language_unique UNIQUE (page_id, language)
+            `);
+          }
+        }
+      }
+    } catch (error) {
+      console.log('[testing] Note: Could not ensure composite unique constraint exists:', error.message);
+    }
+    
+    // Try to update existing layout first
+    const updateResult = await query(`
+      UPDATE page_layouts 
+      SET 
+        layout_json = $2,
+        version = version + 1,
         updated_at = NOW()
-    `, [pageId, JSON.stringify(layoutJson)]);
+      WHERE page_id = $1 AND language = $3
+    `, [pageId, JSON.stringify(layoutJson), language]);
+    
+    // If no rows were updated, insert a new layout
+    if (updateResult.rowCount === 0) {
+      // Check if layout already exists (to avoid constraint violation)
+      const existingCheck = await query(`
+        SELECT id FROM page_layouts WHERE page_id = $1 AND language = $2
+      `, [pageId, language]);
+      
+      if (existingCheck.rows.length === 0) {
+        await query(`
+          INSERT INTO page_layouts (page_id, language, layout_json, version, updated_at)
+          VALUES ($1, $2, $3, 1, NOW())
+        `, [pageId, language, JSON.stringify(layoutJson)]);
+      } else {
+        // Layout exists but update didn't work, try update again
+        await query(`
+          UPDATE page_layouts 
+          SET 
+            layout_json = $2,
+            version = version + 1,
+            updated_at = NOW()
+          WHERE page_id = $1 AND language = $3
+        `, [pageId, JSON.stringify(layoutJson), language]);
+      }
+    }
     
     return true;
   } catch (error) {
