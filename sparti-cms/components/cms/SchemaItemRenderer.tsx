@@ -393,6 +393,24 @@ export const SchemaItemEditor: React.FC<SchemaItemEditorProps> = ({
                 rows={3}
               />
             </div>
+            <div>
+              <label className="block text-xs text-gray-600 mb-1">Date</label>
+              <input
+                type="text"
+                value={item.props?.date || item.props?.time || ''}
+                onChange={(e) => handleItemChange({ 
+                  ...item, 
+                  props: { 
+                    ...item.props, 
+                    date: e.target.value,
+                    // If time property exists, update it as well for backward compatibility
+                    ...(item.props?.time !== undefined ? { time: e.target.value } : {})
+                  } 
+                })}
+                placeholder="e.g., Il y a 3 jours"
+                className="w-full p-2 border rounded text-sm"
+              />
+            </div>
             <div className="flex items-center gap-2">
               <label htmlFor={`hasAvatar-${item.key}`} className="relative inline-block w-10 align-middle select-none cursor-pointer">
                 <input
