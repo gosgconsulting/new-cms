@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Database, Key } from 'lucide-react';
@@ -57,15 +57,39 @@ export const PostgresIntegration: React.FC<PostgresIntegrationProps> = ({ tenant
     setShowApiKeyModal(true);
   };
 
-  const generateApiKey = () => {
+  const generateApiKey = async () => {
     setIsGenerating(true);
     
-    // Simulate API key generation
-    setTimeout(() => {
-      const newApiKey = `tenant_${tenant.id}_${Math.random().toString(36).substring(2, 15)}`;
-      setApiKey(newApiKey);
+    try {
+      // Get auth token for the request
+      const token = localStorage.getItem('sparti-user-session');
+      const authToken = token ? JSON.parse(token).token : null;
+      
+      // Call the actual backend API to generate and save the key
+      const response = await fetch(`/api/tenants/${tenant.id}/api-keys`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(authToken && { 'Authorization': `Bearer ${authToken}` })
+        },
+        body: JSON.stringify({
+          description: 'API Key from Developer Section'
+        })
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to generate API key');
+      }
+      
+      const result = await response.json();
+      setApiKey(result.apiKey);
+    } catch (error) {
+      console.error('[testing] Error generating API key:', error);
+      alert(`Failed to generate API key: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
       setIsGenerating(false);
-    }, 800);
+    }
   };
 
   const copyToClipboard = () => {

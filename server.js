@@ -3384,6 +3384,15 @@ app.use(express.static(join(__dirname, 'dist')));
 
 // Handle all other routes by serving the React app - MUST be last
 app.use((req, res) => {
+  // Don't serve HTML for API routes - return 404 JSON instead
+  if (req.path.startsWith('/api/')) {
+    return res.status(404).json({
+      success: false,
+      error: 'API endpoint not found',
+      path: req.path
+    });
+  }
+  
   const indexPath = join(__dirname, 'dist', 'index.html');
   if (existsSync(indexPath)) {
     res.sendFile(indexPath);

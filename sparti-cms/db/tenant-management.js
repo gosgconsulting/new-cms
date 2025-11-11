@@ -280,7 +280,62 @@ export async function deleteTenantApiKey(keyId) {
  */
 export async function validateApiKey(apiKey) {
   try {
-    const result = await query(`
+    console.log('[testing] Validating API key:', {
+      apiKey,
+      apiKeyLength: apiKey?.length,
+      apiKeyType: typeof apiKey
+    });
+    
+    // First check if API key exists
+    const keyCheck = await query(`
+      SELECT tenant_id, expires_at, api_key
+      FROM tenant_api_keys
+      WHERE api_key = $1
+    `, [apiKey]);
+    
+    console.log('[testing] Key check result:', {
+      found: keyCheck.rows.length > 0,
+      tenant_id: keyCheck.rows[0]?.tenant_id,
+      expires_at: keyCheck.rows[0]?.expires_at,
+      api_key_in_db: keyCheck.rows[0]?.api_key,
+      api_key_match: keyCheck.rows[0]?.api_key === apiKey
+    });
+    
+    if (keyCheck.rows.length === 0) {
+      console.log('[testing] API key not found in database');
+      return { valid: false, reason: 'API key not found' };
+    }
+    
+    const keyData = keyCheck.rows[0];
+    
+    // Check expiration
+    if (keyData.expires_at && new Date(keyData.expires_at) <= new Date()) {
+      console.log('[testing] API key expired:', keyData.expires_at);
+      return { valid: false, reason: 'API key expired' };
+    }
+    
+    // Now check tenant
+    const tenantCheck = await query(`
+      SELECT id, name
+      FROM tenants
+      WHERE id = $1
+    `, [keyData.tenant_id]);
+    
+    console.log('[testing] Tenant check result:', {
+      tenant_id_looking_for: keyData.tenant_id,
+      found: tenantCheck.rows.length > 0,
+      tenant_id_in_db: tenantCheck.rows[0]?.id,
+      tenant_name: tenantCheck.rows[0]?.name,
+      tenant_id_match: tenantCheck.rows[0]?.id === keyData.tenant_id
+    });
+    
+    if (tenantCheck.rows.length === 0) {
+      console.log('[testing] Tenant not found for tenant_id:', keyData.tenant_id);
+      return { valid: false, reason: 'Tenant not found', tenant_id: keyData.tenant_id };
+    }
+    
+    // Now try the JOIN query to see if it works
+    const joinResult = await query(`
       SELECT tak.tenant_id, t.name
       FROM tenant_api_keys tak
       JOIN tenants t ON tak.tenant_id = t.id
@@ -288,11 +343,23 @@ export async function validateApiKey(apiKey) {
       AND (tak.expires_at IS NULL OR tak.expires_at > NOW())
     `, [apiKey]);
     
-    if (result.rows.length === 0) {
-      return { valid: false };
+    console.log('[testing] JOIN query result:', {
+      found: joinResult.rows.length > 0,
+      tenant_id: joinResult.rows[0]?.tenant_id,
+      tenant_name: joinResult.rows[0]?.name
+    });
+    
+    if (joinResult.rows.length === 0) {
+      return { valid: false, reason: 'JOIN query returned no results' };
     }
     
-    return { valid: true, tenant: result.rows[0] };
+    return { 
+      valid: true, 
+      tenant: {
+        tenant_id: joinResult.rows[0].tenant_id,
+        name: joinResult.rows[0].name
+      }
+    };
   } catch (error) {
     console.error(`[testing] Error validating API key:`, error);
     throw error;
