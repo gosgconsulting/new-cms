@@ -425,6 +425,84 @@ export const FooterSchemaEditor: React.FC<FooterSchemaEditorProps> = ({ onBack }
                             addButtonText="Add Link"
                           />
                         )}
+                        
+                        {/* Social Media section */}
+                        {'socialMedia' in section && section.socialMedia && (
+                          <div className="space-y-3 border border-gray-200 rounded-md p-4">
+                            <div className="flex items-center justify-between mb-3">
+                              <h4 className="text-sm font-medium">Social Media</h4>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  const currentSocialMedia = section.socialMedia || [];
+                                  const newSocialMediaGroup = {
+                                    links: []
+                                  };
+                                  const updatedSection = isCustomFormat 
+                                    ? { ...sectionObj, [sectionKey!]: { ...section, socialMedia: [...currentSocialMedia, newSocialMediaGroup] } }
+                                    : { ...section, socialMedia: [...currentSocialMedia, newSocialMediaGroup] };
+                                  updateSection(sectionIndex, updatedSection);
+                                }}
+                                className="h-7 text-xs"
+                              >
+                                <Plus className="h-3 w-3 mr-1" />
+                                Add Social Media Group
+                              </Button>
+                            </div>
+                            
+                            {section.socialMedia.map((socialGroup: any, groupIndex: number) => (
+                              <Card key={groupIndex} className="bg-gray-50">
+                                <CardHeader className="pb-2">
+                                  <div className="flex items-center justify-between">
+                                    <CardTitle className="text-xs">Social Media Group #{groupIndex + 1}</CardTitle>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => {
+                                        const updatedSocialMedia = section.socialMedia.filter((_: any, i: number) => i !== groupIndex);
+                                        const updatedSection = isCustomFormat 
+                                          ? { ...sectionObj, [sectionKey!]: { ...section, socialMedia: updatedSocialMedia } }
+                                          : { ...section, socialMedia: updatedSocialMedia };
+                                        updateSection(sectionIndex, updatedSection);
+                                      }}
+                                      className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
+                                    >
+                                      <X className="h-3 w-3" />
+                                    </Button>
+                                  </div>
+                                </CardHeader>
+                                <CardContent>
+                                  <MenuItemsList
+                                    items={(socialGroup.links || []).map((link: any) => ({
+                                      id: link.id || `social_${Date.now()}_${Math.random()}`,
+                                      label: link.label,
+                                      link: link.link,
+                                      icon: link.icon
+                                    }))}
+                                    onChange={(links) => {
+                                      const updatedSocialMedia = [...(section.socialMedia || [])];
+                                      updatedSocialMedia[groupIndex] = { links };
+                                      const updatedSection = isCustomFormat 
+                                        ? { ...sectionObj, [sectionKey!]: { ...section, socialMedia: updatedSocialMedia } }
+                                        : { ...section, socialMedia: updatedSocialMedia };
+                                      updateSection(sectionIndex, updatedSection);
+                                    }}
+                                    title="Social Media Links"
+                                    addButtonText="Add Social Link"
+                                    showDropdown={false}
+                                  />
+                                </CardContent>
+                              </Card>
+                            ))}
+                            
+                            {(!section.socialMedia || section.socialMedia.length === 0) && (
+                              <div className="text-center py-4 text-gray-400 text-xs border-2 border-dashed border-gray-300 rounded bg-white">
+                                No social media groups added yet
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </CardContent>
                     </Card>
                   );
