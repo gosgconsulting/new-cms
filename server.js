@@ -118,7 +118,7 @@ const upload = multer({
 });
 
 // Middleware
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
 
 // JWT Secret
 const JWT_SECRET = process.env.JWT_SECRET || 'sparti-demo-secret-key';
