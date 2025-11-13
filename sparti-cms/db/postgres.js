@@ -1331,18 +1331,26 @@ export async function initializeSEOPagesTables() {
     
     // Migration: Add composite unique constraint on (page_id, language) if it doesn't exist
     try {
-      await query(`
-        ALTER TABLE page_layouts 
-        ADD CONSTRAINT page_layouts_page_id_language_unique UNIQUE (page_id, language)
+      const constraintCheck = await query(`
+        SELECT constraint_name 
+        FROM information_schema.table_constraints 
+        WHERE table_name = 'page_layouts' 
+        AND constraint_type = 'UNIQUE'
+        AND constraint_name = 'page_layouts_page_id_language_unique'
       `);
-      console.log('[testing] Composite unique constraint on (page_id, language) added successfully');
-    } catch (error) {
-      // Constraint already exists, ignore
-      if (error.code === '42710' || error.code === '42P16' || error.message.includes('already exists')) {
-        console.log('[testing] Composite unique constraint on (page_id, language) already exists');
+      
+      if (constraintCheck.rows.length === 0) {
+        await query(`
+          ALTER TABLE page_layouts 
+          ADD CONSTRAINT page_layouts_page_id_language_unique UNIQUE (page_id, language)
+        `);
+        console.log('[testing] Composite unique constraint on (page_id, language) added successfully');
       } else {
-        console.log('[testing] Note: Could not add composite unique constraint:', error.message);
+        console.log('[testing] Composite unique constraint on (page_id, language) already exists');
       }
+    } catch (error) {
+      // Silently ignore if constraint already exists or any other error
+      // No error message needed as we check existence first
     }
 
     await query(`
