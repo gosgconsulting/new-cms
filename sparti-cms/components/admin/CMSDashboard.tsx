@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { 
   FileText, 
   PenTool, 
@@ -22,6 +23,7 @@ import { useAuth } from '../auth/AuthProvider';
 import { motion } from 'framer-motion';
 import gosgLogo from "@/assets/go-sg-logo-official.png";
 import { useNavigate } from 'react-router-dom';
+import { api } from '../../utils/api';
 
 // Import existing components
 import PagesManager from '../cms/PagesManager';
@@ -209,53 +211,49 @@ const CMSDashboard: React.FC = () => {
   const [usersExpanded, setUsersExpanded] = useState<boolean>(false);
   const [seoExpanded, setSeoExpanded] = useState<boolean>(false);
   const [tenantDropdownOpen, setTenantDropdownOpen] = useState<boolean>(false);
-  const [tenant, setTenant] = useState<Tenant | null>(null);
-  const [tenants, setTenants] = useState<Tenant[]>([]);
   const { signOut, user, currentTenantId, handleTenantChange } = useAuth();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchTenantData = async () => {
-      if (currentTenantId) {
-        try {
-          const response = await fetch(`/api/tenants/${currentTenantId}`);
-          if (response.ok) {
-            const data = await response.json();
-            setTenant(data);
-          } else {
-            console.error(`Failed to fetch tenant ${currentTenantId}`);
-            setTenant(null);
-          }
-        } catch (error) {
-          console.error('Error fetching tenant data:', error);
-          setTenant(null);
+  // Fetch single tenant data
+  const { data: tenant } = useQuery<Tenant | null>({
+    queryKey: ['tenant', currentTenantId],
+    queryFn: async () => {
+      if (!currentTenantId) return null;
+      try {
+        const response = await api.get(`/api/tenants/${currentTenantId}`);
+        if (response.ok) {
+          return await response.json();
+        } else {
+          console.error(`Failed to fetch tenant ${currentTenantId}`);
+          return null;
         }
-      } else {
-        setTenant(null);
+      } catch (error) {
+        console.error('Error fetching tenant data:', error);
+        return null;
       }
-    };
+    },
+    enabled: !!currentTenantId,
+  });
 
-    const fetchAllTenants = async () => {
-      if (user?.is_super_admin) {
-         try {
-          const response = await fetch(`/api/tenants`);
-          if (response.ok) {
-            const data = await response.json();
-            setTenants(data);
-          } else {
-            console.error(`Failed to fetch tenants`);
-            setTenants([]);
-          }
-        } catch (error) {
-          console.error('Error fetching tenants:', error);
-          setTenants([]);
+  // Fetch all tenants (only for super admins)
+  const { data: tenants = [] } = useQuery<Tenant[]>({
+    queryKey: ['tenants'],
+    queryFn: async () => {
+      try {
+        const response = await api.get(`/api/tenants`);
+        if (response.ok) {
+          return await response.json();
+        } else {
+          console.error(`Failed to fetch tenants`);
+          return [];
         }
+      } catch (error) {
+        console.error('Error fetching tenants:', error);
+        return [];
       }
-    }
-
-    fetchTenantData();
-    fetchAllTenants();
-  }, [currentTenantId, user]);
+    },
+    enabled: !!user?.is_super_admin,
+  });
 
   const renderContent = () => {
     switch (activeTab) {
