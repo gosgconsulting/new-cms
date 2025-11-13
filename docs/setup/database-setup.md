@@ -4,7 +4,7 @@ This project uses **Railway PostgreSQL** as its database.
 
 ## Database Connection
 
-The database connection is configured in `server.js` and uses the PostgreSQL connection pool from `sparti-cms/db/postgres.js`.
+The database connection is configured in `server.js` and uses the PostgreSQL connection pool from `sparti-cms/db/index.js`.
 
 ### Environment Variables
 

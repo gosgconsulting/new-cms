@@ -1,7 +1,7 @@
 // Script to create an admin user in the database
 // Run with: node create-admin-user.js
 
-import { query } from '../../sparti-cms/db/postgres.js';
+import { query } from '../../sparti-cms/db/index.js';
 import bcrypt from 'bcrypt';
 import dotenv from 'dotenv';
 

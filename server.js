@@ -48,10 +48,10 @@ import {
   createPost,
   updatePost,
   deletePost
-} from './sparti-cms/db/postgres.js';
-import pool from './sparti-cms/db/postgres.js';
+} from './sparti-cms/db/index.js';
+import { pool } from './sparti-cms/db/index.js';
 import { renderPageBySlug } from './sparti-cms/render/pageRenderer.js';
-import { getLayoutBySlug, upsertLayoutBySlug } from './sparti-cms/db/postgres.js';
+import { getLayoutBySlug, upsertLayoutBySlug } from './sparti-cms/db/index.js';
 import cacheStore, { getPageCache, setPageCache, invalidateBySlug, invalidateAll } from './sparti-cms/cache/index.js';
 import tenantRoutes from './sparti-cms/db/tenant-api-routes.js';
 import publicApiRoutes from './sparti-cms/db/public-api-routes.js';
@@ -64,10 +64,10 @@ import {
   createMockContact,
   updateMockContact,
   deleteMockContact
-} from './sparti-cms/db/mock-data.js';
+} from './sparti-cms/db/scripts/mock-data.js';
 
 // Import blog schema initialization
-import { ensureBlogSchemaInitialized } from './sparti-cms/db/init-blog.js';
+import { ensureBlogSchemaInitialized } from './sparti-cms/db/scripts/init-blog.js';
 
 // SMTP Configuration for server-side email sending
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
@@ -118,7 +118,7 @@ const upload = multer({
 });
 
 // Middleware
-app.use(express.json({ limit: '50mb' }));
+app.use(express.json());
 
 // JWT Secret
 const JWT_SECRET = process.env.JWT_SECRET || 'sparti-demo-secret-key';
@@ -165,8 +165,7 @@ const authenticateUser = (req, res, next) => {
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-Tenant-Id, X-Access-Key, X-API-Key, x-api-key');
-  res.header('Access-Control-Expose-Headers', 'Content-Type, Content-Length, Authorization, X-Requested-With');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-Tenant-Id, X-Access-Key');
   
   // Handle preflight OPTIONS requests
   if (req.method === 'OPTIONS') {
@@ -568,7 +567,7 @@ app.get('/api/site-schemas/:schemaKey', authenticateUser, async (req, res) => {
       return res.status(400).json({ error: 'Tenant ID is required' });
     }
     
-    const { getSiteSchema } = await import('./sparti-cms/db/postgres.js');
+    const { getSiteSchema } = await import('./sparti-cms/db/index.js');
     const schema = await getSiteSchema(schemaKey, tenantId);
     
     if (!schema) {
@@ -596,7 +595,7 @@ app.put('/api/site-schemas/:schemaKey', authenticateUser, async (req, res) => {
       return res.status(400).json({ error: 'Schema data is required' });
     }
     
-    const { updateSiteSchema } = await import('./sparti-cms/db/postgres.js');
+    const { updateSiteSchema } = await import('./sparti-cms/db/index.js');
     await updateSiteSchema(schemaKey, schema, tenantId);
     
     res.json({ success: true, message: 'Schema updated successfully' });
@@ -3385,15 +3384,6 @@ app.use(express.static(join(__dirname, 'dist')));
 
 // Handle all other routes by serving the React app - MUST be last
 app.use((req, res) => {
-  // Don't serve HTML for API routes - return 404 JSON instead
-  if (req.path.startsWith('/api/')) {
-    return res.status(404).json({
-      success: false,
-      error: 'API endpoint not found',
-      path: req.path
-    });
-  }
-  
   const indexPath = join(__dirname, 'dist', 'index.html');
   if (existsSync(indexPath)) {
     res.sendFile(indexPath);

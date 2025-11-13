@@ -1,4 +1,4 @@
-import { query, getPublicSEOSettings } from '../db/postgres.js';
+import { query, getPublicSEOSettings } from '../db/index.js';
 
 // Minimal HTML shell creator
 function buildHtml({ head, body, lang = 'en' }) {

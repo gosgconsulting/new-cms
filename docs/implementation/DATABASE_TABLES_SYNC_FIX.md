@@ -36,7 +36,7 @@ The CMS Dashboard "Tables" section was showing **mock data** with 6 tables inclu
 - Removed references to non-existent `users` and `analytics_events` tables
 - Updated descriptions to match your actual database purpose
 
-### 3. **Fixed Backend Database Connection** (`sparti-cms/db/postgres.js`)
+### 3. **Fixed Backend Database Connection** (`sparti-cms/db/index.js`)
 
 **Problem:** Backend was trying to connect to `localhost:5432` instead of Railway
 

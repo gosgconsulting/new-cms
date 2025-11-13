@@ -1,4 +1,4 @@
-import { query } from '../../sparti-cms/db/postgres.js';
+import { query } from '../../sparti-cms/db/index.js';
 import { v4 as uuidv4 } from 'uuid';
 import dotenv from 'dotenv';
 

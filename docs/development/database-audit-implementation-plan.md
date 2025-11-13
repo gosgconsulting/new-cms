@@ -9,7 +9,7 @@
    - PostgreSQL connection pool configured
    - API endpoints defined: `GET /api/branding` and `POST /api/branding`
 
-2. **Database Layer** (`sparti-cms/db/postgres.js`)
+2. **Database Layer** (`sparti-cms/db/index.js`)
    - PostgreSQL connection pool using `pg` library
    - Database initialization creates tables if they don't exist
    - Branding CRUD operations implemented

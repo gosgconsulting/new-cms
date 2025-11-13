@@ -5,7 +5,7 @@
  * including adding, removing, and setting the default language.
  */
 
-import { query } from '../db/postgres.js';
+import { query } from '../db/index.js';
 import { translateText } from './googleTranslationService.js';
 
 /**

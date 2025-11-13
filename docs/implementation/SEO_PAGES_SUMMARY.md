@@ -35,7 +35,7 @@
 
 ### Files Created/Modified
 - `sparti-cms/db/seo-pages-migrations.sql` - Migration script
-- `sparti-cms/db/postgres.js` - Enhanced with SEO pages functions
+- `sparti-cms/db/index.js` - Enhanced with SEO pages functions
 - `test-seo-pages-simple.js` - Verification test
 - `SEO_PAGES_DATABASE_IMPLEMENTATION.md` - Full documentation
 

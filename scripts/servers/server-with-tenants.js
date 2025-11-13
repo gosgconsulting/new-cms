@@ -35,10 +35,10 @@ import {
   toggleSEOIndex,
   query,
   getTerms
-} from '../../sparti-cms/db/postgres.js';
-import pool from '../../sparti-cms/db/postgres.js';
+} from '../../sparti-cms/db/index.js';
+import pool from '../../sparti-cms/db/index.js';
 import { renderPageBySlug } from '../../sparti-cms/render/pageRenderer.js';
-import { getLayoutBySlug, upsertLayoutBySlug } from '../../sparti-cms/db/postgres.js';
+import { getLayoutBySlug, upsertLayoutBySlug } from '../../sparti-cms/db/index.js';
 import cacheStore, { getPageCache, setPageCache, invalidateBySlug, invalidateAll } from '../../sparti-cms/cache/index.js';
 
 // Import tenant routes
@@ -51,7 +51,7 @@ import {
   createMockContact,
   updateMockContact,
   deleteMockContact
-} from '../../sparti-cms/db/mock-data.js';
+} from '../../sparti-cms/db/scripts/mock-data.js';
 
 // SMTP Configuration for server-side email sending
 const RESEND_API_KEY = process.env.RESEND_API_KEY;

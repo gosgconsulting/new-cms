@@ -200,7 +200,7 @@ CREATE INDEX idx_pages_slug_tenant ON pages(slug, tenant_id);
 
 The unified implementation integrates seamlessly with the existing Sparti CMS:
 
-1. **Database Functions**: Updated in `sparti-cms/db/postgres.js` with unified CRUD operations
+1. **Database Functions**: Updated in `sparti-cms/db/index.js` with unified CRUD operations
 2. **Migration Script**: Available in `sparti-cms/db/migrations/consolidate-page-types.sql`
 3. **Migration Runner**: `migrate-consolidate-pages.js` for safe data migration
 4. **CMS Integration**: PagesManager component works unchanged with unified table
@@ -226,7 +226,7 @@ The unified implementation integrates seamlessly with the existing Sparti CMS:
 
 ### Frontend Integration
 ```javascript
-import { getAllPagesWithTypes } from './sparti-cms/db/postgres.js';
+import { getAllPagesWithTypes } from './sparti-cms/db/index.js';
 
 // Get all pages for sitemap generation
 const allPages = await getAllPagesWithTypes();

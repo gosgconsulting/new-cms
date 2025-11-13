@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { query, initializeDatabase } from '../../sparti-cms/db/postgres.js';
+import { query, initializeDatabase } from '../../sparti-cms/db/index.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

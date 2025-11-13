@@ -7,7 +7,7 @@ import {
   trackPageView, 
   trackEvent, 
   upsertEventDefinition 
-} from './postgres.js';
+} from '../postgres.js';
 
 // Sample pages
 const samplePages = [

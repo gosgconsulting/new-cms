@@ -25,7 +25,7 @@ All homepage forms are now fully integrated with the Forms Management system:
 3. `src/components/ContactModal.tsx` - Updated form_id to match database
 
 ### **Enhanced Database Functions:**
-1. `sparti-cms/db/postgres.js` - Added new forms database functions:
+1. `sparti-cms/db/index.js` - Added new forms database functions:
    - `getFormById()` - Get form by ID or name
    - `getEmailSettingsByFormId()` - Get email settings for a form
    - `saveFormSubmissionExtended()` - Save to new forms database

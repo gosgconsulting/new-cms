@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import pool from '../../sparti-cms/db/postgres.js';
+import pool from '../../sparti-cms/db/index.js';
 
 /**
  * Script to fix slug uniqueness to be per-tenant instead of global
