@@ -316,10 +316,10 @@ const CMSDashboard: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex">
-      {/* Sidebar */}
+    <div className="min-h-screen bg-background">
+      {/* Sidebar - Fixed for desktop */}
       <motion.div 
-        className="w-64 bg-white/80 backdrop-blur-md shadow-md border-r border-border flex-shrink-0"
+        className="fixed left-0 top-0 w-64 h-screen bg-white/80 backdrop-blur-md shadow-md border-r border-border z-40"
         initial={{ x: -20, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
         transition={{ duration: 0.3 }}
@@ -600,8 +600,8 @@ const CMSDashboard: React.FC = () => {
       </div>
       </motion.div>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col min-h-screen">
+      {/* Main Content - Offset for fixed sidebar */}
+      <div className="ml-64 flex flex-col min-h-screen">
         {/* Top Bar */}
         <motion.div 
           className="bg-white/80 backdrop-blur-md shadow-sm border-b border-border p-4"
