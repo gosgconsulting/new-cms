@@ -214,35 +214,21 @@ const CMSDashboard: React.FC = () => {
   const { signOut, user, currentTenantId, handleTenantChange } = useAuth();
   const navigate = useNavigate();
 
-  // Fetch single tenant data
-  const { data: tenant } = useQuery<Tenant | null>({
-    queryKey: ['tenant', currentTenantId],
-    queryFn: async () => {
-      if (!currentTenantId) return null;
-      try {
-        const response = await api.get(`/api/tenants/${currentTenantId}`);
-        if (response.ok) {
-          return await response.json();
-        } else {
-          console.error(`Failed to fetch tenant ${currentTenantId}`);
-          return null;
-        }
-      } catch (error) {
-        console.error('Error fetching tenant data:', error);
-        return null;
-      }
-    },
-    enabled: !!currentTenantId,
-  });
-
-  // Fetch all tenants (only for super admins)
+  // Fetch all tenants (returns full tenant data including database and API keys)
+  // For super admins: returns all tenants
+  // For regular users: returns their single tenant if currentTenantId is set
   const { data: tenants = [] } = useQuery<Tenant[]>({
     queryKey: ['tenants'],
     queryFn: async () => {
       try {
         const response = await api.get(`/api/tenants`);
         if (response.ok) {
-          return await response.json();
+          const data = await response.json();
+          // Add isDevelopment flag based on tenant id
+          return data.map((t: any) => ({
+            ...t,
+            isDevelopment: t.id === 'tenant-dev' || !!t.isDevelopment,
+          }));
         } else {
           console.error(`Failed to fetch tenants`);
           return [];
@@ -252,8 +238,13 @@ const CMSDashboard: React.FC = () => {
         return [];
       }
     },
-    enabled: !!user?.is_super_admin,
+    enabled: !!user,
   });
+
+  // Find current tenant from the tenants array
+  const tenant = currentTenantId 
+    ? tenants.find(t => t.id === currentTenantId) || null
+    : null;
 
   const renderContent = () => {
     switch (activeTab) {
