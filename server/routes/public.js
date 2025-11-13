@@ -5,7 +5,7 @@ import {
   getSiteSchema,
   getSiteSettingByKey,
   getsitesettingsbytenant
-} from './index.js';
+} from '../../sparti-cms/db/index.js';
 
 const router = express.Router();
 

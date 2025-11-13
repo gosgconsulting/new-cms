@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import { query } from './postgres.js';
+import { query } from './index.js';
 import { 
   verifyPassword, 
   createUserSession,

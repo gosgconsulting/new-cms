@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import rateLimiterPkg from 'rate-limiter-flexible';
 const { RateLimiterPostgreSQL } = rateLimiterPkg;
-import { query } from './postgres.js';
+import { query } from './index.js';
 import pool from './postgres.js';
 
 // Security configuration

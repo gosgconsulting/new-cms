@@ -1,0 +1,36 @@
+import app from './app.js';
+import { PORT } from './config/constants.js';
+import { initializeDatabaseInBackground } from './utils/database.js';
+
+// Keep the process alive
+process.on('SIGINT', () => {
+  console.log('Received SIGINT. Graceful shutdown...');
+  process.exit(0);
+});
+
+process.on('SIGTERM', () => {
+  console.log('Received SIGTERM. Graceful shutdown...');
+  process.exit(0);
+});
+
+// Start server immediately, initialize database in background
+function startServer() {
+  // Start listening immediately so health checks work
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server running on port ${PORT}`);
+    console.log(`Health check available at http://0.0.0.0:${PORT}/health`);
+    console.log(`Detailed health check available at http://0.0.0.0:${PORT}/health/detailed`);
+    console.log(`Application available at http://0.0.0.0:${PORT}/`);
+    console.log(`API endpoints available at http://0.0.0.0:${PORT}/api/`);
+    console.log('[testing] Server started, initializing database in background...');
+  });
+  
+  // Initialize database in the background (non-blocking)
+  initializeDatabaseInBackground();
+}
+
+// Start the server
+startServer();
+
+export default app;
+

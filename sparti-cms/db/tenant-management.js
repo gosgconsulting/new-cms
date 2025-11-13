@@ -1,4 +1,4 @@
-import { query } from './postgres.js';
+import { query } from './index.js';
 import { v4 as uuidv4 } from 'uuid';
 import bcrypt from 'bcrypt';
 

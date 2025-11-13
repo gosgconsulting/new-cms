@@ -1,4 +1,4 @@
-import { query } from './postgres.js';
+import { query } from './index.js'
 
 // ===== CONTENT MANAGEMENT SYSTEM FUNCTIONS =====
 
