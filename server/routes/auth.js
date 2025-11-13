@@ -52,6 +52,33 @@ router.post('/auth/login', async (req, res) => {
       });
     }
 
+    // Check if users table exists
+    try {
+      const tableCheck = await query(`
+        SELECT EXISTS (
+          SELECT FROM information_schema.tables 
+          WHERE table_schema = 'public' 
+          AND table_name = 'users'
+        );
+      `);
+      
+      if (!tableCheck.rows[0].exists) {
+        console.error('[testing] Users table does not exist');
+        return res.status(503).json({
+          success: false,
+          error: 'Database not fully initialized',
+          message: 'Users table is missing. Please wait for database initialization to complete.'
+        });
+      }
+    } catch (checkError) {
+      console.error('[testing] Error checking users table existence:', checkError);
+      return res.status(503).json({
+        success: false,
+        error: 'Database error',
+        message: 'Unable to verify database state. Please try again later.'
+      });
+    }
+
     // Find user by email
     const userResult = await query(
       'SELECT id, first_name, last_name, email, password_hash, role, is_active, tenant_id, is_super_admin FROM users WHERE email = $1',
@@ -416,11 +443,16 @@ router.delete('/access-keys/:keyId', authenticateUser, async (req, res) => {
 router.get('/tenants', authenticateUser, async (req, res) => {
   try {
     if (!req.user.is_super_admin) {
-      return res.json([{ id: req.tenantId, name: req.user.tenant_id }]);
+      // For non-super-admins, return only their tenant with full data
+      if (req.tenantId) {
+        const tenant = await getTenantById(req.tenantId);
+        return res.json(tenant ? [tenant] : []);
+      }
+      return res.json([]);
     }
-    // Fetch all tenants for super admin
-    const tenants = await query('SELECT DISTINCT tenant_id as id, tenant_id as name FROM users ORDER BY tenant_id');
-    res.json(tenants.rows);
+    // Fetch all tenants with full data for super admin
+    const tenants = await getAllTenants();
+    res.json(tenants);
   } catch (error) {
     console.error('Error fetching tenants:', error);
     res.status(500).json({ error: 'Failed to fetch tenants' });

@@ -3,16 +3,94 @@ import { v4 as uuidv4 } from 'uuid';
 import bcrypt from 'bcrypt';
 
 /**
- * Get all tenants
+ * Get all tenants with full data (including database details and API keys)
  */
 export async function getAllTenants() {
   try {
-    const result = await query(`
-      SELECT id, name, created_at as "createdAt", updated_at
-      FROM tenants
-      ORDER BY created_at DESC
+    // Get all tenant basic details with database info
+    const tenantsResult = await query(`
+      SELECT 
+        t.id, 
+        t.name, 
+        t.created_at as "createdAt", 
+        t.updated_at, 
+        t.database_url, 
+        t.api_key,
+        td.host as db_host,
+        td.port as db_port,
+        td.database_name as db_database_name,
+        td.username as db_username,
+        td.ssl as db_ssl
+      FROM tenants t
+      LEFT JOIN tenant_databases td ON t.id = td.tenant_id
+      ORDER BY t.created_at DESC
     `);
-    return result.rows;
+    
+    // Group tenants and their database info
+    const tenantMap = new Map();
+    
+    for (const row of tenantsResult.rows) {
+      if (!tenantMap.has(row.id)) {
+        tenantMap.set(row.id, {
+          id: row.id,
+          name: row.name,
+          createdAt: row.createdAt,
+          updated_at: row.updated_at,
+          database_url: row.database_url,
+          api_key: row.api_key,
+        });
+        
+        // Add database details if available
+        if (row.db_host) {
+          tenantMap.get(row.id).database = {
+            host: row.db_host,
+            port: row.db_port,
+            database_name: row.db_database_name,
+            username: row.db_username,
+            ssl: row.db_ssl,
+          };
+        }
+      }
+    }
+    
+    const tenants = Array.from(tenantMap.values());
+    
+    // Get all API keys for all tenants in one query
+    const apiKeysResult = await query(`
+      SELECT 
+        tenant_id,
+        id,
+        api_key,
+        description,
+        expires_at,
+        created_at
+      FROM tenant_api_keys
+      ORDER BY tenant_id, created_at DESC
+    `);
+    
+    // Group API keys by tenant_id
+    const apiKeysByTenant = new Map();
+    for (const key of apiKeysResult.rows) {
+      if (!apiKeysByTenant.has(key.tenant_id)) {
+        apiKeysByTenant.set(key.tenant_id, []);
+      }
+      apiKeysByTenant.get(key.tenant_id).push({
+        id: key.id,
+        api_key: key.api_key,
+        description: key.description,
+        expires_at: key.expires_at,
+        created_at: key.created_at,
+      });
+    }
+    
+    // Attach API keys to tenants
+    for (const tenant of tenants) {
+      if (apiKeysByTenant.has(tenant.id)) {
+        tenant.apiKeys = apiKeysByTenant.get(tenant.id);
+      }
+    }
+    
+    return tenants;
   } catch (error) {
     console.error('[testing] Error getting all tenants:', error);
     throw error;

@@ -237,13 +237,17 @@ export async function initializeDatabase() {
       console.log('Media tables initialization skipped:', error.message);
     }
 
-    // Initialize users management tables
+    // Initialize users management tables (required for authentication)
     try {
-      await initializeUsersTables();
+      const usersInitSuccess = await initializeUsersTables();
+      if (!usersInitSuccess) {
+        throw new Error('Users tables initialization returned false');
+      }
+      console.log('[testing] Users tables initialized successfully');
     } catch (error) {
       console.error('[testing] Error initializing users tables:', error);
-      // Don't fail the entire initialization, but log the error
-      // The table might already exist or there might be a schema issue
+      // Users table is critical for authentication, so we should fail initialization
+      throw new Error(`Failed to initialize users tables: ${error.message}`);
     }
 
     console.log('Database initialization completed successfully');
