@@ -559,6 +559,38 @@ export const SchemaItemEditor: React.FC<SchemaItemEditorProps> = ({
         />
       );
 
+    case 'boolean':
+      // Handle boolean field with checkbox/toggle
+      const booleanValue = typeof item.value === 'boolean' 
+        ? item.value 
+        : item.value === 'true' || false;
+      
+      return (
+        <div className="p-4 border rounded-md">
+          <label className="block text-sm font-medium mb-2">Boolean Field: {item.key}</label>
+          <div className="flex items-center gap-3">
+            <label htmlFor={`boolean-${item.key}`} className="relative inline-block w-12 h-6 align-middle select-none cursor-pointer">
+              <input
+                type="checkbox"
+                id={`boolean-${item.key}`}
+                checked={booleanValue || false}
+                onChange={(e) => handleItemChange({ ...item, value: e.target.checked })}
+                className="sr-only"
+              />
+              <div className={`w-12 h-6 rounded-full shadow-inner transition-colors ${
+                booleanValue ? 'bg-blue-600' : 'bg-gray-300'
+              }`}></div>
+              <div className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-md transform transition-transform ${
+                booleanValue ? 'translate-x-6' : 'translate-x-0'
+              }`}></div>
+            </label>
+            <span className="text-sm text-gray-700">
+              {booleanValue ? 'Enabled' : 'Disabled'}
+            </span>
+          </div>
+        </div>
+      );
+
     default:
       return (
         <div className="p-4 bg-gray-100 rounded-md">
