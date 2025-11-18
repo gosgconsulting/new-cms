@@ -1,5 +1,6 @@
 import { query } from '../connection.js';
 import pool from '../connection.js';
+import { translateText } from '../../services/googleTranslationService.js';
 
 // Branding-specific functions
 export async function getBrandingSettings(tenantId = 'tenant-gosg') {
@@ -81,14 +82,335 @@ export async function updateBrandingSetting(key, value, tenantId = 'tenant-gosg'
   }
 }
 
-// Site Schema functions
-export async function getSiteSchema(schemaKey, tenantId) {
+// Helper function to extract translatable text from schema JSON
+// Returns a map of paths to text values for translation
+function extractTranslatableTextFromSchema(obj, path = '', result = {}) {
+  if (obj === null || obj === undefined) {
+    return result;
+  }
+  
+  // Skip non-translatable fields
+  const skipFields = ['id', 'src', 'link', 'url', 'image', 'images', 'avatar', 'logo', 'phoneNumber', 'email', 'date', 'rating', 'version', 'sort_order', 'sortOrder', 'level', 'required', 'value', 'type', 'key'];
+  
+  if (typeof obj === 'string') {
+    // Only extract non-empty strings that aren't URLs or IDs
+    if (obj.trim().length > 0 && 
+        !obj.startsWith('http') && 
+        !obj.startsWith('/') && 
+        !obj.match(/^[a-zA-Z0-9_-]+$/)) {
+      result[path] = obj;
+    }
+  } else if (Array.isArray(obj)) {
+    obj.forEach((item, index) => {
+      extractTranslatableTextFromSchema(item, path ? `${path}[${index}]` : `[${index}]`, result);
+    });
+  } else if (typeof obj === 'object') {
+    Object.keys(obj).forEach(key => {
+      // Skip certain fields that shouldn't be translated
+      if (skipFields.includes(key.toLowerCase())) {
+        return;
+      }
+      
+      const newPath = path ? `${path}.${key}` : key;
+      extractTranslatableTextFromSchema(obj[key], newPath, result);
+    });
+  }
+  
+  return result;
+}
+
+// Helper function to inject translated text back into schema JSON
+function injectTranslatedTextIntoSchema(obj, translations, path = '') {
+  if (obj === null || obj === undefined) {
+    return obj;
+  }
+  
+  if (typeof obj === 'string') {
+    // If this path has a translation, use it
+    if (translations[path] !== undefined) {
+      return translations[path];
+    }
+    return obj;
+  } else if (Array.isArray(obj)) {
+    return obj.map((item, index) => {
+      const itemPath = path ? `${path}[${index}]` : `[${index}]`;
+      return injectTranslatedTextIntoSchema(item, translations, itemPath);
+    });
+  } else if (typeof obj === 'object') {
+    const result = {};
+    Object.keys(obj).forEach(key => {
+      const newPath = path ? `${path}.${key}` : key;
+      result[key] = injectTranslatedTextIntoSchema(obj[key], translations, newPath);
+    });
+    return result;
+  }
+  
+  return obj;
+}
+
+// Helper function to get configured languages from site_settings
+async function getConfiguredLanguages(tenantId) {
+  const languagesResult = await query(`
+    SELECT setting_value 
+    FROM site_settings 
+    WHERE setting_key = 'site_content_languages' 
+    AND tenant_id = $1
+  `, [tenantId]);
+  
+  if (languagesResult.rows.length === 0 || !languagesResult.rows[0].setting_value) {
+    return [];
+  }
+  
+  // Parse the comma-separated language list
+  const rawValue = languagesResult.rows[0].setting_value;
+  if (rawValue.includes(',')) {
+    return rawValue.split(',').filter(lang => lang.trim() !== '');
+  } else if (rawValue.trim() !== '') {
+    return [rawValue.trim()];
+  }
+  
+  return [];
+}
+
+// Helper function to get default language from site_settings
+async function getDefaultLanguage(tenantId) {
+  const defaultLanguageResult = await query(`
+    SELECT setting_value 
+    FROM site_settings 
+    WHERE setting_key = 'site_language' 
+    AND tenant_id = $1
+  `, [tenantId]);
+  
+  return defaultLanguageResult.rows.length > 0 ? 
+    defaultLanguageResult.rows[0].setting_value : 'default';
+}
+
+// Helper function to get target languages (excluding default)
+async function getTargetLanguages(tenantId) {
+  const allLanguages = await getConfiguredLanguages(tenantId);
+  
+  if (allLanguages.length === 0) {
+    return [];
+  }
+  
+  const defaultLanguage = await getDefaultLanguage(tenantId);
+  
+  // Filter out the default language (don't translate to itself)
+  return allLanguages.filter(lang => lang !== defaultLanguage && lang !== 'default');
+}
+
+// Helper function to ensure language column exists (migration safety)
+async function ensureSiteSchemaLanguageColumn() {
   try {
+    await query(`
+      ALTER TABLE site_schemas 
+      ADD COLUMN IF NOT EXISTS language VARCHAR(50) NOT NULL DEFAULT 'default'
+    `);
+  } catch (error) {
+    // Column already exists, ignore
+    if (error.code !== '42701' && !error.message.includes('already exists')) {
+      console.log('[testing] Note: Could not ensure language column exists:', error.message);
+    }
+  }
+}
+
+// Helper function to ensure composite unique constraint exists (migration safety)
+async function ensureSiteSchemaUniqueConstraint() {
+  try {
+    const constraintCheck = await query(`
+      SELECT constraint_name 
+      FROM information_schema.table_constraints 
+      WHERE table_name = 'site_schemas' 
+      AND constraint_type = 'UNIQUE'
+      AND constraint_name = 'site_schemas_schema_key_tenant_id_language_unique'
+    `);
+    
+    if (constraintCheck.rows.length === 0) {
+      // Check if old constraint exists and drop it
+      const oldConstraintCheck = await query(`
+        SELECT constraint_name 
+        FROM information_schema.table_constraints 
+        WHERE table_name = 'site_schemas' 
+        AND constraint_type = 'UNIQUE'
+        AND constraint_name LIKE '%schema_key%'
+        AND constraint_name LIKE '%tenant_id%'
+        AND constraint_name NOT LIKE '%language%'
+      `);
+      
+      for (const constraint of oldConstraintCheck.rows) {
+        await query(`
+          ALTER TABLE site_schemas 
+          DROP CONSTRAINT IF EXISTS ${constraint.constraint_name}
+        `);
+      }
+      
+      // Add new composite unique constraint
+      await query(`
+        ALTER TABLE site_schemas 
+        ADD CONSTRAINT site_schemas_schema_key_tenant_id_language_unique UNIQUE (schema_key, tenant_id, language)
+      `);
+      console.log('[testing] Added composite unique constraint for site_schemas');
+    }
+  } catch (error) {
+    console.log('[testing] Note: Could not ensure composite unique constraint exists:', error.message);
+  }
+}
+
+// Helper function to update existing schema
+async function updateExistingSchema(schemaKey, schemaValue, language, tenantId) {
+  const updateResult = await query(`
+    UPDATE site_schemas 
+    SET 
+      schema_value = $2,
+      updated_at = NOW()
+    WHERE schema_key = $1 AND tenant_id = $3 AND language = $4
+  `, [schemaKey, JSON.stringify(schemaValue), tenantId, language]);
+  
+  return updateResult.rowCount > 0;
+}
+
+// Helper function to insert new schema
+async function insertNewSchema(schemaKey, schemaValue, language, tenantId) {
+  await query(`
+    INSERT INTO site_schemas (schema_key, schema_value, language, tenant_id, updated_at)
+    VALUES ($1, $2, $3, $4, NOW())
+  `, [schemaKey, JSON.stringify(schemaValue), language, tenantId]);
+}
+
+// Helper function to translate all text fields for a single language
+async function translateSchemaTextFields(textMap, targetLanguage, defaultLanguage) {
+  const translations = {};
+  const textPaths = Object.keys(textMap);
+  
+  for (const textPath of textPaths) {
+    const originalText = textMap[textPath];
+    try {
+      const translatedText = await translateText(originalText, targetLanguage, defaultLanguage);
+      translations[textPath] = translatedText;
+      console.log(`[testing] Translated schema text ${textPath}: "${originalText.substring(0, 50)}..." -> "${translatedText.substring(0, 50)}..."`);
+    } catch (error) {
+      console.error(`[testing] Error translating schema text at path ${textPath}:`, error);
+      // Use original text if translation fails
+      translations[textPath] = originalText;
+    }
+  }
+  
+  return translations;
+}
+
+// Helper function to translate schema to a single target language
+async function translateSchemaToLanguage(schemaKey, schemaValue, targetLanguage, defaultLanguage, tenantId, textMap) {
+  try {
+    console.log(`[testing] Translating schema ${schemaKey} to ${targetLanguage}...`);
+    
+    // Translate all text fields
+    const translations = await translateSchemaTextFields(textMap, targetLanguage, defaultLanguage);
+    
+    // Inject translated text back into schema
+    const translatedSchema = injectTranslatedTextIntoSchema(schemaValue, translations);
+    
+    // Upsert the translated schema
+    await upsertSiteSchema(schemaKey, translatedSchema, targetLanguage, tenantId);
+    
+    console.log(`[testing] Successfully translated and saved schema ${schemaKey} for language ${targetLanguage}`);
+  } catch (error) {
+    console.error(`[testing] Error translating schema ${schemaKey} to ${targetLanguage}:`, error);
+    throw error; // Re-throw to let caller handle
+  }
+}
+
+// Helper function to translate schema to all configured languages
+async function translateSchemaToAllLanguages(schemaKey, schemaValue, tenantId) {
+  try {
+    console.log(`[testing] Starting translation for schema ${schemaKey} and tenant ${tenantId}`);
+    
+    // Get target languages
+    const targetLanguages = await getTargetLanguages(tenantId);
+    
+    if (targetLanguages.length === 0) {
+      console.log(`[testing] No target languages to translate to, skipping translation`);
+      return;
+    }
+    
+    console.log(`[testing] Translating to ${targetLanguages.length} languages: ${targetLanguages.join(', ')}`);
+    
+    // Extract translatable text from schema
+    const textMap = extractTranslatableTextFromSchema(schemaValue);
+    const textPaths = Object.keys(textMap);
+    
+    if (textPaths.length === 0) {
+      console.log(`[testing] No translatable text found in schema, skipping translation`);
+      return;
+    }
+    
+    console.log(`[testing] Found ${textPaths.length} translatable text fields`);
+    
+    // Get default language for translation
+    const defaultLanguage = await getDefaultLanguage(tenantId);
+    
+    // Translate to each target language
+    for (const targetLanguage of targetLanguages) {
+      try {
+        await translateSchemaToLanguage(schemaKey, schemaValue, targetLanguage, defaultLanguage, tenantId, textMap);
+      } catch (error) {
+        // Continue with other languages even if one fails
+        console.error(`[testing] Failed to translate schema ${schemaKey} to ${targetLanguage}, continuing with other languages`);
+      }
+    }
+    
+    console.log(`[testing] Completed translation process for schema ${schemaKey}`);
+  } catch (error) {
+    console.error(`[testing] Error in translateSchemaToAllLanguages:`, error);
+    // Don't throw - this is a background process
+  }
+}
+
+// Helper function to upsert site schema (update or insert)
+async function upsertSiteSchema(schemaKey, schemaValue, language, tenantId) {
+  let operationSuccessful = false;
+  
+  // Try to update existing schema first
+  const wasUpdated = await updateExistingSchema(schemaKey, schemaValue, language, tenantId);
+  
+  if (wasUpdated) {
+    operationSuccessful = true;
+  } else {
+    // If no rows were updated, check if schema exists
+    const existingCheck = await query(`
+      SELECT id FROM site_schemas WHERE schema_key = $1 AND tenant_id = $2 AND language = $3
+    `, [schemaKey, tenantId, language]);
+    
+    if (existingCheck.rows.length === 0) {
+      // Insert new schema
+      await insertNewSchema(schemaKey, schemaValue, language, tenantId);
+      operationSuccessful = true;
+    } else {
+      // Schema exists but update didn't work, try update again
+      const wasUpdatedRetry = await updateExistingSchema(schemaKey, schemaValue, language, tenantId);
+      operationSuccessful = wasUpdatedRetry;
+    }
+  }
+  
+  // After successful operation on default language, trigger translation to other languages
+  if (operationSuccessful && language === 'default' && tenantId) {
+    // Call translation asynchronously (fire and forget) to avoid blocking
+    translateSchemaToAllLanguages(schemaKey, schemaValue, tenantId).catch(error => {
+      console.error(`[testing] Error in background translation for schema ${schemaKey}:`, error);
+    });
+  }
+}
+
+// Site Schema functions
+export async function getSiteSchema(schemaKey, tenantId, language = 'default') {
+  try {
+    // Ensure database schema is up to date (migration safety)
+    await ensureSiteSchemaLanguageColumn();
+    
     const result = await query(`
       SELECT schema_value
       FROM site_schemas
-      WHERE schema_key = $1 AND tenant_id = $2
-    `, [schemaKey, tenantId]);
+      WHERE schema_key = $1 AND tenant_id = $2 AND language = $3
+    `, [schemaKey, tenantId, language]);
     
     if (result.rows.length === 0) {
       return null;
@@ -103,19 +425,16 @@ export async function getSiteSchema(schemaKey, tenantId) {
   }
 }
 
-export async function updateSiteSchema(schemaKey, schemaValue, tenantId) {
+export async function updateSiteSchema(schemaKey, schemaValue, tenantId, language = 'default') {
   try {
-    const result = await query(`
-      INSERT INTO site_schemas (schema_key, schema_value, tenant_id, updated_at)
-      VALUES ($1, $2, $3, NOW())
-      ON CONFLICT (schema_key, tenant_id)
-      DO UPDATE SET 
-        schema_value = EXCLUDED.schema_value,
-        updated_at = NOW()
-      RETURNING *
-    `, [schemaKey, JSON.stringify(schemaValue), tenantId]);
+    // Ensure database schema is up to date (migration safety)
+    await ensureSiteSchemaLanguageColumn();
+    await ensureSiteSchemaUniqueConstraint();
     
-    return result.rows[0];
+    // Update or insert the schema (pass tenantId for translation support)
+    await upsertSiteSchema(schemaKey, schemaValue, language, tenantId);
+    
+    return true;
   } catch (error) {
     console.error('Error updating site schema:', error);
     throw error;

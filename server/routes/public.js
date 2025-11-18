@@ -229,11 +229,12 @@ router.get('/footer', async (req, res) => {
 router.get('/global-schema', async (req, res) => {
   try {
     const tenantId = req.tenantId;
+    const { language } = req.query;
     
     // Fetch both header and footer schemas
     const [headerSchema, footerSchema] = await Promise.all([
-      getSiteSchema('header', tenantId),
-      getSiteSchema('footer', tenantId)
+      getSiteSchema('header', tenantId, language),
+      getSiteSchema('footer', tenantId, language)
     ]);
     
     const globalSchema = {

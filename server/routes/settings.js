@@ -212,19 +212,20 @@ router.get('/site-schemas/:schemaKey', authenticateUser, async (req, res) => {
   try {
     const { schemaKey } = req.params;
     const tenantId = req.headers['x-tenant-id'];
+    const language = req.query.language || 'default'; // Support language query parameter
     
     if (!tenantId) {
       return res.status(400).json({ error: 'Tenant ID is required' });
     }
     
     const { getSiteSchema } = await import('../../sparti-cms/db/index.js');
-    const schema = await getSiteSchema(schemaKey, tenantId);
+    const schema = await getSiteSchema(schemaKey, tenantId, language);
     
     if (!schema) {
       return res.status(404).json({ error: 'Schema not found' });
     }
     
-    res.json({ success: true, schema });
+    res.json({ success: true, schema, language });
   } catch (error) {
     console.error('[testing] Error fetching site schema:', error);
     res.status(500).json({ error: 'Failed to fetch site schema' });
@@ -235,8 +236,9 @@ router.get('/site-schemas/:schemaKey', authenticateUser, async (req, res) => {
 router.put('/site-schemas/:schemaKey', authenticateUser, async (req, res) => {
   try {
     const { schemaKey } = req.params;
-    const { schema } = req.body;
+    const { schema, language } = req.body; // Support language in request body
     const tenantId = req.headers['x-tenant-id'];
+    const schemaLanguage = language || 'default'; // Default to 'default' if not specified
     
     if (!tenantId) {
       return res.status(400).json({ error: 'Tenant ID is required' });
@@ -247,9 +249,9 @@ router.put('/site-schemas/:schemaKey', authenticateUser, async (req, res) => {
     }
     
     const { updateSiteSchema } = await import('../../sparti-cms/db/index.js');
-    await updateSiteSchema(schemaKey, schema, tenantId);
+    await updateSiteSchema(schemaKey, schema, tenantId, schemaLanguage);
     
-    res.json({ success: true, message: 'Schema updated successfully' });
+    res.json({ success: true, message: 'Schema updated successfully', language: schemaLanguage });
   } catch (error) {
     console.error('[testing] Error updating site schema:', error);
     res.status(500).json({ error: 'Failed to update site schema' });
