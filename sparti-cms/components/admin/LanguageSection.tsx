@@ -367,24 +367,39 @@ const LanguageSection: React.FC<LanguageSectionProps> = ({
   };
 
   const handleSetDefaultLanguage = async (language: Language) => {
+    // Store the old default language before changing it
+    const oldDefaultLanguage = defaultLanguage;
+    
+    // Start with current additional languages
+    let newAdditionalLanguages = [...additionalLanguages];
+    
+    // Add the old default language to additional languages if it's different from the new default
+    // and not already in the additional languages list
+    if (oldDefaultLanguage.code !== language.code) {
+      const isOldDefaultInAdditional = newAdditionalLanguages.some(
+        lang => lang.code === oldDefaultLanguage.code
+      );
+      
+      if (!isOldDefaultInAdditional) {
+        // Add the old default language to additional languages
+        newAdditionalLanguages.push(oldDefaultLanguage);
+      }
+    }
+    
+    // Remove the new default language from additional languages if it exists there
+    newAdditionalLanguages = newAdditionalLanguages.filter(
+      lang => lang.code !== language.code
+    );
+    
+    // Update state
     setDefaultLanguage(language);
+    setAdditionalLanguages(newAdditionalLanguages);
     
     // Update context
     updateLanguage({
-      defaultLanguage: language
+      defaultLanguage: language,
+      additionalLanguages: newAdditionalLanguages
     });
-    
-    // Also remove from additional languages if it exists there
-    let newAdditionalLanguages = [...additionalLanguages];
-    if (additionalLanguages.some(lang => lang.code === language.code)) {
-      newAdditionalLanguages = additionalLanguages.filter(lang => lang.code !== language.code);
-      setAdditionalLanguages(newAdditionalLanguages);
-      
-      // Update context
-      updateLanguage({
-        additionalLanguages: newAdditionalLanguages
-      });
-    }
     
     setIsChangeDefaultModalOpen(false);
     setSearchQuery('');
@@ -394,14 +409,15 @@ const LanguageSection: React.FC<LanguageSectionProps> = ({
       // Convert additionalLanguages to comma-separated string
       const additionalLangCodes = newAdditionalLanguages.map(lang => lang.code).join(',');
       
-      // For demonstration, we'll just log the values that would be saved
-      console.log('[testing] Saving language settings:', {
+      // Save to the database
+      console.log('[testing] Saving language settings to database:', {
         defaultLanguage: language.code,
-        additionalLanguages: additionalLangCodes
+        additionalLanguages: additionalLangCodes,
+        oldDefaultLanguage: oldDefaultLanguage.code
       });
       
-      // In a real environment, uncomment this to save to the database
-      // await updateLanguageSettings(language.code, additionalLangCodes, currentTenantId);
+      // Save to the database
+      await updateLanguageSettings(language.code, additionalLangCodes, currentTenantId);
       
       toast({
         title: "Success",
