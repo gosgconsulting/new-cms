@@ -23,7 +23,86 @@ export const isGoogleTranslationEnabled = () => {
 };
 
 /**
- * Strip HTML tags and extract text content
+ * Extract text content from HTML while preserving structure information
+ * Returns object with text segments and their positions
+ * 
+ * @param {string} html - HTML string
+ * @returns {Object} - { textSegments: string[], htmlTemplate: string }
+ */
+function extractTextFromHtml(html) {
+  if (!html || typeof html !== 'string') {
+    return { textSegments: [], htmlTemplate: html };
+  }
+  
+  const textSegments = [];
+  const timestamp = Date.now();
+  const placeholderPattern = `{{TRANSLATE_TEXT_${timestamp}_`;
+  let placeholderIndex = 0;
+  let htmlTemplate = html;
+  
+  // Process HTML by splitting on tags and extracting text nodes
+  // This approach handles text between tags, before first tag, and after last tag
+  const parts = html.split(/(<[^>]+>)/);
+  const processedParts = [];
+  
+  for (let i = 0; i < parts.length; i++) {
+    const part = parts[i];
+    
+    // If it's a tag, keep it as is
+    if (part.startsWith('<') && part.endsWith('>')) {
+      processedParts.push(part);
+    } else {
+      // It's text content
+      const trimmedText = part.trim();
+      if (trimmedText && trimmedText.length > 0) {
+        // Store the text segment
+        textSegments.push(trimmedText);
+        // Replace with placeholder
+        const placeholder = `${placeholderPattern}${placeholderIndex}}}`;
+        processedParts.push(placeholder);
+        placeholderIndex++;
+      } else {
+        // Empty or whitespace-only text, keep original
+        processedParts.push(part);
+      }
+    }
+  }
+  
+  htmlTemplate = processedParts.join('');
+  
+  return { textSegments, htmlTemplate };
+}
+
+/**
+ * Reconstruct HTML with translated text segments
+ * 
+ * @param {string} htmlTemplate - HTML template with placeholders
+ * @param {string[]} translatedSegments - Translated text segments
+ * @returns {string} - Reconstructed HTML with translated text
+ */
+function reconstructHtmlWithTranslatedText(htmlTemplate, translatedSegments) {
+  let result = htmlTemplate;
+  
+  // Extract timestamp from placeholder pattern
+  const timestampMatch = htmlTemplate.match(/TRANSLATE_TEXT_(\d+)_/);
+  if (!timestampMatch) {
+    // No placeholders found, return as is
+    return htmlTemplate;
+  }
+  
+  const timestamp = timestampMatch[1];
+  
+  // Replace each placeholder with translated text
+  translatedSegments.forEach((translatedText, index) => {
+    const placeholder = `{{TRANSLATE_TEXT_${timestamp}_${index}}}`;
+    result = result.replace(placeholder, translatedText);
+  });
+  
+  return result;
+}
+
+/**
+ * Strip HTML tags and extract text content (for non-HTML-aware translation)
  * 
  * @param {string} html - HTML string
  * @returns {string} - Plain text content
@@ -139,14 +218,65 @@ function splitTextIntoChunks(text, maxBytes = 150000) {
 }
 
 /**
+ * Sleep/delay utility for retry logic
+ * 
+ * @param {number} ms - Milliseconds to sleep
+ * @returns {Promise<void>}
+ */
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+/**
+ * Process items in batches with concurrency limit
+ * 
+ * @param {Array} items - Array of items to process
+ * @param {Function} processor - Async function to process each item
+ * @param {number} batchSize - Maximum concurrent operations (default: 10)
+ * @returns {Promise<Array>} - Array of results in same order as input
+ */
+async function processInBatches(items, processor, batchSize = 10) {
+  const results = new Array(items.length);
+  
+  for (let i = 0; i < items.length; i += batchSize) {
+    const batch = items.slice(i, i + batchSize);
+    const batchPromises = batch.map((item, batchIndex) => 
+      processor(item, i + batchIndex)
+    );
+    
+    const batchResults = await Promise.allSettled(batchPromises);
+    
+    // Map results back to original positions
+    batchResults.forEach((result, batchIndex) => {
+      const originalIndex = i + batchIndex;
+      if (result.status === 'fulfilled') {
+        results[originalIndex] = result.value;
+      } else {
+        results[originalIndex] = { error: result.reason };
+      }
+    });
+    
+    // Small delay between batches to avoid rate limiting
+    if (i + batchSize < items.length) {
+      await sleep(200); // 200ms delay between batches (increased for better rate limiting)
+    }
+  }
+  
+  return results;
+}
+
+/**
  * Translate a single chunk of text using Google Cloud Translation API
+ * Includes timeout, retry logic, and better error handling
  * 
  * @param {string} text - The text to translate
  * @param {string} targetLanguage - The target language code
  * @param {string} [sourceLanguage=null] - The source language code (optional)
+ * @param {number} [timeoutMs=60000] - Request timeout in milliseconds (default: 60s)
+ * @param {number} [maxRetries=3] - Maximum number of retry attempts (default: 3)
  * @returns {Promise<string>} - The translated text
  */
-async function translateTextChunk(text, targetLanguage, sourceLanguage = null) {
+async function translateTextChunk(text, targetLanguage, sourceLanguage = null, timeoutMs = 60000, maxRetries = 3) {
   const apiKey = process.env.GOOGLE_CLOUD_TRANSLATION_API_KEY || 
                 process.env.VITE_GOOGLE_CLOUD_TRANSLATION_API_KEY;
   
@@ -156,31 +286,103 @@ async function translateTextChunk(text, targetLanguage, sourceLanguage = null) {
   
   const url = `https://translation.googleapis.com/language/translate/v2?key=${apiKey}`;
   
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      q: text,
-      target: targetLanguage,
-      ...(sourceLanguage && { source: sourceLanguage }),
-      format: 'text'
-    }),
-  });
+  let lastError;
   
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Google Translation API error: ${response.status} ${errorText}`);
+  // Retry logic with exponential backoff
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      // Create AbortController for timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+      
+      try {
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            q: text,
+            target: targetLanguage,
+            ...(sourceLanguage && { source: sourceLanguage }),
+            format: 'text'
+          }),
+          signal: controller.signal,
+        });
+        
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`Google Translation API error: ${response.status} ${errorText}`);
+        }
+        
+        const data = await response.json();
+        return data.data.translations[0].translatedText;
+      } catch (fetchError) {
+        clearTimeout(timeoutId);
+        
+        // Check if it's a timeout or abort error (handle various error formats)
+        // Handle AggregateError, TypeError wrapping network errors, etc.
+        const errorCause = fetchError.cause || fetchError;
+        const isTimeout = 
+          fetchError.name === 'AbortError' || 
+          fetchError.code === 'ETIMEDOUT' ||
+          errorCause.code === 'ETIMEDOUT' ||
+          (errorCause.name === 'AggregateError' && errorCause.code === 'ETIMEDOUT') ||
+          (fetchError.message && fetchError.message.includes('timeout')) ||
+          (fetchError.message && fetchError.message.includes('ETIMEDOUT')) ||
+          (fetchError.message && fetchError.message.includes('fetch failed'));
+        
+        if (isTimeout) {
+          throw new Error(`Request timeout after ${timeoutMs}ms`);
+        }
+        throw fetchError;
+      }
+    } catch (error) {
+      lastError = error;
+      
+      // Check if this is a retryable error (network/timeout errors)
+      // Handle various error formats including AggregateError wrapped in TypeError
+      const errorCause = error.cause || error;
+      const isRetryable = 
+        (error.message && (
+          error.message.includes('timeout') ||
+          error.message.includes('ETIMEDOUT') ||
+          error.message.includes('fetch failed') ||
+          error.message.includes('network')
+        )) ||
+        error.code === 'ETIMEDOUT' ||
+        errorCause.code === 'ETIMEDOUT' ||
+        (errorCause.name === 'AggregateError' && errorCause.code === 'ETIMEDOUT');
+      
+      // If this is the last attempt, throw the error
+      if (attempt === maxRetries) {
+        throw error;
+      }
+      
+      // Only retry on retryable errors (network/timeout issues)
+      if (!isRetryable) {
+        console.log(`[testing] Non-retryable error on attempt ${attempt + 1}, not retrying:`, error.message);
+        throw error;
+      }
+      
+      // Calculate exponential backoff delay: 1s, 2s, 4s, etc.
+      const delayMs = Math.min(1000 * Math.pow(2, attempt), 10000); // Cap at 10s
+      console.log(`[testing] Translation attempt ${attempt + 1} failed (${error.message}), retrying in ${delayMs}ms...`);
+      
+      await sleep(delayMs);
+    }
   }
   
-  const data = await response.json();
-  return data.data.translations[0].translatedText;
+  // Should never reach here, but just in case
+  throw lastError || new Error('Translation failed after all retries');
 }
 
 /**
  * Translate text using Google Cloud Translation API
- * Handles HTML content and large texts by stripping HTML and chunking
+ * Handles HTML content by preserving structure and translating only text nodes
+ * Handles large texts by chunking
  * 
  * @param {string} text - The text to translate
  * @param {string} targetLanguage - The target language code
@@ -199,31 +401,105 @@ export const translateText = async (text, targetLanguage, sourceLanguage = null)
     
     console.log(`[testing] Translating text to ${targetLanguage}${sourceLanguage ? ` from ${sourceLanguage}` : ''} (${textBytes} bytes${hasHtml ? ', contains HTML' : ''})`);
     
-    // If text contains HTML, extract text content first
-    let textToTranslate = text;
+    // If text contains HTML, preserve structure and translate only text nodes
     if (hasHtml) {
-      textToTranslate = stripHtmlTags(text);
-      console.log(`[testing] Stripped HTML: ${text.length} -> ${textToTranslate.length} chars`);
+      const { textSegments, htmlTemplate } = extractTextFromHtml(text);
+      
+      if (textSegments.length === 0) {
+        // No text to translate, return original
+        return text;
+      }
+      
+      console.log(`[testing] Extracted ${textSegments.length} text segments from HTML`);
+      
+      // Translate each text segment in batches to avoid overwhelming the API
+      const translatedSegments = await processInBatches(
+        textSegments,
+        async (segment, index) => {
+          try {
+            // Check if segment needs chunking
+            const chunks = splitTextIntoChunks(segment);
+            
+            if (chunks.length === 1) {
+              return await translateTextChunk(chunks[0], targetLanguage, sourceLanguage);
+            } else {
+              // Translate chunks in batches to avoid overwhelming the API
+              const translatedChunks = await processInBatches(
+                chunks,
+                async (chunk) => {
+                  try {
+                    return await translateTextChunk(chunk, targetLanguage, sourceLanguage);
+                  } catch (error) {
+                    console.error(`[testing] Error translating chunk within segment ${index}:`, error);
+                    return chunk; // Return original on error
+                  }
+                },
+                5 // Process 5 chunks at a time (smaller batch for nested chunks)
+              );
+              
+              // Handle any errors and combine
+              const validChunks = translatedChunks.map((result, chunkIndex) => {
+                if (result && typeof result === 'object' && result.error) {
+                  console.error(`[testing] Error translating chunk ${chunkIndex + 1} within segment ${index}:`, result.error);
+                  return chunks[chunkIndex]; // Return original on error
+                }
+                return result;
+              });
+              
+              return validChunks.join(' ');
+            }
+          } catch (error) {
+            console.error(`[testing] Error translating HTML text segment ${index}:`, error);
+            return segment; // Return original on error
+          }
+        },
+        5 // Process 5 segments at a time (reduced to avoid overwhelming API)
+      );
+      
+      // Handle any errors from batch processing
+      const finalSegments = translatedSegments.map((result, index) => {
+        if (result && typeof result === 'object' && result.error) {
+          console.error(`[testing] Error translating HTML text segment ${index}:`, result.error);
+          return textSegments[index]; // Return original on error
+        }
+        return result;
+      });
+      
+      // Reconstruct HTML with translated text
+      const translatedHtml = reconstructHtmlWithTranslatedText(htmlTemplate, finalSegments);
+      return translatedHtml;
     }
     
-    // Check if text needs to be chunked
-    const chunks = splitTextIntoChunks(textToTranslate);
+    // For non-HTML text, check if it needs to be chunked
+    const chunks = splitTextIntoChunks(text);
     
     if (chunks.length === 1) {
       // Single chunk, translate directly
       return await translateTextChunk(chunks[0], targetLanguage, sourceLanguage);
     } else {
-      // Multiple chunks, translate each and combine
+      // Multiple chunks, translate each and combine (with batching for large chunk counts)
       console.log(`[testing] Splitting into ${chunks.length} chunks for translation`);
-      const translatedChunks = await Promise.all(
-        chunks.map((chunk, index) => {
+      
+      const translatedChunks = await processInBatches(
+        chunks,
+        async (chunk, index) => {
           console.log(`[testing] Translating chunk ${index + 1}/${chunks.length} (${Buffer.byteLength(chunk, 'utf8')} bytes)`);
-          return translateTextChunk(chunk, targetLanguage, sourceLanguage);
-        })
+          return await translateTextChunk(chunk, targetLanguage, sourceLanguage);
+        },
+        5 // Process 5 chunks at a time (reduced to avoid overwhelming API)
       );
       
+      // Handle any errors and combine translated chunks
+      const validChunks = translatedChunks.map((result, index) => {
+        if (result && typeof result === 'object' && result.error) {
+          console.error(`[testing] Error translating chunk ${index + 1}:`, result.error);
+          return chunks[index]; // Return original on error
+        }
+        return result;
+      });
+      
       // Combine translated chunks with spaces
-      return translatedChunks.join(' ');
+      return validChunks.join(' ');
     }
   } catch (error) {
     console.error('[testing] Error translating text:', error);
