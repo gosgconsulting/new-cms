@@ -1,0 +1,23 @@
+{
+  "watch": [
+    "server",
+    "server.js",
+    "scripts",
+    "sparti-cms/db"
+  ],
+  "ext": "js,json",
+  "ignore": [
+    "node_modules",
+    "dist",
+    "src",
+    "public",
+    "*.test.js",
+    "*.spec.js"
+  ],
+  "exec": "node server.js",
+  "env": {
+    "NODE_ENV": "development"
+  },
+  "delay": 500
+}
+
