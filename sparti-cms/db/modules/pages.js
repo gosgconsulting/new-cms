@@ -1,5 +1,6 @@
 import { query } from '../connection.js';
 import pool from '../connection.js';
+import { translateText } from '../../services/googleTranslationService.js';
 
 export async function initializeSEOPagesTables() {
   try {
@@ -695,26 +696,243 @@ async function insertNewLayout(pageId, layoutJson, language) {
   `, [pageId, language, JSON.stringify(layoutJson)]);
 }
 
+// Helper function to extract translatable text from layout JSON
+// Returns a map of paths to text values for translation
+function extractTranslatableText(obj, path = '', result = {}) {
+  if (obj === null || obj === undefined) {
+    return result;
+  }
+  
+  // Skip non-translatable fields
+  const skipFields = ['id', 'src', 'link', 'url', 'image', 'images', 'avatar', 'logo', 'phoneNumber', 'email', 'date', 'rating', 'version', 'sort_order', 'sortOrder', 'level', 'required', 'value', 'type', 'key'];
+  
+  if (typeof obj === 'string') {
+    // Only extract non-empty strings that aren't URLs or IDs
+    if (obj.trim().length > 0 && 
+        !obj.startsWith('http') && 
+        !obj.startsWith('/') && 
+        !obj.match(/^[a-zA-Z0-9_-]+$/)) {
+      result[path] = obj;
+    }
+  } else if (Array.isArray(obj)) {
+    obj.forEach((item, index) => {
+      extractTranslatableText(item, path ? `${path}[${index}]` : `[${index}]`, result);
+    });
+  } else if (typeof obj === 'object') {
+    Object.keys(obj).forEach(key => {
+      // Skip certain fields that shouldn't be translated
+      if (skipFields.includes(key.toLowerCase())) {
+        return;
+      }
+      
+      const newPath = path ? `${path}.${key}` : key;
+      extractTranslatableText(obj[key], newPath, result);
+    });
+  }
+  
+  return result;
+}
+
+// Helper function to inject translated text back into layout JSON
+function injectTranslatedText(obj, translations, path = '') {
+  if (obj === null || obj === undefined) {
+    return obj;
+  }
+  
+  if (typeof obj === 'string') {
+    // If this path has a translation, use it
+    if (translations[path] !== undefined) {
+      return translations[path];
+    }
+    return obj;
+  } else if (Array.isArray(obj)) {
+    return obj.map((item, index) => {
+      const itemPath = path ? `${path}[${index}]` : `[${index}]`;
+      return injectTranslatedText(item, translations, itemPath);
+    });
+  } else if (typeof obj === 'object') {
+    const result = {};
+    Object.keys(obj).forEach(key => {
+      const newPath = path ? `${path}.${key}` : key;
+      result[key] = injectTranslatedText(obj[key], translations, newPath);
+    });
+    return result;
+  }
+  
+  return obj;
+}
+
+// Helper function to get configured languages from site_settings
+async function getConfiguredLanguages(tenantId) {
+  const languagesResult = await query(`
+    SELECT setting_value 
+    FROM site_settings 
+    WHERE setting_key = 'site_content_languages' 
+    AND tenant_id = $1
+  `, [tenantId]);
+  
+  if (languagesResult.rows.length === 0 || !languagesResult.rows[0].setting_value) {
+    return [];
+  }
+  
+  // Parse the comma-separated language list
+  const rawValue = languagesResult.rows[0].setting_value;
+  if (rawValue.includes(',')) {
+    return rawValue.split(',').filter(lang => lang.trim() !== '');
+  } else if (rawValue.trim() !== '') {
+    return [rawValue.trim()];
+  }
+  
+  return [];
+}
+
+// Helper function to get default language from site_settings
+async function getDefaultLanguage(tenantId) {
+  const defaultLanguageResult = await query(`
+    SELECT setting_value 
+    FROM site_settings 
+    WHERE setting_key = 'site_language' 
+    AND tenant_id = $1
+  `, [tenantId]);
+  
+  return defaultLanguageResult.rows.length > 0 ? 
+    defaultLanguageResult.rows[0].setting_value : 'default';
+}
+
+// Helper function to get target languages (excluding default)
+async function getTargetLanguages(tenantId) {
+  const allLanguages = await getConfiguredLanguages(tenantId);
+  
+  if (allLanguages.length === 0) {
+    return [];
+  }
+  
+  const defaultLanguage = await getDefaultLanguage(tenantId);
+  
+  // Filter out the default language (don't translate to itself)
+  return allLanguages.filter(lang => lang !== defaultLanguage && lang !== 'default');
+}
+
+// Helper function to translate all text fields for a single language
+async function translateTextFields(textMap, targetLanguage, defaultLanguage) {
+  const translations = {};
+  const textPaths = Object.keys(textMap);
+  
+  for (const textPath of textPaths) {
+    const originalText = textMap[textPath];
+    try {
+      const translatedText = await translateText(originalText, targetLanguage, defaultLanguage);
+      translations[textPath] = translatedText;
+      console.log(`[testing] Translated ${textPath}: "${originalText.substring(0, 50)}..." -> "${translatedText.substring(0, 50)}..."`);
+    } catch (error) {
+      console.error(`[testing] Error translating text at path ${textPath}:`, error);
+      // Use original text if translation fails
+      translations[textPath] = originalText;
+    }
+  }
+  
+  return translations;
+}
+
+// Helper function to translate layout to a single target language
+async function translateLayoutToLanguage(pageId, layoutJson, targetLanguage, defaultLanguage, textMap) {
+  try {
+    console.log(`[testing] Translating to ${targetLanguage}...`);
+    
+    // Translate all text fields
+    const translations = await translateTextFields(textMap, targetLanguage, defaultLanguage);
+    
+    // Inject translated text back into layout
+    const translatedLayout = injectTranslatedText(layoutJson, translations);
+    
+    // Upsert the translated layout
+    await upsertPageLayout(pageId, translatedLayout, targetLanguage);
+    
+    console.log(`[testing] Successfully translated and saved layout for language ${targetLanguage}`);
+  } catch (error) {
+    console.error(`[testing] Error translating to ${targetLanguage}:`, error);
+    throw error; // Re-throw to let caller handle
+  }
+}
+
+// Helper function to translate layout to all configured languages
+async function translateLayoutToAllLanguages(pageId, layoutJson, tenantId) {
+  try {
+    console.log(`[testing] Starting translation for page ${pageId} and tenant ${tenantId}`);
+    
+    // Get target languages
+    const targetLanguages = await getTargetLanguages(tenantId);
+    
+    if (targetLanguages.length === 0) {
+      console.log(`[testing] No target languages to translate to, skipping translation`);
+      return;
+    }
+    
+    console.log(`[testing] Translating to ${targetLanguages.length} languages: ${targetLanguages.join(', ')}`);
+    
+    // Extract translatable text from layout
+    const textMap = extractTranslatableText(layoutJson);
+    const textPaths = Object.keys(textMap);
+    
+    if (textPaths.length === 0) {
+      console.log(`[testing] No translatable text found in layout, skipping translation`);
+      return;
+    }
+    
+    console.log(`[testing] Found ${textPaths.length} translatable text fields`);
+    
+    // Get default language for translation
+    const defaultLanguage = await getDefaultLanguage(tenantId);
+    
+    // Translate to each target language
+    for (const targetLanguage of targetLanguages) {
+      try {
+        await translateLayoutToLanguage(pageId, layoutJson, targetLanguage, defaultLanguage, textMap);
+      } catch (error) {
+        // Continue with other languages even if one fails
+        console.error(`[testing] Failed to translate to ${targetLanguage}, continuing with other languages`);
+      }
+    }
+    
+    console.log(`[testing] Completed translation process for page ${pageId}`);
+  } catch (error) {
+    console.error(`[testing] Error in translateLayoutToAllLanguages:`, error);
+    // Don't throw - this is a background process
+  }
+}
+
 // Helper function to upsert page layout (update or insert)
-async function upsertPageLayout(pageId, layoutJson, language) {
+async function upsertPageLayout(pageId, layoutJson, language, tenantId = null) {
+  let operationSuccessful = false;
+  
   // Try to update existing layout first
   const wasUpdated = await updateExistingLayout(pageId, layoutJson, language);
   
   if (wasUpdated) {
-    return;
+    operationSuccessful = true;
+  } else {
+    // If no rows were updated, check if layout exists
+    const existingCheck = await query(`
+      SELECT id FROM page_layouts WHERE page_id = $1 AND language = $2
+    `, [pageId, language]);
+    
+    if (existingCheck.rows.length === 0) {
+      // Insert new layout
+      await insertNewLayout(pageId, layoutJson, language);
+      operationSuccessful = true;
+    } else {
+      // Layout exists but update didn't work, try update again
+      const wasUpdatedRetry = await updateExistingLayout(pageId, layoutJson, language);
+      operationSuccessful = wasUpdatedRetry;
+    }
   }
   
-  // If no rows were updated, check if layout exists
-  const existingCheck = await query(`
-    SELECT id FROM page_layouts WHERE page_id = $1 AND language = $2
-  `, [pageId, language]);
-  
-  if (existingCheck.rows.length === 0) {
-    // Insert new layout
-    await insertNewLayout(pageId, layoutJson, language);
-  } else {
-    // Layout exists but update didn't work, try update again
-    await updateExistingLayout(pageId, layoutJson, language);
+  // After successful operation on default language, trigger translation to other languages
+  if (operationSuccessful && language === 'default' && tenantId) {
+    // Call translation asynchronously (fire and forget) to avoid blocking
+    translateLayoutToAllLanguages(pageId, layoutJson, tenantId).catch(error => {
+      console.error(`[testing] Error in background translation for page ${pageId}:`, error);
+    });
   }
 }
 
@@ -739,8 +957,8 @@ export async function updatePageLayout(pageId, layoutJson, tenantId, language = 
     await ensureLanguageColumnExists();
     await ensureCompositeUniqueConstraintExists(language);
     
-    // Update or insert the layout
-    await upsertPageLayout(pageId, layoutJson, language);
+    // Update or insert the layout (pass tenantId for translation support)
+    await upsertPageLayout(pageId, layoutJson, language, tenantId);
     
     return true;
   } catch (error) {

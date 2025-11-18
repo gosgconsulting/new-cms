@@ -2,7 +2,6 @@
  * Google Translation Service
  * 
  * This service provides functions for translating text using Google Cloud Translation API.
- * Currently using a mock implementation that simply returns the original text.
  */
 
 /**
@@ -24,21 +23,164 @@ export const isGoogleTranslationEnabled = () => {
 };
 
 /**
- * Mock translation function that returns the original text
- * This is used when the real translation API is disabled
+ * Strip HTML tags and extract text content
+ * 
+ * @param {string} html - HTML string
+ * @returns {string} - Plain text content
+ */
+function stripHtmlTags(html) {
+  if (!html || typeof html !== 'string') {
+    return html;
+  }
+  
+  // Remove HTML tags but preserve text content
+  // Replace common HTML entities first
+  let text = html
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'");
+  
+  // Remove HTML tags
+  text = text.replace(/<[^>]*>/g, ' ');
+  
+  // Clean up multiple spaces and trim
+  text = text.replace(/\s+/g, ' ').trim();
+  
+  return text;
+}
+
+/**
+ * Check if string contains HTML tags
+ * 
+ * @param {string} text - Text to check
+ * @returns {boolean} - True if contains HTML
+ */
+function containsHtml(text) {
+  if (!text || typeof text !== 'string') {
+    return false;
+  }
+  return /<[^>]+>/.test(text);
+}
+
+/**
+ * Split large text into chunks that fit within API limit
+ * API limit is 204800 bytes (200KB), we'll use 150KB to be safe
+ * 
+ * @param {string} text - Text to split
+ * @param {number} maxBytes - Maximum bytes per chunk (default: 150000)
+ * @returns {string[]} - Array of text chunks
+ */
+function splitTextIntoChunks(text, maxBytes = 150000) {
+  if (!text || typeof text !== 'string') {
+    return [text];
+  }
+  
+  // Calculate byte size (UTF-8 encoding)
+  const textBytes = Buffer.byteLength(text, 'utf8');
+  
+  if (textBytes <= maxBytes) {
+    return [text];
+  }
+  
+  // Split by sentences first (try to preserve meaning)
+  const sentences = text.split(/([.!?]\s+)/);
+  const chunks = [];
+  let currentChunk = '';
+  
+  for (let i = 0; i < sentences.length; i++) {
+    const sentence = sentences[i];
+    const testChunk = currentChunk + sentence;
+    const testBytes = Buffer.byteLength(testChunk, 'utf8');
+    
+    if (testBytes <= maxBytes) {
+      currentChunk = testChunk;
+    } else {
+      // Current chunk is full, save it and start new one
+      if (currentChunk) {
+        chunks.push(currentChunk.trim());
+      }
+      
+      // If single sentence is too large, split by words
+      if (Buffer.byteLength(sentence, 'utf8') > maxBytes) {
+        const words = sentence.split(/\s+/);
+        let wordChunk = '';
+        
+        for (const word of words) {
+          const testWordChunk = wordChunk + (wordChunk ? ' ' : '') + word;
+          const wordBytes = Buffer.byteLength(testWordChunk, 'utf8');
+          
+          if (wordBytes <= maxBytes) {
+            wordChunk = testWordChunk;
+          } else {
+            if (wordChunk) {
+              chunks.push(wordChunk.trim());
+            }
+            wordChunk = word;
+          }
+        }
+        
+        if (wordChunk) {
+          currentChunk = wordChunk;
+        }
+      } else {
+        currentChunk = sentence;
+      }
+    }
+  }
+  
+  if (currentChunk) {
+    chunks.push(currentChunk.trim());
+  }
+  
+  return chunks.length > 0 ? chunks : [text];
+}
+
+/**
+ * Translate a single chunk of text using Google Cloud Translation API
  * 
  * @param {string} text - The text to translate
  * @param {string} targetLanguage - The target language code
- * @returns {Promise<string>} - The "translated" text (same as input)
+ * @param {string} [sourceLanguage=null] - The source language code (optional)
+ * @returns {Promise<string>} - The translated text
  */
-export const mockTranslateText = async (text, targetLanguage) => {
-  console.log(`[testing] Mock translating text to ${targetLanguage}: "${text.substring(0, 50)}${text.length > 50 ? '...' : ''}"`);
-  return text;
-};
+async function translateTextChunk(text, targetLanguage, sourceLanguage = null) {
+  const apiKey = process.env.GOOGLE_CLOUD_TRANSLATION_API_KEY || 
+                process.env.VITE_GOOGLE_CLOUD_TRANSLATION_API_KEY;
+  
+  if (!apiKey) {
+    throw new Error('Google Cloud Translation API key not found');
+  }
+  
+  const url = `https://translation.googleapis.com/language/translate/v2?key=${apiKey}`;
+  
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      q: text,
+      target: targetLanguage,
+      ...(sourceLanguage && { source: sourceLanguage }),
+      format: 'text'
+    }),
+  });
+  
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Google Translation API error: ${response.status} ${errorText}`);
+  }
+  
+  const data = await response.json();
+  return data.data.translations[0].translatedText;
+}
 
 /**
  * Translate text using Google Cloud Translation API
- * Currently using a mock implementation
+ * Handles HTML content and large texts by stripping HTML and chunking
  * 
  * @param {string} text - The text to translate
  * @param {string} targetLanguage - The target language code
@@ -52,43 +194,37 @@ export const translateText = async (text, targetLanguage, sourceLanguage = null)
       return text;
     }
     
-    console.log(`[testing] Translating text to ${targetLanguage}${sourceLanguage ? ` from ${sourceLanguage}` : ''}`);
+    const textBytes = Buffer.byteLength(text, 'utf8');
+    const hasHtml = containsHtml(text);
     
-    // Use mock translation for now
-    return await mockTranslateText(text, targetLanguage);
+    console.log(`[testing] Translating text to ${targetLanguage}${sourceLanguage ? ` from ${sourceLanguage}` : ''} (${textBytes} bytes${hasHtml ? ', contains HTML' : ''})`);
     
-    /* 
-    // Real implementation would look something like this:
-    const apiKey = process.env.GOOGLE_CLOUD_TRANSLATION_API_KEY || 
-                  process.env.VITE_GOOGLE_CLOUD_TRANSLATION_API_KEY;
-    
-    if (!apiKey) {
-      throw new Error('Google Cloud Translation API key not found');
+    // If text contains HTML, extract text content first
+    let textToTranslate = text;
+    if (hasHtml) {
+      textToTranslate = stripHtmlTags(text);
+      console.log(`[testing] Stripped HTML: ${text.length} -> ${textToTranslate.length} chars`);
     }
     
-    const url = `https://translation.googleapis.com/language/translate/v2?key=${apiKey}`;
+    // Check if text needs to be chunked
+    const chunks = splitTextIntoChunks(textToTranslate);
     
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        q: text,
-        target: targetLanguage,
-        ...(sourceLanguage && { source: sourceLanguage }),
-        format: 'text'
-      }),
-    });
-    
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Google Translation API error: ${response.status} ${errorText}`);
+    if (chunks.length === 1) {
+      // Single chunk, translate directly
+      return await translateTextChunk(chunks[0], targetLanguage, sourceLanguage);
+    } else {
+      // Multiple chunks, translate each and combine
+      console.log(`[testing] Splitting into ${chunks.length} chunks for translation`);
+      const translatedChunks = await Promise.all(
+        chunks.map((chunk, index) => {
+          console.log(`[testing] Translating chunk ${index + 1}/${chunks.length} (${Buffer.byteLength(chunk, 'utf8')} bytes)`);
+          return translateTextChunk(chunk, targetLanguage, sourceLanguage);
+        })
+      );
+      
+      // Combine translated chunks with spaces
+      return translatedChunks.join(' ');
     }
-    
-    const data = await response.json();
-    return data.data.translations[0].translatedText;
-    */
   } catch (error) {
     console.error('[testing] Error translating text:', error);
     // In case of error, return the original text
@@ -115,11 +251,7 @@ export const batchTranslateTexts = async (texts, targetLanguage, sourceLanguage 
     
     console.log(`[testing] Batch translating ${validTexts.length} texts to ${targetLanguage}`);
     
-    // For mock implementation, just return the original texts
-    return texts;
-    
-    /*
-    // Real implementation would batch the texts and call the API
+    // Translate all texts in parallel
     const results = await Promise.all(
       validTexts.map(text => translateText(text, targetLanguage, sourceLanguage))
     );
@@ -130,7 +262,6 @@ export const batchTranslateTexts = async (texts, targetLanguage, sourceLanguage 
       const validIndex = validTexts.indexOf(text);
       return validIndex >= 0 ? results[validIndex] : text;
     });
-    */
   } catch (error) {
     console.error('[testing] Error batch translating texts:', error);
     // In case of error, return the original texts
