@@ -22,7 +22,12 @@ export const authenticateWithAccessKey = async (req, res, next) => {
       });
     }
 
-    const accessKey = req.headers['x-access-key'] || req.headers['X-Access-Key'];
+    // Extract Access key from headers
+    const accessKey = req.headers['x-access-key'] || 
+                   req.headers['X-Access-Key'] ||
+                   (req.headers.authorization && req.headers.authorization.startsWith('Bearer ') 
+                     ? req.headers.authorization.substring(7) 
+                     : null);
     
     if (!accessKey) {
       return next(); // No access key provided, continue to next middleware

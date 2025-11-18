@@ -19,9 +19,9 @@ const router = express.Router();
 
 // Apply access key authentication middleware to all API routes except verify-access-key and v1 routes
 router.use('/api', (req, res, next) => {
-  // Skip access key authentication for the verify-access-key endpoint and v1 routes
+  // Skip access key authentication for the verify-access-key endpoint
   // req.path includes the full path from the request
-  if (req.path === '/api/auth/verify-access-key' || req.path.startsWith('/api/v1/')) {
+  if (req.path === '/api/auth/verify-access-key') {
     return next();
   }
   return authenticateWithAccessKey(req, res, next);
@@ -32,7 +32,7 @@ router.use('/api', (req, res, next) => {
 router.use('/', healthRoutes);
 
 // Public API v1 routes (requires tenant API key authentication)
-router.use('/api/v1', authenticateTenantApiKey, publicRoutes);
+router.use('/api/v1', authenticateWithAccessKey, publicRoutes);
 
 // All other API routes
 router.use('/api', authRoutes);
