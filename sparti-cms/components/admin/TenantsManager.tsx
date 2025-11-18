@@ -19,6 +19,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useAuth } from '../auth/AuthProvider';
+import { api } from '../../utils/api';
 
 // Simplified Tenant type definition
 interface Tenant {
@@ -48,7 +49,7 @@ const TenantsManager: React.FC = () => {
         const fetchForcedTenant = async () => {
           try {
             setIsLoading(true);
-            const response = await fetch(`/api/tenants/${currentTenantId}`);
+            const response = await api.get(`/api/tenants/${currentTenantId}`);
             if (response.ok) {
               const tenantData = await response.json();
               setTenants([tenantData]);
@@ -80,7 +81,7 @@ const TenantsManager: React.FC = () => {
       setIsLoading(true);
       setFetchError(null);
       
-      const response = await fetch('/api/tenants');
+      const response = await api.get('/api/tenants');
       
       if (!response.ok) {
         const errorText = await response.text();
@@ -149,14 +150,8 @@ const TenantsManager: React.FC = () => {
     setIsSubmitting(true);
     
     try {
-      const response = await fetch('/api/tenants', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          name: newTenant.name
-        })
+      const response = await api.post('/api/tenants', {
+        name: newTenant.name
       });
       
       if (!response.ok) {
@@ -204,14 +199,8 @@ const TenantsManager: React.FC = () => {
     setIsSubmitting(true);
     
     try {
-      const response = await fetch(`/api/tenants/${selectedTenant.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          name: newTenant.name
-        })
+      const response = await api.put(`/api/tenants/${selectedTenant.id}`, {
+        name: newTenant.name
       });
       
       if (!response.ok) {
@@ -255,9 +244,7 @@ const TenantsManager: React.FC = () => {
     if (!selectedTenant) return;
     
     try {
-      const response = await fetch(`/api/tenants/${selectedTenant.id}`, {
-        method: 'DELETE'
-      });
+      const response = await api.delete(`/api/tenants/${selectedTenant.id}`);
       
       if (!response.ok) {
         const errorData = await response.json();
@@ -294,14 +281,8 @@ const TenantsManager: React.FC = () => {
   // Create default tenant
   const createDefaultTenant = async () => {
     try {
-      const response = await fetch('/api/tenants', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          name: 'GO SG CONSULTING'
-        })
+      const response = await api.post('/api/tenants', {
+        name: 'GO SG CONSULTING'
       });
       
       if (!response.ok) {
