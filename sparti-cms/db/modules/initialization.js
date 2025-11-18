@@ -1,4 +1,4 @@
-import { query } from '../connection.js';
+import { query, executeMultiStatementSQL } from '../connection.js';
 
 // Initialize tenant tables
 export async function initializeTenantTables() {
@@ -45,8 +45,29 @@ export async function initializeUsersTables() {
     const usersSchemaPath = path.join(__dirname, '..', 'migrations', '003_users.sql');
     const usersSql = fs.readFileSync(usersSchemaPath, 'utf8');
     
-    // Execute the schema SQL
-    await query(usersSql);
+    // Execute the schema SQL using multi-statement executor
+    try {
+      await executeMultiStatementSQL(usersSql);
+      console.log('[testing] Users migration SQL executed');
+    } catch (sqlError) {
+      console.error('[testing] Error executing users migration SQL:', sqlError.message);
+      // Continue anyway - table might already exist
+    }
+    
+    // Verify users table exists
+    const tableCheck = await query(`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables 
+        WHERE table_schema = 'public' 
+        AND table_name = 'users'
+      );
+    `);
+    
+    if (!tableCheck.rows[0].exists) {
+      console.error('[testing] ERROR: Users table was not created!');
+      throw new Error('Users table creation failed');
+    }
+    console.log('[testing] Verified users table exists');
     
     // Add tenant_id, is_super_admin, and status columns if they don't exist (for backward compatibility)
     try {

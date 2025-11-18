@@ -152,6 +152,31 @@ export async function query(text, params, retries = 3) {
   throw lastError;
 }
 
+// Helper function to execute multi-statement SQL files
+// PostgreSQL's query() can handle multi-statement SQL, but we use a dedicated client
+// to ensure all statements execute in the same connection context
+export async function executeMultiStatementSQL(sqlText) {
+  const poolInstance = getPool();
+  const client = await poolInstance.connect();
+  
+  try {
+    // Execute the entire SQL text as-is - PostgreSQL handles multi-statement SQL
+    // Using a single query ensures all statements run in the same transaction context
+    await client.query(sqlText);
+  } catch (error) {
+    // Log the error but don't fail completely - some statements might fail if objects already exist
+    console.error('[testing] Error in multi-statement SQL execution:', error.message);
+    // Re-throw critical errors (like connection errors)
+    if (error.code && !['42P07', '42710', '23505'].includes(error.code)) {
+      // 42P07 = relation already exists, 42710 = duplicate object, 23505 = unique violation
+      // These are expected in idempotent migrations
+      throw error;
+    }
+  } finally {
+    client.release();
+  }
+}
+
 // Helper function to check user tenant access
 export const canUserAccessTenant = (user, tenantId) => {
   if (!user) return false;

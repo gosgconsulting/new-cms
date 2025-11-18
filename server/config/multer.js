@@ -8,7 +8,6 @@ const __dirname = dirname(__filename);
 
 // Ensure uploads directory exists
 const uploadsDir = join(__dirname, '..', '..', 'public', 'uploads');
-console.log(`[Uploads Directory] The upload directory is located at: ${uploadsDir}`);
 if (!existsSync(uploadsDir)) {
   mkdirSync(uploadsDir, { recursive: true });
   console.log('[testing] Created uploads directory:', uploadsDir);
