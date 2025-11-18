@@ -223,6 +223,32 @@ router.get('/footer', async (req, res) => {
 });
 
 /**
+ * GET /api/v1/global-schema
+ * Get both header and footer schemas
+ */
+router.get('/global-schema', async (req, res) => {
+  try {
+    const tenantId = req.tenantId;
+    
+    // Fetch both header and footer schemas
+    const [headerSchema, footerSchema] = await Promise.all([
+      getSiteSchema('header', tenantId),
+      getSiteSchema('footer', tenantId)
+    ]);
+    
+    const globalSchema = {
+      header: headerSchema || null,
+      footer: footerSchema || null
+    };
+    
+    res.json(successResponse(globalSchema, tenantId));
+  } catch (error) {
+    console.error('[testing] Error fetching global schema:', error);
+    res.status(500).json(errorResponse(error, 'FETCH_GLOBAL_SCHEMA_ERROR'));
+  }
+});
+
+/**
  * GET /api/v1/blog/posts
  * Get all blog posts
  * Note: If posts table has tenant_id column, it will be filtered by tenant.
