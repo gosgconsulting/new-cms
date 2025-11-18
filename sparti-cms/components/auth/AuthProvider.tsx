@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback, useRef } from 'react';
 import { Tenant } from '../admin/PostgresIntegration';
 
 interface User {
@@ -32,6 +32,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentTenantId, setCurrentTenantId] = useState<string | null>(null);
+  // Track if we've set tenant ID from sign-in to prevent resetting on user updates
+  const hasSetTenantFromSignIn = useRef<boolean>(false);
 
   const signOut = useCallback(() => {
     setUser(null);
@@ -39,6 +41,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.removeItem('sparti-access-key');
     setCurrentTenantId(null);
     localStorage.removeItem('sparti-current-tenant-id');
+    hasSetTenantFromSignIn.current = false; // Reset flag on sign out
   }, []);
 
   useEffect(() => {
@@ -92,15 +95,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
 
       // 2. Determine and set tenant ID
+      // Only restore from localStorage on initialization, don't set from user.tenant_id
+      // (that should only happen during sign-in)
       let tenantIdToSet: string | null = null;
-      
-      if (validatedUser && validatedUser.tenant_id && !validatedUser.is_super_admin) {
+      const savedTenantId = localStorage.getItem('sparti-current-tenant-id');
+      if (savedTenantId) {
+        tenantIdToSet = savedTenantId;
+      } else if (validatedUser && validatedUser.tenant_id) {
+        // Only set from user.tenant_id if there's no saved value and user is not super admin
+        // This handles the case where user refreshes page before signing in
         tenantIdToSet = validatedUser.tenant_id;
-      } else {
-        const savedTenantId = localStorage.getItem('sparti-current-tenant-id');
-        if (savedTenantId) {
-            tenantIdToSet = savedTenantId;
-        }
+        hasSetTenantFromSignIn.current = true;
       }
 
       console.log('tenantIdToSet', tenantIdToSet);
@@ -146,13 +151,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setUser(userData);
         localStorage.setItem('sparti-user-session', JSON.stringify({ ...userData, token: data.token }));
         
-        // Handle tenant assignment after login
-        // Set tenant if needed
-        const tenantIdToSet = userData.tenant_id && !userData.is_super_admin ? userData.tenant_id : null;
-        
-        if (tenantIdToSet) {
+        // Set tenant ID from user.tenant_id only once on sign-in
+        // This ensures it's set on sign-in but not when user is updated later
+        if (!hasSetTenantFromSignIn.current) {
+          const tenantIdToSet = userData.tenant_id && !userData.is_super_admin ? userData.tenant_id : null;
+          
+          if (tenantIdToSet) {
             setCurrentTenantId(tenantIdToSet);
             localStorage.setItem('sparti-current-tenant-id', tenantIdToSet);
+            hasSetTenantFromSignIn.current = true;
+          }
         }
         
         return { success: true };
@@ -198,12 +206,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         localStorage.setItem('sparti-user-session', JSON.stringify(userData));
         localStorage.setItem('sparti-access-key', accessKey);
         
-        // Set tenant if needed
-        const tenantIdToSet = userData.tenant_id && !userData.is_super_admin ? userData.tenant_id : null;
-        
-        if (tenantIdToSet) {
+        // Set tenant ID from user.tenant_id only once on sign-in
+        // This ensures it's set on sign-in but not when user is updated later
+        if (!hasSetTenantFromSignIn.current) {
+          const tenantIdToSet = userData.tenant_id && !userData.is_super_admin ? userData.tenant_id : null;
+          
+          if (tenantIdToSet) {
             setCurrentTenantId(tenantIdToSet);
             localStorage.setItem('sparti-current-tenant-id', tenantIdToSet);
+            hasSetTenantFromSignIn.current = true;
+          }
         }
         
         return { success: true };

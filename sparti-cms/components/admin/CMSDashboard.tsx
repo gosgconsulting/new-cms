@@ -16,8 +16,6 @@ import {
   ArrowRight,
   Map,
   Building2,
-  Check,
-  ChevronsUpDown,
 } from 'lucide-react';
 import { useAuth } from '../auth/AuthProvider';
 import { motion } from 'framer-motion';
@@ -520,64 +518,6 @@ const CMSDashboard: React.FC = () => {
         
         {/* Footer with Tenant Switcher */}
         <div className="p-4 border-t border-border space-y-2">
-          {/* Tenant Switcher - Hidden when forced tenant is active */}
-          {user?.is_super_admin && (
-            <div className="relative">
-              <button
-                onClick={() => setTenantDropdownOpen(!tenantDropdownOpen)}
-                className="w-full flex items-center justify-between px-3 py-2.5 text-left rounded-lg text-muted-foreground hover:bg-secondary/50 hover:text-foreground transition-all duration-200 border border-border"
-              >
-                <div className="flex items-center">
-                  <Building2 className="mr-3 h-5 w-5 text-brandTeal" />
-                  <div className="text-sm">
-                    <div className="font-medium text-foreground">{tenant?.name || 'Select Tenant'}</div>
-                  </div>
-                </div>
-                <ChevronsUpDown className="h-4 w-4 text-muted-foreground" />
-              </button>
-              
-              {/* Dropdown */}
-              {tenantDropdownOpen && (
-                <div className="absolute bottom-full mb-1 left-0 w-full bg-white rounded-lg border border-border shadow-lg z-50">
-                  <div className="p-2 border-b border-border">
-                    <h3 className="text-xs font-semibold text-muted-foreground px-2 py-1">Switch Tenant</h3>
-                  </div>
-                  <ul className="max-h-60 overflow-auto py-1">
-                    {tenants.map((tenant) => (
-                      <li key={tenant.id}>
-                        <button
-                          onClick={() => handleTenantChange(tenant.id)}
-                          className="w-full flex items-center justify-between px-3 py-2 text-left text-sm hover:bg-secondary/50 transition-colors"
-                        >
-                          <div className="flex items-center">
-                            <span className="text-foreground">{tenant.name}</span>
-                            {tenant.isDevelopment && (
-                              <span className="ml-2 px-1.5 py-0.5 text-xs bg-amber-100 text-amber-800 rounded">Dev</span>
-                            )}
-                          </div>
-                          {currentTenantId === tenant.id && (
-                            <Check className="h-4 w-4 text-brandTeal" />
-                          )}
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                  <div className="p-2 border-t border-border">
-                    <button
-                      className="w-full text-left text-xs px-2 py-1 text-brandPurple hover:text-brandPurple/80 transition-colors"
-                      onClick={() => {
-                        setTenantDropdownOpen(false);
-                        setActiveTab('tenants');
-                      }}
-                    >
-                      + Add New Tenant
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-          
           {/* Sign Out Button */}
           {user ? (
             <button
@@ -624,9 +564,10 @@ const CMSDashboard: React.FC = () => {
             
             <div className="flex items-center space-x-4">
               <TenantSelector
-                currentTenantId={currentTenantId || user?.tenant_id || ''}
+                currentTenantId={currentTenantId || ''}
                 onTenantChange={handleTenantChange}
                 isSuperAdmin={user?.is_super_admin || false}
+                onAddNewTenant={() => setActiveTab('tenants')}
               />
               <span className="text-sm text-muted-foreground">
                 {user ? `Welcome back, ${user.email || 'Admin'}` : 'Public Dashboard'}
