@@ -10,7 +10,7 @@ const __dirname = dirname(__filename);
 export const app = express();
 
 // Basic middleware
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
 
 // Export app directory for static file serving
 export const appDir = __dirname;
