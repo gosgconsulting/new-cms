@@ -105,10 +105,12 @@ router.get('/pages', async (req, res) => {
 /**
  * GET /api/v1/pages/:slug
  * Get single page by slug
+ * Supports language parameter: ?language=en (falls back to 'default' if not provided or not found)
  */
 router.get('/pages/:slug', async (req, res) => {
   try {
     const tenantId = req.tenantId;
+    const { language } = req.query;
     let slug = req.params.slug;
     
     // Ensure slug starts with /
@@ -118,7 +120,17 @@ router.get('/pages/:slug', async (req, res) => {
     
     // First, get the page by slug
     const pageResult = await query(`
-      SELECT id
+      SELECT 
+        id,
+        page_name,
+        slug,
+        meta_title,
+        meta_description,
+        seo_index,
+        status,
+        page_type,
+        created_at,
+        updated_at
       FROM pages
       WHERE slug = $1 AND tenant_id = $2
       LIMIT 1
@@ -128,13 +140,39 @@ router.get('/pages/:slug', async (req, res) => {
       return res.status(404).json(errorResponse('Page not found', 'PAGE_NOT_FOUND', 404));
     }
     
-    const pageId = pageResult.rows[0].id;
+    const page = pageResult.rows[0];
+    const pageId = page.id;
     
-    // Get page with layout
-    const page = await getPageWithLayout(pageId, tenantId);
+    // Get layout for requested language, fallback to 'default' if not found
+    const requestedLanguage = language || 'default';
+    let layoutResult = await query(`
+      SELECT layout_json, version, updated_at, language
+      FROM page_layouts
+      WHERE page_id = $1 AND language = $2
+      ORDER BY version DESC
+      LIMIT 1
+    `, [pageId, requestedLanguage]);
     
-    if (!page) {
-      return res.status(404).json(errorResponse('Page not found', 'PAGE_NOT_FOUND', 404));
+    // If requested language not found and it's not 'default', fallback to 'default'
+    if (layoutResult.rows.length === 0 && requestedLanguage !== 'default') {
+      console.log(`[testing] Layout for language '${requestedLanguage}' not found, falling back to 'default'`);
+      layoutResult = await query(`
+        SELECT layout_json, version, updated_at, language
+        FROM page_layouts
+        WHERE page_id = $1 AND language = 'default'
+        ORDER BY version DESC
+        LIMIT 1
+      `, [pageId]);
+    }
+    
+    // Attach layout to page
+    if (layoutResult.rows.length > 0) {
+      page.layout = layoutResult.rows[0].layout_json;
+      page.layout_language = layoutResult.rows[0].language;
+    } else {
+      // No layout found at all
+      page.layout = { components: [] };
+      page.layout_language = 'default';
     }
     
     res.json(successResponse(page, tenantId));
