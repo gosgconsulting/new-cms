@@ -106,11 +106,20 @@ router.put('/pages/:pageId', async (req, res) => {
 });
 
 // Update page layout
-router.put('/pages/:pageId/layout', async (req, res) => {
+router.put('/pages/:pageId/layout', authenticateUser, async (req, res) => {
   try {
     const { pageId } = req.params;
     const { layout_json, tenantId } = req.body;
     console.log(`[testing] API: Updating page layout ${pageId} for tenant: ${tenantId}`);
+    
+    // Validate tenant access: user can only update their own tenant unless they're a super admin
+    if (!req.user.is_super_admin && tenantId !== req.user.tenant_id) {
+      return res.status(403).json({
+        success: false,
+        error: 'Forbidden',
+        message: 'You can only update layouts for your own tenant'
+      });
+    }
     
     const success = await updatePageLayout(pageId, layout_json, tenantId);
     
@@ -127,6 +136,16 @@ router.put('/pages/:pageId/layout', async (req, res) => {
     });
   } catch (error) {
     console.error('[testing] API: Error updating page layout:', error);
+    
+    // Handle validation errors with 400 status
+    if (error.code === 'VALIDATION_ERROR') {
+      return res.status(400).json({
+        success: false,
+        error: 'Validation error',
+        message: error.message
+      });
+    }
+    
     res.status(500).json({
       success: false,
       error: 'Failed to update page layout',
