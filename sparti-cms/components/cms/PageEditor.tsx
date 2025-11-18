@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '../../../src/components/ui/button';
 import { Input } from '../../../src/components/ui/input';
 import { Label } from '../../../src/components/ui/label';
@@ -14,6 +14,10 @@ import ComponentEditor from './ComponentEditor';
 import { useAuth } from '../auth/AuthProvider';
 import { ComponentSchema } from '../../types/schema';
 import api from '../../utils/api';
+import { CodeJar } from 'codejar';
+import Prism from 'prismjs';
+import 'prismjs/components/prism-json';
+import 'prismjs/themes/prism.css';
 import {
   Dialog,
   DialogContent,
@@ -68,26 +72,96 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
   const [showJSONEditor, setShowJSONEditor] = useState(false);
   const [jsonString, setJsonString] = useState('');
   const [jsonError, setJsonError] = useState<string | null>(null);
+  const jsonEditorRef = useRef<HTMLDivElement>(null);
+  const codeJarRef = useRef<CodeJar | null>(null);
+  const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
 
   useEffect(() => {
     if (showJSONEditor) {
-      setJsonString(JSON.stringify(components, null, 2));
+      const jsonContent = JSON.stringify(components, null, 2);
+      setJsonString(jsonContent);
       setJsonError(null);
     }
-  }, [showJSONEditor]);
+  }, [showJSONEditor, components]);
 
-  const handleJsonChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const newJsonString = e.target.value;
-    setJsonString(newJsonString);
+  // Initialize CodeJar when JSON editor dialog opens
+  const initializeCodeJar = (element: HTMLDivElement | null) => {
+    if (!element || codeJarRef.current) {
+      return;
+    }
+
+    const highlight = (editor: HTMLElement) => {
+      const code = editor.textContent || '';
+      try {
+        editor.innerHTML = Prism.highlight(code, Prism.languages.json, 'json');
+      } catch (error) {
+        // If highlighting fails, just show the code
+        editor.innerHTML = code;
+      }
+    };
+
     try {
-      const parsed = JSON.parse(newJsonString);
-      setComponents(parsed);
-      setJsonError(null);
+      codeJarRef.current = CodeJar(element, highlight, {
+        tab: '  ', // Use 2 spaces for tabs
+      });
+
+      // Get the content directly from components to ensure we have the latest data
+      const initialContent = JSON.stringify(components, null, 2);
+      codeJarRef.current.updateCode(initialContent);
+
+      // Handle content changes
+      codeJarRef.current.onUpdate((code) => {
+        setJsonString(code);
+        try {
+          const parsed = JSON.parse(code);
+          setComponents(parsed);
+          setJsonError(null);
+        } catch (error) {
+          setJsonError('Invalid JSON format.');
+        }
+      });
+
+      // Focus the editor
+      setTimeout(() => {
+        element.focus();
+      }, 100);
     } catch (error) {
-      setJsonError('Invalid JSON format.');
+      console.error('[testing] Error initializing CodeJar:', error);
     }
   };
+
+  // Use callback ref to initialize when element is mounted
+  const setEditorRef = (element: HTMLDivElement | null) => {
+    if (element && showJSONEditor && !codeJarRef.current) {
+      // Small delay to ensure Dialog is fully rendered
+      retryTimeoutRef.current = setTimeout(() => {
+        initializeCodeJar(element);
+      }, 150);
+    }
+  };
+
+  useEffect(() => {
+    if (!showJSONEditor) {
+      // Cleanup CodeJar when dialog closes
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current);
+        retryTimeoutRef.current = null;
+      }
+      if (codeJarRef.current) {
+        codeJarRef.current.destroy();
+        codeJarRef.current = null;
+      }
+    }
+
+    return () => {
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current);
+      }
+    };
+  }, [showJSONEditor]);
+
+  // Removed handleJsonChange - CodeJar handles updates via onUpdate callback
 
   // Fetch page data from database
   useEffect(() => {
@@ -554,14 +628,20 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
             Edit the complete page structure. Be careful with this editor.
           </DialogDescription>
         </DialogHeader>
-        <div className="flex-1 overflow-auto p-4">
-            <Textarea
-                value={jsonString}
-                onChange={handleJsonChange}
-                className="w-full h-full font-mono text-sm resize-none"
-                placeholder="Enter page schema as JSON..."
+        <div className="flex-1 overflow-auto p-4 bg-gray-50">
+            <div
+                ref={setEditorRef}
+                className="w-full h-full p-4 outline-none font-mono text-sm border border-gray-300 rounded overflow-auto bg-white"
+                style={{ 
+                  minHeight: '400px',
+                  whiteSpace: 'pre-wrap',
+                  wordBreak: 'break-word',
+                  tabSize: 2
+                }}
+                spellCheck="false"
+                dir="ltr"
             />
-             {jsonError && <p className="text-destructive text-sm mt-2">{jsonError}</p>}
+            {jsonError && <p className="text-destructive text-sm mt-2">{jsonError}</p>}
         </div>
         <DialogFooter>
           <DialogClose asChild>

@@ -14,8 +14,14 @@ import {
   Heading2,
   Heading3,
   Pilcrow,
-  TextQuote
+  TextQuote,
+  Code,
+  X
 } from 'lucide-react';
+import { CodeJar } from 'codejar';
+import Prism from 'prismjs';
+import 'prismjs/components/prism-markup';
+import 'prismjs/themes/prism.css';
 
 // Branding colors and typography options
 const BRANDING_COLORS = [
@@ -76,16 +82,58 @@ export const TextEditor: React.FC<TextEditorProps> = ({
   const [selectedColor, setSelectedColor] = useState<string>('');
   const [selectedTextStyle, setSelectedTextStyle] = useState<string>('paragraph');
   const [selectedFontSize, setSelectedFontSize] = useState<string>('16px');
+  const [showSourceModal, setShowSourceModal] = useState<boolean>(false);
+  const [sourceContent, setSourceContent] = useState<string>(content);
   
   const editorRef = useRef<HTMLDivElement>(null);
+  const sourceEditorRef = useRef<HTMLDivElement>(null);
+  const codeJarRef = useRef<CodeJar | null>(null);
   const contentRef = useRef<string>(content);
 
   useEffect(() => {
+    // Update the contentEditable div if prop changes
     if (editorRef.current && content !== editorRef.current.innerHTML) {
       editorRef.current.innerHTML = content;
     }
     contentRef.current = content;
+    setSourceContent(content);
   }, [content]);
+
+  useEffect(() => {
+    // Initialize CodeJar when modal opens
+    if (showSourceModal && sourceEditorRef.current && !codeJarRef.current) {
+      const highlight = (editor: HTMLElement) => {
+        const code = editor.textContent || '';
+        editor.innerHTML = Prism.highlight(code, Prism.languages.markup, 'markup');
+      };
+
+      codeJarRef.current = CodeJar(sourceEditorRef.current, highlight, {
+        tab: '  ', // Use 2 spaces for tabs
+      });
+
+      // Set initial content (sourceContent is already updated in openSourceModal)
+      codeJarRef.current.updateCode(sourceContent);
+
+      // Handle content changes
+      codeJarRef.current.onUpdate((code) => {
+        setSourceContent(code);
+      });
+
+      // Focus the editor
+      setTimeout(() => {
+        sourceEditorRef.current?.focus();
+      }, 0);
+    }
+
+    // Cleanup CodeJar when modal closes
+    return () => {
+      if (!showSourceModal && codeJarRef.current) {
+        codeJarRef.current.destroy();
+        codeJarRef.current = null;
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showSourceModal]);
 
   // Text selection and formatting handlers
   const getSelectedText = () => {
@@ -295,18 +343,58 @@ export const TextEditor: React.FC<TextEditorProps> = ({
     const newContent = e.currentTarget.innerHTML;
     if (contentRef.current !== newContent) {
       contentRef.current = newContent;
+      setSourceContent(newContent);
       onChange?.(newContent);
     }
+  };
+
+  // Removed handleSourceContentChange - CodeJar handles updates via onUpdate callback
+
+  const openSourceModal = () => {
+    // Get current content from contentEditable div
+    if (editorRef.current) {
+      const currentContent = editorRef.current.innerHTML;
+      setSourceContent(currentContent);
+    }
+    setShowSourceModal(true);
+  };
+
+  const closeSourceModal = () => {
+    // Cleanup CodeJar instance
+    if (codeJarRef.current) {
+      codeJarRef.current.destroy();
+      codeJarRef.current = null;
+    }
+    setShowSourceModal(false);
+  };
+
+  const saveSourceContent = () => {
+    // Get the latest content from the editor element or use state
+    const latestContent = sourceEditorRef.current?.textContent || sourceContent;
+    
+    // Update the contentEditable div with the source content
+    if (editorRef.current) {
+      editorRef.current.innerHTML = latestContent;
+    }
+    contentRef.current = latestContent;
+    onChange?.(latestContent);
+    
+    // Cleanup CodeJar instance
+    if (codeJarRef.current) {
+      codeJarRef.current.destroy();
+      codeJarRef.current = null;
+    }
+    setShowSourceModal(false);
   };
 
   return (
     <div className={`space-y-4 ${className}`}>
       <div className="flex items-center gap-2 p-2 border-b border-gray-200 bg-gray-50 rounded-t-md">
         <div className="relative">
-          <button 
-            onClick={() => setShowTextStylePicker(!showTextStylePicker)}
-            className="flex items-center py-1 px-2 hover:bg-gray-100 rounded border border-gray-200"
-          >
+        <button 
+          onClick={() => setShowTextStylePicker(!showTextStylePicker)}
+          className="flex items-center py-1 px-2 hover:bg-gray-100 rounded border border-gray-200"
+        >
             {getTextStyleComponent(selectedTextStyle)}
             <span className="text-sm text-gray-700 ml-1">
               {TEXT_STYLES.find(s => s.value === selectedTextStyle)?.name || 'Paragraph'}
@@ -474,6 +562,17 @@ export const TextEditor: React.FC<TextEditorProps> = ({
             </div>
           )}
         </div>
+
+        <div className="h-6 border-r border-gray-300 mx-1"></div>
+
+        {/* HTML/Source Editor Button */}
+        <button 
+          onClick={openSourceModal}
+          className="p-2 hover:bg-gray-200 rounded"
+          title="Edit HTML Source"
+        >
+          <Code className="h-4 w-4" />
+        </button>
       </div>
       
       {/* Direct Editor with Live Preview */}
@@ -497,6 +596,63 @@ export const TextEditor: React.FC<TextEditorProps> = ({
           dir="ltr" // Explicitly set left-to-right text direction
         />
       </div>
+
+      {/* HTML Source Editor Modal */}
+      {showSourceModal && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+          onClick={closeSourceModal}
+        >
+          <div 
+            className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+              <h2 className="text-lg font-semibold text-gray-800">Edit HTML Source</h2>
+              <button
+                onClick={closeSourceModal}
+                className="p-2 hover:bg-gray-100 rounded"
+                title="Close"
+              >
+                <X className="h-5 w-5 text-gray-500" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="flex-1 p-4 overflow-auto bg-gray-50">
+              <div
+                ref={sourceEditorRef}
+                className="w-full h-full p-4 outline-none font-mono text-sm border border-gray-300 rounded overflow-auto bg-white"
+                style={{ 
+                  minHeight: '400px',
+                  whiteSpace: 'pre-wrap',
+                  wordBreak: 'break-word',
+                  tabSize: 2
+                }}
+                spellCheck="false"
+                dir="ltr"
+              />
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex items-center justify-end gap-2 p-4 border-t border-gray-200">
+              <button
+                onClick={closeSourceModal}
+                className="px-4 py-2 text-sm border border-gray-300 rounded hover:bg-gray-100"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={saveSourceContent}
+                className="px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+              >
+                Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       
       {/* Link Preview */}
       {linkUrl && (
