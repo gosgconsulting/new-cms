@@ -89,6 +89,7 @@ export const TextEditor: React.FC<TextEditorProps> = ({
   const sourceEditorRef = useRef<HTMLDivElement>(null);
   const codeJarRef = useRef<CodeJar | null>(null);
   const contentRef = useRef<string>(content);
+  const lastContentPropRef = useRef<string>(content);
 
   useEffect(() => {
     // Update the contentEditable div if prop changes
@@ -97,6 +98,7 @@ export const TextEditor: React.FC<TextEditorProps> = ({
     }
     contentRef.current = content;
     setSourceContent(content);
+    lastContentPropRef.current = content;
   }, [content]);
 
   useEffect(() => {
@@ -132,8 +134,18 @@ export const TextEditor: React.FC<TextEditorProps> = ({
         codeJarRef.current = null;
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showSourceModal]);
+  }, [showSourceModal, sourceContent]);
+
+  // Separate effect to update CodeJar when content prop changes externally while modal is open
+  // This handles external content updates without interfering with user edits
+  useEffect(() => {
+    if (showSourceModal && codeJarRef.current && content !== lastContentPropRef.current) {
+      // Content prop changed externally - update CodeJar and sourceContent
+      codeJarRef.current.updateCode(content);
+      setSourceContent(content);
+      lastContentPropRef.current = content;
+    }
+  }, [content, showSourceModal]);
 
   // Text selection and formatting handlers
   const getSelectedText = () => {
@@ -369,8 +381,9 @@ export const TextEditor: React.FC<TextEditorProps> = ({
   };
 
   const saveSourceContent = () => {
-    // Get the latest content from the editor element or use state
-    const latestContent = sourceEditorRef.current?.textContent || sourceContent;
+    // Use sourceContent state which is kept in sync via CodeJar's onUpdate callback
+    // Using textContent would strip HTML tags, so we use the state directly
+    const latestContent = sourceContent;
     
     // Update the contentEditable div with the source content
     if (editorRef.current) {

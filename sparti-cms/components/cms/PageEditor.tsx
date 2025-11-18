@@ -1,34 +1,20 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Button } from '../../../src/components/ui/button';
-import { Input } from '../../../src/components/ui/input';
-import { Label } from '../../../src/components/ui/label';
-import { Textarea } from '../../../src/components/ui/textarea';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../src/components/ui/card';
-import { Badge } from '../../../src/components/ui/badge';
 import { ScrollArea } from '../../../src/components/ui/scroll-area';
 import { Separator } from '../../../src/components/ui/separator';
-import { ArrowLeft, Save, Loader2, AlertCircle, CheckCircle, RefreshCw, Settings, Eye, Trash2, GripVertical, Code, Type, Image, Video, Grid3X3, RotateCcw, Square, Link, MessageSquare, Star, Award, Mail, Clock, MapPin, Phone, HelpCircle } from 'lucide-react';
+import { ArrowLeft, Save, Loader2, Settings, Code } from 'lucide-react';
 import { toast } from 'sonner';
-import SchemaEditor from './SchemaEditor';
-import ComponentEditor from './ComponentEditor';
 import { useAuth } from '../auth/AuthProvider';
 import { ComponentSchema } from '../../types/schema';
 import api from '../../utils/api';
-import { CodeJar } from 'codejar';
-import Prism from 'prismjs';
-import 'prismjs/components/prism-json';
-import 'prismjs/themes/prism.css';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-  DialogClose,
-} from "../../../src/components/ui/dialog"
-
+import { useJSONEditor } from '../../hooks/useJSONEditor';
+import { useComponentOperations } from '../../hooks/useComponentOperations';
+import { isValidComponentsArray } from '../../utils/componentHelpers';
+import { SEOForm } from './PageEditor/SEOForm';
+import { ComponentEditorPanel } from './PageEditor/ComponentEditorPanel';
+import { ComponentListItem } from './PageEditor/ComponentListItem';
+import { JSONEditorDialog } from './PageEditor/JSONEditorDialog';
+import { EmptyState, ComponentsErrorState, ComponentsEmptyState } from './PageEditor/EmptyStates';
 
 interface PageEditorProps {
   pageId: string;
@@ -69,121 +55,44 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
   const [components, setComponents] = useState<ComponentSchema[]>([]);
   const [selectedComponentIndex, setSelectedComponentIndex] = useState<number | null>(null);
   const [showSEOForm, setShowSEOForm] = useState(false);
-  const [showJSONEditor, setShowJSONEditor] = useState(false);
-  const [jsonString, setJsonString] = useState('');
-  const [jsonError, setJsonError] = useState<string | null>(null);
-  const jsonEditorRef = useRef<HTMLDivElement>(null);
-  const codeJarRef = useRef<CodeJar | null>(null);
-  const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  // JSON Editor hook
+  const {
+    showEditor: showJSONEditor,
+    jsonError,
+    setEditorRef,
+    openEditor: openJSONEditor,
+    closeEditor: closeJSONEditor,
+  } = useJSONEditor({
+    components,
+    onComponentsChange: setComponents,
+  });
 
-  useEffect(() => {
-    if (showJSONEditor) {
-      const jsonContent = JSON.stringify(components, null, 2);
-      setJsonString(jsonContent);
-      setJsonError(null);
-    }
-  }, [showJSONEditor, components]);
+  // Component operations hook
+  const { removeComponent, updateComponent } = useComponentOperations({
+    components,
+    setComponents,
+    selectedComponentIndex,
+    setSelectedComponentIndex,
+  });
 
-  // Initialize CodeJar when JSON editor dialog opens
-  const initializeCodeJar = (element: HTMLDivElement | null) => {
-    if (!element || codeJarRef.current) {
-      return;
-    }
-
-    const highlight = (editor: HTMLElement) => {
-      const code = editor.textContent || '';
-      try {
-        editor.innerHTML = Prism.highlight(code, Prism.languages.json, 'json');
-      } catch (error) {
-        // If highlighting fails, just show the code
-        editor.innerHTML = code;
-      }
-    };
-
-    try {
-      codeJarRef.current = CodeJar(element, highlight, {
-        tab: '  ', // Use 2 spaces for tabs
-      });
-
-      // Get the content directly from components to ensure we have the latest data
-      const initialContent = JSON.stringify(components, null, 2);
-      codeJarRef.current.updateCode(initialContent);
-
-      // Handle content changes
-      codeJarRef.current.onUpdate((code) => {
-        setJsonString(code);
-        try {
-          const parsed = JSON.parse(code);
-          setComponents(parsed);
-          setJsonError(null);
-        } catch (error) {
-          setJsonError('Invalid JSON format.');
-        }
-      });
-
-      // Focus the editor
-      setTimeout(() => {
-        element.focus();
-      }, 100);
-    } catch (error) {
-      console.error('[testing] Error initializing CodeJar:', error);
-    }
-  };
-
-  // Use callback ref to initialize when element is mounted
-  const setEditorRef = (element: HTMLDivElement | null) => {
-    if (element && showJSONEditor && !codeJarRef.current) {
-      // Small delay to ensure Dialog is fully rendered
-      retryTimeoutRef.current = setTimeout(() => {
-        initializeCodeJar(element);
-      }, 150);
-    }
-  };
-
-  useEffect(() => {
-    if (!showJSONEditor) {
-      // Cleanup CodeJar when dialog closes
-      if (retryTimeoutRef.current) {
-        clearTimeout(retryTimeoutRef.current);
-        retryTimeoutRef.current = null;
-      }
-      if (codeJarRef.current) {
-        codeJarRef.current.destroy();
-        codeJarRef.current = null;
-      }
-    }
-
-    return () => {
-      if (retryTimeoutRef.current) {
-        clearTimeout(retryTimeoutRef.current);
-      }
-    };
-  }, [showJSONEditor]);
-
-  // Removed handleJsonChange - CodeJar handles updates via onUpdate callback
-
-  // Fetch page data from database
+  // Fetch page data
   useEffect(() => {
     const fetchPageData = async () => {
       try {
         setLoading(true);
         const response = await api.get(`/api/pages/${pageId}?tenantId=${currentTenantId}`);
         const data = await response.json();
-        
+
         if (data.success) {
           setPageData(data.page);
-          
-          // Handle layout data with safety checks
-          if (data.page.layout && data.page.layout.components) {
-            // Ensure components is an array
-            const layoutComponents = Array.isArray(data.page.layout.components) 
-              ? data.page.layout.components 
+
+          if (data.page.layout?.components) {
+            const layoutComponents = isValidComponentsArray(data.page.layout.components)
+              ? data.page.layout.components
               : [];
             setComponents(layoutComponents);
           } else {
-            console.log('No layout data found, initializing empty components array');
-            // No layout data, start with empty components
             setComponents([]);
           }
         } else {
@@ -202,113 +111,25 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
     }
   }, [pageId, currentTenantId]);
 
-  const updateField = (field: keyof PageData, value: string | boolean) => {
+  // Update page field
+  const updateField = useCallback((field: keyof PageData, value: string | boolean) => {
     if (pageData) {
       setPageData({ ...pageData, [field]: value });
     }
-  };
+  }, [pageData]);
 
-
-  const removeComponent = (index: number) => {
-    if (!Array.isArray(components)) {
-      console.error('[testing] Cannot remove component: components is not an array');
-      return;
-    }
-    const newComponents = components.filter((_, i) => i !== index);
-    setComponents(newComponents);
-    if (selectedComponentIndex === index) {
-      setSelectedComponentIndex(null);
-    } else if (selectedComponentIndex !== null && selectedComponentIndex > index) {
-      setSelectedComponentIndex(selectedComponentIndex - 1);
-    }
-  };
-
-        const updateComponent = (index: number, updatedComponent: ComponentSchema) => {
-          if (!Array.isArray(components)) {
-            console.error('[testing] Cannot update component: components is not an array');
-            return;
-          }
-          const newComponents = [...components];
-          newComponents[index] = updatedComponent;
-          setComponents(newComponents);
-        };
-
-  const getComponentTypeDisplayName = (type: string) => {
-    const typeMap: { [key: string]: string } = {
-      'TextBlock': 'Text Block',
-      'HeroSection': 'Hero Section',
-      'Showcase': 'Showcase',
-      'ProductGrid': 'Product Grid',
-      'Reviews': 'Reviews',
-      'Newsletter': 'Newsletter',
-      'ImageBlock': 'Image Block',
-      'VideoBlock': 'Video Block'
-    };
-    return typeMap[type] || type;
-  };
-
-  // Get icon for component type
-  const getComponentIcon = (type: string) => {
-    const iconMap: { [key: string]: React.ReactNode } = {
-      'TextBlock': <Type className="h-4 w-4 text-blue-500" />,
-      'HeroSection': <Square className="h-4 w-4 text-purple-500" />,
-      'Showcase': <Grid3X3 className="h-4 w-4 text-orange-500" />,
-      'ProductGrid': <Grid3X3 className="h-4 w-4 text-green-500" />,
-      'Reviews': <Star className="h-4 w-4 text-yellow-500" />,
-      'Newsletter': <Mail className="h-4 w-4 text-blue-500" />,
-      'ImageBlock': <Image className="h-4 w-4 text-green-500" />,
-      'VideoBlock': <Video className="h-4 w-4 text-purple-500" />
-    };
-    return iconMap[type] || <Square className="h-4 w-4 text-gray-400" />;
-  };
-
-  // Get component preview text
-  const getComponentPreview = (component: ComponentSchema): string => {
-    if (!component.items || component.items.length === 0) {
-      return 'No items';
-    }
-
-    const firstItem = component.items[0];
-    switch (firstItem.type) {
-      case 'heading':
-      case 'text':
-        return firstItem.content ? firstItem.content.substring(0, 40) + (firstItem.content.length > 40 ? '...' : '') : 'No content';
-      case 'image':
-        return firstItem.src ? `Image: ${firstItem.alt || 'Untitled'}` : 'No image';
-      case 'video':
-        return firstItem.src ? `Video: ${firstItem.alt || 'Untitled'}` : 'No video';
-      case 'button':
-        return firstItem.content ? `Button: ${firstItem.content}` : 'No button text';
-      case 'contactInfo':
-        const parts: string[] = [];
-        if (firstItem.address) parts.push('Address');
-        if (firstItem.phone) parts.push('Phone');
-        if (firstItem.email) parts.push('Email');
-        if (firstItem.hours?.length) parts.push('Hours');
-        return parts.length ? parts.join(', ') : 'No contact info';
-      case 'gallery':
-        return firstItem.value?.length ? `${firstItem.value.length} images` : 'No images';
-      case 'carousel':
-        return firstItem.images?.length ? `${firstItem.images.length} slides` : 'No slides';
-      default:
-        return `${component.items.length} item${component.items.length !== 1 ? 's' : ''}`;
-    }
-  };
-
-
-  const handleSave = async () => {
+  // Handle save
+  const handleSave = useCallback(async () => {
     if (!pageData) return;
-    
-    
+
     try {
       setSaving(true);
-      
-      // Update page data
+
       const pageResponse = await api.put(`/api/pages/${pageId}`, {
-        page_name: pageData?.page_name || '',
-        meta_title: pageData?.meta_title || '',
-        meta_description: pageData?.meta_description || '',
-        seo_index: pageData?.seo_index || false,
+        page_name: pageData.page_name || '',
+        meta_title: pageData.meta_title || '',
+        meta_description: pageData.meta_description || '',
+        seo_index: pageData.seo_index || false,
         tenantId: currentTenantId
       });
 
@@ -316,7 +137,6 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
         throw new Error('Failed to update page data');
       }
 
-      // Update page layout with new schema format
       const layoutResponse = await api.put(`/api/pages/${pageId}/layout`, {
         layout_json: { components },
         tenantId: currentTenantId
@@ -333,122 +153,53 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
     } finally {
       setSaving(false);
     }
-  };
+  }, [pageData, pageId, currentTenantId, components]);
 
+  // Handle component selection
+  const handleComponentSelect = useCallback((index: number) => {
+    setSelectedComponentIndex(index);
+    setShowSEOForm(false);
+  }, []);
+
+  const handleSEOFormOpen = useCallback(() => {
+    setShowSEOForm(true);
+    setSelectedComponentIndex(null);
+  }, []);
+
+  // Memoized selected component
+  const selectedComponent = useMemo(() => {
+    if (selectedComponentIndex === null || !isValidComponentsArray(components)) {
+      return null;
+    }
+    return components[selectedComponentIndex] || null;
+  }, [selectedComponentIndex, components]);
+
+  // Render right panel
   const renderRightPanel = () => {
     if (showSEOForm) {
-      return (
-        <Card>
-            <CardHeader>
-                <CardTitle>SEO & Meta Information</CardTitle>
-                <CardDescription>Configure page title and meta description for search engines</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-                <div className="space-y-2">
-                <Label htmlFor="page-title">Page Title</Label>
-                <Input
-                    id="page-title"
-                    value={pageData?.page_name || ''}
-                    onChange={(e) => updateField('page_name', e.target.value)}
-                    placeholder="Page Title"
-                />
-                </div>
-                <div className="space-y-2">
-                <Label htmlFor="meta-title">Meta Title</Label>
-                <Input
-                    id="meta-title"
-                    value={pageData?.meta_title || ''}
-                    onChange={(e) => updateField('meta_title', e.target.value)}
-                    placeholder="Meta Title (60 characters max)"
-                    maxLength={60}
-                />
-                <p className="text-xs text-muted-foreground">
-                    {(pageData?.meta_title || '').length}/60 characters
-                </p>
-                </div>
-                <div className="space-y-2">
-                <Label htmlFor="meta-description">Meta Description</Label>
-                <Textarea
-                    id="meta-description"
-                    value={pageData?.meta_description || ''}
-                    onChange={(e) => updateField('meta_description', e.target.value)}
-                    placeholder="Meta Description (160 characters max)"
-                    rows={3}
-                    maxLength={160}
-                />
-                <p className="text-xs text-muted-foreground">
-                    {(pageData?.meta_description || '').length}/160 characters
-                </p>
-                </div>
-                <div className="space-y-2">
-                <Label htmlFor="seo-index">SEO Index</Label>
-                <div className="flex items-center space-x-2">
-                    <input
-                    type="checkbox"
-                    id="seo-index"
-                    checked={pageData?.seo_index || false}
-                    onChange={(e) => updateField('seo_index', e.target.checked)}
-                    className="rounded"
-                    />
-                    <Label htmlFor="seo-index" className="text-sm">
-                    Allow search engines to index this page
-                    </Label>
-                </div>
-                </div>
-            </CardContent>
-        </Card>
-      );
+      return <SEOForm pageData={pageData} onFieldChange={updateField} />;
     }
 
     if (selectedComponentIndex !== null) {
-      if (!Array.isArray(components) || !components[selectedComponentIndex]) {
-        return (
-          <Card>
-            <CardHeader>
-              <CardTitle>Error</CardTitle>
-              <CardDescription>Component not found or components data is invalid</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-destructive">Cannot load component editor</p>
-            </CardContent>
-          </Card>
-        );
-      }
-      
       return (
-        <Card>
-            <CardHeader>
-                <CardTitle>
-                {getComponentTypeDisplayName(components[selectedComponentIndex].type)} Settings
-                </CardTitle>
-                <CardDescription>
-                Configure the properties of this component
-                </CardDescription>
-            </CardHeader>
-            <CardContent>
-                <ComponentEditor
-                key={`component-${selectedComponentIndex}`}
-                schema={components[selectedComponentIndex]}
-                onChange={(updatedComponent) => {
-                    updateComponent(selectedComponentIndex, updatedComponent);
-                }}
-                />
-            </CardContent>
-        </Card>
+        <ComponentEditorPanel
+          component={selectedComponent}
+          componentIndex={selectedComponentIndex}
+          components={components}
+          onUpdate={updateComponent}
+        />
       );
     }
 
     return (
-        <div className="flex-1 flex items-center justify-center text-muted-foreground h-full">
-            <div className="text-center">
-            <Settings className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <h3 className="text-lg font-medium mb-2">Select a Component</h3>
-            <p className="text-sm">Choose a component from the left panel to edit its settings</p>
-            </div>
-        </div>
+      <EmptyState
+        title="Select a Component"
+        description="Choose a component from the left panel to edit its settings"
+      />
     );
   };
 
+  // Loading state
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -458,6 +209,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
     );
   }
 
+  // Error state
   if (!pageData) {
     return (
       <div className="text-center py-8">
@@ -472,196 +224,109 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
 
   return (
     <div className="h-screen flex flex-col">
-    {/* Header */}
-    <div className="flex items-center justify-between p-4 border-b bg-background">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={onBack}>
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
-        <div>
-          <h2 className="text-xl font-bold">Edit Page: {pageData?.page_name || 'Untitled'}</h2>
-          <div className="flex items-center gap-2">
-            <p className="text-sm text-muted-foreground">{pageData?.slug || 'no-slug'}</p>
+      {/* Header */}
+      <div className="flex items-center justify-between p-4 border-b bg-background">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" onClick={onBack}>
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div>
+            <h2 className="text-xl font-bold">Edit Page: {pageData.page_name || 'Untitled'}</h2>
+            <div className="flex items-center gap-2">
+              <p className="text-sm text-muted-foreground">{pageData.slug || 'no-slug'}</p>
+            </div>
           </div>
         </div>
-      </div>
-      <div className="flex items-center gap-2">
-        {user?.is_super_admin && (
-            <Button 
-              variant="outline" 
+        <div className="flex items-center gap-2">
+          {user?.is_super_admin && (
+            <Button
+              variant="outline"
               size="sm"
-              onClick={() => setShowJSONEditor(true)}
+              onClick={openJSONEditor}
             >
               <Code className="h-4 w-4 mr-2" />
               JSON Editor
             </Button>
           )}
-        <Button onClick={handleSave} disabled={saving}>
-          {saving ? (
-            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-          ) : (
-            <Save className="h-4 w-4 mr-2" />
-          )}
-          {saving ? 'Saving...' : 'Save Changes'}
-        </Button>
-      </div>
-    </div>
-
-    {/* Main Content */}
-    <div className="flex-1 flex overflow-hidden">
-      {/* Left Panel - Components List */}
-      <div className="w-80 border-r bg-muted/20 flex flex-col">
-        <div className="p-4 border-b">
-          <div className="flex items-center justify-between">
-            <h3 className="font-semibold">Page Components</h3>
-          </div>
+          <Button onClick={handleSave} disabled={saving}>
+            {saving ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Save className="h-4 w-4 mr-2" />
+            )}
+            {saving ? 'Saving...' : 'Save Changes'}
+          </Button>
         </div>
-        
-        <ScrollArea className="flex-1">
-          <div className="p-2 space-y-2">
-            {/* SEO Settings Button */}
-            <Button
-              variant={showSEOForm ? "default" : "ghost"}
-              className="w-full justify-start"
-              onClick={() => {
-                setShowSEOForm(true);
-                setSelectedComponentIndex(null);
-              }}
-            >
-              <Settings className="h-4 w-4 mr-2" />
-              SEO Settings
-            </Button>
-            
-            <Separator className="my-2" />
-            
-            {/* Debug info - check console for components state */}
-            
-            {/* Components List */}
-            {Array.isArray(components) && components.map((component, index) => (
-              <div
-                key={component.key}
-                className={`p-3 rounded-lg border cursor-pointer transition-colors ${
-                  selectedComponentIndex === index
-                    ? 'border-primary bg-primary/5'
-                    : 'border-border hover:bg-muted/50'
-                }`}
-                onClick={() => {
-                  setSelectedComponentIndex(index);
-                  setShowSEOForm(false);
-                }}
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Left Panel - Components List */}
+        <div className="w-80 border-r bg-muted/20 flex flex-col">
+          <div className="p-4 border-b">
+            <div className="flex items-center justify-between">
+              <h3 className="font-semibold">Page Components</h3>
+            </div>
+          </div>
+
+          <ScrollArea className="flex-1">
+            <div className="p-2 space-y-2">
+              {/* SEO Settings Button */}
+              <Button
+                variant={showSEOForm ? "default" : "ghost"}
+                className="w-full justify-start"
+                onClick={handleSEOFormOpen}
               >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <GripVertical className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                    {getComponentIcon(component.type)}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <p className="font-medium text-sm truncate">
-                          {getComponentTypeDisplayName(component.type)}
-                        </p>
-                        <Badge variant="outline" className="text-xs">
-                          {component.items?.length || 0}
-                        </Badge>
-                      </div>
-                      <p className="text-xs text-muted-foreground truncate">
-                        {component.key}
-                      </p>
-                      <p className="text-xs text-gray-500 truncate mt-1">
-                        {getComponentPreview(component)}
-                      </p>
-                    </div>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      removeComponent(index);
-                    }}
-                    className="h-6 w-6 p-0 text-destructive hover:text-destructive flex-shrink-0"
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
-                </div>
-              </div>
-            ))}
-            
-            {!Array.isArray(components) && (
-              <div className="text-center py-8 text-destructive">
-                <p className="text-sm">Error: Components data is not an array</p>
-                <p className="text-xs">Type: {typeof components}</p>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="mt-2"
-                  onClick={() => setComponents([])}
-                >
-                  Reset Components
-                </Button>
-              </div>
-            )}
-            
-            {Array.isArray(components) && components.length === 0 && (
-              <div className="text-center py-8 text-muted-foreground">
-                <p className="text-sm">No components available</p>
-                <p className="text-xs">This page has no components to edit</p>
-              </div>
-            )}
-          </div>
-        </ScrollArea>
+                <Settings className="h-4 w-4 mr-2" />
+                SEO Settings
+              </Button>
+
+              <Separator className="my-2" />
+
+              {/* Components List */}
+              {isValidComponentsArray(components) && components.length > 0 && (
+                components.map((component, index) => (
+                  <ComponentListItem
+                    key={component.key}
+                    component={component}
+                    index={index}
+                    isSelected={selectedComponentIndex === index}
+                    onSelect={handleComponentSelect}
+                    onRemove={removeComponent}
+                  />
+                ))
+              )}
+
+              {!isValidComponentsArray(components) && (
+                <ComponentsErrorState onReset={() => setComponents([])} />
+              )}
+
+              {isValidComponentsArray(components) && components.length === 0 && (
+                <ComponentsEmptyState />
+              )}
+            </div>
+          </ScrollArea>
+        </div>
+
+        {/* Right Panel - Settings */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <ScrollArea className="h-full">
+            <div className="p-6">
+              {renderRightPanel()}
+            </div>
+          </ScrollArea>
+        </div>
       </div>
 
-      {/* Right Panel - Settings */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <ScrollArea className="h-full">
-          <div className="p-6">
-            {renderRightPanel()}
-          </div>
-        </ScrollArea>
-      </div>
+      {/* JSON Editor Dialog */}
+      <JSONEditorDialog
+        open={showJSONEditor}
+        onOpenChange={closeJSONEditor}
+        editorRef={setEditorRef}
+        jsonError={jsonError}
+        onSave={handleSave}
+      />
     </div>
-    <Dialog open={showJSONEditor} onOpenChange={setShowJSONEditor}>
-      <DialogContent className="max-w-4xl h-[80vh] flex flex-col">
-        <DialogHeader>
-          <DialogTitle>Page Schema JSON Editor</DialogTitle>
-          <DialogDescription>
-            Edit the complete page structure. Be careful with this editor.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="flex-1 overflow-auto p-4 bg-gray-50">
-            <div
-                ref={setEditorRef}
-                className="w-full h-full p-4 outline-none font-mono text-sm border border-gray-300 rounded overflow-auto bg-white"
-                style={{ 
-                  minHeight: '400px',
-                  whiteSpace: 'pre-wrap',
-                  wordBreak: 'break-word',
-                  tabSize: 2
-                }}
-                spellCheck="false"
-                dir="ltr"
-            />
-            {jsonError && <p className="text-destructive text-sm mt-2">{jsonError}</p>}
-        </div>
-        <DialogFooter>
-          <DialogClose asChild>
-            <Button type="button" variant="secondary">
-              Cancel
-            </Button>
-          </DialogClose>
-          <Button
-                onClick={() => {
-                    handleSave();
-                    setShowJSONEditor(false);
-                }}
-                disabled={!!jsonError}
-            >
-                Save & Close
-            </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  </div>
   );
 };
 
