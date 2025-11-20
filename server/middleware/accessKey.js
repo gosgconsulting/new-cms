@@ -22,12 +22,10 @@ export const authenticateWithAccessKey = async (req, res, next) => {
       });
     }
 
-    // Extract Access key from headers
+    // Extract Access key from headers (only from x-access-key header, not Authorization)
+    // This allows JWT tokens in Authorization header to be handled by authenticateUser middleware
     const accessKey = req.headers['x-access-key'] || 
-                   req.headers['X-Access-Key'] ||
-                   (req.headers.authorization && req.headers.authorization.startsWith('Bearer ') 
-                     ? req.headers.authorization.substring(7) 
-                     : null);
+                   req.headers['X-Access-Key'] || null;
     
     if (!accessKey) {
       return next(); // No access key provided, continue to next middleware

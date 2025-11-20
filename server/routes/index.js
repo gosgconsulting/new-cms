@@ -24,6 +24,10 @@ router.use('/api', (req, res, next) => {
   if (req.path === '/api/auth/verify-access-key') {
     return next();
   }
+  // Skip access key authentication for v1 routes (they use tenant API key authentication)
+  if (req.path.startsWith('/api/v1')) {
+    return next();
+  }
   return authenticateWithAccessKey(req, res, next);
 });
 
@@ -32,7 +36,7 @@ router.use('/api', (req, res, next) => {
 router.use('/', healthRoutes);
 
 // Public API v1 routes (requires tenant API key authentication)
-router.use('/api/v1', authenticateWithAccessKey, publicRoutes);
+router.use('/api/v1', authenticateTenantApiKey, publicRoutes);
 
 // All other API routes
 router.use('/api', authRoutes);
