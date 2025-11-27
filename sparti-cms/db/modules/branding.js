@@ -1,6 +1,8 @@
 import { query } from '../connection.js';
 import pool from '../connection.js';
 import { translateText } from '../../services/googleTranslationService.js';
+import models from '../sequelize/models/index.js';
+const { SiteSchema } = models;
 
 // Branding-specific functions
 export async function getBrandingSettings(tenantId = 'tenant-gosg') {
@@ -406,18 +408,21 @@ export async function getSiteSchema(schemaKey, tenantId, language = 'default') {
     // Ensure database schema is up to date (migration safety)
     await ensureSiteSchemaLanguageColumn();
     
-    const result = await query(`
-      SELECT schema_value
-      FROM site_schemas
-      WHERE schema_key = $1 AND tenant_id = $2 AND language = $3
-    `, [schemaKey, tenantId, language]);
+    // Use Sequelize to fetch the schema
+    const siteSchema = await SiteSchema.findOne({
+      where: {
+        schema_key: schemaKey,
+        tenant_id: tenantId,
+        language: language
+      }
+    });
     
-    if (result.rows.length === 0) {
+    if (!siteSchema) {
       return null;
     }
     
-    // Parse the JSON schema_value
-    const schemaValue = result.rows[0].schema_value;
+    // Get the schema value (Sequelize handles JSONB parsing automatically)
+    const schemaValue = siteSchema.schema_value;
     return typeof schemaValue === 'string' ? JSON.parse(schemaValue) : schemaValue;
   } catch (error) {
     console.error('Error fetching site schema:', error);
