@@ -8,12 +8,6 @@ export { default as pool } from './connection.js';
 // Layout helpers
 export { getLayoutBySlug, upsertLayoutBySlug } from './modules/layouts.js';
 
-// Initialization
-export {
-  initializeDatabase,
-  initializeTenantTables,
-  initializeUsersTables
-} from './modules/initialization.js';
 
 // Branding and site settings
 export {

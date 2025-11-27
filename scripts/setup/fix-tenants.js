@@ -5,22 +5,15 @@
  * and creates a default tenant if none exists.
  */
 
-import { initializeTenantTables, query } from '../../sparti-cms/db/index.js';
+import { query } from '../../sparti-cms/db/index.js';
 
 async function fixTenants() {
   console.log('Starting tenants fix script...');
   
   try {
-    // Initialize tenant tables
-    console.log('Initializing tenant tables...');
-    const success = await initializeTenantTables();
-    
-    if (!success) {
-      console.error('Failed to initialize tenant tables');
-      process.exit(1);
-    }
-    
-    console.log('Tenant tables initialized successfully');
+    // Note: Tenant tables should be created via Sequelize migrations
+    // Run: npm run sequelize:migrate
+    console.log('Note: Ensure tenant tables exist (run: npm run sequelize:migrate)');
     
     // Check if default tenant exists
     console.log('Checking for default tenant...');

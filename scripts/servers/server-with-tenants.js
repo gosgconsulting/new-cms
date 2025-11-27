@@ -5,7 +5,6 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { existsSync, mkdirSync } from 'fs';
 import { 
-  initializeDatabase, 
   getBrandingSettings, 
   updateMultipleBrandingSettings, 
   saveFormSubmission,
@@ -119,12 +118,9 @@ app.use((req, res, next) => {
   }
 });
 
-// Initialize database
-initializeDatabase().then(() => {
-  console.log('[testing] Database initialized');
-}).catch(err => {
-  console.error('[testing] Database initialization error:', err);
-});
+// Note: Database migrations should be run via Sequelize CLI
+// Run: npm run sequelize:migrate
+console.log('[testing] Note: Ensure database migrations are run: npm run sequelize:migrate');
 
 // Keep the process alive
 process.on('SIGINT', () => {
