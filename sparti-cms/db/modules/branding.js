@@ -1,7 +1,8 @@
 import { query } from '../connection.js';
 import pool from '../connection.js';
 import { translateText } from '../../services/googleTranslationService.js';
-import models from '../sequelize/models/index.js';
+import models, { sequelize } from '../sequelize/models/index.js';
+import { Op } from 'sequelize';
 const { SiteSchema } = models;
 
 // Branding-specific functions
@@ -409,12 +410,20 @@ export async function getSiteSchema(schemaKey, tenantId, language = 'default') {
     await ensureSiteSchemaLanguageColumn();
     
     // Use Sequelize to fetch the schema
+    // Try to find schema with specified language, or fallback to 'default'
     const siteSchema = await SiteSchema.findOne({
       where: {
         schema_key: schemaKey,
         tenant_id: tenantId,
-        language: language
-      }
+        [Op.or]: [
+          { language: language },
+          { language: 'default' }
+        ]
+      },
+      order: [
+        // Prefer the specified language over 'default'
+        [sequelize.literal(`CASE WHEN language = '${language}' THEN 0 ELSE 1 END`), 'ASC']
+      ]
     });
     
     if (!siteSchema) {
