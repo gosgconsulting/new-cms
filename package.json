@@ -19,7 +19,7 @@
     "health:test": "node scripts/tests/test-health.js",
     "test:deployment": "node scripts/tests/test-deployment.js",
     "migrate": "node scripts/migrations/migrate-railway-db.js",
-    "migrate:railway": "NODE_ENV=production node scripts/migrations/migrate-railway-db.js",
+    "migrate:railway": "npm run sequelize:migrate:production",
     "sequelize": "sequelize",
     "sequelize:migrate": "sequelize db:migrate",
     "sequelize:migrate:production": "NODE_ENV=production sequelize db:migrate",
