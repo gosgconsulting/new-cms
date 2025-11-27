@@ -108,6 +108,10 @@ export default function Post(sequelize) {
       type: DataTypes.DATE,
       allowNull: true,
     },
+    tenant_id: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+    },
     created_at: {
       type: DataTypes.DATE,
       defaultValue: DataTypes.NOW,

@@ -29,6 +29,9 @@ import {
   setPostTags
 } from '../../sparti-cms/db/index.js';
 import { invalidateBySlug } from '../../sparti-cms/cache/index.js';
+import models, { sequelize } from '../../sparti-cms/db/sequelize/models/index.js';
+import { Op } from 'sequelize';
+const { Post } = models;
 
 const router = express.Router();
 
@@ -717,38 +720,34 @@ router.get('/posts/:id', async (req, res) => {
     const { id } = req.params;
     console.log('[testing] Fetching post:', id, 'for tenant:', tenantId);
     
-    // Fetch post with tenant filtering
-    const result = await query(`
-      SELECT 
-        p.*,
-        COALESCE(
-          JSON_AGG(
-            CASE 
-              WHEN t.id IS NOT NULL THEN 
-                JSON_BUILD_OBJECT(
-                  'id', t.id,
-                  'name', t.name,
-                  'taxonomy', tt.taxonomy
-                )
-              ELSE NULL 
-            END
-          ) FILTER (WHERE t.id IS NOT NULL), 
-          '[]'
-        ) as terms
-      FROM posts p
-      LEFT JOIN term_relationships tr ON p.id = tr.object_id
-      LEFT JOIN term_taxonomy tt ON tr.term_taxonomy_id = tt.id
-      LEFT JOIN terms t ON tt.term_id = t.id
-      WHERE p.id = $1 AND (p.tenant_id = $2 OR p.tenant_id IS NULL)
-      GROUP BY p.id
-    `, [parseInt(id), tenantId]);
+    // Fetch post using Sequelize with associations
+    const post = await Post.findOne({
+      where: {
+        id: parseInt(id),
+        [Op.or]: [
+          { tenant_id: tenantId },
+          { tenant_id: null }
+        ]
+      },
+      include: [
+        {
+          model: models.Category,
+          as: 'categories',
+          through: { attributes: [] },
+        },
+        {
+          model: models.Tag,
+          as: 'tags',
+          through: { attributes: [] },
+        }
+      ]
+    });
     
-    if (result.rows.length === 0) {
+    if (!post) {
       return res.status(404).json({ error: 'Post not found' });
     }
     
-    const post = result.rows[0];
-    res.json(post);
+    res.json(post.toJSON());
   } catch (error) {
     console.error('[testing] Error fetching post:', error);
     
@@ -824,60 +823,28 @@ router.post('/posts', async (req, res) => {
       });
     }
     
-    // Check if posts table has tenant_id column
-    let hasTenantId = false;
-    try {
-      const columnCheck = await query(`
-        SELECT column_name 
-        FROM information_schema.columns 
-        WHERE table_name = 'posts' AND column_name = 'tenant_id'
-      `);
-      hasTenantId = columnCheck.rows.length > 0;
-    } catch (err) {
-      console.log('[testing] Could not check for tenant_id column in posts table');
-    }
-    
-    // Build INSERT query conditionally including tenant_id
-    let insertColumns = `
-      title, slug, content, excerpt, status, post_type, author_id,
-      meta_title, meta_description, meta_keywords, canonical_url,
-      og_title, og_description, og_image, twitter_title, twitter_description, twitter_image,
-      published_at
-    `;
-    let insertValues = `$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18`;
-    const insertParams = [
+    // Create post using Sequelize
+    const post = await Post.create({
       title,
       slug,
-      content || '',
-      excerpt || '',
-      status || 'draft',
-      'post',
-      author_id || req.user?.id || 1,
-      meta_title || '',
-      meta_description || '',
-      meta_keywords || '',
-      '',
-      og_title || '',
-      og_description || '',
-      '',
-      twitter_title || '',
-      twitter_description || '',
-      published_at || null
-    ];
-    
-    if (hasTenantId) {
-      insertColumns += `, tenant_id`;
-      insertValues += `, $19`;
-      insertParams.push(tenantId);
-    }
-    
-    const postResult = await query(`
-      INSERT INTO posts (${insertColumns})
-      VALUES (${insertValues})
-      RETURNING *
-    `, insertParams);
-
-    const post = postResult.rows[0];
+      content: content || '',
+      excerpt: excerpt || '',
+      status: status || 'draft',
+      post_type: 'post',
+      author_id: author_id || req.user?.id || 1,
+      meta_title: meta_title || '',
+      meta_description: meta_description || '',
+      meta_keywords: meta_keywords || '',
+      canonical_url: '',
+      og_title: og_title || '',
+      og_description: og_description || '',
+      og_image: '',
+      twitter_title: twitter_title || '',
+      twitter_description: twitter_description || '',
+      twitter_image: '',
+      published_at: published_at || null,
+      tenant_id: tenantId || null
+    });
 
     // Handle categories using new table
     if (Array.isArray(categories) && categories.length > 0) {
@@ -925,35 +892,26 @@ router.post('/posts', async (req, res) => {
       }
     }
 
-    // Fetch the complete post with terms
-    const completePostResult = await query(`
-      SELECT 
-        p.*,
-        COALESCE(
-          JSON_AGG(
-            CASE 
-              WHEN t.id IS NOT NULL THEN 
-                JSON_BUILD_OBJECT(
-                  'id', t.id,
-                  'name', t.name,
-                  'taxonomy', tt.taxonomy
-                )
-              ELSE NULL 
-            END
-          ) FILTER (WHERE t.id IS NOT NULL), 
-          '[]'
-        ) as terms
-      FROM posts p
-      LEFT JOIN term_relationships tr ON p.id = tr.object_id
-      LEFT JOIN term_taxonomy tt ON tr.term_taxonomy_id = tt.id
-      LEFT JOIN terms t ON tt.term_id = t.id
-      WHERE p.id = $1
-      GROUP BY p.id
-    `, [post.id]);
+    // Fetch the complete post with categories and tags using Sequelize
+    const newPost = await Post.findByPk(post.id, {
+      include: [
+        {
+          model: models.Category,
+          as: 'categories',
+          through: { attributes: [] }, // Exclude junction table attributes
+        },
+        {
+          model: models.Tag,
+          as: 'tags',
+          through: { attributes: [] }, // Exclude junction table attributes
+        }
+      ]
+    });
     
-    const newPost = completePostResult.rows[0];
+    // Convert Sequelize model to plain object
+    const postData = newPost ? newPost.toJSON() : post.toJSON();
     
-    res.status(201).json(newPost);
+    res.status(201).json(postData);
   } catch (error) {
     console.error('[testing] Error creating post:', error);
     
@@ -1040,57 +998,38 @@ router.put('/posts/:id', async (req, res) => {
       });
     }
     
-    // First verify the post exists and belongs to this tenant
-    const checkResult = await query(`
-      SELECT id FROM posts WHERE id = $1 AND (tenant_id = $2 OR tenant_id IS NULL)
-    `, [parseInt(id), tenantId]);
+    // Find and update the post using Sequelize
+    const post = await Post.findOne({
+      where: {
+        id: parseInt(id),
+        [Op.or]: [
+          { tenant_id: tenantId },
+          { tenant_id: null }
+        ]
+      }
+    });
     
-    if (checkResult.rows.length === 0) {
+    if (!post) {
       return res.status(404).json({ error: 'Post not found' });
     }
     
     // Update the post
-    const updateResult = await query(`
-      UPDATE posts SET
-        title = $2,
-        slug = $3,
-        content = $4,
-        excerpt = $5,
-        status = $6,
-        author_id = $7,
-        meta_title = $8,
-        meta_description = $9,
-        meta_keywords = $10,
-        og_title = $11,
-        og_description = $12,
-        twitter_title = $13,
-        twitter_description = $14,
-        published_at = $15,
-        updated_at = NOW()
-      WHERE id = $1 AND (tenant_id = $16 OR tenant_id IS NULL)
-      RETURNING *
-    `, [
-      parseInt(id),
+    await post.update({
       title,
       slug,
-      content || '',
-      excerpt || '',
-      status || 'draft',
-      author_id || req.user?.id || 1,
-      meta_title || '',
-      meta_description || '',
-      meta_keywords || '',
-      og_title || '',
-      og_description || '',
-      twitter_title || '',
-      twitter_description || '',
-      published_at || null,
-      tenantId
-    ]);
-
-    if (updateResult.rows.length === 0) {
-      return res.status(404).json({ error: 'Post not found' });
-    }
+      content: content || '',
+      excerpt: excerpt || '',
+      status: status || 'draft',
+      author_id: author_id || req.user?.id || 1,
+      meta_title: meta_title || '',
+      meta_description: meta_description || '',
+      meta_keywords: meta_keywords || '',
+      og_title: og_title || '',
+      og_description: og_description || '',
+      twitter_title: twitter_title || '',
+      twitter_description: twitter_description || '',
+      published_at: published_at || null
+    });
 
     // Clear existing relationships (old method for backward compatibility)
     await query(`DELETE FROM term_relationships WHERE object_id = $1`, [parseInt(id)]);
@@ -1155,35 +1094,23 @@ router.put('/posts/:id', async (req, res) => {
       }
     }
 
-    // Fetch the complete post with terms
-    const completePostResult = await query(`
-      SELECT 
-        p.*,
-        COALESCE(
-          JSON_AGG(
-            CASE 
-              WHEN t.id IS NOT NULL THEN 
-                JSON_BUILD_OBJECT(
-                  'id', t.id,
-                  'name', t.name,
-                  'taxonomy', tt.taxonomy
-                )
-              ELSE NULL 
-            END
-          ) FILTER (WHERE t.id IS NOT NULL), 
-          '[]'
-        ) as terms
-      FROM posts p
-      LEFT JOIN term_relationships tr ON p.id = tr.object_id
-      LEFT JOIN term_taxonomy tt ON tr.term_taxonomy_id = tt.id
-      LEFT JOIN terms t ON tt.term_id = t.id
-      WHERE p.id = $1
-      GROUP BY p.id
-    `, [parseInt(id)]);
+    // Fetch the complete post with categories and tags using Sequelize
+    const updatedPost = await Post.findByPk(post.id, {
+      include: [
+        {
+          model: models.Category,
+          as: 'categories',
+          through: { attributes: [] },
+        },
+        {
+          model: models.Tag,
+          as: 'tags',
+          through: { attributes: [] },
+        }
+      ]
+    });
     
-    const updatedPost = completePostResult.rows[0];
-    
-    res.json(updatedPost);
+    res.json(updatedPost ? updatedPost.toJSON() : post.toJSON());
   } catch (error) {
     console.error('[testing] Error updating post:', error);
     
@@ -1253,15 +1180,22 @@ router.delete('/posts/:id', async (req, res) => {
     await query(`DELETE FROM term_relationships WHERE object_id = $1`, [parseInt(id)]);
     
     // Delete the post (only if it belongs to this tenant)
-    const result = await query(`
-      DELETE FROM posts 
-      WHERE id = $1 AND (tenant_id = $2 OR tenant_id IS NULL)
-      RETURNING *
-    `, [parseInt(id), tenantId]);
+    // Find and delete the post using Sequelize
+    const post = await Post.findOne({
+      where: {
+        id: parseInt(id),
+        [Op.or]: [
+          { tenant_id: tenantId },
+          { tenant_id: null }
+        ]
+      }
+    });
     
-    if (result.rows.length === 0) {
+    if (!post) {
       return res.status(404).json({ error: 'Post not found' });
     }
+    
+    await post.destroy();
     
     res.json({ 
       success: true,
