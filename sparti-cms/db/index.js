@@ -100,3 +100,26 @@ export {
   deleteTerm
 } from './modules/terms.js';
 
+// Categories
+export {
+  getCategories,
+  getCategory,
+  createCategory,
+  updateCategory,
+  deleteCategory,
+  getPostCategories,
+  setPostCategories
+} from './modules/categories.js';
+
+// Tags
+export {
+  getTags,
+  getTag,
+  createTag,
+  updateTag,
+  deleteTag,
+  getPostTags,
+  setPostTags,
+  bulkCreateTags
+} from './modules/tags.js';
+

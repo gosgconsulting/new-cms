@@ -1,116 +1,20 @@
-import { query } from './index.js'
+import { query, executeMultiStatementSQL } from './index.js'
+import { createCategory } from './modules/categories.js';
+import { createTag } from './modules/tags.js';
 
 // ===== CONTENT MANAGEMENT SYSTEM FUNCTIONS =====
 
-// Initialize content management tables
+// Initialize content management tables using Sequelize migrations
 export async function initializeContentManagementTables() {
   try {
     console.log('[testing] Creating content management tables...');
-
-    // 1. Posts table (WordPress wp_posts equivalent)
-    await query(`
-      CREATE TABLE IF NOT EXISTS posts (
-        id SERIAL PRIMARY KEY,
-        title VARCHAR(255) NOT NULL,
-        slug VARCHAR(255) UNIQUE NOT NULL,
-        content TEXT,
-        excerpt TEXT,
-        status VARCHAR(20) DEFAULT 'draft',
-        post_type VARCHAR(50) DEFAULT 'post',
-        author_id INTEGER,
-        parent_id INTEGER REFERENCES posts(id),
-        menu_order INTEGER DEFAULT 0,
-        featured_image_id INTEGER,
-        
-        -- SEO Fields
-        meta_title VARCHAR(255),
-        meta_description TEXT,
-        meta_keywords TEXT,
-        canonical_url VARCHAR(500),
-        robots_meta VARCHAR(100) DEFAULT 'index,follow',
-        
-        -- Social Media
-        og_title VARCHAR(255),
-        og_description TEXT,
-        og_image VARCHAR(500),
-        twitter_title VARCHAR(255),
-        twitter_description TEXT,
-        twitter_image VARCHAR(500),
-        
-        -- Analytics & Performance
-        view_count INTEGER DEFAULT 0,
-        last_viewed_at TIMESTAMP,
-        
-        -- Timestamps
-        published_at TIMESTAMP,
-        created_at TIMESTAMP DEFAULT NOW(),
-        updated_at TIMESTAMP DEFAULT NOW()
-      )
-    `);
-
-    // 2. Terms table (Categories & Tags)
-    await query(`
-      CREATE TABLE IF NOT EXISTS terms (
-        id SERIAL PRIMARY KEY,
-        name VARCHAR(200) NOT NULL,
-        slug VARCHAR(200) UNIQUE NOT NULL,
-        description TEXT,
-        parent_id INTEGER REFERENCES terms(id),
-        count INTEGER DEFAULT 0,
-        
-        -- SEO Fields for taxonomy pages
-        meta_title VARCHAR(255),
-        meta_description TEXT,
-        canonical_url VARCHAR(500),
-        robots_meta VARCHAR(100) DEFAULT 'index,follow',
-        
-        created_at TIMESTAMP DEFAULT NOW(),
-        updated_at TIMESTAMP DEFAULT NOW()
-      )
-    `);
-
-    // 3. Term Taxonomy table
-    await query(`
-      CREATE TABLE IF NOT EXISTS term_taxonomy (
-        id SERIAL PRIMARY KEY,
-        term_id INTEGER REFERENCES terms(id) ON DELETE CASCADE,
-        taxonomy VARCHAR(32) NOT NULL,
-        description TEXT,
-        parent_id INTEGER,
-        count INTEGER DEFAULT 0
-      )
-    `);
-
-    // 4. Term Relationships table
-    await query(`
-      CREATE TABLE IF NOT EXISTS term_relationships (
-        id SERIAL PRIMARY KEY,
-        object_id INTEGER NOT NULL,
-        term_taxonomy_id INTEGER REFERENCES term_taxonomy(id) ON DELETE CASCADE,
-        term_order INTEGER DEFAULT 0
-      )
-    `);
-
-    // 5. Breadcrumbs table
-    await query(`
-      CREATE TABLE IF NOT EXISTS breadcrumbs (
-        id SERIAL PRIMARY KEY,
-        object_id INTEGER NOT NULL,
-        object_type VARCHAR(50) NOT NULL,
-        breadcrumb_path JSONB NOT NULL,
-        is_active BOOLEAN DEFAULT TRUE,
-        auto_generated BOOLEAN DEFAULT TRUE,
-        created_at TIMESTAMP DEFAULT NOW(),
-        updated_at TIMESTAMP DEFAULT NOW()
-      )
-    `);
-
-    // Create indexes for performance
-    await query(`CREATE INDEX IF NOT EXISTS idx_posts_slug ON posts(slug)`);
-    await query(`CREATE INDEX IF NOT EXISTS idx_posts_status ON posts(status)`);
-    await query(`CREATE INDEX IF NOT EXISTS idx_posts_type ON posts(post_type)`);
-    await query(`CREATE INDEX IF NOT EXISTS idx_terms_slug ON terms(slug)`);
-    await query(`CREATE INDEX IF NOT EXISTS idx_breadcrumbs_object ON breadcrumbs(object_id, object_type)`);
+    
+    // Run content tables migration
+    const { runMigrations } = await import('../sequelize/run-migrations.js');
+    await runMigrations(['20241202000004-create-content-tables.js']);
+    
+    // Run categories and tags migration (if not already run)
+    await runMigrations(['20241201000000-create-categories-and-tags.js']);
 
     // Insert default categories and tags
     console.log('[testing] Inserting default taxonomy terms...');
@@ -125,7 +29,7 @@ export async function initializeContentManagementTables() {
     ];
 
     for (const category of defaultCategories) {
-      // Insert term
+      // Insert term (for backward compatibility)
       const termResult = await query(`
         INSERT INTO terms (name, slug, description, meta_title, meta_description)
         VALUES ($1, $2, $3, $4, $5)
@@ -140,12 +44,26 @@ export async function initializeContentManagementTables() {
       ]);
 
       if (termResult.rows.length > 0) {
-        // Insert taxonomy
+        // Insert taxonomy (for backward compatibility)
         await query(`
           INSERT INTO term_taxonomy (term_id, taxonomy, description)
           VALUES ($1, 'category', $2)
           ON CONFLICT DO NOTHING
         `, [termResult.rows[0].id, category.description]);
+        
+        // Also create in new categories table
+        try {
+          await createCategory({
+            name: category.name,
+            slug: category.slug,
+            description: category.description,
+            meta_title: `${category.name} - GO SG Digital Marketing`,
+            meta_description: category.description
+          });
+        } catch (err) {
+          // Category might already exist, that's okay
+          console.log('[testing] Category may already exist:', category.name);
+        }
       }
     }
 
@@ -159,7 +77,7 @@ export async function initializeContentManagementTables() {
     for (const tagName of defaultTags) {
       const slug = tagName.toLowerCase().replace(/\s+/g, '-');
       
-      // Insert term
+      // Insert term (for backward compatibility)
       const termResult = await query(`
         INSERT INTO terms (name, slug, description, meta_title, meta_description)
         VALUES ($1, $2, $3, $4, $5)
@@ -174,12 +92,26 @@ export async function initializeContentManagementTables() {
       ]);
 
       if (termResult.rows.length > 0) {
-        // Insert taxonomy
+        // Insert taxonomy (for backward compatibility)
         await query(`
           INSERT INTO term_taxonomy (term_id, taxonomy, description)
           VALUES ($1, 'post_tag', $2)
           ON CONFLICT DO NOTHING
         `, [termResult.rows[0].id, `Tag for ${tagName} content`]);
+        
+        // Also create in new tags table
+        try {
+          await createTag({
+            name: tagName,
+            slug: slug,
+            description: `Content related to ${tagName}`,
+            meta_title: `${tagName} - GO SG Digital Marketing`,
+            meta_description: `Learn about ${tagName} with GO SG's expert insights and strategies.`
+          });
+        } catch (err) {
+          // Tag might already exist, that's okay
+          console.log('[testing] Tag may already exist:', tagName);
+        }
       }
     }
 
@@ -275,7 +207,7 @@ export async function getPosts(filters = {}) {
 // Categories and Tags CRUD operations
 export async function createTerm(termData) {
   try {
-    // Insert term
+    // Insert term (for backward compatibility)
     const termResult = await query(`
       INSERT INTO terms (name, slug, description, meta_title, meta_description)
       VALUES ($1, $2, $3, $4, $5)
@@ -288,7 +220,7 @@ export async function createTerm(termData) {
       termData.meta_description || termData.description
     ]);
 
-    // Insert taxonomy
+    // Insert taxonomy (for backward compatibility)
     await query(`
       INSERT INTO term_taxonomy (term_id, taxonomy, description, parent_id)
       VALUES ($1, $2, $3, $4)
@@ -298,6 +230,31 @@ export async function createTerm(termData) {
       termData.description || '',
       termData.parent_id || null
     ]);
+    
+    // Also create in new tables
+    try {
+      if (termData.taxonomy === 'category') {
+        await createCategory({
+          name: termData.name,
+          slug: termData.slug,
+          description: termData.description || '',
+          parent_id: termData.parent_id || null,
+          meta_title: termData.meta_title || termData.name,
+          meta_description: termData.meta_description || termData.description
+        });
+      } else if (termData.taxonomy === 'post_tag') {
+        await createTag({
+          name: termData.name,
+          slug: termData.slug,
+          description: termData.description || '',
+          meta_title: termData.meta_title || termData.name,
+          meta_description: termData.meta_description || termData.description
+        });
+      }
+    } catch (newTableError) {
+      // If new table creation fails, log but don't fail the whole operation
+      console.log('[testing] Note creating in new table:', newTableError.message);
+    }
     
     console.log('[testing] Term created:', termResult.rows[0].id);
     return termResult.rows[0];
@@ -309,6 +266,40 @@ export async function createTerm(termData) {
 
 export async function getTerms(taxonomy = null) {
   try {
+    // If taxonomy is specified, try to use new tables first
+    if (taxonomy === 'category') {
+      try {
+        const { getCategories } = await import('./modules/categories.js');
+        const categories = await getCategories();
+        // Transform to match old format for backward compatibility
+        return categories.map(cat => ({
+          ...cat,
+          taxonomy: 'category',
+          taxonomy_parent_id: cat.parent_id,
+          parent_id: cat.parent_id
+        }));
+      } catch (err) {
+        console.log('[testing] Could not fetch from categories table, falling back to terms:', err.message);
+        // Fall through to old query
+      }
+    } else if (taxonomy === 'post_tag') {
+      try {
+        const { getTags } = await import('./modules/tags.js');
+        const tags = await getTags();
+        // Transform to match old format for backward compatibility
+        return tags.map(tag => ({
+          ...tag,
+          taxonomy: 'post_tag',
+          taxonomy_parent_id: null,
+          parent_id: null
+        }));
+      } catch (err) {
+        console.log('[testing] Could not fetch from tags table, falling back to terms:', err.message);
+        // Fall through to old query
+      }
+    }
+    
+    // Fallback to old query for backward compatibility
     let whereClause = '';
     let params = [];
     

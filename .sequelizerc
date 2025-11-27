@@ -1,0 +1,9 @@
+const path = require('path');
+
+module.exports = {
+  'config': path.resolve('sparti-cms/db/sequelize', 'config.cjs'),
+  'models-path': path.resolve('sparti-cms/db/sequelize', 'models'),
+  'seeders-path': path.resolve('sparti-cms/db/sequelize', 'seeders'),
+  'migrations-path': path.resolve('sparti-cms/db/sequelize', 'migrations')
+};
+

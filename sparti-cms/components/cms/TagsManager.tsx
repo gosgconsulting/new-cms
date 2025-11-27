@@ -61,7 +61,7 @@ const TagsManager: React.FC = () => {
   const loadTags = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/terms?taxonomy=post_tag');
+      const response = await fetch('/api/tags');
       if (!response.ok) throw new Error('Failed to fetch tags');
       
       const data = await response.json();
@@ -82,7 +82,7 @@ const TagsManager: React.FC = () => {
     e.preventDefault();
     
     try {
-      const url = editingTag ? `/api/terms/${editingTag.id}` : '/api/terms';
+      const url = editingTag ? `/api/tags/${editingTag.id}` : '/api/tags';
       const method = editingTag ? 'PUT' : 'POST';
       
       const response = await fetch(url, {
@@ -90,10 +90,7 @@ const TagsManager: React.FC = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          ...formData,
-          taxonomy: 'post_tag'
-        }),
+        body: JSON.stringify(formData),
       });
 
       if (!response.ok) throw new Error(`Failed to ${editingTag ? 'update' : 'create'} tag`);
@@ -128,7 +125,7 @@ const TagsManager: React.FC = () => {
 
       const promises = tagNames.map(async (tagName) => {
         const slug = generateSlug(tagName);
-        return fetch('/api/terms', {
+        return fetch('/api/tags', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -138,8 +135,7 @@ const TagsManager: React.FC = () => {
             slug,
             description: `Content related to ${tagName}`,
             meta_title: `${tagName} - GO SG Digital Marketing`,
-            meta_description: `Learn about ${tagName} with GO SG's expert insights and strategies.`,
-            taxonomy: 'post_tag'
+            meta_description: `Learn about ${tagName} with GO SG's expert insights and strategies.`
           }),
         });
       });
@@ -180,7 +176,7 @@ const TagsManager: React.FC = () => {
     if (!confirm('Are you sure you want to delete this tag?')) return;
 
     try {
-      const response = await fetch(`/api/terms/${tagId}`, {
+      const response = await fetch(`/api/tags/${tagId}`, {
         method: 'DELETE',
       });
 

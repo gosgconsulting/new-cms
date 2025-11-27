@@ -13,7 +13,20 @@ import {
   updatePageLayout,
   getLayoutBySlug,
   upsertLayoutBySlug,
-  getTerms
+  getTerms,
+  getCategories,
+  getCategory,
+  createCategory,
+  updateCategory,
+  deleteCategory,
+  getTags,
+  getTag,
+  createTag,
+  updateTag,
+  deleteTag,
+  bulkCreateTags,
+  setPostCategories,
+  setPostTags
 } from '../../sparti-cms/db/index.js';
 import { invalidateBySlug } from '../../sparti-cms/cache/index.js';
 
@@ -395,7 +408,7 @@ router.put('/layout', async (req, res) => {
 
 // ===== TERMS ROUTES =====
 
-// Get terms by taxonomy
+// Get terms by taxonomy (backward compatibility)
 router.get('/terms/taxonomy/:taxonomy', async (req, res) => {
   try {
     const { taxonomy } = req.params;
@@ -406,6 +419,168 @@ router.get('/terms/taxonomy/:taxonomy', async (req, res) => {
   } catch (error) {
     console.error('[testing] Error fetching terms by taxonomy:', error);
     res.status(500).json({ error: 'Failed to fetch terms' });
+  }
+});
+
+// Get terms (backward compatibility - supports ?taxonomy=category or ?taxonomy=post_tag)
+router.get('/terms', async (req, res) => {
+  try {
+    const { taxonomy } = req.query;
+    const terms = await getTerms(taxonomy || null);
+    res.json(terms);
+  } catch (error) {
+    console.error('[testing] Error fetching terms:', error);
+    res.status(500).json({ error: 'Failed to fetch terms' });
+  }
+});
+
+// ===== CATEGORIES ROUTES =====
+
+// Get all categories
+router.get('/categories', async (req, res) => {
+  try {
+    const categories = await getCategories();
+    res.json(categories);
+  } catch (error) {
+    console.error('[testing] Error fetching categories:', error);
+    res.status(500).json({ error: 'Failed to fetch categories' });
+  }
+});
+
+// Get single category
+router.get('/categories/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const category = await getCategory(parseInt(id));
+    if (!category) {
+      return res.status(404).json({ error: 'Category not found' });
+    }
+    res.json(category);
+  } catch (error) {
+    console.error('[testing] Error fetching category:', error);
+    res.status(500).json({ error: 'Failed to fetch category' });
+  }
+});
+
+// Create category
+router.post('/categories', async (req, res) => {
+  try {
+    const category = await createCategory(req.body);
+    res.status(201).json(category);
+  } catch (error) {
+    console.error('[testing] Error creating category:', error);
+    if (error.code === '23505') {
+      return res.status(409).json({ error: 'A category with this slug already exists' });
+    }
+    res.status(500).json({ error: 'Failed to create category' });
+  }
+});
+
+// Update category
+router.put('/categories/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const category = await updateCategory(parseInt(id), req.body);
+    res.json(category);
+  } catch (error) {
+    console.error('[testing] Error updating category:', error);
+    if (error.message === 'Category not found') {
+      return res.status(404).json({ error: 'Category not found' });
+    }
+    if (error.code === '23505') {
+      return res.status(409).json({ error: 'A category with this slug already exists' });
+    }
+    res.status(500).json({ error: 'Failed to update category' });
+  }
+});
+
+// Delete category
+router.delete('/categories/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const category = await deleteCategory(parseInt(id));
+    res.json({ success: true, message: 'Category deleted successfully', category });
+  } catch (error) {
+    console.error('[testing] Error deleting category:', error);
+    if (error.message === 'Category not found') {
+      return res.status(404).json({ error: 'Category not found' });
+    }
+    res.status(500).json({ error: 'Failed to delete category' });
+  }
+});
+
+// ===== TAGS ROUTES =====
+
+// Get all tags
+router.get('/tags', async (req, res) => {
+  try {
+    const tags = await getTags();
+    res.json(tags);
+  } catch (error) {
+    console.error('[testing] Error fetching tags:', error);
+    res.status(500).json({ error: 'Failed to fetch tags' });
+  }
+});
+
+// Get single tag
+router.get('/tags/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const tag = await getTag(parseInt(id));
+    if (!tag) {
+      return res.status(404).json({ error: 'Tag not found' });
+    }
+    res.json(tag);
+  } catch (error) {
+    console.error('[testing] Error fetching tag:', error);
+    res.status(500).json({ error: 'Failed to fetch tag' });
+  }
+});
+
+// Create tag
+router.post('/tags', async (req, res) => {
+  try {
+    const tag = await createTag(req.body);
+    res.status(201).json(tag);
+  } catch (error) {
+    console.error('[testing] Error creating tag:', error);
+    if (error.code === '23505') {
+      return res.status(409).json({ error: 'A tag with this slug already exists' });
+    }
+    res.status(500).json({ error: 'Failed to create tag' });
+  }
+});
+
+// Update tag
+router.put('/tags/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const tag = await updateTag(parseInt(id), req.body);
+    res.json(tag);
+  } catch (error) {
+    console.error('[testing] Error updating tag:', error);
+    if (error.message === 'Tag not found') {
+      return res.status(404).json({ error: 'Tag not found' });
+    }
+    if (error.code === '23505') {
+      return res.status(409).json({ error: 'A tag with this slug already exists' });
+    }
+    res.status(500).json({ error: 'Failed to update tag' });
+  }
+});
+
+// Delete tag
+router.delete('/tags/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const tag = await deleteTag(parseInt(id));
+    res.json({ success: true, message: 'Tag deleted successfully', tag });
+  } catch (error) {
+    console.error('[testing] Error deleting tag:', error);
+    if (error.message === 'Tag not found') {
+      return res.status(404).json({ error: 'Tag not found' });
+    }
+    res.status(500).json({ error: 'Failed to delete tag' });
   }
 });
 
@@ -704,34 +879,48 @@ router.post('/posts', async (req, res) => {
 
     const post = postResult.rows[0];
 
-    // Handle categories
+    // Handle categories using new table
     if (Array.isArray(categories) && categories.length > 0) {
-      for (const categoryId of categories) {
-        const taxonomyResult = await query(`
-          SELECT id FROM term_taxonomy WHERE term_id = $1 AND taxonomy = 'category'
-        `, [categoryId]);
-        
-        if (taxonomyResult.rows.length > 0) {
-          await query(`
-            INSERT INTO term_relationships (object_id, term_taxonomy_id)
-            VALUES ($1, $2)
-          `, [post.id, taxonomyResult.rows[0].id]);
+      try {
+        await setPostCategories(post.id, categories);
+      } catch (err) {
+        console.log('[testing] Note setting post categories:', err.message);
+        // Fallback to old method for backward compatibility
+        for (const categoryId of categories) {
+          const taxonomyResult = await query(`
+            SELECT id FROM term_taxonomy WHERE term_id = $1 AND taxonomy = 'category'
+          `, [categoryId]);
+          
+          if (taxonomyResult.rows.length > 0) {
+            await query(`
+              INSERT INTO term_relationships (object_id, term_taxonomy_id)
+              VALUES ($1, $2)
+              ON CONFLICT DO NOTHING
+            `, [post.id, taxonomyResult.rows[0].id]);
+          }
         }
       }
     }
 
-    // Handle tags
+    // Handle tags using new table
     if (Array.isArray(tags) && tags.length > 0) {
-      for (const tagId of tags) {
-        const taxonomyResult = await query(`
-          SELECT id FROM term_taxonomy WHERE term_id = $1 AND taxonomy = 'post_tag'
-        `, [tagId]);
-        
-        if (taxonomyResult.rows.length > 0) {
-          await query(`
-            INSERT INTO term_relationships (object_id, term_taxonomy_id)
-            VALUES ($1, $2)
-          `, [post.id, taxonomyResult.rows[0].id]);
+      try {
+        await setPostTags(post.id, tags);
+      } catch (err) {
+        console.log('[testing] Note setting post tags:', err.message);
+        // Fallback to old method for backward compatibility
+        for (const tagId of tags) {
+          const taxonomyResult = await query(`
+            SELECT id FROM term_taxonomy WHERE term_id = $1 AND taxonomy = 'post_tag'
+          `, [tagId]);
+          
+          if (taxonomyResult.rows.length > 0) {
+            await query(`
+              INSERT INTO term_relationships (object_id, term_taxonomy_id)
+              VALUES ($1, $2)
+              ON CONFLICT DO NOTHING
+            `, [post.id, taxonomyResult.rows[0].id]);
+          }
         }
       }
     }
@@ -903,38 +1092,66 @@ router.put('/posts/:id', async (req, res) => {
       return res.status(404).json({ error: 'Post not found' });
     }
 
-    // Clear existing relationships
+    // Clear existing relationships (old method for backward compatibility)
     await query(`DELETE FROM term_relationships WHERE object_id = $1`, [parseInt(id)]);
 
-    // Handle categories
+    // Handle categories using new table
     if (Array.isArray(categories) && categories.length > 0) {
-      for (const categoryId of categories) {
-        const taxonomyResult = await query(`
-          SELECT id FROM term_taxonomy WHERE term_id = $1 AND taxonomy = 'category'
-        `, [categoryId]);
-        
-        if (taxonomyResult.rows.length > 0) {
-          await query(`
-            INSERT INTO term_relationships (object_id, term_taxonomy_id)
-            VALUES ($1, $2)
-          `, [parseInt(id), taxonomyResult.rows[0].id]);
+      try {
+        await setPostCategories(parseInt(id), categories);
+      } catch (err) {
+        console.log('[testing] Note setting post categories:', err.message);
+        // Fallback to old method for backward compatibility
+        for (const categoryId of categories) {
+          const taxonomyResult = await query(`
+            SELECT id FROM term_taxonomy WHERE term_id = $1 AND taxonomy = 'category'
+          `, [categoryId]);
+          
+          if (taxonomyResult.rows.length > 0) {
+            await query(`
+              INSERT INTO term_relationships (object_id, term_taxonomy_id)
+              VALUES ($1, $2)
+              ON CONFLICT DO NOTHING
+            `, [parseInt(id), taxonomyResult.rows[0].id]);
+          }
         }
+      }
+    } else {
+      // Clear categories if empty array
+      try {
+        await setPostCategories(parseInt(id), []);
+      } catch (err) {
+        console.log('[testing] Note clearing post categories:', err.message);
       }
     }
 
-    // Handle tags
+    // Handle tags using new table
     if (Array.isArray(tags) && tags.length > 0) {
-      for (const tagId of tags) {
-        const taxonomyResult = await query(`
-          SELECT id FROM term_taxonomy WHERE term_id = $1 AND taxonomy = 'post_tag'
-        `, [tagId]);
-        
-        if (taxonomyResult.rows.length > 0) {
-          await query(`
-            INSERT INTO term_relationships (object_id, term_taxonomy_id)
-            VALUES ($1, $2)
-          `, [parseInt(id), taxonomyResult.rows[0].id]);
+      try {
+        await setPostTags(parseInt(id), tags);
+      } catch (err) {
+        console.log('[testing] Note setting post tags:', err.message);
+        // Fallback to old method for backward compatibility
+        for (const tagId of tags) {
+          const taxonomyResult = await query(`
+            SELECT id FROM term_taxonomy WHERE term_id = $1 AND taxonomy = 'post_tag'
+          `, [tagId]);
+          
+          if (taxonomyResult.rows.length > 0) {
+            await query(`
+              INSERT INTO term_relationships (object_id, term_taxonomy_id)
+              VALUES ($1, $2)
+              ON CONFLICT DO NOTHING
+            `, [parseInt(id), taxonomyResult.rows[0].id]);
+          }
         }
+      }
+    } else {
+      // Clear tags if empty array
+      try {
+        await setPostTags(parseInt(id), []);
+      } catch (err) {
+        console.log('[testing] Note clearing post tags:', err.message);
       }
     }
 

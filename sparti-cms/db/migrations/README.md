@@ -1,46 +1,63 @@
 # Database Migrations
 
-This directory contains all database migration SQL files for the Sparti CMS project. Migrations are organized chronologically with numbered prefixes to indicate execution order.
+This directory previously contained SQL migration files. All migrations have been migrated to Sequelize migrations.
+
+## Sequelize Migrations
+
+All database migrations are now managed through Sequelize migrations located in:
+- `../sequelize/migrations/`
 
 ## Migration Files
 
-- `001_initial_schema.sql` - Initial database schema (components, pages, settings, media, form_submissions)
-- `002_tenants.sql` - Tenant management tables (tenants, tenant_databases, tenant_api_keys)
-- `003_users.sql` - User management tables (users, user_roles, user_permissions)
-- `004_access_keys.sql` - User access keys table
-- `005_seo_pages.sql` - SEO-enhanced pages tables
-- `006_consolidate_page_types.sql` - Consolidates pages, landing_pages, and legal_pages into unified pages table
-- `007_media.sql` - Enhanced media management tables
-- `008_forms.sql` - Forms and form submissions tables
-- `009_analytics.sql` - Analytics tracking tables (page views, events)
-- `010_add_user_tenant_assignment.sql` - Adds tenant_id column and is_super_admin flag to users table
+All migrations are now Sequelize migration files with the following naming convention:
+- `YYYYMMDDHHMMSS-description.js`
 
-## Naming Convention
+### Current Migrations
 
-Migrations follow the format: `###_description.sql`
+1. `20241202000000-create-core-tables.js` - Core tables (site_settings, form_submissions, contacts, projects, project_steps)
+2. `20241202000001-create-tenant-tables.js` - Tenant management tables (tenants, tenant_databases, tenant_api_keys)
+3. `20241202000002-create-user-tables.js` - User management tables (users, sessions, permissions, etc.) with views and triggers
+4. `20241202000003-create-page-tables.js` - Page tables (pages, page_layouts, page_components, slug_change_log)
+5. `20241202000004-create-content-tables.js` - Content tables (posts, terms, term_taxonomy, term_relationships, breadcrumbs)
+6. `20241202000005-create-seo-tables.js` - SEO tables (redirects, seo_meta, sitemap_entries, robots_config, seo_analytics)
+7. `20241202000006-create-media-tables.js` - Media and component tables
+8. `20241202000007-create-analytics-tables.js` - Analytics tracking tables
+9. `20241201000000-create-categories-and-tags.js` - Categories and tags tables
 
-- `###` - Three-digit number indicating execution order (001, 002, 003, etc.)
-- `description` - Brief description of what the migration does (lowercase, underscores)
+## Running Migrations
 
-## Adding New Migrations
+### Run all pending migrations
+```bash
+npm run sequelize:migrate
+```
 
-1. Create a new SQL file with the next sequential number (e.g., `010_new_feature.sql`)
-2. Use descriptive names that clearly indicate what the migration does
-3. Include comments at the top of the file explaining the migration's purpose
-4. Update this README to include the new migration in the list above
+### Undo last migration
+```bash
+npm run sequelize:migrate:undo
+```
 
-## Execution
+### Check migration status
+```bash
+npm run sequelize:migrate:status
+```
 
-Migrations are executed by JavaScript initialization functions in:
-- `postgres.js` - Main database initialization functions
-- `content-management.js` - Content management table initialization
-- `seo-management.js` - SEO management table initialization
+## Programmatic Migration Execution
 
-These functions read and execute the SQL files in this directory.
+Migrations can also be run programmatically from initialization functions using the `runMigrations` helper:
+
+```javascript
+import { runMigrations } from '../sequelize/run-migrations.js';
+
+// Run specific migrations
+await runMigrations(['20241202000000-create-core-tables.js']);
+
+// Run all pending migrations
+await runMigrations();
+```
 
 ## Notes
 
-- All migrations use `CREATE TABLE IF NOT EXISTS` to be idempotent
-- Migrations should be backward compatible when possible
-- Always test migrations on a development database before applying to production
-
+- All migrations are idempotent (check for table existence before creating)
+- Migrations preserve existing data
+- Migrations are backward compatible when possible
+- Views and triggers are created using raw SQL within migrations for PostgreSQL-specific features

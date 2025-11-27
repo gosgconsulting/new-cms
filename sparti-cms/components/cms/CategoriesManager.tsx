@@ -68,7 +68,7 @@ const CategoriesManager: React.FC = () => {
   const loadCategories = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/terms?taxonomy=category');
+      const response = await fetch('/api/categories');
       if (!response.ok) throw new Error('Failed to fetch categories');
       
       const data = await response.json();
@@ -89,7 +89,7 @@ const CategoriesManager: React.FC = () => {
     e.preventDefault();
     
     try {
-      const url = editingCategory ? `/api/terms/${editingCategory.id}` : '/api/terms';
+      const url = editingCategory ? `/api/categories/${editingCategory.id}` : '/api/categories';
       const method = editingCategory ? 'PUT' : 'POST';
       
       const response = await fetch(url, {
@@ -97,10 +97,7 @@ const CategoriesManager: React.FC = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          ...formData,
-          taxonomy: 'category'
-        }),
+        body: JSON.stringify(formData),
       });
 
       if (!response.ok) throw new Error(`Failed to ${editingCategory ? 'update' : 'create'} category`);
@@ -148,7 +145,7 @@ const CategoriesManager: React.FC = () => {
     if (!confirm('Are you sure you want to delete this category?')) return;
 
     try {
-      const response = await fetch(`/api/terms/${categoryId}`, {
+      const response = await fetch(`/api/categories/${categoryId}`, {
         method: 'DELETE',
       });
 
