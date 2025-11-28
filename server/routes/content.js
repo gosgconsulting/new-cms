@@ -620,56 +620,54 @@ router.get('/posts', async (req, res) => {
 
     console.log('[testing] Fetching all posts for tenant:', tenantId);
     
-    // Check if posts table has tenant_id column
-    let hasTenantId = false;
-    try {
-      const columnCheck = await query(`
-        SELECT column_name 
-        FROM information_schema.columns 
-        WHERE table_name = 'posts' AND column_name = 'tenant_id'
-      `);
-      hasTenantId = columnCheck.rows.length > 0;
-    } catch (err) {
-      console.log('[testing] Could not check for tenant_id column in posts table');
-    }
+    // Fetch posts using Sequelize with associations for new categories and tags tables
+    const posts = await Post.findAll({
+      where: {
+        [Op.or]: [
+          { tenant_id: tenantId },
+          { tenant_id: null }
+        ]
+      },
+      include: [
+        {
+          model: models.Category,
+          as: 'categories',
+          through: { attributes: [] },
+        },
+        {
+          model: models.Tag,
+          as: 'tags',
+          through: { attributes: [] },
+        }
+      ],
+      order: [['created_at', 'DESC']]
+    });
     
-    // Build query with conditional tenant filtering
-    let queryText = `
-      SELECT 
-        p.*,
-        COALESCE(
-          JSON_AGG(
-            CASE 
-              WHEN t.id IS NOT NULL THEN 
-                JSON_BUILD_OBJECT(
-                  'id', t.id,
-                  'name', t.name,
-                  'taxonomy', tt.taxonomy
-                )
-              ELSE NULL 
-            END
-          ) FILTER (WHERE t.id IS NOT NULL), 
-          '[]'
-        ) as terms
-      FROM posts p
-      LEFT JOIN term_relationships tr ON p.id = tr.object_id
-      LEFT JOIN term_taxonomy tt ON tr.term_taxonomy_id = tt.id
-      LEFT JOIN terms t ON tt.term_id = t.id
-      WHERE 1=1
-    `;
+    // Transform posts to include terms array for backward compatibility
+    const postsWithTerms = posts.map(post => {
+      const postJson = post.toJSON();
+      
+      // Build terms array from categories and tags for backward compatibility
+      const terms = [
+        ...(postJson.categories || []).map(cat => ({
+          id: cat.id,
+          name: cat.name,
+          taxonomy: 'category'
+        })),
+        ...(postJson.tags || []).map(tag => ({
+          id: tag.id,
+          name: tag.name,
+          taxonomy: 'post_tag'
+        }))
+      ];
+      
+      return {
+        ...postJson,
+        terms: terms
+      };
+    });
     
-    const params = [];
-    if (hasTenantId) {
-      queryText += ` AND (p.tenant_id = $1 OR p.tenant_id IS NULL)`;
-      params.push(tenantId);
-    }
-    
-    queryText += ` GROUP BY p.id ORDER BY p.created_at DESC`;
-    
-    const result = await query(queryText, params);
-    
-    const posts = result.rows;
-    res.json(posts);
+    res.json(postsWithTerms);
   } catch (error) {
     console.error('[testing] Error fetching posts:', error);
     
@@ -786,7 +784,16 @@ router.post('/posts', async (req, res) => {
     }
 
     // Get tenant from authenticated user
-    const tenantId = req.tenantId || req.user?.tenant_id || req.body.tenantId;
+    // For super admins, prioritize tenantId from request body if provided
+    // Otherwise use tenantId from middleware/headers or user's tenant_id
+    let tenantId;
+    if (req.user?.is_super_admin && req.body.tenantId) {
+      // Super admin explicitly providing tenantId in body - use it
+      tenantId = req.body.tenantId;
+    } else {
+      // Regular users or super admin without explicit tenantId in body
+      tenantId = req.tenantId || req.user?.tenant_id || req.body.tenantId;
+    }
     
     if (!tenantId) {
       return res.status(400).json({
@@ -795,7 +802,7 @@ router.post('/posts', async (req, res) => {
       });
     }
 
-    console.log('[testing] Creating new post for tenant:', tenantId);
+    console.log('[testing] Creating new post for tenant:', tenantId, 'is_super_admin:', req.user?.is_super_admin);
     
     const {
       title,
@@ -846,14 +853,15 @@ router.post('/posts', async (req, res) => {
       tenant_id: tenantId || null
     });
 
-    // Handle categories using new table
-    if (Array.isArray(categories) && categories.length > 0) {
-      try {
-        await setPostCategories(post.id, categories);
-      } catch (err) {
-        console.log('[testing] Note setting post categories:', err.message);
-        // Fallback to old method for backward compatibility
-        for (const categoryId of categories) {
+    // Handle categories using new table - always call to ensure proper state
+    const categoryIds = Array.isArray(categories) ? categories : [];
+    try {
+      await setPostCategories(post.id, categoryIds);
+    } catch (err) {
+      console.log('[testing] Note setting post categories:', err.message);
+      // Fallback to old method for backward compatibility
+      if (categoryIds.length > 0) {
+        for (const categoryId of categoryIds) {
           const taxonomyResult = await query(`
             SELECT id FROM term_taxonomy WHERE term_id = $1 AND taxonomy = 'category'
           `, [categoryId]);
@@ -869,14 +877,15 @@ router.post('/posts', async (req, res) => {
       }
     }
 
-    // Handle tags using new table
-    if (Array.isArray(tags) && tags.length > 0) {
-      try {
-        await setPostTags(post.id, tags);
-      } catch (err) {
-        console.log('[testing] Note setting post tags:', err.message);
-        // Fallback to old method for backward compatibility
-        for (const tagId of tags) {
+    // Handle tags using new table - always call to ensure proper state
+    const tagIds = Array.isArray(tags) ? tags : [];
+    try {
+      await setPostTags(post.id, tagIds);
+    } catch (err) {
+      console.log('[testing] Note setting post tags:', err.message);
+      // Fallback to old method for backward compatibility
+      if (tagIds.length > 0) {
+        for (const tagId of tagIds) {
           const taxonomyResult = await query(`
             SELECT id FROM term_taxonomy WHERE term_id = $1 AND taxonomy = 'post_tag'
           `, [tagId]);
@@ -960,7 +969,16 @@ router.put('/posts/:id', async (req, res) => {
     }
 
     // Get tenant from authenticated user
-    const tenantId = req.tenantId || req.user?.tenant_id || req.body.tenantId;
+    // For super admins, prioritize tenantId from request body if provided
+    // Otherwise use tenantId from middleware/headers or user's tenant_id
+    let tenantId;
+    if (req.user?.is_super_admin && req.body.tenantId) {
+      // Super admin explicitly providing tenantId in body - use it
+      tenantId = req.body.tenantId;
+    } else {
+      // Regular users or super admin without explicit tenantId in body
+      tenantId = req.tenantId || req.user?.tenant_id || req.body.tenantId;
+    }
     
     if (!tenantId) {
       return res.status(400).json({
@@ -970,7 +988,7 @@ router.put('/posts/:id', async (req, res) => {
     }
 
     const { id } = req.params;
-    console.log('[testing] Updating post:', id, 'for tenant:', tenantId);
+    console.log('[testing] Updating post:', id, 'for tenant:', tenantId, 'is_super_admin:', req.user?.is_super_admin);
     
     const {
       title,
@@ -998,23 +1016,27 @@ router.put('/posts/:id', async (req, res) => {
       });
     }
     
-    // Find and update the post using Sequelize
-    const post = await Post.findOne({
-      where: {
-        id: parseInt(id),
-        [Op.or]: [
-          { tenant_id: tenantId },
-          { tenant_id: null }
-        ]
-      }
-    });
+    // Find the post using Sequelize
+    // For super admins, allow finding posts from any tenant
+    // For regular users, only find posts from their tenant
+    const whereClause = req.user?.is_super_admin
+      ? { id: parseInt(id) } // Super admin can access any post
+      : {
+          id: parseInt(id),
+          [Op.or]: [
+            { tenant_id: tenantId },
+            { tenant_id: null }
+          ]
+        };
+    
+    const post = await Post.findOne({ where: whereClause });
     
     if (!post) {
       return res.status(404).json({ error: 'Post not found' });
     }
     
-    // Update the post
-    await post.update({
+    // Build update data
+    const updateData = {
       title,
       slug,
       content: content || '',
@@ -1029,19 +1051,28 @@ router.put('/posts/:id', async (req, res) => {
       twitter_title: twitter_title || '',
       twitter_description: twitter_description || '',
       published_at: published_at || null
-    });
+    };
+    
+    // For super admins, allow updating tenant_id if provided in body
+    if (req.user?.is_super_admin && req.body.tenantId) {
+      updateData.tenant_id = req.body.tenantId;
+    }
+    
+    // Update the post
+    await post.update(updateData);
 
     // Clear existing relationships (old method for backward compatibility)
     await query(`DELETE FROM term_relationships WHERE object_id = $1`, [parseInt(id)]);
 
-    // Handle categories using new table
-    if (Array.isArray(categories) && categories.length > 0) {
-      try {
-        await setPostCategories(parseInt(id), categories);
-      } catch (err) {
-        console.log('[testing] Note setting post categories:', err.message);
-        // Fallback to old method for backward compatibility
-        for (const categoryId of categories) {
+    // Handle categories using new table - always call to ensure proper state
+    const categoryIds = Array.isArray(categories) ? categories : [];
+    try {
+      await setPostCategories(parseInt(id), categoryIds);
+    } catch (err) {
+      console.log('[testing] Note setting post categories:', err.message);
+      // Fallback to old method for backward compatibility
+      if (categoryIds.length > 0) {
+        for (const categoryId of categoryIds) {
           const taxonomyResult = await query(`
             SELECT id FROM term_taxonomy WHERE term_id = $1 AND taxonomy = 'category'
           `, [categoryId]);
@@ -1055,23 +1086,17 @@ router.put('/posts/:id', async (req, res) => {
           }
         }
       }
-    } else {
-      // Clear categories if empty array
-      try {
-        await setPostCategories(parseInt(id), []);
-      } catch (err) {
-        console.log('[testing] Note clearing post categories:', err.message);
-      }
     }
 
-    // Handle tags using new table
-    if (Array.isArray(tags) && tags.length > 0) {
-      try {
-        await setPostTags(parseInt(id), tags);
-      } catch (err) {
-        console.log('[testing] Note setting post tags:', err.message);
-        // Fallback to old method for backward compatibility
-        for (const tagId of tags) {
+    // Handle tags using new table - always call to ensure proper state
+    const tagIds = Array.isArray(tags) ? tags : [];
+    try {
+      await setPostTags(parseInt(id), tagIds);
+    } catch (err) {
+      console.log('[testing] Note setting post tags:', err.message);
+      // Fallback to old method for backward compatibility
+      if (tagIds.length > 0) {
+        for (const tagId of tagIds) {
           const taxonomyResult = await query(`
             SELECT id FROM term_taxonomy WHERE term_id = $1 AND taxonomy = 'post_tag'
           `, [tagId]);
@@ -1084,13 +1109,6 @@ router.put('/posts/:id', async (req, res) => {
             `, [parseInt(id), taxonomyResult.rows[0].id]);
           }
         }
-      }
-    } else {
-      // Clear tags if empty array
-      try {
-        await setPostTags(parseInt(id), []);
-      } catch (err) {
-        console.log('[testing] Note clearing post tags:', err.message);
       }
     }
 

@@ -102,10 +102,7 @@ const PostsManager: React.FC = () => {
 
   const handleCreatePost = async (postData: any) => {
     try {
-      const response = await api.post('/api/posts', {
-        ...postData,
-        tenantId: currentTenantId,
-      });
+      const response = await api.post('/api/posts', postData);
 
       if (response.ok) {
         const newPost = await response.json();
@@ -128,10 +125,7 @@ const PostsManager: React.FC = () => {
     if (!editingPost) return;
 
     try {
-      const response = await api.put(`/api/posts/${editingPost.id}`, {
-        ...postData,
-        tenantId: currentTenantId,
-      });
+      const response = await api.put(`/api/posts/${editingPost.id}`, postData);
 
       if (response.ok) {
         const updatedPost = await response.json();

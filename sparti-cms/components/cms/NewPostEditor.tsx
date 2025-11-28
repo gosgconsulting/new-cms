@@ -89,7 +89,7 @@ interface NewPostEditorProps {
 }
 
 const NewPostEditor: React.FC<NewPostEditorProps> = ({ onBack, onSave, initialData }) => {
-  const { user } = useAuth();
+  const { user, currentTenantId } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setSaving] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
@@ -260,7 +260,14 @@ const NewPostEditor: React.FC<NewPostEditorProps> = ({ onBack, onSave, initialDa
       const saveData = { 
         ...postData, 
         status: status || postData.status,
-        published_at: status === 'published' ? new Date().toISOString() : postData.published_at
+        published_at: status === 'published' ? new Date().toISOString() : postData.published_at,
+        // Explicitly include categories and tags
+        categories: Array.isArray(postData.categories) ? postData.categories : [],
+        tags: Array.isArray(postData.tags) ? postData.tags : [],
+        // For super admins, include tenant ID to properly set the post tenant
+        ...(user?.is_super_admin && (currentTenantId || user.tenant_id) ? {
+          tenantId: currentTenantId || user.tenant_id
+        } : {})
       };
       
       await onSave(saveData);
