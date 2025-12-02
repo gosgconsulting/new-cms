@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../auth/AuthProvider';
 import { motion } from 'framer-motion';
+import { api } from '../../utils/api';
 
 interface UserProfile {
   id: string;
@@ -69,9 +70,10 @@ const MyAccountPage: React.FC = () => {
   const fetchUserProfile = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/users/${user?.id}`);
+      const response = await api.get(`/api/users/${user?.id}`);
       if (response.ok) {
-        const userData = await response.json();
+        const data = await response.json();
+        const userData = data.user || data; // Handle both response formats
         setProfile(userData);
         setProfileForm({
           first_name: userData.first_name,
@@ -93,16 +95,11 @@ const MyAccountPage: React.FC = () => {
     setMessage(null);
 
     try {
-      const response = await fetch(`/api/users/${user?.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(profileForm),
-      });
+      const response = await api.put(`/api/users/${user?.id}`, profileForm);
 
       if (response.ok) {
-        const updatedUser = await response.json();
+        const data = await response.json();
+        const updatedUser = data.user || data; // Handle both response formats
         setProfile(updatedUser);
         setIsEditing(false);
         setMessage({ type: 'success', text: 'Profile updated successfully' });
@@ -137,15 +134,9 @@ const MyAccountPage: React.FC = () => {
     }
 
     try {
-      const response = await fetch(`/api/users/${user?.id}/password`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          current_password: passwordForm.current_password,
-          new_password: passwordForm.new_password,
-        }),
+      const response = await api.put(`/api/users/${user?.id}/password`, {
+        current_password: passwordForm.current_password,
+        new_password: passwordForm.new_password,
       });
 
       if (response.ok) {

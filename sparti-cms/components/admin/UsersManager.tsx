@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../auth/AuthProvider';
 import { motion, AnimatePresence } from 'framer-motion';
+import { api } from '../../utils/api';
 
 interface User {
   id: string;
@@ -53,8 +54,9 @@ interface UserFormData {
 }
 
 const UsersManager: React.FC = () => {
-  const { user: currentUser, tenants } = useAuth();
+  const { user: currentUser } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
+  const [tenants, setTenants] = useState<Array<{ id: string; name: string }>>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -79,7 +81,20 @@ const UsersManager: React.FC = () => {
 
   useEffect(() => {
     fetchUsers();
+    fetchTenants();
   }, []);
+
+  const fetchTenants = async () => {
+    try {
+      const response = await api.get('/api/tenants');
+      if (response.ok) {
+        const data = await response.json();
+        setTenants(Array.isArray(data) ? data : []);
+      }
+    } catch (error) {
+      console.error('[testing] Error fetching tenants:', error);
+    }
+  };
 
   useEffect(() => {
     if (message) {
@@ -91,7 +106,7 @@ const UsersManager: React.FC = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/users');
+      const response = await api.get('/api/users');
       if (response.ok) {
         const data = await response.json();
         setUsers(data.users || []);
@@ -147,20 +162,15 @@ const UsersManager: React.FC = () => {
 
     try {
       const url = isEditing ? `/api/users/${selectedUser?.id}` : '/api/users';
-      const method = isEditing ? 'PUT' : 'POST';
       
       const payload = { ...formData };
       if (isEditing && !payload.password) {
         delete payload.password; // Don't send empty password on edit
       }
 
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
+      const response = isEditing 
+        ? await api.put(url, payload)
+        : await api.post(url, payload);
 
       if (response.ok) {
         await fetchUsers();
@@ -188,9 +198,7 @@ const UsersManager: React.FC = () => {
     }
 
     try {
-      const response = await fetch(`/api/users/${userId}`, {
-        method: 'DELETE',
-      });
+      const response = await api.delete(`/api/users/${userId}`);
 
       if (response.ok) {
         await fetchUsers();
@@ -209,14 +217,8 @@ const UsersManager: React.FC = () => {
 
   const handleApproveUser = async (userId: string) => {
     try {
-      const response = await fetch(`/api/users/${userId}/approve`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          approved_by: currentUser?.id
-        }),
+      const response = await api.put(`/api/users/${userId}/approve`, {
+        approved_by: currentUser?.id
       });
 
       if (response.ok) {
@@ -234,15 +236,9 @@ const UsersManager: React.FC = () => {
 
   const handleRejectUser = async (userId: string) => {
     try {
-      const response = await fetch(`/api/users/${userId}/reject`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          rejected_by: currentUser?.id,
-          reason: 'Rejected by admin'
-        }),
+      const response = await api.put(`/api/users/${userId}/reject`, {
+        rejected_by: currentUser?.id,
+        reason: 'Rejected by admin'
       });
 
       if (response.ok) {
@@ -481,7 +477,7 @@ const UsersManager: React.FC = () => {
                       </span>
                     ) : (
                       <span className="text-sm text-muted-foreground">
-                        {tenants.find(t => t.id === user.tenant_id)?.name || 'Not Assigned'}
+                        {tenants?.find(t => t.id === user.tenant_id)?.name || 'Not Assigned'}
                       </span>
                     )}
                   </td>
@@ -705,9 +701,9 @@ const UsersManager: React.FC = () => {
                     disabled={formData.is_super_admin}
                   >
                     <option value="">Select Tenant</option>
-                    {tenants.map(tenant => (
+                    {tenants?.map(tenant => (
                       <option key={tenant.id} value={tenant.id}>{tenant.name}</option>
-                    ))}
+                    )) || []}
                   </select>
                 </div>
 
