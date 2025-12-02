@@ -14,6 +14,7 @@ import settingsRoutes from './settings.js';
 import seoRoutes from './seo.js';
 import systemRoutes from './system.js';
 import publicRoutes from './public.js';
+import usersRoutes from './users.js';
 
 const router = express.Router();
 
@@ -46,6 +47,7 @@ router.use('/api', crmRoutes);
 router.use('/api', settingsRoutes);
 router.use('/api', seoRoutes);
 router.use('/api', systemRoutes);
+router.use('/api', usersRoutes);
 
 // Server-rendered page route (mounted at root, not under /api)
 router.get('/r/:slug', async (req, res) => {
