@@ -25,6 +25,8 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/use-toast";
+import { useAuth } from '../auth/AuthProvider';
+import api from '../../utils/api';
 
 interface TagType {
   id: number;
@@ -39,6 +41,7 @@ interface TagType {
 }
 
 const TagsManager: React.FC = () => {
+  const { currentTenantId } = useAuth();
   const [tags, setTags] = useState<TagType[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -55,13 +58,18 @@ const TagsManager: React.FC = () => {
   });
 
   useEffect(() => {
-    loadTags();
-  }, []);
+    if (currentTenantId) {
+      loadTags();
+    }
+  }, [currentTenantId]);
 
   const loadTags = async () => {
+    if (!currentTenantId) return;
     try {
       setLoading(true);
-      const response = await fetch('/api/tags');
+      const response = await api.get(`/api/tags?tenantId=${currentTenantId}`, {
+        headers: { 'X-Tenant-Id': currentTenantId }
+      });
       if (!response.ok) throw new Error('Failed to fetch tags');
       
       const data = await response.json();
@@ -80,18 +88,18 @@ const TagsManager: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!currentTenantId) return;
     
     try {
       const url = editingTag ? `/api/tags/${editingTag.id}` : '/api/tags';
-      const method = editingTag ? 'PUT' : 'POST';
+      const data = {
+        ...formData,
+        tenantId: currentTenantId
+      };
       
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
+      const response = editingTag
+        ? await api.put(url, data, { headers: { 'X-Tenant-Id': currentTenantId } })
+        : await api.post(url, data, { headers: { 'X-Tenant-Id': currentTenantId } });
 
       if (!response.ok) throw new Error(`Failed to ${editingTag ? 'update' : 'create'} tag`);
 
@@ -116,6 +124,7 @@ const TagsManager: React.FC = () => {
 
   const handleBulkAdd = async () => {
     if (!bulkTags.trim()) return;
+    if (!currentTenantId) return;
 
     try {
       const tagNames = bulkTags
@@ -125,18 +134,15 @@ const TagsManager: React.FC = () => {
 
       const promises = tagNames.map(async (tagName) => {
         const slug = generateSlug(tagName);
-        return fetch('/api/tags', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            name: tagName,
-            slug,
-            description: `Content related to ${tagName}`,
-            meta_title: `${tagName} - GO SG Digital Marketing`,
-            meta_description: `Learn about ${tagName} with GO SG's expert insights and strategies.`
-          }),
+        return api.post('/api/tags', {
+          name: tagName,
+          slug,
+          description: `Content related to ${tagName}`,
+          meta_title: `${tagName} - GO SG Digital Marketing`,
+          meta_description: `Learn about ${tagName} with GO SG's expert insights and strategies.`,
+          tenantId: currentTenantId
+        }, {
+          headers: { 'X-Tenant-Id': currentTenantId }
         });
       });
 
@@ -174,10 +180,11 @@ const TagsManager: React.FC = () => {
 
   const handleDelete = async (tagId: number) => {
     if (!confirm('Are you sure you want to delete this tag?')) return;
+    if (!currentTenantId) return;
 
     try {
-      const response = await fetch(`/api/tags/${tagId}`, {
-        method: 'DELETE',
+      const response = await api.delete(`/api/tags/${tagId}?tenantId=${currentTenantId}`, {
+        headers: { 'X-Tenant-Id': currentTenantId }
       });
 
       if (!response.ok) throw new Error('Failed to delete tag');

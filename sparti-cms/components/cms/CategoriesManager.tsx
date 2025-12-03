@@ -32,6 +32,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { toast } from "@/components/ui/use-toast";
+import { useAuth } from '../auth/AuthProvider';
+import api from '../../utils/api';
 
 interface Category {
   id: number;
@@ -47,6 +49,7 @@ interface Category {
 }
 
 const CategoriesManager: React.FC = () => {
+  const { currentTenantId } = useAuth();
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -62,13 +65,18 @@ const CategoriesManager: React.FC = () => {
   });
 
   useEffect(() => {
-    loadCategories();
-  }, []);
+    if (currentTenantId) {
+      loadCategories();
+    }
+  }, [currentTenantId]);
 
   const loadCategories = async () => {
+    if (!currentTenantId) return;
     try {
       setLoading(true);
-      const response = await fetch('/api/categories');
+      const response = await api.get(`/api/categories?tenantId=${currentTenantId}`, {
+        headers: { 'X-Tenant-Id': currentTenantId }
+      });
       if (!response.ok) throw new Error('Failed to fetch categories');
       
       const data = await response.json();
@@ -87,18 +95,18 @@ const CategoriesManager: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!currentTenantId) return;
     
     try {
       const url = editingCategory ? `/api/categories/${editingCategory.id}` : '/api/categories';
-      const method = editingCategory ? 'PUT' : 'POST';
+      const data = {
+        ...formData,
+        tenantId: currentTenantId
+      };
       
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
+      const response = editingCategory 
+        ? await api.put(url, data, { headers: { 'X-Tenant-Id': currentTenantId } })
+        : await api.post(url, data, { headers: { 'X-Tenant-Id': currentTenantId } });
 
       if (!response.ok) throw new Error(`Failed to ${editingCategory ? 'update' : 'create'} category`);
 
@@ -143,10 +151,11 @@ const CategoriesManager: React.FC = () => {
 
   const handleDelete = async (categoryId: number) => {
     if (!confirm('Are you sure you want to delete this category?')) return;
+    if (!currentTenantId) return;
 
     try {
-      const response = await fetch(`/api/categories/${categoryId}`, {
-        method: 'DELETE',
+      const response = await api.delete(`/api/categories/${categoryId}?tenantId=${currentTenantId}`, {
+        headers: { 'X-Tenant-Id': currentTenantId }
       });
 
       if (!response.ok) throw new Error('Failed to delete category');

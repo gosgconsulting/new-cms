@@ -31,7 +31,7 @@ import {
 import { invalidateBySlug } from '../../sparti-cms/cache/index.js';
 import models, { sequelize } from '../../sparti-cms/db/sequelize/models/index.js';
 import { Op } from 'sequelize';
-const { Post } = models;
+const { Post, Category, Tag } = models;
 
 const router = express.Router();
 
@@ -442,8 +442,24 @@ router.get('/terms', async (req, res) => {
 // Get all categories
 router.get('/categories', async (req, res) => {
   try {
-    const categories = await getCategories();
-    res.json(categories);
+    const tenantId = req.tenantId || req.user?.tenant_id || req.query.tenantId;
+    
+    // Build where clause
+    const whereClause = {};
+    if (tenantId) {
+      whereClause[Op.or] = [
+        { tenant_id: tenantId },
+        { tenant_id: null }
+      ];
+    }
+    
+    // Use Sequelize model to fetch categories filtered by tenant
+    const categories = await Category.findAll({
+      where: whereClause,
+      order: [['created_at', 'DESC']]
+    });
+    
+    res.json(categories.map(cat => cat.toJSON()));
   } catch (error) {
     console.error('[testing] Error fetching categories:', error);
     res.status(500).json({ error: 'Failed to fetch categories' });
@@ -454,11 +470,22 @@ router.get('/categories', async (req, res) => {
 router.get('/categories/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const category = await getCategory(parseInt(id));
+    const tenantId = req.tenantId || req.user?.tenant_id || req.query.tenantId;
+    
+    // Build where clause
+    const whereClause = { id: parseInt(id) };
+    if (tenantId) {
+      whereClause[Op.or] = [
+        { tenant_id: tenantId },
+        { tenant_id: null }
+      ];
+    }
+    
+    const category = await Category.findOne({ where: whereClause });
     if (!category) {
       return res.status(404).json({ error: 'Category not found' });
     }
-    res.json(category);
+    res.json(category.toJSON());
   } catch (error) {
     console.error('[testing] Error fetching category:', error);
     res.status(500).json({ error: 'Failed to fetch category' });
@@ -468,12 +495,26 @@ router.get('/categories/:id', async (req, res) => {
 // Create category
 router.post('/categories', async (req, res) => {
   try {
-    const category = await createCategory(req.body);
-    res.status(201).json(category);
+    const tenantId = req.tenantId || req.user?.tenant_id || req.body.tenantId;
+    
+    if (!tenantId) {
+      return res.status(400).json({ 
+        error: 'Tenant ID is required',
+        message: 'Please provide tenant ID via authentication or request body'
+      });
+    }
+    
+    // Use Sequelize model to create category with tenant_id
+    const category = await Category.create({
+      ...req.body,
+      tenant_id: tenantId
+    });
+    
+    res.status(201).json(category.toJSON());
   } catch (error) {
     console.error('[testing] Error creating category:', error);
-    if (error.code === '23505') {
-      return res.status(409).json({ error: 'A category with this slug already exists' });
+    if (error.code === '23505' || error.name === 'SequelizeUniqueConstraintError') {
+      return res.status(409).json({ error: 'A category with this slug already exists for this tenant' });
     }
     res.status(500).json({ error: 'Failed to create category' });
   }
@@ -483,15 +524,34 @@ router.post('/categories', async (req, res) => {
 router.put('/categories/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const category = await updateCategory(parseInt(id), req.body);
-    res.json(category);
-  } catch (error) {
-    console.error('[testing] Error updating category:', error);
-    if (error.message === 'Category not found') {
+    const tenantId = req.tenantId || req.user?.tenant_id || req.body.tenantId;
+    
+    // Build where clause
+    const whereClause = { id: parseInt(id) };
+    if (tenantId) {
+      whereClause[Op.or] = [
+        { tenant_id: tenantId },
+        { tenant_id: null }
+      ];
+    }
+    
+    const category = await Category.findOne({ where: whereClause });
+    if (!category) {
       return res.status(404).json({ error: 'Category not found' });
     }
-    if (error.code === '23505') {
-      return res.status(409).json({ error: 'A category with this slug already exists' });
+    
+    // Update category (preserve tenant_id unless explicitly changed by super admin)
+    const updateData = { ...req.body };
+    if (!req.user?.is_super_admin || !req.body.tenantId) {
+      delete updateData.tenant_id; // Don't allow tenant_id changes unless super admin
+    }
+    
+    await category.update(updateData);
+    res.json(category.toJSON());
+  } catch (error) {
+    console.error('[testing] Error updating category:', error);
+    if (error.code === '23505' || error.name === 'SequelizeUniqueConstraintError') {
+      return res.status(409).json({ error: 'A category with this slug already exists for this tenant' });
     }
     res.status(500).json({ error: 'Failed to update category' });
   }
@@ -501,13 +561,26 @@ router.put('/categories/:id', async (req, res) => {
 router.delete('/categories/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const category = await deleteCategory(parseInt(id));
-    res.json({ success: true, message: 'Category deleted successfully', category });
-  } catch (error) {
-    console.error('[testing] Error deleting category:', error);
-    if (error.message === 'Category not found') {
+    const tenantId = req.tenantId || req.user?.tenant_id || req.query.tenantId;
+    
+    // Build where clause
+    const whereClause = { id: parseInt(id) };
+    if (tenantId) {
+      whereClause[Op.or] = [
+        { tenant_id: tenantId },
+        { tenant_id: null }
+      ];
+    }
+    
+    const category = await Category.findOne({ where: whereClause });
+    if (!category) {
       return res.status(404).json({ error: 'Category not found' });
     }
+    
+    await category.destroy();
+    res.json({ success: true, message: 'Category deleted successfully', category: category.toJSON() });
+  } catch (error) {
+    console.error('[testing] Error deleting category:', error);
     res.status(500).json({ error: 'Failed to delete category' });
   }
 });
@@ -517,8 +590,24 @@ router.delete('/categories/:id', async (req, res) => {
 // Get all tags
 router.get('/tags', async (req, res) => {
   try {
-    const tags = await getTags();
-    res.json(tags);
+    const tenantId = req.tenantId || req.user?.tenant_id || req.query.tenantId;
+    
+    // Build where clause
+    const whereClause = {};
+    if (tenantId) {
+      whereClause[Op.or] = [
+        { tenant_id: tenantId },
+        { tenant_id: null }
+      ];
+    }
+    
+    // Use Sequelize model to fetch tags filtered by tenant
+    const tags = await Tag.findAll({
+      where: whereClause,
+      order: [['created_at', 'DESC']]
+    });
+    
+    res.json(tags.map(tag => tag.toJSON()));
   } catch (error) {
     console.error('[testing] Error fetching tags:', error);
     res.status(500).json({ error: 'Failed to fetch tags' });
@@ -529,11 +618,22 @@ router.get('/tags', async (req, res) => {
 router.get('/tags/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const tag = await getTag(parseInt(id));
+    const tenantId = req.tenantId || req.user?.tenant_id || req.query.tenantId;
+    
+    // Build where clause
+    const whereClause = { id: parseInt(id) };
+    if (tenantId) {
+      whereClause[Op.or] = [
+        { tenant_id: tenantId },
+        { tenant_id: null }
+      ];
+    }
+    
+    const tag = await Tag.findOne({ where: whereClause });
     if (!tag) {
       return res.status(404).json({ error: 'Tag not found' });
     }
-    res.json(tag);
+    res.json(tag.toJSON());
   } catch (error) {
     console.error('[testing] Error fetching tag:', error);
     res.status(500).json({ error: 'Failed to fetch tag' });
@@ -543,12 +643,26 @@ router.get('/tags/:id', async (req, res) => {
 // Create tag
 router.post('/tags', async (req, res) => {
   try {
-    const tag = await createTag(req.body);
-    res.status(201).json(tag);
+    const tenantId = req.tenantId || req.user?.tenant_id || req.body.tenantId;
+    
+    if (!tenantId) {
+      return res.status(400).json({ 
+        error: 'Tenant ID is required',
+        message: 'Please provide tenant ID via authentication or request body'
+      });
+    }
+    
+    // Use Sequelize model to create tag with tenant_id
+    const tag = await Tag.create({
+      ...req.body,
+      tenant_id: tenantId
+    });
+    
+    res.status(201).json(tag.toJSON());
   } catch (error) {
     console.error('[testing] Error creating tag:', error);
-    if (error.code === '23505') {
-      return res.status(409).json({ error: 'A tag with this slug already exists' });
+    if (error.code === '23505' || error.name === 'SequelizeUniqueConstraintError') {
+      return res.status(409).json({ error: 'A tag with this slug already exists for this tenant' });
     }
     res.status(500).json({ error: 'Failed to create tag' });
   }
@@ -558,15 +672,34 @@ router.post('/tags', async (req, res) => {
 router.put('/tags/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const tag = await updateTag(parseInt(id), req.body);
-    res.json(tag);
-  } catch (error) {
-    console.error('[testing] Error updating tag:', error);
-    if (error.message === 'Tag not found') {
+    const tenantId = req.tenantId || req.user?.tenant_id || req.body.tenantId;
+    
+    // Build where clause
+    const whereClause = { id: parseInt(id) };
+    if (tenantId) {
+      whereClause[Op.or] = [
+        { tenant_id: tenantId },
+        { tenant_id: null }
+      ];
+    }
+    
+    const tag = await Tag.findOne({ where: whereClause });
+    if (!tag) {
       return res.status(404).json({ error: 'Tag not found' });
     }
-    if (error.code === '23505') {
-      return res.status(409).json({ error: 'A tag with this slug already exists' });
+    
+    // Update tag (preserve tenant_id unless explicitly changed by super admin)
+    const updateData = { ...req.body };
+    if (!req.user?.is_super_admin || !req.body.tenantId) {
+      delete updateData.tenant_id; // Don't allow tenant_id changes unless super admin
+    }
+    
+    await tag.update(updateData);
+    res.json(tag.toJSON());
+  } catch (error) {
+    console.error('[testing] Error updating tag:', error);
+    if (error.code === '23505' || error.name === 'SequelizeUniqueConstraintError') {
+      return res.status(409).json({ error: 'A tag with this slug already exists for this tenant' });
     }
     res.status(500).json({ error: 'Failed to update tag' });
   }
@@ -576,13 +709,26 @@ router.put('/tags/:id', async (req, res) => {
 router.delete('/tags/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const tag = await deleteTag(parseInt(id));
-    res.json({ success: true, message: 'Tag deleted successfully', tag });
-  } catch (error) {
-    console.error('[testing] Error deleting tag:', error);
-    if (error.message === 'Tag not found') {
+    const tenantId = req.tenantId || req.user?.tenant_id || req.query.tenantId;
+    
+    // Build where clause
+    const whereClause = { id: parseInt(id) };
+    if (tenantId) {
+      whereClause[Op.or] = [
+        { tenant_id: tenantId },
+        { tenant_id: null }
+      ];
+    }
+    
+    const tag = await Tag.findOne({ where: whereClause });
+    if (!tag) {
       return res.status(404).json({ error: 'Tag not found' });
     }
+    
+    await tag.destroy();
+    res.json({ success: true, message: 'Tag deleted successfully', tag: tag.toJSON() });
+  } catch (error) {
+    console.error('[testing] Error deleting tag:', error);
     res.status(500).json({ error: 'Failed to delete tag' });
   }
 });
