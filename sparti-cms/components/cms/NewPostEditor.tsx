@@ -2,15 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { 
   Save, 
   Eye, 
-  Calendar,
   User,
   Tag,
   FileText,
   Globe,
-  Clock,
   X,
   Plus,
-  ChevronDown,
   Settings,
   ArrowLeft
 } from 'lucide-react';
@@ -36,12 +33,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "@/components/ui/use-toast";
 import { useAuth } from '../auth/AuthProvider';
 import TiptapEditor from './TiptapEditor';
+import api from '../../utils/api';
 
 interface Category {
   id: number;
@@ -122,12 +119,14 @@ const NewPostEditor: React.FC<NewPostEditorProps> = ({ onBack, onSave, initialDa
   const [newTagName, setNewTagName] = useState('');
   const [showAddTag, setShowAddTag] = useState(false);
 
-  // Load data on component mount
+  // Load data on component mount and when tenant changes
   useEffect(() => {
-    loadCategories();
-    loadTags();
-    loadUsers();
-  }, []);
+    if (currentTenantId) {
+      loadCategories();
+      loadTags();
+      loadUsers();
+    }
+  }, [currentTenantId]);
 
   // Auto-generate slug from title
   useEffect(() => {
@@ -162,8 +161,11 @@ const NewPostEditor: React.FC<NewPostEditorProps> = ({ onBack, onSave, initialDa
   }, [postData.title, postData.excerpt]);
 
   const loadCategories = async () => {
+    if (!currentTenantId) return;
     try {
-      const response = await fetch('/api/terms/taxonomy/category');
+      const response = await api.get(`/api/categories?tenantId=${currentTenantId}`, {
+        headers: { 'X-Tenant-Id': currentTenantId }
+      });
       if (response.ok) {
         const data = await response.json();
         setCategories(data);
@@ -174,8 +176,11 @@ const NewPostEditor: React.FC<NewPostEditorProps> = ({ onBack, onSave, initialDa
   };
 
   const loadTags = async () => {
+    if (!currentTenantId) return;
     try {
-      const response = await fetch('/api/terms/taxonomy/post_tag');
+      const response = await api.get(`/api/tags?tenantId=${currentTenantId}`, {
+        headers: { 'X-Tenant-Id': currentTenantId }
+      });
       if (response.ok) {
         const data = await response.json();
         setTags(data);
@@ -221,16 +226,31 @@ const NewPostEditor: React.FC<NewPostEditorProps> = ({ onBack, onSave, initialDa
 
   const handleAddNewTag = async () => {
     if (!newTagName.trim()) return;
+    if (!currentTenantId) {
+      toast({
+        title: "Error",
+        description: "Tenant ID is required to create tags.",
+        variant: "destructive"
+      });
+      return;
+    }
 
     try {
-      const response = await fetch('/api/terms', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: newTagName,
-          taxonomy: 'post_tag',
-          description: `Tag for ${newTagName} content`
-        })
+      // Generate slug from tag name
+      const slug = newTagName
+        .toLowerCase()
+        .replace(/[^a-z0-9 -]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .trim();
+
+      const response = await api.post('/api/tags', {
+        name: newTagName,
+        slug: slug,
+        description: `Tag for ${newTagName} content`,
+        tenantId: currentTenantId
+      }, {
+        headers: { 'X-Tenant-Id': currentTenantId }
       });
 
       if (response.ok) {
@@ -243,6 +263,8 @@ const NewPostEditor: React.FC<NewPostEditorProps> = ({ onBack, onSave, initialDa
           title: "Tag Created",
           description: `"${newTagName}" tag has been created and added to this post.`
         });
+      } else {
+        throw new Error('Failed to create tag');
       }
     } catch (error) {
       console.error('[testing] Error creating tag:', error);
