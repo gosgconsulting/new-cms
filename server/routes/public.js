@@ -6,6 +6,10 @@ import {
   getSiteSettingByKey,
   getsitesettingsbytenant
 } from '../../sparti-cms/db/index.js';
+import models, { sequelize } from '../../sparti-cms/db/sequelize/models/index.js';
+import { Op } from 'sequelize';
+
+const { Post, Category, Tag } = models;
 
 const router = express.Router();
 
@@ -39,7 +43,12 @@ router.get('/pages', async (req, res) => {
     const tenantId = req.tenantId;
     const { status, page_type, limit, offset } = req.query;
     
-    // Build query with filters
+    // Build query with Sequelize
+    const queryOptions = {
+      replacements: { tenantId },
+      type: sequelize.QueryTypes.SELECT
+    };
+    
     let queryText = `
       SELECT 
         id,
@@ -58,44 +67,30 @@ router.get('/pages', async (req, res) => {
         last_reviewed_date,
         version
       FROM pages
-      WHERE tenant_id = $1
+      WHERE tenant_id = :tenantId
     `;
     
-    const params = [tenantId];
-    let paramIndex = 2;
-    
     if (status) {
-      queryText += ` AND status = $${paramIndex}`;
-      params.push(status);
-      paramIndex++;
+      queryText += ` AND status = :status`;
+      queryOptions.replacements.status = status;
     }
     
     if (page_type) {
-      queryText += ` AND page_type = $${paramIndex}`;
-      params.push(page_type);
-      paramIndex++;
+      queryText += ` AND page_type = :page_type`;
+      queryOptions.replacements.page_type = page_type;
     }
     
     queryText += ` ORDER BY created_at DESC`;
     
-    if (limit) {
-      const limitNum = parseInt(limit, 10) || 20;
-      queryText += ` LIMIT $${paramIndex}`;
-      params.push(limitNum);
-      paramIndex++;
-      
-      if (offset) {
-        const offsetNum = parseInt(offset, 10) || 0;
-        queryText += ` OFFSET $${paramIndex}`;
-        params.push(offsetNum);
-      }
-    } else {
-      queryText += ` LIMIT 100`; // Default limit
-    }
+    const limitNum = limit ? parseInt(limit, 10) : 100;
+    const offsetNum = offset ? parseInt(offset, 10) : 0;
+    queryText += ` LIMIT :limit OFFSET :offset`;
+    queryOptions.replacements.limit = limitNum;
+    queryOptions.replacements.offset = offsetNum;
     
-    const result = await query(queryText, params);
+    const result = await sequelize.query(queryText, queryOptions);
     
-    res.json(successResponse(result.rows, tenantId));
+    res.json(successResponse(result, tenantId));
   } catch (error) {
     console.error('[testing] Error fetching pages:', error);
     res.status(500).json(errorResponse(error, 'FETCH_PAGES_ERROR'));
@@ -118,8 +113,8 @@ router.get('/pages/:slug', async (req, res) => {
       slug = '/' + slug;
     }
     
-    // First, get the page by slug
-    const pageResult = await query(`
+    // First, get the page by slug using Sequelize
+    const pageResult = await sequelize.query(`
       SELECT 
         id,
         page_name,
@@ -132,43 +127,52 @@ router.get('/pages/:slug', async (req, res) => {
         created_at,
         updated_at
       FROM pages
-      WHERE slug = $1 AND tenant_id = $2
+      WHERE slug = :slug AND tenant_id = :tenantId
       LIMIT 1
-    `, [slug, tenantId]);
+    `, {
+      replacements: { slug, tenantId },
+      type: sequelize.QueryTypes.SELECT
+    });
     
-    if (pageResult.rows.length === 0) {
+    if (pageResult.length === 0) {
       return res.status(404).json(errorResponse('Page not found', 'PAGE_NOT_FOUND', 404));
     }
     
-    const page = pageResult.rows[0];
+    const page = pageResult[0];
     const pageId = page.id;
     
     // Get layout for requested language, fallback to 'default' if not found
     const requestedLanguage = language || 'default';
-    let layoutResult = await query(`
+    let layoutResult = await sequelize.query(`
       SELECT layout_json, version, updated_at, language
       FROM page_layouts
-      WHERE page_id = $1 AND language = $2
+      WHERE page_id = :pageId AND language = :language
       ORDER BY version DESC
       LIMIT 1
-    `, [pageId, requestedLanguage]);
+    `, {
+      replacements: { pageId, language: requestedLanguage },
+      type: sequelize.QueryTypes.SELECT
+    });
     
     // If requested language not found and it's not 'default', fallback to 'default'
-    if (layoutResult.rows.length === 0 && requestedLanguage !== 'default') {
+    if (layoutResult.length === 0 && requestedLanguage !== 'default') {
       console.log(`[testing] Layout for language '${requestedLanguage}' not found, falling back to 'default'`);
-      layoutResult = await query(`
+      layoutResult = await sequelize.query(`
         SELECT layout_json, version, updated_at, language
         FROM page_layouts
-        WHERE page_id = $1 AND language = 'default'
+        WHERE page_id = :pageId AND language = 'default'
         ORDER BY version DESC
         LIMIT 1
-      `, [pageId]);
+      `, {
+        replacements: { pageId },
+        type: sequelize.QueryTypes.SELECT
+      });
     }
     
     // Attach layout to page
-    if (layoutResult.rows.length > 0) {
-      page.layout = layoutResult.rows[0].layout_json;
-      page.layout_language = layoutResult.rows[0].language;
+    if (layoutResult.length > 0) {
+      page.layout = layoutResult[0].layout_json;
+      page.layout_language = layoutResult[0].language;
     } else {
       // No layout found at all
       page.layout = { components: [] };
@@ -260,99 +264,93 @@ router.get('/blog/posts', async (req, res) => {
     const tenantId = req.tenantId;
     const { status, limit, offset } = req.query;
     
-    // First, check if posts table has tenant_id column
-    let hasTenantId = false;
-    try {
-      const columnCheck = await query(`
-        SELECT column_name 
-        FROM information_schema.columns 
-        WHERE table_name = 'posts' AND column_name = 'tenant_id'
-      `);
-      hasTenantId = columnCheck.rows.length > 0;
-    } catch (err) {
-      console.log('[testing] Could not check for tenant_id column in posts table');
+    // Build where clause
+    const whereClause = {};
+    
+    // Filter by tenant_id if provided
+    if (tenantId) {
+      whereClause[Op.or] = [
+        { tenant_id: tenantId },
+        { tenant_id: null }
+      ];
     }
     
-    // Build query
-    let queryText = `
-      SELECT 
-        p.id,
-        p.title,
-        p.slug,
-        p.excerpt,
-        p.content,
-        p.featured_image,
-        p.status,
-        p.post_type,
-        p.created_at,
-        p.updated_at,
-        p.published_at,
-        p.view_count,
-        COALESCE(
-          (SELECT JSON_AGG(
-            JSON_BUILD_OBJECT(
-              'id', t.id,
-              'name', t.name,
-              'slug', t.slug,
-              'taxonomy', t.taxonomy
-            )
-          )
-          FROM post_terms pt
-          JOIN terms t ON pt.term_id = t.id
-          WHERE pt.post_id = p.id),
-          '[]'::json
-        ) as terms
-      FROM posts p
-      WHERE 1=1
-    `;
+    // Filter by status (default to published)
+    whereClause.status = status || 'published';
     
-    const params = [];
-    let paramIndex = 1;
+    // Build query options
+    const queryOptions = {
+      where: whereClause,
+      include: [
+        {
+          model: Category,
+          as: 'categories',
+          through: { attributes: [] },
+          attributes: ['id', 'name', 'slug']
+        },
+        {
+          model: Tag,
+          as: 'tags',
+          through: { attributes: [] },
+          attributes: ['id', 'name', 'slug']
+        }
+      ],
+      order: [['created_at', 'DESC']],
+      attributes: [
+        'id',
+        'title',
+        'slug',
+        'excerpt',
+        'content',
+        'status',
+        'post_type',
+        'created_at',
+        'updated_at',
+        'published_at',
+        'view_count'
+      ]
+    };
     
-    // Add tenant_id filter if column exists
-    if (hasTenantId) {
-      queryText += ` AND p.tenant_id = $${paramIndex}`;
-      params.push(tenantId);
-      paramIndex++;
-    }
-    
-    if (status) {
-      queryText += ` AND p.status = $${paramIndex}`;
-      params.push(status);
-      paramIndex++;
-    } else {
-      // Default to published posts
-      queryText += ` AND p.status = $${paramIndex}`;
-      params.push('published');
-      paramIndex++;
-    }
-    
-    queryText += ` ORDER BY p.created_at DESC`;
-    
+    // Add pagination
     if (limit) {
-      const limitNum = parseInt(limit, 10) || 20;
-      queryText += ` LIMIT $${paramIndex}`;
-      params.push(limitNum);
-      paramIndex++;
-      
+      queryOptions.limit = parseInt(limit, 10) || 20;
       if (offset) {
-        const offsetNum = parseInt(offset, 10) || 0;
-        queryText += ` OFFSET $${paramIndex}`;
-        params.push(offsetNum);
+        queryOptions.offset = parseInt(offset, 10) || 0;
       }
     } else {
-      queryText += ` LIMIT 20`; // Default limit
+      queryOptions.limit = 20; // Default limit
     }
     
-    const result = await query(queryText, params);
+    // Fetch posts using Sequelize
+    const posts = await Post.findAll(queryOptions);
     
-    // Format the response
-    const posts = result.rows.map(post => ({
-      ...post,
-      terms: typeof post.terms === 'string' ? JSON.parse(post.terms) : post.terms
-    }));
+    // Transform posts to include terms array for backward compatibility
+    const postsWithTerms = posts.map(post => {
+      const postJson = post.toJSON();
+      
+      // Build terms array from categories and tags
+      const terms = [
+        ...(postJson.categories || []).map(cat => ({
+          id: cat.id,
+          name: cat.name,
+          slug: cat.slug,
+          taxonomy: 'category'
+        })),
+        ...(postJson.tags || []).map(tag => ({
+          id: tag.id,
+          name: tag.name,
+          slug: tag.slug,
+          taxonomy: 'post_tag'
+        }))
+      ];
+      
+      return {
+        ...postJson,
+        terms: terms
+      };
+    });
     
-    res.json(successResponse(posts, tenantId));
+    res.json(successResponse(postsWithTerms, tenantId));
   } catch (error) {
     console.error('[testing] Error fetching blog posts:', error);
     res.status(500).json(errorResponse(error, 'FETCH_POSTS_ERROR'));
@@ -368,50 +366,77 @@ router.get('/blog/posts/:slug', async (req, res) => {
     const tenantId = req.tenantId;
     const slug = req.params.slug;
     
-    // Query post
-    const postQuery = `
-      SELECT 
-        p.id,
-        p.title,
-        p.slug,
-        p.excerpt,
-        p.content,
-        p.featured_image,
-        p.status,
-        p.post_type,
-        p.created_at,
-        p.updated_at,
-        p.published_at,
-        p.view_count
-      FROM posts p
-      WHERE p.slug = $1
-      LIMIT 1
-    `;
+    // Build where clause
+    const whereClause = { slug };
     
-    const postResult = await query(postQuery, [slug]);
+    // Filter by tenant_id if provided
+    if (tenantId) {
+      whereClause[Op.or] = [
+        { tenant_id: tenantId },
+        { tenant_id: null }
+      ];
+    }
     
-    if (postResult.rows.length === 0) {
+    // Fetch post using Sequelize with associations
+    const post = await Post.findOne({
+      where: whereClause,
+      include: [
+        {
+          model: Category,
+          as: 'categories',
+          through: { attributes: [] },
+          attributes: ['id', 'name', 'slug']
+        },
+        {
+          model: Tag,
+          as: 'tags',
+          through: { attributes: [] },
+          attributes: ['id', 'name', 'slug']
+        }
+      ],
+      attributes: [
+        'id',
+        'title',
+        'slug',
+        'excerpt',
+        'content',
+        'status',
+        'post_type',
+        'created_at',
+        'updated_at',
+        'published_at',
+        'view_count'
+      ]
+    });
+    
+    if (!post) {
       return res.status(404).json(errorResponse('Post not found', 'POST_NOT_FOUND', 404));
     }
     
-    const post = postResult.rows[0];
+    const postJson = post.toJSON();
     
-    // Get terms (categories and tags)
-    const termsQuery = `
-      SELECT 
-        t.id,
-        t.name,
-        t.slug,
-        t.taxonomy
-      FROM post_terms pt
-      JOIN terms t ON pt.term_id = t.id
-      WHERE pt.post_id = $1
-    `;
+    // Build terms array from categories and tags for backward compatibility
+    const terms = [
+      ...(postJson.categories || []).map(cat => ({
+        id: cat.id,
+        name: cat.name,
+        slug: cat.slug,
+        taxonomy: 'category'
+      })),
+      ...(postJson.tags || []).map(tag => ({
+        id: tag.id,
+        name: tag.name,
+        slug: tag.slug,
+        taxonomy: 'post_tag'
+      }))
+    ];
     
-    const termsResult = await query(termsQuery, [post.id]);
-    post.terms = termsResult.rows;
+    const postWithTerms = {
+      ...postJson,
+      terms: terms
+    };
     
-    res.json(successResponse(post, tenantId));
+    res.json(successResponse(postWithTerms, tenantId));
   } catch (error) {
     console.error('[testing] Error fetching blog post:', error);
     res.status(500).json(errorResponse(error, 'FETCH_POST_ERROR'));
