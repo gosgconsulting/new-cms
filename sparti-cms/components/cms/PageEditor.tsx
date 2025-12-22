@@ -292,7 +292,6 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
                     index={index}
                     isSelected={selectedComponentIndex === index}
                     onSelect={handleComponentSelect}
-                    onRemove={removeComponent}
                   />
                 ))
               )}

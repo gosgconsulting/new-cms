@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { ComponentSchema, SchemaItem } from '../../types/schema';
-import { Card, CardContent, CardHeader, CardTitle } from '../../../src/components/ui/card';
 import { Badge } from '../../../src/components/ui/badge';
 import { Button } from '../../../src/components/ui/button';
 import { SchemaItemEditor } from './SchemaItemRenderer';
@@ -157,18 +156,6 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
 
   return (
     <div className={`space-y-4 ${className}`}>
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Badge variant="outline">{safeSchema.type}</Badge>
-            {safeSchema.name && <span className="text-sm text-gray-600">({safeSchema.name})</span>}
-            <span className="text-sm text-gray-500">
-              • {safeSchema.items.length} item{safeSchema.items.length !== 1 ? 's' : ''}
-            </span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
             {safeSchema.items && safeSchema.items.length > 0 ? safeSchema.items.map((item, index) => (
               <div key={`${item.key}-${index}`} className="border rounded-lg overflow-hidden">
                 <div 
@@ -219,9 +206,6 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
                 <p>No items in this component</p>
               </div>
             )}
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 };
