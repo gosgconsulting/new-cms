@@ -89,6 +89,7 @@ const TiptapEditor: React.FC<TiptapEditorProps> = ({
   const [highlightColorOpen, setHighlightColorOpen] = useState(false);
   const [currentTextColor, setCurrentTextColor] = useState('');
   const [currentHighlightColor, setCurrentHighlightColor] = useState('');
+  const [toolbarState, setToolbarState] = useState(0);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -161,6 +162,24 @@ const TiptapEditor: React.FC<TiptapEditorProps> = ({
     };
   }, [editor]);
 
+  // Update toolbar state when selection changes
+  useEffect(() => {
+    if (!editor) return;
+
+    const updateToolbar = () => {
+      // Force re-render of toolbar buttons by updating state
+      setToolbarState(prev => prev + 1);
+    };
+
+    editor.on('selectionUpdate', updateToolbar);
+    editor.on('transaction', updateToolbar);
+
+    return () => {
+      editor.off('selectionUpdate', updateToolbar);
+      editor.off('transaction', updateToolbar);
+    };
+  }, [editor]);
+
   if (!editor) {
     return (
       <div className="border rounded-lg min-h-[400px] bg-background p-4">
@@ -169,24 +188,43 @@ const TiptapEditor: React.FC<TiptapEditorProps> = ({
     );
   }
 
+  // Button click handlers with proper error handling
+  const handleBoldClick = () => {
+    if (!editor) return;
+    editor.chain().focus().toggleBold().run();
+  };
+
+  const handleItalicClick = () => {
+    if (!editor) return;
+    editor.chain().focus().toggleItalic().run();
+  };
+
+  const handleUnderlineClick = () => {
+    if (!editor) return;
+    editor.chain().focus().toggleUnderline().run();
+  };
+
   const ToolbarButton = ({
     onClick,
     isActive,
     children,
     title,
+    disabled = false,
   }: {
     onClick: () => void;
     isActive?: boolean;
     children: React.ReactNode;
     title: string;
+    disabled?: boolean;
   }) => (
     <Button
       type="button"
-      variant={isActive ? 'secondary' : 'ghost'}
+      variant={isActive ? 'default' : 'ghost'}
       size="sm"
       onClick={onClick}
       title={title}
-      className="h-8 w-8 p-0"
+      disabled={disabled}
+      className={`h-8 w-8 p-0 ${isActive ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'}`}
     >
       {children}
     </Button>
@@ -390,30 +428,34 @@ const TiptapEditor: React.FC<TiptapEditorProps> = ({
       <div className="bg-muted/50 border-b p-2 flex flex-wrap gap-1">
         {/* Text Formatting */}
         <ToolbarButton
-          onClick={() => editor.chain().focus().toggleBold().run()}
-          isActive={editor.isActive('bold')}
-          title="Bold"
+          onClick={handleBoldClick}
+          isActive={editor?.isActive('bold') || false}
+          disabled={!editor}
+          title="Bold (Ctrl+B)"
         >
           <Bold className="h-4 w-4" />
         </ToolbarButton>
         <ToolbarButton
-          onClick={() => editor.chain().focus().toggleItalic().run()}
-          isActive={editor.isActive('italic')}
-          title="Italic"
+          onClick={handleItalicClick}
+          isActive={editor?.isActive('italic') || false}
+          disabled={!editor}
+          title="Italic (Ctrl+I)"
         >
           <Italic className="h-4 w-4" />
         </ToolbarButton>
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleStrike().run()}
-          isActive={editor.isActive('strike')}
+          isActive={editor?.isActive('strike') || false}
+          disabled={!editor}
           title="Strikethrough"
         >
           <Strikethrough className="h-4 w-4" />
         </ToolbarButton>
         <ToolbarButton
-          onClick={() => editor.chain().focus().toggleUnderline().run()}
-          isActive={editor.isActive('underline')}
-          title="Underline"
+          onClick={handleUnderlineClick}
+          isActive={editor?.isActive('underline') || false}
+          disabled={!editor}
+          title="Underline (Ctrl+U)"
         >
           <UnderlineIcon className="h-4 w-4" />
         </ToolbarButton>
