@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useLayoutEffect } from 'react';
 import { Button } from '../../../src/components/ui/button';
 import { Card } from '../../../src/components/ui/card';
 import { Badge } from '../../../src/components/ui/badge';
@@ -28,7 +28,11 @@ interface PageItem {
   updated_at?: string;
 }
 
-export const PagesManager: React.FC = () => {
+interface PagesManagerProps {
+  onEditModeChange?: (isEditing: boolean) => void;
+}
+
+export const PagesManager: React.FC<PagesManagerProps> = ({ onEditModeChange }) => {
   const { currentTenantId, user } = useAuth();
   const [pages, setPages] = useState<PageItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -118,6 +122,11 @@ export const PagesManager: React.FC = () => {
   };
 
   const handleEditPage = (pageId: string) => {
+    // Immediately notify parent component BEFORE setting state
+    if (onEditModeChange) {
+      console.log('[testing] Entering edit mode, notifying parent');
+      onEditModeChange(true);
+    }
     setEditingPageId(pageId);
   };
 
@@ -125,12 +134,27 @@ export const PagesManager: React.FC = () => {
     window.open(slug, '_blank');
   };
 
+  // Notify parent component when entering/exiting edit mode
+  // Use useLayoutEffect to ensure it runs synchronously before paint
+  useLayoutEffect(() => {
+    if (onEditModeChange) {
+      const isEditMode = editingPageId !== null;
+      console.log('[testing] useLayoutEffect - editingPageId:', editingPageId, 'isEditMode:', isEditMode);
+      onEditModeChange(isEditMode);
+    }
+  }, [editingPageId, onEditModeChange]);
+
   // Show editor if a page is being edited
   if (editingPageId) {
     return (
       <PageEditor 
         pageId={editingPageId} 
-        onBack={() => setEditingPageId(null)} 
+        onBack={() => {
+          setEditingPageId(null);
+          if (onEditModeChange) {
+            onEditModeChange(false);
+          }
+        }} 
       />
     );
   }
@@ -169,11 +193,10 @@ export const PagesManager: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="max-w-6xl mx-auto">
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <div className="text-center py-12">
-            <p className="text-gray-500">Loading pages...</p>
-          </div>
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div>
+          <p className="mt-2 text-muted-foreground">Loading pages...</p>
         </div>
       </div>
     );
@@ -181,122 +204,94 @@ export const PagesManager: React.FC = () => {
 
   if (error) {
     return (
-      <div className="max-w-6xl mx-auto">
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <div className="text-center py-12">
-            <p className="text-red-600">Error: {error}</p>
-            <Button onClick={loadPages} className="mt-4">
-              Retry
-            </Button>
-          </div>
-        </div>
+      <div className="text-center py-8">
+        <p className="text-red-600 mb-4">{error}</p>
+        <Button onClick={loadPages}>Retry</Button>
       </div>
     );
   }
 
   return (
-    <div className="max-w-6xl mx-auto">
+    <div className="space-y-6">
       {/* Tab Navigation */}
-      <div className="bg-white rounded-lg border border-gray-200 mb-6">
-        <div className="border-b border-gray-200">
-          <nav className="flex space-x-8 px-6">
-            {tabs.map((tab) => {
-              const Icon = tab.icon;
-              const isActive = activeTab === tab.id;
-              
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center space-x-2 py-4 px-2 border-b-2 font-medium text-sm transition-colors ${
-                    isActive
-                      ? 'border-purple-500 text-purple-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-                >
-                  <Icon className="h-5 w-5" />
-                  <span>{tab.label}</span>
-                </button>
-              );
-            })}
-          </nav>
-        </div>
-        
-        {/* Tab Content */}
-        <div className="p-6">
-          <div className="space-y-6">
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                {tabs.find(t => t.id === activeTab)?.label}
-              </h3>
-              <p className="text-sm text-gray-600 mb-6">
-                {['header', 'footer'].includes(activeTab) 
-                  ? `Configure your site's ${activeTab} settings and navigation.`
-                  : `Manage your ${tabs.find(t => t.id === activeTab)?.label.toLowerCase()}. Click on any slug to edit it. Click on Index/No Index to toggle SEO indexing.`
-                }
-              </p>
+      <div className="border-b border-gray-200">
+        <nav className="flex space-x-8">
+          {tabs.map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center space-x-2 py-4 px-2 border-b-2 font-medium text-sm transition-colors ${
+                  isActive
+                    ? 'border-purple-500 text-purple-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                <Icon className="h-5 w-5" />
+                <span>{tab.label}</span>
+              </button>
+            );
+          })}
+        </nav>
+      </div>
+
+      {/* Tab Content */}
+      <div>
+        {activeTab === 'page' && (
+          <div>
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">Pages</h2>
+              <p className="text-gray-600">Manage your pages. Click on any slug to edit it. Click on Index/No Index to toggle SEO indexing.</p>
             </div>
 
-            <div className="grid gap-4">
-              {['header', 'footer'].includes(activeTab) ? (
-                <div className="text-center py-12 bg-blue-50 rounded-lg border border-blue-200">
-                  <p className="text-blue-600 font-medium">Click on the {activeTab} tab to configure your site's {activeTab} settings</p>
-                  <p className="text-sm text-blue-500 mt-1">This will open the {activeTab} schema editor</p>
-                </div>
-              ) : filteredPages.length === 0 ? (
-                <div className="text-center py-12 bg-gray-50 rounded-lg border border-dashed border-gray-300">
-                  <p className="text-gray-500">No {tabs.find(t => t.id === activeTab)?.label.toLowerCase()} found</p>
-                </div>
-              ) : (
-                filteredPages.map((page) => (
-                  <Card key={page.id} className="p-4">
+            {filteredPages.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">No pages found for this tenant.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {filteredPages.map((page) => (
+                  <Card key={page.id} className="p-6">
                     <div className="flex items-center justify-between">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-3 mb-2">
-                          <h3 className="text-lg font-semibold">{page.page_name}</h3>
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-3 mb-2">
+                          <h3 className="text-lg font-semibold text-gray-900">
+                            {page.page_name}
+                          </h3>
                           <Badge 
                             variant={page.status === 'published' ? 'default' : 'secondary'}
-                            className="text-xs"
+                            className={page.status === 'published' ? 'bg-purple-600' : ''}
                           >
                             {page.status}
                           </Badge>
                           <Badge 
                             variant={page.seo_index ? 'default' : 'outline'}
-                            className="text-xs cursor-pointer hover:bg-opacity-80 transition-colors"
+                            className={`cursor-pointer ${page.seo_index ? 'bg-purple-600' : ''}`}
                             onClick={() => handleSEOIndexToggle(page.id, page.page_type, page.seo_index || false)}
                           >
                             {page.seo_index ? 'Index' : 'No Index'}
                           </Badge>
                         </div>
-                        <div className="mb-1">
-                          <EditableSlug
-                            pageId={page.id}
-                            pageType={page.page_type}
-                            currentSlug={page.slug}
-                            pageName={page.page_name}
-                            isHomepage={page.slug === '/' || page.slug === '/home'}
-                            onSlugUpdate={(newSlug) => handleSlugUpdate(page.id, newSlug)}
-                          />
-                        </div>
+                        
+                        <EditableSlug
+                          pageId={page.id}
+                          currentSlug={page.slug}
+                          onSlugUpdate={handleSlugUpdate}
+                        />
+                        
                         {page.meta_title && (
-                          <p className="text-xs text-gray-500 truncate">
+                          <p className="text-sm text-gray-600 mt-1">
                             Meta: {page.meta_title}
                           </p>
                         )}
-                        {page.page_type === 'landing' && page.campaign_source && (
-                          <p className="text-xs text-blue-600">
-                            Campaign: {page.campaign_source} → {page.conversion_goal}
-                          </p>
-                        )}
-                        {page.page_type === 'legal' && page.version && (
-                          <p className="text-xs text-purple-600">
-                            Version: {page.version} | Type: {page.legal_type}
-                          </p>
-                        )}
                       </div>
-                      <div className="flex items-center gap-2">
+                      
+                      <div className="flex items-center space-x-2">
                         <Button
-                          variant="default"
+                          variant="outline"
                           size="sm"
                           onClick={() => handleEditPage(page.id)}
                         >
@@ -314,20 +309,86 @@ export const PagesManager: React.FC = () => {
                       </div>
                     </div>
                   </Card>
-                ))
-              )}
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'legal' && (
+          <div>
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">Legal Pages</h2>
+              <p className="text-gray-600">Manage your legal pages like privacy policy, terms of service, etc.</p>
             </div>
 
-            {/* <div className="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-200">
-              <p className="text-sm text-blue-800">
-                <strong>Slug Editing:</strong> Click on any slug to edit it. Homepage slug cannot be changed. 
-                If you change the blog slug, remember to update blog post URLs in the frontend code.
-                <br />
-                <strong>SEO Index:</strong> Click on "Index" or "No Index" badges to toggle whether the page should be indexed by search engines.
-              </p>
-            </div> */}
+            {filteredPages.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">No legal pages found.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {filteredPages.map((page) => (
+                  <Card key={page.id} className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-3 mb-2">
+                          <h3 className="text-lg font-semibold text-gray-900">
+                            {page.page_name}
+                          </h3>
+                          <Badge 
+                            variant={page.status === 'published' ? 'default' : 'secondary'}
+                            className={page.status === 'published' ? 'bg-purple-600' : ''}
+                          >
+                            {page.status}
+                          </Badge>
+                          <Badge 
+                            variant={page.seo_index ? 'default' : 'outline'}
+                            className={`cursor-pointer ${page.seo_index ? 'bg-purple-600' : ''}`}
+                            onClick={() => handleSEOIndexToggle(page.id, page.page_type, page.seo_index || false)}
+                          >
+                            {page.seo_index ? 'Index' : 'No Index'}
+                          </Badge>
+                        </div>
+                        
+                        <EditableSlug
+                          pageId={page.id}
+                          currentSlug={page.slug}
+                          onSlugUpdate={handleSlugUpdate}
+                        />
+                        
+                        {page.meta_title && (
+                          <p className="text-sm text-gray-600 mt-1">
+                            Meta: {page.meta_title}
+                          </p>
+                        )}
+                      </div>
+                      
+                      <div className="flex items-center space-x-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleEditPage(page.id)}
+                        >
+                          <Edit className="h-4 w-4 mr-2" />
+                          Edit
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleViewPage(page.slug)}
+                        >
+                          <Eye className="h-4 w-4 mr-2" />
+                          View
+                        </Button>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            )}
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

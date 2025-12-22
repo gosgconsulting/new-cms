@@ -203,12 +203,17 @@ const SettingsManager = () => {
   );
 };
 
-const CMSDashboard: React.FC = () => {
+interface CMSDashboardProps {
+  hideSidebar?: boolean;
+}
+
+const CMSDashboard: React.FC<CMSDashboardProps> = ({ hideSidebar = false }) => {
   const [activeTab, setActiveTab] = useState<string>('pages');
   const [crmExpanded, setCrmExpanded] = useState<boolean>(false);
   const [usersExpanded, setUsersExpanded] = useState<boolean>(false);
   const [seoExpanded, setSeoExpanded] = useState<boolean>(false);
   const [tenantDropdownOpen, setTenantDropdownOpen] = useState<boolean>(false);
+  const [isEditMode, setIsEditMode] = useState<boolean>(false);
   const { signOut, user, currentTenantId, handleTenantChange } = useAuth();
   const navigate = useNavigate();
 
@@ -247,7 +252,7 @@ const CMSDashboard: React.FC = () => {
   const renderContent = () => {
     switch (activeTab) {
       case 'pages':
-        return <PagesManager />;
+        return <PagesManager onEditModeChange={setIsEditMode} />;
       case 'blog':
         return <BlogManager />;
       case 'media':
@@ -315,11 +320,14 @@ const CMSDashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Sidebar - Fixed for desktop */}
+      {/* Sidebar - Fixed for desktop, hidden in edit mode */}
       <motion.div 
         className="fixed left-0 top-0 w-64 h-screen bg-white/80 backdrop-blur-md shadow-md border-r border-border z-40"
         initial={{ x: -20, opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
+        animate={{ 
+          x: (hideSidebar || isEditMode) ? -256 : 0, 
+          opacity: (hideSidebar || isEditMode) ? 0 : 1 
+        }}
         transition={{ duration: 0.3 }}
       >
       <div className="flex flex-col h-full">
@@ -540,8 +548,14 @@ const CMSDashboard: React.FC = () => {
       </div>
       </motion.div>
 
-      {/* Main Content - Offset for fixed sidebar */}
-      <div className="ml-64 flex flex-col min-h-screen">
+      {/* Main Content - Offset for fixed sidebar, full width in edit mode */}
+      <motion.div 
+        className="flex flex-col min-h-screen"
+        animate={{ 
+          marginLeft: (hideSidebar || isEditMode) ? 0 : 256 
+        }}
+        transition={{ duration: 0.3 }}
+      >
         {/* Top Bar */}
         <motion.div 
           className="bg-white/80 backdrop-blur-md shadow-sm border-b border-border p-4"
@@ -585,7 +599,7 @@ const CMSDashboard: React.FC = () => {
         >
           {renderContent()}
         </motion.div>
-      </div>
+      </motion.div>
     </div>
   );
 };
