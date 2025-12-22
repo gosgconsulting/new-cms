@@ -9,11 +9,12 @@ import Image from '@tiptap/extension-image';
 import Highlight from '@tiptap/extension-highlight';
 import Subscript from '@tiptap/extension-subscript';
 import Superscript from '@tiptap/extension-superscript';
+import Underline from '@tiptap/extension-underline';
 import {
   Bold,
   Italic,
   Strikethrough,
-  Underline,
+  Underline as UnderlineIcon,
   Code,
   Code2,
   Quote,
@@ -118,6 +119,7 @@ const TiptapEditor: React.FC<TiptapEditorProps> = ({
       Highlight.configure({
         multicolor: true,
       }),
+      Underline,
       Subscript,
       Superscript,
     ],
@@ -413,7 +415,7 @@ const TiptapEditor: React.FC<TiptapEditorProps> = ({
           isActive={editor.isActive('underline')}
           title="Underline"
         >
-          <Underline className="h-4 w-4" />
+          <UnderlineIcon className="h-4 w-4" />
         </ToolbarButton>
 
         <Separator orientation="vertical" className="h-8 mx-1" />

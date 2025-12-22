@@ -12,6 +12,7 @@ export type SchemaItemType =
   | 'link'
   | 'boolean' 
   | 'array' 
+  | 'tabs'
   | 'input' 
   | 'textarea' 
   | 'review' 
@@ -48,6 +49,13 @@ export interface SchemaItem {
   phone?: string;               // Phone number
   email?: string;               // Email address
   hours?: Array<{day: string, time: string}>; // Office hours
+  
+  // Tabs properties
+  tabs?: Array<{
+    id: string;
+    label: string;
+    content: SchemaItem[];
+  }>;
 }
 
 // Component schema interface

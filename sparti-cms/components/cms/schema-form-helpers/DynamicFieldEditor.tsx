@@ -161,14 +161,6 @@ const ObjectKeyValueEditor: React.FC<{
                     )}
                   </div>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleRemovePair(key)}
-                  className="h-7 w-7 p-0 text-red-500 hover:text-red-700 mt-5"
-                >
-                  <X className="h-3 w-3" />
-                </Button>
               </div>
             );
           })
@@ -289,21 +281,9 @@ const ArrayItemEditor: React.FC<{
   return (
     <>
       <div className="flex items-start gap-3 p-3 border border-gray-200 rounded-lg bg-white hover:border-blue-300 transition-colors">
-        <Badge variant="outline" className="mt-1 font-mono text-xs min-w-[2rem] text-center">
-          #{index + 1}
-        </Badge>
         <div className="flex-1 min-w-0">
           {renderItemEditor()}
         </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onRemove}
-          className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-50 flex-shrink-0"
-          title="Remove item"
-        >
-          <X className="h-4 w-4" />
-        </Button>
       </div>
 
       <Dialog open={showJsonEditor} onOpenChange={setShowJsonEditor}>
@@ -460,18 +440,7 @@ export const DynamicFieldEditor: React.FC<DynamicFieldEditorProps> = ({
         
         return (
           <div className="space-y-3">
-            <div className="flex items-center justify-between pb-2 border-b border-gray-200">
-              <div className="flex items-center gap-2">
-                <Label className="text-xs font-semibold">
-                  Array Items ({arrayValue.length})
-                </Label>
-                {detectedItemType && (
-                  <Badge variant="outline" className="text-xs">
-                    <Type className="h-3 w-3 mr-1" />
-                    {detectedItemType}
-                  </Badge>
-                )}
-              </div>
+            <div className="flex items-center justify-end pb-2 border-b border-gray-200">
               <Button
                 variant="default"
                 size="sm"
@@ -622,15 +591,6 @@ export const DynamicFieldEditor: React.FC<DynamicFieldEditorProps> = ({
                   </SelectContent>
                 </Select>
               )}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onRemove}
-                className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
-                title="Remove field"
-              >
-                <X className="h-4 w-4" />
-              </Button>
             </div>
           </div>
         </CardHeader>

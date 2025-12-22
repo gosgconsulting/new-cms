@@ -1,27 +1,26 @@
 import React, { useState } from 'react';
 import { ComponentSchema, SchemaItem } from '../../types/schema';
-import { Badge } from '../../../src/components/ui/badge';
 import { Button } from '../../../src/components/ui/button';
 import { SchemaItemEditor } from './SchemaItemRenderer';
 import { 
   ChevronDown, 
   ChevronRight, 
-  Type, 
-  Image, 
-  Video, 
-  Grid3X3, 
-  RotateCcw, 
-  Square, 
-  Link, 
-  MessageSquare, 
-  Star, 
-  Award, 
-  Mail, 
-  Clock,
-  MapPin,
+  GripVertical,
+  Type,
+  Image,
+  MousePointer,
+  Link,
+  FileText,
+  Hash,
+  Calendar,
+  Mail,
   Phone,
-  HelpCircle,
-  GripVertical
+  MapPin,
+  Star,
+  Grid3X3,
+  Video,
+  Layers,
+  Settings
 } from 'lucide-react';
 
 interface ComponentEditorProps {
@@ -38,35 +37,47 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
 }) => {
   const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set());
   
+  // Function to get appropriate icon based on field key and type
+  const getFieldIcon = (item: SchemaItem) => {
+    const key = item.key.toLowerCase();
+    const type = item.type;
+    
+    // Check by field type first
+    if (type === 'heading') return Type;
+    if (type === 'text') return FileText;
+    if (type === 'image') return Image;
+    if (type === 'button') return MousePointer;
+    if (type === 'link') return Link;
+    if (type === 'video') return Video;
+    if (type === 'array') return Layers;
+    if (type === 'gallery') return Grid3X3;
+    if (type === 'carousel') return Grid3X3;
+    
+    // Check by field key patterns
+    if (key.includes('title') || key.includes('heading')) return Type;
+    if (key.includes('description') || key.includes('text') || key.includes('content')) return FileText;
+    if (key.includes('image') || key.includes('img') || key.includes('photo')) return Image;
+    if (key.includes('button') || key.includes('btn') || key.includes('cta')) return MousePointer;
+    if (key.includes('link') || key.includes('url') || key.includes('href')) return Link;
+    if (key.includes('email') || key.includes('mail')) return Mail;
+    if (key.includes('phone') || key.includes('tel')) return Phone;
+    if (key.includes('address') || key.includes('location')) return MapPin;
+    if (key.includes('date') || key.includes('time')) return Calendar;
+    if (key.includes('rating') || key.includes('star') || key.includes('review')) return Star;
+    if (key.includes('number') || key.includes('count') || key.includes('id')) return Hash;
+    if (key.includes('service') || key.includes('feature') || key.includes('item')) return Layers;
+    if (key.includes('setting') || key.includes('config')) return Settings;
+    
+    // Default icon
+    return FileText;
+  };
+  
   // Ensure schema has items property
   const safeSchema = {
     ...schema,
     items: schema.items || []
   };
 
-  // Get icon for item type
-  const getItemIcon = (type: string) => {
-    const iconMap: { [key: string]: React.ReactNode } = {
-      'heading': <Type className="h-4 w-4 text-blue-500" />,
-      'text': <Type className="h-4 w-4 text-gray-500" />,
-      'image': <Image className="h-4 w-4 text-green-500" />,
-      'video': <Video className="h-4 w-4 text-purple-500" />,
-      'gallery': <Grid3X3 className="h-4 w-4 text-orange-500" />,
-      'carousel': <RotateCcw className="h-4 w-4 text-cyan-500" />,
-      'button': <Square className="h-4 w-4 text-indigo-500" />,
-      'link': <Link className="h-4 w-4 text-blue-500" />,
-      'input': <Type className="h-4 w-4 text-gray-600" />,
-      'textarea': <MessageSquare className="h-4 w-4 text-gray-600" />,
-      'review': <Star className="h-4 w-4 text-yellow-500" />,
-      'feature': <Award className="h-4 w-4 text-pink-500" />,
-      'faq': <HelpCircle className="h-4 w-4 text-teal-500" />,
-      'officeHours': <Clock className="h-4 w-4 text-orange-500" />,
-      'contactInfo': <MapPin className="h-4 w-4 text-red-500" />,
-      'ContactForm': <Mail className="h-4 w-4 text-blue-500" />,
-      'array': <Grid3X3 className="h-4 w-4 text-gray-500" />
-    };
-    return iconMap[type] || <Square className="h-4 w-4 text-gray-400" />;
-  };
 
   // Toggle item expansion
   const toggleItem = (index: number) => {
@@ -79,48 +90,6 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
     setExpandedItems(newExpanded);
   };
 
-  // Get preview text for item
-  const getItemPreview = (item: SchemaItem): string => {
-    switch (item.type) {
-      case 'heading':
-      case 'text':
-        return item.content ? item.content.substring(0, 50) + (item.content.length > 50 ? '...' : '') : 'No content';
-      case 'image':
-        return item.src ? `Image: ${item.alt || 'Untitled'}` : 'No image';
-      case 'video':
-        return item.src ? `Video: ${item.alt || 'Untitled'}` : 'No video';
-      case 'button':
-        return item.content ? `Button: ${item.content}` : 'No button text';
-      case 'link':
-        return item.link ? `Link: ${item.label || item.link}` : 'No link';
-      case 'input':
-      case 'textarea':
-        return item.content ? `Field: ${item.content}` : 'No label';
-      case 'review':
-        return item.props?.name ? `Review by ${item.props.name}` : 'Review';
-      case 'feature':
-        return item.props?.title ? `Feature: ${item.props.title}` : 'Feature';
-      case 'faq':
-        return item.props?.question ? `Q: ${item.props.question.substring(0, 30)}...` : 'FAQ';
-      case 'officeHours':
-        return item.items?.length ? `${item.items.length} hours entries` : 'No hours';
-      case 'contactInfo':
-        const parts: string[] = [];
-        if (item.address) parts.push('Address');
-        if (item.phone) parts.push('Phone');
-        if (item.email) parts.push('Email');
-        if (item.hours?.length) parts.push('Hours');
-        return parts.length ? parts.join(', ') : 'No contact info';
-      case 'gallery':
-        return item.value?.length ? `${item.value.length} images` : 'No images';
-      case 'carousel':
-        return item.images?.length ? `${item.images.length} slides` : 'No slides';
-      case 'array':
-        return item.items?.length ? `${item.items.length} items` : 'Empty array';
-      default:
-        return 'No preview available';
-    }
-  };
   
   const handleItemChange = (path: (string | number)[], updatedItem: SchemaItem) => {
     const updatedItems = [...safeSchema.items];
@@ -164,20 +133,12 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
                 >
                   <div className="flex items-center gap-3">
                     <GripVertical className="h-4 w-4 text-gray-400" />
-                    {getItemIcon(item.type)}
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <Badge variant="secondary" className="text-xs">
-                          {item.type}
-                        </Badge>
-                        <span className="text-sm font-medium text-gray-700">
-                          {item.key}
-                        </span>
-                      </div>
-                      <div className="text-xs text-gray-500 mt-1">
-                        {getItemPreview(item)}
-                      </div>
-                    </div>
+                    {React.createElement(getFieldIcon(item), { 
+                      className: "h-4 w-4 text-blue-500" 
+                    })}
+                    <span className="text-sm font-medium text-gray-700 uppercase">
+                      {item.key}
+                    </span>
                   </div>
                   <Button
                     variant="ghost"

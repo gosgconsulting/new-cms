@@ -8,7 +8,8 @@ import { Button } from '../../../src/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../src/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../src/components/ui/select';
 import { Badge } from '../../../src/components/ui/badge';
-import { X, Plus, Image as ImageIcon, Link as LinkIcon, Type, MousePointer, Video, Grid, Layers, Mail } from 'lucide-react';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../../src/components/ui/tabs';
+import { X, Plus, Image as ImageIcon, Link as LinkIcon, Type, MousePointer, Video, Grid, Layers, Mail, FolderOpen } from 'lucide-react';
 import { SchemaItem, SchemaItemType } from '../../types/schema';
 // Import the new content editor components
 import {
@@ -309,11 +310,7 @@ export const ArrayEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemov
   return (
     <Card className="border-l-4 border-l-yellow-500">
       <CardHeader className="pb-2">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-sm flex items-center gap-2">
-            <Layers className="h-4 w-4" />
-            Array ({item.items?.length || 0} items)
-          </CardTitle>
+        <div className="flex items-center justify-end">
           <Button variant="ghost" size="sm" onClick={onRemove}>
             <X className="h-4 w-4" />
           </Button>
@@ -341,6 +338,7 @@ export const ArrayEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemov
                 <SelectItem value="image">Image</SelectItem>
                 <SelectItem value="link">Link</SelectItem>
                 <SelectItem value="button">Button</SelectItem>
+                <SelectItem value="tabs">Tabs</SelectItem>
               </SelectContent>
             </Select>
             <Button size="sm" onClick={() => addItem('text')}>
@@ -349,6 +347,151 @@ export const ArrayEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemov
             </Button>
           </div>
         </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+// Tabs editor
+export const TabsEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove }) => {
+  const tabs = item.tabs || [];
+  
+  const addTab = () => {
+    const newTab = {
+      id: `tab-${Date.now()}`,
+      label: `Tab ${tabs.length + 1}`,
+      content: []
+    };
+    onChange({
+      ...item,
+      tabs: [...tabs, newTab]
+    });
+  };
+  
+  const updateTab = (index: number, updatedTab: any) => {
+    const updatedTabs = [...tabs];
+    updatedTabs[index] = updatedTab;
+    onChange({
+      ...item,
+      tabs: updatedTabs
+    });
+  };
+  
+  const removeTab = (index: number) => {
+    const updatedTabs = tabs.filter((_, i) => i !== index);
+    onChange({
+      ...item,
+      tabs: updatedTabs
+    });
+  };
+  
+  const addContentToTab = (tabIndex: number, contentType: SchemaItemType) => {
+    const newContent: SchemaItem = {
+      key: `${contentType}_${Date.now()}`,
+      type: contentType,
+      content: contentType === 'heading' ? 'New Heading' : contentType === 'text' ? 'New text content' : ''
+    };
+    
+    const updatedTabs = [...tabs];
+    updatedTabs[tabIndex] = {
+      ...updatedTabs[tabIndex],
+      content: [...(updatedTabs[tabIndex].content || []), newContent]
+    };
+    
+    onChange({
+      ...item,
+      tabs: updatedTabs
+    });
+  };
+
+  return (
+    <Card className="border-l-4 border-l-blue-500">
+      <CardHeader className="pb-2">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-sm flex items-center gap-2">
+            <FolderOpen className="h-4 w-4" />
+            Tabs
+          </CardTitle>
+          <Button variant="ghost" size="sm" onClick={onRemove}>
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {tabs.length > 0 ? (
+          <Tabs defaultValue={tabs[0]?.id} className="w-full">
+            <TabsList className="grid w-full" style={{ gridTemplateColumns: `repeat(${tabs.length}, 1fr)` }}>
+              {tabs.map((tab) => (
+                <TabsTrigger key={tab.id} value={tab.id}>
+                  {tab.label}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+            {tabs.map((tab, tabIndex) => (
+              <TabsContent key={tab.id} value={tab.id} className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Input
+                    value={tab.label}
+                    onChange={(e) => updateTab(tabIndex, { ...tab, label: e.target.value })}
+                    className="max-w-xs"
+                    placeholder="Tab label"
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => removeTab(tabIndex)}
+                    className="text-red-500"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+                
+                <div className="space-y-3">
+                  {tab.content?.map((contentItem, contentIndex) => (
+                    <div key={contentItem.key} className="border rounded p-3 bg-slate-50">
+                      <ItemEditor
+                        item={contentItem}
+                        onChange={(updatedItem) => {
+                          const updatedContent = [...(tab.content || [])];
+                          updatedContent[contentIndex] = updatedItem;
+                          updateTab(tabIndex, { ...tab, content: updatedContent });
+                        }}
+                        onRemove={() => {
+                          const updatedContent = tab.content?.filter((_, i) => i !== contentIndex) || [];
+                          updateTab(tabIndex, { ...tab, content: updatedContent });
+                        }}
+                      />
+                    </div>
+                  ))}
+                  
+                  <div className="flex gap-2">
+                    <Button size="sm" onClick={() => addContentToTab(tabIndex, 'heading')}>
+                      <Plus className="h-3 w-3 mr-1" />
+                      Add Heading
+                    </Button>
+                    <Button size="sm" onClick={() => addContentToTab(tabIndex, 'text')}>
+                      <Plus className="h-3 w-3 mr-1" />
+                      Add Text
+                    </Button>
+                    <Button size="sm" onClick={() => addContentToTab(tabIndex, 'image')}>
+                      <Plus className="h-3 w-3 mr-1" />
+                      Add Image
+                    </Button>
+                  </div>
+                </div>
+              </TabsContent>
+            ))}
+          </Tabs>
+        ) : (
+          <div className="text-center py-4 text-gray-500">
+            <p>No tabs created yet</p>
+          </div>
+        )}
+        
+        <Button onClick={addTab} className="w-full">
+          <Plus className="h-4 w-4 mr-2" />
+          Add New Tab
+        </Button>
       </CardContent>
     </Card>
   );
@@ -533,19 +676,6 @@ export const EnhancedButtonItemEditor: React.FC<ItemEditorProps> = ({ item, onCh
     });
   };
 
-  const updateStyle = (style: string) => {
-    onChange({
-      ...item,
-      content: style
-    });
-  };
-
-  const updateOpenInNewTab = (openInNewTab: boolean) => {
-    onChange({
-      ...item,
-      link: openInNewTab ? '_blank' : '_self'
-    });
-  };
 
   return (
     <Card className="border-l-4 border-l-red-500">
@@ -566,10 +696,6 @@ export const EnhancedButtonItemEditor: React.FC<ItemEditorProps> = ({ item, onCh
           buttonUrl={buttonItem.action || ''}
           onTextChange={updateText}
           onUrlChange={updateUrl}
-          buttonStyle={buttonItem.style || 'primary'}
-          onStyleChange={updateStyle}
-          openInNewTab={buttonItem.target === '_blank'}
-          onNewTabChange={updateOpenInNewTab}
         />
       </CardContent>
     </Card>
@@ -595,6 +721,8 @@ export const ItemEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove
       return <LinkEditor item={item} onChange={onChange} onRemove={onRemove} />;
     case 'button':
       return <EnhancedButtonItemEditor item={item} onChange={onChange} onRemove={onRemove} />;
+    case 'tabs':
+      return <TabsEditor item={item} onChange={onChange} onRemove={onRemove} />;
     case 'array':
       // Check if this is a FAQ array
       if (item.key === 'faqs' && item.items?.some(i => i.type === 'faq')) {

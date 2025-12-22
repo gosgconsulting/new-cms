@@ -215,12 +215,8 @@ export const SchemaItemEditor: React.FC<SchemaItemEditorProps> = ({
         <ContentButtonEditor
           buttonText={item.content || ''}
           buttonUrl={item.link || ''}
-          buttonStyle="primary"
-          openInNewTab={false}
           onTextChange={(text) => handleItemChange({ ...item, content: text })}
           onUrlChange={(url) => handleItemChange({ ...item, link: url })}
-          onStyleChange={(style) => handleItemChange({ ...item })}
-          onNewTabChange={(openInNewTab) => handleItemChange({ ...item })}
         />
       );
 
@@ -287,35 +283,11 @@ export const SchemaItemEditor: React.FC<SchemaItemEditorProps> = ({
 
       return (
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Badge variant="outline">Array</Badge>
-              <span className="text-sm text-gray-600">
-                items ({Array.isArray(item.items) ? item.items.length : 0} items)
-              </span>
-            </div>
-          </div>
           
           {Array.isArray(item.items) && item.items.length > 0 ? (
             <div className="space-y-3">
               {item.items.map((arrayItem: SchemaItem, index: number) => (
                 <div key={`${arrayItem.key}-${index}`} className="border rounded-lg p-4 relative group">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="absolute top-3 right-3 h-6 w-6 text-red-500"
-                    onClick={() => handleRemoveItem(index)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                  <div className="mb-2">
-                    <Badge variant="secondary" className="text-xs">
-                      {arrayItem.type}
-                    </Badge>
-                    <span className="ml-2 text-sm text-gray-600">
-                      {arrayItem.key}
-                    </span>
-                  </div>
                   {renderSchemaItemEditor(arrayItem, (updatedItem) => {
                     const updatedItems = [...(item.items || [])];
                     updatedItems[index] = updatedItem;

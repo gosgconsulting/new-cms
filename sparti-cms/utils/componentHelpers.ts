@@ -1,5 +1,5 @@
 import React from 'react';
-import { Type, Square, Grid3X3, Star, Mail, Image, Video } from 'lucide-react';
+import { Type, Square, Grid3X3, Star, Mail, Image, Video, FolderOpen } from 'lucide-react';
 import { ComponentSchema } from '../types/schema';
 
 // Component type display names
@@ -11,7 +11,8 @@ export const COMPONENT_TYPE_DISPLAY_NAMES: Record<string, string> = {
   'Reviews': 'Reviews',
   'Newsletter': 'Newsletter',
   'ImageBlock': 'Image Block',
-  'VideoBlock': 'Video Block'
+  'VideoBlock': 'Video Block',
+  'TabsBlock': 'Tabs'
 };
 
 // Component type icon configuration
@@ -30,7 +31,8 @@ const COMPONENT_TYPE_ICON_CONFIG: Record<string, IconConfig> = {
   'Reviews': { component: Star, className: 'h-4 w-4 text-yellow-500' },
   'Newsletter': { component: Mail, className: 'h-4 w-4 text-blue-500' },
   'ImageBlock': { component: Image, className: 'h-4 w-4 text-green-500' },
-  'VideoBlock': { component: Video, className: 'h-4 w-4 text-purple-500' }
+  'VideoBlock': { component: Video, className: 'h-4 w-4 text-purple-500' },
+  'TabsBlock': { component: FolderOpen, className: 'h-4 w-4 text-indigo-500' }
 };
 
 // Constants
