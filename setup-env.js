@@ -1,13 +1,16 @@
-<<<<<<< HEAD
-DATABASE_PUBLIC_URL=postgresql://postgres:bFiBuCeLqCnTWwMEAQxnVJWGPZZkHXkG@mainline.proxy.rlwy.net:37013/railway
-DATABASE_URL=postgresql://postgres:bFiBuCeLqCnTWwMEAQxnVJWGPZZkHXkG@postgres-33yu.railway.internal:5432/railway
-GOOGLE_CLOUD_TRANSLATION_API_KEY=AIzaSyBsMa_Lt6QDUdy5we4OpZ5fVp2wv5ir5hk
-POSTGRES_DB=railway
-POSTGRES_PASSWORD=bFiBuCeLqCnTWwMEAQxnVJWGPZZkHXkG
-POSTGRES_USER=postgres
-VITE_RESEND_API_KEY=re_2ap5qM9k_96jEVym5P34qtcJctKycM1ai
-=======
-# Railway PostgreSQL Database Configuration
+#!/usr/bin/env node
+
+/**
+ * Environment Setup Script for Railway Integration
+ * 
+ * This script creates a .env file with the correct Railway PostgreSQL configuration
+ * Run with: node setup-env.js
+ */
+
+import { writeFileSync, existsSync } from 'fs';
+import { resolve } from 'path';
+
+const envContent = `# Railway PostgreSQL Database Configuration
 # These values are from your Railway dashboard environment variables
 # For local development, these connect to your Railway PostgreSQL instance
 
@@ -59,4 +62,38 @@ VITE_RESEND_API_KEY="re_2ap5qM9k_96jEVym5P34qtcJctKycM1ai"
 VITE_GOOGLE_API_KEY="AIzaSyBN_I1rWGaUqN_wtWMnaFM-BGWoJ7xUh7A"
 VITE_OPENROUTER_API_KEY="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"
 VITE_SMTP_FROM_EMAIL="noreply@gosg.com"
->>>>>>> 83ac453fe41ad7bfd8c29580f74cd259dc5f722f
+`;
+
+const envPath = resolve('.env');
+
+try {
+  if (existsSync(envPath)) {
+    console.log('⚠️  .env file already exists. Creating backup...');
+    const backupPath = resolve('.env.backup');
+    const { readFileSync } = await import('fs');
+    writeFileSync(backupPath, readFileSync(envPath));
+    console.log('✅ Backup created at .env.backup');
+  }
+
+  writeFileSync(envPath, envContent);
+  console.log('✅ .env file created successfully!');
+  console.log('');
+  console.log('🔧 Configuration Summary:');
+  console.log('   - Database: Railway PostgreSQL');
+  console.log('   - Environment: Development (local)');
+  console.log('   - API Base URL: https://cms.sparti.ai');
+  console.log('   - Email Provider: Resend');
+  console.log('');
+  console.log('🚀 Next steps:');
+  console.log('   1. Run: npm run dev');
+  console.log('   2. Access your app at: http://localhost:8082');
+  console.log('   3. Database will connect to Railway PostgreSQL');
+  console.log('');
+  console.log('📝 Note: This .env file is configured for both local development');
+  console.log('   and Railway deployment. The DATABASE_PUBLIC_URL will be used');
+  console.log('   locally, while DATABASE_URL will be used in production.');
+
+} catch (error) {
+  console.error('❌ Error creating .env file:', error.message);
+  process.exit(1);
+}
