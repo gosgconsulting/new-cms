@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Button } from '../../../src/components/ui/button';
 import { ScrollArea } from '../../../src/components/ui/scroll-area';
 import { Separator } from '../../../src/components/ui/separator';
+import { Badge } from '../../../src/components/ui/badge';
 import { ArrowLeft, Save, Loader2, Settings, Code, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '../auth/AuthProvider';
@@ -30,22 +31,19 @@ interface ContentsPanelProps {
 }
 
 const ContentsPanel: React.FC<ContentsPanelProps> = ({ components, extractContentFromComponents }) => {
-  const content = extractContentFromComponents(components);
+  // Build per-top-level component sections with a single representative item
+  const sections = components.map((component) => {
+    const items = extractContentFromComponents([component]);
+    // Pick a single representative item: prefer heading, otherwise paragraph, otherwise text/list
+    const primary =
+      items.find(i => i.type === 'heading') ||
+      items.find(i => i.type === 'paragraph') ||
+      items.find(i => i.type === 'text') ||
+      items.find(i => i.type === 'list');
+    return { component, primary };
+  }).filter(s => !!s.primary);
 
-  // Group by component (section) to show section names and separators
-  const groupedByComponent: Record<
-    string,
-    { componentType?: string; items: typeof content }
-  > = {};
-  content.forEach((item) => {
-    const id = item.componentId || 'unknown';
-    if (!groupedByComponent[id]) {
-      groupedByComponent[id] = { componentType: item.componentType, items: [] as any };
-    }
-    groupedByComponent[id].items.push(item);
-  });
-
-  if (content.length === 0) {
+  if (sections.length === 0) {
     return (
       <div className="text-center py-8">
         <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
@@ -65,86 +63,45 @@ const ContentsPanel: React.FC<ContentsPanelProps> = ({ components, extractConten
           Page Contents
         </h2>
         <p className="text-muted-foreground mt-1">
-          Readable content extracted from your page components
+          Readable content extracted from your main page sections
         </p>
       </div>
 
-      <div className="prose prose-sm max-w-none">
-        {Object.entries(groupedByComponent).map(([componentId, group], groupIndex) => (
-          <div key={`${componentId}-${groupIndex}`} className="mb-6">
-            {/* Section name header with separators */}
-            <div className="flex items-center gap-2 my-4">
-              <Separator className="flex-1" />
-              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                {group.componentType || 'Section'}
-              </span>
-              <Separator className="flex-1" />
+      <div className="space-y-4">
+        {sections.map(({ component, primary }) => {
+          if (!primary) return null;
+          const sectionName = (component as any)?.type || (component as any)?.name || 'Section';
+          // Render a row with a left-aligned label and the primary text on the right
+          return (
+            <div key={component.key} className="flex items-start gap-3">
+              <Badge variant="secondary" className="uppercase tracking-wide whitespace-nowrap">
+                {sectionName}
+              </Badge>
+              <div className="prose prose-sm max-w-none flex-1">
+                {primary.type === 'heading' ? (() => {
+                  const HeadingTag = `h${primary.level || 2}` as keyof JSX.IntrinsicElements;
+                  return (
+                    <HeadingTag className={`font-bold text-foreground ${
+                      primary.level === 1 ? 'text-2xl' :
+                      primary.level === 2 ? 'text-xl' :
+                      primary.level === 3 ? 'text-lg' : 'text-base'
+                    }`}>
+                      {primary.text}
+                    </HeadingTag>
+                  );
+                })() : primary.type === 'paragraph' ? (
+                  <p className="text-foreground leading-relaxed">{primary.text}</p>
+                ) : primary.type === 'list' ? (
+                  <ul className="list-disc ml-4">
+                    <li>{primary.text}</li>
+                  </ul>
+                ) : (
+                  <div className="text-foreground">{primary.text}</div>
+                )}
+              </div>
             </div>
-
-            {/* Items for this section */}
-            {group.items.map((item, index) => {
-              const key = `${item.componentId}-${index}`;
-              switch (item.type) {
-                case 'heading': {
-                  const HeadingTag = `h${item.level || 2}` as keyof JSX.IntrinsicElements;
-                  return (
-                    <div key={key} className="mb-3">
-                      <HeadingTag
-                        className={`font-bold text-foreground ${
-                          item.level === 1 ? 'text-3xl mb-2' :
-                          item.level === 2 ? 'text-2xl mb-2' :
-                          item.level === 3 ? 'text-xl mb-2' :
-                          'text-lg mb-2'
-                        }`}
-                        title={`From ${item.componentType} (${item.componentId})`}
-                      >
-                        {item.text}
-                      </HeadingTag>
-                      {index < group.items.length - 1 && <Separator className="my-2" />}
-                    </div>
-                  );
-                }
-                case 'paragraph':
-                  return (
-                    <div key={key} className="mb-3">
-                      <p
-                        className="text-foreground leading-relaxed"
-                        title={`From ${item.componentType} (${item.componentId})`}
-                      >
-                        {item.text}
-                      </p>
-                      {index < group.items.length - 1 && <Separator className="my-2" />}
-                    </div>
-                  );
-                case 'list':
-                  return (
-                    <div key={key} className="mb-2">
-                      <li
-                        className="text-foreground ml-4 list-disc"
-                        title={`From ${item.componentType} (${item.componentId})`}
-                      >
-                        {item.text}
-                      </li>
-                      {index < group.items.length - 1 && <Separator className="my-2" />}
-                    </div>
-                  );
-                case 'text':
-                default:
-                  return (
-                    <div key={key} className="mb-3">
-                      <div
-                        className="text-foreground px-3 py-2 rounded"
-                        title={`From ${item.componentType} (${item.componentId})`}
-                      >
-                        <div className="mt-1">{item.text}</div>
-                      </div>
-                      {index < group.items.length - 1 && <Separator className="my-2" />}
-                    </div>
-                  );
-              }
-            })}
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       <div className="mt-8 p-4 bg-muted/30 rounded-lg border">
@@ -155,15 +112,19 @@ const ContentsPanel: React.FC<ContentsPanelProps> = ({ components, extractConten
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div>
             <span className="text-muted-foreground">Total Items:</span>
-            <span className="ml-2 font-medium">{content.length}</span>
+            <span className="ml-2 font-medium">{sections.length}</span>
           </div>
           <div>
             <span className="text-muted-foreground">Headings:</span>
-            <span className="ml-2 font-medium">{content.filter(c => c.type === 'heading').length}</span>
+            <span className="ml-2 font-medium">
+              {sections.filter(s => s.primary?.type === 'heading').length}
+            </span>
           </div>
           <div>
             <span className="text-muted-foreground">Paragraphs:</span>
-            <span className="ml-2 font-medium">{content.filter(c => c.type === 'paragraph').length}</span>
+            <span className="ml-2 font-medium">
+              {sections.filter(s => s.primary?.type === 'paragraph').length}
+            </span>
           </div>
           <div>
             <span className="text-muted-foreground">Components:</span>
