@@ -311,43 +311,47 @@ export const ArrayEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemov
   return (
     <Card className="border-l-4 border-l-yellow-500">
       <CardHeader className="pb-2">
-        <div className="flex items-center justify-end">
+        <div className="flex items-center justify-between">
+          <div className="flex gap-2">
+            <Button size="sm" variant="outline" onClick={() => addItem('text')}>
+              <Plus className="h-3 w-3 mr-1" />
+              Add Item
+            </Button>
+          </div>
           <Button variant="ghost" size="sm" onClick={onRemove}>
             <X className="h-4 w-4" />
           </Button>
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
-        <div className="space-y-4">
-          {item.items?.map((arrayItem, index) => (
-            <div key={arrayItem.key || index} className="border rounded p-4 bg-slate-50">
-              <ItemEditor
-                item={arrayItem}
-                onChange={(updatedSubItem) => updateItem(index, updatedSubItem)}
-                onRemove={() => removeItem(index)}
-              />
-            </div>
-          ))}
-          <div className="flex items-center gap-2">
-            <Select onValueChange={(value) => addItem(value as SchemaItemType)}>
-              <SelectTrigger className="h-8 w-40">
-                <SelectValue placeholder="Add new item..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="text">Text</SelectItem>
-                <SelectItem value="heading">Heading</SelectItem>
-                <SelectItem value="image">Image</SelectItem>
-                <SelectItem value="link">Link</SelectItem>
-                <SelectItem value="button">Button</SelectItem>
-                <SelectItem value="tabs">Tabs</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button size="sm" onClick={() => addItem('text')}>
+        {(item.items && item.items.length > 0) ? (
+          <Tabs defaultValue={item.items[0]?.key} className="w-full">
+            <TabsList className="w-full mb-3 overflow-x-auto">
+              {item.items.map((arrayItem) => (
+                <TabsTrigger key={arrayItem.key} value={arrayItem.key}>
+                  {arrayItem.type} • {arrayItem.key}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+            {item.items.map((arrayItem, index) => (
+              <TabsContent key={arrayItem.key} value={arrayItem.key} className="space-y-3">
+                <ItemEditor
+                  item={arrayItem}
+                  onChange={(updatedSubItem) => updateItem(index, updatedSubItem)}
+                  onRemove={() => removeItem(index)}
+                />
+              </TabsContent>
+            ))}
+          </Tabs>
+        ) : (
+          <div className="text-center py-8 text-gray-500">
+            <p>No items added yet</p>
+            <Button size="sm" variant="outline" className="mt-2" onClick={() => addItem('text')}>
               <Plus className="h-3 w-3 mr-1" />
-              Add Text Item
+              Add First Item
             </Button>
           </div>
-        </div>
+        )}
       </CardContent>
     </Card>
   );

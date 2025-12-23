@@ -27,8 +27,8 @@ const OfficeHoursItemEditor: React.FC<OfficeHoursItemEditorProps> = ({ item, onC
       </CardHeader>
       <CardContent>
         <ContentOfficeHoursEditor
-          items={item.items || []}
-          onChange={(officeHoursItems) => onChange({ ...item, items: officeHoursItems })}
+          items={(item.items as any) || []}
+          onChange={(officeHoursItems) => onChange({ ...item, items: officeHoursItems as any })}
         />
       </CardContent>
     </Card>

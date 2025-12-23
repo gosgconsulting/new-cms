@@ -19,11 +19,10 @@ const FAQArrayEditor: React.FC<FAQArrayEditorProps> = ({ item, onChange, onRemov
   
   // Add a new FAQ item
   const addFAQItem = () => {
-    const newItem = {
+    const newItem: SchemaItem = {
       key: `faq${faqItems.length + 1}`,
       type: 'faq',
-      question: '',
-      answer: ''
+      props: { question: '', answer: '' }
     };
     
     const updatedItems = [...faqItems, newItem];
@@ -79,8 +78,14 @@ const FAQArrayEditor: React.FC<FAQArrayEditorProps> = ({ item, onChange, onRemov
                     <label className="block text-sm font-medium text-gray-700 mb-1">Question</label>
                     <input
                       type="text"
-                      value={faq.question || ''}
-                      onChange={(e) => updateFAQItem(index, { ...faq, question: e.target.value })}
+                      value={(faq.props as any)?.question || ''}
+                      onChange={(e) => {
+                        const updatedFAQ: SchemaItem = {
+                          ...faq,
+                          props: { ...(faq.props || {}), question: e.target.value }
+                        };
+                        updateFAQItem(index, updatedFAQ);
+                      }}
                       placeholder="Enter question"
                       className="w-full p-2 border border-gray-300 rounded-md"
                     />
@@ -88,8 +93,14 @@ const FAQArrayEditor: React.FC<FAQArrayEditorProps> = ({ item, onChange, onRemov
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Answer</label>
                     <textarea
-                      value={faq.answer || ''}
-                      onChange={(e) => updateFAQItem(index, { ...faq, answer: e.target.value })}
+                      value={(faq.props as any)?.answer || ''}
+                      onChange={(e) => {
+                        const updatedFAQ: SchemaItem = {
+                          ...faq,
+                          props: { ...(faq.props || {}), answer: e.target.value }
+                        };
+                        updateFAQItem(index, updatedFAQ);
+                      }}
                       placeholder="Enter answer"
                       rows={4}
                       className="w-full p-2 border border-gray-300 rounded-md"

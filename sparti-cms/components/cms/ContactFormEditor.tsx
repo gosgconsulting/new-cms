@@ -7,7 +7,7 @@ import { Textarea } from '../../../src/components/ui/textarea';
 import { Badge } from '../../../src/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../src/components/ui/select';
 import { X, Plus, Mail, User, MessageSquare, Type, Trash2, Edit3 } from 'lucide-react';
-import { SchemaItem, MultiLanguageValue, SchemaItemType } from '../../types/schema';
+import { SchemaItem } from '../../types/schema';
 
 interface ContactFormEditorProps {
   item: SchemaItem;
@@ -243,7 +243,7 @@ const ContactFormEditor: React.FC<ContactFormEditorProps> = ({
                   <div className="space-y-2">
                     <Label className="text-xs">Field Label</Label>
                     <Input
-                      value={typeof field.content === 'string' ? field.content : field.content?.en || ''}
+                      value={typeof field.content === 'string' ? field.content : (field.content as any)?.en || ''}
                       onChange={(e) => updateFieldContent(index, e.target.value)}
                       placeholder="Enter field label..."
                       className="text-sm"

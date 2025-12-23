@@ -336,24 +336,10 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
           </div>
           {expandedItems.has(index) && (
             <div className="p-4 border-t bg-white space-y-4">
-              {/* Render non-array properties first */}
-              <div className="space-y-4">
-                <ItemEditor 
-                  item={item} 
-                  onChange={(updatedItem) => handleItemChange([index], updatedItem)} 
-                  onRemove={() => {
-                    const updatedItems = [...safeSchema.items];
-                    updatedItems.splice(index, 1);
-                    onChange?.({ ...safeSchema, items: updatedItems });
-                  }} 
-                />
-              </div>
-              
-              {/* Render array items */}
+              {/* Unified tab-based editing */}
               <div className="space-y-4 border-t pt-4">
-                {/* Tab-style interface with pagination at top */}
+                {/* Tab-style interface */}
                 <div className="space-y-4">
-                  {/* Header with component name and Add button */}
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <h3 className="text-sm font-medium uppercase tracking-wide">
@@ -378,323 +364,180 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
                       Add {arrayProp === 'slides' || arrayProp === 'images' ? 'Slide' : 'Item'}
                     </Button>
                   </div>
-                  
-                  {arrayItems.length > 0 ? (
-                    <>
-                      {/* Tab interface for array items - only show if more than 1 item */}
-                      {arrayItems.length > 1 && (
-                        <div className="flex gap-1 mb-4 border-b border-gray-200">
-                          {arrayItems.map((_, tabIndex) => {
-                            const isActive = (activeArrayTab[index] || 0) === tabIndex;
-                            return (
-                              <button
-                                key={tabIndex}
-                                className={`px-3 py-2 text-sm font-medium border-b-2 transition-colors ${
-                                  isActive 
-                                    ? 'border-blue-500 text-blue-600 bg-blue-50' 
-                                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                                }`}
-                                onClick={() => setActiveArrayTab(prev => ({ ...prev, [index]: tabIndex }))}
-                              >
-                                {arrayProp === 'slides' || arrayProp === 'images' ? `Slide ${tabIndex + 1}` : `Item ${tabIndex + 1}`}
-                              </button>
-                            );
-                          })}
+
+                  {/* Tabs: Properties + per-item tabs */}
+                  <div className="flex gap-1 mb-4 border-b border-gray-200">
+                    {(() => {
+                      const currentTab = (activeArrayTab[index] ?? -1);
+                      const makeTab = (label: string, isActive: boolean, onClick: () => void) => (
+                        <button
+                          className={`px-3 py-2 text-sm font-medium border-b-2 transition-colors ${
+                            isActive 
+                              ? 'border-blue-500 text-blue-600 bg-blue-50' 
+                              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                          }`}
+                          onClick={onClick}
+                        >
+                          {label}
+                        </button>
+                      );
+
+                      const tabs = [
+                        makeTab('Properties', currentTab === -1, () =>
+                          setActiveArrayTab(prev => ({ ...prev, [index]: -1 }))
+                        ),
+                        ...arrayItems.map((_, tabIndex) =>
+                          makeTab(
+                            arrayProp === 'slides' || arrayProp === 'images' ? `Slide ${tabIndex + 1}` : `Item ${tabIndex + 1}`,
+                            currentTab === tabIndex,
+                            () => setActiveArrayTab(prev => ({ ...prev, [index]: tabIndex }))
+                          )
+                        )
+                      ];
+                      return tabs;
+                    })()}
+                  </div>
+
+                  {/* Tab Content */}
+                  {(() => {
+                    const currentTab = (activeArrayTab[index] ?? -1);
+
+                    // Properties tab or no items yet -> edit parent item in one place
+                    if (currentTab === -1 || arrayItems.length === 0) {
+                      return (
+                        <div className="space-y-4">
+                          <ItemEditor 
+                            item={item} 
+                            onChange={(updatedItem) => handleItemChange([index], updatedItem)} 
+                            onRemove={() => {
+                              const updatedItems = [...safeSchema.items];
+                              updatedItems.splice(index, 1);
+                              onChange?.({ ...safeSchema, items: updatedItems });
+                            }} 
+                          />
                         </div>
-                      )}
-                      
-                      {/* Show only the current item */}
-                      {(() => {
-                        const currentItemIndex = activeArrayTab[index] || 0;
-                        const currentArrayItem = arrayItems[currentItemIndex];
-                        
-                        if (!currentArrayItem) return null;
-                        
-    return (
-                          <div className="border rounded-lg p-4 bg-white">
-                            {isImageItem(arrayProp, currentArrayItem) ? (
-                              // Special rendering for image/slide items - mini preview with click to change
-                              <div className="relative inline-block">
-                                <label className="cursor-pointer block">
-                                  <img 
-                                    src={currentArrayItem.url as string || currentArrayItem.src as string || currentArrayItem.image as string} 
-                                    alt={`${arrayProp === 'slides' || arrayProp === 'images' ? 'Slide' : 'Item'} ${currentItemIndex + 1}`}
-                                    className="w-full h-auto max-h-[100px] object-contain rounded-md border border-gray-200 hover:border-blue-300 transition-colors"
-                                  />
-                                  <input
-                                    type="file"
-                                    accept="image/*"
-                                    className="hidden"
-                                    onChange={(e) => {
-                                      const file = e.target.files?.[0];
-                                      if (file) {
-                                        handleImageUpload(index, arrayProp, currentItemIndex, file);
-                                      }
-                                    }}
-                                  />
-                                </label>
-                                <button
-                                  onClick={() => removeArrayItem(index, arrayProp, currentItemIndex)}
-                                  className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors shadow-sm"
-                                  title="Delete image"
-                                >
-                                  <X className="h-3 w-3" />
-                                </button>
-                              </div>
-                            ) : (
-                              // Default rendering for non-image items - filter out technical schema fields
-                              <div className="space-y-4">
-                                {Object.entries(currentArrayItem)
-                                  .filter(([key]) => {
-                                    // Hide technical schema fields, only show user-editable content
-                                    const technicalFields = [
-                                      'key', 'type', 'id', 'props', 'items', 'className', 
-                                      'style', 'attributes', 'metadata', 'schema', 'config'
-                                    ];
-                                    return !technicalFields.includes(key.toLowerCase());
-                                  })
-                                  .map(([key, value]) => (
-                                    <div key={key}>
-                                      <Label className="text-sm font-medium mb-2 block">
-                                        {/* Make field labels more user-friendly */}
-                                        {key === 'content' ? 'Text' :
-                                         key === 'link' ? 'URL' :
-                                         key === 'src' ? 'Image URL' :
-                                         key === 'alt' ? 'Description' :
-                                         key === 'href' ? 'Link URL' :
-                                         key.charAt(0).toUpperCase() + key.slice(1)}
-                                      </Label>
-                                      {typeof value === 'string' ? (
-                                        // Check if this is an image field (src, image, imageUrl, etc.)
-                                        (key.toLowerCase().includes('image') || key === 'src' || key === 'url') ? (
-                                          // Image field with enhanced UI
-                                          <div className="space-y-3">
-                                            {/* Image URL input */}
-                                            <input
-                                              type="url"
-                                              value={value}
-                                              onChange={(e) => updateArrayItem(index, arrayProp, currentItemIndex, key, e.target.value)}
-                                              className="w-full p-2 border rounded-md"
-                                              placeholder="Enter image URL"
-                                            />
-                                            
-                                            {value && (value.includes('.jpg') || value.includes('.jpeg') || value.includes('.png') || value.includes('.gif') || value.includes('.webp') || value.includes('.svg')) ? (
-                                              // Show mini image preview with click to change and delete overlay
-                                              <div className="relative inline-block">
-                                                <label className="cursor-pointer block">
-                                                  <img 
-                                                    src={value} 
-                                                    alt="Preview"
-                                                    className="w-full h-auto max-h-[100px] object-contain rounded-md border border-gray-200 hover:border-blue-300 transition-colors"
-                                                    onError={(e) => {
-                                                      // Hide broken images
-                                                      (e.target as HTMLImageElement).style.display = 'none';
-                                                    }}
-                                                  />
-                                                  <input
-                                                    type="file"
-                                                    accept="image/*"
-                                                    className="hidden"
-                                                    onChange={async (e) => {
-                                                      const file = e.target.files?.[0];
-                                                      if (file) {
-                                                        // Upload the file and update the URL
-                                                        try {
-                                                          const formData = new FormData();
-                                                          formData.append('file', file);
-                                                          
-                                                          const token = localStorage.getItem('sparti-user-session');
-                                                          const authToken = token ? JSON.parse(token).token : null;
-                                                          
-                                                          const response = await fetch('/api/upload', {
-                                                            method: 'POST',
-                                                            headers: {
-                                                              ...(authToken && { 'Authorization': `Bearer ${authToken}` })
-                                                            },
-                                                            body: formData
-                                                          });
-                                                          
-                                                          if (response.ok) {
-                                                            const result = await response.json();
-                                                            updateArrayItem(index, arrayProp, currentItemIndex, key, result.url);
-                                                          } else {
-                                                            alert('Failed to upload image. Please try again.');
-                                                          }
-                                                        } catch (error) {
-                                                          console.error('Error uploading image:', error);
-                                                          alert('Failed to upload image. Please try again.');
-                                                        }
-                                                      }
-                                                    }}
-                                                  />
-                                                </label>
-                                                <button
-                                                  onClick={() => updateArrayItem(index, arrayProp, currentItemIndex, key, '')}
-                                                  className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors shadow-sm"
-                                                  title="Delete image"
-                                                >
-                                                  <X className="h-3 w-3" />
-                                                </button>
-                                              </div>
-                                            ) : (
-                                              // Show compact drag and drop upload area when no image
-                                              <div 
-                                                className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center bg-gray-50 hover:bg-gray-100 transition-colors"
-                                                onDrop={async (e) => {
-                                                  e.preventDefault();
-                                                  const files = e.dataTransfer.files;
-                                                  if (files.length > 0) {
-                                                    const file = files[0];
-                                                    if (file.type.startsWith('image/')) {
-                                                      // Upload the dropped file
-                                                      try {
-                                                        const formData = new FormData();
-                                                        formData.append('file', file);
-                                                        
-                                                        const token = localStorage.getItem('sparti-user-session');
-                                                        const authToken = token ? JSON.parse(token).token : null;
-                                                        
-                                                        const response = await fetch('/api/upload', {
-                                                          method: 'POST',
-                                                          headers: {
-                                                            ...(authToken && { 'Authorization': `Bearer ${authToken}` })
-                                                          },
-                                                          body: formData
-                                                        });
-                                                        
-                                                        if (response.ok) {
-                                                          const result = await response.json();
-                                                          updateArrayItem(index, arrayProp, currentItemIndex, key, result.url);
-                                                        } else {
-                                                          alert('Failed to upload image. Please try again.');
-                                                        }
-                                                      } catch (error) {
-                                                        console.error('Error uploading image:', error);
-                                                        alert('Failed to upload image. Please try again.');
-                                                      }
-                                                    }
-                                                  }
-                                                }}
-                                                onDragOver={(e) => e.preventDefault()}
-                                                onDragEnter={(e) => e.preventDefault()}
-                                              >
-                                                <div className="flex flex-col items-center gap-2">
-                                                  <div className="w-8 h-8 bg-gray-200 rounded-lg flex items-center justify-center">
-                                                    <Image className="h-4 w-4 text-gray-400" />
-                                                  </div>
-                                                  <label className="px-3 py-1 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors cursor-pointer inline-flex items-center text-xs">
-                                                    <Upload className="h-3 w-3 mr-1" />
-                                                    Upload
-                                                    <input
-                                                      type="file"
-                                                      accept="image/*"
-                                                      className="hidden"
-                                                      onChange={async (e) => {
-                                                        const file = e.target.files?.[0];
-                                                        if (file) {
-                                                          // Upload the file and update the URL
-                                                          try {
-                                                            const formData = new FormData();
-                                                            formData.append('file', file);
-                                                            
-                                                            const token = localStorage.getItem('sparti-user-session');
-                                                            const authToken = token ? JSON.parse(token).token : null;
-                                                            
-                                                            const response = await fetch('/api/upload', {
-                                                              method: 'POST',
-                                                              headers: {
-                                                                ...(authToken && { 'Authorization': `Bearer ${authToken}` })
-                                                              },
-                                                              body: formData
-                                                            });
-                                                            
-                                                            if (response.ok) {
-                                                              const result = await response.json();
-                                                              updateArrayItem(index, arrayProp, currentItemIndex, key, result.url);
-                                                            } else {
-                                                              alert('Failed to upload image. Please try again.');
-                                                            }
-                                                          } catch (error) {
-                                                            console.error('Error uploading image:', error);
-                                                            alert('Failed to upload image. Please try again.');
-                                                          }
-                                                        }
-                                                      }}
-                                                    />
-                                                  </label>
-                                                </div>
-                                              </div>
-                                            )}
-                                          </div>
-                                        ) : (
-                                          // Regular text/URL field
-                                          value.length > 100 ? (
-                                            <textarea
-                                              value={value}
-                                              onChange={(e) => updateArrayItem(index, arrayProp, currentItemIndex, key, e.target.value)}
-                                              className="w-full p-2 border rounded-md resize-vertical min-h-[80px]"
-                                              placeholder={`Enter ${key === 'content' ? 'text' : key === 'link' || key === 'href' ? 'URL' : key}`}
-                                            />
-                                          ) : (
-                                            <input
-                                              type={key === 'link' || key === 'href' || key === 'src' ? 'url' : 'text'}
-                                              value={value}
-                                              onChange={(e) => updateArrayItem(index, arrayProp, currentItemIndex, key, e.target.value)}
-                                              className="w-full p-2 border rounded-md"
-                                              placeholder={`Enter ${key === 'content' ? 'text' : key === 'link' || key === 'href' ? 'URL' : key}`}
-                                            />
-                                          )
-                                        )
-                                      ) : typeof value === 'number' ? (
-                                        <input
-                                          type="number"
-                                          value={value}
-                                          onChange={(e) => updateArrayItem(index, arrayProp, currentItemIndex, key, Number(e.target.value))}
-                                          className="w-full p-2 border rounded-md"
-                                          placeholder={`Enter ${key}`}
-                                        />
-                                      ) : typeof value === 'boolean' ? (
-                                        <label className="flex items-center gap-2">
-                                          <input
-                                            type="checkbox"
-                                            checked={value}
-                                            onChange={(e) => updateArrayItem(index, arrayProp, currentItemIndex, key, e.target.checked)}
-                                            className="rounded"
-                                          />
-                                          <span className="text-sm">Enable {key}</span>
-                                        </label>
-                                      ) : null /* Hide complex types */}
-                                    </div>
-                                  ))}
-                                
-                                <div className="flex justify-end pt-2 border-t">
-                                  <Button
-                                    variant="destructive"
-                                    size="sm"
-                                    onClick={() => removeArrayItem(index, arrayProp, currentItemIndex)}
-                                  >
-                                    <Trash2 className="h-4 w-4 mr-1" /> Remove
-                                  </Button>
-                                </div>
-                              </div>
-                            )}
+                      );
+                    }
+
+                    // Specific array item editor (keep existing image/non-image logic)
+                    const currentArrayItem = arrayItems[currentTab];
+                    if (!currentArrayItem) return null;
+
+                    return (
+                      <div className="border rounded-lg p-4 bg-white">
+                        {isImageItem(arrayProp, currentArrayItem) ? (
+                          <div className="relative inline-block">
+                            <label className="cursor-pointer block">
+                              <img 
+                                src={currentArrayItem.url as string || currentArrayItem.src as string || currentArrayItem.image as string} 
+                                alt={`${arrayProp === 'slides' || arrayProp === 'images' ? 'Slide' : 'Item'} ${currentTab + 1}`}
+                                className="w-full h-auto max-h-[100px] object-contain rounded-md border border-gray-200 hover:border-blue-300 transition-colors"
+                              />
+                              <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) {
+                                    handleImageUpload(index, arrayProp, currentTab, file);
+                                  }
+                                }}
+                              />
+                            </label>
+                            <button
+                              onClick={() => removeArrayItem(index, arrayProp, currentTab)}
+                              className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors shadow-sm"
+                              title="Delete image"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
                           </div>
-                        );
-                      })()}
-                    </>
-                  ) : (
-                    <div className="text-center py-8 border-2 border-dashed border-gray-200 rounded-lg">
-                      <p className="text-sm text-gray-500 mb-2">No items added yet</p>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => addArrayItem(index, arrayProp)}
-                      >
-                        <Plus className="h-4 w-4 mr-1" /> 
-                        Add First {arrayProp === 'slides' || arrayProp === 'images' ? 'Slide' : 'Item'}
-                      </Button>
-                    </div>
-                  )}
+                        ) : (
+                          <div className="space-y-4">
+                            {Object.entries(currentArrayItem)
+                              .filter(([key]) => {
+                                const technicalFields = [
+                                  'key', 'type', 'id', 'props', 'items', 'className', 
+                                  'style', 'attributes', 'metadata', 'schema', 'config'
+                                ];
+                                return !technicalFields.includes(key.toLowerCase());
+                              })
+                              .map(([key, value]) => (
+                                <div key={key}>
+                                  <Label className="text-sm font-medium mb-2 block">
+                                    {key === 'content' ? 'Text' :
+                                     key === 'link' ? 'URL' :
+                                     key === 'src' ? 'Image URL' :
+                                     key === 'alt' ? 'Description' :
+                                     key === 'href' ? 'Link URL' :
+                                     key.charAt(0).toUpperCase() + key.slice(1)}
+                                  </Label>
+                                  {typeof value === 'string' ? (
+                                    (key.toLowerCase().includes('image') || key === 'src' || key === 'url') ? (
+                                      <div className="space-y-3">
+                                        <input
+                                          type="url"
+                                          value={value}
+                                          onChange={(e) => updateArrayItem(index, arrayProp, currentTab, key, e.target.value)}
+                                          className="w-full p-2 border rounded-md"
+                                          placeholder="Enter image URL"
+                                        />
+                                      </div>
+                                    ) : (
+                                      value.length > 100 ? (
+                                        <textarea
+                                          value={value}
+                                          onChange={(e) => updateArrayItem(index, arrayProp, currentTab, key, e.target.value)}
+                                          className="w-full p-2 border rounded-md resize-vertical min-h-[80px]"
+                                          placeholder={`Enter ${key === 'content' ? 'text' : key === 'link' || key === 'href' ? 'URL' : key}`}
+                                        />
+                                      ) : (
+                                        <input
+                                          type={key === 'link' || key === 'href' || key === 'src' ? 'url' : 'text'}
+                                          value={value}
+                                          onChange={(e) => updateArrayItem(index, arrayProp, currentTab, key, e.target.value)}
+                                          className="w-full p-2 border rounded-md"
+                                          placeholder={`Enter ${key === 'content' ? 'text' : key === 'link' || key === 'href' ? 'URL' : key}`}
+                                        />
+                                      )
+                                    )
+                                  ) : typeof value === 'number' ? (
+                                    <input
+                                      type="number"
+                                      value={value}
+                                      onChange={(e) => updateArrayItem(index, arrayProp, currentTab, key, Number(e.target.value))}
+                                      className="w-full p-2 border rounded-md"
+                                      placeholder={`Enter ${key}`}
+                                    />
+                                  ) : typeof value === 'boolean' ? (
+                                    <label className="flex items-center gap-2">
+                                      <input
+                                        type="checkbox"
+                                        checked={value}
+                                        onChange={(e) => updateArrayItem(index, arrayProp, currentTab, key, e.target.checked)}
+                                        className="rounded"
+                                      />
+                                      <span className="text-sm">Enable {key}</span>
+                                    </label>
+                                  ) : null}
+                                </div>
+                              ))}
+                            
+                            <div className="flex justify-end pt-2 border-t">
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => removeArrayItem(index, arrayProp, currentTab)}
+                              >
+                                <Trash2 className="h-4 w-4 mr-1" /> Remove
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
             </div>
