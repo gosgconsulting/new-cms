@@ -67,6 +67,9 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
   const [isBatchGenerating, setIsBatchGenerating] = useState(false);
   // Track last auto-generation to avoid repeats on re-renders
   const lastAutoGenRef = useRef<{ type: 'page' | 'section'; key?: string } | null>(null);
+  // NEW: cancellation and abort controller refs
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const cancelRequestedRef = useRef(false);
 
   // Remove JSON code blocks from assistant messages (keep friendly status line)
   const sanitizeAssistantMessage = (msg: string) => {
@@ -78,10 +81,21 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
 
   // Clear all messages and reset chat
   const clearAllMessages = () => {
+    // Cancel any in-flight or queued work
+    cancelRequestedRef.current = true;
+    if (abortControllerRef.current) {
+      try {
+        abortControllerRef.current.abort();
+      } catch {}
+    }
+    setIsBatchGenerating(false);
+    setIsLoading(false);
     setMessages([]);
     setError(null);
     setFocusedComponentJSON(null);
     setComponentHierarchy([]);
+    // Reset last auto-gen so it won't immediately re-trigger unless user reselects
+    lastAutoGenRef.current = null;
   };
 
   // Auto-scroll to bottom when new messages arrive
@@ -491,6 +505,7 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
 
   // Helper function to submit a message programmatically
   const submitMessage = async (message: string) => {
+    if (cancelRequestedRef.current) return;
     if (!message.trim() || isLoading) {
       return;
     }
@@ -505,6 +520,14 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
     setMessages((prev) => [...prev, userMessage]);
     setError(null);
     setIsLoading(true);
+
+    // Prepare a fresh abort controller for this request
+    cancelRequestedRef.current = false;
+    if (abortControllerRef.current) {
+      try { abortControllerRef.current.abort(); } catch {}
+    }
+    abortControllerRef.current = new AbortController();
+    const signal = abortControllerRef.current.signal;
 
     try {
       // Prepare conversation history (last 10 messages to avoid token limits)
@@ -584,7 +607,7 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
         activeTools: activeTools.length > 0 ? activeTools : undefined,
         selectedComponents: selectedComponents.length > 0 ? selectedComponents : undefined,
         model: selectedModel
-      });
+      }, { signal });
 
       if (!response.ok) {
         const contentType = response.headers.get('content-type');
@@ -602,6 +625,7 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
         throw new Error(`Expected JSON but received ${contentType}. Response: ${errorText.substring(0, 200)}`);
       }
 
+      if (cancelRequestedRef.current) return;
       const data = await response.json();
 
       if (data.success && data.message) {
@@ -643,6 +667,7 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
               }
 
               if (componentsArray.length > 0) {
+                if (cancelRequestedRef.current) return;
                 if (onProposedComponents) {
                   onProposedComponents(componentsArray);
                 } else if (onUpdateComponents) {
@@ -658,6 +683,10 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
         throw new Error(data.error || 'Failed to get AI response');
       }
     } catch (error: any) {
+      if (error?.name === 'AbortError' || cancelRequestedRef.current) {
+        // Swallow abort errors silently
+        return;
+      }
       console.error('[testing] Editor Error:', error);
       setError(error.message || 'Failed to get AI response. Please try again.');
       
@@ -668,15 +697,25 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
       };
       setMessages((prev) => [...prev, errorMessage]);
     } finally {
-      setIsLoading(false);
+      if (!cancelRequestedRef.current) {
+        setIsLoading(false);
+      }
     }
   };
 
   // Send a message to AI without appending the user payload to chat (used by Copywriting)
   const sendHiddenMessage = async (hiddenMessage: string, options?: { silent?: boolean }) => {
+    if (cancelRequestedRef.current) return;
     if (isLoading) return;
     setError(null);
     setIsLoading(true);
+    // Fresh abort controller for this hidden request
+    cancelRequestedRef.current = false;
+    if (abortControllerRef.current) {
+      try { abortControllerRef.current.abort(); } catch {}
+    }
+    abortControllerRef.current = new AbortController();
+    const signal = abortControllerRef.current.signal;
     try {
       // Build a short history (assistant can reference previous Q/A)
       const conversationHistory = messages.slice(-10).map(msg => ({
@@ -690,12 +729,13 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
         conversationHistory,
         pageContext: pageContext ? { slug: pageContext.slug, tenantId: pageContext.tenantId } : undefined,
         model: selectedModel
-      });
+      }, { signal });
       if (!response.ok) {
         const ct = response.headers.get('content-type') || '';
         const payload = ct.includes('application/json') ? await response.json().catch(() => ({})) : {};
         throw new Error(payload.error || `HTTP error! status: ${response.status}`);
       }
+      if (cancelRequestedRef.current) return;
       const data = await response.json();
       if (data.success && data.message) {
         // Optionally suppress the assistant message to avoid spam during batch generation
@@ -737,6 +777,7 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
                 componentsArray = [parsed];
               }
               if (componentsArray.length > 0) {
+                if (cancelRequestedRef.current) return;
                 if (onProposedComponents) {
                   onProposedComponents(componentsArray);
                 } else if (onUpdateComponents) {
@@ -752,6 +793,9 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
         throw new Error(data.error || 'Failed to get AI response');
       }
     } catch (err: any) {
+      if (err?.name === 'AbortError' || cancelRequestedRef.current) {
+        return;
+      }
       setError(err.message || 'Failed to get AI response.');
       if (!options?.silent) {
         setMessages((prev) => [
@@ -764,12 +808,15 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
         ]);
       }
     } finally {
-      setIsLoading(false);
+      if (!cancelRequestedRef.current) {
+        setIsLoading(false);
+      }
     }
   };
 
   // Generate output for one section (silent)
   const handleGenerateSingleOutput = async (componentJson: any) => {
+    if (cancelRequestedRef.current) return;
     const perComponentInstruction =
       `[Workflow: Copywriting Per-Section]\n` +
       `Propose improved copy for this single section only.\n` +
@@ -777,6 +824,7 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
       `Do not wrap in code fences. Do not change keys or remove fields.\n\n` +
       `Component JSON:\n${JSON.stringify(componentJson, null, 2)}`;
     await sendHiddenMessage(perComponentInstruction, { silent: true });
+    if (cancelRequestedRef.current) return;
     setMessages(prev => [
       ...prev,
       {
@@ -789,7 +837,7 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
 
   // Generate output for all sections by iterating each component silently
   const handleGenerateAllOutputs = async () => {
-    if (isLoading || isBatchGenerating) return;
+    if (isLoading || isBatchGenerating || cancelRequestedRef.current) return;
     const schemaComponents =
       (currentComponents && currentComponents.length > 0)
         ? currentComponents
@@ -809,6 +857,7 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
     ]);
     // Iterate per section with focused instructions
     for (let i = 0; i < schemaComponents.length; i++) {
+      if (cancelRequestedRef.current) break;
       const comp = schemaComponents[i];
       const perComponentInstruction =
         `[Workflow: Copywriting Per-Section]\n` +
@@ -820,10 +869,12 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
       await sendHiddenMessage(perComponentInstruction, { silent: true });
     }
     // Final notice
-    setMessages(prev => [
-      ...prev,
-      { id: (Date.now() + 2).toString(), role: 'assistant', content: 'Drafts prepared for all sections. Open any section to see the Output tab and apply changes.' }
-    ]);
+    if (!cancelRequestedRef.current) {
+      setMessages(prev => [
+        ...prev,
+        { id: (Date.now() + 2).toString(), role: 'assistant', content: 'Drafts prepared for all sections. Open any section to see the Output tab and apply changes.' }
+      ]);
+    }
     setIsBatchGenerating(false);
   };
 
