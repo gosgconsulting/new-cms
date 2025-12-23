@@ -411,13 +411,76 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
     }
 
     if (selectedComponentIndex !== null) {
+      // Show the section editor; below it, show the text contents extracted for this section
+      const componentForContents = selectedComponent ? [selectedComponent] : [];
+      const sectionContent = extractContentFromComponents(componentForContents as ComponentSchema[]);
       return (
-        <ComponentEditorPanel
-          component={selectedComponent}
-          componentIndex={selectedComponentIndex}
-          components={components}
-          onUpdate={updateComponent}
-        />
+        <>
+          <ComponentEditorPanel
+            component={selectedComponent}
+            componentIndex={selectedComponentIndex}
+            components={components}
+            onUpdate={updateComponent}
+          />
+          <Separator className="my-6" />
+          <div className="space-y-4">
+            <div className="border-b pb-2">
+              <h3 className="text-lg font-semibold flex items-center">
+                <FileText className="h-5 w-5 mr-2" />
+                Section Contents
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                Readable text from this section
+              </p>
+            </div>
+            {sectionContent.length === 0 ? (
+              <div className="text-sm text-muted-foreground">No text content found in this section.</div>
+            ) : (
+              <div className="prose prose-sm max-w-none">
+                {sectionContent.map((item, index) => {
+                  const key = `${item.componentId}-${index}`;
+                  switch (item.type) {
+                    case 'heading': {
+                      const HeadingTag = `h${item.level || 2}` as keyof JSX.IntrinsicElements;
+                      return (
+                        <HeadingTag
+                          key={key}
+                          className={`font-bold text-foreground ${
+                            item.level === 1 ? 'text-2xl mb-3' :
+                            item.level === 2 ? 'text-xl mb-2' :
+                            item.level === 3 ? 'text-lg mb-2' :
+                            'text-base mb-2'
+                          }`}
+                        >
+                          {item.text}
+                        </HeadingTag>
+                      );
+                    }
+                    case 'paragraph':
+                      return (
+                        <p key={key} className="text-foreground mb-3 leading-relaxed">
+                          {item.text}
+                        </p>
+                      );
+                    case 'list':
+                      return (
+                        <li key={key} className="text-foreground mb-2 ml-4 list-disc">
+                          {item.text}
+                        </li>
+                      );
+                    case 'text':
+                    default:
+                      return (
+                        <div key={key} className="text-foreground mb-2 px-3 py-2 rounded">
+                          <div className="mt-1">{item.text}</div>
+                        </div>
+                      );
+                  }
+                })}
+              </div>
+            )}
+          </div>
+        </>
       );
     }
 
@@ -493,31 +556,10 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
       <div className="flex-1 flex overflow-hidden relative">
         {/* Left Panel - Components List */}
         <div className="w-80 border-r bg-muted/20 flex flex-col">
-          <div className="p-4 border-b">
-            <div className="flex items-center justify-between">
-              <h3 className="font-semibold">Sections</h3>
-            </div>
-          </div>
 
           <ScrollArea className="flex-1">
             <div className="p-2 space-y-2">
-              {/* Contents Button */}
-              <Button
-                variant={showContents ? "default" : "ghost"}
-                className="w-full justify-start"
-                onClick={() => {
-                  setShowContents(!showContents);
-                  if (!showContents) {
-                    setShowSEOForm(false);
-                    setSelectedComponentIndex(null);
-                  }
-                }}
-              >
-                <FileText className="h-4 w-4 mr-2" />
-                Contents
-              </Button>
-
-              {/* SEO Settings Button */}
+              {/* SEO Settings first */}
               <Button
                 variant={showSEOForm ? "default" : "ghost"}
                 className="w-full justify-start"
@@ -525,6 +567,20 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
               >
                 <Settings className="h-4 w-4 mr-2" />
                 SEO Settings
+              </Button>
+
+              {/* Sections acts like old Contents (click to show contents panel) */}
+              <Button
+                variant={showContents ? "default" : "ghost"}
+                className="w-full justify-start"
+                onClick={() => {
+                  setShowContents(true);
+                  setShowSEOForm(false);
+                  setSelectedComponentIndex(null);
+                }}
+              >
+                <FileText className="h-4 w-4 mr-2" />
+                Sections
               </Button>
 
               <Separator className="my-2" />
