@@ -484,7 +484,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
   // Render right panel
   const renderRightPanel = () => {
     if (showContents) {
-      // Page-level view: SEO at top, then tabs for Original vs AI Assistant
+      // Page-level view with unified tabs: Original | Output (Output contains AI chat + drafted preview)
       const hasOutput = Array.isArray(proposedComponents) && proposedComponents.length > 0;
 
       return (
@@ -494,12 +494,11 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
           </div>
 
           <Tabs defaultValue={hasOutput ? "output" : "original"} className="w-full">
-            <div className="mb-4 flex items-center justify-between">
+            <div className="mb-4">
               <TabsList>
                 <TabsTrigger value="original">Original</TabsTrigger>
-                <TabsTrigger value="output">AI Assistant</TabsTrigger>
+                <TabsTrigger value="output">Output</TabsTrigger>
               </TabsList>
-              <span className="text-xs text-muted-foreground">Original shows current content; AI Assistant is the chat</span>
             </div>
 
             <TabsContent value="original">
@@ -507,6 +506,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
             </TabsContent>
 
             <TabsContent value="output">
+              {/* AI Assistant input at top */}
               <div className="mb-2">
                 <AIAssistantChat 
                   className="h-full w-full"
@@ -532,27 +532,14 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
                 </div>
               )}
 
-              {/* Inner tabs to compare page-level contents */}
-              <Tabs defaultValue={hasOutput ? "output-inner" : "original-inner"} className="w-full">
-                <div className="mb-3">
-                  <TabsList>
-                    <TabsTrigger value="original-inner">Original</TabsTrigger>
-                    <TabsTrigger value="output-inner">Output</TabsTrigger>
-                  </TabsList>
+              {/* Drafted output preview beneath the chat */}
+              {hasOutput ? (
+                <ContentsPanel components={proposedComponents as ComponentSchema[]} extractContentFromComponents={extractContentFromComponents} />
+              ) : (
+                <div className="p-4 rounded-lg border bg-muted/30 text-sm text-muted-foreground">
+                  No output drafts yet. Use Edit mode in the AI Assistant to generate drafts for sections.
                 </div>
-                <TabsContent value="original-inner">
-                  <ContentsPanel components={components} extractContentFromComponents={extractContentFromComponents} />
-                </TabsContent>
-                <TabsContent value="output-inner">
-                  {hasOutput ? (
-                    <ContentsPanel components={proposedComponents as ComponentSchema[]} extractContentFromComponents={extractContentFromComponents} />
-                  ) : (
-                    <div className="p-4 rounded-lg border bg-muted/30 text-sm text-muted-foreground">
-                      No output drafts yet. Use Edit mode in the AI assistant to generate drafts.
-                    </div>
-                  )}
-                </TabsContent>
-              </Tabs>
+              )}
             </TabsContent>
           </Tabs>
         </div>
@@ -564,9 +551,8 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
     }
 
     if (selectedComponentIndex !== null) {
-      // Build per-section data
+      // Per-section view with unified tabs: Original | Output (Output contains AI chat + drafted preview)
       const selected = selectedComponent;
-      const originalForSelected = originalComponents.find((c) => c.key === selected?.key) || null;
       const proposedForSelected = proposedComponents?.find((c) => c.key === selected?.key) || null;
       const hasOutput = Boolean(proposedForSelected);
       const otherDrafts = (proposedComponents || []).filter((c) => c.key !== selected?.key);
@@ -635,14 +621,13 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
         );
       };
 
-      // Always render tabs; AI Assistant tab contains the chat
       return (
         <div className="w-full">
           <Tabs defaultValue={hasOutput ? "output" : "original"} className="w-full">
             <div className="mb-4 flex items-center justify-between">
               <TabsList>
                 <TabsTrigger value="original">Original</TabsTrigger>
-                <TabsTrigger value="output">AI Assistant</TabsTrigger>
+                <TabsTrigger value="output">Output</TabsTrigger>
               </TabsList>
               <Button
                 onClick={() => {
@@ -664,7 +649,6 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
             </div>
 
             <TabsContent value="original" className="space-y-4">
-              {/* Original editor (interactive) */}
               <ComponentEditorPanel
                 component={selected}
                 componentIndex={selectedComponentIndex}
@@ -675,7 +659,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
             </TabsContent>
 
             <TabsContent value="output" className="space-y-4">
-              {/* Chat input at top */}
+              {/* AI Assistant input at top */}
               <div className="mb-2">
                 <AIAssistantChat 
                   className="h-full w-full"
@@ -701,77 +685,41 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
                 </div>
               )}
 
-              {/* Inner tabs to compare this section: Original vs Output */}
-              <Tabs defaultValue={hasOutput ? "output-inner" : "original-inner"} className="w-full mt-4">
-                <div className="mb-3 flex items-center justify-between">
-                  <TabsList>
-                    <TabsTrigger value="original-inner">Original</TabsTrigger>
-                    <TabsTrigger value="output-inner">Output</TabsTrigger>
-                  </TabsList>
-                  <Button
-                    onClick={() => {
-                      if (selectedComponentIndex !== null && proposedForSelected) {
-                        updateComponent(selectedComponentIndex, proposedForSelected);
-                        setProposedComponents((prev) =>
-                          prev ? prev.filter((c) => c.key !== proposedForSelected.key) : prev
-                        );
-                        toast.success('Applied output to this section');
-                      }
-                    }}
-                    variant="outline"
-                    size="sm"
-                    disabled={!proposedForSelected}
-                    title={proposedForSelected ? 'Apply output to this section' : 'No output available to apply'}
-                  >
-                    Apply Output
-                  </Button>
-                </div>
-                <TabsContent value="original-inner" className="space-y-4">
+              {/* Drafted section preview beneath the chat */}
+              {hasOutput ? (
+                <>
                   <ComponentEditorPanel
-                    component={selected}
+                    component={proposedForSelected}
                     componentIndex={selectedComponentIndex}
-                    components={components}
-                    onUpdate={updateComponent}
+                    components={proposedForSelected ? proposedComponents || components : components}
+                    onUpdate={() => { /* read-only */ }}
                   />
-                  {renderSectionContents(selected)}
-                </TabsContent>
-                <TabsContent value="output-inner" className="space-y-4">
-                  {hasOutput ? (
-                    <>
-                      <ComponentEditorPanel
-                        component={proposedForSelected}
-                        componentIndex={selectedComponentIndex}
-                        components={proposedForSelected ? proposedComponents || components : components}
-                        onUpdate={() => { /* read-only */ }}
-                      />
-                      {renderSectionContents(proposedForSelected as ComponentSchema)}
-                    </>
-                  ) : (
-                    <>
-                      <div className="p-4 rounded-lg border bg-muted/30 text-sm text-muted-foreground">
-                        No output draft for this section yet. Use Edit mode in the AI assistant while this section is focused.
-                      </div>
-                      {otherDrafts.length > 0 && (
-                        <div className="mt-4">
-                          <h4 className="font-semibold mb-2">Other drafted sections</h4>
-                          <Accordion type="single" collapsible className="w-full">
-                            {otherDrafts.map((comp) => (
-                              <AccordionItem key={comp.key || comp.type} value={comp.key || comp.type}>
-                                <AccordionTrigger>
-                                  {comp.type || comp.key || 'Section'}
-                                </AccordionTrigger>
-                                <AccordionContent>
-                                  {renderSectionContents(comp as ComponentSchema)}
-                                </AccordionContent>
-                              </AccordionItem>
-                            ))}
-                          </Accordion>
-                        </div>
-                      )}
-                    </>
+                  {renderSectionContents(proposedForSelected as ComponentSchema)}
+                </>
+              ) : (
+                <>
+                  <div className="p-4 rounded-lg border bg-muted/30 text-sm text-muted-foreground">
+                    No output draft for this section yet. Use Edit mode in the AI Assistant while this section is focused.
+                  </div>
+                  {otherDrafts.length > 0 && (
+                    <div className="mt-4">
+                      <h4 className="font-semibold mb-2">Other drafted sections</h4>
+                      <Accordion type="single" collapsible className="w-full">
+                        {otherDrafts.map((comp) => (
+                          <AccordionItem key={comp.key || comp.type} value={comp.key || comp.type}>
+                            <AccordionTrigger>
+                              {comp.type || comp.key || 'Section'}
+                            </AccordionTrigger>
+                            <AccordionContent>
+                              {renderSectionContents(comp as ComponentSchema)}
+                            </AccordionContent>
+                          </AccordionItem>
+                        ))}
+                      </Accordion>
+                    </div>
                   )}
-                </TabsContent>
-              </Tabs>
+                </>
+              )}
             </TabsContent>
           </Tabs>
         </div>
