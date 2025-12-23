@@ -17,6 +17,7 @@ import publicRoutes from './public.js';
 import usersRoutes from './users.js';
 import themeRoutes from './theme.js';
 import themeAdminRoutes from './theme-admin.js';
+import themesApiRoutes from './themes.js';
 import tenantsApiRoutes from './tenants-api.js';
 
 const router = express.Router();
@@ -44,6 +45,9 @@ router.use('/api/v1', authenticateTenantApiKey, publicRoutes);
 
 // Public tenant API routes (no authentication required for by-slug endpoint)
 router.use('/api/tenants', tenantsApiRoutes);
+
+// Public themes API routes
+router.use('/api/themes', themesApiRoutes);
 
 // All other API routes
 router.use('/api', authRoutes);

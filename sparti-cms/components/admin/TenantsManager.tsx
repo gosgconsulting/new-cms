@@ -25,6 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../auth/AuthProvider';
 import { api } from '../../utils/api';
 
@@ -52,15 +53,34 @@ const TenantsManager: React.FC = () => {
   const [fetchError, setFetchError] = useState<string | null>(null);
   const { toast } = useToast();
 
-  // Get available themes (from file system structure)
+  // Fetch themes from API
+  const { data: themesData = [], isLoading: themesLoading } = useQuery<Array<{ id: string; name: string; slug: string }>>({
+    queryKey: ['themes'],
+    queryFn: async () => {
+      try {
+        const response = await api.get('/api/themes');
+        if (response.ok) {
+          const data = await response.json();
+          return data.themes || [];
+        } else {
+          console.error('Failed to fetch themes');
+          return [];
+        }
+      } catch (error) {
+        console.error('Error fetching themes:', error);
+        return [];
+      }
+    },
+  });
+
+  // Get available themes (includes 'custom' option + themes from database)
   const getAvailableThemes = (): Array<{ value: string; label: string }> => {
-    // Read from sparti-cms/theme folder structure
-    // For now, hardcoded since we only have landingpage
-    // In the future, this could be an API call to list directories
-    return [
-      { value: 'custom', label: 'Custom' },
-      { value: 'landingpage', label: 'Landing Page' }
-    ];
+    const customOption = { value: 'custom', label: 'Custom' };
+    const dbThemes = themesData.map(theme => ({
+      value: theme.slug || theme.id,
+      label: theme.name || theme.slug
+    }));
+    return [customOption, ...dbThemes];
   };
 
   // Get theme display name from theme_id

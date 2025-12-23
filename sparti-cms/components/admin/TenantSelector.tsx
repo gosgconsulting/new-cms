@@ -33,14 +33,47 @@ export const TenantSelector: React.FC<TenantSelectorProps> = ({
   onAddNewTenant,
   mode = 'tenants'
 }) => {
-  // Get themes from file system (hardcoded for now, can be enhanced with API later)
+  // Fetch themes from API (with fallback to file system)
+  const { data: themesData = [], isLoading: themesLoading } = useQuery<Array<{ id: string; name: string; slug: string }>>({
+    queryKey: ['themes'],
+    queryFn: async () => {
+      try {
+        const response = await api.get('/api/themes');
+        if (response.ok) {
+          const data = await response.json();
+          const themes = data.themes || [];
+          
+          // If themes array is empty, the API might have failed silently
+          // The API should handle fallback, but we log it for debugging
+          if (themes.length === 0) {
+            console.log('[testing] No themes returned from API, but API call succeeded');
+          }
+          
+          return themes;
+        } else {
+          // API call failed, but we'll return empty array
+          // The API endpoint should handle file system fallback
+          console.error('[testing] Failed to fetch themes from API, status:', response.status);
+          return [];
+        }
+      } catch (error) {
+        // Network or other error - API endpoint should handle file system fallback
+        console.error('[testing] Error fetching themes:', error);
+        // Return empty array - the API should have handled fallback
+        return [];
+      }
+    },
+    enabled: mode === 'theme',
+    retry: 1, // Retry once on failure
+    retryDelay: 500,
+  });
+
+  // Get themes formatted as Tenant[] for compatibility
   const getThemes = (): Tenant[] => {
-    // Read from sparti-cms/theme folder structure
-    // For now, hardcoded since we only have landingpage
-    // In the future, this could be an API call to list directories
-    return [
-      { id: 'landingpage', name: 'Landing Page' }
-    ];
+    return themesData.map(theme => ({
+      id: theme.slug || theme.id,
+      name: theme.name || theme.slug
+    }));
   };
 
   // Fetch all tenants using react-query (same as CMSDashboard)
@@ -70,6 +103,7 @@ export const TenantSelector: React.FC<TenantSelectorProps> = ({
 
   // Get the list based on mode
   const items = mode === 'theme' ? getThemes() : tenants;
+  const isLoading = mode === 'theme' ? themesLoading : loading;
   const currentItem = items.find(t => t.id === currentTenantId);
 
   console.log('currentItem', currentTenantId, currentItem);
@@ -89,7 +123,7 @@ export const TenantSelector: React.FC<TenantSelectorProps> = ({
     );
   }
 
-  if (loading && mode === 'tenants') {
+  if (isLoading) {
     return (
       <div className="flex items-center gap-2 px-3 py-2 bg-gray-100 rounded-md">
         <Building2 className="h-4 w-4 text-gray-600" />

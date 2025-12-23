@@ -19,6 +19,7 @@ import {
 } from '../../sparti-cms/db/tenant-management.js';
 import { createPage } from '../../sparti-cms/db/modules/pages.js';
 import { updateSiteSchema } from '../../sparti-cms/db/modules/branding.js';
+import { getThemeBySlug } from '../../sparti-cms/services/themeSync.js';
 
 const router = express.Router();
 
@@ -491,6 +492,23 @@ router.post('/tenants', async (req, res) => {
     // Set theme_id: use theme value if provided and not 'custom', otherwise null
     const theme_id = template && template !== 'custom' ? template : null;
     
+    // Validate theme exists if provided
+    if (theme_id) {
+      const themeRecord = await getThemeBySlug(theme_id);
+      if (!themeRecord) {
+        return res.status(400).json({ 
+          error: 'Invalid theme',
+          message: `Theme "${theme_id}" does not exist in the themes table. Please ensure the theme is synced from the file system.`
+        });
+      }
+      if (!themeRecord.is_active) {
+        return res.status(400).json({
+          error: 'Theme is not active',
+          message: `Theme "${theme_id}" exists but is marked as inactive.`
+        });
+      }
+    }
+    
     const newTenant = await createTenant({ name, theme_id });
     
     res.status(201).json(newTenant);
@@ -514,6 +532,22 @@ router.post('/tenants/:id/import-theme', authenticateUser, async (req, res) => {
     const tenant = await getTenantById(tenantId);
     if (!tenant) {
       return res.status(404).json({ error: 'Tenant not found' });
+    }
+    
+    // Validate theme exists in themes table
+    const themeRecord = await getThemeBySlug(theme);
+    if (!themeRecord) {
+      return res.status(404).json({ 
+        error: 'Theme not found',
+        message: `Theme "${theme}" does not exist in the themes table. Please ensure the theme is synced from the file system.`
+      });
+    }
+    
+    if (!themeRecord.is_active) {
+      return res.status(400).json({
+        error: 'Theme is not active',
+        message: `Theme "${theme}" exists but is marked as inactive.`
+      });
     }
     
     // Update tenant's theme_id if not already set

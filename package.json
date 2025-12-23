@@ -21,6 +21,8 @@
     "migrate": "node scripts/migrations/migrate-railway-db.js",
     "migrate:railway": "npm run sequelize:migrate:production",
     "migrate:template-id": "node scripts/migrations/add-template-id-to-tenants.js",
+    "register:landingpage": "node scripts/setup/register-landingpage-theme.js",
+    "test:theme-fallback": "node scripts/test/test-theme-filesystem-fallback.js",
     "sequelize": "sequelize",
     "sequelize:migrate": "sequelize db:migrate",
     "sequelize:migrate:production": "NODE_ENV=production sequelize db:migrate",

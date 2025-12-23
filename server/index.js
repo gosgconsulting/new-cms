@@ -1,6 +1,7 @@
 import app from './app.js';
 import { PORT } from './config/constants.js';
 import { initializeDatabaseInBackground } from './utils/database.js';
+import { syncThemesFromFileSystem } from '../sparti-cms/services/themeSync.js';
 
 // Keep the process alive
 process.on('SIGINT', () => {
@@ -26,7 +27,19 @@ function startServer() {
   });
   
   // Initialize database in the background (non-blocking)
-  initializeDatabaseInBackground();
+  initializeDatabaseInBackground().then(() => {
+    // After database is initialized, sync themes from file system
+    console.log('[testing] Database initialized, syncing themes...');
+    syncThemesFromFileSystem().then((result) => {
+      if (result.success) {
+        console.log(`[testing] Theme sync completed: ${result.message}`);
+      } else {
+        console.error(`[testing] Theme sync failed: ${result.message}`);
+      }
+    }).catch((error) => {
+      console.error('[testing] Error syncing themes:', error);
+    });
+  });
 }
 
 // Start the server

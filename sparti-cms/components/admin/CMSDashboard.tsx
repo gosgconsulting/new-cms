@@ -16,6 +16,7 @@ import {
   ArrowRight,
   Map,
   Building2,
+  Palette,
 } from 'lucide-react';
 import { useAuth } from '../auth/AuthProvider';
 import { motion } from 'framer-motion';
@@ -46,6 +47,7 @@ import SMTPManager from './SMTPManager';
 import MyAccountPage from './MyAccountPage';
 import UsersManager from './UsersManager';
 import TenantsManager from './TenantsManager';
+import ThemesManager from './ThemesManager';
 
 import BrandingSettingsPage from './BrandingSettingsPage';
 import ButtonSettingsPage from './ButtonSettingsPage';
@@ -281,6 +283,8 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({ hideSidebar = false }) => {
         return <SitemapManager />;
       case 'tenants':
         return <TenantsManager />;
+      case 'themes':
+        return <ThemesManager />;
       default:
         return <div className="text-muted-foreground">Select a section from the sidebar</div>;
     }
@@ -293,7 +297,8 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({ hideSidebar = false }) => {
     { id: 'settings', label: 'Settings', icon: SettingsIcon },
     { id: 'developer', label: 'Developer', icon: Code },
     { id: 'tenants', label: 'Tenants', icon: Building2 },
-  ].filter(item => user?.is_super_admin || item.id !== 'tenants');
+    { id: 'themes', label: 'Themes', icon: Palette },
+  ].filter(item => user?.is_super_admin || (item.id !== 'tenants' && item.id !== 'themes'));
 
   const usersItems = [
     { id: 'my-account', label: 'My Account', icon: Users },
