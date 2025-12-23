@@ -506,7 +506,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
       const hasOutput = Array.isArray(proposedComponents) && proposedComponents.length > 0;
 
       return (
-        <div className="space-y-6" key={Array.isArray(proposedComponents) && proposedComponents.length > 0 ? 'output' : 'original'}>
+        <div className="space-y-6" key={Array.isArray(proposedComponents) && proposedComponents.length > 0 ? 'page-output' : 'page-original'}>
           <div className="border-b pb-4">
             <SEOForm pageData={pageData} onFieldChange={updateField} />
           </div>
@@ -567,9 +567,19 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
     }
 
     if (selectedComponentIndex !== null) {
-      // Per-section view
+      // Per-section view with unified tabs: Original | Output (Output contains AI chat + drafted preview)
       const selected = selectedComponent;
-      const proposedForSelected = proposedComponents?.find((c) => c.key === selected?.key) || null;
+      // Resolve the draft for this section by key, then by type (case-insensitive), then by index
+      let proposedForSelected =
+        (proposedComponents?.find((c) => c.key === selected?.key) ||
+         proposedComponents?.find((c) => (c.type || '').toLowerCase() === (selected?.type || '').toLowerCase()) ||
+         null);
+      if (!proposedForSelected && proposedComponents && components && selectedComponentIndex >= 0) {
+        // Fallback to index-based match if arrays align
+        if (proposedComponents.length === components.length) {
+          proposedForSelected = proposedComponents[selectedComponentIndex] || null;
+        }
+      }
       const hasOutput = Boolean(proposedForSelected);
 
       // Helper to render contents for a given component
@@ -637,7 +647,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
       };
 
       return (
-        <div className="w-full">
+        <div className="w-full" key={`${selected?.key}-${hasOutput ? 'output' : 'original'}`}>
           {/* Apply button row (kept, no tabs here) */}
           <div className="mb-4 flex items-center justify-end">
             <Button
@@ -709,13 +719,9 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
                 )}
 
                 {/* Drafted content preview below the chat */}
-                {hasOutput ? (
-                  renderSectionContents(proposedForSelected as ComponentSchema)
-                ) : (
-                  <div className="p-4 rounded-lg border bg-muted/30 text-sm text-muted-foreground">
-                    No output draft for this section yet. Use Edit mode in the AI Assistant on Sections to generate one.
-                  </div>
-                )}
+                {hasOutput
+                  ? renderSectionContents(proposedForSelected as ComponentSchema)
+                  : renderSectionContents(selected)}
               </TabsContent>
             </Tabs>
           </div>
