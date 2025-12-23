@@ -262,6 +262,18 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
     onChange?.(updatedSchema);
   };
 
+  // Replace an entire array item object (used when editing schema-like or grouped items)
+  const setArrayItemObject = (itemIndex: number, arrayProp: string, arrayItemIndex: number, updatedObj: Record<string, unknown>) => {
+    const updatedItems = [...safeSchema.items];
+    const item = updatedItems[itemIndex];
+    const currentArray = [...(((item as unknown as Record<string, unknown>)[arrayProp] as Record<string, unknown>[]) || [])];
+    currentArray[arrayItemIndex] = updatedObj;
+    const updatedItem = { ...item, [arrayProp]: currentArray };
+    updatedItems[itemIndex] = updatedItem;
+    const updatedSchema = { ...safeSchema, items: updatedItems };
+    onChange?.(updatedSchema);
+  };
+
   // Helper function to check if an array item is an image/slide
   const isImageItem = (arrayProp: string, arrayItem: Record<string, unknown>) => {
     return (arrayProp === 'slides' || arrayProp === 'images') && 
@@ -446,86 +458,144 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
                             </button>
                           </div>
                         ) : (
-                          <div className="space-y-4">
-                            {Object.entries(currentArrayItem)
-                              .filter(([key]) => {
-                                const technicalFields = [
-                                  'key', 'type', 'id', 'props', 'items', 'className', 
-                                  'style', 'attributes', 'metadata', 'schema', 'config'
-                                ];
-                                return !technicalFields.includes(key.toLowerCase());
-                              })
-                              .map(([key, value]) => (
-                                <div key={key}>
-                                  <Label className="text-sm font-medium mb-2 block">
-                                    {key === 'content' ? 'Text' :
-                                     key === 'link' ? 'URL' :
-                                     key === 'src' ? 'Image URL' :
-                                     key === 'alt' ? 'Description' :
-                                     key === 'href' ? 'Link URL' :
-                                     key.charAt(0).toUpperCase() + key.slice(1)}
-                                  </Label>
-                                  {typeof value === 'string' ? (
-                                    (key.toLowerCase().includes('image') || key === 'src' || key === 'url') ? (
-                                      <div className="space-y-3">
-                                        <input
-                                          type="url"
-                                          value={value}
-                                          onChange={(e) => updateArrayItem(index, arrayProp, currentTab, key, e.target.value)}
-                                          className="w-full p-2 border rounded-md"
-                                          placeholder="Enter image URL"
-                                        />
-                                      </div>
-                                    ) : (
-                                      value.length > 100 ? (
-                                        <textarea
-                                          value={value}
-                                          onChange={(e) => updateArrayItem(index, arrayProp, currentTab, key, e.target.value)}
-                                          className="w-full p-2 border rounded-md resize-vertical min-h-[80px]"
-                                          placeholder={`Enter ${key === 'content' ? 'text' : key === 'link' || key === 'href' ? 'URL' : key}`}
-                                        />
-                                      ) : (
-                                        <input
-                                          type={key === 'link' || key === 'href' || key === 'src' ? 'url' : 'text'}
-                                          value={value}
-                                          onChange={(e) => updateArrayItem(index, arrayProp, currentTab, key, e.target.value)}
-                                          className="w-full p-2 border rounded-md"
-                                          placeholder={`Enter ${key === 'content' ? 'text' : key === 'link' || key === 'href' ? 'URL' : key}`}
-                                        />
-                                      )
-                                    )
-                                  ) : typeof value === 'number' ? (
-                                    <input
-                                      type="number"
-                                      value={value}
-                                      onChange={(e) => updateArrayItem(index, arrayProp, currentTab, key, Number(e.target.value))}
-                                      className="w-full p-2 border rounded-md"
-                                      placeholder={`Enter ${key}`}
-                                    />
-                                  ) : typeof value === 'boolean' ? (
-                                    <label className="flex items-center gap-2">
-                                      <input
-                                        type="checkbox"
-                                        checked={value}
-                                        onChange={(e) => updateArrayItem(index, arrayProp, currentTab, key, e.target.checked)}
-                                        className="rounded"
-                                      />
-                                      <span className="text-sm">Enable {key}</span>
-                                    </label>
-                                  ) : null}
+                          (() => {
+                            const obj = currentArrayItem as Record<string, unknown>;
+                            const isSchemaItemLike = typeof obj?.['type'] === 'string' || typeof obj?.['key'] === 'string';
+                            const hasNestedItems = Array.isArray(obj?.['items']);
+
+                            // If the array element is itself a SchemaItem, render it with ItemEditor
+                            if (isSchemaItemLike && !hasNestedItems) {
+                              return (
+                                <div className="space-y-4">
+                                  <ItemEditor
+                                    item={obj as unknown as SchemaItem}
+                                    onChange={(updated) =>
+                                      setArrayItemObject(index, arrayProp, currentTab, updated as unknown as Record<string, unknown>)
+                                    }
+                                    onRemove={() => removeArrayItem(index, arrayProp, currentTab)}
+                                  />
                                 </div>
-                              ))}
-                            
-                            <div className="flex justify-end pt-2 border-t">
-                              <Button
-                                variant="destructive"
-                                size="sm"
-                                onClick={() => removeArrayItem(index, arrayProp, currentTab)}
-                              >
-                                <Trash2 className="h-4 w-4 mr-1" /> Remove
-                              </Button>
-                            </div>
-                          </div>
+                              );
+                            }
+
+                            // If the array element is a grouped item with nested 'items', render all nested components
+                            if (hasNestedItems) {
+                              const nestedItems = (obj['items'] as unknown as SchemaItem[]) || [];
+                              return (
+                                <div className="space-y-4">
+                                  {nestedItems.map((nestedItem, nestedIndex) => (
+                                    <div key={nestedItem.key ?? `${nestedItem.type}-${nestedIndex}`} className="border rounded p-3 bg-slate-50">
+                                      <ItemEditor
+                                        item={nestedItem}
+                                        onChange={(updatedNested) => {
+                                          const updatedNestedItems = [...nestedItems];
+                                          updatedNestedItems[nestedIndex] = updatedNested;
+                                          setArrayItemObject(index, arrayProp, currentTab, { ...obj, items: updatedNestedItems });
+                                        }}
+                                        onRemove={() => {
+                                          const updatedNestedItems = nestedItems.filter((_, i) => i !== nestedIndex);
+                                          setArrayItemObject(index, arrayProp, currentTab, { ...obj, items: updatedNestedItems });
+                                        }}
+                                      />
+                                    </div>
+                                  ))}
+                                  <div className="flex justify-end pt-2 border-t">
+                                    <Button
+                                      variant="destructive"
+                                      size="sm"
+                                      onClick={() => removeArrayItem(index, arrayProp, currentTab)}
+                                    >
+                                      <Trash2 className="h-4 w-4 mr-1" /> Remove
+                                    </Button>
+                                  </div>
+                                </div>
+                              );
+                            }
+
+                            // Fallback: simple object with primitive fields (old behavior)
+                            return (
+                              <div className="space-y-4">
+                                {Object.entries(obj)
+                                  .filter(([key]) => {
+                                    const technicalFields = [
+                                      'key', 'type', 'id', 'props', 'items', 'className', 
+                                      'style', 'attributes', 'metadata', 'schema', 'config'
+                                    ];
+                                    return !technicalFields.includes(key.toLowerCase());
+                                  })
+                                  .map(([key, value]) => (
+                                    <div key={key}>
+                                      <Label className="text-sm font-medium mb-2 block">
+                                        {key === 'content' ? 'Text' :
+                                         key === 'link' ? 'URL' :
+                                         key === 'src' ? 'Image URL' :
+                                         key === 'alt' ? 'Description' :
+                                         key === 'href' ? 'Link URL' :
+                                         key.charAt(0).toUpperCase() + key.slice(1)}
+                                      </Label>
+                                      {typeof value === 'string' ? (
+                                        (key.toLowerCase().includes('image') || key === 'src' || key === 'url') ? (
+                                          <div className="space-y-3">
+                                            <input
+                                              type="url"
+                                              value={value}
+                                              onChange={(e) => updateArrayItem(index, arrayProp, currentTab, key, e.target.value)}
+                                              className="w-full p-2 border rounded-md"
+                                              placeholder="Enter image URL"
+                                            />
+                                          </div>
+                                        ) : (
+                                          value.length > 100 ? (
+                                            <textarea
+                                              value={value}
+                                              onChange={(e) => updateArrayItem(index, arrayProp, currentTab, key, e.target.value)}
+                                              className="w-full p-2 border rounded-md resize-vertical min-h-[80px]"
+                                              placeholder={`Enter ${key === 'content' ? 'text' : key === 'link' || key === 'href' ? 'URL' : key}`}
+                                            />
+                                          ) : (
+                                            <input
+                                              type={key === 'link' || key === 'href' || key === 'src' ? 'url' : 'text'}
+                                              value={value}
+                                              onChange={(e) => updateArrayItem(index, arrayProp, currentTab, key, e.target.value)}
+                                              className="w-full p-2 border rounded-md"
+                                              placeholder={`Enter ${key === 'content' ? 'text' : key === 'link' || key === 'href' ? 'URL' : key}`}
+                                            />
+                                          )
+                                        )
+                                      ) : typeof value === 'number' ? (
+                                        <input
+                                          type="number"
+                                          value={value}
+                                          onChange={(e) => updateArrayItem(index, arrayProp, currentTab, key, Number(e.target.value))}
+                                          className="w-full p-2 border rounded-md"
+                                          placeholder={`Enter ${key}`}
+                                        />
+                                      ) : typeof value === 'boolean' ? (
+                                        <label className="flex items-center gap-2">
+                                          <input
+                                            type="checkbox"
+                                            checked={value}
+                                            onChange={(e) => updateArrayItem(index, arrayProp, currentTab, key, e.target.checked)}
+                                            className="rounded"
+                                          />
+                                          <span className="text-sm">Enable {key}</span>
+                                        </label>
+                                      ) : null}
+                                    </div>
+                                  ))}
+                                
+                                <div className="flex justify-end pt-2 border-t">
+                                  <Button
+                                    variant="destructive"
+                                    size="sm"
+                                    onClick={() => removeArrayItem(index, arrayProp, currentTab)}
+                                  >
+                                    <Trash2 className="h-4 w-4 mr-1" /> Remove
+                                  </Button>
+                                </div>
+                              </div>
+                            );
+                          })()
                         )}
                       </div>
                     );
@@ -534,9 +604,9 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
               </div>
             </div>
           )}
-      </div>
-    );
-  }
+        </div>
+      );
+    }
 
     // Regular item without arrays
   return (
