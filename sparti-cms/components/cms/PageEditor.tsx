@@ -53,9 +53,6 @@ const ContentsPanel: React.FC<ContentsPanelProps> = ({ components, extractConten
           <FileText className="h-6 w-6 mr-2" />
           Page Contents
         </h2>
-        <p className="text-muted-foreground mt-1">
-          Readable content extracted from your page components
-        </p>
       </div>
 
       <div className="prose prose-sm max-w-none space-y-3">
@@ -614,7 +611,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
               {/* Sections acts like old Contents (click to show contents panel) */}
               <Button
                 variant={showContents ? "default" : "ghost"}
-                className="w-full justify-start"
+                className="w-full justify-start text-lg font-semibold py-3"
                 onClick={() => {
                   setShowContents(true);
                   setShowSEOForm(false);
@@ -623,7 +620,6 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
                   setSelectedComponentForAI(null);
                 }}
               >
-                <FileText className="h-4 w-4 mr-2" />
                 Sections
               </Button>
 
