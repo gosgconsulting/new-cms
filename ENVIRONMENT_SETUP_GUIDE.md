@@ -2,9 +2,35 @@
 
 This guide explains how to set up environment variables for your Sparti CMS to work with Railway PostgreSQL both locally and in production.
 
+> **🔒 Security Note**: All API keys and secrets should be stored securely on Railway. See [RAILWAY_SECURE_ENV_SETUP.md](./docs/RAILWAY_SECURE_ENV_SETUP.md) for the recommended secure setup using Railway variables.
+
 ## Quick Setup
 
-### 1. Automatic Setup (Recommended)
+### 1. Secure Setup with Railway Variables (Recommended) ⭐
+
+**Best Practice**: Store all secrets securely on Railway and sync locally:
+
+```bash
+# Install Railway CLI
+npm install -g @railway/cli
+
+# Login and link project
+railway login
+railway link
+
+# Sync variables from Railway
+npm run env:sync
+```
+
+This approach:
+- ✅ Stores all secrets securely on Railway
+- ✅ No secrets in code or git
+- ✅ Uses Railway's `${{}}` variable references
+- ✅ Automatically syncs for local development
+
+See [RAILWAY_SECURE_ENV_SETUP.md](./docs/RAILWAY_SECURE_ENV_SETUP.md) for detailed instructions.
+
+### 2. Automatic Setup (Legacy)
 
 Run the setup script to automatically create your `.env` file:
 
@@ -13,6 +39,8 @@ node setup-env.js
 ```
 
 This will create a `.env` file with all the necessary Railway PostgreSQL configuration.
+
+**Note**: This method includes placeholder API keys. Replace them with actual keys or use the Railway sync method above.
 
 ### 2. Manual Setup
 
