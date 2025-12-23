@@ -1,8 +1,7 @@
 import React, { memo } from 'react';
-import { GripVertical, Send } from 'lucide-react';
+import { GripVertical } from 'lucide-react';
 import { ComponentSchema } from '../../../types/schema';
 import { getComponentTypeDisplayName } from '../../../utils/componentHelpers';
-import { Button } from '../../../../src/components/ui/button';
 
 interface ComponentListItemProps {
   component: ComponentSchema;
@@ -21,10 +20,7 @@ export const ComponentListItem = memo<ComponentListItemProps>(({
 }) => {
   const handleClick = () => {
     onSelect(index);
-  };
-
-  const handleSendToAI = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent triggering the select action
+    // Automatically send to AI chat when section is selected
     if (onSendToAI) {
       onSendToAI(component);
     }
@@ -46,17 +42,6 @@ export const ComponentListItem = memo<ComponentListItemProps>(({
             {getComponentTypeDisplayName(component.type)}
           </p>
         </div>
-        {onSendToAI && (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-6 w-6 flex-shrink-0"
-            onClick={handleSendToAI}
-            title="Send component to Editor"
-          >
-            <Send className="h-3.5 w-3.5" />
-          </Button>
-        )}
       </div>
     </div>
   );

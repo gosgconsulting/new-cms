@@ -184,9 +184,9 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
   const [saving, setSaving] = useState(false);
   const [components, setComponents] = useState<ComponentSchema[]>([]);
   const [selectedComponentIndex, setSelectedComponentIndex] = useState<number | null>(null);
+  const [selectedComponentForAI, setSelectedComponentForAI] = useState<ComponentSchema | null>(null);
   const [showSEOForm, setShowSEOForm] = useState(false);
   const [showContents, setShowContents] = useState(false);
-  const [selectedComponentForAI, setSelectedComponentForAI] = useState<ComponentSchema | null>(null);
 
   // JSON Editor hook
   const {

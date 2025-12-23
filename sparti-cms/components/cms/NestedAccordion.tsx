@@ -138,34 +138,6 @@ export const NestedAccordion: React.FC<NestedAccordionProps> = ({
     }
   };
 
-  const renderDirectFields = () => {
-    if (!component.items || component.items.length === 0) {
-      return (
-        <div className="text-center py-4 text-muted-foreground">
-          <p className="text-sm">No fields to edit</p>
-        </div>
-      );
-    }
-
-    return (
-      <div className="space-y-4">
-        {component.items.map((item, index) => (
-          <SchemaItemEditor
-            key={`${item.key}-${index}`}
-            item={item}
-            onChange={(updatedItem) => {
-              const updatedComponent = { ...component };
-              const updatedItems = [...updatedComponent.items];
-              updatedItems[index] = updatedItem;
-              updatedComponent.items = updatedItems;
-              onComponentChange(updatedComponent);
-            }}
-            path={[componentIndex, index]}
-          />
-        ))}
-      </div>
-    );
-  };
 
   const renderArrayCards = () => {
     return (
@@ -252,7 +224,7 @@ export const NestedAccordion: React.FC<NestedAccordionProps> = ({
       
       {isExpanded && (
         <CardContent className="pt-0">
-          {hasArrays ? renderArrayCards() : renderDirectFields()}
+          {renderArrayCards()}
         </CardContent>
       )}
     </Card>

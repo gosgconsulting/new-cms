@@ -14,6 +14,7 @@ interface ImageEditorProps {
     alignment: string;
   }) => void;
   className?: string;
+  simpleMode?: boolean; // Simple mode (only image + change/delete) - defaults to true
 }
 
 export const ImageEditor: React.FC<ImageEditorProps> = ({
@@ -24,7 +25,8 @@ export const ImageEditor: React.FC<ImageEditorProps> = ({
   onTitleChange,
   onAltChange,
   onSettingsChange,
-  className = ''
+  className = '',
+  simpleMode = true // Default to simple mode for ALL images
 }) => {
   const [displaySize, setDisplaySize] = useState<string>('full');
   const [alignment, setAlignment] = useState<string>('left');
@@ -194,64 +196,68 @@ export const ImageEditor: React.FC<ImageEditorProps> = ({
         </div>
       )}
       
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Image Title
-        </label>
-        <input
-          type="text"
-          value={title}
-          onChange={handleTitleChange}
-          className="w-full p-2 border border-gray-300 rounded-md"
-          placeholder="Enter image title (will be used as slug)"
-        />
-      </div>
-      
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Alt Text
-        </label>
-        <input
-          type="text"
-          value={alt}
-          onChange={handleAltChange}
-          className="w-full p-2 border border-gray-300 rounded-md"
-          placeholder="Descriptive text for accessibility"
-        />
-      </div>
-      
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Image Settings
-        </label>
-        <div className="grid grid-cols-2 gap-4">
+      {!simpleMode && (
+        <>
           <div>
-            <label className="block text-xs text-gray-600 mb-1">Display Size</label>
-            <select 
-              value={displaySize}
-              onChange={handleDisplaySizeChange}
-              className="w-full p-2 border border-gray-300 rounded-md text-sm"
-            >
-              <option value="full">Full Width</option>
-              <option value="medium">Medium</option>
-              <option value="small">Small</option>
-              <option value="thumbnail">Thumbnail</option>
-            </select>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Image Title
+            </label>
+            <input
+              type="text"
+              value={title}
+              onChange={handleTitleChange}
+              className="w-full p-2 border border-gray-300 rounded-md"
+              placeholder="Enter image title (will be used as slug)"
+            />
           </div>
+          
           <div>
-            <label className="block text-xs text-gray-600 mb-1">Alignment</label>
-            <select 
-              value={alignment}
-              onChange={handleAlignmentChange}
-              className="w-full p-2 border border-gray-300 rounded-md text-sm"
-            >
-              <option value="left">Left</option>
-              <option value="center">Center</option>
-              <option value="right">Right</option>
-            </select>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Alt Text
+            </label>
+            <input
+              type="text"
+              value={alt}
+              onChange={handleAltChange}
+              className="w-full p-2 border border-gray-300 rounded-md"
+              placeholder="Descriptive text for accessibility"
+            />
           </div>
-        </div>
-      </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Image Settings
+            </label>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs text-gray-600 mb-1">Display Size</label>
+                <select 
+                  value={displaySize}
+                  onChange={handleDisplaySizeChange}
+                  className="w-full p-2 border border-gray-300 rounded-md text-sm"
+                >
+                  <option value="full">Full Width</option>
+                  <option value="medium">Medium</option>
+                  <option value="small">Small</option>
+                  <option value="thumbnail">Thumbnail</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs text-gray-600 mb-1">Alignment</label>
+                <select 
+                  value={alignment}
+                  onChange={handleAlignmentChange}
+                  className="w-full p-2 border border-gray-300 rounded-md text-sm"
+                >
+                  <option value="left">Left</option>
+                  <option value="center">Center</option>
+                  <option value="right">Right</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };

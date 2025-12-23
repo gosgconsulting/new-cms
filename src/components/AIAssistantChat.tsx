@@ -1,9 +1,10 @@
-import React, { useState, useRef, useEffect } from "react";
-import { MessageCircle, Loader2, ChevronRight, ChevronLeft } from "lucide-react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
+import { MessageCircle, Loader2, ChevronRight, ChevronLeft, Image, Type } from "lucide-react";
 import { PromptBox } from "@/components/ui/chatgpt-prompt-input";
 import { cn } from "@/lib/utils";
 import api from "../../sparti-cms/utils/api";
 import { useAuth } from "../../sparti-cms/components/auth/AuthProvider";
+import { getAvailableActions } from "../../sparti-cms/utils/componentSchemaAnalyzer";
 
 interface PageContext {
   slug: string;
@@ -121,6 +122,14 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps> = ({ className, pag
     loadPageContext();
   }, [pageContext?.slug, pageContext?.pageName, pageContext?.tenantId, currentTenantId]);
 
+  // Analyze component for available actions
+  const availableActions = useMemo(() => {
+    if (!focusedComponentJSON) {
+      return { hasImages: false, hasText: false };
+    }
+    return getAvailableActions(focusedComponentJSON);
+  }, [focusedComponentJSON]);
+
   // Handle component selection from left panel
   useEffect(() => {
     if (selectedComponentJSON) {
@@ -167,7 +176,7 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps> = ({ className, pag
         onComponentSelected(selectedComponentJSON);
       }
     }
-  }, [selectedComponentJSON, onComponentSelected]);
+  }, [selectedComponentJSON, onComponentSelected, currentComponents]);
 
   // Component selector: Find iframe and inject selector script
   useEffect(() => {
@@ -457,12 +466,9 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps> = ({ className, pag
     return () => window.removeEventListener('toggle-component-selector', handleToggle as EventListener);
   }, []);
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const messageInput = event.currentTarget.querySelector('textarea') as HTMLTextAreaElement;
-    const message = messageInput?.value.trim();
-
-    if (!message || isLoading) {
+  // Helper function to submit a message programmatically
+  const submitMessage = async (message: string) => {
+    if (!message.trim() || isLoading) {
       return;
     }
 
@@ -477,10 +483,6 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps> = ({ className, pag
     setError(null);
     setIsLoading(true);
 
-    // Clear the input
-    messageInput.value = '';
-    messageInput.dispatchEvent(new Event('input', { bubbles: true }));
-
     try {
       // Prepare conversation history (last 10 messages to avoid token limits)
       const conversationHistory = messages.slice(-10).map(msg => ({
@@ -494,11 +496,11 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps> = ({ className, pag
         content: message
       });
 
-      // Get active tools from textarea data attribute
-      const activeToolsString = (messageInput as HTMLElement).dataset.selectedTools || '';
+      // Get active tools from textarea data attribute (if available)
+      const messageInput = document.querySelector('textarea[data-selector-active]') as HTMLTextAreaElement;
+      const activeToolsString = messageInput?.dataset.selectedTools || '';
       const activeTools = activeToolsString ? activeToolsString.split(',') : [];
-      // Get selected model from textarea data attribute
-      const selectedModel = (messageInput as HTMLElement).dataset.selectedModel || 'claude-3-5-haiku-20241022';
+      const selectedModel = messageInput?.dataset.selectedModel || 'claude-3-5-haiku-20241022';
 
       // Build message with selected components context
       let enhancedMessage = message;
@@ -515,7 +517,6 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps> = ({ className, pag
       }
 
       // Build page context with current components if available
-      // Use try-catch to handle any JSON parsing errors gracefully
       let finalPageContext = undefined;
       try {
         if (pageContextData) {
@@ -526,7 +527,6 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps> = ({ className, pag
           };
         }
 
-        // If currentComponents are provided, use them instead of (or merge with) pageContextData layout
         if (currentComponents && currentComponents.length > 0) {
           finalPageContext = {
             ...finalPageContext,
@@ -536,31 +536,27 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps> = ({ className, pag
           } as any;
         }
 
-        // If a component is focused from left panel, include it in the context
         if (focusedComponentJSON) {
           if (!finalPageContext) {
             finalPageContext = {} as any;
           }
           finalPageContext.focusedComponent = focusedComponentJSON;
-          // Add focused component info to the message with hierarchy
           try {
             const componentPath = componentHierarchy.length > 1 ? componentHierarchy.join(' > ') : (focusedComponentJSON.type || focusedComponentJSON.key || 'Component');
             enhancedMessage = `[Focused Component: ${componentPath}]\n\nComponent JSON:\n${JSON.stringify(focusedComponentJSON, null, 2)}\n\n---\n\nUser Question: ${enhancedMessage}`;
           } catch (jsonError) {
             console.warn('[testing] Error stringifying focused component, continuing without it:', jsonError);
-            // Continue without the focused component JSON if it fails to stringify
           }
         }
       } catch (contextError) {
         console.warn('[testing] Error building page context, continuing without it:', contextError);
-        // Continue without page context if there's an error
         finalPageContext = undefined;
       }
 
       // Call Claude API with page context
       const response = await api.post('/api/ai-assistant/chat', {
         message: enhancedMessage,
-        conversationHistory: conversationHistory.slice(0, -1), // Exclude current message from history
+        conversationHistory: conversationHistory.slice(0, -1),
         pageContext: finalPageContext,
         activeTools: activeTools.length > 0 ? activeTools : undefined,
         selectedComponents: selectedComponents.length > 0 ? selectedComponents : undefined,
@@ -568,7 +564,6 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps> = ({ className, pag
       });
 
       if (!response.ok) {
-        // Check if response is HTML (error page)
         const contentType = response.headers.get('content-type');
         if (contentType && contentType.includes('text/html')) {
           const errorText = await response.text().catch(() => '');
@@ -578,7 +573,6 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps> = ({ className, pag
         throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
       }
 
-      // Check if response is actually JSON
       const contentType = response.headers.get('content-type');
       if (!contentType || !contentType.includes('application/json')) {
         const errorText = await response.text().catch(() => '');
@@ -598,18 +592,15 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps> = ({ className, pag
         // Try to extract and apply JSON from the response if callbacks are provided
         if (onUpdateComponents) {
           try {
-            // Try to extract JSON from markdown code blocks (most common format)
             let jsonString: string | null = null;
             const jsonMatch = data.message.match(/```(?:json)?\s*(\{[\s\S]*\})\s*```/);
             if (jsonMatch && jsonMatch[1]) {
               jsonString = jsonMatch[1];
             } else {
-              // Try to find JSON object directly (with components property)
               const directJsonMatch = data.message.match(/\{[\s\S]*"components"[\s\S]*\}/);
               if (directJsonMatch) {
                 jsonString = directJsonMatch[0];
               } else {
-                // Try to find array format
                 const arrayMatch = data.message.match(/\[\s*\{[\s\S]*\}\s*\]/);
                 if (arrayMatch) {
                   jsonString = arrayMatch[0];
@@ -618,10 +609,7 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps> = ({ className, pag
             }
 
             if (jsonString) {
-              // Parse and validate JSON
               const parsed = JSON.parse(jsonString);
-              
-              // Extract components array
               let componentsArray: any[] = [];
               if (Array.isArray(parsed)) {
                 componentsArray = parsed;
@@ -629,12 +617,9 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps> = ({ className, pag
                 componentsArray = parsed.components;
               }
 
-              // If valid components found, update them
               if (componentsArray.length > 0) {
                 onUpdateComponents(componentsArray);
-                // Optionally open JSON Editor to show the updated JSON
                 if (onOpenJSONEditor) {
-                  // Small delay to ensure state is updated
                   setTimeout(() => {
                     onOpenJSONEditor();
                   }, 500);
@@ -642,8 +627,7 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps> = ({ className, pag
               }
             }
           } catch (error) {
-            // JSON parsing failed, which is fine - not all responses contain JSON
-            // Silently ignore - the message will still be displayed
+            // JSON parsing failed, which is fine
           }
         }
       } else {
@@ -653,7 +637,6 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps> = ({ className, pag
       console.error('[testing] Editor Error:', error);
       setError(error.message || 'Failed to get AI response. Please try again.');
       
-      // Add error message to chat
       const errorMessage = {
         id: (Date.now() + 1).toString(),
         content: `Error: ${error.message || 'Failed to get AI response. Please check your API key configuration.'}`,
@@ -663,6 +646,22 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps> = ({ className, pag
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const messageInput = event.currentTarget.querySelector('textarea') as HTMLTextAreaElement;
+    const message = messageInput?.value.trim();
+
+    if (!message || isLoading) {
+      return;
+    }
+
+    // Clear the input
+    messageInput.value = '';
+    messageInput.dispatchEvent(new Event('input', { bubbles: true }));
+
+    await submitMessage(message);
   };
 
   return (
@@ -740,6 +739,49 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps> = ({ className, pag
                       </button>
                     </div>
                   ))}
+                </div>
+              </div>
+            )}
+
+            {/* Action Buttons - Show when component is selected */}
+            {focusedComponentJSON && (availableActions.hasImages || availableActions.hasText) && (
+              <div className="px-6 py-4 border-b bg-muted/20">
+                <p className="text-xs text-muted-foreground mb-3">
+                  What would you like to do with this section?
+                </p>
+                <div className="grid grid-cols-2 gap-2">
+                  {availableActions.hasImages && (
+                    <button
+                      onClick={() => {
+                        const componentName = focusedComponentJSON.type || focusedComponentJSON.key || 'this component';
+                        const message = `Edit the images in ${componentName}`;
+                        submitMessage(message);
+                      }}
+                      disabled={isLoading}
+                      className="flex items-center gap-2 px-4 py-3 rounded-lg bg-background border border-border hover:bg-muted/50 transition-colors text-left group disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <div className="p-2 rounded-md bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 group-hover:bg-purple-200 dark:group-hover:bg-purple-900/50 transition-colors">
+                        <Image className="h-4 w-4" />
+                      </div>
+                      <span className="text-sm font-medium">Edit image</span>
+                    </button>
+                  )}
+                  {availableActions.hasText && (
+                    <button
+                      onClick={() => {
+                        const componentName = focusedComponentJSON.type || focusedComponentJSON.key || 'this component';
+                        const message = `Edit the text in ${componentName}`;
+                        submitMessage(message);
+                      }}
+                      disabled={isLoading}
+                      className="flex items-center gap-2 px-4 py-3 rounded-lg bg-background border border-border hover:bg-muted/50 transition-colors text-left group disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <div className="p-2 rounded-md bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400 group-hover:bg-yellow-200 dark:group-hover:bg-yellow-900/50 transition-colors">
+                        <Type className="h-4 w-4" />
+                      </div>
+                      <span className="text-sm font-medium">Edit text</span>
+                    </button>
+                  )}
                 </div>
               </div>
             )}

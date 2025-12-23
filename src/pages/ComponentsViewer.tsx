@@ -11,6 +11,7 @@ import {
   CarouselEditor, 
   ButtonEditor 
 } from '../../sparti-cms/components/content-editors';
+import TiptapEditor from '../../sparti-cms/components/cms/TiptapEditor';
 import { 
   Type, 
   Image as ImageIcon, 
@@ -1022,63 +1023,16 @@ const ComponentsViewerContent = () => {
       
       // Rich text editor for text fields
       if (id.includes('rich-text')) {
-        // Create a rich text editor that can handle all text types
+        // Use the simplified TiptapEditor without toolbar
         return (
           <div className="space-y-4">
-            <div className="flex items-center gap-2 p-2 border-b border-gray-200 bg-gray-50 rounded-t-md">
-              <div className="relative">
-                <button className="flex items-center py-1 px-2 hover:bg-gray-100 rounded border border-gray-200">
-                  <Type className="h-4 w-4 mr-1 text-gray-500" />
-                  <span className="text-sm text-gray-700">Paragraph</span>
-                  <ChevronDown className="h-3 w-3 ml-1 text-gray-500" />
-                </button>
-              </div>
-              
-              <div className="h-6 border-r border-gray-300 mx-1"></div>
-              
-              <button className="p-2 hover:bg-gray-200 rounded">
-                <Bold className="h-4 w-4" />
-              </button>
-              <button className="p-2 hover:bg-gray-200 rounded">
-                <Italic className="h-4 w-4" />
-              </button>
-              <button className="p-2 hover:bg-gray-200 rounded">
-                <Underline className="h-4 w-4" />
-              </button>
-              
-              <div className="h-6 border-r border-gray-300 mx-1"></div>
-              
-              <button className="p-2 hover:bg-gray-200 rounded">
-                <AlignLeft className="h-4 w-4" />
-              </button>
-              <button className="p-2 hover:bg-gray-200 rounded">
-                <AlignCenter className="h-4 w-4" />
-              </button>
-              <button className="p-2 hover:bg-gray-200 rounded">
-                <AlignRight className="h-4 w-4" />
-              </button>
-              
-              <div className="h-6 border-r border-gray-300 mx-1"></div>
-              
-              <button className="p-2 hover:bg-gray-200 rounded">
-                <Link className="h-4 w-4" />
-              </button>
-              
-              <button className="p-2 hover:bg-gray-200 rounded">
-                <Palette className="h-4 w-4" />
-              </button>
-            </div>
-            
-            <div className="w-full p-3 border border-gray-300 rounded-b-md focus-within:ring-1 focus-within:ring-blue-400 focus-within:border-blue-400" style={{ minHeight: '200px' }}>
-              <div
-                contentEditable
-                suppressContentEditableWarning
-                className="outline-none min-h-[1.5em] w-full"
-                data-placeholder="Enter text..."
-              >
-                This is a rich text editor field. You can format text as headings, paragraphs, or quotes using the toolbar.
-              </div>
-            </div>
+            <TiptapEditor
+              content="<p>This is a simplified rich text editor field. You can format text naturally without a toolbar.</p>"
+              onChange={(content) => {
+                console.log('Rich text content changed:', content);
+              }}
+              placeholder="Enter your text here..."
+            />
           </div>
         );
       } else if (id.includes('image')) {
@@ -1204,11 +1158,13 @@ const ComponentsViewerContent = () => {
       case 'heading':
       case 'paragraph':
         return (
-          <TextEditor
-            content={selectedPlaceholder.defaultContent || ''}
-            onChange={(content) => setEditorContent(content)}
-            placeholder={selectedPlaceholder.type === 'heading' ? 'Enter heading text...' : 'Enter paragraph text...'}
-          />
+          <div className="space-y-4">
+            <TiptapEditor
+              content={selectedPlaceholder.defaultContent || '<p>Enter your text here...</p>'}
+              onChange={(content) => setEditorContent(content)}
+              placeholder={selectedPlaceholder.type === 'heading' ? 'Enter heading text...' : 'Enter paragraph text...'}
+            />
+          </div>
         );
       
       case 'image':

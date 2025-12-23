@@ -53,7 +53,8 @@ const SectionTabEditor: React.FC<SectionTabEditorProps> = ({
     // Add tabs for arrays like items, services, testimonials, etc.
     if (section.data) {
       Object.entries(section.data).forEach(([key, value]) => {
-        if (Array.isArray(value) && value.length > 0 && typeof value[0] === 'object') {
+        // Include all arrays, regardless of content type
+        if (Array.isArray(value) && value.length > 0) {
           tabs.push(key);
         }
       });
@@ -209,7 +210,7 @@ const SectionTabEditor: React.FC<SectionTabEditorProps> = ({
         <div className="space-y-4">
           {Object.entries(section.data).map(([key, value]) => {
             // Skip arrays (they get their own tabs)
-            if (Array.isArray(value) && value.length > 0 && typeof value[0] === 'object') {
+            if (Array.isArray(value)) {
               return null;
             }
             
@@ -255,31 +256,120 @@ const SectionTabEditor: React.FC<SectionTabEditorProps> = ({
     
     return (
       <div className="space-y-4">
-        {items.map((item: any, index: number) => (
-          <Card key={index} className="overflow-hidden">
-            <div className="bg-secondary/20 p-3 border-b flex justify-between items-center">
-              <h4 className="text-sm font-medium">
-                {item.title || item.name || item.label || `Item ${index + 1}`}
-              </h4>
-            </div>
-            <CardContent className="p-4 space-y-4">
-              {Object.entries(item).map(([key, value]) => {
-                // Create a mock property for the item field
-                const itemProperty = {
-                  type: typeof value,
-                  description: key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1'),
-                  default: value
-                };
-                
-                return (
-                  <div key={key}>
-                    {renderPropertyEditor(itemProperty, key, [arrayName, index.toString()])}
+        {items.map((item: any, index: number) => {
+          // Handle primitive types (strings, numbers, etc.)
+          if (typeof item !== 'object' || item === null) {
+            return (
+              <Card key={index} className="overflow-hidden">
+                <div className="bg-secondary/20 p-3 border-b flex justify-between items-center">
+                  <h4 className="text-sm font-medium">
+                    {`${arrayName.charAt(0).toUpperCase() + arrayName.slice(1)} ${index + 1}`}
+                  </h4>
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => {
+                      const updatedItems = items.filter((_: any, i: number) => i !== index);
+                      onUpdate(arrayName, updatedItems);
+                    }}
+                  >
+                    <Trash className="h-4 w-4" />
+                  </Button>
+                </div>
+                <CardContent className="p-4">
+                  <div className="space-y-2">
+                    <Label>Value</Label>
+                    <Input
+                      value={item || ''}
+                      onChange={(e) => {
+                        const updatedItems = [...items];
+                        updatedItems[index] = e.target.value;
+                        onUpdate(arrayName, updatedItems);
+                      }}
+                      placeholder={`Enter ${arrayName.slice(0, -1)} value...`}
+                    />
                   </div>
-                );
-              })}
-            </CardContent>
-          </Card>
-        ))}
+                </CardContent>
+              </Card>
+            );
+          }
+          
+          // Handle object types
+          return (
+            <Card key={index} className="overflow-hidden">
+              <div className="bg-secondary/20 p-3 border-b flex justify-between items-center">
+                <h4 className="text-sm font-medium">
+                  {item.title || item.name || item.label || `Item ${index + 1}`}
+                </h4>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => {
+                    const updatedItems = items.filter((_: any, i: number) => i !== index);
+                    onUpdate(arrayName, updatedItems);
+                  }}
+                >
+                  <Trash className="h-4 w-4" />
+                </Button>
+              </div>
+              <CardContent className="p-4 space-y-4">
+                {Object.entries(item).map(([key, value]) => {
+                  // Create a mock property for the item field
+                  const itemProperty = {
+                    type: typeof value,
+                    description: key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1'),
+                    default: value
+                  };
+                  
+                  return (
+                    <div key={key}>
+                      {renderPropertyEditor(itemProperty, key, [arrayName, index.toString()])}
+                    </div>
+                  );
+                })}
+              </CardContent>
+            </Card>
+          );
+        })}
+        
+        {/* Add new item button */}
+        <Card className="border-dashed">
+          <CardContent className="p-4">
+            <Button
+              variant="ghost"
+              className="w-full"
+              onClick={() => {
+                // Determine what type of item to add based on existing items
+                let newItem;
+                if (items.length > 0) {
+                  const firstItem = items[0];
+                  if (typeof firstItem === 'object' && firstItem !== null) {
+                    // Create a new object with empty values based on the first item's structure
+                    newItem = Object.keys(firstItem).reduce((acc, key) => {
+                      acc[key] = typeof firstItem[key] === 'string' ? '' : 
+                                typeof firstItem[key] === 'number' ? 0 : 
+                                typeof firstItem[key] === 'boolean' ? false : '';
+                      return acc;
+                    }, {} as any);
+                  } else {
+                    // Add primitive type
+                    newItem = typeof firstItem === 'string' ? '' : 
+                             typeof firstItem === 'number' ? 0 : '';
+                  }
+                } else {
+                  // Default to empty string for new arrays
+                  newItem = '';
+                }
+                
+                const updatedItems = [...items, newItem];
+                onUpdate(arrayName, updatedItems);
+              }}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add {arrayName.slice(0, -1)}
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   };

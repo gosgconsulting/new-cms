@@ -1,6 +1,5 @@
 import React from 'react';
 import { 
-  TextEditor as ContentTextEditor, 
   ImageEditor as ContentImageEditor, 
   VideoEditor as ContentVideoEditor, 
   GalleryEditor as ContentGalleryEditor, 
@@ -10,6 +9,7 @@ import {
   OfficeHoursEditor as ContentOfficeHoursEditor,
   ContactInfoEditor as ContentContactInfoEditor
 } from '../content-editors';
+import TiptapEditor from './TiptapEditor';
 import { Plus, Trash2 } from 'lucide-react';
 import { Button } from '../../../src/components/ui/button';
 import { SchemaItem } from '../../types/schema';
@@ -34,14 +34,25 @@ export const SchemaItemEditor: React.FC<SchemaItemEditorProps> = ({
     case 'heading':
     case 'text':
       return (
-        <ContentTextEditor
-          content={item.content || ''}
-          onChange={(content) => handleItemChange({ ...item, content })}
-          placeholder={item.type === 'heading' ? 'Enter heading text...' : 'Enter paragraph text...'}
-          link={item.link || ''}
-          onLinkChange={(link) => handleItemChange({ ...item, link })}
-          className={item.type === 'heading' ? 'text-2xl font-bold' : ''}
-        />
+        <div className="space-y-2">
+          <TiptapEditor
+            content={item.content || ''}
+            onChange={(content) => handleItemChange({ ...item, content })}
+            placeholder={item.type === 'heading' ? 'Enter heading text...' : 'Enter paragraph text...'}
+          />
+          {item.link !== undefined && (
+            <div className="mt-2">
+              <label className="block text-xs text-gray-600 mb-1">Link (optional)</label>
+              <input
+                type="url"
+                value={item.link || ''}
+                onChange={(e) => handleItemChange({ ...item, link: e.target.value })}
+                placeholder="https://example.com"
+                className="w-full p-2 border rounded text-sm"
+              />
+            </div>
+          )}
+        </div>
       );
 
     case 'image':
@@ -60,6 +71,7 @@ export const SchemaItemEditor: React.FC<SchemaItemEditorProps> = ({
             handleItemChange({ ...item, alt });
           }}
           className="w-full"
+          // simpleMode defaults to true, so no need to specify
         />
       );
 
@@ -133,7 +145,7 @@ export const SchemaItemEditor: React.FC<SchemaItemEditorProps> = ({
         />
       );
 
-    case 'carousel':
+    case 'carousel': {
       // Debug the carousel item structure
       console.log('Carousel item:', item);
       
@@ -141,7 +153,7 @@ export const SchemaItemEditor: React.FC<SchemaItemEditorProps> = ({
       // This fallback is for direct usage of SchemaItemRenderer
       
       // Check all possible places where images could be stored
-      let carouselImages: any[] = [];
+      let carouselImages: unknown[] = [];
       
       // Check if images are in a direct 'images' property (as in your JSON)
       if (Array.isArray(item.images)) {
@@ -212,6 +224,7 @@ export const SchemaItemEditor: React.FC<SchemaItemEditorProps> = ({
           carouselTitle={item.alt || ''}
         />
       );
+    }
 
     case 'button':
       return (
@@ -537,7 +550,7 @@ export const SchemaItemEditor: React.FC<SchemaItemEditorProps> = ({
         />
       );
 
-    case 'boolean':
+    case 'boolean': {
       // Handle boolean field with checkbox/toggle
       const booleanValue = typeof item.value === 'boolean' 
         ? item.value 
@@ -568,6 +581,7 @@ export const SchemaItemEditor: React.FC<SchemaItemEditorProps> = ({
           </div>
         </div>
       );
+    }
 
     default:
       return (

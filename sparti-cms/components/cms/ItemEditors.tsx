@@ -165,6 +165,7 @@ export const ImageEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemov
           onImageChange={handleImageChange}
           onTitleChange={handleTitleChange}
           onAltChange={handleAltChange}
+          // simpleMode defaults to true, so no need to specify
         />
       </CardContent>
     </Card>
