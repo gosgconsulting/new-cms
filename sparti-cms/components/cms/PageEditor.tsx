@@ -467,31 +467,16 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
     }
 
     if (selectedComponentIndex !== null) {
-      // Show the section editor; below it, show the text contents; tabs (Original/Output) appear ONLY when output exists
-      const componentForContents = selectedComponent ? [selectedComponent] : [];
-      const sectionContent = extractContentFromComponents(componentForContents as ComponentSchema[]);
+      // Build per-section data
       const originalForSelected = originalComponents.find((c) => c.key === selectedComponent?.key) || null;
-      const isModified =
-        !!(originalForSelected && selectedComponent) &&
-        JSON.stringify(originalForSelected) !== JSON.stringify(selectedComponent);
       const proposedForSelected = proposedComponents?.find((c) => c.key === selectedComponent?.key) || null;
-      const outputComponent = proposedForSelected || (isModified ? selectedComponent : null);
-      const outputContent = outputComponent ? extractContentFromComponents([outputComponent] as ComponentSchema[]) : [];
+      const hasOutput = Boolean(proposedForSelected);
 
-      return (
-        <>
-          {/* Editor first (original) */}
-          <ComponentEditorPanel
-            component={selectedComponent}
-            componentIndex={selectedComponentIndex}
-            components={components}
-            onUpdate={updateComponent}
-          />
-
-          <Separator className="my-6" />
-
-          {/* Section Contents */}
-          <div className="space-y-4">
+      // Helper to render contents for a given component
+      const renderSectionContents = (comp: ComponentSchema | null) => {
+        const items = comp ? extractContentFromComponents([comp]) : [];
+        return (
+          <div className="space-y-4 mt-6">
             <div className="border-b pb-2">
               <h3 className="text-lg font-semibold flex items-center">
                 <FileText className="h-5 w-5 mr-2" />
@@ -501,11 +486,11 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
                 Readable text from this section
               </p>
             </div>
-            {sectionContent.length === 0 ? (
+            {items.length === 0 ? (
               <div className="text-sm text-muted-foreground">No text content found in this section.</div>
             ) : (
               <div className="prose prose-sm max-w-none">
-                {sectionContent.map((item, index) => {
+                {items.map((item, index) => {
                   const key = `${item.componentId}-${index}`;
                   switch (item.type) {
                     case 'heading': {
@@ -548,111 +533,73 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
               </div>
             )}
           </div>
+        );
+      };
 
-          {/* Tabs BELOW contents: only render when there's an output to compare */}
-          {outputComponent && (
-            <div className="mt-6">
-              <Tabs defaultValue="output" className="w-full">
-                <TabsList className="mb-3">
-                  <TabsTrigger value="original">Original</TabsTrigger>
-                  <TabsTrigger
-                    value="output"
-                    className={isModified ? 'bg-amber-100 text-amber-800 border border-amber-200' : undefined}
-                  >
-                    Output
-                  </TabsTrigger>
-                </TabsList>
+      // If no output, show original editor + contents without tabs
+      if (!hasOutput) {
+        return (
+          <>
+            <ComponentEditorPanel
+              component={selectedComponent}
+              componentIndex={selectedComponentIndex}
+              components={components}
+              onUpdate={updateComponent}
+            />
+            {renderSectionContents(selectedComponent)}
+          </>
+        );
+      }
 
-                <TabsContent value="original" className="space-y-4">
-                  {originalForSelected && (
-                    <ComponentEditorPanel
-                      component={originalForSelected}
-                      componentIndex={selectedComponentIndex}
-                      components={originalComponents}
-                      onUpdate={() => { /* read-only */ }}
-                    />
-                  )}
-                </TabsContent>
+      // With output: tabs at the top control which editor and contents are shown
+      return (
+        <div className="w-full">
+          <Tabs defaultValue="output" className="w-full">
+            <TabsList className="mb-4">
+              <TabsTrigger value="original">Original</TabsTrigger>
+              <TabsTrigger value="output">Output</TabsTrigger>
+            </TabsList>
 
-                <TabsContent value="output" className="space-y-4">
-                  <div className="flex justify-end">
-                    <Button
-                      onClick={() => {
-                        if (selectedComponentIndex !== null && outputComponent) {
-                          updateComponent(selectedComponentIndex, outputComponent);
-                          setProposedComponents((prev) =>
-                            prev ? prev.filter((c) => c.key !== outputComponent.key) : prev
-                          );
-                          toast.success('Applied output to this section');
-                        }
-                      }}
-                      variant="outline"
-                      size="sm"
-                    >
-                      Apply Output
-                    </Button>
-                  </div>
+            <TabsContent value="original" className="space-y-4">
+              {/* Original editor (interactive) */}
+              <ComponentEditorPanel
+                component={selectedComponent}
+                componentIndex={selectedComponentIndex}
+                components={components}
+                onUpdate={updateComponent}
+              />
+              {renderSectionContents(selectedComponent)}
+            </TabsContent>
 
-                  <ComponentEditorPanel
-                    component={outputComponent}
-                    componentIndex={selectedComponentIndex}
-                    components={proposedComponents || components}
-                    onUpdate={() => { /* output preview read-only */ }}
-                  />
-
-                  {/* Output Section Contents overview */}
-                  {outputContent.length > 0 && (
-                    <div className="border rounded-lg p-4">
-                      <h4 className="font-semibold mb-2">Output Section Contents</h4>
-                      <div className="prose prose-sm max-w-none">
-                        {outputContent.map((item, index) => {
-                          const key = `${item.componentId}-out-${index}`;
-                          switch (item.type) {
-                            case 'heading': {
-                              const HeadingTag = `h${item.level || 2}` as keyof JSX.IntrinsicElements;
-                              return (
-                                <HeadingTag
-                                  key={key}
-                                  className={`font-bold text-foreground ${
-                                    item.level === 1 ? 'text-2xl mb-3' :
-                                    item.level === 2 ? 'text-xl mb-2' :
-                                    item.level === 3 ? 'text-lg mb-2' :
-                                    'text-base mb-2'
-                                  }`}
-                                >
-                                  {item.text}
-                                </HeadingTag>
-                              );
-                            }
-                            case 'paragraph':
-                              return (
-                                <p key={key} className="text-foreground mb-3 leading-relaxed">
-                                  {item.text}
-                                </p>
-                              );
-                            case 'list':
-                              return (
-                                <li key={key} className="text-foreground mb-2 ml-4 list-disc">
-                                  {item.text}
-                                </li>
-                              );
-                            case 'text':
-                            default:
-                              return (
-                                <div key={key} className="text-foreground mb-2 px-3 py-2 rounded">
-                                  <div className="mt-1">{item.text}</div>
-                                </div>
-                              );
-                          }
-                        })}
-                      </div>
-                    </div>
-                  )}
-                </TabsContent>
-              </Tabs>
-            </div>
-          )}
-        </>
+            <TabsContent value="output" className="space-y-4">
+              <div className="flex justify-end">
+                <Button
+                  onClick={() => {
+                    if (selectedComponentIndex !== null && proposedForSelected) {
+                      updateComponent(selectedComponentIndex, proposedForSelected);
+                      setProposedComponents((prev) =>
+                        prev ? prev.filter((c) => c.key !== proposedForSelected.key) : prev
+                      );
+                      toast.success('Applied output to this section');
+                    }
+                  }}
+                  variant="outline"
+                  size="sm"
+                >
+                  Apply Output
+                </Button>
+              </div>
+              {/* Output preview (read-only) */}
+              <ComponentEditorPanel
+                component={proposedForSelected}
+                componentIndex={selectedComponentIndex}
+                components={proposedComponents || components}
+                onUpdate={() => { /* read-only */ }}
+              />
+              {renderSectionContents(proposedForSelected as ComponentSchema)}
+            </TabsContent>
+          </Tabs>
+        </div>
       );
     }
 
