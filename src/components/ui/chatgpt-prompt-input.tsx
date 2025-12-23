@@ -37,8 +37,21 @@ const LightbulbIcon = (props: React.SVGProps<SVGSVGElement>) => ( <svg viewBox="
 // Component Selector Icon (replaces MicIcon)
 const ComponentSelectorIcon = (props: React.SVGProps<SVGSVGElement>) => ( <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" {...props}> <path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z"></path> <path d="M13 13l6 6"></path> </svg> );
 
+// Edit Text Icon
+const EditTextIcon = (props: React.SVGProps<SVGSVGElement>) => ( <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" {...props}> <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path> <polyline points="14,2 14,8 20,8"></polyline> <line x1="16" y1="13" x2="8" y2="13"></line> <line x1="16" y1="17" x2="8" y2="17"></line> <polyline points="10,9 9,9 8,9"></polyline> </svg> );
 
-const toolsList = [ { id: 'createImage', name: 'Create an image', shortName: 'Image', icon: PaintBrushIcon }, { id: 'searchWeb', name: 'Search the web', shortName: 'Search', icon: GlobeIcon }, { id: 'writeCode', name: 'Write or code', shortName: 'Write', icon: PencilIcon }, { id: 'deepResearch', name: 'Run deep research', shortName: 'Deep Search', icon: TelescopeIcon, extra: '5 left' }, { id: 'thinkLonger', name: 'Think for longer', shortName: 'Think', icon: LightbulbIcon }, ];
+// Edit Image Icon  
+const EditImageIcon = (props: React.SVGProps<SVGSVGElement>) => ( <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" {...props}> <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect> <circle cx="8.5" cy="8.5" r="1.5"></circle> <polyline points="21,15 16,10 5,21"></polyline> <path d="m14 14 1-1a2 2 0 0 1 3 3l-1 1m-1-1-3 3H9v-5l3-3z"></path> </svg> );
+
+const toolsList = [ 
+  { id: 'searchWeb', name: 'Search the web', shortName: 'Search', icon: GlobeIcon, description: 'Search for current information and facts' }, 
+  { id: 'editText', name: 'Edit Text', shortName: 'Edit Text', icon: EditTextIcon, description: 'Focus on editing schema text, copies, and content' }, 
+  { id: 'editImage', name: 'Edit Image', shortName: 'Edit Image', icon: EditImageIcon, description: 'Focus on image editing and visual content' }, 
+  { id: 'createImage', name: 'Create an image', shortName: 'Create', icon: PaintBrushIcon, description: 'Generate new images and visual content' }, 
+  { id: 'writeCode', name: 'Write or code', shortName: 'Code', icon: PencilIcon, description: 'Focus on code generation and development' }, 
+  { id: 'deepResearch', name: 'Run deep research', shortName: 'Research', icon: TelescopeIcon, extra: '5 left', description: 'Perform comprehensive research and analysis' }, 
+  { id: 'thinkLonger', name: 'Think for longer', shortName: 'Think', icon: LightbulbIcon, description: 'Take more time for complex reasoning' }, 
+];
 
 // Available Claude models
 const claudeModels = [
@@ -57,19 +70,50 @@ export const PromptBox = React.forwardRef<HTMLTextAreaElement, React.TextareaHTM
     const fileInputRef = React.useRef<HTMLInputElement>(null);
     const [value, setValue] = React.useState("");
     const [imagePreview, setImagePreview] = React.useState<string | null>(null);
-    const [selectedTool, setSelectedTool] = React.useState<string | null>(null);
+    const [selectedTools, setSelectedTools] = React.useState<string[]>(['searchWeb']); // Default to Search Web
     const [selectedModel, setSelectedModel] = React.useState<string>('claude-3-5-haiku-20241022'); // Default to most affordable
     const [isPopoverOpen, setIsPopoverOpen] = React.useState(false);
     const [isImageDialogOpen, setIsImageDialogOpen] = React.useState(false);
     React.useImperativeHandle(ref, () => internalTextareaRef.current!, []);
     React.useLayoutEffect(() => { const textarea = internalTextareaRef.current; if (textarea) { textarea.style.height = "auto"; const newHeight = Math.min(textarea.scrollHeight, 200); textarea.style.height = `${newHeight}px`; } }, [value]);
     const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => { setValue(e.target.value); if (props.onChange) props.onChange(e); };
+    
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+      // Handle Enter key to submit (without Shift)
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        
+        // Only submit if there's content and not disabled
+        if (hasValue && !props.disabled) {
+          // Find the parent form and submit it
+          const form = e.currentTarget.closest('form');
+          if (form) {
+            // Create and dispatch a submit event
+            const submitEvent = new Event('submit', { bubbles: true, cancelable: true });
+            form.dispatchEvent(submitEvent);
+          }
+        }
+      }
+      
+      // Call original onKeyDown if provided
+      if (props.onKeyDown) {
+        props.onKeyDown(e);
+      }
+    };
     const handlePlusClick = () => { fileInputRef.current?.click(); };
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => { const file = event.target.files?.[0]; if (file && file.type.startsWith("image/")) { const reader = new FileReader(); reader.onloadend = () => { setImagePreview(reader.result as string); }; reader.readAsDataURL(file); } event.target.value = ""; };
     const handleRemoveImage = (e: React.MouseEvent<HTMLButtonElement>) => { e.stopPropagation(); setImagePreview(null); if(fileInputRef.current) { fileInputRef.current.value = ""; } };
     const hasValue = value.trim().length > 0 || imagePreview;
-    const activeTool = selectedTool ? toolsList.find(t => t.id === selectedTool) : null;
-    const ActiveToolIcon = activeTool?.icon;
+    const activeTools = selectedTools.map(toolId => toolsList.find(t => t.id === toolId)).filter(Boolean) as typeof toolsList;
+    
+    // Toggle tool selection
+    const toggleTool = (toolId: string) => {
+      setSelectedTools(prev => 
+        prev.includes(toolId) 
+          ? prev.filter(id => id !== toolId)
+          : [...prev, toolId]
+      );
+    };
 
     return (
       <div className={cn("flex flex-col rounded-[28px] p-2 shadow-sm transition-colors bg-white border dark:bg-[#303030] dark:border-transparent cursor-text", className)}>
@@ -77,7 +121,7 @@ export const PromptBox = React.forwardRef<HTMLTextAreaElement, React.TextareaHTM
         
         {imagePreview && ( <Dialog open={isImageDialogOpen} onOpenChange={setIsImageDialogOpen}> <div className="relative mb-1 w-fit rounded-[1rem] px-1 pt-1"> <button type="button" className="transition-transform" onClick={() => setIsImageDialogOpen(true)}> <img src={imagePreview} alt="Image preview" className="h-[3.5rem] w-[3.5rem] rounded-[1rem]" /> </button> <button onClick={handleRemoveImage} className="absolute right-2 top-2 z-10 flex h-4 w-4 items-center justify-center rounded-full bg-white/50 dark:bg-[#303030] text-black dark:text-white transition-colors hover:bg-accent dark:hover:bg-[#515151]" aria-label="Remove image"> <XIcon className="h-4 w-4" /> </button> </div> <DialogContent> <img src={imagePreview} alt="Full size preview" className="w-full max-h-[95vh] object-contain rounded-[24px]" /> </DialogContent> </Dialog> )}
         
-        <textarea ref={internalTextareaRef} rows={1} value={value} onChange={handleInputChange} placeholder="Message..." disabled={props.disabled} data-selected-tool={selectedTool} data-selected-model={selectedModel} className="custom-scrollbar w-full resize-none border-0 bg-transparent p-3 text-foreground dark:text-white placeholder:text-muted-foreground dark:placeholder:text-gray-300 focus:ring-0 focus-visible:outline-none min-h-12 disabled:opacity-50 disabled:cursor-not-allowed" {...props} />
+        <textarea ref={internalTextareaRef} rows={1} value={value} onChange={handleInputChange} onKeyDown={handleKeyDown} placeholder="Message... (Press Enter to send, Shift+Enter for new line)" disabled={props.disabled} data-selected-tools={selectedTools.join(',')} data-selected-model={selectedModel} className="custom-scrollbar w-full resize-none border-0 bg-transparent p-3 text-foreground dark:text-white placeholder:text-muted-foreground dark:placeholder:text-gray-300 focus:ring-0 focus-visible:outline-none min-h-12 disabled:opacity-50 disabled:cursor-not-allowed" {...props} />
         
         <div className="mt-0.5 p-1 pt-0">
           <TooltipProvider delayDuration={100}>
@@ -90,7 +134,7 @@ export const PromptBox = React.forwardRef<HTMLTextAreaElement, React.TextareaHTM
                     <PopoverTrigger asChild>
                       <button type="button" className="flex h-8 items-center gap-2 rounded-full p-2 text-sm text-foreground dark:text-white transition-colors hover:bg-accent dark:hover:bg-[#515151] focus-visible:outline-none focus-visible:ring-ring">
                         <Settings2Icon className="h-4 w-4" />
-                        {!selectedTool && 'Tools'}
+                        Tools
                       </button>
                     </PopoverTrigger>
                   </TooltipTrigger>
@@ -98,7 +142,26 @@ export const PromptBox = React.forwardRef<HTMLTextAreaElement, React.TextareaHTM
                 </Tooltip>
                 <PopoverContent side="top" align="start">
                   <div className="flex flex-col gap-1">
-                    {toolsList.map(tool => ( <button key={tool.id} onClick={() => { setSelectedTool(tool.id); setIsPopoverOpen(false); }} className="flex w-full items-center gap-2 rounded-md p-2 text-left text-sm hover:bg-accent dark:hover:bg-[#515151]"> <tool.icon className="h-4 w-4" /> <span>{tool.name}</span> {tool.extra && <span className="ml-auto text-xs text-muted-foreground dark:text-gray-400">{tool.extra}</span>} </button> ))}
+                    {toolsList.map(tool => {
+                      const isSelected = selectedTools.includes(tool.id);
+                      return (
+                        <button 
+                          key={tool.id} 
+                          onClick={() => toggleTool(tool.id)} 
+                          className={cn(
+                            "flex w-full items-center gap-2 rounded-md p-2 text-left text-sm transition-colors",
+                            isSelected 
+                              ? "bg-primary text-primary-foreground" 
+                              : "hover:bg-accent dark:hover:bg-[#515151]"
+                          )}
+                        > 
+                          <tool.icon className="h-4 w-4" /> 
+                          <span>{tool.name}</span> 
+                          {tool.extra && <span className="ml-auto text-xs text-muted-foreground dark:text-gray-400">{tool.extra}</span>}
+                          {isSelected && <span className="ml-auto text-xs">✓</span>}
+                        </button>
+                      );
+                    })}
                   </div>
                 </PopoverContent>
               </Popover>
@@ -129,21 +192,6 @@ export const PromptBox = React.forwardRef<HTMLTextAreaElement, React.TextareaHTM
                 <TooltipContent side="top" showArrow={true}><p>Select AI Model</p></TooltipContent>
               </Tooltip>
 
-              {activeTool && (
-                <>
-                  <div className="h-4 w-px bg-border dark:bg-gray-600" />
-                  <button 
-                    type="button"
-                    onClick={() => setSelectedTool(null)} 
-                    className="flex h-8 items-center gap-2 rounded-full px-2 text-sm dark:hover:bg-[#3b4045] hover:bg-accent cursor-pointer dark:text-[#99ceff] text-[#2294ff] transition-colors flex-row items-center justify-center"
-                    data-active-tool={selectedTool}
-                  >
-                    {ActiveToolIcon && <ActiveToolIcon className="h-4 w-4" />}
-                    {activeTool.shortName}
-                    <XIcon className="h-4 w-4" />
-                  </button>
-                </>
-              )}
 
               {/* MODIFIED: Right-aligned buttons container */}
               <div className="ml-auto flex items-center gap-2">

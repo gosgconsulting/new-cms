@@ -1,6 +1,14 @@
 import React, { useState } from 'react';
 import { Layers, Upload, X, Plus, ChevronDown } from 'lucide-react';
 import api from '../../utils/api';
+import { 
+  Carousel, 
+  CarouselContent, 
+  CarouselItem, 
+  CarouselPrevious, 
+  CarouselNext, 
+  CarouselIndicators 
+} from '../../../src/components/ui/carousel';
 
 interface CarouselImage {
   id: string;
@@ -172,60 +180,68 @@ export const CarouselEditor: React.FC<CarouselEditorProps> = ({
       ) : (
         // Images selected - show carousel preview
         <div className="space-y-4">
-          {/* Carousel preview */}
+          {/* Carousel preview with navigation */}
           <div className="relative bg-gray-100 rounded-lg p-4 border border-gray-200">
-            <div className="flex overflow-x-auto space-x-2 pb-4">
-              {carouselImages.map((image, index) => (
-                <div key={image.id} className="relative flex-shrink-0 w-48">
-                  <img 
-                    src={image.url} 
-                    alt={image.alt} 
-                    className="w-full h-32 object-cover rounded-md border border-gray-200"
-                  />
-                  <div className="absolute top-2 right-2 flex space-x-1">
-                    <button
-                      onClick={() => removeCarouselImage(image.id)}
-                      className="bg-red-500 text-white rounded-full p-1"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </div>
-                  <div className="absolute bottom-2 right-2 flex space-x-1">
-                    <button
-                      onClick={() => moveCarouselImage(index, 'up')}
-                      disabled={index === 0}
-                      className={`bg-gray-800 text-white rounded-full p-1 ${index === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    >
-                      <ChevronDown className="h-3 w-3 transform rotate-180" />
-                    </button>
-                    <button
-                      onClick={() => moveCarouselImage(index, 'down')}
-                      disabled={index === carouselImages.length - 1}
-                      className={`bg-gray-800 text-white rounded-full p-1 ${index === carouselImages.length - 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    >
-                      <ChevronDown className="h-3 w-3" />
-                    </button>
-                  </div>
-                  <div className="absolute bottom-2 left-2 bg-gray-800 text-white text-xs px-2 py-1 rounded-full">
-                    {index + 1}
-                  </div>
-                </div>
-              ))}
-              
-              {/* Add more images button */}
-              <div className="flex-shrink-0 flex items-center justify-center w-32 h-32 border-2 border-dashed border-gray-300 rounded-md bg-white">
-                <label className="cursor-pointer text-center p-2">
-                  <Plus className="h-6 w-6 text-gray-400 mx-auto mb-1" />
-                  <span className="text-xs text-gray-500">Add More</span>
-                  <input
-                    type="file"
-                    multiple
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleCarouselSelect}
-                  />
-                </label>
-              </div>
+            <Carousel className="w-full max-w-lg mx-auto">
+              <CarouselContent>
+                {carouselImages.map((image, index) => (
+                  <CarouselItem key={image.id}>
+                    <div className="relative">
+                      <img 
+                        src={image.url} 
+                        alt={image.alt} 
+                        className="w-full h-64 object-cover rounded-md border border-gray-200"
+                      />
+                      <div className="absolute top-2 right-2 flex space-x-1">
+                        <button
+                          onClick={() => removeCarouselImage(image.id)}
+                          className="bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                      <div className="absolute bottom-2 right-2 flex space-x-1">
+                        <button
+                          onClick={() => moveCarouselImage(index, 'up')}
+                          disabled={index === 0}
+                          className={`bg-gray-800 text-white rounded-full p-1 hover:bg-gray-700 transition-colors ${index === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        >
+                          <ChevronDown className="h-3 w-3 transform rotate-180" />
+                        </button>
+                        <button
+                          onClick={() => moveCarouselImage(index, 'down')}
+                          disabled={index === carouselImages.length - 1}
+                          className={`bg-gray-800 text-white rounded-full p-1 hover:bg-gray-700 transition-colors ${index === carouselImages.length - 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        >
+                          <ChevronDown className="h-3 w-3" />
+                        </button>
+                      </div>
+                    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              {carouselImages.length > 1 && (
+                <>
+                  <CarouselPrevious />
+                  <CarouselNext />
+                  <CarouselIndicators />
+                </>
+              )}
+            </Carousel>
+            
+            {/* Add more images button below carousel */}
+            <div className="flex justify-center mt-4">
+              <label className="cursor-pointer flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors">
+                <Plus className="h-4 w-4" />
+                Add More Images
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleCarouselSelect}
+                />
+              </label>
             </div>
           </div>
           

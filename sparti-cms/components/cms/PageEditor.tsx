@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Button } from '../../../src/components/ui/button';
 import { ScrollArea } from '../../../src/components/ui/scroll-area';
 import { Separator } from '../../../src/components/ui/separator';
-import { ArrowLeft, Save, Loader2, Settings, Code } from 'lucide-react';
+import { ArrowLeft, Save, Loader2, Settings, Code, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '../auth/AuthProvider';
 import { ComponentSchema } from '../../types/schema';
@@ -16,6 +16,135 @@ import { ComponentListItem } from './PageEditor/ComponentListItem';
 import { JSONEditorDialog } from './PageEditor/JSONEditorDialog';
 import { EmptyState, ComponentsErrorState, ComponentsEmptyState } from './PageEditor/EmptyStates';
 import { AIAssistantChat } from '../../../src/components/AIAssistantChat';
+
+// Contents Panel Component
+interface ContentsPanelProps {
+  components: ComponentSchema[];
+  extractContentFromComponents: (components: ComponentSchema[]) => Array<{
+    type: 'heading' | 'paragraph' | 'list' | 'text';
+    level?: number;
+    text: string;
+    componentType?: string;
+    componentId?: string;
+  }>;
+}
+
+const ContentsPanel: React.FC<ContentsPanelProps> = ({ components, extractContentFromComponents }) => {
+  const content = extractContentFromComponents(components);
+
+  if (content.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+        <h3 className="text-lg font-semibold mb-2">No Content Found</h3>
+        <p className="text-muted-foreground">
+          Add components with text content to see the page contents here.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="border-b pb-4">
+        <h2 className="text-2xl font-bold flex items-center">
+          <FileText className="h-6 w-6 mr-2" />
+          Page Contents
+        </h2>
+        <p className="text-muted-foreground mt-1">
+          Readable content extracted from your page components
+        </p>
+      </div>
+
+      <div className="prose prose-sm max-w-none">
+        {content.map((item, index) => {
+          const key = `${item.componentId}-${index}`;
+          
+          switch (item.type) {
+            case 'heading':
+              const HeadingTag = `h${item.level || 2}` as keyof JSX.IntrinsicElements;
+              return (
+                <HeadingTag 
+                  key={key} 
+                  className={`font-bold text-foreground ${
+                    item.level === 1 ? 'text-3xl mb-4' :
+                    item.level === 2 ? 'text-2xl mb-3' :
+                    item.level === 3 ? 'text-xl mb-2' :
+                    'text-lg mb-2'
+                  }`}
+                  title={`From ${item.componentType} (${item.componentId})`}
+                >
+                  {item.text}
+                </HeadingTag>
+              );
+            
+            case 'paragraph':
+              return (
+                <p 
+                  key={key} 
+                  className="text-foreground mb-4 leading-relaxed"
+                  title={`From ${item.componentType} (${item.componentId})`}
+                >
+                  {item.text}
+                </p>
+              );
+            
+            case 'list':
+              return (
+                <li 
+                  key={key} 
+                  className="text-foreground mb-2 ml-4 list-disc"
+                  title={`From ${item.componentType} (${item.componentId})`}
+                >
+                  {item.text}
+                </li>
+              );
+            
+            case 'text':
+            default:
+              return (
+                <div 
+                  key={key} 
+                  className="text-foreground mb-2 px-3 py-2 bg-muted/50 rounded border-l-2 border-primary/20"
+                  title={`From ${item.componentType} (${item.componentId})`}
+                >
+                  <span className="text-xs text-muted-foreground uppercase tracking-wide">
+                    {item.componentType}
+                  </span>
+                  <div className="mt-1">{item.text}</div>
+                </div>
+              );
+          }
+        })}
+      </div>
+
+      <div className="mt-8 p-4 bg-muted/30 rounded-lg border">
+        <h4 className="font-semibold mb-2 flex items-center">
+          <Settings className="h-4 w-4 mr-2" />
+          Content Statistics
+        </h4>
+        <div className="grid grid-cols-2 gap-4 text-sm">
+          <div>
+            <span className="text-muted-foreground">Total Items:</span>
+            <span className="ml-2 font-medium">{content.length}</span>
+          </div>
+          <div>
+            <span className="text-muted-foreground">Headings:</span>
+            <span className="ml-2 font-medium">{content.filter(c => c.type === 'heading').length}</span>
+          </div>
+          <div>
+            <span className="text-muted-foreground">Paragraphs:</span>
+            <span className="ml-2 font-medium">{content.filter(c => c.type === 'paragraph').length}</span>
+          </div>
+          <div>
+            <span className="text-muted-foreground">Components:</span>
+            <span className="ml-2 font-medium">{components.length}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 interface PageEditorProps {
   pageId: string;
@@ -56,6 +185,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
   const [components, setComponents] = useState<ComponentSchema[]>([]);
   const [selectedComponentIndex, setSelectedComponentIndex] = useState<number | null>(null);
   const [showSEOForm, setShowSEOForm] = useState(false);
+  const [showContents, setShowContents] = useState(false);
   const [selectedComponentForAI, setSelectedComponentForAI] = useState<ComponentSchema | null>(null);
 
   // JSON Editor hook
@@ -120,6 +250,97 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
     }
   }, [pageData]);
 
+  // Extract readable content from components
+  const extractContentFromComponents = useCallback((components: ComponentSchema[]) => {
+    const content: Array<{
+      type: 'heading' | 'paragraph' | 'list' | 'text';
+      level?: number;
+      text: string;
+      componentType?: string;
+      componentId?: string;
+    }> = [];
+
+    const extractFromProps = (props: any, componentType: string, componentId: string) => {
+      if (!props) return;
+
+      // Common text properties to extract
+      const textProperties = [
+        'title', 'heading', 'headingLine1', 'headingLine2', 'subtitle', 
+        'description', 'content', 'text', 'label', 'buttonText', 
+        'ctaButtonText', 'badgeText', 'name', 'tagline'
+      ];
+
+      const headingProperties = [
+        'title', 'heading', 'headingLine1', 'headingLine2', 'name'
+      ];
+
+      const paragraphProperties = [
+        'description', 'content', 'text', 'subtitle', 'tagline'
+      ];
+
+      Object.entries(props).forEach(([key, value]) => {
+        if (typeof value === 'string' && value.trim() && textProperties.includes(key)) {
+          if (headingProperties.includes(key)) {
+            // Determine heading level based on property name and component type
+            let level = 2;
+            if (key === 'title' || key === 'heading') level = 1;
+            if (key === 'headingLine1') level = 1;
+            if (key === 'headingLine2') level = 2;
+            if (componentType.includes('hero')) level = 1;
+            
+            content.push({
+              type: 'heading',
+              level,
+              text: value.trim(),
+              componentType,
+              componentId
+            });
+          } else if (paragraphProperties.includes(key)) {
+            content.push({
+              type: 'paragraph',
+              text: value.trim(),
+              componentType,
+              componentId
+            });
+          } else {
+            content.push({
+              type: 'text',
+              text: value.trim(),
+              componentType,
+              componentId
+            });
+          }
+        } else if (Array.isArray(value)) {
+          // Handle arrays (like lists, features, etc.)
+          value.forEach((item, index) => {
+            if (typeof item === 'string' && item.trim()) {
+              content.push({
+                type: 'list',
+                text: item.trim(),
+                componentType,
+                componentId: `${componentId}-item-${index}`
+              });
+            } else if (typeof item === 'object' && item) {
+              extractFromProps(item, componentType, `${componentId}-item-${index}`);
+            }
+          });
+        } else if (typeof value === 'object' && value) {
+          // Recursively extract from nested objects
+          extractFromProps(value, componentType, `${componentId}-${key}`);
+        }
+      });
+    };
+
+    components.forEach((component, index) => {
+      const componentType = component.type || 'unknown';
+      const componentId = component.id || component.key || `component-${index}`;
+      
+      extractFromProps(component.props, componentType, componentId);
+    });
+
+    return content;
+  }, []);
+
   // Handle save
   const handleSave = useCallback(async () => {
     if (!pageData) return;
@@ -161,13 +382,16 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
   const handleComponentSelect = useCallback((index: number) => {
     setSelectedComponentIndex(index);
     setShowSEOForm(false);
+    setShowContents(false);
   }, []);
 
   const handleSEOFormOpen = useCallback(() => {
     setShowSEOForm(true);
     setSelectedComponentIndex(null);
+    setShowContents(false);
   }, []);
 
+  // Memoized selected component
   // Memoized selected component
   const selectedComponent = useMemo(() => {
     if (selectedComponentIndex === null || !isValidComponentsArray(components)) {
@@ -178,6 +402,10 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
 
   // Render right panel
   const renderRightPanel = () => {
+    if (showContents) {
+      return <ContentsPanel components={components} extractContentFromComponents={extractContentFromComponents} />;
+    }
+
     if (showSEOForm) {
       return <SEOForm pageData={pageData} onFieldChange={updateField} />;
     }
@@ -267,12 +495,28 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
         <div className="w-80 border-r bg-muted/20 flex flex-col">
           <div className="p-4 border-b">
             <div className="flex items-center justify-between">
-              <h3 className="font-semibold">Page Components</h3>
+              <h3 className="font-semibold">Sections</h3>
             </div>
           </div>
 
           <ScrollArea className="flex-1">
             <div className="p-2 space-y-2">
+              {/* Contents Button */}
+              <Button
+                variant={showContents ? "default" : "ghost"}
+                className="w-full justify-start"
+                onClick={() => {
+                  setShowContents(!showContents);
+                  if (!showContents) {
+                    setShowSEOForm(false);
+                    setSelectedComponentIndex(null);
+                  }
+                }}
+              >
+                <FileText className="h-4 w-4 mr-2" />
+                Contents
+              </Button>
+
               {/* SEO Settings Button */}
               <Button
                 variant={showSEOForm ? "default" : "ghost"}
@@ -319,7 +563,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
           </ScrollArea>
         </div>
 
-        {/* Right Sidebar - AI Assistant */}
+        {/* Right Sidebar - Editor */}
         <AIAssistantChat 
           className="h-full" 
           pageContext={pageData ? {

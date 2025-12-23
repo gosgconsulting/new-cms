@@ -309,20 +309,46 @@ export const VisualEditorJSONDialog: React.FC<VisualEditorJSONDialogProps> = ({
     }
   };
 
+  // Function to get the selected Claude model from Editor
+  const getSelectedModelFromAIAssistant = (): string => {
+    try {
+      // Try to find the Editor textarea to get the selected model
+      const aiAssistantTextarea = document.querySelector('[data-selected-model]') as HTMLTextAreaElement;
+      if (aiAssistantTextarea && aiAssistantTextarea.dataset.selectedModel) {
+        return aiAssistantTextarea.dataset.selectedModel;
+      }
+    } catch (error) {
+      console.warn('[testing] Could not get selected model from Editor:', error);
+    }
+    
+    // Fallback to default model
+    return 'claude-3-5-haiku-20241022';
+  };
+
   const handleSyncJSON = async () => {
     try {
       setSyncing(true);
       setJsonError(null);
       
-      // Call AI Assistant to generate schema (using default affordable model)
+      // Get the selected Claude model from Editor
+      const selectedModel = getSelectedModelFromAIAssistant();
+      console.log('[testing] Using Claude model for schema generation:', selectedModel);
+      
+      // Call Editor to generate schema with enhanced page analysis
       const effectiveTenantId = tenantId || (mode === 'tenants' ? currentTenantId : undefined) || 'tenant-gosg';
       const encodedSlug = encodeURIComponent(pageSlug);
-      const response = await api.post('/api/ai-assistant/generate-schema', {
+      
+      // Enhanced request with current page structure analysis
+      const requestPayload = {
         pageSlug,
         pageName,
         tenantId: effectiveTenantId,
-        model: 'claude-3-5-haiku-20241022', // Use affordable model for schema generation
-      });
+        model: selectedModel, // Use selected model from Editor
+        analyzePageCode: true, // Flag to enable deep page analysis
+        currentSchema: jsonString ? JSON.parse(jsonString) : null, // Include current schema for comparison
+      };
+      
+      const response = await api.post('/api/ai-assistant/generate-schema', requestPayload);
       
       const data = await response.json();
       
@@ -332,12 +358,15 @@ export const VisualEditorJSONDialog: React.FC<VisualEditorJSONDialogProps> = ({
         if (codeJarRef.current) {
           codeJarRef.current.updateCode(schemaJson);
         }
+        
+        // Show success message with model used
+        console.log(`[testing] Schema generated successfully using ${selectedModel}`);
       } else {
         setJsonError(data.error || 'Failed to generate schema');
       }
     } catch (error) {
       console.error('[testing] Error syncing JSON:', error);
-      setJsonError('Failed to sync JSON from AI');
+      setJsonError('Failed to sync JSON from AI. Please ensure the Editor is available.');
     } finally {
       setSyncing(false);
     }
@@ -384,6 +413,7 @@ export const VisualEditorJSONDialog: React.FC<VisualEditorJSONDialogProps> = ({
             variant="outline"
             onClick={handleSyncJSON}
             disabled={syncing || loading}
+            title="Analyze page code using selected Claude model from Editor and generate optimized JSON schema"
           >
             {syncing ? (
               <>
@@ -391,7 +421,7 @@ export const VisualEditorJSONDialog: React.FC<VisualEditorJSONDialogProps> = ({
                 Syncing...
               </>
             ) : (
-              'Sync JSON'
+              'Analyze & Sync JSON'
             )}
           </Button>
           <DialogClose asChild>

@@ -31,7 +31,7 @@ const getAnthropicClient = () => {
 };
 
 // Build enhanced system prompt with page context and JSON rules
-const buildSystemPrompt = (pageContext, activeTool, selectedComponents) => {
+const buildSystemPrompt = (pageContext, activeTools, selectedComponents) => {
   let systemPrompt = `You are an AI Assistant for a CMS (Content Management System) Visual Editor. Help users with content creation, editing, and provide guidance on using the CMS features. Be concise, helpful, and professional.
 
 IMPORTANT: Even if page context is not available or there are errors with JSON data, you should still provide helpful responses as a general AI assistant. You can help with general questions, content creation, and CMS guidance.
@@ -79,12 +79,25 @@ ${JSON.stringify(pageContext.layout, null, 2)}
 
     // If a specific component is focused (selected from left panel), highlight it
     if (pageContext.focusedComponent) {
+      // Try to extract hierarchy information from the component
+      const getComponentHierarchy = (component) => {
+        if (component.parentType || component.parent) {
+          const parentName = component.parentType || component.parent?.type || component.parent?.name || 'Parent Component';
+          const currentName = component.type || component.name || component.key || 'Component';
+          return `${parentName} > ${currentName}`;
+        }
+        return component.type || component.name || component.key || 'Component';
+      };
+
+      const componentPath = getComponentHierarchy(pageContext.focusedComponent);
+      
       systemPrompt += `FOCUSED COMPONENT (USER SELECTED FROM LEFT PANEL):
-The user has specifically selected this component from the page components list. Focus your response on THIS component:
+The user has specifically selected this component: ${componentPath}
+Focus your response on THIS component:
 
 ${JSON.stringify(pageContext.focusedComponent, null, 2)}
 
-IMPORTANT: When answering questions or making modifications, prioritize this focused component. The user wants to work specifically with this component's JSON structure.
+IMPORTANT: When answering questions or making modifications, prioritize this focused component. The user wants to work specifically with this component's JSON structure and its place in the component hierarchy.
 
 `;
     }
@@ -154,46 +167,85 @@ Feel free to ask me anything! I'm here to help whether it's CMS-related or any o
 
 `;
 
-  // Add Create JSON tool specific instructions
-  if (activeTool === 'createJSON') {
-    systemPrompt += `CREATE JSON TOOL ACTIVE:
-You are now in JSON creation mode. When the user asks you to create component JSON:
-
-1. Generate valid component JSON matching the registry schema
-2. Include ALL required properties (marked as "required": true)
-3. Include default values for optional properties when appropriate
-4. Follow the exact property types defined in the component registry
-5. Ensure the component type matches an existing component ID from the registry
-6. Format the JSON properly with correct structure:
-   {
-     "id": "unique-id-for-this-instance",
-     "type": "component-type-id",
-     "props": {
-       // All properties from component definition
-     }
-   }
-
-7. If creating a new component type, provide the full component definition following the registry format
-8. Always validate that the JSON structure matches the expected schema
-
-Example valid component JSON:
-{
-  "id": "hero-section-1",
-  "type": "hero-main",
-  "props": {
-    "badgeText": "Welcome",
-    "showBadge": true,
-    "headingLine1": "Your Journey Starts Here",
-    "headingLine2": "Building Something Amazing",
-    "description": "This is a template landing page. Customize it to match your brand.",
-    "ctaButtonText": "Get Started",
-    "showClientLogos": true,
-    "backgroundType": "gradient",
-    "backgroundColor": "#ffffff"
-  }
-}
+  // Add tool-specific instructions based on active tools
+  if (activeTools && activeTools.length > 0) {
+    systemPrompt += `🛠️ ACTIVE TOOLS: ${activeTools.join(', ')}\n\n`;
+    
+    activeTools.forEach(tool => {
+      switch (tool) {
+        case 'searchWeb':
+          systemPrompt += `🌐 SEARCH WEB TOOL ACTIVE:
+- Provide current, up-to-date information from the web
+- Verify facts and provide recent data when possible
+- Include relevant links and sources when helpful
+- Focus on accurate, real-time information
 
 `;
+          break;
+          
+        case 'editText':
+          systemPrompt += `📝 EDIT TEXT TOOL ACTIVE:
+- Focus on editing and improving text content, copies, and written material
+- Help with schema text properties, component content, and page copy
+- Provide suggestions for better wording, clarity, and engagement
+- Focus on content optimization and text-based improvements
+- When working with JSON schemas, prioritize text-related properties like titles, descriptions, content, etc.
+
+`;
+          break;
+          
+        case 'editImage':
+          systemPrompt += `🖼️ EDIT IMAGE TOOL ACTIVE:
+- Focus on image-related content and visual elements
+- Help with image properties in schemas (src, alt, dimensions, etc.)
+- Provide guidance on image optimization and visual content
+- Suggest improvements for visual components and image-based elements
+- When working with JSON schemas, prioritize image-related properties and visual components
+
+`;
+          break;
+          
+        case 'createImage':
+          systemPrompt += `🎨 CREATE IMAGE TOOL ACTIVE:
+- Generate and create new images and visual content
+- Provide detailed image descriptions and specifications
+- Help with visual design concepts and image creation
+- Focus on creating new visual elements for the page
+
+`;
+          break;
+          
+        case 'writeCode':
+          systemPrompt += `💻 WRITE CODE TOOL ACTIVE:
+- Focus on code generation, development, and technical implementation
+- Provide code examples, snippets, and technical solutions
+- Help with component development and technical aspects
+- Generate valid JSON schemas and code structures
+
+`;
+          break;
+          
+        case 'deepResearch':
+          systemPrompt += `🔍 DEEP RESEARCH TOOL ACTIVE:
+- Perform comprehensive analysis and research
+- Provide detailed, well-researched responses
+- Include multiple perspectives and thorough explanations
+- Focus on in-depth analysis and comprehensive solutions
+
+`;
+          break;
+          
+        case 'thinkLonger':
+          systemPrompt += `🤔 THINK LONGER TOOL ACTIVE:
+- Take more time for complex reasoning and analysis
+- Provide detailed, thoughtful responses
+- Consider multiple approaches and solutions
+- Focus on comprehensive problem-solving
+
+`;
+          break;
+      }
+    });
   }
 
   // Add selected components context
@@ -266,7 +318,7 @@ const optionalAuth = (req, res, next) => {
 router.post('/ai-assistant/chat', optionalAuth, async (req, res) => {
   try {
     
-    const { message, conversationHistory = [], pageContext, activeTool, selectedComponents, model } = req.body;
+    const { message, conversationHistory = [], pageContext, activeTools, selectedComponents, model } = req.body;
     
     // Log page context info for debugging
     if (pageContext) {
@@ -300,7 +352,7 @@ router.post('/ai-assistant/chat', optionalAuth, async (req, res) => {
     // Build enhanced system prompt (handle errors gracefully)
     let systemPrompt;
     try {
-      systemPrompt = buildSystemPrompt(pageContext, activeTool, selectedComponents);
+      systemPrompt = buildSystemPrompt(pageContext, activeTools, selectedComponents);
     } catch (promptError) {
       console.warn('[testing] Error building system prompt, using fallback:', promptError);
       // Fallback to enhanced general chat prompt
@@ -477,7 +529,7 @@ router.get('/ai-assistant/page-context', authenticateUser, async (req, res) => {
 // Generate schema from AI analysis
 router.post('/ai-assistant/generate-schema', authenticateUser, async (req, res) => {
   try {
-    const { pageSlug, pageName, tenantId } = req.body;
+    const { pageSlug, pageName, tenantId, model, analyzePageCode, currentSchema } = req.body;
 
     if (!pageSlug || !tenantId) {
       return res.status(400).json({
@@ -555,29 +607,50 @@ ${JSON.stringify(allComponents.map(c => ({
   tenant_scope: c.tenant_scope
 })), null, 2)}
 
-RULES:
-1. Analyze the page structure and identify which components from the registry should be used
-2. Generate component JSON that matches the component definitions in the registry
-3. Include ALL required properties (marked as "required": true in component definitions)
-4. Use appropriate default values for optional properties
-5. Each component must have a unique "id" (use descriptive IDs like "hero-section-1", "services-grid-1", etc.)
-6. The "type" must match an existing component ID from the registry
-7. Generate a complete schema that represents the page structure
-8. If the page already has a layout, analyze it and suggest improvements or create a new one based on the page content
+ANALYSIS RULES:
+1. **Deep Page Analysis**: Carefully examine the page structure, content, and purpose
+2. **Component Matching**: Identify which components from the registry best represent the page content
+3. **Schema Validation**: Ensure all generated JSON matches component definitions exactly
+4. **Property Completeness**: Include ALL required properties and appropriate optional ones
+5. **Unique Identifiers**: Use descriptive, unique IDs (e.g., "hero-section-1", "services-grid-1")
+6. **Type Accuracy**: The "type" field must match an existing component ID from the registry
+7. **Content Structure**: Generate a logical, hierarchical component structure
+8. **Improvement Focus**: When analyzing existing schemas, suggest structural improvements
+9. **Registry Compliance**: Only use components that exist in the provided registry
+10. **Default Values**: Use sensible default values for optional properties
 
 CURRENT PAGE INFO:
 - Page Name: ${pageName || page.page_name}
 - Page Slug: ${normalizedSlug}
 - Tenant ID: ${tenantId}
 - Current Layout: ${JSON.stringify(currentLayout, null, 2)}
+- Analysis Mode: ${analyzePageCode ? 'Enhanced Code Analysis' : 'Standard Generation'}
 
-Generate a complete page schema JSON that represents this page's structure. Return ONLY valid JSON, no explanations or markdown.`;
+${analyzePageCode ? 'ENHANCED ANALYSIS MODE: Perform deep analysis of the existing page structure and provide comprehensive improvements.' : ''}
 
-    const userPrompt = `Analyze the page "${pageName || page.page_name}" (${normalizedSlug}) and generate a complete page schema JSON based on the component registry. 
-${currentLayout.components.length > 0 ? 'The page currently has a layout - analyze it and generate an improved or complete schema.' : 'The page has no layout yet - create a complete schema based on typical page structure.'}`;
+Generate a complete, optimized page schema JSON. Return ONLY valid JSON, no explanations or markdown.`;
 
-    // Use selected model or default to most affordable (Haiku)
+    // Enhanced user prompt with page analysis capabilities
+    let userPrompt = `Analyze the page "${pageName || page.page_name}" (${normalizedSlug}) and generate a complete page schema JSON based on the component registry.`;
+    
+    if (analyzePageCode && currentSchema) {
+      userPrompt += `\n\nCURRENT SCHEMA ANALYSIS:
+The page currently has this schema: ${JSON.stringify(currentSchema, null, 2)}
+
+Please analyze this existing schema and:
+1. Identify any missing or incomplete components
+2. Suggest improvements to the component structure
+3. Ensure all components follow the registry definitions
+4. Generate an enhanced version that maintains existing content but improves the structure`;
+    } else if (currentLayout.components.length > 0) {
+      userPrompt += `\n\nThe page currently has a layout - analyze it and generate an improved or complete schema.`;
+    } else {
+      userPrompt += `\n\nThe page has no layout yet - create a complete schema based on typical page structure.`;
+    }
+
+    // Use selected model from AI Assistant or default to most affordable (Haiku)
     const selectedModel = model || 'claude-3-5-haiku-20241022';
+    console.log('[testing] Schema generation using model:', selectedModel);
     
     // Validate model is in allowed list (updated with latest Claude 4.x models)
     const allowedModels = [

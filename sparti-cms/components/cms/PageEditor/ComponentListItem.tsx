@@ -52,7 +52,7 @@ export const ComponentListItem = memo<ComponentListItemProps>(({
             size="icon"
             className="h-6 w-6 flex-shrink-0"
             onClick={handleSendToAI}
-            title="Send component to AI Assistant"
+            title="Send component to Editor"
           >
             <Send className="h-3.5 w-3.5" />
           </Button>

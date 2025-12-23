@@ -39,7 +39,7 @@ interface SelectedComponent {
 
 export const AIAssistantChat: React.FC<AIAssistantChatProps> = ({ className, pageContext, currentComponents, onUpdateComponents, onOpenJSONEditor, selectedComponentJSON, onComponentSelected }) => {
   const { currentTenantId } = useAuth();
-  const [isOpen, setIsOpen] = useState(true);
+  // Always open - no collapse functionality
   const [messages, setMessages] = useState<Array<{ id: string; content: string; role: 'user' | 'assistant' }>>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -48,8 +48,17 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps> = ({ className, pag
   const [isSelectorActive, setIsSelectorActive] = useState(false);
   const [selectedComponents, setSelectedComponents] = useState<SelectedComponent[]>([]);
   const [focusedComponentJSON, setFocusedComponentJSON] = useState<any>(null);
+  const [componentHierarchy, setComponentHierarchy] = useState<string[]>([]);
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Clear all messages and reset chat
+  const clearAllMessages = () => {
+    setMessages([]);
+    setError(null);
+    setFocusedComponentJSON(null);
+    setComponentHierarchy([]);
+  };
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -116,6 +125,43 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps> = ({ className, pag
   useEffect(() => {
     if (selectedComponentJSON) {
       setFocusedComponentJSON(selectedComponentJSON);
+      
+      // Build component hierarchy path
+      const buildHierarchyPath = (component: any) => {
+        const path: string[] = [];
+        
+        // Try to get parent component information from various sources
+        if (component.parentType || component.parent) {
+          const parentName = component.parentType || component.parent?.type || component.parent?.name || 'Parent Component';
+          path.push(parentName);
+        } else if (component.parentId && currentComponents) {
+          // Try to find parent in current components
+          const parentComponent = currentComponents.find(c => c.id === component.parentId);
+          if (parentComponent) {
+            path.push(parentComponent.type || parentComponent.name || 'Parent Component');
+          }
+        } else if (component.path) {
+          // If component has a path property, use it
+          const pathParts = component.path.split('/').filter(Boolean);
+          path.push(...pathParts);
+        } else if (component.selector) {
+          // Try to infer hierarchy from CSS selector
+          const selectorParts = component.selector.split(' ').filter(part => !part.startsWith('.') && !part.startsWith('#'));
+          if (selectorParts.length > 1) {
+            path.push(...selectorParts.slice(0, -1).map(part => part.charAt(0).toUpperCase() + part.slice(1)));
+          }
+        }
+        
+        // Add current component
+        const currentName = component.type || component.name || component.key || component.tagName || 'Component';
+        path.push(currentName);
+        
+        return path;
+      };
+      
+      const hierarchy = buildHierarchyPath(selectedComponentJSON);
+      setComponentHierarchy(hierarchy);
+      
       // Notify parent that component was received
       if (onComponentSelected) {
         onComponentSelected(selectedComponentJSON);
@@ -448,8 +494,9 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps> = ({ className, pag
         content: message
       });
 
-      // Get active tool from textarea data attribute
-      const activeTool = (messageInput as HTMLElement).dataset.selectedTool || null;
+      // Get active tools from textarea data attribute
+      const activeToolsString = (messageInput as HTMLElement).dataset.selectedTools || '';
+      const activeTools = activeToolsString ? activeToolsString.split(',') : [];
       // Get selected model from textarea data attribute
       const selectedModel = (messageInput as HTMLElement).dataset.selectedModel || 'claude-3-5-haiku-20241022';
 
@@ -495,9 +542,10 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps> = ({ className, pag
             finalPageContext = {} as any;
           }
           finalPageContext.focusedComponent = focusedComponentJSON;
-          // Add focused component info to the message
+          // Add focused component info to the message with hierarchy
           try {
-            enhancedMessage = `[Focused Component: ${focusedComponentJSON.type || focusedComponentJSON.key || 'Component'}]\n\nComponent JSON:\n${JSON.stringify(focusedComponentJSON, null, 2)}\n\n---\n\nUser Question: ${enhancedMessage}`;
+            const componentPath = componentHierarchy.length > 1 ? componentHierarchy.join(' > ') : (focusedComponentJSON.type || focusedComponentJSON.key || 'Component');
+            enhancedMessage = `[Focused Component: ${componentPath}]\n\nComponent JSON:\n${JSON.stringify(focusedComponentJSON, null, 2)}\n\n---\n\nUser Question: ${enhancedMessage}`;
           } catch (jsonError) {
             console.warn('[testing] Error stringifying focused component, continuing without it:', jsonError);
             // Continue without the focused component JSON if it fails to stringify
@@ -514,7 +562,7 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps> = ({ className, pag
         message: enhancedMessage,
         conversationHistory: conversationHistory.slice(0, -1), // Exclude current message from history
         pageContext: finalPageContext,
-        activeTool: activeTool || undefined,
+        activeTools: activeTools.length > 0 ? activeTools : undefined,
         selectedComponents: selectedComponents.length > 0 ? selectedComponents : undefined,
         model: selectedModel
       });
@@ -602,7 +650,7 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps> = ({ className, pag
         throw new Error(data.error || 'Failed to get AI response');
       }
     } catch (error: any) {
-      console.error('[testing] AI Assistant Error:', error);
+      console.error('[testing] Editor Error:', error);
       setError(error.message || 'Failed to get AI response. Please try again.');
       
       // Add error message to chat
@@ -619,21 +667,26 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps> = ({ className, pag
 
   return (
     <div className={cn("relative flex h-full", className)}>
-      {/* Sidebar - Always visible, collapsible */}
-      <div
-        className={cn(
-          "flex flex-col h-full bg-card border-l shadow-lg transition-all duration-300 ease-in-out",
-          isOpen ? "w-[420px]" : "w-0 overflow-hidden"
-        )}
-      >
-        {isOpen && (
-          <>
+      {/* Sidebar - Always visible */}
+      <div className="flex flex-col h-full bg-card border-l shadow-lg w-full">
+        {/* Always show content - no collapse functionality */}
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b flex-shrink-0 bg-background">
               <div className="flex items-center gap-2 flex-1 min-w-0">
                 <MessageCircle className="h-5 w-5 text-primary flex-shrink-0" />
                 <div className="flex flex-col flex-1 min-w-0">
-                  <h2 className="text-lg font-semibold">AI Assistant</h2>
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-lg font-semibold">Editor</h2>
+                    {messages.length > 0 && (
+                      <button
+                        onClick={clearAllMessages}
+                        className="text-xs text-muted-foreground hover:text-foreground px-2 py-1 rounded transition-colors"
+                        title="Clear all messages"
+                      >
+                        Clear all
+                      </button>
+                    )}
+                  </div>
                   {pageContextData && (
                     <span className="text-xs text-muted-foreground truncate">
                       {pageContextData.pageName}
@@ -641,18 +694,12 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps> = ({ className, pag
                   )}
                   {focusedComponentJSON && (
                     <span className="text-xs text-primary font-medium truncate" title={JSON.stringify(focusedComponentJSON, null, 2)}>
-                      Focused: {focusedComponentJSON.type || focusedComponentJSON.key || 'Component'}
+                      Focused: {componentHierarchy.length > 1 ? componentHierarchy.join(' > ') : (focusedComponentJSON.type || focusedComponentJSON.key || 'Component')}
                     </span>
                   )}
                 </div>
               </div>
-              <button
-                onClick={() => setIsOpen(false)}
-                className="rounded-sm opacity-70 hover:opacity-100 transition-opacity p-1 hover:bg-accent"
-                aria-label="Collapse sidebar"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </button>
+              {/* No close button - always visible */}
             </div>
 
             {/* Selected Components Display */}
@@ -702,7 +749,7 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps> = ({ className, pag
           {messages.length === 0 && !isLoading ? (
             <div className="flex items-center justify-center h-full text-muted-foreground">
               <p className="text-center text-sm">
-                Start a conversation with the AI Assistant.
+                Start a conversation with the Editor.
                 <br />
                 <br />
                 Ask questions, get help, or request assistance with your content.
@@ -754,30 +801,10 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps> = ({ className, pag
                 />
               </form>
             </div>
-          </>
-        )}
       </div>
 
       {/* Collapsed State - Toggle Button */}
-      {!isOpen && (
-        <button
-          onClick={() => setIsOpen(true)}
-          className={cn(
-            "absolute right-0 top-1/2 -translate-y-1/2 z-20",
-            "flex items-center justify-center w-12 h-24",
-            "bg-primary text-primary-foreground rounded-l-lg shadow-xl",
-            "hover:bg-primary/90 transition-all hover:shadow-2xl",
-            "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
-            "border-l border-t border-b border-primary/20"
-          )}
-          aria-label="Expand AI Assistant"
-        >
-          <div className="flex flex-col items-center gap-1">
-            <MessageCircle className="h-5 w-5" />
-            <ChevronLeft className="h-4 w-4" />
-          </div>
-        </button>
-      )}
+      {/* No expand button needed - always visible */}
     </div>
   );
 };

@@ -137,6 +137,9 @@ export const SchemaItemEditor: React.FC<SchemaItemEditorProps> = ({
       // Debug the carousel item structure
       console.log('Carousel item:', item);
       
+      // Note: When used within NestedAccordion, carousel items are handled by ArrayItemCards
+      // This fallback is for direct usage of SchemaItemRenderer
+      
       // Check all possible places where images could be stored
       let carouselImages: any[] = [];
       
@@ -221,6 +224,9 @@ export const SchemaItemEditor: React.FC<SchemaItemEditorProps> = ({
       );
 
     case 'array': {
+      // Note: When used within NestedAccordion, array items are handled by ArrayItemCards
+      // This fallback is for direct usage of SchemaItemRenderer
+      
       const handleAddItem = () => {
         let newItem: SchemaItem;
         

@@ -26,6 +26,8 @@ type CarouselContextProps = {
   scrollNext: () => void
   canScrollPrev: boolean
   canScrollNext: boolean
+  currentIndex: number
+  slideCount: number
 } & CarouselProps
 
 const CarouselContext = React.createContext<CarouselContextProps | null>(null)
@@ -65,6 +67,8 @@ const Carousel = React.forwardRef<
     )
     const [canScrollPrev, setCanScrollPrev] = React.useState(false)
     const [canScrollNext, setCanScrollNext] = React.useState(false)
+    const [currentIndex, setCurrentIndex] = React.useState(0)
+    const [slideCount, setSlideCount] = React.useState(0)
 
     const onSelect = React.useCallback((api: CarouselApi) => {
       if (!api) {
@@ -73,6 +77,8 @@ const Carousel = React.forwardRef<
 
       setCanScrollPrev(api.canScrollPrev())
       setCanScrollNext(api.canScrollNext())
+      setCurrentIndex(api.selectedScrollSnap())
+      setSlideCount(api.scrollSnapList().length)
     }, [])
 
     const scrollPrev = React.useCallback(() => {
@@ -130,6 +136,8 @@ const Carousel = React.forwardRef<
           scrollNext,
           canScrollPrev,
           canScrollNext,
+          currentIndex,
+          slideCount,
         }}
       >
         <div
@@ -250,6 +258,31 @@ const CarouselNext = React.forwardRef<
 })
 CarouselNext.displayName = "CarouselNext"
 
+const CarouselIndicators = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => {
+  const { currentIndex, slideCount } = useCarousel()
+
+  if (slideCount <= 1) {
+    return null
+  }
+
+  return (
+    <div
+      ref={ref}
+      className={cn(
+        "absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/50 text-white px-3 py-1 rounded-full text-sm font-medium",
+        className
+      )}
+      {...props}
+    >
+      {currentIndex + 1}/{slideCount}
+    </div>
+  )
+})
+CarouselIndicators.displayName = "CarouselIndicators"
+
 export {
   type CarouselApi,
   Carousel,
@@ -257,4 +290,5 @@ export {
   CarouselItem,
   CarouselPrevious,
   CarouselNext,
+  CarouselIndicators,
 }

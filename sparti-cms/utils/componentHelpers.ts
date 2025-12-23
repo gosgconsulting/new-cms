@@ -96,6 +96,125 @@ export const getComponentPreview = (component: ComponentSchema): string => {
   }
 };
 
+// Array-based component detection
+export const hasArrayItems = (component: ComponentSchema): boolean => {
+  if (!component.items || component.items.length === 0) {
+    return false;
+  }
+
+  // Check for specific array-based component types
+  const arrayBasedTypes = ['carousel', 'gallery', 'array'];
+  const hasArrayType = component.items.some(item => arrayBasedTypes.includes(item.type));
+  
+  if (hasArrayType) {
+    return true;
+  }
+
+  // Check for components with array properties in their data
+  const firstItem = component.items[0];
+  if (firstItem && firstItem.type === 'carousel' && firstItem.images) {
+    return Array.isArray(firstItem.images) && firstItem.images.length > 0;
+  }
+
+  // Check for other array properties that should show cards
+  const arrayProperties = ['images', 'items', 'testimonials', 'teamMembers', 'faqs', 'slides', 'clientLogos', 'ctaButtons'];
+  
+  // Check in all items, not just the first one
+  return component.items.some(item => {
+    return arrayProperties.some(prop => {
+      const value = (item as any)?.[prop];
+      return Array.isArray(value) && value.length > 0;
+    });
+  });
+};
+
+export const getArrayItemsFromComponent = (component: ComponentSchema): any[] => {
+  if (!component.items || component.items.length === 0) {
+    return [];
+  }
+
+  // Check all items for array properties
+  const arrayProperties = ['images', 'testimonials', 'teamMembers', 'faqs', 'slides', 'clientLogos', 'ctaButtons'];
+  
+  for (const item of component.items) {
+    // Check carousel/gallery items
+    if (item.type === 'carousel' && item.images) {
+      return Array.isArray(item.images) ? item.images : [];
+    }
+    
+    if (item.type === 'gallery' && item.value) {
+      return Array.isArray(item.value) ? item.value : [];
+    }
+
+    // Check for array items in the item itself
+    if (item.items && Array.isArray(item.items)) {
+      return item.items;
+    }
+
+    // Check for other array properties
+    for (const prop of arrayProperties) {
+      const value = (item as any)?.[prop];
+      if (Array.isArray(value) && value.length > 0) {
+        return value;
+      }
+    }
+  }
+
+  return [];
+};
+
+export const getArrayItemPreview = (item: any, index: number, type: string): { title: string; subtitle?: string; thumbnail?: string } => {
+  // Handle different types of array items
+  switch (type) {
+    case 'carousel':
+    case 'gallery':
+      return {
+        title: `Slide ${index + 1}`,
+        subtitle: item.alt || item.caption || 'No description',
+        thumbnail: item.src || item.url
+      };
+    
+    case 'testimonials':
+      return {
+        title: item.name || `Testimonial ${index + 1}`,
+        subtitle: item.text ? item.text.substring(0, 50) + '...' : 'No text',
+        thumbnail: item.image || item.avatar
+      };
+    
+    case 'teamMembers':
+      return {
+        title: item.name || `Member ${index + 1}`,
+        subtitle: item.role || item.position || 'No role',
+        thumbnail: item.image || item.photo
+      };
+    
+    case 'faqs':
+      return {
+        title: item.question || `FAQ ${index + 1}`,
+        subtitle: item.answer ? item.answer.substring(0, 50) + '...' : 'No answer'
+      };
+    
+    case 'clientLogos':
+      return {
+        title: item.name || `Logo ${index + 1}`,
+        subtitle: item.alt || 'Client logo',
+        thumbnail: item.image || item.src
+      };
+    
+    case 'ctaButtons':
+      return {
+        title: item.text || `Button ${index + 1}`,
+        subtitle: item.url || 'No URL'
+      };
+    
+    default:
+      return {
+        title: item.title || item.name || item.label || `Item ${index + 1}`,
+        subtitle: item.description || item.content || item.text || 'No description'
+      };
+  }
+};
+
 // Validation helpers
 export const isValidComponentsArray = (components: unknown): components is ComponentSchema[] => {
   return Array.isArray(components);
