@@ -5,7 +5,6 @@ import { cn } from "@/lib/utils";
 import api from "../../sparti-cms/utils/api";
 import { useAuth } from "../../sparti-cms/components/auth/AuthProvider";
 import { getAvailableActions } from "../../sparti-cms/utils/componentSchemaAnalyzer";
-import { Button } from "@/components/ui/button";
 
 interface PageContext {
   slug: string;
@@ -640,7 +639,7 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
       if (data.success && data.message) {
         const assistantMessage = {
           id: (Date.now() + 1).toString(),
-          content: sanitizeAssistantMessage(data.message),
+          content: mode === 'edit' ? sanitizeAssistantMessage(data.message) : data.message,
           role: 'assistant' as const,
         };
         setMessages((prev) => [...prev, assistantMessage]);
@@ -963,14 +962,6 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
               {/* No close button - always visible */}
             </div>
 
-            {/* Actions ribbon: brief only; generation is automatic based on focus */}
-            <div className="px-4 py-2 border-b bg-muted/10 flex items-center gap-2 flex-wrap">
-              <Button size="sm" onClick={handleStartCopywriting} disabled={isLoading}>
-                Copywriting
-              </Button>
-              {isBatchGenerating && <span className="text-xs text-muted-foreground">Generating drafts...</span>}
-            </div>
-
             {/* Selected Components Display */}
             {selectedComponents.length > 0 && (
               <div className="px-4 py-2 border-b bg-muted/30">
@@ -1056,27 +1047,6 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
               </div>
             )}
 
-            {/* Copywriting steps (high-level) */}
-            {copyWorkflowActive && (
-              <div className="px-4 py-2 border-b bg-background">
-                <p className="text-xs text-muted-foreground mb-2">Copywriting workflow</p>
-                <ul className="text-xs space-y-1">
-                  <li>
-                    <span className="font-medium">1) Ask brief</span>
-                    <span className="ml-2">{copyStep === 'asking' ? '(in progress...)' : copyStep === 'received' ? '(received questions)' : ''}</span>
-                  </li>
-                  <li>
-                    <span className="font-medium">2) Analyze schema</span>
-                    <span className="ml-2 text-muted-foreground">(after your answers)</span>
-                  </li>
-                  <li>
-                    <span className="font-medium">3) Propose copy</span>
-                    <span className="ml-2 text-muted-foreground">(Output tab)</span>
-                  </li>
-                </ul>
-              </div>
-            )}
-
             {/* Messages Area */}
             <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 custom-scrollbar">
           {messages.length === 0 && !isLoading ? (
@@ -1088,7 +1058,7 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
                 Ask questions, get help, or request assistance with your content.
               </p>
               <p className="text-[11px] text-muted-foreground">
-                Tip: Use the Copywriting button above. It uses your current focus: "Sections" targets all sections; selecting a section targets only that section.
+                Tip: Use the mode toggle to switch between Edit (applies JSON updates) and Ask (answers appear here in the chat).
               </p>
             </div>
           ) : (
