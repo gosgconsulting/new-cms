@@ -65,6 +65,8 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
   const [copyWorkflowActive, setCopyWorkflowActive] = useState(false);
   const [copyStep, setCopyStep] = useState<'idle' | 'asking' | 'received'>('idle');
   const [isBatchGenerating, setIsBatchGenerating] = useState(false);
+  // Track last auto-generation to avoid repeats on re-renders
+  const lastAutoGenRef = useRef<{ type: 'page' | 'section'; key?: string } | null>(null);
 
   // Remove JSON code blocks from assistant messages (keep friendly status line)
   const sanitizeAssistantMessage = (msg: string) => {
@@ -766,6 +768,25 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
     }
   };
 
+  // Generate output for one section (silent)
+  const handleGenerateSingleOutput = async (componentJson: any) => {
+    const perComponentInstruction =
+      `[Workflow: Copywriting Per-Section]\n` +
+      `Propose improved copy for this single section only.\n` +
+      `Return ONLY the updated component JSON (same key and type), modifying text fields and items as needed.\n` +
+      `Do not wrap in code fences. Do not change keys or remove fields.\n\n` +
+      `Component JSON:\n${JSON.stringify(componentJson, null, 2)}`;
+    await sendHiddenMessage(perComponentInstruction, { silent: true });
+    setMessages(prev => [
+      ...prev,
+      {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: `Draft prepared for ${componentJson?.type || componentJson?.key || 'this section'}. Open the Output tab to review.`,
+      },
+    ]);
+  };
+
   // Generate output for all sections by iterating each component silently
   const handleGenerateAllOutputs = async () => {
     if (isLoading || isBatchGenerating) return;
@@ -805,6 +826,27 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
     ]);
     setIsBatchGenerating(false);
   };
+
+  // Auto-generate based on focus:
+  // - If Sections (page-level) is selected, generate for all sections.
+  // - If a specific section is selected, generate for that section.
+  useEffect(() => {
+    if (!selectedComponentJSON) return;
+    // Page-level
+    if ((selectedComponentJSON as any).__scope === 'page') {
+      if (lastAutoGenRef.current?.type !== 'page') {
+        lastAutoGenRef.current = { type: 'page' };
+        handleGenerateAllOutputs();
+      }
+      return;
+    }
+    // Section-level
+    const key = selectedComponentJSON.key || selectedComponentJSON.type || JSON.stringify(selectedComponentJSON);
+    if (lastAutoGenRef.current?.type !== 'section' || lastAutoGenRef.current?.key !== key) {
+      lastAutoGenRef.current = { type: 'section', key };
+      handleGenerateSingleOutput(selectedComponentJSON);
+    }
+  }, [selectedComponentJSON]);
 
   // Launch copywriting workflow: ask brief questions, analyze full schema, then propose copy
   const handleStartCopywriting = async () => {
@@ -882,17 +924,12 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
               {/* No close button - always visible */}
             </div>
 
-            {/* Actions ribbon for page-level copywriting */}
+            {/* Actions ribbon: brief only; generation is automatic based on focus */}
             <div className="px-4 py-2 border-b bg-muted/10 flex items-center gap-2 flex-wrap">
               <Button size="sm" onClick={handleStartCopywriting} disabled={isLoading}>
                 Ask brief
               </Button>
-              <Button size="sm" variant="outline" onClick={handleGenerateAllOutputs} disabled={isLoading || isBatchGenerating}>
-                Generate all outputs
-              </Button>
-              {isBatchGenerating && (
-                <span className="text-xs text-muted-foreground">Generating drafts...</span>
-              )}
+              {isBatchGenerating && <span className="text-xs text-muted-foreground">Generating drafts...</span>}
             </div>
 
             {/* Selected Components Display */}
@@ -1011,12 +1048,9 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
                 <br />
                 Ask questions, get help, or request assistance with your content.
               </p>
-              <div className="flex items-center gap-2">
-                <Button size="sm" onClick={handleStartCopywriting}>Ask brief</Button>
-                <Button size="sm" variant="outline" onClick={handleGenerateAllOutputs} disabled={isBatchGenerating}>Generate all outputs</Button>
-              </div>
+              <Button size="sm" onClick={handleStartCopywriting}>Ask brief</Button>
               <p className="text-[11px] text-muted-foreground">
-                Guided workflow: provide a brief, then generate copy updates for all sections automatically.
+                Tip: Selecting "Sections" will generate drafts for all sections; selecting a section generates a draft for that section.
               </p>
             </div>
           ) : (
