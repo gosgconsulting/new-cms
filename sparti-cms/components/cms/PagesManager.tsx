@@ -11,6 +11,7 @@ import { getDummyPages, isDevelopmentTenant } from '../admin/DevelopmentTenantDa
 import api from '../../utils/api';
 import { AIAssistantChat } from '../../../src/components/AIAssistantChat';
 import { VisualEditorJSONDialog } from './VisualEditorJSONDialog';
+import { SidebarProvider, Sidebar, SidebarInset, SidebarTrigger, SidebarContent, SidebarHeader } from '../../../src/components/ui/sidebar';
 
 interface PageItem {
   id: string;
@@ -298,7 +299,8 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
       : visualEditorPage.slug;
     
     return (
-      <div className="flex flex-col" style={{ height: 'calc(100vh - 120px)' }}>
+      <SidebarProvider className="flex flex-col" style={{ height: 'calc(100vh - 120px)' }}>
+        {/* Header */}
         <div className="flex items-center justify-between p-4 border-b bg-white rounded-t-lg">
           <div className="flex items-center gap-3">
             <Button
@@ -318,6 +320,7 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
             <span className="text-sm text-muted-foreground">{pageUrl}</span>
           </div>
           <div className="flex items-center gap-2">
+            <SidebarTrigger className="h-8 w-8" />
             <Button
               variant="outline"
               size="sm"
@@ -336,24 +339,41 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
             </Button>
           </div>
         </div>
-        <div className="flex-1 relative bg-gray-100 rounded-b-lg overflow-hidden flex">
-          <div className="flex-1 relative" id="visual-editor-iframe-container">
-            <iframe
-              id="visual-editor-iframe"
-              src={pageUrl}
-              className="w-full h-full border-0"
-              title={`Visual Editor: ${visualEditorPage.pageName}`}
-              style={{ height: '100%' }}
-            />
-          </div>
-          <AIAssistantChat 
-            className="h-full" 
-            pageContext={visualEditorPage ? {
-              slug: visualEditorPage.slug,
-              pageName: visualEditorPage.pageName
-            } : null}
-          />
+
+        {/* Main area with sidebar */}
+        <div className="flex-1 relative bg-gray-100 rounded-b-lg overflow-hidden md:flex">
+          {/* Right Sidebar hosting AI chat */}
+          <Sidebar side="right" variant="inset" collapsible="offcanvas" className="border-l">
+            <SidebarHeader className="px-3 py-2">
+              <div className="text-sm font-medium">AI Assistant</div>
+              <div className="text-xs text-muted-foreground">Ask or draft copy for the current page</div>
+            </SidebarHeader>
+            <SidebarContent className="p-2">
+              <AIAssistantChat 
+                className="h-full w-full" 
+                pageContext={visualEditorPage ? {
+                  slug: visualEditorPage.slug,
+                  pageName: visualEditorPage.pageName
+                } : null}
+              />
+            </SidebarContent>
+          </Sidebar>
+
+          {/* Page preview inset (keeps IDs for selector support) */}
+          <SidebarInset>
+            <div className="flex-1 relative" id="visual-editor-iframe-container">
+              <iframe
+                id="visual-editor-iframe"
+                src={pageUrl}
+                className="w-full h-full border-0"
+                title={`Visual Editor: ${visualEditorPage.pageName}`}
+                style={{ height: '100%' }}
+              />
+            </div>
+          </SidebarInset>
         </div>
+
+        {/* JSON Editor dialog remains outside content */}
         <VisualEditorJSONDialog
           open={showJSONEditor}
           onOpenChange={setShowJSONEditor}
@@ -364,7 +384,7 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
           currentThemeId={currentThemeId}
           currentTenantId={currentTenantId}
         />
-      </div>
+      </SidebarProvider>
     );
   }
 
