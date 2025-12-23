@@ -1,10 +1,9 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
-import { MessageCircle, Loader2, ChevronRight, ChevronLeft, Image, Type } from "lucide-react";
+import { MessageCircle, Loader2, ChevronRight, ChevronLeft } from "lucide-react";
 import { PromptBox } from "@/components/ui/chatgpt-prompt-input";
 import { cn } from "@/lib/utils";
 import api from "../../sparti-cms/utils/api";
 import { useAuth } from "../../sparti-cms/components/auth/AuthProvider";
-import { getAvailableActions } from "../../sparti-cms/utils/componentSchemaAnalyzer";
 
 interface PageContext {
   slug: string;
@@ -157,14 +156,6 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
 
     loadPageContext();
   }, [pageContext?.slug, pageContext?.pageName, pageContext?.tenantId, currentTenantId]);
-
-  // Analyze component for available actions
-  const availableActions = useMemo(() => {
-    if (!focusedComponentJSON) {
-      return { hasImages: false, hasText: false };
-    }
-    return getAvailableActions(focusedComponentJSON);
-  }, [focusedComponentJSON]);
 
   // Handle component selection from left panel
   useEffect(() => {
@@ -546,9 +537,22 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
       const activeToolsString = messageInput?.dataset.selectedTools || '';
       const activeTools = activeToolsString ? activeToolsString.split(',') : [];
       const selectedModel = messageInput?.dataset.selectedModel || 'claude-3-5-haiku-20241022';
-      const mode = (messageInput?.dataset.mode as 'edit' | 'ask') || 'edit'; // NEW: read mode
+      const mode = (messageInput?.dataset.mode as 'edit' | 'ask') || 'edit';
 
-      // Build message with selected components context
+      // If in Edit mode: auto-draft outputs for focused section or all sections, then exit early
+      if (mode === 'edit') {
+        // If focused component represents a page-level placeholder, treat as ALL
+        const isPageScopeOnly = focusedComponentJSON && Object.keys(focusedComponentJSON).length === 1 && focusedComponentJSON.type && !focusedComponentJSON.key;
+        if (focusedComponentJSON && !isPageScopeOnly) {
+          await handleGenerateSingleOutput(focusedComponentJSON, message);
+        } else {
+          await handleGenerateAllOutputs(message);
+        }
+        setIsLoading(false);
+        return;
+      }
+
+      // Ask mode continues here: build selected components context, page context, and call AI
       let enhancedMessage = message;
       if (selectedComponents.length > 0) {
         const componentsInfo = selectedComponents.map(comp => {
@@ -562,7 +566,6 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
         enhancedMessage = `[Selected Components: ${componentsInfo}]\n\n${message}`;
       }
 
-      // Build page context with current components if available
       let finalPageContext = undefined;
       try {
         if (pageContextData) {
@@ -599,15 +602,7 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
         finalPageContext = undefined;
       }
 
-      // NEW: If in Edit mode, instruct the model to return JSON edits directly
-      if (mode === 'edit') {
-        const editInstruction = focusedComponentJSON
-          ? `[Mode: Edit]\nReturn ONLY the updated component JSON for the focused section (keep the same key and type). Modify only relevant fields. Do not wrap in code fences.\n\n`
-          : `[Mode: Edit]\nReturn ONLY updated schema JSON with a top-level "components" array. Modify only relevant sections. Do not wrap in code fences.\n\n`;
-        enhancedMessage = editInstruction + enhancedMessage;
-      }
-
-      // Call Claude API with page context
+      // Ask mode: Call Claude API with page context
       const response = await api.post('/api/ai-assistant/chat', {
         message: enhancedMessage,
         conversationHistory: conversationHistory.slice(0, -1),
@@ -639,12 +634,13 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
       if (data.success && data.message) {
         const assistantMessage = {
           id: (Date.now() + 1).toString(),
-          content: mode === 'edit' ? sanitizeAssistantMessage(data.message) : data.message,
+          // Ask mode: show message directly in chat; Edit mode handled earlier
+          content: data.message,
           role: 'assistant' as const,
         };
         setMessages((prev) => [...prev, assistantMessage]);
 
-        // Try to extract and apply JSON from the response if callbacks are provided
+        // Try to extract and apply JSON from the response if callbacks are provided (Ask may include examples)
         if (onProposedComponents || onUpdateComponents) {
           try {
             let jsonString: string | null = null;
@@ -823,10 +819,11 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
   };
 
   // Generate output for one section (silent)
-  const handleGenerateSingleOutput = async (componentJson: any) => {
+  const handleGenerateSingleOutput = async (componentJson: any, userMessage?: string) => {
     if (cancelRequestedRef.current) return;
     const perComponentInstruction =
       `[Workflow: Copywriting Per-Section]\n` +
+      (userMessage ? `Apply the following brief/request to this section:\n"${userMessage}"\n\n` : ``) +
       `Propose improved copy for this single section only.\n` +
       `Return ONLY the updated component JSON (same key and type), modifying text fields and items as needed.\n` +
       `Do not wrap in code fences. Do not change keys or remove fields.\n\n` +
@@ -844,7 +841,7 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
   };
 
   // Generate output for all sections by iterating each component silently
-  const handleGenerateAllOutputs = async () => {
+  const handleGenerateAllOutputs = async (userMessage?: string) => {
     if (isLoading || isBatchGenerating || cancelRequestedRef.current) return;
     const schemaComponents =
       (currentComponents && currentComponents.length > 0)
@@ -869,7 +866,8 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
       const comp = schemaComponents[i];
       const perComponentInstruction =
         `[Workflow: Copywriting Per-Section]\n` +
-        `Using the earlier brief and context, propose improved copy for this single section only.\n` +
+        (userMessage ? `Apply the following brief/request to this section:\n"${userMessage}"\n\n` : ``) +
+        `Propose improved copy for this single section only.\n` +
         `Return ONLY the updated component JSON (same key and type), modifying text fields and items as needed.\n` +
         `Do not wrap in code fences. Do not change keys or remove fields.\n\n` +
         `Component JSON:\n${JSON.stringify(comp, null, 2)}`;
@@ -880,7 +878,7 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
     if (!cancelRequestedRef.current) {
       setMessages(prev => [
         ...prev,
-        { id: (Date.now() + 2).toString(), role: 'assistant', content: 'Drafts prepared for all sections. Open any section to see the Output tab and apply changes.' }
+        { id: (Date.now() + 2).toString(), role: 'assistant', content: 'Drafts prepared for all sections. Open each section\'s Output tab to review and apply.' }
       ]);
     }
     setIsBatchGenerating(false);
@@ -1004,49 +1002,6 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
               </div>
             )}
 
-            {/* Action Buttons - Show when component is selected */}
-            {focusedComponentJSON && (availableActions.hasImages || availableActions.hasText) && (
-              <div className="px-4 py-2 border-b bg-muted/20">
-                <p className="text-xs text-muted-foreground mb-3">
-                  What would you like to do with this section?
-                </p>
-                <div className="grid grid-cols-2 gap-2">
-                  {availableActions.hasImages && (
-                    <button
-                      onClick={() => {
-                        const componentName = focusedComponentJSON.type || focusedComponentJSON.key || 'this component';
-                        const message = `Edit the images in ${componentName}`;
-                        submitMessage(message);
-                      }}
-                      disabled={isLoading}
-                      className="flex items-center gap-2 px-3 py-2 rounded-lg bg-background border border-border hover:bg-muted/50 transition-colors text-left group disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-                    >
-                      <div className="p-2 rounded-md bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 group-hover:bg-purple-200 dark:group-hover:bg-purple-900/50 transition-colors">
-                        <Image className="h-4 w-4" />
-                      </div>
-                      <span className="font-medium">Edit image</span>
-                    </button>
-                  )}
-                  {availableActions.hasText && (
-                    <button
-                      onClick={() => {
-                        const componentName = focusedComponentJSON.type || focusedComponentJSON.key || 'this component';
-                        const message = `Edit the text in ${componentName}`;
-                        submitMessage(message);
-                      }}
-                      disabled={isLoading}
-                      className="flex items-center gap-2 px-3 py-2 rounded-lg bg-background border border-border hover:bg-muted/50 transition-colors text-left group disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-                    >
-                      <div className="p-2 rounded-md bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400 group-hover:bg-yellow-200 dark:group-hover:bg-yellow-900/50 transition-colors">
-                        <Type className="h-4 w-4" />
-                      </div>
-                      <span className="font-medium">Edit text</span>
-                    </button>
-                  )}
-                </div>
-              </div>
-            )}
-
             {/* Messages Area */}
             <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 custom-scrollbar">
           {messages.length === 0 && !isLoading ? (
@@ -1058,7 +1013,7 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
                 Ask questions, get help, or request assistance with your content.
               </p>
               <p className="text-[11px] text-muted-foreground">
-                Tip: Use the mode toggle to switch between Edit (applies JSON updates) and Ask (answers appear here in the chat).
+                Tip: Switch modes with the toggle. Edit mode drafts outputs for the focused section or all sections; Ask mode shows answers here.
               </p>
             </div>
           ) : (
