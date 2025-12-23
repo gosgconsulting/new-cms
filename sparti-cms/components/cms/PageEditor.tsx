@@ -567,19 +567,14 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
     }
 
     if (selectedComponentIndex !== null) {
-      // Per-section view with unified tabs: Original | Output (Output contains AI chat + drafted preview)
       const selected = selectedComponent;
-      const proposedForSelected =
-        (proposedComponents?.find((c) => c.key === selected?.key) ||
-         proposedComponents?.find((c) => (c.type || '').toLowerCase() === (selected?.type || '').toLowerCase()) ||
-         null);
+      const proposedForSelected = proposedComponents?.find((c) => c.key === selected?.key) || null;
       const hasOutput = Boolean(proposedForSelected);
 
-      // Helper to render contents for a given component
-      const renderSectionContents = (comp: ComponentSchema | null, variant: 'original' | 'output' = 'original') => {
+      const renderSectionContents = (comp: ComponentSchema | null) => {
         const items = comp ? extractContentFromComponents([comp]) : [];
         return (
-          <div className="space-y-4 mt-6" key={`${(comp as any)?.key || 'section'}-${variant}`}>
+          <div className="space-y-4 mt-6" key={`${(comp as any)?.key || 'section'}`}>
             <div className="border-b pb-2">
               <h3 className="text-lg font-semibold flex items-center">
                 <FileText className="h-5 w-5 mr-2" />
@@ -641,11 +636,10 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
 
       return (
         <div className="w-full">
-          <Tabs defaultValue={hasOutput ? "output" : "original"} className="w-full">
+          <Tabs defaultValue="original" className="w-full">
             <div className="mb-4 flex items-center justify-between">
               <TabsList>
                 <TabsTrigger value="original">Original</TabsTrigger>
-                <TabsTrigger value="output">Output</TabsTrigger>
               </TabsList>
               <Button
                 onClick={() => {
@@ -673,52 +667,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
                 components={components}
                 onUpdate={updateComponent}
               />
-              {renderSectionContents(selected, 'original')}
-            </TabsContent>
-
-            <TabsContent value="output" className="space-y-4">
-              {/* AI Assistant input at top */}
-              <div className="mb-2">
-                <AIAssistantChat 
-                  className="h-full w-full"
-                  pageContext={pageData ? {
-                    slug: pageData.slug,
-                    pageName: pageData.page_name,
-                    tenantId: currentTenantId || undefined
-                  } : null}
-                  currentComponents={components}
-                  onUpdateComponents={setComponents}
-                  onProposedComponents={handleProposedComponentsMerge}
-                  onOpenJSONEditor={openJSONEditor}
-                  selectedComponentJSON={selectedComponentForAI || selected || null}
-                  onComponentSelected={() => {}}
-                  onActionStatus={setAIActionStatus}
-                />
-              </div>
-
-              {aiActionStatus && (
-                <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-muted text-xs text-muted-foreground border">
-                  <span className="font-medium">Action:</span>
-                  <span>{aiActionStatus}</span>
-                </div>
-              )}
-
-              {/* Simple swap below input: show original until draft exists, else show drafted editor + contents */}
-              {!hasOutput ? (
-                <>
-                  {renderSectionContents(selected, 'original')}
-                </>
-              ) : (
-                <>
-                  <ComponentEditorPanel
-                    component={proposedForSelected}
-                    componentIndex={selectedComponentIndex}
-                    components={proposedForSelected ? proposedComponents || components : components}
-                    onUpdate={() => { /* read-only */ }}
-                  />
-                  {renderSectionContents(proposedForSelected as ComponentSchema, 'output')}
-                </>
-              )}
+              {renderSectionContents(selected)}
             </TabsContent>
           </Tabs>
         </div>
