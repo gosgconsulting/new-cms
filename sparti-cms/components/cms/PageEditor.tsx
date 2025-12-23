@@ -17,6 +17,7 @@ import { ComponentListItem } from './PageEditor/ComponentListItem';
 import { JSONEditorDialog } from './PageEditor/JSONEditorDialog';
 import { EmptyState, ComponentsErrorState, ComponentsEmptyState } from './PageEditor/EmptyStates';
 import { AIAssistantChat } from '../../../src/components/AIAssistantChat';
+import { SidebarProvider, Sidebar, SidebarInset, SidebarTrigger, SidebarContent, SidebarHeader } from '../../../src/components/ui/sidebar';
 
 // Contents Panel Component
 interface ContentsPanelProps {
@@ -502,7 +503,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
   // Render right panel
   const renderRightPanel = () => {
     if (showContents) {
-      // Page-level view with unified tabs: Original | Output (Output contains AI chat + drafted preview)
+      // Page-level view with unified tabs: Original | Output (Output contains drafted preview)
       const hasOutput = Array.isArray(proposedComponents) && proposedComponents.length > 0;
 
       return (
@@ -524,25 +525,6 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
             </TabsContent>
 
             <TabsContent value="output">
-              {/* AI Assistant input at top */}
-              <div className="mb-2">
-                <AIAssistantChat 
-                  className="h-full w-full"
-                  pageContext={pageData ? {
-                    slug: pageData.slug,
-                    pageName: pageData.page_name,
-                    tenantId: currentTenantId || undefined
-                  } : null}
-                  currentComponents={components}
-                  onUpdateComponents={setComponents}
-                  onProposedComponents={handleProposedComponentsMerge}
-                  onOpenJSONEditor={openJSONEditor}
-                  selectedComponentJSON={selectedComponentForAI || ({ __scope: 'page', schema: { components } } as any)}
-                  onComponentSelected={() => {}}
-                  onActionStatus={setAIActionStatus}
-                />
-              </div>
-
               {aiActionStatus && (
                 <div className="mb-4 inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-muted text-xs text-muted-foreground border">
                   <span className="font-medium">Action:</span>
@@ -567,22 +549,19 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
     }
 
     if (selectedComponentIndex !== null) {
-      // Per-section view with unified tabs: Original | Output (Output contains AI chat + drafted preview)
+      // Per-section view with unified tabs: Original | Output (Output contains drafted preview)
       const selected = selectedComponent;
-      // Resolve the draft for this section by key, then by type (case-insensitive), then by index
       let proposedForSelected =
         (proposedComponents?.find((c) => c.key === selected?.key) ||
          proposedComponents?.find((c) => (c.type || '').toLowerCase() === (selected?.type || '').toLowerCase()) ||
          null);
       if (!proposedForSelected && proposedComponents && components && selectedComponentIndex >= 0) {
-        // Fallback to index-based match if arrays align
         if (proposedComponents.length === components.length) {
           proposedForSelected = proposedComponents[selectedComponentIndex] || null;
         }
       }
       const hasOutput = Boolean(proposedForSelected);
 
-      // Helper to render contents for a given component
       const renderSectionContents = (comp: ComponentSchema | null) => {
         const items = comp ? extractContentFromComponents([comp]) : [];
         return (
@@ -648,7 +627,6 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
 
       return (
         <div className="w-full" key={`${selected?.key}-${hasOutput ? 'output' : 'original'}`}>
-          {/* Apply button row (kept, no tabs here) */}
           <div className="mb-4 flex items-center justify-end">
             <Button
               onClick={() => {
@@ -669,7 +647,6 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
             </Button>
           </div>
 
-          {/* Component editor (interactive) */}
           <ComponentEditorPanel
             component={selected}
             componentIndex={selectedComponentIndex}
@@ -677,7 +654,6 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
             onUpdate={updateComponent}
           />
 
-          {/* New tabs block above Section Contents (replicates Sections page tabs) */}
           <div className="mt-4">
             <Tabs defaultValue={hasOutput ? "output" : "original"} className="w-full">
               <div className="mb-3">
@@ -692,25 +668,6 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
               </TabsContent>
 
               <TabsContent value="output">
-                {/* AI Assistant input at top for this section */}
-                <div className="mb-2">
-                  <AIAssistantChat
-                    className="h-full w-full"
-                    pageContext={pageData ? {
-                      slug: pageData.slug,
-                      pageName: pageData.page_name,
-                      tenantId: currentTenantId || undefined
-                    } : null}
-                    currentComponents={components}
-                    onUpdateComponents={setComponents}
-                    onProposedComponents={handleProposedComponentsMerge}
-                    onOpenJSONEditor={openJSONEditor}
-                    selectedComponentJSON={selectedComponentForAI || selected || null}
-                    onComponentSelected={() => {}}
-                    onActionStatus={setAIActionStatus}
-                  />
-                </div>
-
                 {aiActionStatus && (
                   <div className="mb-3 inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-muted text-xs text-muted-foreground border">
                     <span className="font-medium">Action:</span>
@@ -718,7 +675,6 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
                   </div>
                 )}
 
-                {/* Drafted content preview below the chat */}
                 {hasOutput
                   ? renderSectionContents(proposedForSelected as ComponentSchema)
                   : renderSectionContents(selected)}
@@ -761,7 +717,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
   }
 
   return (
-    <div className="h-screen flex flex-col">
+    <SidebarProvider className="h-screen flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b bg-background">
         <div className="flex items-center gap-4">
@@ -769,13 +725,14 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h2 className="text-xl font-bold">Edit Page: {pageData.page_name || 'Untitled'}</h2>
+            <h2 className="text-xl font-bold">Edit Page: {pageData?.page_name || 'Untitled'}</h2>
             <div className="flex items-center gap-2">
-              <p className="text-sm text-muted-foreground">{pageData.slug || 'no-slug'}</p>
+              <p className="text-sm text-muted-foreground">{pageData?.slug || 'no-slug'}</p>
             </div>
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <SidebarTrigger className="h-8 w-8" />
           {user?.is_super_admin && (
             <Button
               variant="outline"
@@ -797,74 +754,98 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 flex overflow-hidden relative">
-        {/* Left Panel - Components List */}
-        <div className="w-80 border-r bg-muted/20 flex flex-col">
+      {/* Main Content with right sidebar */}
+      <div className="flex-1 relative">
+        {/* Right Sidebar: AI Assistant Chat */}
+        <Sidebar side="right" variant="inset" collapsible="offcanvas" className="border-l">
+          <SidebarHeader className="px-3 py-2">
+            <div className="text-sm font-medium">AI Assistant</div>
+            <div className="text-xs text-muted-foreground">Ask or draft copy for the current page/section</div>
+          </SidebarHeader>
+          <SidebarContent className="p-2">
+            <AIAssistantChat
+              className="h-full w-full"
+              pageContext={pageData ? {
+                slug: pageData.slug,
+                pageName: pageData.page_name,
+                tenantId: currentTenantId || undefined
+              } : null}
+              currentComponents={components}
+              onUpdateComponents={setComponents}
+              onProposedComponents={handleProposedComponentsMerge}
+              onOpenJSONEditor={openJSONEditor}
+              selectedComponentJSON={selectedComponentForAI || ({ __scope: 'page', schema: { components } } as any)}
+              onComponentSelected={() => {}}
+              onActionStatus={setAIActionStatus}
+            />
+          </SidebarContent>
+        </Sidebar>
 
-          <ScrollArea className="flex-1">
-            <div className="p-2 space-y-2">
-              {/* Sections acts like old Contents (click to show contents panel) */}
-              <Button
-                variant={showContents ? "default" : "ghost"}
-                className="w-full justify-start text-lg font-semibold py-3"
-                onClick={() => {
-                  setShowContents(true);
-                  setShowSEOForm(false);
-                  setSelectedComponentIndex(null);
-                  // Signal AI chat to use the full page schema (page-level context)
-                  setSelectedComponentForAI({ __scope: 'page', schema: { components } } as any);
-                }}
-              >
-                Sections
-              </Button>
+        {/* Editor panels inside inset area */}
+        <SidebarInset className="flex overflow-hidden">
+          {/* Left Panel - Components List */}
+          <div className="w-80 border-r bg-muted/20 flex flex-col">
+            <ScrollArea className="flex-1">
+              <div className="p-2 space-y-2">
+                <Button
+                  variant={showContents ? "default" : "ghost"}
+                  className="w-full justify-start text-lg font-semibold py-3"
+                  onClick={() => {
+                    setShowContents(true);
+                    setShowSEOForm(false);
+                    setSelectedComponentIndex(null);
+                    setSelectedComponentForAI({ __scope: 'page', schema: { components } } as any);
+                  }}
+                >
+                  Sections
+                </Button>
 
-              <Separator className="my-2" />
+                <Separator className="my-2" />
 
-              {/* Components List */}
-              {isValidComponentsArray(components) && components.length > 0 && (
-                components.map((component, index) => (
-                  <ComponentListItem
-                    key={component.key}
-                    component={component}
-                    index={index}
-                    isSelected={selectedComponentIndex === index}
-                    onSelect={handleComponentSelect}
-                    onSendToAI={(comp) => setSelectedComponentForAI(comp)}
-                  />
-                ))
-              )}
+                {isValidComponentsArray(components) && components.length > 0 && (
+                  components.map((component, index) => (
+                    <ComponentListItem
+                      key={component.key}
+                      component={component}
+                      index={index}
+                      isSelected={selectedComponentIndex === index}
+                      onSelect={handleComponentSelect}
+                      onSendToAI={(comp) => setSelectedComponentForAI(comp)}
+                    />
+                  ))
+                )}
 
-              {!isValidComponentsArray(components) && (
-                <ComponentsErrorState onReset={() => setComponents([])} />
-              )}
+                {!isValidComponentsArray(components) && (
+                  <ComponentsErrorState onReset={() => setComponents([])} />
+                )}
 
-              {isValidComponentsArray(components) && components.length === 0 && (
-                <ComponentsEmptyState />
-              )}
-            </div>
-          </ScrollArea>
-        </div>
+                {isValidComponentsArray(components) && components.length === 0 && (
+                  <ComponentsEmptyState />
+                )}
+              </div>
+            </ScrollArea>
+          </div>
 
-        {/* Middle Panel - Settings */}
-        <div className="flex-1 flex flex-col overflow-hidden">
-          <ScrollArea className="h-full">
-            <div className="p-6">
-              {renderRightPanel()}
-            </div>
-          </ScrollArea>
-        </div>
+          {/* Middle Panel - Settings */}
+          <div className="flex-1 flex flex-col overflow-hidden">
+            <ScrollArea className="h-full">
+              <div className="p-6">
+                {renderRightPanel()}
+              </div>
+            </ScrollArea>
+          </div>
 
-        {/* JSON Editor Dialog */}
-        <JSONEditorDialog
-          open={showJSONEditor}
-          onOpenChange={closeJSONEditor}
-          editorRef={setEditorRef}
-          jsonError={jsonError}
-          onSave={handleSave}
-        />
+          {/* JSON Editor Dialog */}
+          <JSONEditorDialog
+            open={showJSONEditor}
+            onOpenChange={closeJSONEditor}
+            editorRef={setEditorRef}
+            jsonError={jsonError}
+            onSave={handleSave}
+          />
+        </SidebarInset>
       </div>
-    </div>
+    </SidebarProvider>
   );
 };
 
