@@ -113,15 +113,12 @@ export const TextEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove
         </div>
       </CardHeader>
       <CardContent>
-        <div>
-          <Label className="text-xs">Text Content</Label>
-          <Textarea
-            value={item.content || ''}
-            onChange={(e) => updateValue(e.target.value)}
-            placeholder="Enter text content..."
-            className="text-sm"
-          />
-        </div>
+        <Textarea
+          value={item.content || ''}
+          onChange={(e) => updateValue(e.target.value)}
+          placeholder="Enter text..."
+          className="text-sm bg-transparent"
+        />
       </CardContent>
     </Card>
   );
