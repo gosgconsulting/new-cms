@@ -492,8 +492,9 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
 
     if (selectedComponentIndex !== null) {
       // Build per-section data
-      const originalForSelected = originalComponents.find((c) => c.key === selectedComponent?.key) || null;
-      const proposedForSelected = proposedComponents?.find((c) => c.key === selectedComponent?.key) || null;
+      const selected = selectedComponent;
+      const originalForSelected = originalComponents.find((c) => c.key === selected?.key) || null;
+      const proposedForSelected = proposedComponents?.find((c) => c.key === selected?.key) || null;
       const hasOutput = Boolean(proposedForSelected);
 
       // Helper to render contents for a given component
@@ -560,25 +561,10 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
         );
       };
 
-      // If no output, show original editor + contents without tabs
-      if (!hasOutput) {
-        return (
-          <>
-            <ComponentEditorPanel
-              component={selectedComponent}
-              componentIndex={selectedComponentIndex}
-              components={components}
-              onUpdate={updateComponent}
-            />
-            {renderSectionContents(selectedComponent)}
-          </>
-        );
-      }
-
-      // With output: tabs at the top control which editor and contents are shown
+      // Always render tabs; Output is read-only preview of proposedForSelected (if any)
       return (
         <div className="w-full">
-          <Tabs defaultValue="output" className="w-full">
+          <Tabs defaultValue={hasOutput ? "output" : "original"} className="w-full">
             <div className="mb-4 flex items-center justify-between">
               <TabsList>
                 <TabsTrigger value="original">Original</TabsTrigger>
@@ -602,44 +588,35 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
                 Apply Output
               </Button>
             </div>
-            
+
             <TabsContent value="original" className="space-y-4">
               {/* Original editor (interactive) */}
               <ComponentEditorPanel
-                component={selectedComponent}
+                component={selected}
                 componentIndex={selectedComponentIndex}
                 components={components}
                 onUpdate={updateComponent}
               />
-              {renderSectionContents(selectedComponent)}
+              {renderSectionContents(selected)}
             </TabsContent>
-            
+
             <TabsContent value="output" className="space-y-4">
-              <div className="flex justify-end">
-                <Button
-                  onClick={() => {
-                    if (selectedComponentIndex !== null && proposedForSelected) {
-                      updateComponent(selectedComponentIndex, proposedForSelected);
-                      setProposedComponents((prev) =>
-                        prev ? prev.filter((c) => c.key !== proposedForSelected.key) : prev
-                      );
-                      toast.success('Applied output to this section');
-                    }
-                  }}
-                  variant="outline"
-                  size="sm"
-                >
-                  Apply Output
-                </Button>
-              </div>
-              {/* Output preview (read-only) */}
-              <ComponentEditorPanel
-                component={proposedForSelected}
-                componentIndex={selectedComponentIndex}
-                components={proposedForSelected ? proposedComponents || components : components}
-                onUpdate={() => { /* read-only */ }}
-              />
-              {renderSectionContents(proposedForSelected as ComponentSchema)}
+              {hasOutput ? (
+                <>
+                  {/* Output preview (read-only) */}
+                  <ComponentEditorPanel
+                    component={proposedForSelected}
+                    componentIndex={selectedComponentIndex}
+                    components={proposedForSelected ? proposedComponents || components : components}
+                    onUpdate={() => { /* read-only */ }}
+                  />
+                  {renderSectionContents(proposedForSelected as ComponentSchema)}
+                </>
+              ) : (
+                <div className="p-4 rounded-lg border bg-muted/30 text-sm text-muted-foreground">
+                  No output draft for this section yet. Use Edit mode in the AI chat while this section is focused to generate one.
+                </div>
+              )}
             </TabsContent>
           </Tabs>
         </div>
