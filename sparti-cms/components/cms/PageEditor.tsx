@@ -567,14 +567,16 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
     }
 
     if (selectedComponentIndex !== null) {
+      // Per-section view
       const selected = selectedComponent;
       const proposedForSelected = proposedComponents?.find((c) => c.key === selected?.key) || null;
       const hasOutput = Boolean(proposedForSelected);
 
+      // Helper to render contents for a given component
       const renderSectionContents = (comp: ComponentSchema | null) => {
         const items = comp ? extractContentFromComponents([comp]) : [];
         return (
-          <div className="space-y-4 mt-6" key={`${(comp as any)?.key || 'section'}`}>
+          <div className="space-y-4 mt-6">
             <div className="border-b pb-2">
               <h3 className="text-lg font-semibold flex items-center">
                 <FileText className="h-5 w-5 mr-2" />
@@ -636,40 +638,60 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
 
       return (
         <div className="w-full">
-          <Tabs defaultValue="original" className="w-full">
-            <div className="mb-4 flex items-center justify-between">
-              <TabsList>
-                <TabsTrigger value="original">Original</TabsTrigger>
-              </TabsList>
-              <Button
-                onClick={() => {
-                  if (selectedComponentIndex !== null && proposedForSelected) {
-                    updateComponent(selectedComponentIndex, proposedForSelected);
-                    setProposedComponents((prev) =>
-                      prev ? prev.filter((c) => c.key !== proposedForSelected.key) : prev
-                    );
-                    toast.success('Applied output to this section');
-                  }
-                }}
-                variant="outline"
-                size="sm"
-                disabled={!proposedForSelected}
-                title={proposedForSelected ? 'Apply output to this section' : 'No output available to apply'}
-              >
-                Apply Output
-              </Button>
-            </div>
+          {/* Apply button row (kept, no tabs here) */}
+          <div className="mb-4 flex items-center justify-end">
+            <Button
+              onClick={() => {
+                if (selectedComponentIndex !== null && proposedForSelected) {
+                  updateComponent(selectedComponentIndex, proposedForSelected);
+                  setProposedComponents((prev) =>
+                    prev ? prev.filter((c) => c.key !== proposedForSelected.key) : prev
+                  );
+                  toast.success('Applied output to this section');
+                }
+              }}
+              variant="outline"
+              size="sm"
+              disabled={!proposedForSelected}
+              title={proposedForSelected ? 'Apply output to this section' : 'No output available to apply'}
+            >
+              Apply Output
+            </Button>
+          </div>
 
-            <TabsContent value="original" className="space-y-4">
-              <ComponentEditorPanel
-                component={selected}
-                componentIndex={selectedComponentIndex}
-                components={components}
-                onUpdate={updateComponent}
-              />
-              {renderSectionContents(selected)}
-            </TabsContent>
-          </Tabs>
+          {/* Component editor (interactive) */}
+          <ComponentEditorPanel
+            component={selected}
+            componentIndex={selectedComponentIndex}
+            components={components}
+            onUpdate={updateComponent}
+          />
+
+          {/* New tabs block above Section Contents (replicates Sections page tabs) */}
+          <div className="mt-4">
+            <Tabs defaultValue={hasOutput ? "output" : "original"} className="w-full">
+              <div className="mb-3">
+                <TabsList>
+                  <TabsTrigger value="original">Original</TabsTrigger>
+                  <TabsTrigger value="output">Output</TabsTrigger>
+                </TabsList>
+              </div>
+
+              <TabsContent value="original">
+                {renderSectionContents(selected)}
+              </TabsContent>
+
+              <TabsContent value="output">
+                {hasOutput ? (
+                  renderSectionContents(proposedForSelected as ComponentSchema)
+                ) : (
+                  <div className="p-4 rounded-lg border bg-muted/30 text-sm text-muted-foreground">
+                    No output draft for this section yet. Use Edit mode in the AI Assistant on Sections to generate one.
+                  </div>
+                )}
+              </TabsContent>
+            </Tabs>
+          </div>
         </div>
       );
     }
