@@ -368,7 +368,7 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
                   {/* Tabs: Properties + per-item tabs */}
                   <div className="flex gap-1 mb-4 border-b border-gray-200">
                     {(() => {
-                      const currentTab = (activeArrayTab[index] ?? -1);
+                      const currentTab = (activeArrayTab[index] ?? 0);
                       const makeTab = (label: string, isActive: boolean, onClick: () => void) => (
                         <button
                           className={`px-3 py-2 text-sm font-medium border-b-2 transition-colors ${
@@ -381,40 +381,32 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
                           {label}
                         </button>
                       );
-
-                      const tabs = [
-                        makeTab('Properties', currentTab === -1, () =>
-                          setActiveArrayTab(prev => ({ ...prev, [index]: -1 }))
-                        ),
-                        ...arrayItems.map((_, tabIndex) =>
-                          makeTab(
-                            arrayProp === 'slides' || arrayProp === 'images' ? `Slide ${tabIndex + 1}` : `Item ${tabIndex + 1}`,
-                            currentTab === tabIndex,
-                            () => setActiveArrayTab(prev => ({ ...prev, [index]: tabIndex }))
-                          )
+                      return arrayItems.map((_, tabIndex) =>
+                        makeTab(
+                          arrayProp === 'slides' || arrayProp === 'images' ? `Slide ${tabIndex + 1}` : `Item ${tabIndex + 1}`,
+                          currentTab === tabIndex,
+                          () => setActiveArrayTab(prev => ({ ...prev, [index]: tabIndex }))
                         )
-                      ];
-                      return tabs;
+                      );
                     })()}
                   </div>
 
                   {/* Tab Content */}
                   {(() => {
-                    const currentTab = (activeArrayTab[index] ?? -1);
-
-                    // Properties tab or no items yet -> edit parent item in one place
-                    if (currentTab === -1 || arrayItems.length === 0) {
+                    const currentTab = (activeArrayTab[index] ?? 0);
+                    if (arrayItems.length === 0) {
                       return (
-                        <div className="space-y-4">
-                          <ItemEditor 
-                            item={item} 
-                            onChange={(updatedItem) => handleItemChange([index], updatedItem)} 
-                            onRemove={() => {
-                              const updatedItems = [...safeSchema.items];
-                              updatedItems.splice(index, 1);
-                              onChange?.({ ...safeSchema, items: updatedItems });
-                            }} 
-                          />
+                        <div className="text-center py-8 text-gray-500">
+                          <p>No items added yet</p>
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="mt-2" 
+                            onClick={() => addArrayItem(index, arrayProp)}
+                          >
+                            <Plus className="h-4 w-4 mr-1" />
+                            Add First Item
+                          </Button>
                         </div>
                       );
                     }
