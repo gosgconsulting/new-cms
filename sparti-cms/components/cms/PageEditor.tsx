@@ -450,14 +450,38 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
   // Render right panel
   const renderRightPanel = () => {
     if (showContents) {
-      // Page-level view: SEO at top, then page contents only (no 'Output All Sections')
+      // Page-level view: SEO at top, then tabs for Original vs Output contents (read-only)
+      const hasOutput = Array.isArray(proposedComponents) && proposedComponents.length > 0;
+
       return (
         <div className="space-y-6">
           <div className="border-b pb-4">
             <SEOForm pageData={pageData} onFieldChange={updateField} />
           </div>
 
-          <ContentsPanel components={components} extractContentFromComponents={extractContentFromComponents} />
+          <Tabs defaultValue={hasOutput ? "output" : "original"} className="w-full">
+            <div className="mb-4 flex items-center justify-between">
+              <TabsList>
+                <TabsTrigger value="original">Original</TabsTrigger>
+                <TabsTrigger value="output">Output</TabsTrigger>
+              </TabsList>
+              <span className="text-xs text-muted-foreground">Read-only preview</span>
+            </div>
+
+            <TabsContent value="original">
+              <ContentsPanel components={components} extractContentFromComponents={extractContentFromComponents} />
+            </TabsContent>
+
+            <TabsContent value="output">
+              {hasOutput ? (
+                <ContentsPanel components={proposedComponents as ComponentSchema[]} extractContentFromComponents={extractContentFromComponents} />
+              ) : (
+                <div className="p-4 rounded-lg border bg-muted/30 text-sm text-muted-foreground">
+                  No output drafts yet. Use Edit mode in the AI chat to generate drafts for all sections.
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
         </div>
       );
     }
