@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ComponentSchema, SchemaItem } from '../../types/schema';
 import { Button } from '../../../src/components/ui/button';
 import { Label } from '../../../src/components/ui/label';
-import { SchemaItemEditor } from './SchemaItemRenderer';
+import { ItemEditor } from './ItemEditors';
 import { 
   ChevronDown, 
   ChevronRight, 
@@ -338,10 +338,14 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
             <div className="p-4 border-t bg-white space-y-4">
               {/* Render non-array properties first */}
               <div className="space-y-4">
-                <SchemaItemEditor 
+                <ItemEditor 
                   item={item} 
                   onChange={(updatedItem) => handleItemChange([index], updatedItem)} 
-                  path={[index]} 
+                  onRemove={() => {
+                    const updatedItems = [...safeSchema.items];
+                    updatedItems.splice(index, 1);
+                    onChange?.({ ...safeSchema, items: updatedItems });
+                  }} 
                 />
               </div>
               
@@ -729,10 +733,14 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
                 </div>
                 {expandedItems.has(index) && (
                   <div className="p-4 border-t bg-white">
-                    <SchemaItemEditor 
+                    <ItemEditor 
                       item={item} 
                       onChange={(updatedItem) => handleItemChange([index], updatedItem)} 
-                      path={[index]} 
+                      onRemove={() => {
+                        const updatedItems = [...safeSchema.items];
+                        updatedItems.splice(index, 1);
+                        onChange?.({ ...safeSchema, items: updatedItems });
+                      }} 
                     />
                   </div>
                 )}
