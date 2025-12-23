@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Button } from '../../../src/components/ui/button';
 import { ScrollArea } from '../../../src/components/ui/scroll-area';
 import { Separator } from '../../../src/components/ui/separator';
-import { ArrowLeft, Save, Loader2, Settings, Code, FileText } from 'lucide-react';
+import { ArrowLeft, Save, Loader2, Settings, Code, FileText, RotateCcw } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '../auth/AuthProvider';
 import { ComponentSchema } from '../../types/schema';
@@ -450,25 +450,16 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
   const renderRightPanel = () => {
     if (showContents) {
       // Page-level view: SEO at top, then single contents preview
-      const hasOutput = Array.isArray(proposedComponents) && proposedComponents.length > 0;
-
       return (
         <div className="space-y-6">
           <div className="border-b pb-4">
             <SEOForm pageData={pageData} onFieldChange={updateField} />
           </div>
 
-          {hasOutput ? (
-            <ContentsPanel
-              components={proposedComponents as ComponentSchema[]}
-              extractContentFromComponents={extractContentFromComponents}
-            />
-          ) : (
-            <ContentsPanel
-              components={components}
-              extractContentFromComponents={extractContentFromComponents}
-            />
-          )}
+          <ContentsPanel
+            components={components}
+            extractContentFromComponents={extractContentFromComponents}
+          />
         </div>
       );
     }
@@ -547,24 +538,26 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
 
       return (
         <div className="w-full">
-          {/* Apply output button (if a draft exists) */}
+          {/* Revert to original snapshot */}
           <div className="mb-4 flex items-center justify-end">
             <Button
+              variant="ghost"
+              size="icon"
+              title="Revert this section to original content"
               onClick={() => {
-                if (selectedComponentIndex !== null && proposedForSelected) {
-                  updateComponent(selectedComponentIndex, proposedForSelected);
-                  setProposedComponents((prev) =>
-                    prev ? prev.filter((c) => c.key !== proposedForSelected.key) : prev
-                  );
-                  toast.success('Applied output to this section');
+                if (selectedComponentIndex !== null) {
+                  const selected = components[selectedComponentIndex]
+                  const original = originalComponents.find((c) => c.key === selected?.key)
+                  if (original) {
+                    updateComponent(selectedComponentIndex, original)
+                    toast.success('Reverted to original content')
+                  } else {
+                    toast.error('Original content not found for this section')
+                  }
                 }
               }}
-              variant="outline"
-              size="sm"
-              disabled={!proposedForSelected}
-              title={proposedForSelected ? 'Apply output to this section' : 'No output available to apply'}
             >
-              Apply Output
+              <RotateCcw className="h-4 w-4" />
             </Button>
           </div>
 
@@ -576,8 +569,8 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
             onUpdate={updateComponent}
           />
 
-          {/* Single preview: use drafted output if available, otherwise original */}
-          {renderSectionContents(proposedForSelected || selected)}
+          {/* Single preview: always show the current component content */}
+          {renderSectionContents(selected)}
         </div>
       );
     }
@@ -720,33 +713,37 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
             currentComponents={components}
             onUpdateComponents={setComponents}
             onProposedComponents={(proposals) => {
-              // Merge proposals; if a proposal has no key, try to attach to a matching component by type/name
-              setProposedComponents((prev) => {
-                const next = [...(prev || [])];
+              setComponents((prev) => {
+                const next = [...prev]
+                const matchByType = (proposalType?: string) => {
+                  if (!proposalType) return null
+                  const lower = proposalType.toLowerCase()
+                  return next.find((c) => (c.type || '').toLowerCase() === lower)
+                      || next.find((c) => c.name && c.name.toLowerCase().includes(lower))
+                }
                 proposals.forEach((p: any) => {
-                  if (!p) return;
-                  let proposal = { ...p };
-                  if (!proposal.key) {
-                    const match =
-                      components.find((c) => c.type === proposal.type) ||
-                      components.find((c) => c.name && proposal.type && c.name.toLowerCase().includes(String(proposal.type).toLowerCase())) ||
-                      components.find((c) => proposal.type && c.type.toLowerCase().includes(String(proposal.type).toLowerCase()));
-                    if (match) {
-                      proposal.key = match.key;
-                      proposal.type = match.type; // normalize to existing type
-                    }
-                  }
+                  if (!p) return
+                  let proposal = { ...p }
+                  let idx = -1
+
                   if (proposal.key) {
-                    const idx = next.findIndex((c: any) => c && c.key === proposal.key);
-                    if (idx >= 0) {
-                      next[idx] = proposal;
-                    } else {
-                      next.push(proposal);
+                    idx = next.findIndex((c) => c.key === proposal.key)
+                  } 
+                  if (idx < 0) {
+                    const match = matchByType(proposal.type)
+                    if (match) {
+                      proposal.key = match.key
+                      proposal.type = match.type
+                      idx = next.findIndex((c) => c.key === match.key)
                     }
                   }
-                });
-                return next;
-              });
+
+                  if (idx >= 0) {
+                    next[idx] = proposal
+                  }
+                })
+                return next
+              })
             }}
             onOpenJSONEditor={openJSONEditor}
             selectedComponentJSON={selectedComponentForAI}
