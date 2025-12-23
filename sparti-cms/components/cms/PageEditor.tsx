@@ -464,7 +464,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
             <Tabs defaultValue="original" className="w-full">
               <TabsList className="mb-3">
                 <TabsTrigger value="original">Original</TabsTrigger>
-                {proposedForSelected && <TabsTrigger value="ai">AI</TabsTrigger>}
+                {proposedForSelected && <TabsTrigger value="output">Output</TabsTrigger>}
               </TabsList>
               <TabsContent value="original" className="space-y-4">
                 <ComponentEditorPanel
@@ -475,7 +475,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
                 />
               </TabsContent>
               {proposedForSelected && (
-                <TabsContent value="ai" className="space-y-4">
+                <TabsContent value="output" className="space-y-4">
                   <div className="flex justify-end">
                     <Button
                       onClick={() => {
@@ -490,7 +490,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
                       variant="outline"
                       size="sm"
                     >
-                      Apply AI Changes
+                      Apply Output
                     </Button>
                   </div>
                   <ComponentEditorPanel

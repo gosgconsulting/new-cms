@@ -62,6 +62,8 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
   const [componentHierarchy, setComponentHierarchy] = useState<string[]>([]);
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [copyWorkflowActive, setCopyWorkflowActive] = useState(false);
+  const [copyStep, setCopyStep] = useState<'idle' | 'asking' | 'received'>('idle');
 
   // Clear all messages and reset chat
   const clearAllMessages = () => {
@@ -658,6 +660,94 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
     }
   };
 
+  // Send a message to AI without appending the user payload to chat (used by Copywriting)
+  const sendHiddenMessage = async (hiddenMessage: string) => {
+    if (isLoading) return;
+    setError(null);
+    setIsLoading(true);
+    try {
+      // Build a short history (assistant can reference previous Q/A)
+      const conversationHistory = messages.slice(-10).map(msg => ({
+        role: msg.role,
+        content: msg.content
+      }));
+      const selectedModel = 'claude-3-5-haiku-20241022';
+      // Send to API, but do not append the user message to chat
+      const response = await api.post('/api/ai-assistant/chat', {
+        message: hiddenMessage,
+        conversationHistory,
+        pageContext: pageContext ? { slug: pageContext.slug, tenantId: pageContext.tenantId } : undefined,
+        model: selectedModel
+      });
+      if (!response.ok) {
+        const ct = response.headers.get('content-type') || '';
+        const payload = ct.includes('application/json') ? await response.json().catch(() => ({})) : {};
+        throw new Error(payload.error || `HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      if (data.success && data.message) {
+        // Show only assistant's reply (e.g. questions), not the user's long payload
+        const assistantMessage = {
+          id: (Date.now() + 1).toString(),
+          content: data.message,
+          role: 'assistant' as const,
+        };
+        setMessages((prev) => [...prev, assistantMessage]);
+
+        // Parse any proposed JSON; route to proposals callback (or fallback to applying)
+        if (onProposedComponents || onUpdateComponents) {
+          try {
+            let jsonString: string | null = null;
+            const jsonMatch = data.message.match(/```(?:json)?\s*(\{[\s\S]*\})\s*```/);
+            if (jsonMatch && jsonMatch[1]) {
+              jsonString = jsonMatch[1];
+            } else {
+              const directJsonMatch = data.message.match(/\{[\s\S]*"components"[\s\S]*\}/);
+              if (directJsonMatch) {
+                jsonString = directJsonMatch[0];
+              } else {
+                const arrayMatch = data.message.match(/\[\s*\{[\s\S]*\}\s*\]/);
+                if (arrayMatch) jsonString = arrayMatch[0];
+              }
+            }
+            if (jsonString) {
+              const parsed = JSON.parse(jsonString);
+              let componentsArray: any[] = [];
+              if (Array.isArray(parsed)) {
+                componentsArray = parsed;
+              } else if (parsed.components && Array.isArray(parsed.components)) {
+                componentsArray = parsed.components;
+              }
+              if (componentsArray.length > 0) {
+                if (onProposedComponents) {
+                  onProposedComponents(componentsArray);
+                } else if (onUpdateComponents) {
+                  onUpdateComponents(componentsArray);
+                }
+              }
+            }
+          } catch {
+            // Ignore JSON parsing failure
+          }
+        }
+      } else {
+        throw new Error(data.error || 'Failed to get AI response');
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to get AI response.');
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: (Date.now() + 1).toString(),
+          content: `Error: ${err.message || 'Failed to get AI response.'}`,
+          role: 'assistant' as const,
+        }
+      ]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Launch copywriting workflow: ask brief questions, analyze full schema, then propose copy
   const handleStartCopywriting = async () => {
     const pageName = pageContext?.pageName || pageContextData?.pageName || "Page";
@@ -667,15 +757,18 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
           ? currentComponents
           : (pageContextData?.layout?.components || [])
     };
-    const intro =
+    // Do not show payload in chat; only show high-level steps
+    setCopyWorkflowActive(true);
+    setCopyStep('asking');
+    const hiddenInstruction =
       `[Workflow: Copywriting]\n` +
-      `Please start by asking me a few concise questions to create a landing page brief:\n` +
-      `- Product/Service\n- Target audience\n- Tone/voice\n- Key benefits & differentiators\n- Primary call-to-action\n- Constraints (brand words to use/avoid, length)\n\n` +
-      `Ask these one at a time. After I respond, analyze the current page schema and propose improved copy for headings, subheadings, paragraphs, and button texts.\n` +
-      `Return ONLY updated schema JSON with a top-level "components" array (preserve the existing structure and keys; modify only textual fields like title, subtitle, heading, content, description, text, buttonText, label). Wrap the JSON in triple backticks with json.\n\n` +
+      `Ask me a brief for a landing page in short, sequential questions (product/service, audience, tone, benefits, CTA, constraints). ` +
+      `After my answers, analyze the current page schema and propose improved copy for text fields only.\n` +
+      `Return ONLY updated schema JSON with a top-level "components" array. Wrap in \`\`\`json fences.\n\n` +
       `Page: ${pageName}\n\n` +
       `Current Page Schema:\n\`\`\`json\n${JSON.stringify(schemaPayload, null, 2)}\n\`\`\``;
-    await submitMessage(intro);
+    await sendHiddenMessage(hiddenInstruction);
+    setCopyStep('received');
   };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -813,6 +906,27 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
                     </button>
                   )}
                 </div>
+              </div>
+            )}
+
+            {/* Copywriting steps (high-level) */}
+            {copyWorkflowActive && (
+              <div className="px-4 py-2 border-b bg-background">
+                <p className="text-xs text-muted-foreground mb-2">Copywriting workflow</p>
+                <ul className="text-xs space-y-1">
+                  <li>
+                    <span className="font-medium">1) Ask brief</span>
+                    <span className="ml-2">{copyStep === 'asking' ? '(in progress...)' : copyStep === 'received' ? '(received questions)' : ''}</span>
+                  </li>
+                  <li>
+                    <span className="font-medium">2) Analyze schema</span>
+                    <span className="ml-2 text-muted-foreground">(after your answers)</span>
+                  </li>
+                  <li>
+                    <span className="font-medium">3) Propose copy</span>
+                    <span className="ml-2 text-muted-foreground">(Output tab)</span>
+                  </li>
+                </ul>
               </div>
             )}
 
