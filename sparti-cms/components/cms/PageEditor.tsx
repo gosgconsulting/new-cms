@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Button } from '../../../src/components/ui/button';
 import { ScrollArea } from '../../../src/components/ui/scroll-area';
 import { Separator } from '../../../src/components/ui/separator';
-import { Badge } from '../../../src/components/ui/badge';
 import { ArrowLeft, Save, Loader2, Settings, Code, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '../auth/AuthProvider';
@@ -22,28 +21,20 @@ import { AIAssistantChat } from '../../../src/components/AIAssistantChat';
 interface ContentsPanelProps {
   components: ComponentSchema[];
   extractContentFromComponents: (components: ComponentSchema[]) => Array<{
-    type: 'heading' | 'paragraph' | 'list' | 'text';
+    type: 'heading' | 'paragraph' | 'list' | 'text' | 'image';
     level?: number;
     text: string;
     componentType?: string;
     componentId?: string;
+    imageUrl?: string;
+    alt?: string;
   }>;
 }
 
 const ContentsPanel: React.FC<ContentsPanelProps> = ({ components, extractContentFromComponents }) => {
-  // Build per-top-level component sections with a single representative item
-  const sections = components.map((component) => {
-    const items = extractContentFromComponents([component]);
-    // Pick a single representative item: prefer heading, otherwise paragraph, otherwise text/list
-    const primary =
-      items.find(i => i.type === 'heading') ||
-      items.find(i => i.type === 'paragraph') ||
-      items.find(i => i.type === 'text') ||
-      items.find(i => i.type === 'list');
-    return { component, primary };
-  }).filter(s => !!s.primary);
+  const content = extractContentFromComponents(components);
 
-  if (sections.length === 0) {
+  if (content.length === 0) {
     return (
       <div className="text-center py-8">
         <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
@@ -63,44 +54,72 @@ const ContentsPanel: React.FC<ContentsPanelProps> = ({ components, extractConten
           Page Contents
         </h2>
         <p className="text-muted-foreground mt-1">
-          Readable content extracted from your main page sections
+          Readable content extracted from your page components
         </p>
       </div>
 
-      <div className="space-y-4">
-        {sections.map(({ component, primary }) => {
-          if (!primary) return null;
-          const sectionName = (component as any)?.type || (component as any)?.name || 'Section';
-          // Render a row with a left-aligned label and the primary text on the right
-          return (
-            <div key={component.key} className="flex items-start gap-3">
-              <Badge variant="secondary" className="uppercase tracking-wide whitespace-nowrap">
-                {sectionName}
-              </Badge>
-              <div className="prose prose-sm max-w-none flex-1">
-                {primary.type === 'heading' ? (() => {
-                  const HeadingTag = `h${primary.level || 2}` as keyof JSX.IntrinsicElements;
-                  return (
-                    <HeadingTag className={`font-bold text-foreground ${
-                      primary.level === 1 ? 'text-2xl' :
-                      primary.level === 2 ? 'text-xl' :
-                      primary.level === 3 ? 'text-lg' : 'text-base'
-                    }`}>
-                      {primary.text}
-                    </HeadingTag>
-                  );
-                })() : primary.type === 'paragraph' ? (
-                  <p className="text-foreground leading-relaxed">{primary.text}</p>
-                ) : primary.type === 'list' ? (
-                  <ul className="list-disc ml-4">
-                    <li>{primary.text}</li>
-                  </ul>
-                ) : (
-                  <div className="text-foreground">{primary.text}</div>
-                )}
-              </div>
-            </div>
-          );
+      <div className="prose prose-sm max-w-none space-y-3">
+        {content.map((item, index) => {
+          const key = `${item.componentId}-${index}`;
+          switch (item.type) {
+            case 'heading': {
+              const HeadingTag = `h${item.level || 2}` as keyof JSX.IntrinsicElements;
+              return (
+                <HeadingTag
+                  key={key}
+                  className={`font-bold text-foreground ${
+                    item.level === 1 ? 'text-3xl' :
+                    item.level === 2 ? 'text-2xl' :
+                    item.level === 3 ? 'text-xl' : 'text-lg'
+                  }`}
+                  title={`From ${item.componentType} (${item.componentId})`}
+                >
+                  {item.text}
+                </HeadingTag>
+              );
+            }
+            case 'paragraph':
+              return (
+                <p
+                  key={key}
+                  className="text-foreground leading-relaxed"
+                  title={`From ${item.componentType} (${item.componentId})`}
+                >
+                  {item.text}
+                </p>
+              );
+            case 'list':
+              return (
+                <li
+                  key={key}
+                  className="text-foreground ml-4 list-disc"
+                  title={`From ${item.componentType} (${item.componentId})`}
+                >
+                  {item.text}
+                </li>
+              );
+            case 'image':
+              return (
+                <div key={key} className="inline-block" title={`From ${item.componentType} (${item.componentId})`}>
+                  <img
+                    src={item.imageUrl || ''}
+                    alt={item.alt || 'Image'}
+                    className="w-40 h-24 object-cover rounded border"
+                  />
+                </div>
+              );
+            case 'text':
+            default:
+              return (
+                <div
+                  key={key}
+                  className="text-foreground"
+                  title={`From ${item.componentType} (${item.componentId})`}
+                >
+                  {item.text}
+                </div>
+              );
+          }
         })}
       </div>
 
@@ -112,19 +131,19 @@ const ContentsPanel: React.FC<ContentsPanelProps> = ({ components, extractConten
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div>
             <span className="text-muted-foreground">Total Items:</span>
-            <span className="ml-2 font-medium">{sections.length}</span>
+            <span className="ml-2 font-medium">{content.length}</span>
           </div>
           <div>
             <span className="text-muted-foreground">Headings:</span>
-            <span className="ml-2 font-medium">
-              {sections.filter(s => s.primary?.type === 'heading').length}
-            </span>
+            <span className="ml-2 font-medium">{content.filter(c => c.type === 'heading').length}</span>
           </div>
           <div>
             <span className="text-muted-foreground">Paragraphs:</span>
-            <span className="ml-2 font-medium">
-              {sections.filter(s => s.primary?.type === 'paragraph').length}
-            </span>
+            <span className="ml-2 font-medium">{content.filter(c => c.type === 'paragraph').length}</span>
+          </div>
+          <div>
+            <span className="text-muted-foreground">Images:</span>
+            <span className="ml-2 font-medium">{content.filter(c => c.type === 'image').length}</span>
           </div>
           <div>
             <span className="text-muted-foreground">Components:</span>
@@ -240,14 +259,16 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
     }
   }, [pageData]);
 
-  // Extract readable content from components
+  // Extract readable/editable content from components (text + images)
   const extractContentFromComponents = useCallback((components: ComponentSchema[]) => {
     const content: Array<{
-      type: 'heading' | 'paragraph' | 'list' | 'text';
+      type: 'heading' | 'paragraph' | 'list' | 'text' | 'image';
       level?: number;
       text: string;
       componentType?: string;
       componentId?: string;
+      imageUrl?: string;
+      alt?: string;
     }> = [];
 
     const extractFromProps = (props: any, componentType: string, componentId: string) => {
@@ -259,6 +280,8 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
         'description', 'content', 'text', 'label', 'buttonText', 
         'ctaButtonText', 'badgeText', 'name', 'tagline'
       ];
+      // Common image-like keys
+      const imageKeys = ['src', 'url', 'image'];
 
       const headingProperties = [
         'title', 'heading', 'headingLine1', 'headingLine2', 'name'
@@ -311,11 +334,40 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
                 componentId: `${componentId}-item-${index}`
               });
             } else if (typeof item === 'object' && item) {
+              // If array item is an image-like object
+              const url = typeof (item as any).src === 'string' ? (item as any).src
+                : typeof (item as any).url === 'string' ? (item as any).url
+                : typeof (item as any).image === 'string' ? (item as any).image
+                : '';
+              if (url) {
+                content.push({
+                  type: 'image',
+                  text: '', // not used for images
+                  imageUrl: url,
+                  alt: typeof (item as any).alt === 'string' ? (item as any).alt : undefined,
+                  componentType,
+                  componentId: `${componentId}-item-${index}`
+                });
+              }
               extractFromProps(item, componentType, `${componentId}-item-${index}`);
             }
           });
         } else if (typeof value === 'object' && value) {
-          // Recursively extract from nested objects
+          // If object looks like an image
+          const url = imageKeys
+            .map(k => (value as any)[k])
+            .find(v => typeof v === 'string' && v.trim());
+          if (typeof url === 'string') {
+            content.push({
+              type: 'image',
+              text: '',
+              imageUrl: url,
+              alt: typeof (value as any).alt === 'string' ? (value as any).alt : undefined,
+              componentType,
+              componentId
+            });
+          }
+          // Recursively extract from nested objects (to catch deeper text fields)
           extractFromProps(value, componentType, `${componentId}-${key}`);
         }
       });
