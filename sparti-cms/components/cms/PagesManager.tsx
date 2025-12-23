@@ -324,14 +324,23 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
             </Button>
           </div>
         </div>
-        <div className="flex-1 relative bg-gray-100 rounded-b-lg overflow-hidden">
-          <iframe
-            src={pageUrl}
-            className="w-full h-full border-0"
-            title={`Visual Editor: ${visualEditorPage.pageName}`}
-            style={{ height: '100%' }}
+        <div className="flex-1 relative bg-gray-100 rounded-b-lg overflow-hidden flex">
+          <div className="flex-1 relative" id="visual-editor-iframe-container">
+            <iframe
+              id="visual-editor-iframe"
+              src={pageUrl}
+              className="w-full h-full border-0"
+              title={`Visual Editor: ${visualEditorPage.pageName}`}
+              style={{ height: '100%' }}
+            />
+          </div>
+          <AIAssistantChat 
+            className="h-full" 
+            pageContext={visualEditorPage ? {
+              slug: visualEditorPage.slug,
+              pageName: visualEditorPage.pageName
+            } : null}
           />
-          <AIAssistantChat />
         </div>
       </div>
     );
