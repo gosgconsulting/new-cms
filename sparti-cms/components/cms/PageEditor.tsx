@@ -194,7 +194,9 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
   const [selectedComponentForAI, setSelectedComponentForAI] = useState<ComponentSchema | null>(null);
   const [showSEOForm, setShowSEOForm] = useState(false);
   const [showContents, setShowContents] = useState(false);
+  // Holds AI-proposed or manually prepared output versions of components
   const [proposedComponents, setProposedComponents] = useState<ComponentSchema[] | null>(null);
+  const [originalComponents, setOriginalComponents] = useState<ComponentSchema[]>([]);
 
   // JSON Editor hook
   const {
@@ -232,8 +234,11 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
               ? data.page.layout.components
               : [];
             setComponents(layoutComponents);
+            // store snapshot to detect unsaved/manual changes
+            setOriginalComponents(JSON.parse(JSON.stringify(layoutComponents)));
           } else {
             setComponents([]);
+            setOriginalComponents([]);
           }
         } else {
           toast.error('Failed to load page data');
@@ -410,6 +415,8 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
         throw new Error('Failed to update page layout');
       }
 
+      // refresh snapshot after successful save
+      setOriginalComponents(JSON.parse(JSON.stringify(components)));
       toast.success('Page saved successfully');
     } catch (error) {
       console.error('Error saving page:', error);
@@ -433,7 +440,6 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
   }, []);
 
   // Memoized selected component
-  // Memoized selected component
   const selectedComponent = useMemo(() => {
     if (selectedComponentIndex === null || !isValidComponentsArray(components)) {
       return null;
@@ -452,58 +458,29 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
     }
 
     if (selectedComponentIndex !== null) {
-      // Show the section editor; below it, show the text contents extracted for this section
+      // Show the section editor; below it, show the text contents; tabs (Original/Output) moved BELOW contents
       const componentForContents = selectedComponent ? [selectedComponent] : [];
       const sectionContent = extractContentFromComponents(componentForContents as ComponentSchema[]);
-      const proposedForSelected =
-        proposedComponents?.find((c) => c.key === selectedComponent?.key) || null;
+      const originalForSelected = originalComponents.find((c) => c.key === selectedComponent?.key) || null;
+      const isModified =
+        !!(originalForSelected && selectedComponent) &&
+        JSON.stringify(originalForSelected) !== JSON.stringify(selectedComponent);
+      const proposedForSelected = proposedComponents?.find((c) => c.key === selectedComponent?.key) || null;
+      const outputComponent = proposedForSelected || (isModified ? selectedComponent : null);
 
       return (
         <>
-          <div className="mb-4">
-            <Tabs defaultValue="original" className="w-full">
-              <TabsList className="mb-3">
-                <TabsTrigger value="original">Original</TabsTrigger>
-                {proposedForSelected && <TabsTrigger value="output">Output</TabsTrigger>}
-              </TabsList>
-              <TabsContent value="original" className="space-y-4">
-                <ComponentEditorPanel
-                  component={selectedComponent}
-                  componentIndex={selectedComponentIndex}
-                  components={components}
-                  onUpdate={updateComponent}
-                />
-              </TabsContent>
-              {proposedForSelected && (
-                <TabsContent value="output" className="space-y-4">
-                  <div className="flex justify-end">
-                    <Button
-                      onClick={() => {
-                        if (selectedComponentIndex !== null && proposedForSelected) {
-                          updateComponent(selectedComponentIndex, proposedForSelected);
-                          // Clear proposals for this section after applying
-                          setProposedComponents((prev) =>
-                            prev ? prev.filter((c) => c.key !== proposedForSelected.key) : prev
-                          );
-                        }
-                      }}
-                      variant="outline"
-                      size="sm"
-                    >
-                      Apply Output
-                    </Button>
-                  </div>
-                  <ComponentEditorPanel
-                    component={proposedForSelected}
-                    componentIndex={selectedComponentIndex}
-                    components={proposedComponents || []}
-                    onUpdate={() => { /* AI preview read-only for now */ }}
-                  />
-                </TabsContent>
-              )}
-            </Tabs>
-          </div>
+          {/* Editor first */}
+          <ComponentEditorPanel
+            component={selectedComponent}
+            componentIndex={selectedComponentIndex}
+            components={components}
+            onUpdate={updateComponent}
+          />
+
           <Separator className="my-6" />
+
+          {/* Section Contents */}
           <div className="space-y-4">
             <div className="border-b pb-2">
               <h3 className="text-lg font-semibold flex items-center">
@@ -561,6 +538,59 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
               </div>
             )}
           </div>
+
+          {/* Tabs BELOW contents (default to Output if present) */}
+          {outputComponent && (
+            <div className="mt-6">
+              <Tabs defaultValue="output" className="w-full">
+                <TabsList className="mb-3">
+                  <TabsTrigger value="original">Original</TabsTrigger>
+                  <TabsTrigger
+                    value="output"
+                    className={isModified ? 'bg-amber-100 text-amber-800 border border-amber-200' : undefined}
+                  >
+                    Output
+                  </TabsTrigger>
+                </TabsList>
+                <TabsContent value="original" className="space-y-4">
+                  {/* Original preview (read-only) */}
+                  {originalForSelected && (
+                    <ComponentEditorPanel
+                      component={originalForSelected}
+                      componentIndex={selectedComponentIndex}
+                      components={originalComponents}
+                      onUpdate={() => { /* read-only */ }}
+                    />
+                  )}
+                </TabsContent>
+                <TabsContent value="output" className="space-y-4">
+                  <div className="flex justify-end">
+                    <Button
+                      onClick={() => {
+                        if (selectedComponentIndex !== null && outputComponent) {
+                          updateComponent(selectedComponentIndex, outputComponent);
+                          // If applying AI proposal, clear it; if manual, keep as current
+                          setProposedComponents((prev) =>
+                            prev ? prev.filter((c) => c.key !== outputComponent.key) : prev
+                          );
+                        }
+                      }}
+                      variant="outline"
+                      size="sm"
+                    >
+                      Apply Output
+                    </Button>
+                  </div>
+                  <ComponentEditorPanel
+                    component={outputComponent}
+                    componentIndex={selectedComponentIndex}
+                    components={proposedComponents || components}
+                    onUpdate={() => { /* output preview read-only */ }}
+                  />
+                </TabsContent>
+              </Tabs>
+            </div>
+          )}
         </>
       );
     }
