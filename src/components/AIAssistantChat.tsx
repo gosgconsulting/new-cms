@@ -1,5 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo } from "react";
-import { MessageCircle, Loader2, ChevronRight, ChevronLeft } from "lucide-react";
+import React, { useState, useRef, useEffect } from "react";
 import { PromptBox } from "@/components/ui/chatgpt-prompt-input";
 import { cn } from "@/lib/utils";
 import api from "../../sparti-cms/utils/api";
@@ -960,148 +959,17 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
   };
 
   return (
-    <div className={cn("relative flex h-full", className)}>
-      {/* Sidebar - Always visible */}
-      <div className="flex flex-col h-full bg-card border-l shadow-lg w-full">
-        {/* Always show content - no collapse functionality */}
-            {/* Header */}
-            <div className="flex items-center justify-between px-4 py-2 border-b flex-shrink-0 bg-background">
-              <div className="flex items-center gap-2 flex-1 min-w-0">
-                <MessageCircle className="h-5 w-5 text-primary flex-shrink-0" />
-                <div className="flex flex-col flex-1 min-w-0">
-                  <div className="flex items-center justify-between">
-                    <h2 className="text-lg font-semibold">Editor</h2>
-                    {messages.length > 0 && (
-                      <button
-                        onClick={clearAllMessages}
-                        className="text-xs text-muted-foreground hover:text-foreground px-2 py-0.5 rounded transition-colors"
-                        title="Clear all messages"
-                      >
-                        Clear all
-                      </button>
-                    )}
-                  </div>
-                  {pageContextData && (
-                    <span className="text-xs text-muted-foreground truncate">
-                      {pageContextData.pageName}
-                    </span>
-                  )}
-                  {focusedComponentJSON && (
-                    <span className="text-xs text-primary font-medium truncate" title={JSON.stringify(focusedComponentJSON, null, 2)}>
-                      Focused on: {componentHierarchy.length > 1 ? componentHierarchy.join(' > ') : (focusedComponentJSON.type || focusedComponentJSON.key || 'Component')}
-                    </span>
-                  )}
-                </div>
-              </div>
-              {/* No close button - always visible */}
-            </div>
-
-            {/* Selected Components Display */}
-            {selectedComponents.length > 0 && (
-              <div className="px-4 py-2 border-b bg-muted/30">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-medium text-muted-foreground">
-                    Selected Components ({selectedComponents.length})
-                  </span>
-                  <button
-                    onClick={() => setSelectedComponents([])}
-                    className="text-xs text-muted-foreground hover:text-foreground px-2 py-0.5"
-                  >
-                    Clear all
-                  </button>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {selectedComponents.map((comp) => (
-                    <div
-                      key={comp.id}
-                      className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-primary/10 border border-primary/20 text-primary text-xs"
-                    >
-                      <span className="font-mono font-semibold">{comp.tagName}</span>
-                      {comp.filePath && (
-                        <span className="text-muted-foreground text-[10px] font-mono">
-                          {comp.filePath.split('/').pop()}
-                          {comp.lineNumber && `:${comp.lineNumber}`}
-                        </span>
-                      )}
-                      <button
-                        onClick={() => {
-                          setSelectedComponents(prev => prev.filter(c => c.id !== comp.id));
-                        }}
-                        className="ml-0.5 hover:bg-primary/20 rounded p-0.5 transition-colors"
-                        aria-label="Remove component"
-                      >
-                        <ChevronRight className="h-3 w-3 rotate-45" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 custom-scrollbar">
-          {messages.length === 0 && !isLoading ? (
-            <div className="flex flex-col items-center justify-center h-full text-muted-foreground gap-3">
-              <p className="text-center text-sm">
-                Start a conversation with the Editor.
-                <br />
-                <br />
-                Ask questions, get help, or request assistance with your content.
-              </p>
-              <p className="text-[11px] text-muted-foreground">
-                Tip: Switch modes with the toggle. Edit mode drafts outputs for the focused section or all sections; Ask mode shows answers here.
-              </p>
-            </div>
-          ) : (
-            <>
-              {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={cn(
-                    "flex w-full",
-                    message.role === 'user' ? 'justify-end' : 'justify-start'
-                  )}
-                >
-                  <div
-                    className={cn(
-                      "max-w-[85%] rounded-lg px-3 py-2",
-                      message.role === 'user'
-                        ? "bg-primary text-primary-foreground"
-                        : message.content.startsWith('Error:')
-                        ? "bg-destructive/10 text-destructive border border-destructive/20"
-                        : "bg-muted text-muted-foreground"
-                    )}
-                  >
-                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                  </div>
-                </div>
-              ))}
-              {isLoading && !isBatchGenerating && (
-                <div className="flex w-full justify-start">
-                  <div className="max-w-[85%] rounded-lg px-3 py-2 bg-muted text-muted-foreground flex items-center gap-2">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    <span className="text-sm">Thinking...</span>
-                  </div>
-                </div>
-              )}
-              <div ref={messagesEndRef} />
-            </>
-          )}
+    <div className={cn("relative flex h-auto w-full", className)}>
+      <div className="flex flex-col w-full">
+        <div className="px-0">
+          <form onSubmit={handleSubmit}>
+            <PromptBox
+              disabled={isLoading}
+              data-selector-active={isSelectorActive ? 'true' : 'false'}
+            />
+          </form>
         </div>
-
-            {/* Input Area */}
-            <div className="px-4 pb-3 pt-2 border-t flex-shrink-0 bg-background">
-              <form onSubmit={handleSubmit}>
-                <PromptBox 
-                  disabled={isLoading} 
-                  data-selector-active={isSelectorActive ? 'true' : 'false'}
-                />
-              </form>
-            </div>
       </div>
-
-      {/* Collapsed State - Toggle Button */}
-      {/* No expand button needed - always visible */}
     </div>
   );
 };

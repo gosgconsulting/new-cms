@@ -506,7 +506,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
             </TabsContent>
 
             <TabsContent value="output">
-              <div className="h-[70vh] min-h-[520px]">
+              <div className="mb-4">
                 <AIAssistantChat 
                   className="h-full w-full"
                   pageContext={pageData ? {
@@ -650,7 +650,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
 
             <TabsContent value="output" className="space-y-4">
               {/* Chat embedded here */}
-              <div className="h-[70vh] min-h-[520px]">
+              <div className="mb-4">
                 <AIAssistantChat 
                   className="h-full w-full"
                   pageContext={pageData ? {
