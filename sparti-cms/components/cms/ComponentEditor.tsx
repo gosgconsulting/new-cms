@@ -435,9 +435,9 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
                             const urlKey = (currentArrayItem as any).url !== undefined ? 'url' : ((currentArrayItem as any).src !== undefined ? 'src' : 'image');
                             let fileRef: HTMLInputElement | null = null;
                             return (
-                              <div className="flex items-start gap-4">
-                                {/* Left: preview with hover-delete and click-to-edit */}
-                                <div className="group relative w-48 h-28 bg-slate-100 rounded overflow-hidden flex items-center justify-center">
+                              <div className="space-y-4">
+                                {/* Single-column: preview on top with hover-delete and click-to-edit */}
+                                <div className="group relative w-full h-[180px] bg-slate-100 rounded overflow-hidden flex items-center justify-center">
                                   {imgUrl ? (
                                     <img
                                       src={imgUrl}
@@ -457,7 +457,7 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
                                     type="button"
                                     title="Remove"
                                     onClick={() => removeArrayItem(index, arrayProp, currentTab)}
-                                    className="absolute top-2 left-2 p-1 rounded bg-red-500 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                                    className="absolute top-2 right-2 p-1 rounded bg-red-500 text-white opacity-0 group-hover:opacity-100 transition-opacity"
                                   >
                                     <Trash2 className="h-4 w-4" />
                                   </button>
@@ -472,8 +472,8 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
                                     }}
                                   />
                                 </div>
-                                {/* Right: URL/Alt/Title if present */}
-                                <div className="flex-1 space-y-3">
+                                {/* Fields below: URL and Alt only (no Title) */}
+                                <div className="space-y-3">
                                   <div>
                                     <Label className="text-sm font-medium mb-2 block">Image URL</Label>
                                     <input
@@ -493,18 +493,6 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
                                         onChange={(e) => updateArrayItem(index, arrayProp, currentTab, 'alt', e.target.value)}
                                         className="w-full p-2 rounded-md border"
                                         placeholder="Describe the image"
-                                      />
-                                    </div>
-                                  )}
-                                  {'title' in (currentArrayItem as any) && (
-                                    <div>
-                                      <Label className="text-sm font-medium mb-2 block">Title</Label>
-                                      <input
-                                        type="text"
-                                        value={(currentArrayItem as any).title || ''}
-                                        onChange={(e) => updateArrayItem(index, arrayProp, currentTab, 'title', e.target.value)}
-                                        className="w-full p-2 rounded-md border"
-                                        placeholder="Optional title"
                                       />
                                     </div>
                                   )}

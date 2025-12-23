@@ -131,7 +131,6 @@ export const ImageEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemov
   const update = (field: keyof SchemaItem, value: string) => onChange({ ...item, [field]: value });
   const url = item.src || '';
   const alt = item.alt || '';
-  const title = item.content || '';
 
   const uploadFile = async (file: File) => {
     const formData = new FormData();
@@ -152,80 +151,65 @@ export const ImageEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemov
             <ImageIcon className="h-4 w-4" />
             Image
           </CardTitle>
-          {/* Removed top-right delete; delete lives on image hover */}
+          {/* Remove top-right delete from header; delete is over the image */}
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="flex gap-4 items-start">
-          {/* Left: image preview with hover delete + click-to-edit */}
-          <div className="group relative w-48 h-28 bg-slate-100 rounded overflow-hidden flex items-center justify-center">
-            {url ? (
-              <img
-                src={url}
-                alt={alt || 'Preview'}
-                className="h-full w-auto object-cover cursor-pointer"
-                onClick={() => fileInputRef?.click()}
-              />
-            ) : (
-              <div
-                className="text-xs text-gray-500 cursor-pointer"
-                onClick={() => fileInputRef?.click()}
-              >
-                Click to add image
-              </div>
-            )}
-            <button
-              type="button"
-              title="Remove image"
-              onClick={onRemove}
-              className="absolute top-2 left-2 p-1 rounded bg-red-500 text-white opacity-0 group-hover:opacity-100 transition-opacity"
-            >
-              <X className="h-4 w-4" />
-            </button>
-            <input
-              type="file"
-              accept="image/*"
-              ref={(el) => (fileInputRef = el)}
-              className="hidden"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) uploadFile(file);
-              }}
+        {/* Single-column: preview on top */}
+        <div className="group relative w-full h-[180px] bg-slate-100 rounded overflow-hidden flex items-center justify-center">
+          {url ? (
+            <img
+              src={url}
+              alt={alt || 'Preview'}
+              className="h-full w-auto object-cover cursor-pointer"
+              onClick={() => fileInputRef?.click()}
             />
-          </div>
+          ) : (
+            <div
+              className="text-xs text-gray-500 cursor-pointer"
+              onClick={() => fileInputRef?.click()}
+            >
+              Click to add image
+            </div>
+          )}
+          <button
+            type="button"
+            title="Remove image"
+            onClick={onRemove}
+            className="absolute top-2 right-2 p-1 rounded bg-red-500 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+          >
+            <X className="h-4 w-4" />
+          </button>
+          <input
+            type="file"
+            accept="image/*"
+            ref={(el) => (fileInputRef = el)}
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) uploadFile(file);
+            }}
+          />
+        </div>
 
-          {/* Right: fields */}
-          <div className="flex-1 space-y-3">
-            <div className="space-y-2">
-              <Label className="text-xs">Image URL</Label>
-              <Input
-                value={url}
-                onChange={(e) => update('src', e.target.value)}
-                placeholder="https://example.com/image.jpg"
-                className="text-sm"
-              />
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label className="text-xs">Alt Text</Label>
-                <Input
-                  value={alt}
-                  onChange={(e) => update('alt', e.target.value)}
-                  placeholder="Describe the image"
-                  className="text-sm"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-xs">Title</Label>
-                <Input
-                  value={title}
-                  onChange={(e) => update('content', e.target.value)}
-                  placeholder="Optional title"
-                  className="text-sm"
-                />
-              </div>
-            </div>
-          </div>
+        {/* Fields below: URL + Alt only (no Title) */}
+        <div className="space-y-2">
+          <Label className="text-xs">Image URL</Label>
+          <Input
+            value={url}
+            onChange={(e) => update('src', e.target.value)}
+            placeholder="https://example.com/image.jpg"
+            className="text-sm"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label className="text-xs">Alt Text</Label>
+          <Input
+            value={alt}
+            onChange={(e) => update('alt', e.target.value)}
+            placeholder="Describe the image"
+            className="text-sm"
+          />
         </div>
       </CardContent>
     </Card>
