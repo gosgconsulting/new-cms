@@ -33,8 +33,9 @@ SMTP_FROM_EMAIL="noreply@gosg.com"
 GOOGLE_CLOUD_TRANSLATION_API_KEY="AIzaSyBsMa_Lt6QDUdy5we4OpZ5fVp2wv5ir5hk"
 
 # API Keys for integrations
-GOOGLE_API_KEY="AIzaSyBN_I1rWGaUqN_wtWMnaFM-BGWoJ7xUh7A"
-OPENROUTER_API_KEY="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"
+GOOGLE_API_KEY="your-google-api-key-here"
+OPENROUTER_API_KEY="your-openrouter-api-key-here"
+ANTHROPIC_API_KEY="your-anthropic-api-key-here"
 
 # Railway Deployment Configuration
 RAILWAY_DEPLOYMENT_DRAINING_SECONDS="60"
@@ -42,9 +43,10 @@ RAILWAY_HEALTHCHECK_TIMEOUT_SEC="120"
 SSL_CERT_DAYS="820"
 
 # Frontend environment variables (VITE_ prefix required for browser access)
-VITE_RESEND_API_KEY="re_2ap5qM9k_96jEVym5P34qtcJctKycM1ai"
-VITE_GOOGLE_API_KEY="AIzaSyBN_I1rWGaUqN_wtWMnaFM-BGWoJ7xUh7A"
-VITE_OPENROUTER_API_KEY="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"
+VITE_RESEND_API_KEY="your-resend-api-key-here"
+VITE_GOOGLE_API_KEY="your-google-api-key-here"
+VITE_OPENROUTER_API_KEY="your-openrouter-api-key-here"
+VITE_ANTHROPIC_API_KEY="your-anthropic-api-key-here"
 VITE_SMTP_FROM_EMAIL="noreply@gosg.com"
 
 # Instructions:

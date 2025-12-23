@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { Database, Plus, FolderKanban, Puzzle, FileCode, Code, Globe, Monitor, FileText, Languages } from 'lucide-react';
 import { PostgresIntegration, PostgresIntegrationListItem, Tenant } from './PostgresIntegration';
 import { ComponentsIntegration, ComponentsIntegrationListItem } from './ComponentsIntegration';
+import { AIAssistantIntegration, AIAssistantIntegrationListItem } from './AIAssistantIntegration';
 import { useAuth } from '../auth/AuthProvider';
 
 interface Project {
@@ -450,6 +451,9 @@ const IntegrationsTab: React.FC = () => {
           
           {/* Google Translation Integration */}
           <GoogleTranslationIntegration />
+          
+          {/* AI Assistant Integration */}
+          <AIAssistantIntegration />
 
           <Button variant="outline" className="w-full" size="lg" onClick={() => setShowAddIntegration(true)}>
             <Plus className="h-4 w-4 mr-2" />
@@ -474,6 +478,7 @@ const IntegrationsTab: React.FC = () => {
               )}
               <ComponentsIntegrationListItem />
               <GoogleTranslationIntegrationListItem />
+              <AIAssistantIntegrationListItem />
               <li>• Google APIs (Available in Integration Test)</li>
               <li>• OpenRouter AI (Available in Integration Test)</li>
             </ul>

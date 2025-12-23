@@ -2,7 +2,7 @@ import React, { useState, useEffect, useLayoutEffect } from 'react';
 import { Button } from '../../../src/components/ui/button';
 import { Card } from '../../../src/components/ui/card';
 import { Badge } from '../../../src/components/ui/badge';
-import { Edit, Eye, FileText, Rocket, Scale, Layout, Minus } from 'lucide-react';
+import { Edit, Eye, FileText, Rocket, Scale, Layout, Minus, Monitor } from 'lucide-react';
 import PageEditor from './PageEditor';
 import HeaderSchemaEditor from './HeaderSchemaEditor';
 import FooterSchemaEditor from './FooterSchemaEditor';
@@ -30,13 +30,42 @@ interface PageItem {
 interface PagesManagerProps {
   onEditModeChange?: (isEditMode: boolean) => void;
   mode?: 'tenants' | 'theme';
+  currentThemeId?: string | null;
 }
 
-// Hardcoded theme pages (no database required)
-const getThemePages = (): PageItem[] => {
+// Hardcoded pages for themes (fallback when database and file system are unavailable)
+const getHardcodedThemePages = (themeId: string): PageItem[] => {
+  const now = new Date().toISOString();
+  
+  // Define hardcoded pages for each theme
+  const themePagesMap: Record<string, PageItem[]> = {
+    'landingpage': [
+      {
+        id: 'theme-landingpage-homepage',
+        page_name: 'Homepage',
+        slug: '/',
+        status: 'published',
+        page_type: 'page',
+        meta_title: 'Homepage',
+        meta_description: 'Welcome to our homepage',
+        seo_index: true,
+        created_at: now,
+        updated_at: now,
+      },
+    ],
+    // Add more themes here as needed
+    // 'other-theme': [...]
+  };
+  
+  // Return hardcoded pages for the theme, or default homepage if not found
+  if (themePagesMap[themeId]) {
+    return themePagesMap[themeId];
+  }
+  
+  // Default: return a homepage for any theme that doesn't have specific pages defined
   return [
     {
-      id: 'theme-homepage',
+      id: `theme-${themeId}-homepage`,
       page_name: 'Homepage',
       slug: '/',
       status: 'published',
@@ -44,18 +73,55 @@ const getThemePages = (): PageItem[] => {
       meta_title: 'Homepage',
       meta_description: 'Welcome to our homepage',
       seo_index: true,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      created_at: now,
+      updated_at: now,
     },
   ];
 };
 
-export const PagesManager: React.FC<PagesManagerProps> = ({ onEditModeChange, mode = 'tenants' }) => {
+// Load theme pages from API (from database, synced from pages.json)
+// Falls back to hardcoded pages if API fails
+const loadThemePages = async (themeId: string | null): Promise<PageItem[]> => {
+  if (!themeId) {
+    return [];
+  }
+  
+  try {
+    const response = await api.get(`/api/pages/theme/${themeId}`);
+    if (response.ok) {
+      const data = await response.json();
+      const pages = data.pages || [];
+      
+      // If API returned pages, use them
+      if (pages.length > 0) {
+        return pages;
+      }
+      
+      // If API returned empty array, fallback to hardcoded pages
+      console.log(`[testing] No pages from API for theme ${themeId}, using hardcoded pages`);
+      return getHardcodedThemePages(themeId);
+    } else {
+      console.error('Failed to fetch theme pages from API, using hardcoded pages');
+      return getHardcodedThemePages(themeId);
+    }
+  } catch (error) {
+    console.error('Error fetching theme pages, using hardcoded pages:', error);
+    // Fallback to hardcoded pages when API fails
+    return getHardcodedThemePages(themeId);
+  }
+};
+
+export const PagesManager: React.FC<PagesManagerProps> = ({ 
+  onEditModeChange, 
+  mode = 'tenants',
+  currentThemeId = null 
+}) => {
   const { currentTenantId, user } = useAuth();
   const [pages, setPages] = useState<PageItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [editingPageId, setEditingPageId] = useState<string | null>(null);
+  const [visualEditorPage, setVisualEditorPage] = useState<{ slug: string; pageName: string } | null>(null);
   const [activeTab, setActiveTab] = useState<'page' | 'landing' | 'legal' | 'header' | 'footer'>('page');
 
   const tabs = [
@@ -66,25 +132,42 @@ export const PagesManager: React.FC<PagesManagerProps> = ({ onEditModeChange, mo
     { id: 'footer' as const, label: 'Footer', icon: Layout },
   ];
 
-  // Load pages from database or use hardcoded template pages
+  // Load pages from database or theme
   useEffect(() => {
     console.log('currentTenantId', currentTenantId);
+    console.log('currentThemeId', currentThemeId);
     console.log('user', user);
     console.log('mode', mode);
     
     if (mode === 'theme') {
-      // Theme mode: use hardcoded pages, no database needed
-      setLoading(true);
-      setTimeout(() => {
-        setPages(getThemePages());
+      // Theme mode: load pages for selected theme
+      if (currentThemeId) {
+        setLoading(true);
+        loadThemePages(currentThemeId).then(themePages => {
+          setPages(themePages);
+          setLoading(false);
+          setError(null);
+        }).catch(err => {
+          console.error('Error loading theme pages:', err);
+          setPages([]);
+          setLoading(false);
+          setError('Failed to load theme pages');
+        });
+      } else {
+        // No theme selected, show empty
+        setPages([]);
         setLoading(false);
         setError(null);
-      }, 100); // Small delay to show loading state
+      }
     } else if (currentTenantId) {
       // Tenants mode: load from database
       loadPages();
+    } else {
+      // No tenant selected
+      setPages([]);
+      setLoading(false);
     }
-  }, [currentTenantId, user, mode]);
+  }, [currentTenantId, currentThemeId, user, mode]);
 
   const loadPages = async () => {
     try {
@@ -155,17 +238,17 @@ export const PagesManager: React.FC<PagesManagerProps> = ({ onEditModeChange, mo
   const handleViewPage = (slug: string) => {
     let url = slug;
     
-    if (mode === 'theme') {
-      // Theme mode: use /theme/landingpage/{slug} format
-      // Remove leading slash from slug if present, then add it back in the path
+    if (mode === 'theme' && currentThemeId) {
+      // Theme mode: use /theme/{themeId}/{slug} format
+      // Remove leading slash from slug if present
       const cleanSlug = slug.startsWith('/') ? slug.slice(1) : slug;
       
       if (cleanSlug === '' || cleanSlug === 'home' || cleanSlug === 'index') {
-        // Homepage: /theme/landingpage
-        url = '/theme/landingpage';
+        // Homepage: /theme/{themeId}
+        url = `/theme/${currentThemeId}`;
       } else {
-        // Other pages: /theme/landingpage/{slug}
-        url = `/theme/landingpage/${cleanSlug}`;
+        // Other pages: /theme/{themeId}/{slug}
+        url = `/theme/${currentThemeId}/${cleanSlug}`;
       }
     }
     // For tenants mode, use the slug as-is (existing behavior)
@@ -173,15 +256,84 @@ export const PagesManager: React.FC<PagesManagerProps> = ({ onEditModeChange, mo
     window.open(url, '_blank');
   };
 
+  const handleVisualEditor = (page: PageItem) => {
+    setVisualEditorPage({
+      slug: page.slug,
+      pageName: page.page_name
+    });
+    if (onEditModeChange) {
+      onEditModeChange(true);
+    }
+  };
+
+  const getThemePageUrl = (slug: string): string => {
+    if (!currentThemeId) return '';
+    
+    const cleanSlug = slug.startsWith('/') ? slug.slice(1) : slug;
+    
+    if (cleanSlug === '' || cleanSlug === 'home' || cleanSlug === 'index') {
+      return `/theme/${currentThemeId}`;
+    } else {
+      return `/theme/${currentThemeId}/${cleanSlug}`;
+    }
+  };
+
   // Notify parent component when entering/exiting edit mode
   // Use useLayoutEffect to ensure it runs synchronously before paint
   useLayoutEffect(() => {
     if (onEditModeChange) {
-      const isEditMode = editingPageId !== null;
-      console.log('[testing] useLayoutEffect - editingPageId:', editingPageId, 'isEditMode:', isEditMode);
+      const isEditMode = editingPageId !== null || visualEditorPage !== null;
+      console.log('[testing] useLayoutEffect - editingPageId:', editingPageId, 'visualEditorPage:', visualEditorPage, 'isEditMode:', isEditMode);
       onEditModeChange(isEditMode);
     }
-  }, [editingPageId, onEditModeChange]);
+  }, [editingPageId, visualEditorPage, onEditModeChange]);
+
+  // Show visual editor if a page is being viewed
+  if (visualEditorPage && mode === 'theme' && currentThemeId) {
+    const pageUrl = getThemePageUrl(visualEditorPage.slug);
+    
+    return (
+      <div className="flex flex-col" style={{ height: 'calc(100vh - 120px)' }}>
+        <div className="flex items-center justify-between p-4 border-b bg-white rounded-t-lg">
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setVisualEditorPage(null);
+                if (onEditModeChange) {
+                  onEditModeChange(false);
+                }
+              }}
+            >
+              <Minus className="h-4 w-4 mr-2" />
+              Back
+            </Button>
+            <h2 className="text-lg font-semibold">Visual Editor: {visualEditorPage.pageName}</h2>
+            <span className="text-sm text-muted-foreground">{pageUrl}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => window.open(pageUrl, '_blank')}
+            >
+              <Eye className="h-4 w-4 mr-2" />
+              Open in New Tab
+            </Button>
+          </div>
+        </div>
+        <div className="flex-1 relative bg-gray-100 rounded-b-lg overflow-hidden">
+          <iframe
+            src={pageUrl}
+            className="w-full h-full border-0"
+            title={`Visual Editor: ${visualEditorPage.pageName}`}
+            style={{ height: '100%' }}
+          />
+        </div>
+      </div>
+    );
+  }
 
   // Show editor if a page is being edited
   if (editingPageId) {
@@ -230,6 +382,20 @@ export const PagesManager: React.FC<PagesManagerProps> = ({ onEditModeChange, mo
         })
     : [];
 
+  // Show message when in theme mode but no theme is selected
+  if (mode === 'theme' && !currentThemeId) {
+    return (
+      <div className="max-w-6xl mx-auto">
+        <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <div className="text-center py-12">
+            <p className="text-gray-500 text-lg mb-2">No theme selected</p>
+            <p className="text-gray-400 text-sm">Please select a theme from the dropdown above to view its pages</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <div className="max-w-6xl mx-auto">
@@ -248,7 +414,16 @@ export const PagesManager: React.FC<PagesManagerProps> = ({ onEditModeChange, mo
         <div className="bg-white rounded-lg border border-gray-200 p-6">
           <div className="text-center py-12">
             <p className="text-red-600">Error: {error}</p>
-            <Button onClick={loadPages} className="mt-4">
+            <Button onClick={() => {
+              if (mode === 'theme' && currentThemeId) {
+                loadThemePages(currentThemeId).then(themePages => {
+                  setPages(themePages);
+                  setError(null);
+                });
+              } else {
+                loadPages();
+              }
+            }} className="mt-4">
               Retry
             </Button>
           </div>
@@ -324,6 +499,17 @@ export const PagesManager: React.FC<PagesManagerProps> = ({ onEditModeChange, mo
                         )}
                       </div>
                       <div className="flex items-center gap-2">
+                        {mode === 'theme' && (
+                          <Button
+                            variant="default"
+                            size="sm"
+                            onClick={() => handleVisualEditor(page)}
+                            className="bg-brandPurple hover:bg-brandPurple/90"
+                          >
+                            <Monitor className="h-4 w-4 mr-2" />
+                            Visual Editor
+                          </Button>
+                        )}
                         <Button
                           variant="default"
                           size="sm"

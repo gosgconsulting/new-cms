@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { 
   FileText, 
@@ -50,10 +50,8 @@ import TenantsManager from './TenantsManager';
 import ThemesManager from './ThemesManager';
 
 import BrandingSettingsPage from './BrandingSettingsPage';
-import ButtonSettingsPage from './ButtonSettingsPage';
+import StylesSettingsPage from './StylesSettingsPage';
 import TenantSelector from './TenantSelector';
-import TypographySettingsPage from './TypographySettingsPage';
-import ColorSettingsPage from './ColorSettingsPage';
 import AccessKeysManager from './AccessKeysManager';
 
 // Tenant type for local state
@@ -132,12 +130,8 @@ const SettingsManager = () => {
     switch (activeSettingsTab) {
       case 'branding':
         return <BrandingSettingsPage />;
-      case 'buttons':
-        return <ButtonSettingsPage />;
-      case 'typography':
-        return <TypographySettingsPage />;
-      case 'colors':
-        return <ColorSettingsPage />;
+      case 'styles':
+        return <StylesSettingsPage />;
       case 'access-keys':
         return <AccessKeysManager />;
       default:
@@ -159,41 +153,25 @@ const SettingsManager = () => {
           <div className="flex space-x-2 border-b border-border mb-6">
             <button 
               onClick={() => setActiveSettingsTab('branding')}
-              className={`px-4 py-2 text-sm font-medium ${activeSettingsTab === 'branding' 
-                ? 'text-brandPurple border-b-2 border-brandPurple' 
-                : 'text-muted-foreground hover:text-foreground'}`}
+              className={`px-4 py-2.5 text-sm font-medium transition-all ${activeSettingsTab === 'branding' 
+                ? 'text-brandPurple border-b-2 border-brandPurple bg-brandPurple/5' 
+                : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'}`}
             >
               Branding
             </button>
             <button 
-              onClick={() => setActiveSettingsTab('buttons')}
-              className={`px-4 py-2 text-sm font-medium ${activeSettingsTab === 'buttons' 
-                ? 'text-brandPurple border-b-2 border-brandPurple' 
-                : 'text-muted-foreground hover:text-foreground'}`}
+              onClick={() => setActiveSettingsTab('styles')}
+              className={`px-4 py-2.5 text-sm font-medium transition-all ${activeSettingsTab === 'styles' 
+                ? 'text-brandPurple border-b-2 border-brandPurple bg-brandPurple/5' 
+                : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'}`}
             >
-              Buttons
-            </button>
-            <button 
-              onClick={() => setActiveSettingsTab('typography')}
-              className={`px-4 py-2 text-sm font-medium ${activeSettingsTab === 'typography' 
-                ? 'text-brandPurple border-b-2 border-brandPurple' 
-                : 'text-muted-foreground hover:text-foreground'}`}
-            >
-              Typography
-            </button>
-            <button 
-              onClick={() => setActiveSettingsTab('colors')}
-              className={`px-4 py-2 text-sm font-medium ${activeSettingsTab === 'colors' 
-                ? 'text-brandPurple border-b-2 border-brandPurple' 
-                : 'text-muted-foreground hover:text-foreground'}`}
-            >
-              Colors
+              Styles
             </button>
             <button 
               onClick={() => setActiveSettingsTab('access-keys')}
-              className={`px-4 py-2 text-sm font-medium ${activeSettingsTab === 'access-keys' 
-                ? 'text-brandPurple border-b-2 border-brandPurple' 
-                : 'text-muted-foreground hover:text-foreground'}`}
+              className={`px-4 py-2.5 text-sm font-medium transition-all ${activeSettingsTab === 'access-keys' 
+                ? 'text-brandPurple border-b-2 border-brandPurple bg-brandPurple/5' 
+                : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'}`}
             >
               Access Keys
             </button>
@@ -218,8 +196,29 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({ hideSidebar = false }) => {
   const [tenantDropdownOpen, setTenantDropdownOpen] = useState<boolean>(false);
   const [isEditMode, setIsEditMode] = useState<boolean>(false);
   const [mode, setMode] = useState<'tenants' | 'theme'>('tenants');
+  const [currentThemeId, setCurrentThemeId] = useState<string | null>(null);
   const { signOut, user, currentTenantId, handleTenantChange } = useAuth();
   const navigate = useNavigate();
+  
+  // Handle theme change (separate from tenant change)
+  const handleThemeChange = (themeId: string) => {
+    setCurrentThemeId(themeId);
+    // Store in localStorage for persistence
+    localStorage.setItem('sparti-current-theme-id', themeId);
+  };
+  
+  // Load current theme from localStorage on mount
+  useEffect(() => {
+    if (mode === 'theme') {
+      const savedThemeId = localStorage.getItem('sparti-current-theme-id');
+      if (savedThemeId) {
+        setCurrentThemeId(savedThemeId);
+      }
+    } else {
+      // Clear theme selection when switching to tenants mode
+      setCurrentThemeId(null);
+    }
+  }, [mode]);
 
   // Fetch all tenants (returns full tenant data including database and API keys)
   // For super admins: returns all tenants
@@ -256,7 +255,11 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({ hideSidebar = false }) => {
   const renderContent = () => {
     switch (activeTab) {
       case 'pages':
-        return <PagesManager onEditModeChange={setIsEditMode} mode={mode} />;
+        return <PagesManager 
+          onEditModeChange={setIsEditMode} 
+          mode={mode} 
+          currentThemeId={mode === 'theme' ? currentThemeId : null}
+        />;
       case 'blog':
         return <BlogManager />;
       case 'media':
@@ -598,8 +601,8 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({ hideSidebar = false }) => {
                 </ToggleGroupItem>
               </ToggleGroup>
               <TenantSelector
-                currentTenantId={currentTenantId || ''}
-                onTenantChange={handleTenantChange}
+                currentTenantId={mode === 'theme' ? (currentThemeId || '') : (currentTenantId || '')}
+                onTenantChange={mode === 'theme' ? handleThemeChange : handleTenantChange}
                 isSuperAdmin={user?.is_super_admin || false}
                 onAddNewTenant={() => setActiveTab('tenants')}
                 mode={mode}

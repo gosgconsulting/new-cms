@@ -2,6 +2,7 @@ import express from 'express';
 import { query } from '../../sparti-cms/db/index.js';
 import { authenticateUser } from '../middleware/auth.js';
 import { getDatabaseState } from '../utils/database.js';
+import { getThemePagesFromFileSystem } from '../../sparti-cms/services/themeSync.js';
 import {
   getAllPagesWithTypes,
   updatePageSlug,
@@ -58,6 +59,83 @@ router.get('/pages/all', authenticateUser, async (req, res) => {
       error: 'Failed to fetch pages',
       message: error.message 
     });
+  }
+});
+
+// Get pages by theme_id
+router.get('/pages/theme/:themeId', async (req, res) => {
+  try {
+    const { themeId } = req.params;
+    console.log(`[testing] API: Fetching pages for theme: ${themeId}`);
+    
+    let pages = [];
+    let fromFilesystem = false;
+    
+    try {
+      // Try to fetch pages from database first
+      const result = await query(`
+        SELECT 
+          id,
+          page_name,
+          slug,
+          meta_title,
+          meta_description,
+          seo_index,
+          status,
+          page_type,
+          theme_id,
+          created_at,
+          updated_at
+        FROM pages
+        WHERE theme_id = $1
+        ORDER BY page_name ASC
+      `, [themeId]);
+      
+      pages = result.rows;
+    } catch (dbError) {
+      // If database query fails, fall back to file system
+      console.log('[testing] Database query failed, using file system pages:', dbError.message);
+      pages = getThemePagesFromFileSystem(themeId);
+      fromFilesystem = true;
+    }
+    
+    // If database returned empty array, try file system as fallback
+    if (pages.length === 0) {
+      console.log('[testing] No pages in database, checking file system...');
+      const fsPages = getThemePagesFromFileSystem(themeId);
+      if (fsPages.length > 0) {
+        pages = fsPages;
+        fromFilesystem = true;
+      }
+    }
+    
+    res.json({
+      success: true,
+      pages: pages,
+      total: pages.length,
+      themeId: themeId,
+      from_filesystem: fromFilesystem
+    });
+  } catch (error) {
+    console.error('[testing] API: Error fetching theme pages:', error);
+    // Last resort: try file system
+    try {
+      const { themeId } = req.params;
+      const fsPages = getThemePagesFromFileSystem(themeId);
+      res.json({
+        success: true,
+        pages: fsPages,
+        total: fsPages.length,
+        themeId: themeId,
+        from_filesystem: true
+      });
+    } catch (fsError) {
+      res.status(500).json({
+        success: false,
+        error: 'Failed to fetch theme pages',
+        message: error.message
+      });
+    }
   }
 });
 

@@ -87,6 +87,60 @@ function readThemeConfig(slug) {
 }
 
 /**
+ * Read pages.json from a theme folder
+ * @param {string} slug - Theme slug (folder name)
+ * @returns {Array|null} Array of page objects or null if file doesn't exist or is invalid
+ */
+function readThemePages(slug) {
+  try {
+    const themesDir = path.join(__dirname, '../theme');
+    const themePath = path.join(themesDir, slug);
+    const pagesPath = path.join(themePath, 'pages.json');
+    
+    // Check if theme folder exists
+    if (!fs.existsSync(themePath)) {
+      console.log(`[testing] Theme folder does not exist: ${themePath}`);
+      return null;
+    }
+    
+    // Check if pages.json exists
+    if (!fs.existsSync(pagesPath)) {
+      console.log(`[testing] pages.json not found for theme: ${slug}`);
+      return [];
+    }
+    
+    // Read and parse JSON
+    const pagesContent = fs.readFileSync(pagesPath, 'utf8');
+    const pagesData = JSON.parse(pagesContent);
+    
+    // Validate structure
+    if (!pagesData.pages || !Array.isArray(pagesData.pages)) {
+      console.warn(`[testing] pages.json for ${slug} has invalid structure - expected 'pages' array`);
+      return [];
+    }
+    
+    // Validate each page has required fields
+    const validPages = pagesData.pages.filter(page => {
+      if (!page.page_name || !page.slug) {
+        console.warn(`[testing] Page in ${slug} is missing required fields (page_name or slug)`);
+        return false;
+      }
+      return true;
+    });
+    
+    return validPages;
+  } catch (error) {
+    if (error.code === 'ENOENT') {
+      // File doesn't exist - this is fine, return empty array
+      return [];
+    }
+    // JSON parse error or other error
+    console.error(`[testing] Error reading pages.json for ${slug}:`, error.message);
+    return [];
+  }
+}
+
+/**
  * Write theme.json config file to a theme folder
  * @param {string} slug - Theme slug (folder name)
  * @param {Object} config - Theme configuration object
@@ -119,6 +173,60 @@ function writeThemeConfig(slug, config) {
   } catch (error) {
     console.error(`[testing] Error writing theme.json for ${slug}:`, error);
     return false;
+  }
+}
+
+/**
+ * Get pages from a theme folder's pages.json file (no database required)
+ * Formats pages to match PageItem interface for frontend consumption
+ * @param {string} themeSlug - Theme slug (folder name)
+ * @returns {Array} Array of formatted page objects
+ */
+export function getThemePagesFromFileSystem(themeSlug) {
+  try {
+    // Read raw pages from pages.json
+    const rawPages = readThemePages(themeSlug);
+    
+    if (!rawPages || rawPages.length === 0) {
+      return [];
+    }
+    
+    // Format pages to match PageItem interface
+    const now = new Date().toISOString();
+    const formattedPages = rawPages.map(page => {
+      // Generate unique ID from slug
+      let pageId = page.slug;
+      // Remove leading/trailing slashes and replace remaining slashes with hyphens
+      pageId = pageId.replace(/^\/+|\/+$/g, '').replace(/\//g, '-');
+      // If slug is empty or just "/", use "homepage"
+      if (!pageId || pageId === '') {
+        pageId = 'homepage';
+      }
+      const fullId = `theme-${themeSlug}-${pageId}`;
+      
+      return {
+      id: fullId,
+      page_name: page.page_name,
+      slug: page.slug,
+      status: page.status || 'published',
+      page_type: page.page_type || 'page',
+      meta_title: page.meta_title || null,
+      meta_description: page.meta_description || null,
+      seo_index: page.seo_index !== undefined ? page.seo_index : true,
+      campaign_source: page.campaign_source || null,
+      conversion_goal: page.conversion_goal || null,
+      legal_type: page.legal_type || null,
+      version: page.version || null,
+      created_at: now,
+      updated_at: now,
+      from_filesystem: true // Flag to indicate this came from file system
+      };
+    });
+    
+    return formattedPages;
+  } catch (error) {
+    console.error(`[testing] Error getting theme pages from file system for ${themeSlug}:`, error);
+    return [];
   }
 }
 
@@ -337,6 +445,125 @@ export async function getAllThemes() {
 }
 
 /**
+ * Sync pages from a theme folder to the database
+ * @param {string} themeSlug - Theme slug
+ * @returns {Promise<Object>} Sync result with created/updated counts
+ */
+export async function syncThemePages(themeSlug) {
+  try {
+    // Read pages from theme folder
+    const pages = readThemePages(themeSlug);
+    
+    if (!pages || pages.length === 0) {
+      return {
+        success: true,
+        synced: 0,
+        total: 0,
+        message: `No pages found in theme ${themeSlug}`
+      };
+    }
+    
+    let syncedCount = 0;
+    const results = [];
+    
+    for (const pageData of pages) {
+      try {
+        // Check if page exists (by slug and theme_id)
+        const existingPage = await query(`
+          SELECT id, page_name, slug, theme_id
+          FROM pages
+          WHERE slug = $1 AND theme_id = $2
+          LIMIT 1
+        `, [pageData.slug, themeSlug]);
+        
+        const now = new Date().toISOString();
+        
+        if (existingPage.rows.length > 0) {
+          // Page exists, update it
+          await query(`
+            UPDATE pages
+            SET page_name = $1,
+                meta_title = $2,
+                meta_description = $3,
+                seo_index = $4,
+                status = $5,
+                page_type = $6,
+                updated_at = $7
+            WHERE id = $8
+          `, [
+            pageData.page_name,
+            pageData.meta_title || null,
+            pageData.meta_description || null,
+            pageData.seo_index !== undefined ? pageData.seo_index : true,
+            pageData.status || 'published',
+            pageData.page_type || 'page',
+            now,
+            existingPage.rows[0].id
+          ]);
+          
+          results.push({
+            slug: pageData.slug,
+            action: 'updated',
+            name: pageData.page_name
+          });
+          syncedCount++;
+        } else {
+          // Page doesn't exist, create it
+          // Use null for tenant_id - these are template pages that belong to the theme
+          // When a tenant uses this theme, they can copy these pages to their tenant_id
+          await query(`
+            INSERT INTO pages (page_name, slug, meta_title, meta_description, seo_index, status, page_type, theme_id, tenant_id, created_at, updated_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+          `, [
+            pageData.page_name,
+            pageData.slug,
+            pageData.meta_title || null,
+            pageData.meta_description || null,
+            pageData.seo_index !== undefined ? pageData.seo_index : true,
+            pageData.status || 'published',
+            pageData.page_type || 'page',
+            themeSlug,
+            null, // null tenant_id for theme template pages - they use the same pages table
+            now,
+            now
+          ]);
+          
+          results.push({
+            slug: pageData.slug,
+            action: 'created',
+            name: pageData.page_name
+          });
+          syncedCount++;
+        }
+      } catch (error) {
+        console.error(`[testing] Error syncing page ${pageData.slug} for theme ${themeSlug}:`, error);
+        results.push({
+          slug: pageData.slug,
+          action: 'error',
+          error: error.message
+        });
+      }
+    }
+    
+    return {
+      success: true,
+      synced: syncedCount,
+      total: pages.length,
+      results: results,
+      message: `Synced ${syncedCount} page(s) for theme ${themeSlug}`
+    };
+  } catch (error) {
+    console.error(`[testing] Error syncing pages for theme ${themeSlug}:`, error);
+    return {
+      success: false,
+      synced: 0,
+      error: error.message,
+      message: `Failed to sync pages for theme ${themeSlug}`
+    };
+  }
+}
+
+/**
  * Get theme by slug
  */
 export async function getThemeBySlug(slug) {
@@ -480,6 +707,30 @@ export default TenantLanding;
     const configWritten = writeThemeConfig(slug, themeConfig);
     if (!configWritten) {
       console.warn(`[testing] Failed to create theme.json for ${slug}, but theme folder was created`);
+    }
+    
+    // Create pages.json file with default homepage
+    const pagesConfig = {
+      pages: [
+        {
+          page_name: 'Homepage',
+          slug: '/',
+          meta_title: themeNameFormatted,
+          meta_description: themeDescription,
+          seo_index: true,
+          status: 'published',
+          page_type: 'page'
+        }
+      ]
+    };
+    
+    try {
+      const pagesPath = path.join(themePath, 'pages.json');
+      const pagesContent = JSON.stringify(pagesConfig, null, 2);
+      fs.writeFileSync(pagesPath, pagesContent, 'utf8');
+      console.log(`[testing] Created pages.json for theme: ${slug}`);
+    } catch (error) {
+      console.warn(`[testing] Failed to create pages.json for ${slug}:`, error);
     }
     
     // Create database entry

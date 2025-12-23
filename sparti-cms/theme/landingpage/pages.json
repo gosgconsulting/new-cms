@@ -1,0 +1,14 @@
+{
+  "pages": [
+    {
+      "page_name": "Homepage",
+      "slug": "/",
+      "meta_title": "Homepage",
+      "meta_description": "Welcome to our homepage",
+      "seo_index": true,
+      "status": "published",
+      "page_type": "page"
+    }
+  ]
+}
+

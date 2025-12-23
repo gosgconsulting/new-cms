@@ -1,4 +1,5 @@
 import React from 'react';
+import './theme.css';
 
 interface TenantLandingProps {
   tenantName?: string;

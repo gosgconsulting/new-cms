@@ -27,3 +27,8 @@ wordpress-plugin/*
 # Temporary files
 cookies.txt
 *.tmp
+
+# Environment variables
+.env
+.env.local
+.env.*.local

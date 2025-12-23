@@ -41,23 +41,27 @@ NODE_ENV=development
 VITE_API_BASE_URL="https://cms.sparti.ai"
 
 # Email Configuration (Resend)
-RESEND_API_KEY="re_2ap5qM9k_96jEVym5P34qtcJctKycM1ai"
+RESEND_API_KEY="your-resend-api-key-here"
 SMTP_HOST="smtp.resend.com"
 SMTP_PORT="465"
 SMTP_USER="resend"
 SMTP_FROM_EMAIL="noreply@gosg.com"
 
 # Google APIs
-GOOGLE_CLOUD_TRANSLATION_API_KEY="AIzaSyBsMa_Lt6QDUdy5we4OpZ5fVp2wv5ir5hk"
-GOOGLE_API_KEY="AIzaSyBN_I1rWGaUqN_wtWMnaFM-BGWoJ7xUh7A"
+GOOGLE_CLOUD_TRANSLATION_API_KEY="your-google-cloud-translation-api-key-here"
+GOOGLE_API_KEY="your-google-api-key-here"
 
 # OpenRouter AI
-OPENROUTER_API_KEY="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"
+OPENROUTER_API_KEY="your-openrouter-api-key-here"
+
+# Anthropic Claude API (AI Assistant)
+ANTHROPIC_API_KEY="your-anthropic-api-key-here"
 
 # Frontend Variables (VITE_ prefix required)
-VITE_RESEND_API_KEY="re_2ap5qM9k_96jEVym5P34qtcJctKycM1ai"
-VITE_GOOGLE_API_KEY="AIzaSyBN_I1rWGaUqN_wtWMnaFM-BGWoJ7xUh7A"
-VITE_OPENROUTER_API_KEY="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"
+VITE_RESEND_API_KEY="your-resend-api-key-here"
+VITE_GOOGLE_API_KEY="your-google-api-key-here"
+VITE_OPENROUTER_API_KEY="your-openrouter-api-key-here"
+VITE_ANTHROPIC_API_KEY="your-anthropic-api-key-here"
 VITE_SMTP_FROM_EMAIL="noreply@gosg.com"
 ```
 

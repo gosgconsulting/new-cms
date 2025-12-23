@@ -1,6 +1,6 @@
 import express from 'express';
 import { authenticateUser } from '../middleware/auth.js';
-import { syncThemesFromFileSystem, getAllThemes, getThemeBySlug, getThemesFromFileSystem, createTheme } from '../../sparti-cms/services/themeSync.js';
+import { syncThemesFromFileSystem, getAllThemes, getThemeBySlug, getThemesFromFileSystem, createTheme, syncThemePages } from '../../sparti-cms/services/themeSync.js';
 import { query } from '../../sparti-cms/db/index.js';
 
 const router = express.Router();
@@ -113,13 +113,38 @@ router.post('/sync', authenticateUser, async (req, res) => {
 
     const syncResult = await syncThemesFromFileSystem();
     
+    // Also sync pages for each theme
+    let pagesSynced = 0;
+    const pageSyncResults = [];
+    
+    if (syncResult.success && syncResult.results) {
+      for (const themeResult of syncResult.results) {
+        if (themeResult.action === 'created' || themeResult.action === 'updated') {
+          try {
+            const pageSyncResult = await syncThemePages(themeResult.slug);
+            if (pageSyncResult.success) {
+              pagesSynced += pageSyncResult.synced;
+              pageSyncResults.push({
+                theme: themeResult.slug,
+                pages: pageSyncResult
+              });
+            }
+          } catch (error) {
+            console.error(`[testing] Error syncing pages for theme ${themeResult.slug}:`, error);
+          }
+        }
+      }
+    }
+    
     if (syncResult.success) {
       res.json({
         success: true,
         message: syncResult.message,
         synced: syncResult.synced,
         total: syncResult.total,
-        results: syncResult.results
+        results: syncResult.results,
+        pagesSynced: pagesSynced,
+        pageSyncResults: pageSyncResults
       });
     } else {
       res.status(500).json({
