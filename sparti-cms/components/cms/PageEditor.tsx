@@ -3,6 +3,7 @@ import { Button } from '../../../src/components/ui/button';
 import { ScrollArea } from '../../../src/components/ui/scroll-area';
 import { Separator } from '../../../src/components/ui/separator';
 import { ArrowLeft, Save, Loader2, Settings, Code, FileText } from 'lucide-react';
+import { FileCode } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '../auth/AuthProvider';
 import { ComponentSchema } from '../../types/schema';
@@ -17,6 +18,7 @@ import { JSONEditorDialog } from './PageEditor/JSONEditorDialog';
 import { EmptyState, ComponentsErrorState, ComponentsEmptyState } from './PageEditor/EmptyStates';
 import { AIAssistantChat } from '../../../src/components/AIAssistantChat';
 import SectionContentList from '../../../src/components/SectionContentList';
+import CodeViewerDialog from './PageEditor/CodeViewerDialog';
 
 // Contents Panel Component
 interface ContentsPanelProps {
@@ -197,6 +199,8 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
   // Holds AI-proposed or manually prepared output versions of components
   const [proposedComponents, setProposedComponents] = useState<ComponentSchema[] | null>(null);
   const [originalComponents, setOriginalComponents] = useState<ComponentSchema[]>([]);
+  const [showCodeViewer, setShowCodeViewer] = useState(false);
+  const [pageFileHint, setPageFileHint] = useState<string | null>(null);
 
   // JSON Editor hook
   const {
@@ -440,6 +444,19 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
     setShowContents(false);
   }, []);
 
+  // Attempt to detect page file from context when pageData loads
+  useEffect(() => {
+    try {
+      const ctx: any = pageData;
+      const hint =
+        ctx?.layout?.pageFilePath ||
+        ctx?.page_file_path ||
+        ctx?.page_file_name ||
+        null;
+      if (hint) setPageFileHint(hint);
+    } catch {}
+  }, [pageData]);
+
   // Memoized selected component
   const selectedComponent = useMemo(() => {
     if (selectedComponentIndex === null || !isValidComponentsArray(components)) {
@@ -605,6 +622,17 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
             <Button
               variant="outline"
               size="sm"
+              onClick={() => setShowCodeViewer(true)}
+              title="Open the detected page source code"
+            >
+              <FileCode className="h-4 w-4 mr-2" />
+              Code
+            </Button>
+          )}
+          {user?.is_super_admin && (
+            <Button
+              variant="outline"
+              size="sm"
               onClick={openJSONEditor}
             >
               <Code className="h-4 w-4 mr-2" />
@@ -741,6 +769,16 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
           />
         </div>
       </div>
+
+      {/* Code Viewer Dialog */}
+      <CodeViewerDialog
+        open={showCodeViewer}
+        onOpenChange={setShowCodeViewer}
+        pageSlug={pageData.slug}
+        pageName={pageData.page_name}
+        tenantId={currentTenantId}
+        initialFileHint={pageFileHint}
+      />
 
       {/* JSON Editor Dialog */}
       <JSONEditorDialog
