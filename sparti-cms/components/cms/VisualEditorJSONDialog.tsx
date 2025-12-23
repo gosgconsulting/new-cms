@@ -312,15 +312,15 @@ export const VisualEditorJSONDialog: React.FC<VisualEditorJSONDialogProps> = ({
   // Function to get the selected Claude model from Editor
   const getSelectedModelFromAIAssistant = (): string => {
     try {
-      // Try to find the Editor textarea to get the selected model
-      const aiAssistantTextarea = document.querySelector('[data-selected-model]') as HTMLTextAreaElement;
-      if (aiAssistantTextarea && aiAssistantTextarea.dataset.selectedModel) {
-        return aiAssistantTextarea.dataset.selectedModel;
+      // Align with Editor PromptBox: use the textarea that has data-selector-active and dataset.selectedModel
+      const aiAssistantTextarea = document.querySelector('textarea[data-selector-active]') as HTMLTextAreaElement | null;
+      const selectedModel = aiAssistantTextarea?.dataset?.selectedModel;
+      if (selectedModel && typeof selectedModel === 'string') {
+        return selectedModel;
       }
     } catch (error) {
       console.warn('[testing] Could not get selected model from Editor:', error);
     }
-    
     // Fallback to default model
     return 'claude-3-5-haiku-20241022';
   };
@@ -329,37 +329,29 @@ export const VisualEditorJSONDialog: React.FC<VisualEditorJSONDialogProps> = ({
     try {
       setSyncing(true);
       setJsonError(null);
-      
-      // Get the selected Claude model from Editor
+
       const selectedModel = getSelectedModelFromAIAssistant();
-      console.log('[testing] Using Claude model for schema generation:', selectedModel);
-      
-      // Call Editor to generate schema with enhanced page analysis
       const effectiveTenantId = tenantId || (mode === 'tenants' ? currentTenantId : undefined) || 'tenant-gosg';
-      const encodedSlug = encodeURIComponent(pageSlug);
-      
-      // Enhanced request with current page structure analysis
+
       const requestPayload = {
         pageSlug,
         pageName,
         tenantId: effectiveTenantId,
-        model: selectedModel, // Use selected model from Editor
-        analyzePageCode: true, // Flag to enable deep page analysis
-        currentSchema: jsonString ? JSON.parse(jsonString) : null, // Include current schema for comparison
+        model: selectedModel,
+        analyzePageCode: true,
+        currentSchema: jsonString ? JSON.parse(jsonString) : null,
       };
-      
+
       const response = await api.post('/api/ai-assistant/generate-schema', requestPayload);
-      
       const data = await response.json();
-      
+
       if (data.success && data.schema) {
         const schemaJson = JSON.stringify(data.schema, null, JSON_EDITOR_CONFIG.TAB_SIZE);
         setJsonString(schemaJson);
-        if (codeJarRef.current) {
+        // Apply the generated schema directly into the CodeJar editor
+        if (codeJarRef.current && editorRef.current && document.contains(editorRef.current)) {
           codeJarRef.current.updateCode(schemaJson);
         }
-        
-        // Show success message with model used
         console.log(`[testing] Schema generated successfully using ${selectedModel}`);
       } else {
         setJsonError(data.error || 'Failed to generate schema');
@@ -447,4 +439,3 @@ export const VisualEditorJSONDialog: React.FC<VisualEditorJSONDialogProps> = ({
     </Dialog>
   );
 };
-
