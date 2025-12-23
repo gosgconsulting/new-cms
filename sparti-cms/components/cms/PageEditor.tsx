@@ -3,7 +3,6 @@ import { Button } from '../../../src/components/ui/button';
 import { ScrollArea } from '../../../src/components/ui/scroll-area';
 import { Separator } from '../../../src/components/ui/separator';
 import { ArrowLeft, Save, Loader2, Settings, Code, FileText } from 'lucide-react';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../../src/components/ui/tabs';
 import { toast } from 'sonner';
 import { useAuth } from '../auth/AuthProvider';
 import { ComponentSchema } from '../../types/schema';
@@ -450,7 +449,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
   // Render right panel
   const renderRightPanel = () => {
     if (showContents) {
-      // Page-level view: SEO at top, then tabs for Original vs Output contents (read-only)
+      // Page-level view: SEO at top, then single contents preview
       const hasOutput = Array.isArray(proposedComponents) && proposedComponents.length > 0;
 
       return (
@@ -459,29 +458,17 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
             <SEOForm pageData={pageData} onFieldChange={updateField} />
           </div>
 
-          <Tabs defaultValue={hasOutput ? "output" : "original"} className="w-full">
-            <div className="mb-4 flex items-center justify-between">
-              <TabsList>
-                <TabsTrigger value="original">Original</TabsTrigger>
-                <TabsTrigger value="output">Output</TabsTrigger>
-              </TabsList>
-              <span className="text-xs text-muted-foreground">Read-only preview</span>
-            </div>
-
-            <TabsContent value="original">
-              <ContentsPanel components={components} extractContentFromComponents={extractContentFromComponents} />
-            </TabsContent>
-
-            <TabsContent value="output">
-              {hasOutput ? (
-                <ContentsPanel components={proposedComponents as ComponentSchema[]} extractContentFromComponents={extractContentFromComponents} />
-              ) : (
-                <div className="p-4 rounded-lg border bg-muted/30 text-sm text-muted-foreground">
-                  No output drafts yet. Use Edit mode in the AI chat to generate drafts for all sections.
-                </div>
-              )}
-            </TabsContent>
-          </Tabs>
+          {hasOutput ? (
+            <ContentsPanel
+              components={proposedComponents as ComponentSchema[]}
+              extractContentFromComponents={extractContentFromComponents}
+            />
+          ) : (
+            <ContentsPanel
+              components={components}
+              extractContentFromComponents={extractContentFromComponents}
+            />
+          )}
         </div>
       );
     }
@@ -491,13 +478,10 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
     }
 
     if (selectedComponentIndex !== null) {
-      // Build per-section data
+      // Per-section view without tabs: show editor, then a single preview (output if present, else original)
       const selected = selectedComponent;
-      const originalForSelected = originalComponents.find((c) => c.key === selected?.key) || null;
       const proposedForSelected = proposedComponents?.find((c) => c.key === selected?.key) || null;
-      const hasOutput = Boolean(proposedForSelected);
 
-      // Helper to render contents for a given component
       const renderSectionContents = (comp: ComponentSchema | null) => {
         const items = comp ? extractContentFromComponents([comp]) : [];
         return (
@@ -561,64 +545,39 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
         );
       };
 
-      // Always render tabs; Output is read-only preview of proposedForSelected (if any)
       return (
         <div className="w-full">
-          <Tabs defaultValue={hasOutput ? "output" : "original"} className="w-full">
-            <div className="mb-4 flex items-center justify-between">
-              <TabsList>
-                <TabsTrigger value="original">Original</TabsTrigger>
-                <TabsTrigger value="output">Output</TabsTrigger>
-              </TabsList>
-              <Button
-                onClick={() => {
-                  if (selectedComponentIndex !== null && proposedForSelected) {
-                    updateComponent(selectedComponentIndex, proposedForSelected);
-                    setProposedComponents((prev) =>
-                      prev ? prev.filter((c) => c.key !== proposedForSelected.key) : prev
-                    );
-                    toast.success('Applied output to this section');
-                  }
-                }}
-                variant="outline"
-                size="sm"
-                disabled={!proposedForSelected}
-                title={proposedForSelected ? 'Apply output to this section' : 'No output available to apply'}
-              >
-                Apply Output
-              </Button>
-            </div>
+          {/* Apply output button (if a draft exists) */}
+          <div className="mb-4 flex items-center justify-end">
+            <Button
+              onClick={() => {
+                if (selectedComponentIndex !== null && proposedForSelected) {
+                  updateComponent(selectedComponentIndex, proposedForSelected);
+                  setProposedComponents((prev) =>
+                    prev ? prev.filter((c) => c.key !== proposedForSelected.key) : prev
+                  );
+                  toast.success('Applied output to this section');
+                }
+              }}
+              variant="outline"
+              size="sm"
+              disabled={!proposedForSelected}
+              title={proposedForSelected ? 'Apply output to this section' : 'No output available to apply'}
+            >
+              Apply Output
+            </Button>
+          </div>
 
-            <TabsContent value="original" className="space-y-4">
-              {/* Original editor (interactive) */}
-              <ComponentEditorPanel
-                component={selected}
-                componentIndex={selectedComponentIndex}
-                components={components}
-                onUpdate={updateComponent}
-              />
-              {renderSectionContents(selected)}
-            </TabsContent>
+          {/* Interactive editor for the selected component */}
+          <ComponentEditorPanel
+            component={selected}
+            componentIndex={selectedComponentIndex}
+            components={components}
+            onUpdate={updateComponent}
+          />
 
-            <TabsContent value="output" className="space-y-4">
-              {hasOutput ? (
-                <>
-                  {/* Output preview (read-only) */}
-                  <ComponentEditorPanel
-                    component={proposedForSelected}
-                    componentIndex={selectedComponentIndex}
-                    components={proposedForSelected ? proposedComponents || components : components}
-                    onUpdate={() => { /* read-only */ }}
-                  />
-                  {renderSectionContents(proposedForSelected as ComponentSchema)}
-                </>
-              ) : (
-                <div className="p-4 rounded-lg border bg-muted/30 text-sm text-muted-foreground">
-                  No output draft for this section yet. Use Edit mode in the AI chat while this section is focused to generate one.
-                </div>
-              )}
-            </TabsContent>
-          </Tabs>
+          {/* Single preview: use drafted output if available, otherwise original */}
+          {renderSectionContents(proposedForSelected || selected)}
         </div>
       );
     }
