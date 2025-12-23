@@ -927,7 +927,7 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
             {/* Actions ribbon: brief only; generation is automatic based on focus */}
             <div className="px-4 py-2 border-b bg-muted/10 flex items-center gap-2 flex-wrap">
               <Button size="sm" onClick={handleStartCopywriting} disabled={isLoading}>
-                Ask brief
+                Copywriting
               </Button>
               {isBatchGenerating && <span className="text-xs text-muted-foreground">Generating drafts...</span>}
             </div>
@@ -1048,9 +1048,8 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
                 <br />
                 Ask questions, get help, or request assistance with your content.
               </p>
-              <Button size="sm" onClick={handleStartCopywriting}>Ask brief</Button>
               <p className="text-[11px] text-muted-foreground">
-                Tip: Selecting "Sections" will generate drafts for all sections; selecting a section generates a draft for that section.
+                Tip: Use the Copywriting button above. Selecting "Sections" generates drafts for all sections; selecting a section generates a draft for that section.
               </p>
             </div>
           ) : (
