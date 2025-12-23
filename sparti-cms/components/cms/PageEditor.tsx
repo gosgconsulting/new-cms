@@ -743,8 +743,20 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
             currentComponents={components}
             onUpdateComponents={setComponents}
             onProposedComponents={(proposals) => {
-              // Store AI-proposed components for preview in the 'AI' tab
-              setProposedComponents(proposals as ComponentSchema[]);
+              // Merge proposals by key so multiple sections can accumulate drafts
+              setProposedComponents((prev) => {
+                const next = [...(prev || [])];
+                proposals.forEach((p: any) => {
+                  if (!p || !p.key) return;
+                  const idx = next.findIndex((c: any) => c && c.key === p.key);
+                  if (idx >= 0) {
+                    next[idx] = p;
+                  } else {
+                    next.push(p);
+                  }
+                });
+                return next;
+              });
             }}
             onOpenJSONEditor={openJSONEditor}
             selectedComponentJSON={selectedComponentForAI}

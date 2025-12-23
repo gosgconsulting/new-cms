@@ -65,6 +65,15 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
   const [copyWorkflowActive, setCopyWorkflowActive] = useState(false);
   const [copyStep, setCopyStep] = useState<'idle' | 'asking' | 'received'>('idle');
 
+  // Remove JSON code blocks from assistant messages (keep friendly status line)
+  const sanitizeAssistantMessage = (msg: string) => {
+    // If there's a fenced code block, replace it with a concise notice
+    if (/```[\s\S]*```/m.test(msg)) {
+      return 'Draft prepared. Review it in the Output tab.';
+    }
+    return msg;
+  };
+
   // Clear all messages and reset chat
   const clearAllMessages = () => {
     setMessages([]);
@@ -627,6 +636,9 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
                 componentsArray = parsed;
               } else if (parsed.components && Array.isArray(parsed.components)) {
                 componentsArray = parsed.components;
+              } else if (parsed && typeof parsed === 'object' && parsed.key && parsed.type) {
+                // Single-section object
+                componentsArray = [parsed];
               }
 
               if (componentsArray.length > 0) {
@@ -686,10 +698,10 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
       }
       const data = await response.json();
       if (data.success && data.message) {
-        // Show only assistant's reply (e.g. questions), not the user's long payload
+        // Show a concise assistant update (strip or replace JSON payload)
         const assistantMessage = {
           id: (Date.now() + 1).toString(),
-          content: data.message,
+          content: sanitizeAssistantMessage(data.message),
           role: 'assistant' as const,
         };
         setMessages((prev) => [...prev, assistantMessage]);
@@ -707,7 +719,9 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
                 jsonString = directJsonMatch[0];
               } else {
                 const arrayMatch = data.message.match(/\[\s*\{[\s\S]*\}\s*\]/);
-                if (arrayMatch) jsonString = arrayMatch[0];
+                if (arrayMatch) {
+                  jsonString = arrayMatch[0];
+                }
               }
             }
             if (jsonString) {
@@ -717,6 +731,9 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
                 componentsArray = parsed;
               } else if (parsed.components && Array.isArray(parsed.components)) {
                 componentsArray = parsed.components;
+              } else if (parsed && typeof parsed === 'object' && parsed.key && parsed.type) {
+                // Single-section object
+                componentsArray = [parsed];
               }
               if (componentsArray.length > 0) {
                 if (onProposedComponents) {
