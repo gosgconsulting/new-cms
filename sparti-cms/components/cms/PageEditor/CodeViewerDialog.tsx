@@ -6,10 +6,11 @@ import { Button } from "../../../../src/components/ui/button";
 import { Loader2, FileCode } from "lucide-react";
 import { CodeJar } from "codejar";
 import Prism from "prismjs";
-import "prismjs/components/prism-tsx";
-import "prismjs/components/prism-typescript";
-import "prismjs/components/prism-javascript";
 import "prismjs/components/prism-markup";
+import "prismjs/components/prism-javascript";
+import "prismjs/components/prism-typescript";
+import "prismjs/components/prism-jsx";
+import "prismjs/components/prism-tsx";
 import "prismjs/themes/prism.css";
 import api from "../../../utils/api";
 
@@ -149,7 +150,13 @@ const CodeViewerDialog: React.FC<CodeViewerDialogProps> = ({
     const highlight = (editor: HTMLElement) => {
       const codeText = editor.textContent || "";
       try {
-        editor.innerHTML = Prism.highlight(codeText, Prism.languages.tsx || Prism.languages.typescript, "tsx");
+        const grammar =
+          Prism.languages.tsx ||
+          Prism.languages.jsx ||
+          Prism.languages.typescript ||
+          Prism.languages.javascript ||
+          Prism.languages.markup;
+        editor.innerHTML = Prism.highlight(codeText, grammar, "tsx");
       } catch {
         editor.innerHTML = codeText;
       }
