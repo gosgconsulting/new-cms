@@ -36,7 +36,7 @@ interface SelectedComponent {
   lineNumber?: number;
 }
 
-export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedComponents?: (components: any[]) => void }> = ({ 
+export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedComponents?: (components: any[]) => void; onActionStatus?: (status: string) => void }> = ({ 
   className, 
   pageContext, 
   currentComponents, 
@@ -44,7 +44,8 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
   onOpenJSONEditor, 
   selectedComponentJSON, 
   onComponentSelected,
-  onProposedComponents
+  onProposedComponents,
+  onActionStatus
 }) => {
   const { currentTenantId } = useAuth();
   // Always open - no collapse functionality
@@ -822,18 +823,11 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
     if (cancelRequestedRef.current) return;
     const sectionName = componentJson?.type || componentJson?.key || 'this section';
 
-    // NEW: Real-time progress - drafting start
-    setMessages(prev => [
-      ...prev,
-      {
-        id: (Date.now() + Math.random()).toString(),
-        role: 'assistant',
-        content: `Drafting: ${sectionName}...`,
-      },
-    ]);
-
+    // Status: drafting start
+    onActionStatus?.(`Drafting: ${sectionName}...`);
     const perComponentInstruction =
       `[Workflow: Copywriting Per-Section]\n` +
+      (userMessage ? `Apply the following brief/request to this section:\n"${userMessage}"\n\n` : ``) +
       `Propose improved copy for this single section only.\n` +
       `Return ONLY the updated component JSON (same key and type), modifying text fields and items as needed.\n` +
       `Do not wrap in code fences. Do not change keys or remove fields.\n\n` +
@@ -841,15 +835,8 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
     await sendHiddenMessage(perComponentInstruction, { silent: true });
     if (cancelRequestedRef.current) return;
 
-    // NEW: Real-time progress - drafting done
-    setMessages(prev => [
-      ...prev,
-      {
-        id: (Date.now() + Math.random()).toString(),
-        role: 'assistant',
-        content: `Draft ready: ${sectionName}`,
-      },
-    ]);
+    // Status: drafting done
+    onActionStatus?.(`Draft ready: ${sectionName}`);
   };
 
   // Generate output for all sections by iterating each component silently
@@ -860,61 +847,33 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
         ? currentComponents
         : (pageContextData?.layout?.components || []);
     if (!schemaComponents || schemaComponents.length === 0) {
-      setMessages(prev => [
-        ...prev,
-        { id: Date.now().toString(), role: 'assistant', content: 'No sections found to generate output.' }
-      ]);
+      onActionStatus?.('No sections found to generate output.');
       return;
     }
     setIsBatchGenerating(true);
-    // Inform user once
-    setMessages(prev => [
-      ...prev,
-      { id: (Date.now() + 1).toString(), role: 'assistant', content: `Generating drafts for ${schemaComponents.length} sections...` }
-    ]);
+    // Status: batch start
+    onActionStatus?.(`Generating drafts for ${schemaComponents.length} sections...`);
     // Iterate per section with focused instructions
     for (let i = 0; i < schemaComponents.length; i++) {
       if (cancelRequestedRef.current) break;
       const comp = schemaComponents[i];
       const sectionName = comp?.type || comp?.key || `Section ${i + 1}`;
-
-      // NEW: Real-time progress - drafting start
-      setMessages(prev => [
-        ...prev,
-        {
-          id: (Date.now() + Math.random()).toString(),
-          role: 'assistant',
-          content: `Drafting: ${sectionName}...`,
-        },
-      ]);
-
+      onActionStatus?.(`Drafting: ${sectionName}...`);
       const perComponentInstruction =
         `[Workflow: Copywriting Per-Section]\n` +
+        (userMessage ? `Apply the following brief/request to this section:\n"${userMessage}"\n\n` : ``) +
         `Using the earlier brief and context, propose improved copy for this single section only.\n` +
         `Return ONLY the updated component JSON (same key and type), modifying text fields and items as needed.\n` +
         `Do not wrap in code fences. Do not change keys or remove fields.\n\n` +
         `Component JSON:\n${JSON.stringify(comp, null, 2)}`;
       // Silent call to avoid chat spam; proposals are merged via onProposedComponents
       await sendHiddenMessage(perComponentInstruction, { silent: true });
-
       if (cancelRequestedRef.current) break;
-
-      // NEW: Real-time progress - drafting done
-      setMessages(prev => [
-        ...prev,
-        {
-          id: (Date.now() + Math.random()).toString(),
-          role: 'assistant',
-          content: `Draft ready: ${sectionName}`,
-        },
-      ]);
+      onActionStatus?.(`Draft ready: ${sectionName}`);
     }
     // Final notice
     if (!cancelRequestedRef.current) {
-      setMessages(prev => [
-        ...prev,
-        { id: (Date.now() + 2).toString(), role: 'assistant', content: 'All drafts prepared. Open each section\'s Output tab to review and apply.' }
-      ]);
+      onActionStatus?.('All drafts prepared. Review in Output.');
     }
     setIsBatchGenerating(false);
   };
