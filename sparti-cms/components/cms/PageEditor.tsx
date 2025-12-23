@@ -430,7 +430,8 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
     setSelectedComponentIndex(index);
     setShowSEOForm(false);
     setShowContents(false);
-  }, []);
+    setSelectedComponentForAI(components[index] || null);
+  }, [components]);
 
   const handleSEOFormOpen = useCallback(() => {
     setShowSEOForm(true);
@@ -713,43 +714,52 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
             currentComponents={components}
             onUpdateComponents={setComponents}
             onProposedComponents={(proposals) => {
+              // Auto-apply proposals into components by key or by best-effort type match.
               setComponents((prev) => {
                 const next = [...prev]
-                const matchByType = (proposalType?: string) => {
-                  if (!proposalType) return null
-                  const lower = proposalType.toLowerCase()
-                  return next.find((c) => (c.type || '').toLowerCase() === lower)
-                      || next.find((c) => c.name && c.name.toLowerCase().includes(lower))
+                const matchIndex = (proposal: any) => {
+                  if (proposal.key) {
+                    const idx = next.findIndex((c) => c.key === proposal.key)
+                    if (idx !== -1) return idx
+                  }
+                  if (proposal.type) {
+                    const lower = String(proposal.type).toLowerCase()
+                    const byType = next.findIndex((c) => (c.type || '').toLowerCase() === lower)
+                    if (byType !== -1) return byType
+                    const byName = next.findIndex((c) => c.name && c.name.toLowerCase().includes(lower))
+                    if (byName !== -1) return byName
+                  }
+                  return -1
                 }
                 proposals.forEach((p: any) => {
                   if (!p) return
-                  let proposal = { ...p }
-                  let idx = -1
-
-                  if (proposal.key) {
-                    idx = next.findIndex((c) => c.key === proposal.key)
-                  } 
-                  if (idx < 0) {
-                    const match = matchByType(proposal.type)
-                    if (match) {
-                      proposal.key = match.key
-                      proposal.type = match.type
-                      idx = next.findIndex((c) => c.key === match.key)
-                    }
-                  }
-
-                  if (idx >= 0) {
-                    next[idx] = proposal
+                  const idx = matchIndex(p)
+                  if (idx !== -1) {
+                    // Preserve original key if missing
+                    const incoming = { ...p, key: p.key || next[idx].key, type: p.type || next[idx].type }
+                    next[idx] = incoming
                   }
                 })
                 return next
               })
+              // Also keep a snapshot of the latest proposals for page-level preview (if elsewhere needed)
+              setProposedComponents((prev) => {
+                const list = Array.isArray(prev) ? [...prev] : []
+                proposals.forEach((p: any) => {
+                  if (!p) return
+                  const key = p.key || (components.find((c) => (c.type || '').toLowerCase() === String(p.type || '').toLowerCase())?.key)
+                  if (!key) return
+                  const idx = list.findIndex((c) => c.key === key)
+                  const normalized = { ...p, key }
+                  if (idx >= 0) list[idx] = normalized
+                  else list.push(normalized)
+                })
+                return list
+              })
             }}
             onOpenJSONEditor={openJSONEditor}
-            selectedComponentJSON={selectedComponentForAI}
-            onComponentSelected={() => {
-              // Keep the selection so the chat shows "Focused on" persistently
-            }}
+            selectedComponentJSON={selectedComponentForAI || ({ __scope: 'page', schema: { components } } as any)}
+            onComponentSelected={() => {}}
           />
         </div>
       </div>
