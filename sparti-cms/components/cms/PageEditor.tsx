@@ -219,6 +219,36 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
     setSelectedComponentIndex,
   });
 
+  // Helper to merge AI proposals consistently
+  const handleProposedComponentsMerge = useCallback((proposals: any[]) => {
+    setProposedComponents((prev) => {
+      const next = [...(prev || [])];
+      proposals.forEach((p: any) => {
+        if (!p) return;
+        let proposal = { ...p };
+        if (!proposal.key) {
+          const match =
+            components.find((c) => c.type === proposal.type) ||
+            components.find((c) => c.name && proposal.type && c.name.toLowerCase().includes(String(proposal.type).toLowerCase())) ||
+            components.find((c) => proposal.type && c.type.toLowerCase().includes(String(proposal.type).toLowerCase()));
+          if (match) {
+            proposal.key = match.key;
+            proposal.type = match.type; // normalize to existing type
+          }
+        }
+        if (proposal.key) {
+          const idx = next.findIndex((c: any) => c && c.key === proposal.key);
+          if (idx >= 0) {
+            next[idx] = proposal;
+          } else {
+            next.push(proposal);
+          }
+        }
+      });
+      return next;
+    });
+  }, [components]);
+
   // Fetch page data
   useEffect(() => {
     const fetchPageData = async () => {
@@ -432,7 +462,9 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
     setSelectedComponentIndex(index);
     setShowSEOForm(false);
     setShowContents(false);
-  }, []);
+    // Also focus the AI assistant on this component
+    setSelectedComponentForAI(components[index] || null);
+  }, [components]);
 
   const handleSEOFormOpen = useCallback(() => {
     setShowSEOForm(true);
@@ -451,7 +483,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
   // Render right panel
   const renderRightPanel = () => {
     if (showContents) {
-      // Page-level view: SEO at top, then tabs for Original vs Output contents (read-only)
+      // Page-level view: SEO at top, then tabs for Original vs AI Assistant
       const hasOutput = Array.isArray(proposedComponents) && proposedComponents.length > 0;
 
       return (
@@ -464,9 +496,9 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
             <div className="mb-4 flex items-center justify-between">
               <TabsList>
                 <TabsTrigger value="original">Original</TabsTrigger>
-                <TabsTrigger value="output">Output</TabsTrigger>
+                <TabsTrigger value="output">AI Assistant</TabsTrigger>
               </TabsList>
-              <span className="text-xs text-muted-foreground">Read-only preview</span>
+              <span className="text-xs text-muted-foreground">Original shows current content; AI Assistant is the chat</span>
             </div>
 
             <TabsContent value="original">
@@ -474,11 +506,25 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
             </TabsContent>
 
             <TabsContent value="output">
-              {hasOutput ? (
-                <ContentsPanel components={proposedComponents as ComponentSchema[]} extractContentFromComponents={extractContentFromComponents} />
-              ) : (
-                <div className="p-4 rounded-lg border bg-muted/30 text-sm text-muted-foreground">
-                  No output drafts yet. Use Edit mode in the AI chat to generate drafts for all sections.
+              <div className="h-[70vh] min-h-[520px]">
+                <AIAssistantChat 
+                  className="h-full w-full"
+                  pageContext={pageData ? {
+                    slug: pageData.slug,
+                    pageName: pageData.page_name,
+                    tenantId: currentTenantId || undefined
+                  } : null}
+                  currentComponents={components}
+                  onUpdateComponents={setComponents}
+                  onProposedComponents={handleProposedComponentsMerge}
+                  onOpenJSONEditor={openJSONEditor}
+                  selectedComponentJSON={selectedComponentForAI || ({ __scope: 'page', schema: { components } } as any)}
+                  onComponentSelected={() => {}}
+                />
+              </div>
+              {hasOutput && (
+                <div className="mt-4 p-3 rounded border bg-muted/30 text-xs text-muted-foreground">
+                  Drafts exist for some sections. Open a section to review/apply, or keep using the AI Assistant.
                 </div>
               )}
             </TabsContent>
@@ -563,14 +609,14 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
         );
       };
 
-      // Always render tabs; Output is read-only preview of proposedForSelected (if any)
+      // Always render tabs; AI Assistant tab contains the chat
       return (
         <div className="w-full">
           <Tabs defaultValue={hasOutput ? "output" : "original"} className="w-full">
             <div className="mb-4 flex items-center justify-between">
               <TabsList>
                 <TabsTrigger value="original">Original</TabsTrigger>
-                <TabsTrigger value="output">Output</TabsTrigger>
+                <TabsTrigger value="output">AI Assistant</TabsTrigger>
               </TabsList>
               <Button
                 onClick={() => {
@@ -603,6 +649,23 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
             </TabsContent>
 
             <TabsContent value="output" className="space-y-4">
+              {/* Chat embedded here */}
+              <div className="h-[70vh] min-h-[520px]">
+                <AIAssistantChat 
+                  className="h-full w-full"
+                  pageContext={pageData ? {
+                    slug: pageData.slug,
+                    pageName: pageData.page_name,
+                    tenantId: currentTenantId || undefined
+                  } : null}
+                  currentComponents={components}
+                  onUpdateComponents={setComponents}
+                  onProposedComponents={handleProposedComponentsMerge}
+                  onOpenJSONEditor={openJSONEditor}
+                  selectedComponentJSON={selectedComponentForAI || selected || null}
+                  onComponentSelected={() => {}}
+                />
+              </div>
               {hasOutput ? (
                 <>
                   {/* Output preview (read-only) */}
@@ -619,8 +682,6 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
                   <div className="p-4 rounded-lg border bg-muted/30 text-sm text-muted-foreground">
                     No output draft for this section yet. Use Edit mode in the AI chat while this section is focused to generate one.
                   </div>
-
-                  {/* NEW: Other drafted sections accordion (read-only) */}
                   {otherDrafts.length > 0 && (
                     <div className="mt-4">
                       <h4 className="font-semibold mb-2">Other drafted sections</h4>
@@ -772,63 +833,15 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
           </ScrollArea>
         </div>
 
-        {/* Right Sidebar - Editor */}
-        <div className="w-[360px] md:w-[400px] lg:w-[420px] flex-shrink-0 border-l bg-background">
-          <AIAssistantChat 
-            className="h-full w-full"
-            pageContext={pageData ? {
-              slug: pageData.slug,
-              pageName: pageData.page_name,
-              tenantId: currentTenantId || undefined
-            } : null}
-            currentComponents={components}
-            onUpdateComponents={setComponents}
-            onProposedComponents={(proposals) => {
-              // Merge proposals; if a proposal has no key, try to attach to a matching component by type/name
-              setProposedComponents((prev) => {
-                const next = [...(prev || [])];
-                proposals.forEach((p: any) => {
-                  if (!p) return;
-                  let proposal = { ...p };
-                  if (!proposal.key) {
-                    const match =
-                      components.find((c) => c.type === proposal.type) ||
-                      components.find((c) => c.name && proposal.type && c.name.toLowerCase().includes(String(proposal.type).toLowerCase())) ||
-                      components.find((c) => proposal.type && c.type.toLowerCase().includes(String(proposal.type).toLowerCase()));
-                    if (match) {
-                      proposal.key = match.key;
-                      proposal.type = match.type; // normalize to existing type
-                    }
-                  }
-                  if (proposal.key) {
-                    const idx = next.findIndex((c: any) => c && c.key === proposal.key);
-                    if (idx >= 0) {
-                      next[idx] = proposal;
-                    } else {
-                      next.push(proposal);
-                    }
-                  }
-                });
-                return next;
-              });
-            }}
-            onOpenJSONEditor={openJSONEditor}
-            selectedComponentJSON={selectedComponentForAI}
-            onComponentSelected={() => {
-              // Keep the selection so the chat shows "Focused on" persistently
-            }}
-          />
-        </div>
+        {/* JSON Editor Dialog */}
+        <JSONEditorDialog
+          open={showJSONEditor}
+          onOpenChange={closeJSONEditor}
+          editorRef={setEditorRef}
+          jsonError={jsonError}
+          onSave={handleSave}
+        />
       </div>
-
-      {/* JSON Editor Dialog */}
-      <JSONEditorDialog
-        open={showJSONEditor}
-        onOpenChange={closeJSONEditor}
-        editorRef={setEditorRef}
-        jsonError={jsonError}
-        onSave={handleSave}
-      />
     </div>
   );
 };
