@@ -143,24 +143,16 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
   useEffect(() => {
     if (!selectedComponentJSON) return;
 
-    // If Sections (page-level) is clicked, auto-send full schema, no focused component
+    // If Sections (page-level) is clicked: set a page-level focus label, no auto-send
     if ((selectedComponentJSON as any).__scope === 'page') {
-      setFocusedComponentJSON(null);
-      setComponentHierarchy([]);
-      const schemaPayload = {
-        components: Array.isArray(currentComponents) ? currentComponents : [],
-      };
       const pageName = pageContext?.pageName || pageContextData?.pageName || 'Page';
-      const msg =
-        `[Auto] Working on: ${pageName}\n\n` +
-        `Here is the full page schema:\n` +
-        `\`\`\`json\n${JSON.stringify(schemaPayload, null, 2)}\n\`\`\`\n` +
-        `You can propose edits for any section across the page.`;
-      submitMessage(msg);
+      setFocusedComponentJSON({ type: pageName });
+      setComponentHierarchy([pageName]);
+      if (onComponentSelected) onComponentSelected(selectedComponentJSON);
       return;
     }
 
-    // Otherwise, a specific section was clicked: focus it and auto-send its schema
+    // A specific section was clicked: set focus only (no auto-send)
     setFocusedComponentJSON(selectedComponentJSON);
 
     const buildHierarchyPath = (component: any) => {
@@ -189,20 +181,7 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
 
     const hierarchy = buildHierarchyPath(selectedComponentJSON);
     setComponentHierarchy(hierarchy);
-
     if (onComponentSelected) onComponentSelected(selectedComponentJSON);
-
-    const sectionName =
-      selectedComponentJSON.type ||
-      selectedComponentJSON.name ||
-      selectedComponentJSON.key ||
-      'Section';
-    const sectionMsg =
-      `[Auto] Section selected: ${sectionName}\n\n` +
-      `Here is the selected section schema:\n` +
-      `\`\`\`json\n${JSON.stringify(selectedComponentJSON, null, 2)}\n\`\`\`\n` +
-      `You can propose edits for this section only.`;
-    submitMessage(sectionMsg);
   }, [selectedComponentJSON, onComponentSelected, currentComponents, pageContext?.pageName, pageContextData?.pageName]);
 
   // Clear focus when selection is cleared (e.g., clicking 'Sections')
