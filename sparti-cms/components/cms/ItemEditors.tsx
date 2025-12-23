@@ -13,13 +13,9 @@ import { X, Plus, Image as ImageIcon, Link as LinkIcon, Type, MousePointer, Vide
 import { SchemaItem, SchemaItemType } from '../../types/schema';
 // Import the new content editor components
 import {
-  TextEditor as ContentTextEditor,
-  ImageEditor as ContentImageEditor,
   VideoEditor as ContentVideoEditor,
   GalleryEditor as ContentGalleryEditor,
-  CarouselEditor as ContentCarouselEditor,
-  ButtonEditor as ContentButtonEditor,
-  FAQEditor as ContentFAQEditor
+  CarouselEditor as ContentCarouselEditor
 } from '../content-editors';
 import ContactFormEditor from './ContactFormEditor';
 import FAQItemEditor from './FAQItemEditor';
@@ -257,7 +253,8 @@ export const ButtonEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemo
   const updateValue = (value: string) => {
     onChange({
       ...item,
-      content: value
+      content: value,
+      buttonText: value
     });
   };
 
@@ -285,7 +282,7 @@ export const ButtonEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemo
         <div>
           <Label className="text-xs">Button Text</Label>
           <Input
-            value={item.content || ''}
+            value={item.content ?? (item as any).buttonText ?? ''}
             onChange={(e) => updateValue(e.target.value)}
             placeholder="Button text..."
             className="text-sm"
@@ -687,50 +684,6 @@ export const CarouselItemEditor: React.FC<ItemEditorProps> = ({ item, onChange, 
   );
 };
 
-// Enhanced Button item editor using the new ContentButtonEditor
-export const EnhancedButtonItemEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove }) => {
-  const buttonItem = item as any; // Type assertion for button item
-
-  const updateText = (text: string) => {
-    onChange({
-      ...item,
-      value: text
-    });
-  };
-
-  const updateUrl = (url: string) => {
-    onChange({
-      ...item,
-      link: url
-    });
-  };
-
-
-  return (
-    <Card className="border">
-      <CardHeader className="pb-2">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-sm flex items-center gap-2">
-            <MousePointer className="h-4 w-4" />
-            Enhanced Button
-          </CardTitle>
-          <Button variant="ghost" size="sm" onClick={onRemove}>
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <ContentButtonEditor
-          buttonText={item.value || ''}
-          buttonUrl={buttonItem.action || ''}
-          onTextChange={updateText}
-          onUrlChange={updateUrl}
-        />
-      </CardContent>
-    </Card>
-  );
-};
-
 // Main item editor that routes to the appropriate editor
 export const ItemEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove }) => {
   switch (item.type) {
@@ -749,7 +702,7 @@ export const ItemEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove
     case 'link':
       return <LinkEditor item={item} onChange={onChange} onRemove={onRemove} />;
     case 'button':
-      return <EnhancedButtonItemEditor item={item} onChange={onChange} onRemove={onRemove} />;
+      return <ButtonEditor item={item} onChange={onChange} onRemove={onRemove} />;
     case 'tabs':
       return <TabsEditor item={item} onChange={onChange} onRemove={onRemove} />;
     case 'array':
@@ -775,7 +728,7 @@ export const ItemEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove
       return <OfficeHoursItemEditor item={item} onChange={onChange} onRemove={onRemove} />;
     default:
       return (
-        <Card className="border-l-4 border-l-gray-500">
+        <Card className="border">
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm">Unknown Item Type: {item.type}</CardTitle>
