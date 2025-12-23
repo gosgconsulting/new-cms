@@ -4,6 +4,7 @@ import { ScrollArea } from '../../../src/components/ui/scroll-area';
 import { Separator } from '../../../src/components/ui/separator';
 import { ArrowLeft, Save, Loader2, Settings, Code, FileText } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../../src/components/ui/tabs';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../../../src/components/ui/accordion';
 import { toast } from 'sonner';
 import { useAuth } from '../auth/AuthProvider';
 import { ComponentSchema } from '../../types/schema';
@@ -496,6 +497,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
       const originalForSelected = originalComponents.find((c) => c.key === selected?.key) || null;
       const proposedForSelected = proposedComponents?.find((c) => c.key === selected?.key) || null;
       const hasOutput = Boolean(proposedForSelected);
+      const otherDrafts = (proposedComponents || []).filter((c) => c.key !== selected?.key);
 
       // Helper to render contents for a given component
       const renderSectionContents = (comp: ComponentSchema | null) => {
@@ -613,9 +615,30 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
                   {renderSectionContents(proposedForSelected as ComponentSchema)}
                 </>
               ) : (
-                <div className="p-4 rounded-lg border bg-muted/30 text-sm text-muted-foreground">
-                  No output draft for this section yet. Use Edit mode in the AI chat while this section is focused to generate one.
-                </div>
+                <>
+                  <div className="p-4 rounded-lg border bg-muted/30 text-sm text-muted-foreground">
+                    No output draft for this section yet. Use Edit mode in the AI chat while this section is focused to generate one.
+                  </div>
+
+                  {/* NEW: Other drafted sections accordion (read-only) */}
+                  {otherDrafts.length > 0 && (
+                    <div className="mt-4">
+                      <h4 className="font-semibold mb-2">Other drafted sections</h4>
+                      <Accordion type="single" collapsible className="w-full">
+                        {otherDrafts.map((comp) => (
+                          <AccordionItem key={comp.key || comp.type} value={comp.key || comp.type}>
+                            <AccordionTrigger>
+                              {comp.type || comp.key || 'Section'}
+                            </AccordionTrigger>
+                            <AccordionContent>
+                              {renderSectionContents(comp as ComponentSchema)}
+                            </AccordionContent>
+                          </AccordionItem>
+                        ))}
+                      </Accordion>
+                    </div>
+                  )}
+                </>
               )}
             </TabsContent>
           </Tabs>
