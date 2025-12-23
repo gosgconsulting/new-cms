@@ -702,25 +702,27 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
         </div>
 
         {/* Right Sidebar - Editor */}
-        <AIAssistantChat 
-          className="h-full"
-          pageContext={pageData ? {
-            slug: pageData.slug,
-            pageName: pageData.page_name,
-            tenantId: currentTenantId || undefined
-          } : null}
-          currentComponents={components}
-          onUpdateComponents={setComponents}
-          onProposedComponents={(proposals) => {
-            // Store AI-proposed components for preview in the 'AI' tab
-            setProposedComponents(proposals as ComponentSchema[]);
-          }}
-          onOpenJSONEditor={openJSONEditor}
-          selectedComponentJSON={selectedComponentForAI}
-          onComponentSelected={() => {
-            // Keep the selection so the chat shows "Focused on" persistently
-          }}
-        />
+        <div className="w-[360px] md:w-[400px] lg:w-[420px] flex-shrink-0 border-l bg-background">
+          <AIAssistantChat 
+            className="h-full w-full"
+            pageContext={pageData ? {
+              slug: pageData.slug,
+              pageName: pageData.page_name,
+              tenantId: currentTenantId || undefined
+            } : null}
+            currentComponents={components}
+            onUpdateComponents={setComponents}
+            onProposedComponents={(proposals) => {
+              // Store AI-proposed components for preview in the 'AI' tab
+              setProposedComponents(proposals as ComponentSchema[]);
+            }}
+            onOpenJSONEditor={openJSONEditor}
+            selectedComponentJSON={selectedComponentForAI}
+            onComponentSelected={() => {
+              // Keep the selection so the chat shows "Focused on" persistently
+            }}
+          />
+        </div>
       </div>
 
       {/* JSON Editor Dialog */}
