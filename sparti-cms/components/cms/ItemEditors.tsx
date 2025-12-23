@@ -21,6 +21,7 @@ import ContactFormEditor from './ContactFormEditor';
 import FAQItemEditor from './FAQItemEditor';
 import OfficeHoursItemEditor from './OfficeHoursItemEditor';
 import FAQArrayEditor from './FAQArrayEditor';
+import ImageThumbnail from './ImageThumbnail';
 
 interface ItemEditorProps {
   item: SchemaItem;
@@ -141,8 +142,6 @@ export const ImageEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemov
     if (result?.url) update('src', result.url);
   };
 
-  let fileInputRef: HTMLInputElement | null = null;
-
   return (
     <Card className="border-0 shadow-none">
       <CardHeader className="pb-2">
@@ -155,42 +154,7 @@ export const ImageEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemov
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Single-column: preview on top, left-aligned, no background */}
-        <div className="group relative w-full h-[180px] rounded overflow-hidden flex items-start justify-start">
-          {url ? (
-            <img
-              src={url}
-              alt={alt || 'Preview'}
-              className="w-full h-full object-cover object-left cursor-pointer"
-              onClick={() => fileInputRef?.click()}
-            />
-          ) : (
-            <div
-              className="text-xs text-gray-500 cursor-pointer"
-              onClick={() => fileInputRef?.click()}
-            >
-              Click to add image
-            </div>
-          )}
-          <button
-            type="button"
-            title="Remove image"
-            onClick={onRemove}
-            className="absolute top-2 right-2 p-1 rounded bg-red-500 text-white"
-          >
-            <X className="h-4 w-4" />
-          </button>
-          <input
-            type="file"
-            accept="image/*"
-            ref={(el) => (fileInputRef = el)}
-            className="hidden"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) uploadFile(file);
-            }}
-          />
-        </div>
+        <ImageThumbnail url={url} onFileSelected={uploadFile} onRemove={onRemove} />
 
         {/* Fields below: URL + Alt only (no Title) */}
         <div className="space-y-2">

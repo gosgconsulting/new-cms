@@ -28,6 +28,7 @@ import {
   Upload,
   X
 } from 'lucide-react';
+import ImageThumbnail from './ImageThumbnail';
 
 interface ComponentEditorProps {
   schema: ComponentSchema;
@@ -433,46 +434,13 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
                           (() => {
                             const imgUrl = (currentArrayItem as any).url || (currentArrayItem as any).src || (currentArrayItem as any).image || '';
                             const urlKey = (currentArrayItem as any).url !== undefined ? 'url' : ((currentArrayItem as any).src !== undefined ? 'src' : 'image');
-                            let fileRef: HTMLInputElement | null = null;
                             return (
-                              <div className="space-y-4">
-                                {/* Single-column: preview on top with hover-delete and click-to-edit */}
-                                <div className="group relative w-full h-[180px] rounded overflow-hidden flex items-start justify-start">
-                                  {imgUrl ? (
-                                    <img
-                                      src={imgUrl}
-                                      alt={`Image ${currentTab + 1}`}
-                                      className="w-full h-full object-cover object-left cursor-pointer"
-                                      onClick={() => fileRef?.click()}
-                                    />
-                                  ) : (
-                                    <div
-                                      className="text-xs text-gray-500 cursor-pointer"
-                                      onClick={() => fileRef?.click()}
-                                    >
-                                      Click to add image
-                                    </div>
-                                  )}
-                                  <button
-                                    type="button"
-                                    title="Remove"
-                                    onClick={() => removeArrayItem(index, arrayProp, currentTab)}
-                                    className="absolute top-2 right-2 p-1 rounded bg-red-500 text-white"
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </button>
-                                  <input
-                                    type="file"
-                                    accept="image/*"
-                                    ref={(el) => (fileRef = el)}
-                                    className="hidden"
-                                    onChange={(e) => {
-                                      const f = e.target.files?.[0];
-                                      if (f) handleImageUpload(index, arrayProp, currentTab, f);
-                                    }}
-                                  />
-                                </div>
-                                {/* Fields below: URL and Alt only (no Title) */}
+                              <div className="space-y-3">
+                                <ImageThumbnail
+                                  url={imgUrl}
+                                  onFileSelected={(f) => handleImageUpload(index, arrayProp, currentTab, f)}
+                                  onRemove={() => removeArrayItem(index, arrayProp, currentTab)}
+                                />
                                 <div className="space-y-3">
                                   <div>
                                     <Label className="text-sm font-medium mb-2 block">Image URL</Label>
