@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import api from "../../sparti-cms/utils/api";
 import { useAuth } from "../../sparti-cms/components/auth/AuthProvider";
 import { getAvailableActions } from "../../sparti-cms/utils/componentSchemaAnalyzer";
+import { Button } from "@/components/ui/button";
 
 interface PageContext {
   slug: string;
@@ -662,6 +663,26 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
     }
   };
 
+  // Launch copywriting workflow: ask brief questions, analyze full schema, then propose copy
+  const handleStartCopywriting = async () => {
+    const pageName = pageContext?.pageName || pageContextData?.pageName || "Page";
+    const schemaPayload = {
+      components:
+        (currentComponents && currentComponents.length > 0)
+          ? currentComponents
+          : (pageContextData?.layout?.components || [])
+    };
+    const intro =
+      `[Workflow: Copywriting]\n` +
+      `Please start by asking me a few concise questions to create a landing page brief:\n` +
+      `- Product/Service\n- Target audience\n- Tone/voice\n- Key benefits & differentiators\n- Primary call-to-action\n- Constraints (brand words to use/avoid, length)\n\n` +
+      `Ask these one at a time. After I respond, analyze the current page schema and propose improved copy for headings, subheadings, paragraphs, and button texts.\n` +
+      `Return ONLY updated schema JSON with a top-level "components" array (preserve the existing structure and keys; modify only textual fields like title, subtitle, heading, content, description, text, buttonText, label). Wrap the JSON in triple backticks with json.\n\n` +
+      `Page: ${pageName}\n\n` +
+      `Current Page Schema:\n\`\`\`json\n${JSON.stringify(schemaPayload, null, 2)}\n\`\`\``;
+    await submitMessage(intro);
+  };
+
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const messageInput = event.currentTarget.querySelector('textarea') as HTMLTextAreaElement;
@@ -803,12 +824,18 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
             {/* Messages Area */}
             <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 custom-scrollbar">
           {messages.length === 0 && !isLoading ? (
-            <div className="flex items-center justify-center h-full text-muted-foreground">
+            <div className="flex flex-col items-center justify-center h-full text-muted-foreground gap-3">
               <p className="text-center text-sm">
                 Start a conversation with the Editor.
                 <br />
                 <br />
                 Ask questions, get help, or request assistance with your content.
+              </p>
+              <Button size="sm" onClick={handleStartCopywriting}>
+                Copywriting
+              </Button>
+              <p className="text-[11px] text-muted-foreground">
+                Guided workflow: provide a brief, then get a proposed copy update for the whole page.
               </p>
             </div>
           ) : (
