@@ -671,6 +671,26 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
               }
 
               if (componentsArray.length > 0) {
+                // If we're focused on a single component and only one proposal came back,
+                // ensure it carries the same key/type so the page can match and render it.
+                if (componentsArray.length === 1 && focusedComponentJSON?.key) {
+                  componentsArray[0] = {
+                    ...componentsArray[0],
+                    key: focusedComponentJSON.key,
+                    type: componentsArray[0].type || focusedComponentJSON.type
+                  };
+                } else if (focusedComponentJSON?.key) {
+                  // If multiple proposals, try to assign key to the one matching type
+                  const idx = componentsArray.findIndex(p => (p?.type || '').toLowerCase() === (focusedComponentJSON?.type || '').toLowerCase());
+                  if (idx >= 0 && !componentsArray[idx].key) {
+                    componentsArray[idx] = {
+                      ...componentsArray[idx],
+                      key: focusedComponentJSON.key,
+                      type: componentsArray[idx].type || focusedComponentJSON.type
+                    };
+                  }
+                }
+                
                 if (cancelRequestedRef.current) return;
                 if (onProposedComponents) {
                   onProposedComponents(componentsArray);
@@ -780,7 +800,26 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
               } else if (parsed && typeof parsed === 'object' && parsed.key && parsed.type) {
                 componentsArray = [parsed];
               }
+
               if (componentsArray.length > 0) {
+                // Same key/type attachment in hidden (Edit) workflow
+                if (componentsArray.length === 1 && focusedComponentJSON?.key) {
+                  componentsArray[0] = {
+                    ...componentsArray[0],
+                    key: focusedComponentJSON.key,
+                    type: componentsArray[0].type || focusedComponentJSON.type
+                  };
+                } else if (focusedComponentJSON?.key) {
+                  const idx = componentsArray.findIndex(p => (p?.type || '').toLowerCase() === (focusedComponentJSON?.type || '').toLowerCase());
+                  if (idx >= 0 && !componentsArray[idx].key) {
+                    componentsArray[idx] = {
+                      ...componentsArray[idx],
+                      key: focusedComponentJSON.key,
+                      type: componentsArray[idx].type || focusedComponentJSON.type
+                    };
+                  }
+                }
+                
                 if (cancelRequestedRef.current) return;
                 if (onProposedComponents) {
                   onProposedComponents(componentsArray);

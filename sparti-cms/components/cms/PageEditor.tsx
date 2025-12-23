@@ -221,19 +221,38 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
 
   // Helper to merge AI proposals consistently
   const handleProposedComponentsMerge = useCallback((proposals: any[]) => {
+    const currentSelected = selectedComponentIndex !== null ? components[selectedComponentIndex] : null;
     setProposedComponents((prev) => {
       const next = [...(prev || [])];
-      proposals.forEach((p: any) => {
+      const normalized = Array.isArray(proposals) ? proposals : [];
+
+      // If only one proposal and a section is selected, ensure it gets the selected key/type
+      if (normalized.length === 1 && currentSelected?.key) {
+        normalized[0] = {
+          ...normalized[0],
+          key: normalized[0].key || currentSelected.key,
+          type: normalized[0].type || currentSelected.type
+        };
+      }
+
+      normalized.forEach((p: any) => {
         if (!p) return;
         let proposal = { ...p };
         if (!proposal.key) {
-          const match =
-            components.find((c) => c.type === proposal.type) ||
-            components.find((c) => c.name && proposal.type && c.name.toLowerCase().includes(String(proposal.type).toLowerCase())) ||
-            components.find((c) => proposal.type && c.type.toLowerCase().includes(String(proposal.type).toLowerCase()));
-          if (match) {
-            proposal.key = match.key;
-            proposal.type = match.type; // normalize to existing type
+          // Prefer exact type match on the currently selected component
+          if (currentSelected && (proposal.type || '').toLowerCase() === (currentSelected.type || '').toLowerCase()) {
+            proposal.key = currentSelected.key;
+            proposal.type = currentSelected.type;
+          } else {
+            // Otherwise match by type across all components (case-insensitive)
+            const match =
+              components.find((c) => (c.type || '').toLowerCase() === (proposal.type || '').toLowerCase()) ||
+              components.find((c) => c.name && proposal.type && c.name.toLowerCase().includes(String(proposal.type).toLowerCase())) ||
+              components.find((c) => proposal.type && c.type.toLowerCase().includes(String(proposal.type).toLowerCase()));
+            if (match) {
+              proposal.key = match.key;
+              proposal.type = match.type; // normalize to existing type
+            }
           }
         }
         if (proposal.key) {
@@ -247,7 +266,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
       });
       return next;
     });
-  }, [components]);
+  }, [components, selectedComponentIndex]);
 
   // Fetch page data
   useEffect(() => {
