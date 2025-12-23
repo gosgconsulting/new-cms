@@ -20,12 +20,17 @@ export const useJSONEditor = ({ components, onComponentsChange }: UseJSONEditorO
   const codeJarRef = useRef<CodeJar | null>(null);
   const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Update JSON string when editor opens
+  // Update JSON string when editor opens or components change
   useEffect(() => {
     if (showEditor) {
       const jsonContent = JSON.stringify(components, null, JSON_EDITOR_CONFIG.TAB_SIZE);
       setJsonString(jsonContent);
       setJsonError(null);
+      
+      // Update CodeJar if it's already initialized
+      if (codeJarRef.current) {
+        codeJarRef.current.updateCode(jsonContent);
+      }
     }
   }, [showEditor, components]);
 

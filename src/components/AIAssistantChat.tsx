@@ -20,7 +20,13 @@ interface AIAssistantChatProps {
   pageContext?: {
     slug: string;
     pageName: string;
+    tenantId?: string;
   } | null;
+  currentComponents?: any[];
+  onUpdateComponents?: (components: any[]) => void;
+  onOpenJSONEditor?: () => void;
+  selectedComponentJSON?: any; // Component JSON selected from left panel
+  onComponentSelected?: (component: any) => void; // Callback when component is selected
 }
 
 interface SelectedComponent {
@@ -31,7 +37,7 @@ interface SelectedComponent {
   lineNumber?: number;
 }
 
-export const AIAssistantChat: React.FC<AIAssistantChatProps> = ({ className, pageContext }) => {
+export const AIAssistantChat: React.FC<AIAssistantChatProps> = ({ className, pageContext, currentComponents, onUpdateComponents, onOpenJSONEditor, selectedComponentJSON, onComponentSelected }) => {
   const { currentTenantId } = useAuth();
   const [isOpen, setIsOpen] = useState(true);
   const [messages, setMessages] = useState<Array<{ id: string; content: string; role: 'user' | 'assistant' }>>([]);
@@ -41,6 +47,7 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps> = ({ className, pag
   const [loadingPageContext, setLoadingPageContext] = useState(false);
   const [isSelectorActive, setIsSelectorActive] = useState(false);
   const [selectedComponents, setSelectedComponents] = useState<SelectedComponent[]>([]);
+  const [focusedComponentJSON, setFocusedComponentJSON] = useState<any>(null);
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -52,7 +59,15 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps> = ({ className, pag
   // Load page context when pageContext prop changes
   useEffect(() => {
     const loadPageContext = async () => {
-      if (!pageContext || !currentTenantId) {
+      if (!pageContext) {
+        setPageContextData(null);
+        return;
+      }
+
+      // Use tenantId from pageContext if provided, otherwise fall back to currentTenantId
+      const effectiveTenantId = pageContext.tenantId || currentTenantId;
+      if (!effectiveTenantId) {
+        console.warn('[testing] No tenant ID available for page context');
         setPageContextData(null);
         return;
       }
@@ -61,20 +76,32 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps> = ({ className, pag
         setLoadingPageContext(true);
         // Fetch page context from API (using query parameter for slug to handle slashes)
         const encodedSlug = encodeURIComponent(pageContext.slug);
-        const response = await api.get(`/api/ai-assistant/page-context?slug=${encodedSlug}&tenantId=${currentTenantId}`);
+        const response = await api.get(`/api/ai-assistant/page-context?slug=${encodedSlug}&tenantId=${effectiveTenantId}`);
         
         if (response.ok) {
           const data = await response.json();
           if (data.success && data.pageContext) {
             setPageContextData(data.pageContext);
           } else {
+            console.warn('[testing] Failed to load page context:', data.error);
             setPageContextData(null);
           }
         } else {
-          console.warn('[testing] Failed to load page context:', response.status);
+          // Try to get error message from response
+          let errorMessage = `HTTP ${response.status}`;
+          try {
+            const errorData = await response.json();
+            errorMessage = errorData.error || errorMessage;
+          } catch {
+            const errorText = await response.text().catch(() => '');
+            if (errorText.includes('<!DOCTYPE')) {
+              errorMessage = 'Page not found or authentication error';
+            }
+          }
+          console.error('[testing] Failed to load page context:', response.status, errorMessage);
           setPageContextData(null);
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('[testing] Error loading page context:', error);
         setPageContextData(null);
       } finally {
@@ -83,7 +110,18 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps> = ({ className, pag
     };
 
     loadPageContext();
-  }, [pageContext?.slug, pageContext?.pageName, currentTenantId]);
+  }, [pageContext?.slug, pageContext?.pageName, pageContext?.tenantId, currentTenantId]);
+
+  // Handle component selection from left panel
+  useEffect(() => {
+    if (selectedComponentJSON) {
+      setFocusedComponentJSON(selectedComponentJSON);
+      // Notify parent that component was received
+      if (onComponentSelected) {
+        onComponentSelected(selectedComponentJSON);
+      }
+    }
+  }, [selectedComponentJSON, onComponentSelected]);
 
   // Component selector: Find iframe and inject selector script
   useEffect(() => {
@@ -412,6 +450,8 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps> = ({ className, pag
 
       // Get active tool from textarea data attribute
       const activeTool = (messageInput as HTMLElement).dataset.selectedTool || null;
+      // Get selected model from textarea data attribute
+      const selectedModel = (messageInput as HTMLElement).dataset.selectedModel || 'claude-3-5-haiku-20241022';
 
       // Build message with selected components context
       let enhancedMessage = message;
@@ -427,22 +467,74 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps> = ({ className, pag
         enhancedMessage = `[Selected Components: ${componentsInfo}]\n\n${message}`;
       }
 
+      // Build page context with current components if available
+      // Use try-catch to handle any JSON parsing errors gracefully
+      let finalPageContext = undefined;
+      try {
+        if (pageContextData) {
+          finalPageContext = {
+            slug: pageContextData.slug,
+            tenantId: pageContextData.tenantId,
+            layout: pageContextData.layout
+          };
+        }
+
+        // If currentComponents are provided, use them instead of (or merge with) pageContextData layout
+        if (currentComponents && currentComponents.length > 0) {
+          finalPageContext = {
+            ...finalPageContext,
+            layout: {
+              components: currentComponents
+            }
+          } as any;
+        }
+
+        // If a component is focused from left panel, include it in the context
+        if (focusedComponentJSON) {
+          if (!finalPageContext) {
+            finalPageContext = {} as any;
+          }
+          finalPageContext.focusedComponent = focusedComponentJSON;
+          // Add focused component info to the message
+          try {
+            enhancedMessage = `[Focused Component: ${focusedComponentJSON.type || focusedComponentJSON.key || 'Component'}]\n\nComponent JSON:\n${JSON.stringify(focusedComponentJSON, null, 2)}\n\n---\n\nUser Question: ${enhancedMessage}`;
+          } catch (jsonError) {
+            console.warn('[testing] Error stringifying focused component, continuing without it:', jsonError);
+            // Continue without the focused component JSON if it fails to stringify
+          }
+        }
+      } catch (contextError) {
+        console.warn('[testing] Error building page context, continuing without it:', contextError);
+        // Continue without page context if there's an error
+        finalPageContext = undefined;
+      }
+
       // Call Claude API with page context
-      const response = await api.post('/ai-assistant/chat', {
+      const response = await api.post('/api/ai-assistant/chat', {
         message: enhancedMessage,
         conversationHistory: conversationHistory.slice(0, -1), // Exclude current message from history
-        pageContext: pageContextData ? {
-          slug: pageContextData.slug,
-          tenantId: pageContextData.tenantId,
-          layout: pageContextData.layout
-        } : undefined,
+        pageContext: finalPageContext,
         activeTool: activeTool || undefined,
-        selectedComponents: selectedComponents.length > 0 ? selectedComponents : undefined
+        selectedComponents: selectedComponents.length > 0 ? selectedComponents : undefined,
+        model: selectedModel
       });
 
       if (!response.ok) {
+        // Check if response is HTML (error page)
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('text/html')) {
+          const errorText = await response.text().catch(() => '');
+          throw new Error(`Server returned HTML instead of JSON. This usually means the API endpoint was not found or authentication failed. Status: ${response.status}`);
+        }
         const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
         throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+      }
+
+      // Check if response is actually JSON
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const errorText = await response.text().catch(() => '');
+        throw new Error(`Expected JSON but received ${contentType}. Response: ${errorText.substring(0, 200)}`);
       }
 
       const data = await response.json();
@@ -454,6 +546,58 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps> = ({ className, pag
           role: 'assistant' as const,
         };
         setMessages((prev) => [...prev, assistantMessage]);
+
+        // Try to extract and apply JSON from the response if callbacks are provided
+        if (onUpdateComponents) {
+          try {
+            // Try to extract JSON from markdown code blocks (most common format)
+            let jsonString: string | null = null;
+            const jsonMatch = data.message.match(/```(?:json)?\s*(\{[\s\S]*\})\s*```/);
+            if (jsonMatch && jsonMatch[1]) {
+              jsonString = jsonMatch[1];
+            } else {
+              // Try to find JSON object directly (with components property)
+              const directJsonMatch = data.message.match(/\{[\s\S]*"components"[\s\S]*\}/);
+              if (directJsonMatch) {
+                jsonString = directJsonMatch[0];
+              } else {
+                // Try to find array format
+                const arrayMatch = data.message.match(/\[\s*\{[\s\S]*\}\s*\]/);
+                if (arrayMatch) {
+                  jsonString = arrayMatch[0];
+                }
+              }
+            }
+
+            if (jsonString) {
+              // Parse and validate JSON
+              const parsed = JSON.parse(jsonString);
+              
+              // Extract components array
+              let componentsArray: any[] = [];
+              if (Array.isArray(parsed)) {
+                componentsArray = parsed;
+              } else if (parsed.components && Array.isArray(parsed.components)) {
+                componentsArray = parsed.components;
+              }
+
+              // If valid components found, update them
+              if (componentsArray.length > 0) {
+                onUpdateComponents(componentsArray);
+                // Optionally open JSON Editor to show the updated JSON
+                if (onOpenJSONEditor) {
+                  // Small delay to ensure state is updated
+                  setTimeout(() => {
+                    onOpenJSONEditor();
+                  }, 500);
+                }
+              }
+            }
+          } catch (error) {
+            // JSON parsing failed, which is fine - not all responses contain JSON
+            // Silently ignore - the message will still be displayed
+          }
+        }
       } else {
         throw new Error(data.error || 'Failed to get AI response');
       }
@@ -486,13 +630,18 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps> = ({ className, pag
           <>
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b flex-shrink-0 bg-background">
-              <div className="flex items-center gap-2">
-                <MessageCircle className="h-5 w-5 text-primary" />
-                <div className="flex flex-col">
+              <div className="flex items-center gap-2 flex-1 min-w-0">
+                <MessageCircle className="h-5 w-5 text-primary flex-shrink-0" />
+                <div className="flex flex-col flex-1 min-w-0">
                   <h2 className="text-lg font-semibold">AI Assistant</h2>
                   {pageContextData && (
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-xs text-muted-foreground truncate">
                       {pageContextData.pageName}
+                    </span>
+                  )}
+                  {focusedComponentJSON && (
+                    <span className="text-xs text-primary font-medium truncate" title={JSON.stringify(focusedComponentJSON, null, 2)}>
+                      Focused: {focusedComponentJSON.type || focusedComponentJSON.key || 'Component'}
                     </span>
                   )}
                 </div>

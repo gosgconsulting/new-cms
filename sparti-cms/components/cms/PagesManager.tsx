@@ -2,7 +2,7 @@ import React, { useState, useEffect, useLayoutEffect } from 'react';
 import { Button } from '../../../src/components/ui/button';
 import { Card } from '../../../src/components/ui/card';
 import { Badge } from '../../../src/components/ui/badge';
-import { Edit, Eye, FileText, Rocket, Scale, Layout, Minus, Monitor } from 'lucide-react';
+import { Edit, Eye, FileText, Rocket, Scale, Layout, Minus, Monitor, Code } from 'lucide-react';
 import PageEditor from './PageEditor';
 import HeaderSchemaEditor from './HeaderSchemaEditor';
 import FooterSchemaEditor from './FooterSchemaEditor';
@@ -10,6 +10,7 @@ import { useAuth } from '../auth/AuthProvider';
 import { getDummyPages, isDevelopmentTenant } from '../admin/DevelopmentTenantData';
 import api from '../../utils/api';
 import { AIAssistantChat } from '../../../src/components/AIAssistantChat';
+import { VisualEditorJSONDialog } from './VisualEditorJSONDialog';
 
 interface PageItem {
   id: string;
@@ -123,6 +124,7 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [editingPageId, setEditingPageId] = useState<string | null>(null);
   const [visualEditorPage, setVisualEditorPage] = useState<{ slug: string; pageName: string } | null>(null);
+  const [showJSONEditor, setShowJSONEditor] = useState(false);
   const [activeTab, setActiveTab] = useState<'page' | 'landing' | 'legal' | 'header' | 'footer'>('page');
 
   const tabs = [
@@ -289,9 +291,11 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
     }
   }, [editingPageId, visualEditorPage, onEditModeChange]);
 
-  // Show visual editor if a page is being viewed
-  if (visualEditorPage && mode === 'theme' && currentThemeId) {
-    const pageUrl = getThemePageUrl(visualEditorPage.slug);
+  // Show visual editor if a page is being viewed (works for both tenant and theme modes, even without connection)
+  if (visualEditorPage) {
+    const pageUrl = mode === 'theme' && currentThemeId 
+      ? getThemePageUrl(visualEditorPage.slug)
+      : visualEditorPage.slug;
     
     return (
       <div className="flex flex-col" style={{ height: 'calc(100vh - 120px)' }}>
@@ -314,6 +318,14 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
             <span className="text-sm text-muted-foreground">{pageUrl}</span>
           </div>
           <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowJSONEditor(true)}
+            >
+              <Code className="h-4 w-4 mr-2" />
+              JSON
+            </Button>
             <Button
               variant="outline"
               size="sm"
@@ -342,6 +354,16 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
             } : null}
           />
         </div>
+        <VisualEditorJSONDialog
+          open={showJSONEditor}
+          onOpenChange={setShowJSONEditor}
+          pageSlug={visualEditorPage?.slug || ''}
+          pageName={visualEditorPage?.pageName || ''}
+          tenantId={mode === 'tenants' ? currentTenantId : undefined}
+          mode={mode}
+          currentThemeId={currentThemeId}
+          currentTenantId={currentTenantId}
+        />
       </div>
     );
   }

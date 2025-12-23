@@ -3,6 +3,7 @@ import * as React from "react";
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import * as PopoverPrimitive from "@radix-ui/react-popover";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
 // --- Utility Function & Radix Primitives (Unchanged) ---
@@ -35,11 +36,18 @@ const TelescopeIcon = (props: React.SVGProps<SVGSVGElement>) => ( <svg viewBox="
 const LightbulbIcon = (props: React.SVGProps<SVGSVGElement>) => ( <svg viewBox="0 0 24 24" fill="none" {...props}> <path d="M12 7C9.23858 7 7 9.23858 7 12C7 13.3613 7.54402 14.5955 8.42651 15.4972C8.77025 15.8484 9.05281 16.2663 9.14923 16.7482L9.67833 19.3924C9.86537 20.3272 10.6862 21 11.6395 21H12.3605C13.3138 21 14.1346 20.3272 14.3217 19.3924L14.8508 16.7482C14.9472 16.2663 15.2297 15.8484 15.5735 15.4972C16.456 14.5955 17 13.3613 17 12C17 9.23858 14.7614 7 12 7Z" stroke="currentColor" strokeWidth="2"/> <path d="M12 4V3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/> <path d="M18 6L19 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/> <path d="M20 12H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/> <path d="M4 12H3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/> <path d="M5 5L6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/> <path d="M10 17H14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/> </svg> );
 // Component Selector Icon (replaces MicIcon)
 const ComponentSelectorIcon = (props: React.SVGProps<SVGSVGElement>) => ( <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" {...props}> <path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z"></path> <path d="M13 13l6 6"></path> </svg> );
-// NEW: FileCodeIcon for Create JSON tool
-const FileCodeIcon = (props: React.SVGProps<SVGSVGElement>) => ( <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" {...props}> <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path> <polyline points="14 2 14 8 20 8"></polyline> <line x1="16" y1="13" x2="10" y2="13"></line> <line x1="12" y1="17" x2="10" y2="15"></line> <line x1="12" y1="17" x2="14" y2="15"></line> </svg> );
 
 
-const toolsList = [ { id: 'createImage', name: 'Create an image', shortName: 'Image', icon: PaintBrushIcon }, { id: 'searchWeb', name: 'Search the web', shortName: 'Search', icon: GlobeIcon }, { id: 'writeCode', name: 'Write or code', shortName: 'Write', icon: PencilIcon }, { id: 'createJSON', name: 'Create JSON', shortName: 'JSON', icon: FileCodeIcon }, { id: 'deepResearch', name: 'Run deep research', shortName: 'Deep Search', icon: TelescopeIcon, extra: '5 left' }, { id: 'thinkLonger', name: 'Think for longer', shortName: 'Think', icon: LightbulbIcon }, ];
+const toolsList = [ { id: 'createImage', name: 'Create an image', shortName: 'Image', icon: PaintBrushIcon }, { id: 'searchWeb', name: 'Search the web', shortName: 'Search', icon: GlobeIcon }, { id: 'writeCode', name: 'Write or code', shortName: 'Write', icon: PencilIcon }, { id: 'deepResearch', name: 'Run deep research', shortName: 'Deep Search', icon: TelescopeIcon, extra: '5 left' }, { id: 'thinkLonger', name: 'Think for longer', shortName: 'Think', icon: LightbulbIcon }, ];
+
+// Available Claude models
+const claudeModels = [
+  { id: 'claude-3-5-haiku-20241022', name: 'Claude Haiku 3.5', description: 'Fast & Affordable' },
+  { id: 'claude-3-5-sonnet-20241022', name: 'Claude Sonnet 3.5', description: 'Balanced' },
+  { id: 'claude-3-7-sonnet-20250219', name: 'Claude Sonnet 4.0', description: 'Latest & Powerful' },
+  { id: 'claude-3-opus-20240229', name: 'Claude Opus 3.0', description: 'Most Intelligent' },
+  { id: 'claude-3-5-opus-20241022', name: 'Claude Opus 4.5', description: 'Most Advanced' },
+];
 
 // --- The Final, Self-Contained PromptBox Component ---
 export const PromptBox = React.forwardRef<HTMLTextAreaElement, React.TextareaHTMLAttributes<HTMLTextAreaElement>>(
@@ -50,6 +58,7 @@ export const PromptBox = React.forwardRef<HTMLTextAreaElement, React.TextareaHTM
     const [value, setValue] = React.useState("");
     const [imagePreview, setImagePreview] = React.useState<string | null>(null);
     const [selectedTool, setSelectedTool] = React.useState<string | null>(null);
+    const [selectedModel, setSelectedModel] = React.useState<string>('claude-3-5-haiku-20241022'); // Default to most affordable
     const [isPopoverOpen, setIsPopoverOpen] = React.useState(false);
     const [isImageDialogOpen, setIsImageDialogOpen] = React.useState(false);
     React.useImperativeHandle(ref, () => internalTextareaRef.current!, []);
@@ -68,7 +77,7 @@ export const PromptBox = React.forwardRef<HTMLTextAreaElement, React.TextareaHTM
         
         {imagePreview && ( <Dialog open={isImageDialogOpen} onOpenChange={setIsImageDialogOpen}> <div className="relative mb-1 w-fit rounded-[1rem] px-1 pt-1"> <button type="button" className="transition-transform" onClick={() => setIsImageDialogOpen(true)}> <img src={imagePreview} alt="Image preview" className="h-[3.5rem] w-[3.5rem] rounded-[1rem]" /> </button> <button onClick={handleRemoveImage} className="absolute right-2 top-2 z-10 flex h-4 w-4 items-center justify-center rounded-full bg-white/50 dark:bg-[#303030] text-black dark:text-white transition-colors hover:bg-accent dark:hover:bg-[#515151]" aria-label="Remove image"> <XIcon className="h-4 w-4" /> </button> </div> <DialogContent> <img src={imagePreview} alt="Full size preview" className="w-full max-h-[95vh] object-contain rounded-[24px]" /> </DialogContent> </Dialog> )}
         
-        <textarea ref={internalTextareaRef} rows={1} value={value} onChange={handleInputChange} placeholder="Message..." disabled={props.disabled} data-selected-tool={selectedTool} className="custom-scrollbar w-full resize-none border-0 bg-transparent p-3 text-foreground dark:text-white placeholder:text-muted-foreground dark:placeholder:text-gray-300 focus:ring-0 focus-visible:outline-none min-h-12 disabled:opacity-50 disabled:cursor-not-allowed" {...props} />
+        <textarea ref={internalTextareaRef} rows={1} value={value} onChange={handleInputChange} placeholder="Message..." disabled={props.disabled} data-selected-tool={selectedTool} data-selected-model={selectedModel} className="custom-scrollbar w-full resize-none border-0 bg-transparent p-3 text-foreground dark:text-white placeholder:text-muted-foreground dark:placeholder:text-gray-300 focus:ring-0 focus-visible:outline-none min-h-12 disabled:opacity-50 disabled:cursor-not-allowed" {...props} />
         
         <div className="mt-0.5 p-1 pt-0">
           <TooltipProvider delayDuration={100}>
@@ -93,6 +102,32 @@ export const PromptBox = React.forwardRef<HTMLTextAreaElement, React.TextareaHTM
                   </div>
                 </PopoverContent>
               </Popover>
+
+              {/* Model Selector */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div>
+                    <Select value={selectedModel} onValueChange={setSelectedModel}>
+                      <SelectTrigger className="h-8 w-[140px] rounded-full border-0 bg-transparent text-xs text-foreground dark:text-white hover:bg-accent dark:hover:bg-[#515151] focus:ring-0 focus:ring-offset-0 px-2">
+                        <SelectValue>
+                          {claudeModels.find(m => m.id === selectedModel)?.name || 'Claude Haiku'}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {claudeModels.map(model => (
+                          <SelectItem key={model.id} value={model.id}>
+                            <div className="flex flex-col">
+                              <span className="text-sm">{model.name}</span>
+                              <span className="text-xs text-muted-foreground">{model.description}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="top" showArrow={true}><p>Select AI Model</p></TooltipContent>
+              </Tooltip>
 
               {activeTool && (
                 <>

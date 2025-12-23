@@ -15,6 +15,7 @@ import { ComponentEditorPanel } from './PageEditor/ComponentEditorPanel';
 import { ComponentListItem } from './PageEditor/ComponentListItem';
 import { JSONEditorDialog } from './PageEditor/JSONEditorDialog';
 import { EmptyState, ComponentsErrorState, ComponentsEmptyState } from './PageEditor/EmptyStates';
+import { AIAssistantChat } from '../../../src/components/AIAssistantChat';
 
 interface PageEditorProps {
   pageId: string;
@@ -55,6 +56,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
   const [components, setComponents] = useState<ComponentSchema[]>([]);
   const [selectedComponentIndex, setSelectedComponentIndex] = useState<number | null>(null);
   const [showSEOForm, setShowSEOForm] = useState(false);
+  const [selectedComponentForAI, setSelectedComponentForAI] = useState<ComponentSchema | null>(null);
 
   // JSON Editor hook
   const {
@@ -260,7 +262,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex overflow-hidden relative">
         {/* Left Panel - Components List */}
         <div className="w-80 border-r bg-muted/20 flex flex-col">
           <div className="p-4 border-b">
@@ -292,6 +294,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
                     index={index}
                     isSelected={selectedComponentIndex === index}
                     onSelect={handleComponentSelect}
+                    onSendToAI={(comp) => setSelectedComponentForAI(comp)}
                   />
                 ))
               )}
@@ -307,7 +310,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
           </ScrollArea>
         </div>
 
-        {/* Right Panel - Settings */}
+        {/* Middle Panel - Settings */}
         <div className="flex-1 flex flex-col overflow-hidden">
           <ScrollArea className="h-full">
             <div className="p-6">
@@ -315,6 +318,24 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
             </div>
           </ScrollArea>
         </div>
+
+        {/* Right Sidebar - AI Assistant */}
+        <AIAssistantChat 
+          className="h-full" 
+          pageContext={pageData ? {
+            slug: pageData.slug,
+            pageName: pageData.page_name,
+            tenantId: currentTenantId || undefined
+          } : null}
+          currentComponents={components}
+          onUpdateComponents={setComponents}
+          onOpenJSONEditor={openJSONEditor}
+          selectedComponentJSON={selectedComponentForAI}
+          onComponentSelected={() => {
+            // Clear the selection after it's been processed
+            setSelectedComponentForAI(null);
+          }}
+        />
       </div>
 
       {/* JSON Editor Dialog */}

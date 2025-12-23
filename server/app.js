@@ -16,6 +16,7 @@ ensureUploadsDir();
 // CORS middleware (must be first)
 app.use(corsMiddleware);
 
+
 // Routes (includes access key authentication middleware)
 app.use(routes);
 

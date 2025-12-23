@@ -1,13 +1,15 @@
 import React, { memo } from 'react';
-import { GripVertical } from 'lucide-react';
+import { GripVertical, Send } from 'lucide-react';
 import { ComponentSchema } from '../../../types/schema';
 import { getComponentTypeDisplayName } from '../../../utils/componentHelpers';
+import { Button } from '../../../../src/components/ui/button';
 
 interface ComponentListItemProps {
   component: ComponentSchema;
   index: number;
   isSelected: boolean;
   onSelect: (index: number) => void;
+  onSendToAI?: (component: ComponentSchema) => void;
 }
 
 export const ComponentListItem = memo<ComponentListItemProps>(({
@@ -15,9 +17,17 @@ export const ComponentListItem = memo<ComponentListItemProps>(({
   index,
   isSelected,
   onSelect,
+  onSendToAI,
 }) => {
   const handleClick = () => {
     onSelect(index);
+  };
+
+  const handleSendToAI = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent triggering the select action
+    if (onSendToAI) {
+      onSendToAI(component);
+    }
   };
 
   return (
@@ -29,11 +39,24 @@ export const ComponentListItem = memo<ComponentListItemProps>(({
       }`}
       onClick={handleClick}
     >
-      <div className="flex items-center gap-3">
-        <GripVertical className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-        <p className="font-medium text-sm truncate">
-          {getComponentTypeDisplayName(component.type)}
-        </p>
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3 flex-1 min-w-0">
+          <GripVertical className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+          <p className="font-medium text-sm truncate">
+            {getComponentTypeDisplayName(component.type)}
+          </p>
+        </div>
+        {onSendToAI && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6 flex-shrink-0"
+            onClick={handleSendToAI}
+            title="Send component to AI Assistant"
+          >
+            <Send className="h-3.5 w-3.5" />
+          </Button>
+        )}
       </div>
     </div>
   );
