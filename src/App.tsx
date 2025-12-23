@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -66,14 +65,14 @@ const App = () => {
             <Route path="/embed/pages" element={<EmbedPagesManager />} />
             
             {/* Theme routes */}
-            <Route path="/theme/:tenantSlug" element={
-              <ErrorBoundary>
-                <TenantLandingPage />
-              </ErrorBoundary>
-            } />
             <Route path="/theme/:tenantSlug/:pageSlug" element={
               <ErrorBoundary>
                 <TenantPage />
+              </ErrorBoundary>
+            } />
+            <Route path="/theme/:tenantSlug" element={
+              <ErrorBoundary>
+                <TenantLandingPage />
               </ErrorBoundary>
             } />
             

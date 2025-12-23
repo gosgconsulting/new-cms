@@ -553,14 +553,13 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
                 <Button
                   size="sm"
                   onClick={() => {
-                    if (selectedComponentIndex === null || !selected) return;
+                    if (selectedComponentIndex === null || !selected || !comp) return;
                     const normalized = {
-                      ...comp!,
-                      key: comp?.key || selected.key,
-                      type: comp?.type || selected.type,
+                      ...comp,
+                      key: comp.key || selected.key,
+                      type: comp.type || selected.type,
                     };
-                    updateComponent(selectedComponentIndex, normalized);
-                    // Remove the applied draft from proposed list
+                    updateComponent(selectedComponentIndex, normalized as ComponentSchema);
                     setProposedComponents((prev) => {
                       if (!prev) return prev;
                       const key = normalized.key;
@@ -627,29 +626,6 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
 
       return (
         <div className="w-full">
-          {/* Revert to original snapshot */}
-          <div className="mb-4 flex items-center justify-end">
-            <Button
-              variant="ghost"
-              size="icon"
-              title="Revert this section to original content"
-              onClick={() => {
-                if (selectedComponentIndex !== null) {
-                  const selected = components[selectedComponentIndex]
-                  const original = originalComponents.find((c) => c.key === selected?.key)
-                  if (original) {
-                    updateComponent(selectedComponentIndex, original)
-                    toast.success('Reverted to original content')
-                  } else {
-                    toast.error('Original content not found for this section')
-                  }
-                }
-              }}
-            >
-              <RotateCcw className="h-4 w-4" />
-            </Button>
-          </div>
-
           {/* Interactive editor for the selected component */}
           <ComponentEditorPanel
             component={selected}
@@ -805,7 +781,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
             currentComponents={components}
             onUpdateComponents={setComponents}
             onProposedComponents={(proposals) => {
-              // Store proposals for review without auto-applying
+              // Store proposals for review without auto-applying to the page
               setProposedComponents((prev) => {
                 const list = Array.isArray(prev) ? [...prev] : [];
                 proposals.forEach((p: any) => {
