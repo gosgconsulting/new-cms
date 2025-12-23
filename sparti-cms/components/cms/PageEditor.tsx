@@ -616,8 +616,8 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
                   setShowContents(true);
                   setShowSEOForm(false);
                   setSelectedComponentIndex(null);
-                  // Clear AI chat focus to show page-level context only
-                  setSelectedComponentForAI(null);
+                  // Signal AI chat to use the full page schema (page-level context)
+                  setSelectedComponentForAI({ __scope: 'page' } as any);
                 }}
               >
                 Sections

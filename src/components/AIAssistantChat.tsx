@@ -132,51 +132,69 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps> = ({ className, pag
 
   // Handle component selection from left panel
   useEffect(() => {
-    if (selectedComponentJSON) {
-      setFocusedComponentJSON(selectedComponentJSON);
-      
-      // Build component hierarchy path
-      const buildHierarchyPath = (component: any) => {
-        const path: string[] = [];
-        
-        // Try to get parent component information from various sources
-        if (component.parentType || component.parent) {
-          const parentName = component.parentType || component.parent?.type || component.parent?.name || 'Parent Component';
-          path.push(parentName);
-        } else if (component.parentId && currentComponents) {
-          // Try to find parent in current components
-          const parentComponent = currentComponents.find(c => c.id === component.parentId);
-          if (parentComponent) {
-            path.push(parentComponent.type || parentComponent.name || 'Parent Component');
-          }
-        } else if (component.path) {
-          // If component has a path property, use it
-          const pathParts = component.path.split('/').filter(Boolean);
-          path.push(...pathParts);
-        } else if (component.selector) {
-          // Try to infer hierarchy from CSS selector
-          const selectorParts = component.selector.split(' ').filter(part => !part.startsWith('.') && !part.startsWith('#'));
-          if (selectorParts.length > 1) {
-            path.push(...selectorParts.slice(0, -1).map(part => part.charAt(0).toUpperCase() + part.slice(1)));
-          }
-        }
-        
-        // Add current component
-        const currentName = component.type || component.name || component.key || component.tagName || 'Component';
-        path.push(currentName);
-        
-        return path;
+    if (!selectedComponentJSON) return;
+
+    // If Sections (page-level) is clicked, auto-send full schema, no focused component
+    if ((selectedComponentJSON as any).__scope === 'page') {
+      setFocusedComponentJSON(null);
+      setComponentHierarchy([]);
+      const schemaPayload = {
+        components: Array.isArray(currentComponents) ? currentComponents : [],
       };
-      
-      const hierarchy = buildHierarchyPath(selectedComponentJSON);
-      setComponentHierarchy(hierarchy);
-      
-      // Notify parent that component was received
-      if (onComponentSelected) {
-        onComponentSelected(selectedComponentJSON);
-      }
+      const pageName = pageContext?.pageName || pageContextData?.pageName || 'Page';
+      const msg =
+        `[Auto] Working on: ${pageName}\n\n` +
+        `Here is the full page schema:\n` +
+        `\`\`\`json\n${JSON.stringify(schemaPayload, null, 2)}\n\`\`\`\n` +
+        `You can propose edits for any section across the page.`;
+      submitMessage(msg);
+      return;
     }
-  }, [selectedComponentJSON, onComponentSelected, currentComponents]);
+
+    // Otherwise, a specific section was clicked: focus it and auto-send its schema
+    setFocusedComponentJSON(selectedComponentJSON);
+
+    const buildHierarchyPath = (component: any) => {
+      const path: string[] = [];
+      if (component.parentType || component.parent) {
+        const parentName = component.parentType || component.parent?.type || component.parent?.name || 'Parent Component';
+        path.push(parentName);
+      } else if (component.parentId && currentComponents) {
+        const parentComponent = currentComponents.find(c => c.id === component.parentId);
+        if (parentComponent) {
+          path.push(parentComponent.type || parentComponent.name || 'Parent Component');
+        }
+      } else if (component.path) {
+        const parts = component.path.split('/').filter(Boolean);
+        path.push(...parts);
+      } else if (component.selector) {
+        const selectorParts = component.selector.split(' ').filter((p: string) => !p.startsWith('.') && !p.startsWith('#'));
+        if (selectorParts.length > 1) {
+          path.push(...selectorParts.slice(0, -1).map((p: string) => p.charAt(0).toUpperCase() + p.slice(1)));
+        }
+      }
+      const currentName = component.type || component.name || component.key || component.tagName || 'Component';
+      path.push(currentName);
+      return path;
+    };
+
+    const hierarchy = buildHierarchyPath(selectedComponentJSON);
+    setComponentHierarchy(hierarchy);
+
+    if (onComponentSelected) onComponentSelected(selectedComponentJSON);
+
+    const sectionName =
+      selectedComponentJSON.type ||
+      selectedComponentJSON.name ||
+      selectedComponentJSON.key ||
+      'Section';
+    const sectionMsg =
+      `[Auto] Section selected: ${sectionName}\n\n` +
+      `Here is the selected section schema:\n` +
+      `\`\`\`json\n${JSON.stringify(selectedComponentJSON, null, 2)}\n\`\`\`\n` +
+      `You can propose edits for this section only.`;
+    submitMessage(sectionMsg);
+  }, [selectedComponentJSON, onComponentSelected, currentComponents, pageContext?.pageName, pageContextData?.pageName]);
 
   // Clear focus when selection is cleared (e.g., clicking 'Sections')
   useEffect(() => {
