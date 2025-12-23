@@ -4,7 +4,6 @@ import { ScrollArea } from '../../../src/components/ui/scroll-area';
 import { Separator } from '../../../src/components/ui/separator';
 import { ArrowLeft, Save, Loader2, Settings, Code, FileText } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../../src/components/ui/tabs';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../../../src/components/ui/accordion';
 import { toast } from 'sonner';
 import { useAuth } from '../auth/AuthProvider';
 import { ComponentSchema } from '../../types/schema';
@@ -18,7 +17,6 @@ import { ComponentListItem } from './PageEditor/ComponentListItem';
 import { JSONEditorDialog } from './PageEditor/JSONEditorDialog';
 import { EmptyState, ComponentsErrorState, ComponentsEmptyState } from './PageEditor/EmptyStates';
 import { AIAssistantChat } from '../../../src/components/AIAssistantChat';
-import { cn } from '../../../src/lib/utils';
 
 // Contents Panel Component
 interface ContentsPanelProps {
@@ -200,8 +198,6 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
   const [proposedComponents, setProposedComponents] = useState<ComponentSchema[] | null>(null);
   const [originalComponents, setOriginalComponents] = useState<ComponentSchema[]>([]);
   const [aiActionStatus, setAIActionStatus] = useState<string | null>(null);
-  const [showOriginalInOutput, setShowOriginalInOutput] = useState(true);
-  const [swapAnimating, setSwapAnimating] = useState(false);
 
   // JSON Editor hook
   const {
@@ -251,15 +247,6 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
       });
       return next;
     });
-
-    // Trigger animated swap from Original -> Output in Output tab
-    setShowOriginalInOutput(true);
-    setSwapAnimating(true);
-    // Fade original out, then show output
-    setTimeout(() => {
-      setShowOriginalInOutput(false);
-      setTimeout(() => setSwapAnimating(false), 400);
-    }, 200);
   }, [components]);
 
   // Fetch page data
@@ -496,7 +483,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
   // Render right panel
   const renderRightPanel = () => {
     if (showContents) {
-      // Page-level view with unified tabs: Original | Output (Output contains AI chat + drafted preview with animation)
+      // Page-level view with unified tabs: Original | Output (Output contains AI chat + drafted preview)
       const hasOutput = Array.isArray(proposedComponents) && proposedComponents.length > 0;
 
       return (
@@ -544,31 +531,11 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
                 </div>
               )}
 
-              {/* Animated swap area: Original content first, then Output when available */}
-              <div className="relative">
-                {/* Original snapshot in Output tab */}
-                <div className={cn(
-                  "transition-all duration-300",
-                  showOriginalInOutput ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2"
-                )}>
-                  <ContentsPanel components={components} extractContentFromComponents={extractContentFromComponents} />
-                </div>
-
-                {/* Drafted output (fades in to replace original) */}
-                {hasOutput && (
-                  <div className={cn(
-                    "transition-all duration-300",
-                    showOriginalInOutput ? "opacity-0 translate-y-2 pointer-events-none absolute inset-0" : "opacity-100 translate-y-0 relative"
-                  )}>
-                    <ContentsPanel components={proposedComponents as ComponentSchema[]} extractContentFromComponents={extractContentFromComponents} />
-                  </div>
-                )}
-              </div>
-
-              {!hasOutput && (
-                <div className="mt-4 p-4 rounded-lg border bg-muted/30 text-sm text-muted-foreground">
-                  No output drafts yet. Use Edit mode in the AI Assistant to generate drafts for sections.
-                </div>
+              {/* Simple swap: show original until drafts exist, then show drafted output */}
+              {!hasOutput ? (
+                <ContentsPanel components={components} extractContentFromComponents={extractContentFromComponents} />
+              ) : (
+                <ContentsPanel components={proposedComponents as ComponentSchema[]} extractContentFromComponents={extractContentFromComponents} />
               )}
             </TabsContent>
           </Tabs>
@@ -581,11 +548,10 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
     }
 
     if (selectedComponentIndex !== null) {
-      // Per-section view with unified tabs: Original | Output (Output contains AI chat + animated drafted preview)
+      // Per-section view with unified tabs: Original | Output (Output contains AI chat + drafted preview)
       const selected = selectedComponent;
       const proposedForSelected = proposedComponents?.find((c) => c.key === selected?.key) || null;
       const hasOutput = Boolean(proposedForSelected);
-      const otherDrafts = (proposedComponents || []).filter((c) => c.key !== selected?.key);
 
       // Helper to render contents for a given component
       const renderSectionContents = (comp: ComponentSchema | null) => {
@@ -715,49 +681,21 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
                 </div>
               )}
 
-              {/* Animated swap area: show original snapshot first, then drafted output replaces it */}
-              <div className="relative">
-                {/* Original snapshot in Output tab */}
-                <div className={cn(
-                  "transition-all duration-300",
-                  showOriginalInOutput ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2"
-                )}>
+              {/* Simple swap below input: show original until draft exists, else show drafted editor + contents */}
+              {!hasOutput ? (
+                <>
                   {renderSectionContents(selected)}
-                </div>
-
-                {/* Drafted output (fades in to replace original) */}
-                {hasOutput && (
-                  <div className={cn(
-                    "transition-all duration-300",
-                    showOriginalInOutput ? "opacity-0 translate-y-2 pointer-events-none absolute inset-0" : "opacity-100 translate-y-0 relative"
-                  )}>
-                    <ComponentEditorPanel
-                      component={proposedForSelected}
-                      componentIndex={selectedComponentIndex}
-                      components={proposedForSelected ? proposedComponents || components : components}
-                      onUpdate={() => { /* read-only */ }}
-                    />
-                    {renderSectionContents(proposedForSelected as ComponentSchema)}
-                  </div>
-                )}
-              </div>
-
-              {!hasOutput && otherDrafts.length > 0 && (
-                <div className="mt-4">
-                  <h4 className="font-semibold mb-2">Other drafted sections</h4>
-                  <Accordion type="single" collapsible className="w-full">
-                    {otherDrafts.map((comp) => (
-                      <AccordionItem key={comp.key || comp.type} value={comp.key || comp.type}>
-                        <AccordionTrigger>
-                          {comp.type || comp.key || 'Section'}
-                        </AccordionTrigger>
-                        <AccordionContent>
-                          {renderSectionContents(comp as ComponentSchema)}
-                        </AccordionContent>
-                      </AccordionItem>
-                    ))}
-                  </Accordion>
-                </div>
+                </>
+              ) : (
+                <>
+                  <ComponentEditorPanel
+                    component={proposedForSelected}
+                    componentIndex={selectedComponentIndex}
+                    components={proposedForSelected ? proposedComponents || components : components}
+                    onUpdate={() => { /* read-only */ }}
+                  />
+                  {renderSectionContents(proposedForSelected as ComponentSchema)}
+                </>
               )}
             </TabsContent>
           </Tabs>
