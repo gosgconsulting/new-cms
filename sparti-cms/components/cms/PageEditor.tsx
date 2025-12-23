@@ -743,16 +743,29 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
             currentComponents={components}
             onUpdateComponents={setComponents}
             onProposedComponents={(proposals) => {
-              // Merge proposals by key so multiple sections can accumulate drafts
+              // Merge proposals; if a proposal has no key, try to attach to a matching component by type/name
               setProposedComponents((prev) => {
                 const next = [...(prev || [])];
                 proposals.forEach((p: any) => {
-                  if (!p || !p.key) return;
-                  const idx = next.findIndex((c: any) => c && c.key === p.key);
-                  if (idx >= 0) {
-                    next[idx] = p;
-                  } else {
-                    next.push(p);
+                  if (!p) return;
+                  let proposal = { ...p };
+                  if (!proposal.key) {
+                    const match =
+                      components.find((c) => c.type === proposal.type) ||
+                      components.find((c) => c.name && proposal.type && c.name.toLowerCase().includes(String(proposal.type).toLowerCase())) ||
+                      components.find((c) => proposal.type && c.type.toLowerCase().includes(String(proposal.type).toLowerCase()));
+                    if (match) {
+                      proposal.key = match.key;
+                      proposal.type = match.type; // normalize to existing type
+                    }
+                  }
+                  if (proposal.key) {
+                    const idx = next.findIndex((c: any) => c && c.key === proposal.key);
+                    if (idx >= 0) {
+                      next[idx] = proposal;
+                    } else {
+                      next.push(proposal);
+                    }
                   }
                 });
                 return next;

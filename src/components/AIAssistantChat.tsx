@@ -67,7 +67,6 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
 
   // Remove JSON code blocks from assistant messages (keep friendly status line)
   const sanitizeAssistantMessage = (msg: string) => {
-    // If there's a fenced code block, replace it with a concise notice
     if (/```[\s\S]*```/m.test(msg)) {
       return 'Draft prepared. Review it in the Output tab.';
     }
@@ -605,7 +604,7 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
       if (data.success && data.message) {
         const assistantMessage = {
           id: (Date.now() + 1).toString(),
-          content: data.message,
+          content: sanitizeAssistantMessage(data.message),
           role: 'assistant' as const,
         };
         setMessages((prev) => [...prev, assistantMessage]);
@@ -637,12 +636,10 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
               } else if (parsed.components && Array.isArray(parsed.components)) {
                 componentsArray = parsed.components;
               } else if (parsed && typeof parsed === 'object' && parsed.key && parsed.type) {
-                // Single-section object
                 componentsArray = [parsed];
               }
 
               if (componentsArray.length > 0) {
-                // Route to proposals if provided; fallback to applying
                 if (onProposedComponents) {
                   onProposedComponents(componentsArray);
                 } else if (onUpdateComponents) {
@@ -732,7 +729,6 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
               } else if (parsed.components && Array.isArray(parsed.components)) {
                 componentsArray = parsed.components;
               } else if (parsed && typeof parsed === 'object' && parsed.key && parsed.type) {
-                // Single-section object
                 componentsArray = [parsed];
               }
               if (componentsArray.length > 0) {
