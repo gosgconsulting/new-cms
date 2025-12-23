@@ -58,6 +58,7 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
   const [selectedComponents, setSelectedComponents] = useState<SelectedComponent[]>([]);
   const [focusedComponentJSON, setFocusedComponentJSON] = useState<any>(null);
   const [componentHierarchy, setComponentHierarchy] = useState<string[]>([]);
+  const [pageFileLabel, setPageFileLabel] = useState<string | null>(null);
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [copyWorkflowActive, setCopyWorkflowActive] = useState(false);
@@ -164,8 +165,10 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
     // If Sections (page-level) is clicked: set a page-level focus label, no auto-send
     if ((selectedComponentJSON as any).__scope === 'page') {
       const pageName = pageContext?.pageName || pageContextData?.pageName || 'Page';
-      setFocusedComponentJSON({ type: pageName });
-      setComponentHierarchy([pageName]);
+      // Prefer detected file label when available
+      const label = pageFileLabel || pageName;
+      setFocusedComponentJSON({ type: label });
+      setComponentHierarchy([label]);
       if (onComponentSelected) onComponentSelected(selectedComponentJSON);
       return;
     }
@@ -201,6 +204,82 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
     setComponentHierarchy(hierarchy);
     if (onComponentSelected) onComponentSelected(selectedComponentJSON);
   }, [selectedComponentJSON, onComponentSelected, currentComponents, pageContext?.pageName, pageContextData?.pageName]);
+  
+  // Detect page file name from pageContext or from the visual editor iframe
+  useEffect(() => {
+    // Priority 1: pageContextData or pageContext may already include filename info in layout meta
+    const tryContext = () => {
+      const ctxAny: any = pageContextData || pageContext;
+      if (ctxAny?.pageFileName) return String(ctxAny.pageFileName);
+      if (ctxAny?.pageFilePath) {
+        const parts = String(ctxAny.pageFilePath).split(/[\\/]/);
+        return parts[parts.length - 1] || null;
+      }
+      return null;
+    };
+    const contextFile = tryContext();
+    if (contextFile) {
+      setPageFileLabel(contextFile);
+      return;
+    }
+    // Priority 2: inspect iframe DOM for known attributes
+    const findIframe = () => {
+      return (document.getElementById('visual-editor-iframe') as HTMLIFrameElement) ||
+             (document.querySelector('#visual-editor-iframe-container iframe') as HTMLIFrameElement) ||
+             (document.querySelector('[class*="flex-1 relative"] iframe') as HTMLIFrameElement);
+    };
+    const iframe = findIframe();
+    if (!iframe) return;
+    const readFromIframe = () => {
+      try {
+        const doc = iframe.contentDocument || iframe.contentWindow?.document;
+        if (!doc) return;
+        // Look for explicit page file attribute on body
+        const bodyFile = doc.body?.getAttribute?.('data-page-file');
+        if (bodyFile) {
+          setPageFileLabel(bodyFile);
+          return;
+        }
+        // Fallback: find a closest element carrying component file info near the main container
+        const candidate = doc.querySelector('[data-component-file], [data-lovable-component]');
+        if (candidate) {
+          const dataComp = candidate.getAttribute('data-component-file') || candidate.getAttribute('data-lovable-component');
+          if (dataComp) {
+            // data-lovable-component may include "ComponentName:filepath:line"
+            let fileOnly = dataComp;
+            if (fileOnly.includes(':')) {
+              const parts = fileOnly.split(':');
+              if (parts.length >= 2) {
+                // get last path segment from the filepath part(s)
+                const fp = parts.slice(1, parts.length - 1).join(':') || parts[1];
+                const segs = fp.split(/[\\/]/);
+                fileOnly = segs[segs.length - 1] || fp;
+              }
+            } else {
+              const segs = fileOnly.split(/[\\/]/);
+              fileOnly = segs[segs.length - 1] || fileOnly;
+            }
+            setPageFileLabel(fileOnly);
+            return;
+          }
+        }
+        // Last resort: derive from pathname
+        const path = doc.location?.pathname || '';
+        if (path) {
+          let last = path.split('/').filter(Boolean).pop() || 'index';
+          if (!/\.\w+$/.test(last)) last = `${last}.php`; // heuristic for template naming
+          setPageFileLabel(last);
+        }
+      } catch {
+        // Cross-origin or access error; ignore silently
+      }
+    };
+    if (iframe.contentDocument?.readyState === 'complete') {
+      readFromIframe();
+    } else {
+      iframe.addEventListener('load', readFromIframe, { once: true });
+    }
+  }, [pageContextData, pageContext]);
 
   // Clear focus when selection is cleared (e.g., clicking 'Sections')
   // Removed auto-clearing of focus so it persists until another selection is made
@@ -988,7 +1067,9 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
                   )}
                   {focusedComponentJSON && (
                     <span className="text-xs text-primary font-medium truncate" title={JSON.stringify(focusedComponentJSON, null, 2)}>
-                      Focused on: {componentHierarchy.length > 1 ? componentHierarchy.join(' > ') : (focusedComponentJSON.type || focusedComponentJSON.key || 'Component')}
+                      Focused on: {componentHierarchy.length > 1
+                        ? componentHierarchy.join(' > ')
+                        : (focusedComponentJSON.type || focusedComponentJSON.key || pageFileLabel || 'Component')}
                     </span>
                   )}
                 </div>
