@@ -450,128 +450,13 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
   // Render right panel
   const renderRightPanel = () => {
     if (showContents) {
-      // Page-level Output overview + Contents
-      const outputComponents = proposedComponents || [];
-      const outputContent = extractContentFromComponents(outputComponents || []);
+      // Page-level view: SEO at top, then page contents only (no 'Output All Sections')
       return (
         <div className="space-y-6">
-          {/* SEO form at the top, exactly as before */}
           <div className="border-b pb-4">
             <SEOForm pageData={pageData} onFieldChange={updateField} />
           </div>
 
-          <div className="border-b pb-2">
-            <h3 className="text-lg font-semibold flex items-center">
-              <FileText className="h-5 w-5 mr-2" />
-              Output (All Sections)
-            </h3>
-            <p className="text-sm text-muted-foreground">
-              Apply AI-proposed updates across the page
-            </p>
-          </div>
-
-          {outputComponents && outputComponents.length > 0 ? (
-            <>
-              <div className="flex justify-end">
-                <Button
-                  onClick={() => {
-                    // Apply all proposed components to the page
-                    const next = [...components];
-                    outputComponents.forEach((proposal) => {
-                      if (!proposal) return;
-                      const idx = next.findIndex((c) => c && c.key === proposal.key);
-                      if (idx >= 0) {
-                        next[idx] = proposal;
-                      } else {
-                        next.push(proposal);
-                      }
-                    });
-                    setComponents(next);
-                    setProposedComponents(null);
-                    toast.success('Applied output to all sections');
-                  }}
-                  variant="outline"
-                  size="sm"
-                >
-                  Apply All Output
-                </Button>
-              </div>
-
-              {/* Output Section Contents overview */}
-              {outputContent.length > 0 ? (
-                <div className="space-y-4">
-                  <div className="border rounded-lg p-4">
-                    <h4 className="font-semibold mb-2">Output Section Contents Overview</h4>
-                    <div className="prose prose-sm max-w-none">
-                      {outputContent.map((item, index) => {
-                        const key = `${item.componentId}-out-${index}`;
-                        switch (item.type) {
-                          case 'heading': {
-                            const HeadingTag = `h${item.level || 2}` as keyof JSX.IntrinsicElements;
-                            return (
-                              <HeadingTag
-                                key={key}
-                                className={`font-bold text-foreground ${
-                                  item.level === 1 ? 'text-2xl mb-3' :
-                                  item.level === 2 ? 'text-xl mb-2' :
-                                  item.level === 3 ? 'text-lg mb-2' :
-                                  'text-base mb-2'
-                                }`}
-                                title={`From ${item.componentType} (${item.componentId})`}
-                              >
-                                {item.text}
-                              </HeadingTag>
-                            );
-                          }
-                          case 'paragraph':
-                            return (
-                              <p key={key} className="text-foreground mb-3 leading-relaxed" title={`From ${item.componentType} (${item.componentId})`}>
-                                {item.text}
-                              </p>
-                            );
-                          case 'list':
-                            return (
-                              <li key={key} className="text-foreground mb-2 ml-4 list-disc" title={`From ${item.componentType} (${item.componentId})`}>
-                                {item.text}
-                              </li>
-                            );
-                          case 'image':
-                            return (
-                              <div key={key} className="inline-block" title={`From ${item.componentType} (${item.componentId})`}>
-                                <img
-                                  src={item.imageUrl || ''}
-                                  alt={item.alt || 'Image'}
-                                  className="w-40 h-24 object-cover rounded border"
-                                />
-                              </div>
-                            );
-                          case 'text':
-                          default:
-                            return (
-                              <div key={key} className="text-foreground mb-2 px-3 py-2 rounded" title={`From ${item.componentType} (${item.componentId})`}>
-                                <div className="mt-1">{item.text}</div>
-                              </div>
-                            );
-                        }
-                      })}
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="text-sm text-muted-foreground">
-                  No textual changes detected in the proposed output yet.
-                </div>
-              )}
-            </>
-          ) : (
-            <div className="text-sm text-muted-foreground">
-              No output proposals yet. Click "Copywriting" in the Editor to generate output for all sections.
-            </div>
-          )}
-
-          <Separator className="my-6" />
-
-          {/* Original page contents below for overview */}
           <ContentsPanel components={components} extractContentFromComponents={extractContentFromComponents} />
         </div>
       );
@@ -582,7 +467,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
     }
 
     if (selectedComponentIndex !== null) {
-      // Show the section editor; below it, show the text contents; then direct Output (no tabs)
+      // Show the section editor; below it, show the text contents; tabs (Original/Output) appear ONLY when output exists
       const componentForContents = selectedComponent ? [selectedComponent] : [];
       const sectionContent = extractContentFromComponents(componentForContents as ComponentSchema[]);
       const originalForSelected = originalComponents.find((c) => c.key === selectedComponent?.key) || null;
@@ -664,84 +549,107 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
             )}
           </div>
 
-          {/* Direct Output (no tabs) */}
+          {/* Tabs BELOW contents: only render when there's an output to compare */}
           {outputComponent && (
-            <div className="mt-6 space-y-4">
-              <div className="flex items-center justify-between">
-                <h4 className="font-semibold">Output</h4>
-                <Button
-                  onClick={() => {
-                    if (selectedComponentIndex !== null && outputComponent) {
-                      updateComponent(selectedComponentIndex, outputComponent);
-                      setProposedComponents((prev) =>
-                        prev ? prev.filter((c) => c.key !== outputComponent.key) : prev
-                      );
-                      toast.success('Applied output to this section');
-                    }
-                  }}
-                  variant="outline"
-                  size="sm"
-                >
-                  Apply Output
-                </Button>
-              </div>
+            <div className="mt-6">
+              <Tabs defaultValue="output" className="w-full">
+                <TabsList className="mb-3">
+                  <TabsTrigger value="original">Original</TabsTrigger>
+                  <TabsTrigger
+                    value="output"
+                    className={isModified ? 'bg-amber-100 text-amber-800 border border-amber-200' : undefined}
+                  >
+                    Output
+                  </TabsTrigger>
+                </TabsList>
 
-              {/* Output preview (read-only) */}
-              <ComponentEditorPanel
-                component={outputComponent}
-                componentIndex={selectedComponentIndex}
-                components={proposedComponents || components}
-                onUpdate={() => { /* output preview read-only */ }}
-              />
+                <TabsContent value="original" className="space-y-4">
+                  {originalForSelected && (
+                    <ComponentEditorPanel
+                      component={originalForSelected}
+                      componentIndex={selectedComponentIndex}
+                      components={originalComponents}
+                      onUpdate={() => { /* read-only */ }}
+                    />
+                  )}
+                </TabsContent>
 
-              {/* Output Section Contents overview */}
-              {outputContent.length > 0 && (
-                <div className="border rounded-lg p-4">
-                  <h4 className="font-semibold mb-2">Output Section Contents</h4>
-                  <div className="prose prose-sm max-w-none">
-                    {outputContent.map((item, index) => {
-                      const key = `${item.componentId}-out-${index}`;
-                      switch (item.type) {
-                        case 'heading': {
-                          const HeadingTag = `h${item.level || 2}` as keyof JSX.IntrinsicElements;
-                          return (
-                            <HeadingTag
-                              key={key}
-                              className={`font-bold text-foreground ${
-                                item.level === 1 ? 'text-2xl mb-3' :
-                                item.level === 2 ? 'text-xl mb-2' :
-                                item.level === 3 ? 'text-lg mb-2' :
-                                'text-base mb-2'
-                              }`}
-                            >
-                              {item.text}
-                            </HeadingTag>
+                <TabsContent value="output" className="space-y-4">
+                  <div className="flex justify-end">
+                    <Button
+                      onClick={() => {
+                        if (selectedComponentIndex !== null && outputComponent) {
+                          updateComponent(selectedComponentIndex, outputComponent);
+                          setProposedComponents((prev) =>
+                            prev ? prev.filter((c) => c.key !== outputComponent.key) : prev
                           );
+                          toast.success('Applied output to this section');
                         }
-                        case 'paragraph':
-                          return (
-                            <p key={key} className="text-foreground mb-3 leading-relaxed">
-                              {item.text}
-                            </p>
-                          );
-                        case 'list':
-                          return (
-                            <li key={key} className="text-foreground mb-2 ml-4 list-disc">
-                              {item.text}
-                            </li>
-                          );
-                        case 'text':
-                        default:
-                          return (
-                            <div key={key} className="text-foreground mb-2 px-3 py-2 rounded">
-                              <div className="mt-1">{item.text}</div>
-                            </div>
-                          );
-                      }
-                    })}
+                      }}
+                      variant="outline"
+                      size="sm"
+                    >
+                      Apply Output
+                    </Button>
                   </div>
-                </div>
-              )}
+
+                  <ComponentEditorPanel
+                    component={outputComponent}
+                    componentIndex={selectedComponentIndex}
+                    components={proposedComponents || components}
+                    onUpdate={() => { /* output preview read-only */ }}
+                  />
+
+                  {/* Output Section Contents overview */}
+                  {outputContent.length > 0 && (
+                    <div className="border rounded-lg p-4">
+                      <h4 className="font-semibold mb-2">Output Section Contents</h4>
+                      <div className="prose prose-sm max-w-none">
+                        {outputContent.map((item, index) => {
+                          const key = `${item.componentId}-out-${index}`;
+                          switch (item.type) {
+                            case 'heading': {
+                              const HeadingTag = `h${item.level || 2}` as keyof JSX.IntrinsicElements;
+                              return (
+                                <HeadingTag
+                                  key={key}
+                                  className={`font-bold text-foreground ${
+                                    item.level === 1 ? 'text-2xl mb-3' :
+                                    item.level === 2 ? 'text-xl mb-2' :
+                                    item.level === 3 ? 'text-lg mb-2' :
+                                    'text-base mb-2'
+                                  }`}
+                                >
+                                  {item.text}
+                                </HeadingTag>
+                              );
+                            }
+                            case 'paragraph':
+                              return (
+                                <p key={key} className="text-foreground mb-3 leading-relaxed">
+                                  {item.text}
+                                </p>
+                              );
+                            case 'list':
+                              return (
+                                <li key={key} className="text-foreground mb-2 ml-4 list-disc">
+                                  {item.text}
+                                </li>
+                              );
+                            case 'text':
+                            default:
+                              return (
+                                <div key={key} className="text-foreground mb-2 px-3 py-2 rounded">
+                                  <div className="mt-1">{item.text}</div>
+                                </div>
+                              );
+                          }
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </TabsContent>
+              </Tabs>
             </div>
           )}
         </>
