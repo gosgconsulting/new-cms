@@ -728,7 +728,7 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
   };
 
   // Send a message to AI without appending the user payload to chat (used by Copywriting)
-  const sendHiddenMessage = async (hiddenMessage: string, options?: { silent?: boolean }) => {
+  const sendHiddenMessage = async (hiddenMessage: string, options?: { silent?: boolean; attachKey?: string; attachType?: string }) => {
     if (cancelRequestedRef.current) return;
     if (isLoading) return;
     setError(null);
@@ -801,25 +801,58 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
                 componentsArray = [parsed];
               }
 
+              // Attach key/type so the editor can match drafts to the right section
               if (componentsArray.length > 0) {
-                // Same key/type attachment in hidden (Edit) workflow
-                if (componentsArray.length === 1 && focusedComponentJSON?.key) {
-                  componentsArray[0] = {
-                    ...componentsArray[0],
-                    key: focusedComponentJSON.key,
-                    type: componentsArray[0].type || focusedComponentJSON.type
-                  };
-                } else if (focusedComponentJSON?.key) {
-                  const idx = componentsArray.findIndex(p => (p?.type || '').toLowerCase() === (focusedComponentJSON?.type || '').toLowerCase());
-                  if (idx >= 0 && !componentsArray[idx].key) {
-                    componentsArray[idx] = {
-                      ...componentsArray[idx],
-                      key: focusedComponentJSON.key,
-                      type: componentsArray[idx].type || focusedComponentJSON.type
+                if (options?.attachKey) {
+                  if (componentsArray.length === 1) {
+                    componentsArray[0] = {
+                      ...componentsArray[0],
+                      key: options.attachKey,
+                      type: componentsArray[0].type || options.attachType
                     };
+                  } else {
+                    const idx = componentsArray.findIndex(p => 
+                      (p?.type || '').toLowerCase() === (options.attachType || '').toLowerCase()
+                    );
+                    if (idx >= 0) {
+                      componentsArray[idx] = {
+                        ...componentsArray[idx],
+                        key: options.attachKey,
+                        type: componentsArray[idx].type || options.attachType
+                      };
+                    } else {
+                      // Fallback: assign to first if nothing matches
+                      componentsArray[0] = {
+                        ...componentsArray[0],
+                        key: options.attachKey,
+                        type: componentsArray[0].type || options.attachType
+                      };
+                    }
+                  }
+                } else if (focusedComponentJSON?.key) {
+                  // Fallback to focused component (single-section edit)
+                  if (componentsArray.length === 1) {
+                    componentsArray[0] = {
+                      ...componentsArray[0],
+                      key: focusedComponentJSON.key,
+                      type: componentsArray[0].type || focusedComponentJSON.type
+                    };
+                  } else {
+                    const idx = componentsArray.findIndex(p => 
+                      (p?.type || '').toLowerCase() === (focusedComponentJSON?.type || '').toLowerCase()
+                    );
+                    if (idx >= 0 && !componentsArray[idx].key) {
+                      componentsArray[idx] = {
+                        ...componentsArray[idx],
+                        key: focusedComponentJSON.key,
+                        type: componentsArray[idx].type || focusedComponentJSON.type
+                      };
+                    }
                   }
                 }
-                
+              }
+
+              if (componentsArray.length > 0) {
                 if (cancelRequestedRef.current) return;
                 if (onProposedComponents) {
                   onProposedComponents(componentsArray);
@@ -862,8 +895,16 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
     if (cancelRequestedRef.current) return;
     const sectionName = componentJson?.type || componentJson?.key || 'this section';
 
-    // Status: drafting start
-    onActionStatus?.(`Drafting: ${sectionName}...`);
+    // NEW: Real-time progress - drafting start
+    setMessages(prev => [
+      ...prev,
+      {
+        id: (Date.now() + Math.random()).toString(),
+        role: 'assistant',
+        content: `Drafting: ${sectionName}...`,
+      },
+    ]);
+
     const perComponentInstruction =
       `[Workflow: Copywriting Per-Section]\n` +
       (userMessage ? `Apply the following brief/request to this section:\n"${userMessage}"\n\n` : ``) +
@@ -871,11 +912,18 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
       `Return ONLY the updated component JSON (same key and type), modifying text fields and items as needed.\n` +
       `Do not wrap in code fences. Do not change keys or remove fields.\n\n` +
       `Component JSON:\n${JSON.stringify(componentJson, null, 2)}`;
-    await sendHiddenMessage(perComponentInstruction, { silent: true });
+    await sendHiddenMessage(perComponentInstruction, { silent: true, attachKey: componentJson?.key, attachType: componentJson?.type });
     if (cancelRequestedRef.current) return;
 
-    // Status: drafting done
-    onActionStatus?.(`Draft ready: ${sectionName}`);
+    // NEW: Real-time progress - drafting done
+    setMessages(prev => [
+      ...prev,
+      {
+        id: (Date.now() + Math.random()).toString(),
+        role: 'assistant',
+        content: `Draft ready: ${sectionName}`,
+      },
+    ]);
   };
 
   // Generate output for all sections by iterating each component silently
@@ -886,18 +934,34 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
         ? currentComponents
         : (pageContextData?.layout?.components || []);
     if (!schemaComponents || schemaComponents.length === 0) {
-      onActionStatus?.('No sections found to generate output.');
+      setMessages(prev => [
+        ...prev,
+        { id: Date.now().toString(), role: 'assistant', content: 'No sections found to generate output.' }
+      ]);
       return;
     }
     setIsBatchGenerating(true);
-    // Status: batch start
-    onActionStatus?.(`Generating drafts for ${schemaComponents.length} sections...`);
+    // Inform user once
+    setMessages(prev => [
+      ...prev,
+      { id: (Date.now() + 1).toString(), role: 'assistant', content: `Generating drafts for ${schemaComponents.length} sections...` }
+    ]);
     // Iterate per section with focused instructions
     for (let i = 0; i < schemaComponents.length; i++) {
       if (cancelRequestedRef.current) break;
       const comp = schemaComponents[i];
       const sectionName = comp?.type || comp?.key || `Section ${i + 1}`;
-      onActionStatus?.(`Drafting: ${sectionName}...`);
+
+      // NEW: Real-time progress - drafting start
+      setMessages(prev => [
+        ...prev,
+        {
+          id: (Date.now() + Math.random()).toString(),
+          role: 'assistant',
+          content: `Drafting: ${sectionName}...`,
+        },
+      ]);
+
       const perComponentInstruction =
         `[Workflow: Copywriting Per-Section]\n` +
         (userMessage ? `Apply the following brief/request to this section:\n"${userMessage}"\n\n` : ``) +
@@ -906,13 +970,26 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
         `Do not wrap in code fences. Do not change keys or remove fields.\n\n` +
         `Component JSON:\n${JSON.stringify(comp, null, 2)}`;
       // Silent call to avoid chat spam; proposals are merged via onProposedComponents
-      await sendHiddenMessage(perComponentInstruction, { silent: true });
+      await sendHiddenMessage(perComponentInstruction, { silent: true, attachKey: comp?.key, attachType: comp?.type });
+
       if (cancelRequestedRef.current) break;
-      onActionStatus?.(`Draft ready: ${sectionName}`);
+
+      // NEW: Real-time progress - drafting done
+      setMessages(prev => [
+        ...prev,
+        {
+          id: (Date.now() + Math.random()).toString(),
+          role: 'assistant',
+          content: `Draft ready: ${sectionName}`,
+        },
+      ]);
     }
     // Final notice
     if (!cancelRequestedRef.current) {
-      onActionStatus?.('All drafts prepared. Review in Output.');
+      setMessages(prev => [
+        ...prev,
+        { id: (Date.now() + 2).toString(), role: 'assistant', content: 'All drafts prepared. Open each section\'s Output tab to review and apply.' }
+      ]);
     }
     setIsBatchGenerating(false);
   };
