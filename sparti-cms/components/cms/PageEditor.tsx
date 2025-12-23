@@ -826,13 +826,170 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
             </ScrollArea>
           </div>
 
-          {/* Middle Panel - Settings */}
-          <div className="flex-1 flex flex-col overflow-hidden">
-            <ScrollArea className="h-full">
-              <div className="p-6">
-                {renderRightPanel()}
-              </div>
-            </ScrollArea>
+          {/* Middle + Right columns container */}
+          <div className="flex-1 flex overflow-hidden">
+            {/* Middle Panel - Settings Editor */}
+            <div className="flex-1 flex flex-col overflow-hidden border-r">
+              <ScrollArea className="h-full">
+                <div className="p-6">
+                  {renderRightPanel()}
+                </div>
+              </ScrollArea>
+            </div>
+
+            {/* Right Panel - Contents Preview (Original/Output) */}
+            <div className="w-[28rem] max-w-[32rem] bg-muted/10 flex flex-col">
+              <ScrollArea className="h-full">
+                <div className="p-4">
+                  {/* Determine preview source based on selection and proposals */}
+                  {(() => {
+                    const selected = selectedComponentIndex !== null ? components[selectedComponentIndex] : null
+                    let proposedForSelected =
+                      (proposedComponents?.find((c) => c.key === selected?.key) ||
+                       proposedComponents?.find((c) => (c.type || '').toLowerCase() === (selected?.type || '').toLowerCase()) ||
+                       null)
+                    if (!proposedForSelected && proposedComponents && components && selectedComponentIndex !== null && selectedComponentIndex >= 0) {
+                      if (proposedComponents.length === components.length) {
+                        proposedForSelected = proposedComponents[selectedComponentIndex] || null
+                      }
+                    }
+                    const hasOutput = Boolean(proposedForSelected)
+
+                    return (
+                      <Tabs defaultValue={hasOutput ? "output" : "original"} className="w-full">
+                        <div className="mb-3">
+                          <TabsList>
+                            <TabsTrigger value="original">Original</TabsTrigger>
+                            <TabsTrigger value="output">Output</TabsTrigger>
+                          </TabsList>
+                        </div>
+
+                        <TabsContent value="original">
+                          {selectedComponentIndex !== null
+                            ? (
+                              <div>
+                                {/* Section-level preview */}
+                                {(() => {
+                                  const items = extractContentFromComponents([components[selectedComponentIndex]])
+                                  return items.length === 0 ? (
+                                    <div className="text-sm text-muted-foreground">No text content found in this section.</div>
+                                  ) : (
+                                    <div className="prose prose-sm max-w-none">
+                                      {items.map((item, index) => {
+                                        const key = `${item.componentId}-${index}`
+                                        switch (item.type) {
+                                          case 'heading': {
+                                            const HeadingTag = `h${item.level || 2}` as any
+                                            return (
+                                              <HeadingTag
+                                                key={key}
+                                                className={`font-bold text-foreground ${
+                                                  item.level === 1 ? 'text-2xl mb-3' :
+                                                  item.level === 2 ? 'text-xl mb-2' :
+                                                  item.level === 3 ? 'text-lg mb-2' :
+                                                  'text-base mb-2'
+                                                }`}
+                                              >
+                                                {item.text}
+                                              </HeadingTag>
+                                            )
+                                          }
+                                          case 'paragraph':
+                                            return <p key={key} className="text-foreground mb-3 leading-relaxed">{item.text}</p>
+                                          case 'list':
+                                            return <li key={key} className="text-foreground mb-2 ml-4 list-disc">{item.text}</li>
+                                          case 'text':
+                                          default:
+                                            return <div key={key} className="text-foreground mb-2 px-3 py-2 rounded"><div className="mt-1">{item.text}</div></div>
+                                        }
+                                      })}
+                                    </div>
+                                  )
+                                })()}
+                              </div>
+                            )
+                            : (
+                              // Page-level preview when no section selected
+                              <ContentsPanel components={components} extractContentFromComponents={extractContentFromComponents} />
+                            )
+                          }
+                        </TabsContent>
+
+                        <TabsContent value="output">
+                          {aiActionStatus && (
+                            <div className="mb-3 inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-muted text-xs text-muted-foreground border">
+                              <span className="font-medium">Action:</span>
+                              <span>{aiActionStatus}</span>
+                            </div>
+                          )}
+                          {selectedComponentIndex !== null
+                            ? (
+                              <div>
+                                {/* Section-level output preview */}
+                                {(() => {
+                                  const comp = proposedForSelected || components[selectedComponentIndex]
+                                  const items = extractContentFromComponents([comp])
+                                  return items.length === 0 ? (
+                                    <div className="text-sm text-muted-foreground">No drafted content for this section.</div>
+                                  ) : (
+                                    <div className="prose prose-sm max-w-none">
+                                      {items.map((item, index) => {
+                                        const key = `${item.componentId}-${index}`
+                                        switch (item.type) {
+                                          case 'heading': {
+                                            const HeadingTag = `h${item.level || 2}` as any
+                                            return (
+                                              <HeadingTag
+                                                key={key}
+                                                className={`font-bold text-foreground ${
+                                                  item.level === 1 ? 'text-2xl mb-3' :
+                                                  item.level === 2 ? 'text-xl mb-2' :
+                                                  item.level === 3 ? 'text-lg mb-2' :
+                                                  'text-base mb-2'
+                                                }`}
+                                              >
+                                                {item.text}
+                                              </HeadingTag>
+                                            )
+                                          }
+                                          case 'paragraph':
+                                            return <p key={key} className="text-foreground mb-3 leading-relaxed">{item.text}</p>
+                                          case 'list':
+                                            return <li key={key} className="text-foreground mb-2 ml-4 list-disc">{item.text}</li>
+                                          case 'text':
+                                          default:
+                                            return <div key={key} className="text-foreground mb-2 px-3 py-2 rounded"><div className="mt-1">{item.text}</div></div>
+                                        }
+                                      })}
+                                    </div>
+                                  )
+                                })()}
+                              </div>
+                            )
+                            : (
+                              <>
+                                {/* Page-level output preview using proposedComponents if present */}
+                                {Array.isArray(proposedComponents) && proposedComponents.length > 0 ? (
+                                  <ContentsPanel
+                                    components={proposedComponents as ComponentSchema[]}
+                                    extractContentFromComponents={extractContentFromComponents}
+                                  />
+                                ) : (
+                                  <ContentsPanel
+                                    components={components}
+                                    extractContentFromComponents={extractContentFromComponents}
+                                  />
+                                )}
+                              </>
+                            )
+                          }
+                        </TabsContent>
+                      </Tabs>
+                    )
+                  })()}
+                </div>
+              </ScrollArea>
+            </div>
           </div>
 
           {/* JSON Editor Dialog */}
