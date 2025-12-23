@@ -878,27 +878,6 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
     setIsBatchGenerating(false);
   };
 
-  // Auto-generate based on focus:
-  // - If Sections (page-level) is selected, generate for all sections.
-  // - If a specific section is selected, generate for that section.
-  useEffect(() => {
-    if (!selectedComponentJSON) return;
-    // Page-level
-    if ((selectedComponentJSON as any).__scope === 'page') {
-      if (lastAutoGenRef.current?.type !== 'page') {
-        lastAutoGenRef.current = { type: 'page' };
-        handleGenerateAllOutputs();
-      }
-      return;
-    }
-    // Section-level
-    const key = selectedComponentJSON.key || selectedComponentJSON.type || JSON.stringify(selectedComponentJSON);
-    if (lastAutoGenRef.current?.type !== 'section' || lastAutoGenRef.current?.key !== key) {
-      lastAutoGenRef.current = { type: 'section', key };
-      handleGenerateSingleOutput(selectedComponentJSON);
-    }
-  }, [selectedComponentJSON]);
-
   // Launch copywriting workflow: ask brief questions, analyze full schema, then propose copy
   const handleStartCopywriting = async () => {
     const pageName = pageContext?.pageName || pageContextData?.pageName || "Page";
@@ -1100,7 +1079,7 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
                 Ask questions, get help, or request assistance with your content.
               </p>
               <p className="text-[11px] text-muted-foreground">
-                Tip: Use the Copywriting button above. Selecting "Sections" generates drafts for all sections; selecting a section generates a draft for that section.
+                Tip: Use the Copywriting button above. It uses your current focus: "Sections" targets all sections; selecting a section targets only that section.
               </p>
             </div>
           ) : (
