@@ -821,21 +821,34 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
   // Generate output for one section (silent)
   const handleGenerateSingleOutput = async (componentJson: any, userMessage?: string) => {
     if (cancelRequestedRef.current) return;
+    const sectionName = componentJson?.type || componentJson?.key || 'this section';
+
+    // NEW: Real-time progress - drafting start
+    setMessages(prev => [
+      ...prev,
+      {
+        id: (Date.now() + Math.random()).toString(),
+        role: 'assistant',
+        content: `Drafting: ${sectionName}...`,
+      },
+    ]);
+
     const perComponentInstruction =
       `[Workflow: Copywriting Per-Section]\n` +
-      (userMessage ? `Apply the following brief/request to this section:\n"${userMessage}"\n\n` : ``) +
       `Propose improved copy for this single section only.\n` +
       `Return ONLY the updated component JSON (same key and type), modifying text fields and items as needed.\n` +
       `Do not wrap in code fences. Do not change keys or remove fields.\n\n` +
       `Component JSON:\n${JSON.stringify(componentJson, null, 2)}`;
     await sendHiddenMessage(perComponentInstruction, { silent: true });
     if (cancelRequestedRef.current) return;
+
+    // NEW: Real-time progress - drafting done
     setMessages(prev => [
       ...prev,
       {
-        id: (Date.now() + 1).toString(),
+        id: (Date.now() + Math.random()).toString(),
         role: 'assistant',
-        content: `Draft prepared for ${componentJson?.type || componentJson?.key || 'this section'}. Open the Output tab to review.`,
+        content: `Draft ready: ${sectionName}`,
       },
     ]);
   };
@@ -864,21 +877,44 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
     for (let i = 0; i < schemaComponents.length; i++) {
       if (cancelRequestedRef.current) break;
       const comp = schemaComponents[i];
+      const sectionName = comp?.type || comp?.key || `Section ${i + 1}`;
+
+      // NEW: Real-time progress - drafting start
+      setMessages(prev => [
+        ...prev,
+        {
+          id: (Date.now() + Math.random()).toString(),
+          role: 'assistant',
+          content: `Drafting: ${sectionName}...`,
+        },
+      ]);
+
       const perComponentInstruction =
         `[Workflow: Copywriting Per-Section]\n` +
-        (userMessage ? `Apply the following brief/request to this section:\n"${userMessage}"\n\n` : ``) +
-        `Propose improved copy for this single section only.\n` +
+        `Using the earlier brief and context, propose improved copy for this single section only.\n` +
         `Return ONLY the updated component JSON (same key and type), modifying text fields and items as needed.\n` +
         `Do not wrap in code fences. Do not change keys or remove fields.\n\n` +
         `Component JSON:\n${JSON.stringify(comp, null, 2)}`;
       // Silent call to avoid chat spam; proposals are merged via onProposedComponents
       await sendHiddenMessage(perComponentInstruction, { silent: true });
+
+      if (cancelRequestedRef.current) break;
+
+      // NEW: Real-time progress - drafting done
+      setMessages(prev => [
+        ...prev,
+        {
+          id: (Date.now() + Math.random()).toString(),
+          role: 'assistant',
+          content: `Draft ready: ${sectionName}`,
+        },
+      ]);
     }
     // Final notice
     if (!cancelRequestedRef.current) {
       setMessages(prev => [
         ...prev,
-        { id: (Date.now() + 2).toString(), role: 'assistant', content: 'Drafts prepared for all sections. Open each section\'s Output tab to review and apply.' }
+        { id: (Date.now() + 2).toString(), role: 'assistant', content: 'All drafts prepared. Open each section\'s Output tab to review and apply.' }
       ]);
     }
     setIsBatchGenerating(false);
@@ -1040,7 +1076,7 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
                   </div>
                 </div>
               ))}
-              {isLoading && (
+              {isLoading && !isBatchGenerating && (
                 <div className="flex w-full justify-start">
                   <div className="max-w-[85%] rounded-lg px-3 py-2 bg-muted text-muted-foreground flex items-center gap-2">
                     <Loader2 className="h-4 w-4 animate-spin" />
