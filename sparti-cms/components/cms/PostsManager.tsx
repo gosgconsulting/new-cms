@@ -148,8 +148,8 @@ const PostsManager: React.FC = () => {
     if (!confirm('Are you sure you want to delete this post?')) return;
 
     try {
-      const response = await api.delete(`/api/posts/${postId}`, {
-        tenantId: currentTenantId,
+      const response = await api.delete(`/api/posts/${postId}?tenantId=${currentTenantId}`, {
+        headers: { 'X-Tenant-Id': currentTenantId || '' },
       });
 
       if (response.ok) {
@@ -217,7 +217,7 @@ const PostsManager: React.FC = () => {
           slug: editingPost.slug,
           content: editingPost.content,
           excerpt: editingPost.excerpt,
-          status: editingPost.status,
+          status: ((editingPost.status === 'trash' ? 'draft' : editingPost.status) as 'published' | 'draft' | 'private' | 'scheduled'),
           author_id: editingPost.author_id,
           published_at: editingPost.published_at,
           categories: editingPost.terms?.filter(t => t.taxonomy === 'category').map(t => t.id) || [],

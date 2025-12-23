@@ -362,7 +362,7 @@ const BrandingSettingsPage: React.FC = () => {
         toast({
           title: "Warning",
           description: "Incomplete language settings data received. Using default values.",
-          variant: "warning",
+          variant: "destructive",
         });
       }
     } catch (error) {
@@ -851,4 +851,3 @@ const BrandingSettingsPage: React.FC = () => {
 };
 
 export default BrandingSettingsPage;
-

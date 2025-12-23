@@ -435,7 +435,7 @@ export const FooterSchemaEditor: React.FC<FooterSchemaEditorProps> = ({ onBack }
                                 variant="outline"
                                 size="sm"
                                 onClick={() => {
-                                  const currentSocialMedia = section.socialMedia || [];
+                                  const currentSocialMedia = Array.isArray((section as any).socialMedia) ? ((section as any).socialMedia as any[]) : [];
                                   const newSocialMediaGroup = {
                                     links: []
                                   };
@@ -451,7 +451,7 @@ export const FooterSchemaEditor: React.FC<FooterSchemaEditorProps> = ({ onBack }
                               </Button>
                             </div>
                             
-                            {section.socialMedia.map((socialGroup: any, groupIndex: number) => (
+                            { (Array.isArray((section as any).socialMedia) ? ((section as any).socialMedia as any[]) : []).map((socialGroup: any, groupIndex: number) => (
                               <Card key={groupIndex} className="bg-gray-50">
                                 <CardHeader className="pb-2">
                                   <div className="flex items-center justify-between">
@@ -460,7 +460,7 @@ export const FooterSchemaEditor: React.FC<FooterSchemaEditorProps> = ({ onBack }
                                       variant="ghost"
                                       size="sm"
                                       onClick={() => {
-                                        const updatedSocialMedia = section.socialMedia.filter((_: any, i: number) => i !== groupIndex);
+                                        const updatedSocialMedia = (Array.isArray((section as any).socialMedia) ? ((section as any).socialMedia as any[]) : []).filter((_: any, i: number) => i !== groupIndex);
                                         const updatedSection = isCustomFormat 
                                           ? { ...sectionObj, [sectionKey!]: { ...section, socialMedia: updatedSocialMedia } }
                                           : { ...section, socialMedia: updatedSocialMedia };
@@ -481,7 +481,7 @@ export const FooterSchemaEditor: React.FC<FooterSchemaEditorProps> = ({ onBack }
                                       icon: link.icon
                                     }))}
                                     onChange={(links) => {
-                                      const updatedSocialMedia = [...(section.socialMedia || [])];
+                                      const updatedSocialMedia = [...(Array.isArray((section as any).socialMedia) ? ((section as any).socialMedia as any[]) : [])];
                                       updatedSocialMedia[groupIndex] = { links };
                                       const updatedSection = isCustomFormat 
                                         ? { ...sectionObj, [sectionKey!]: { ...section, socialMedia: updatedSocialMedia } }
@@ -496,7 +496,7 @@ export const FooterSchemaEditor: React.FC<FooterSchemaEditorProps> = ({ onBack }
                               </Card>
                             ))}
                             
-                            {(!section.socialMedia || section.socialMedia.length === 0) && (
+                            {(!(Array.isArray((section as any).socialMedia)) || ((section as any).socialMedia as any[]).length === 0) && (
                               <div className="text-center py-4 text-gray-400 text-xs border-2 border-dashed border-gray-300 rounded bg-white">
                                 No social media groups added yet
                               </div>

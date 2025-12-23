@@ -14,7 +14,7 @@ import {
 } from '../../../../src/components/ui/select';
 import { ToggleField } from './ToggleField';
 import { X, Plus, Code, ChevronDown, ChevronUp, Key, Type } from 'lucide-react';
-import { detectFieldType, getDefaultValueForType, FieldType as HelperFieldType } from '../../../utils/schemaHelpers';
+import { detectFieldType, getDefaultValueForType } from '../../../utils/schemaHelpers';
 import {
   Dialog,
   DialogContent,

@@ -136,7 +136,7 @@ export const GoogleTranslator: React.FC<GoogleTranslatorProps> = ({
       } catch (error) {
         console.error('[testing] Failed to load supported languages:', error);
         // Fallback to common languages if API call fails
-        setSupportedLanguages(COMMON_LANGUAGES.slice(1)); // Exclude 'auto' from API results
+        setSupportedLanguages(COMMON_LANGUAGES.slice(1).map(l => ({ language: l.code, name: l.name })));
       }
     };
 

@@ -13,48 +13,48 @@ export { SMTPConfiguration } from './SMTPConfiguration';
 export { ResendIntegration } from './ResendIntegration';
 
 // Form Components
-export { ContactForm } from './ContactForm';
-export { ContactModal } from './ContactModal';
+export { default as ContactForm } from './ContactForm';
+export { default as ContactModal } from './ContactModal';
 
 // Layout Components
-export { Header } from './Header';
-export { Footer } from './Footer';
-export { AdminTopBar } from './AdminTopBar';
+export { default as Header } from './Header';
+export { default as Footer } from './Footer';
+export { default as AdminTopBar } from './AdminTopBar';
 
 // Section Components
-export { HeroSection } from './HeroSection';
-export { BlogSection } from './BlogSection';
-export { ContactSection } from './ContactSection';
-export { CTASection } from './CTASection';
-export { WhyChooseUsSection } from './WhyChooseUsSection';
-export { PainPointSection } from './PainPointSection';
-export { SEOResultsSection } from './SEOResultsSection';
-export { SEOResultsSlider } from './SEOResultsSlider';
-export { SEOServicesShowcase } from './SEOServicesShowcase';
-export { WhatIsSEOServicesSection } from './WhatIsSEOServicesSection';
-export { InsightsSection } from './InsightsSection';
+export { default as HeroSection } from './HeroSection';
+export { default as BlogSection } from './BlogSection';
+export { default as ContactSection } from './ContactSection';
+export { default as CTASection } from './CTASection';
+export { default as WhyChooseUsSection } from './WhyChooseUsSection';
+export { default as PainPointSection } from './PainPointSection';
+export { default as SEOResultsSection } from './SEOResultsSection';
+export { default as SEOResultsSlider } from './SEOResultsSlider';
+export { default as SEOServicesShowcase } from './SEOServicesShowcase';
+export { default as WhatIsSEOServicesSection } from './WhatIsSEOServicesSection';
+export { default as InsightsSection } from './InsightsSection';
 
 // Service Components
-export { ServiceHero } from './ServiceHero';
-export { ServiceFeatures } from './ServiceFeatures';
-export { ServiceBenefits } from './ServiceBenefits';
-export { ServicePlans } from './ServicePlans';
-export { ServiceCaseStudies } from './ServiceCaseStudies';
-export { ServiceTestimonials } from './ServiceTestimonials';
-export { ServiceCTA } from './ServiceCTA';
+export { default as ServiceHero } from './ServiceHero';
+export { default as ServiceFeatures } from './ServiceFeatures';
+export { default as ServiceBenefits } from './ServiceBenefits';
+export { default as ServicePlans } from './ServicePlans';
+export { default as ServiceCaseStudies } from './ServiceCaseStudies';
+export { default as ServiceTestimonials } from './ServiceTestimonials';
+export { default as ServiceCTA } from './ServiceCTA';
 
 // Testimonial Components
-export { TestimonialsCarousel } from './TestimonialsCarousel';
-export { NewTestimonials } from './NewTestimonials';
+export { default as TestimonialsCarousel } from './TestimonialsCarousel';
+export { default as NewTestimonials } from './NewTestimonials';
 
 // Utility Components
-export { ClientLogos } from './ClientLogos';
-export { AwardsBadges } from './AwardsBadges';
-export { StatsCounter } from './StatsCounter';
+export { default as ClientLogos } from './ClientLogos';
+export { default as AwardsBadges } from './AwardsBadges';
+export { default as StatsCounter } from './StatsCounter';
 export { ThemeToggle } from './ThemeToggle';
-export { WhatsAppButton } from './WhatsAppButton';
-export { FAQAccordion } from './FAQAccordion';
+export { default as WhatsAppButton } from './WhatsAppButton';
+export { default as FAQAccordion } from './FAQAccordion';
 
 // Database Components
-export { DatabaseTablesViewer } from './DatabaseTablesViewer';
-export { DatabaseTablesButton } from './DatabaseTablesButton';
+export { default as DatabaseTablesViewer } from './DatabaseTablesViewer';
+export { default as DatabaseTablesButton } from './DatabaseTablesButton';

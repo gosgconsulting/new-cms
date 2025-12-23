@@ -75,7 +75,7 @@ interface FormSubmission {
 }
 
 const FormsManager: React.FC = () => {
-  const { currentTenant } = useAuth();
+  const { currentTenantId } = useAuth();
   const [forms, setForms] = useState<Form[]>([]);
   const [selectedForm, setSelectedForm] = useState<Form | null>(null);
   const [emailSettings, setEmailSettings] = useState<EmailSettings | null>(null);
@@ -122,7 +122,7 @@ const FormsManager: React.FC = () => {
       
       const response = await fetch('/api/forms', {
         headers: {
-          'X-Tenant-Id': currentTenant.id
+          'X-Tenant-Id': currentTenantId || ''
         }
       });
       if (!response.ok) {
@@ -208,7 +208,7 @@ const FormsManager: React.FC = () => {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'X-Tenant-Id': currentTenant.id
+            'X-Tenant-Id': currentTenantId || ''
           },
           body: JSON.stringify({
             name: formData.name,

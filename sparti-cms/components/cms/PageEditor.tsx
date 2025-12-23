@@ -333,9 +333,9 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
 
     components.forEach((component, index) => {
       const componentType = component.type || 'unknown';
-      const componentId = component.id || component.key || `component-${index}`;
+      const componentId = component.key || `component-${index}`;
       
-      extractFromProps(component.props, componentType, componentId);
+      extractFromProps((component as any).props ?? (component.items as any), componentType, componentId);
     });
 
     return content;

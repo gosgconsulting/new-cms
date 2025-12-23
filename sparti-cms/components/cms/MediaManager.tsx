@@ -270,7 +270,7 @@ const MediaViewModal: React.FC<MediaViewModalProps> = ({ item, isOpen, onClose, 
 };
 
 const MediaManager: React.FC = () => {
-  const { currentTenant } = useAuth();
+  const { currentTenantId } = useAuth();
   const { settings, addMediaItem, removeMediaItem, updateMediaItem, addMediaFolder, removeMediaFolder, updateMediaItemFolder } = useCMSSettings();
   const mediaItems = Array.isArray(settings.mediaItems) ? settings.mediaItems : [];
   const mediaFolders = Array.isArray(settings.mediaFolders) ? settings.mediaFolders : [{ id: 'uncategorized', name: 'Uncategorized', itemCount: 0 }];
@@ -676,7 +676,8 @@ const MediaManager: React.FC = () => {
                           e.currentTarget.onerror = () => {
                             console.error(`Alternative URL also failed: ${altUrl}`);
                             e.currentTarget.style.display = 'none';
-                            e.currentTarget.nextSibling.style.display = 'block';
+                            const next = e.currentTarget.nextSibling as HTMLElement | null;
+                            if (next) next.style.display = 'block';
                           };
                         }}
                       />

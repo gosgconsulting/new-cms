@@ -46,8 +46,8 @@ export const GoogleMaps: React.FC<GoogleMapsProps> = ({
   const [mapLoaded, setMapLoaded] = useState(false);
   
   const mapRef = useRef<HTMLDivElement>(null);
-  const mapInstanceRef = useRef<google.maps.Map | null>(null);
-  const markersRef = useRef<google.maps.Marker[]>([]);
+  const mapInstanceRef = useRef<any>(null);
+  const markersRef = useRef<any[]>([]);
 
   // Load Google Maps script on component mount
   useEffect(() => {
