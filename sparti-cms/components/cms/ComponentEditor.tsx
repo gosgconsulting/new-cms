@@ -317,7 +317,7 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
       const arrayProp = getArrayPropertyName(item);
       
       return (
-        <div key={`${item.key}-${index}`} className="border rounded-lg overflow-hidden">
+        <div key={`${item.key}-${index}`} className="overflow-hidden">
           <div 
             className="flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 cursor-pointer transition-colors"
             onClick={() => toggleItem(index)}
@@ -347,9 +347,9 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
             </Button>
           </div>
           {expandedItems.has(index) && (
-            <div className="p-4 border-t bg-white space-y-4">
+            <div className="p-4 bg-white space-y-4">
               {/* Unified tab-based editing */}
-              <div className="space-y-4 border-t pt-4">
+              <div className="space-y-4 pt-4">
                 {/* Tab-style interface */}
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
@@ -377,8 +377,8 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
                     </Button>
                   </div>
 
-                  {/* Tabs: Properties + per-item tabs */}
-                  <div className="flex gap-1 mb-4 border-b border-gray-200">
+                  {/* Tabs list without bottom border */}
+                  <div className="flex gap-1 mb-4">
                     {(() => {
                       const currentTab = (activeArrayTab[index] ?? 0);
                       const makeTab = (label: string, isActive: boolean, onClick: () => void) => (
@@ -386,7 +386,7 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
                           className={`px-3 py-2 text-sm font-medium border-b-2 transition-colors ${
                             isActive 
                               ? 'border-blue-500 text-blue-600 bg-blue-50' 
-                              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                              : 'border-transparent text-gray-500 hover:text-gray-700'
                           }`}
                           onClick={onClick}
                         >
@@ -428,44 +428,99 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
                     if (!currentArrayItem) return null;
 
                     return (
-                      <div className="border rounded-lg p-4 bg-white">
+                      <div className="p-4 bg-white">
                         {isImageItem(arrayProp, currentArrayItem) ? (
-                          <div className="relative inline-block">
-                            <label className="cursor-pointer block">
-                              <img 
-                                src={currentArrayItem.url as string || currentArrayItem.src as string || currentArrayItem.image as string} 
-                                alt={`${arrayProp === 'slides' || arrayProp === 'images' ? 'Slide' : 'Item'} ${currentTab + 1}`}
-                                className="w-full h-auto max-h-[100px] object-contain rounded-md border border-gray-200 hover:border-blue-300 transition-colors"
-                              />
-                              <input
-                                type="file"
-                                accept="image/*"
-                                className="hidden"
-                                onChange={(e) => {
-                                  const file = e.target.files?.[0];
-                                  if (file) {
-                                    handleImageUpload(index, arrayProp, currentTab, file);
-                                  }
-                                }}
-                              />
-                            </label>
-                            <button
-                              onClick={() => removeArrayItem(index, arrayProp, currentTab)}
-                              className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors shadow-sm"
-                              title="Delete image"
-                            >
-                              <X className="h-3 w-3" />
-                            </button>
-                          </div>
-                        ) : (
                           (() => {
-                            const obj = currentArrayItem as Record<string, unknown>;
-                            const isSchemaItemLike = typeof obj?.['type'] === 'string' || typeof obj?.['key'] === 'string';
-                            const hasNestedItems = Array.isArray(obj?.['items']);
+                            const imgUrl = (currentArrayItem as any).url || (currentArrayItem as any).src || (currentArrayItem as any).image || '';
+                            const urlKey = (currentArrayItem as any).url !== undefined ? 'url' : ((currentArrayItem as any).src !== undefined ? 'src' : 'image');
+                            let fileRef: HTMLInputElement | null = null;
+                            return (
+                              <div className="flex items-start gap-4">
+                                {/* Left: preview with hover-delete and click-to-edit */}
+                                <div className="group relative w-48 h-28 bg-slate-100 rounded overflow-hidden flex items-center justify-center">
+                                  {imgUrl ? (
+                                    <img
+                                      src={imgUrl}
+                                      alt={`Image ${currentTab + 1}`}
+                                      className="h-full w-auto object-cover cursor-pointer"
+                                      onClick={() => fileRef?.click()}
+                                    />
+                                  ) : (
+                                    <div
+                                      className="text-xs text-gray-500 cursor-pointer"
+                                      onClick={() => fileRef?.click()}
+                                    >
+                                      Click to add image
+                                    </div>
+                                  )}
+                                  <button
+                                    type="button"
+                                    title="Remove"
+                                    onClick={() => removeArrayItem(index, arrayProp, currentTab)}
+                                    className="absolute top-2 left-2 p-1 rounded bg-red-500 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </button>
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    ref={(el) => (fileRef = el)}
+                                    className="hidden"
+                                    onChange={(e) => {
+                                      const f = e.target.files?.[0];
+                                      if (f) handleImageUpload(index, arrayProp, currentTab, f);
+                                    }}
+                                  />
+                                </div>
+                                {/* Right: URL/Alt/Title if present */}
+                                <div className="flex-1 space-y-3">
+                                  <div>
+                                    <Label className="text-sm font-medium mb-2 block">Image URL</Label>
+                                    <input
+                                      type="url"
+                                      value={imgUrl}
+                                      onChange={(e) => updateArrayItem(index, arrayProp, currentTab, urlKey, e.target.value)}
+                                      className="w-full p-2 rounded-md border"
+                                      placeholder="Enter image URL"
+                                    />
+                                  </div>
+                                  {'alt' in (currentArrayItem as any) && (
+                                    <div>
+                                      <Label className="text-sm font-medium mb-2 block">Alt Text</Label>
+                                      <input
+                                        type="text"
+                                        value={(currentArrayItem as any).alt || ''}
+                                        onChange={(e) => updateArrayItem(index, arrayProp, currentTab, 'alt', e.target.value)}
+                                        className="w-full p-2 rounded-md border"
+                                        placeholder="Describe the image"
+                                      />
+                                    </div>
+                                  )}
+                                  {'title' in (currentArrayItem as any) && (
+                                    <div>
+                                      <Label className="text-sm font-medium mb-2 block">Title</Label>
+                                      <input
+                                        type="text"
+                                        value={(currentArrayItem as any).title || ''}
+                                        onChange={(e) => updateArrayItem(index, arrayProp, currentTab, 'title', e.target.value)}
+                                        className="w-full p-2 rounded-md border"
+                                        placeholder="Optional title"
+                                      />
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })()
+                        ) : (
+                           (() => {
+                             const obj = currentArrayItem as Record<string, unknown>;
+                             const isSchemaItemLike = typeof obj?.['type'] === 'string' || typeof obj?.['key'] === 'string';
+                             const hasNestedItems = Array.isArray(obj?.['items']);
 
-                            // If the array element is itself a SchemaItem, render it with ItemEditor
-                            if (isSchemaItemLike && !hasNestedItems) {
-                              return (
+                             // If the array element is itself a SchemaItem, render it with ItemEditor
+                             if (isSchemaItemLike && !hasNestedItems) {
+                               return (
                                 <div className="space-y-4">
                                   <ItemEditor
                                     item={obj as unknown as SchemaItem}
@@ -475,16 +530,16 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
                                     onRemove={() => removeArrayItem(index, arrayProp, currentTab)}
                                   />
                                 </div>
-                              );
-                            }
+                               );
+                             }
 
-                            // If the array element is a grouped item with nested 'items', render all nested components
-                            if (hasNestedItems) {
-                              const nestedItems = (obj['items'] as unknown as SchemaItem[]) || [];
-                              return (
+                             // If the array element is a grouped item with nested 'items', render all nested components
+                             if (hasNestedItems) {
+                               const nestedItems = (obj['items'] as unknown as SchemaItem[]) || [];
+                               return (
                                 <div className="space-y-4">
                                   {nestedItems.map((nestedItem, nestedIndex) => (
-                                    <div key={nestedItem.key ?? `${nestedItem.type}-${nestedIndex}`} className="border rounded p-3 bg-slate-50">
+                                    <div key={nestedItem.key ?? `${nestedItem.type}-${nestedIndex}`} className="rounded p-3 bg-slate-50">
                                       <ItemEditor
                                         item={nestedItem}
                                         onChange={(updatedNested) => {
@@ -509,11 +564,11 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
                                     </Button>
                                   </div>
                                 </div>
-                              );
-                            }
+                               );
+                             }
 
-                            // Fallback: simple object with primitive fields (old behavior)
-                            return (
+                             // Fallback: simple object with primitive fields (old behavior)
+                             return (
                               <div className="space-y-4">
                                 {Object.entries(obj)
                                   .filter(([key]) => {
@@ -610,7 +665,7 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
 
     // Regular item without arrays
   return (
-              <div key={`${item.key}-${index}`} className="border rounded-lg overflow-hidden">
+              <div key={`${item.key}-${index}`} className="overflow-hidden">
                 <div 
                   className="flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 cursor-pointer transition-colors"
                   onClick={() => toggleItem(index)}
@@ -637,7 +692,7 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
                   </Button>
                 </div>
                 {expandedItems.has(index) && (
-                  <div className="p-4 border-t bg-white">
+                  <div className="p-4 bg-white">
                     <ItemEditor 
                       item={item} 
                       onChange={(updatedItem) => handleItemChange([index], updatedItem)} 

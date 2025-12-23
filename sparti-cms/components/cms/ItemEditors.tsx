@@ -46,7 +46,7 @@ export const HeadingEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRem
   };
 
   return (
-    <Card className="border">
+    <Card className="border-0 shadow-none">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm flex items-center gap-2">
@@ -99,7 +99,7 @@ export const TextEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove
   };
 
   return (
-    <Card className="border">
+    <Card className="border-0 shadow-none">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm flex items-center gap-2">
@@ -133,61 +133,98 @@ export const ImageEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemov
   const alt = item.alt || '';
   const title = item.content || '';
 
+  const uploadFile = async (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const res = await fetch('/api/upload', { method: 'POST', body: formData });
+    if (!res.ok) return;
+    const result = await res.json();
+    if (result?.url) update('src', result.url);
+  };
+
+  let fileInputRef: HTMLInputElement | null = null;
+
   return (
-    <Card className="border">
+    <Card className="border-0 shadow-none">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm flex items-center gap-2">
             <ImageIcon className="h-4 w-4" />
             Image
           </CardTitle>
-          <Button variant="ghost" size="sm" onClick={onRemove}>
-            <X className="h-4 w-4" />
-          </Button>
+          {/* Removed top-right delete; delete lives on image hover */}
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Fixed height preview without change button */}
-        <div className="border rounded-md p-2">
-          <div className="w-full h-[180px] bg-slate-100 rounded flex items-center justify-center overflow-hidden">
+        <div className="flex gap-4 items-start">
+          {/* Left: image preview with hover delete + click-to-edit */}
+          <div className="group relative w-48 h-28 bg-slate-100 rounded overflow-hidden flex items-center justify-center">
             {url ? (
               <img
                 src={url}
                 alt={alt || 'Preview'}
-                className="h-full w-auto object-cover"
+                className="h-full w-auto object-cover cursor-pointer"
+                onClick={() => fileInputRef?.click()}
               />
             ) : (
-              <div className="text-xs text-gray-500">No image URL</div>
+              <div
+                className="text-xs text-gray-500 cursor-pointer"
+                onClick={() => fileInputRef?.click()}
+              >
+                Click to add image
+              </div>
             )}
-          </div>
-        </div>
-        <div className="space-y-2">
-          <Label className="text-xs">Image URL</Label>
-          <Input
-            value={url}
-            onChange={(e) => update('src', e.target.value)}
-            placeholder="https://example.com/image.jpg"
-            className="text-sm"
-          />
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <div className="space-y-2">
-            <Label className="text-xs">Alt Text</Label>
-            <Input
-              value={alt}
-              onChange={(e) => update('alt', e.target.value)}
-              placeholder="Describe the image"
-              className="text-sm"
+            <button
+              type="button"
+              title="Remove image"
+              onClick={onRemove}
+              className="absolute top-2 left-2 p-1 rounded bg-red-500 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              <X className="h-4 w-4" />
+            </button>
+            <input
+              type="file"
+              accept="image/*"
+              ref={(el) => (fileInputRef = el)}
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) uploadFile(file);
+              }}
             />
           </div>
-          <div className="space-y-2">
-            <Label className="text-xs">Title</Label>
-            <Input
-              value={title}
-              onChange={(e) => update('content', e.target.value)}
-              placeholder="Optional title"
-              className="text-sm"
-            />
+
+          {/* Right: fields */}
+          <div className="flex-1 space-y-3">
+            <div className="space-y-2">
+              <Label className="text-xs">Image URL</Label>
+              <Input
+                value={url}
+                onChange={(e) => update('src', e.target.value)}
+                placeholder="https://example.com/image.jpg"
+                className="text-sm"
+              />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label className="text-xs">Alt Text</Label>
+                <Input
+                  value={alt}
+                  onChange={(e) => update('alt', e.target.value)}
+                  placeholder="Describe the image"
+                  className="text-sm"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs">Title</Label>
+                <Input
+                  value={title}
+                  onChange={(e) => update('content', e.target.value)}
+                  placeholder="Optional title"
+                  className="text-sm"
+                />
+              </div>
+            </div>
           </div>
         </div>
       </CardContent>
@@ -212,7 +249,7 @@ export const LinkEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove
   };
 
   return (
-    <Card className="border">
+    <Card className="border-0 shadow-none">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm flex items-center gap-2">
@@ -266,7 +303,7 @@ export const ButtonEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemo
   };
 
   return (
-    <Card className="border">
+    <Card className="border-0 shadow-none">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm flex items-center gap-2">
@@ -333,7 +370,7 @@ export const ArrayEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemov
   };
 
   return (
-    <Card className="border">
+    <Card className="border-0 shadow-none">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <div className="flex gap-2">
@@ -434,7 +471,7 @@ export const TabsEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove
   };
 
   return (
-    <Card className="border">
+    <Card className="border-0 shadow-none">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm flex items-center gap-2">
@@ -552,7 +589,7 @@ export const VideoItemEditor: React.FC<ItemEditorProps> = ({ item, onChange, onR
   };
 
   return (
-    <Card className="border">
+    <Card className="border-0 shadow-none">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm flex items-center gap-2">
@@ -597,7 +634,7 @@ export const GalleryItemEditor: React.FC<ItemEditorProps> = ({ item, onChange, o
   };
 
   return (
-    <Card className="border">
+    <Card className="border-0 shadow-none">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm flex items-center gap-2">
@@ -652,7 +689,7 @@ export const CarouselItemEditor: React.FC<ItemEditorProps> = ({ item, onChange, 
   };
 
   return (
-    <Card className="border">
+    <Card className="border-0 shadow-none">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm flex items-center gap-2">
@@ -757,7 +794,7 @@ export const InputEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemov
   };
 
   return (
-    <Card className="border">
+    <Card className="border-0 shadow-none">
       <CardHeader className="p-3 flex flex-row items-center justify-between">
         <CardTitle className="text-sm flex items-center gap-2">
           <Type className="h-4 w-4" />
@@ -767,7 +804,7 @@ export const InputEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemov
           <X className="h-4 w-4" />
         </Button>
       </CardHeader>
-      <CardContent className="p-3 border-t space-y-3">
+      <CardContent className="p-3 space-y-3">
         <div className="space-y-2">
           <Label>Field Key</Label>
           <Input
@@ -807,7 +844,7 @@ export const TextareaEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRe
   };
 
   return (
-    <Card className="border">
+    <Card className="border-0 shadow-none">
       <CardHeader className="p-3 flex flex-row items-center justify-between">
         <CardTitle className="text-sm flex items-center gap-2">
           <Type className="h-4 w-4" />
@@ -817,7 +854,7 @@ export const TextareaEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRe
           <X className="h-4 w-4" />
         </Button>
       </CardHeader>
-      <CardContent className="p-3 border-t space-y-3">
+      <CardContent className="p-3 space-y-3">
         <div className="space-y-2">
           <Label>Field Key</Label>
           <Input
@@ -862,7 +899,7 @@ export const ReviewEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemo
   };
 
   return (
-    <Card className="border">
+    <Card className="border-0 shadow-none">
       <CardHeader className="p-3 flex flex-row items-center justify-between">
         <CardTitle className="text-sm flex items-center gap-2">
           <MousePointer className="h-4 w-4" />
@@ -872,7 +909,7 @@ export const ReviewEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemo
           <X className="h-4 w-4" />
         </Button>
       </CardHeader>
-      <CardContent className="p-3 border-t space-y-3">
+      <CardContent className="p-3 space-y-3">
         <div className="space-y-2">
           <Label>Review Key</Label>
           <Input
@@ -941,7 +978,7 @@ export const FeatureEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRem
   };
 
   return (
-    <Card className="border">
+    <Card className="border-0 shadow-none">
       <CardHeader className="p-3 flex flex-row items-center justify-between">
         <CardTitle className="text-sm flex items-center gap-2">
           <MousePointer className="h-4 w-4" />
@@ -951,7 +988,7 @@ export const FeatureEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRem
           <X className="h-4 w-4" />
         </Button>
       </CardHeader>
-      <CardContent className="p-3 border-t space-y-3">
+      <CardContent className="p-3 space-y-3">
         <div className="space-y-2">
           <Label>Feature Key</Label>
           <Input
