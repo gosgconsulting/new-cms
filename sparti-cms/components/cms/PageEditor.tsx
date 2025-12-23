@@ -455,6 +455,11 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
       const outputContent = extractContentFromComponents(outputComponents || []);
       return (
         <div className="space-y-6">
+          {/* SEO form at the top, exactly as before */}
+          <div className="border-b pb-4">
+            <SEOForm pageData={pageData} onFieldChange={updateField} />
+          </div>
+
           <div className="border-b pb-2">
             <h3 className="text-lg font-semibold flex items-center">
               <FileText className="h-5 w-5 mr-2" />
@@ -818,16 +823,6 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
 
           <ScrollArea className="flex-1">
             <div className="p-2 space-y-2">
-              {/* SEO Settings first */}
-              <Button
-                variant={showSEOForm ? "default" : "ghost"}
-                className="w-full justify-start"
-                onClick={handleSEOFormOpen}
-              >
-                <Settings className="h-4 w-4 mr-2" />
-                SEO Settings
-              </Button>
-
               {/* Sections acts like old Contents (click to show contents panel) */}
               <Button
                 variant={showContents ? "default" : "ghost"}
