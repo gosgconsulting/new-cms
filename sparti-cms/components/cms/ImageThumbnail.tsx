@@ -8,7 +8,7 @@ interface ImageThumbnailProps {
   className?: string;
 }
 
-const ImageThumbnail: React.FC<ImageThumbnailProps> = ({ url, onFileSelected, onRemove, className = '' }) => {
+const ImageThumbnail: React.FC<ImageThumbnailProps & { showRemove?: boolean }> = ({ url, onFileSelected, onRemove, className = '', showRemove = true }) => {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [dims, setDims] = useState<{ w: number; h: number } | null>(null);
 
@@ -35,14 +35,16 @@ const ImageThumbnail: React.FC<ImageThumbnailProps> = ({ url, onFileSelected, on
           </div>
         )}
 
-        <button
-          type="button"
-          title="Remove image"
-          onClick={onRemove}
-          className="absolute top-2 right-2 p-1 rounded bg-red-500 text-white"
-        >
-          <X className="h-4 w-4" />
-        </button>
+        {showRemove && (
+          <button
+            type="button"
+            title="Remove image"
+            onClick={onRemove}
+            className="absolute top-2 right-2 p-1 rounded bg-red-500 text-white"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        )}
 
         <input
           ref={inputRef}

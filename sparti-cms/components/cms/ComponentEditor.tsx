@@ -484,6 +484,7 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
                                       setArrayItemObject(index, arrayProp, currentTab, updated as unknown as Record<string, unknown>)
                                     }
                                     onRemove={() => removeArrayItem(index, arrayProp, currentTab)}
+                                    allowRemove={true}
                                   />
                                 </div>
                                );
@@ -507,6 +508,7 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
                                            const updatedNestedItems = nestedItems.filter((_, i) => i !== nestedIndex);
                                            setArrayItemObject(index, arrayProp, currentTab, { ...obj, items: updatedNestedItems });
                                          }}
+                                         allowRemove={true}
                                        />
                                      </div>
                                   ))}
@@ -656,7 +658,8 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
                         const updatedItems = [...safeSchema.items];
                         updatedItems.splice(index, 1);
                         onChange?.({ ...safeSchema, items: updatedItems });
-                      }} 
+                      }}
+                      allowRemove={false}
                     />
                   </div>
                 )}

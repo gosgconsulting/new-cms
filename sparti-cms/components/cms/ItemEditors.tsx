@@ -27,11 +27,12 @@ interface ItemEditorProps {
   item: SchemaItem;
   onChange: (item: SchemaItem) => void;
   onRemove: () => void;
+  allowRemove?: boolean;
 }
 
 
 // Heading item editor
-export const HeadingEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove }) => {
+export const HeadingEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove, allowRemove = true }) => {
   const updateValue = (value: string) => {
     onChange({
       ...item,
@@ -54,9 +55,11 @@ export const HeadingEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRem
             <Type className="h-4 w-4" />
             Heading
           </CardTitle>
-          <Button variant="ghost" size="sm" onClick={onRemove}>
-            <X className="h-4 w-4" />
-          </Button>
+          {allowRemove && (
+            <Button variant="ghost" size="sm" onClick={onRemove}>
+              <X className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -91,7 +94,7 @@ export const HeadingEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRem
 };
 
 // Text item editor
-export const TextEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove }) => {
+export const TextEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove, allowRemove = true }) => {
   const updateValue = (value: string) => {
     onChange({
       ...item,
@@ -107,9 +110,11 @@ export const TextEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove
             <Type className="h-4 w-4" />
             Text
           </CardTitle>
-          <Button variant="ghost" size="sm" onClick={onRemove}>
-            <X className="h-4 w-4" />
-          </Button>
+          {allowRemove && (
+            <Button variant="ghost" size="sm" onClick={onRemove}>
+              <X className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       </CardHeader>
       <CardContent>
@@ -125,7 +130,7 @@ export const TextEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove
 };
 
 // Image item editor
-export const ImageEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove }) => {
+export const ImageEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove, allowRemove = true }) => {
   const update = (field: keyof SchemaItem, value: string) => onChange({ ...item, [field]: value });
   const url = item.src || '';
   const alt = item.alt || '';
@@ -147,13 +152,12 @@ export const ImageEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemov
             <ImageIcon className="h-4 w-4" />
             Image
           </CardTitle>
-          {/* Remove top-right delete from header; delete is over the image */}
+          {/* delete over image only */}
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        <ImageThumbnail url={url} onFileSelected={uploadFile} onRemove={onRemove} />
+        <ImageThumbnail url={url} onFileSelected={uploadFile} onRemove={onRemove} showRemove={allowRemove} />
 
-        {/* Fields below: URL + Alt only (no Title) */}
         <div className="space-y-2">
           <Label className="text-xs">Image URL</Label>
           <Input
@@ -178,7 +182,7 @@ export const ImageEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemov
 };
 
 // Link item editor
-export const LinkEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove }) => {
+export const LinkEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove, allowRemove = true }) => {
   const updateValue = (value: string) => {
     onChange({
       ...item,
@@ -201,9 +205,11 @@ export const LinkEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove
             <LinkIcon className="h-4 w-4" />
             Link
           </CardTitle>
-          <Button variant="ghost" size="sm" onClick={onRemove}>
-            <X className="h-4 w-4" />
-          </Button>
+          {allowRemove && (
+            <Button variant="ghost" size="sm" onClick={onRemove}>
+              <X className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -231,7 +237,7 @@ export const LinkEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove
 };
 
 // Button item editor
-export const ButtonEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove }) => {
+export const ButtonEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove, allowRemove = true }) => {
   const updateValue = (value: string) => {
     onChange({
       ...item,
@@ -255,9 +261,11 @@ export const ButtonEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemo
             <MousePointer className="h-4 w-4" />
             Button
           </CardTitle>
-          <Button variant="ghost" size="sm" onClick={onRemove}>
-            <X className="h-4 w-4" />
-          </Button>
+          {allowRemove && (
+            <Button variant="ghost" size="sm" onClick={onRemove}>
+              <X className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -285,7 +293,7 @@ export const ButtonEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemo
 };
 
 // Array item editor
-export const ArrayEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove }) => {
+export const ArrayEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove, allowRemove = true }) => {
   const updateItems = (items: SchemaItem[]) => {
     onChange({
       ...item,
@@ -324,9 +332,11 @@ export const ArrayEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemov
               Add Item
             </Button>
           </div>
-          <Button variant="ghost" size="sm" onClick={onRemove}>
-            <X className="h-4 w-4" />
-          </Button>
+          {allowRemove && (
+            <Button variant="ghost" size="sm" onClick={onRemove}>
+              <X className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -345,6 +355,7 @@ export const ArrayEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemov
                   item={arrayItem}
                   onChange={(updatedSubItem) => updateItem(index, updatedSubItem)}
                   onRemove={() => removeItem(index)}
+                  allowRemove={true}
                 />
               </TabsContent>
             ))}
@@ -364,7 +375,7 @@ export const ArrayEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemov
 };
 
 // Tabs editor
-export const TabsEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove }) => {
+export const TabsEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove, allowRemove = true }) => {
   const tabs = item.tabs || [];
   
   const addTab = () => {
@@ -423,9 +434,11 @@ export const TabsEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove
             <FolderOpen className="h-4 w-4" />
             Tabs
           </CardTitle>
-          <Button variant="ghost" size="sm" onClick={onRemove}>
-            <X className="h-4 w-4" />
-          </Button>
+          {allowRemove && (
+            <Button variant="ghost" size="sm" onClick={onRemove}>
+              <X className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -509,7 +522,7 @@ export const TabsEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove
 };
 
 // Video item editor using the new ContentVideoEditor
-export const VideoItemEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove }) => {
+export const VideoItemEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove, allowRemove = true }) => {
   const videoItem = item as any; // Type assertion for video item
 
   const updateValue = (value: string) => {
@@ -541,9 +554,11 @@ export const VideoItemEditor: React.FC<ItemEditorProps> = ({ item, onChange, onR
             <Video className="h-4 w-4" />
             Video
           </CardTitle>
-          <Button variant="ghost" size="sm" onClick={onRemove}>
-            <X className="h-4 w-4" />
-          </Button>
+          {allowRemove && (
+            <Button variant="ghost" size="sm" onClick={onRemove}>
+              <X className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       </CardHeader>
       <CardContent>
@@ -561,7 +576,7 @@ export const VideoItemEditor: React.FC<ItemEditorProps> = ({ item, onChange, onR
 };
 
 // Gallery item editor using the new ContentGalleryEditor
-export const GalleryItemEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove }) => {
+export const GalleryItemEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove, allowRemove = true }) => {
   const galleryItem = item as any; // Type assertion for gallery item
 
   const updateImages = (images: any[]) => {
@@ -586,9 +601,11 @@ export const GalleryItemEditor: React.FC<ItemEditorProps> = ({ item, onChange, o
             <Grid className="h-4 w-4" />
             Gallery
           </CardTitle>
-          <Button variant="ghost" size="sm" onClick={onRemove}>
-            <X className="h-4 w-4" />
-          </Button>
+          {allowRemove && (
+            <Button variant="ghost" size="sm" onClick={onRemove}>
+              <X className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       </CardHeader>
       <CardContent>
@@ -604,7 +621,7 @@ export const GalleryItemEditor: React.FC<ItemEditorProps> = ({ item, onChange, o
 };
 
 // Carousel item editor using the new ContentCarouselEditor
-export const CarouselItemEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove }) => {
+export const CarouselItemEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove, allowRemove = true }) => {
   const carouselItem = item as any; // Type assertion for carousel item
 
   const updateImages = (images: any[]) => {
@@ -641,9 +658,11 @@ export const CarouselItemEditor: React.FC<ItemEditorProps> = ({ item, onChange, 
             <Layers className="h-4 w-4" />
             Carousel
           </CardTitle>
-          <Button variant="ghost" size="sm" onClick={onRemove}>
-            <X className="h-4 w-4" />
-          </Button>
+          {allowRemove && (
+            <Button variant="ghost" size="sm" onClick={onRemove}>
+              <X className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       </CardHeader>
       <CardContent>
@@ -667,41 +686,41 @@ export const CarouselItemEditor: React.FC<ItemEditorProps> = ({ item, onChange, 
 };
 
 // Main item editor that routes to the appropriate editor
-export const ItemEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove }) => {
+export const ItemEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove, allowRemove = true }) => {
   switch (item.type) {
     case 'heading':
-      return <HeadingEditor item={item} onChange={onChange} onRemove={onRemove} />;
+      return <HeadingEditor item={item} onChange={onChange} onRemove={onRemove} allowRemove={allowRemove} />;
     case 'text':
-      return <TextEditor item={item} onChange={onChange} onRemove={onRemove} />;
+      return <TextEditor item={item} onChange={onChange} onRemove={onRemove} allowRemove={allowRemove} />;
     case 'image':
-      return <ImageEditor item={item} onChange={onChange} onRemove={onRemove} />;
+      return <ImageEditor item={item} onChange={onChange} onRemove={onRemove} allowRemove={allowRemove} />;
     case 'video':
-      return <VideoItemEditor item={item} onChange={onChange} onRemove={onRemove} />;
+      return <VideoItemEditor item={item} onChange={onChange} onRemove={onRemove} allowRemove={allowRemove} />;
     case 'gallery':
-      return <GalleryItemEditor item={item} onChange={onChange} onRemove={onRemove} />;
+      return <GalleryItemEditor item={item} onChange={onChange} onRemove={onRemove} allowRemove={allowRemove} />;
     case 'carousel':
-      return <CarouselItemEditor item={item} onChange={onChange} onRemove={onRemove} />;
+      return <CarouselItemEditor item={item} onChange={onChange} onRemove={onRemove} allowRemove={allowRemove} />;
     case 'link':
-      return <LinkEditor item={item} onChange={onChange} onRemove={onRemove} />;
+      return <LinkEditor item={item} onChange={onChange} onRemove={onRemove} allowRemove={allowRemove} />;
     case 'button':
-      return <ButtonEditor item={item} onChange={onChange} onRemove={onRemove} />;
+      return <ButtonEditor item={item} onChange={onChange} onRemove={onRemove} allowRemove={allowRemove} />;
     case 'tabs':
-      return <TabsEditor item={item} onChange={onChange} onRemove={onRemove} />;
+      return <TabsEditor item={item} onChange={onChange} onRemove={onRemove} allowRemove={allowRemove} />;
     case 'array':
       // Check if this is a FAQ array
       if (item.key === 'faqs' && item.items?.some(i => i.type === 'faq')) {
         return <FAQArrayEditor item={item} onChange={onChange} onRemove={onRemove} />;
       }
-      return <ArrayEditor item={item} onChange={onChange} onRemove={onRemove} />;
+      return <ArrayEditor item={item} onChange={onChange} onRemove={onRemove} allowRemove={allowRemove} />;
     // V3 Schema item types
     case 'input':
-      return <InputEditor item={item} onChange={onChange} onRemove={onRemove} />;
+      return <InputEditor item={item} onChange={onChange} onRemove={onRemove} allowRemove={allowRemove} />;
     case 'textarea':
-      return <TextareaEditor item={item} onChange={onChange} onRemove={onRemove} />;
+      return <TextareaEditor item={item} onChange={onChange} onRemove={onRemove} allowRemove={allowRemove} />;
     case 'review':
-      return <ReviewEditor item={item} onChange={onChange} onRemove={onRemove} />;
+      return <ReviewEditor item={item} onChange={onChange} onRemove={onRemove} allowRemove={allowRemove} />;
     case 'feature':
-      return <FeatureEditor item={item} onChange={onChange} onRemove={onRemove} />;
+      return <FeatureEditor item={item} onChange={onChange} onRemove={onRemove} allowRemove={allowRemove} />;
     case 'ContactForm' as any:
       return <ContactFormEditor item={item} onChange={onChange} onRemove={onRemove} />;
     case 'faq':
@@ -710,13 +729,15 @@ export const ItemEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove
       return <OfficeHoursItemEditor item={item} onChange={onChange} onRemove={onRemove} />;
     default:
       return (
-        <Card className="border">
+        <Card className="border-0 shadow-none">
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm">Unknown Item Type: {item.type}</CardTitle>
-              <Button variant="ghost" size="sm" onClick={onRemove}>
-                <X className="h-4 w-4" />
-              </Button>
+              {allowRemove && (
+                <Button variant="ghost" size="sm" onClick={onRemove}>
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
             </div>
           </CardHeader>
           <CardContent>
@@ -733,7 +754,7 @@ export const ItemEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove
 
 
 // Input field editor for form inputs
-export const InputEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove }) => {
+export const InputEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove, allowRemove = true }) => {
   const updateItem = (field: keyof SchemaItem, value: any) => {
     onChange({ ...item, [field]: value });
   };
@@ -745,9 +766,11 @@ export const InputEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemov
           <Type className="h-4 w-4" />
           Input Field: <span className="font-normal text-muted-foreground">{item.key}</span>
         </CardTitle>
-        <Button variant="ghost" size="sm" onClick={onRemove} className="text-red-500 hover:text-red-700">
-          <X className="h-4 w-4" />
-        </Button>
+        {allowRemove && (
+          <Button variant="ghost" size="sm" onClick={onRemove} className="text-red-500 hover:text-red-700">
+            <X className="h-4 w-4" />
+          </Button>
+        )}
       </CardHeader>
       <CardContent className="p-3 space-y-3">
         <div className="space-y-2">
@@ -783,7 +806,7 @@ export const InputEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemov
 };
 
 // Textarea field editor for form textareas
-export const TextareaEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove }) => {
+export const TextareaEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove, allowRemove = true }) => {
   const updateItem = (field: keyof SchemaItem, value: any) => {
     onChange({ ...item, [field]: value });
   };
@@ -795,9 +818,11 @@ export const TextareaEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRe
           <Type className="h-4 w-4" />
           Textarea Field: <span className="font-normal text-muted-foreground">{item.key}</span>
         </CardTitle>
-        <Button variant="ghost" size="sm" onClick={onRemove} className="text-red-500 hover:text-red-700">
-          <X className="h-4 w-4" />
-        </Button>
+        {allowRemove && (
+          <Button variant="ghost" size="sm" onClick={onRemove} className="text-red-500 hover:text-red-700">
+            <X className="h-4 w-4" />
+          </Button>
+        )}
       </CardHeader>
       <CardContent className="p-3 space-y-3">
         <div className="space-y-2">
@@ -833,7 +858,7 @@ export const TextareaEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRe
 };
 
 // Review item editor
-export const ReviewEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove }) => {
+export const ReviewEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove, allowRemove = true }) => {
   const updateItem = (field: keyof SchemaItem, value: any) => {
     onChange({ ...item, [field]: value });
   };
@@ -850,9 +875,11 @@ export const ReviewEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemo
           <MousePointer className="h-4 w-4" />
           Review Item: <span className="font-normal text-muted-foreground">{item.key}</span>
         </CardTitle>
-        <Button variant="ghost" size="sm" onClick={onRemove} className="text-red-500 hover:text-red-700">
-          <X className="h-4 w-4" />
-        </Button>
+        {allowRemove && (
+          <Button variant="ghost" size="sm" onClick={onRemove} className="text-red-500 hover:text-red-700">
+            <X className="h-4 w-4" />
+          </Button>
+        )}
       </CardHeader>
       <CardContent className="p-3 space-y-3">
         <div className="space-y-2">
@@ -912,7 +939,7 @@ export const ReviewEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemo
 };
 
 // Feature item editor
-export const FeatureEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove }) => {
+export const FeatureEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove, allowRemove = true }) => {
   const updateItem = (field: keyof SchemaItem, value: any) => {
     onChange({ ...item, [field]: value });
   };
@@ -929,9 +956,11 @@ export const FeatureEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRem
           <MousePointer className="h-4 w-4" />
           Feature Item: <span className="font-normal text-muted-foreground">{item.key}</span>
         </CardTitle>
-        <Button variant="ghost" size="sm" onClick={onRemove} className="text-red-500 hover:text-red-700">
-          <X className="h-4 w-4" />
-        </Button>
+        {allowRemove && (
+          <Button variant="ghost" size="sm" onClick={onRemove} className="text-red-500 hover:text-red-700">
+            <X className="h-4 w-4" />
+          </Button>
+        )}
       </CardHeader>
       <CardContent className="p-3 space-y-3">
         <div className="space-y-2">
