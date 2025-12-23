@@ -682,6 +682,33 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
               </TabsContent>
 
               <TabsContent value="output">
+                {/* AI Assistant input at top for this section */}
+                <div className="mb-2">
+                  <AIAssistantChat
+                    className="h-full w-full"
+                    pageContext={pageData ? {
+                      slug: pageData.slug,
+                      pageName: pageData.page_name,
+                      tenantId: currentTenantId || undefined
+                    } : null}
+                    currentComponents={components}
+                    onUpdateComponents={setComponents}
+                    onProposedComponents={handleProposedComponentsMerge}
+                    onOpenJSONEditor={openJSONEditor}
+                    selectedComponentJSON={selectedComponentForAI || selected || null}
+                    onComponentSelected={() => {}}
+                    onActionStatus={setAIActionStatus}
+                  />
+                </div>
+
+                {aiActionStatus && (
+                  <div className="mb-3 inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-muted text-xs text-muted-foreground border">
+                    <span className="font-medium">Action:</span>
+                    <span>{aiActionStatus}</span>
+                  </div>
+                )}
+
+                {/* Drafted content preview below the chat */}
                 {hasOutput ? (
                   renderSectionContents(proposedForSelected as ComponentSchema)
                 ) : (
