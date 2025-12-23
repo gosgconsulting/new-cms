@@ -537,6 +537,94 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
         );
       };
 
+      // NEW: Render the AI Output section with Apply button
+      const renderOutputContents = (comp: ComponentSchema | null) => {
+        const items = comp ? extractContentFromComponents([comp]) : [];
+        return (
+          <div className="space-y-4 mt-8 border-t pt-6">
+            <div className="border-b pb-2 flex items-center justify-between">
+              <div className="flex items-center">
+                <h3 className="text-lg font-semibold flex items-center">
+                  <FileText className="h-5 w-5 mr-2" />
+                  AI Output
+                </h3>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    if (selectedComponentIndex === null || !selected) return;
+                    const normalized = {
+                      ...comp!,
+                      key: comp?.key || selected.key,
+                      type: comp?.type || selected.type,
+                    };
+                    updateComponent(selectedComponentIndex, normalized);
+                    // Remove the applied draft from proposed list
+                    setProposedComponents((prev) => {
+                      if (!prev) return prev;
+                      const key = normalized.key;
+                      const filtered = prev.filter((c) => c.key !== key);
+                      return filtered.length > 0 ? filtered : null;
+                    });
+                    toast.success('Output applied to this section');
+                  }}
+                >
+                  Apply Output
+                </Button>
+              </div>
+            </div>
+
+            {items.length === 0 ? (
+              <div className="text-sm text-muted-foreground">No text in the AI output for this section.</div>
+            ) : (
+              <div className="prose prose-sm max-w-none">
+                {items.map((item, index) => {
+                  const key = `${item.componentId}-output-${index}`;
+                  switch (item.type) {
+                    case 'heading': {
+                      const HeadingTag = `h${item.level || 2}` as keyof JSX.IntrinsicElements;
+                      return (
+                        <HeadingTag
+                          key={key}
+                          className={`font-bold text-foreground ${
+                            item.level === 1 ? 'text-2xl mb-3' :
+                            item.level === 2 ? 'text-xl mb-2' :
+                            item.level === 3 ? 'text-lg mb-2' :
+                            'text-base mb-2'
+                          }`}
+                        >
+                          {item.text}
+                        </HeadingTag>
+                      );
+                    }
+                    case 'paragraph':
+                      return (
+                        <p key={key} className="text-foreground mb-3 leading-relaxed">
+                          {item.text}
+                        </p>
+                      );
+                    case 'list':
+                      return (
+                        <li key={key} className="text-foreground mb-2 ml-4 list-disc">
+                          {item.text}
+                        </li>
+                      );
+                    case 'text':
+                    default:
+                      return (
+                        <div key={key} className="text-foreground mb-2 px-3 py-2 rounded bg-muted/30">
+                          <div className="mt-1">{item.text}</div>
+                        </div>
+                      );
+                  }
+                })}
+              </div>
+            )}
+          </div>
+        );
+      };
+
       return (
         <div className="w-full">
           {/* Revert to original snapshot */}
@@ -572,6 +660,9 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
 
           {/* Single preview: always show the current component content */}
           {renderSectionContents(selected)}
+
+          {/* NEW: Show AI Output draft below the section contents with Apply button */}
+          {proposedForSelected ? renderOutputContents(proposedForSelected) : null}
         </div>
       );
     }
@@ -714,48 +805,25 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
             currentComponents={components}
             onUpdateComponents={setComponents}
             onProposedComponents={(proposals) => {
-              // Auto-apply proposals into components by key or by best-effort type match.
-              setComponents((prev) => {
-                const next = [...prev]
-                const matchIndex = (proposal: any) => {
-                  if (proposal.key) {
-                    const idx = next.findIndex((c) => c.key === proposal.key)
-                    if (idx !== -1) return idx
-                  }
-                  if (proposal.type) {
-                    const lower = String(proposal.type).toLowerCase()
-                    const byType = next.findIndex((c) => (c.type || '').toLowerCase() === lower)
-                    if (byType !== -1) return byType
-                    const byName = next.findIndex((c) => c.name && c.name.toLowerCase().includes(lower))
-                    if (byName !== -1) return byName
-                  }
-                  return -1
-                }
-                proposals.forEach((p: any) => {
-                  if (!p) return
-                  const idx = matchIndex(p)
-                  if (idx !== -1) {
-                    // Preserve original key if missing
-                    const incoming = { ...p, key: p.key || next[idx].key, type: p.type || next[idx].type }
-                    next[idx] = incoming
-                  }
-                })
-                return next
-              })
-              // Also keep a snapshot of the latest proposals for page-level preview (if elsewhere needed)
+              // Store proposals for review without auto-applying
               setProposedComponents((prev) => {
-                const list = Array.isArray(prev) ? [...prev] : []
+                const list = Array.isArray(prev) ? [...prev] : [];
                 proposals.forEach((p: any) => {
-                  if (!p) return
-                  const key = p.key || (components.find((c) => (c.type || '').toLowerCase() === String(p.type || '').toLowerCase())?.key)
-                  if (!key) return
-                  const idx = list.findIndex((c) => c.key === key)
-                  const normalized = { ...p, key }
-                  if (idx >= 0) list[idx] = normalized
-                  else list.push(normalized)
-                })
-                return list
-              })
+                  if (!p) return;
+                  const key =
+                    p.key ||
+                    (components.find(
+                      (c) => (c.type || '').toLowerCase() === String(p.type || '').toLowerCase()
+                    )?.key);
+                  if (!key) return;
+                  const idx = list.findIndex((c) => c.key === key);
+                  const normalized = { ...p, key };
+                  if (idx >= 0) list[idx] = normalized;
+                  else list.push(normalized);
+                });
+                return list;
+              });
+              toast.success('Draft output prepared for review');
             }}
             onOpenJSONEditor={openJSONEditor}
             selectedComponentJSON={selectedComponentForAI || ({ __scope: 'page', schema: { components } } as any)}
