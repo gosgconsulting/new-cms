@@ -174,9 +174,14 @@ function renderComponent(node, settings) {
   return tpl(node.props || {}, settings);
 }
 
-export async function renderPageBySlug(slug) {
-  // 1) Load page meta
-  const pageRes = await query(`SELECT * FROM pages WHERE slug = $1`, [slug]);
+export async function renderPageBySlug(slug, tenantId = null) {
+  // 1) Load page meta - filter by tenant_id if provided
+  let pageRes;
+  if (tenantId) {
+    pageRes = await query(`SELECT * FROM pages WHERE slug = $1 AND tenant_id = $2`, [slug, tenantId]);
+  } else {
+    pageRes = await query(`SELECT * FROM pages WHERE slug = $1`, [slug]);
+  }
   const page = pageRes.rows[0];
   if (!page) return { status: 404, html: '<h1>Not Found</h1>' };
 
@@ -184,8 +189,9 @@ export async function renderPageBySlug(slug) {
   const layoutRes = await query(`SELECT layout_json FROM page_layouts WHERE page_id = $1`, [page.id]);
   const layout = layoutRes.rows[0]?.layout_json || { components: [] };
 
-  // 3) Load SEO/site settings
-  const seo = await getPublicSEOSettings();
+  // 3) Load SEO/site settings - use tenant_id if provided, otherwise use page's tenant_id
+  const settingsTenantId = tenantId || page.tenant_id || 'tenant-gosg';
+  const seo = await getPublicSEOSettings(settingsTenantId);
 
   // 4) Render components
   const body = (layout.components || [])

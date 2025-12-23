@@ -16,6 +16,8 @@ export async function getAllTenants() {
         t.updated_at, 
         t.database_url, 
         t.api_key,
+        t.theme_id,
+        t.slug,
         td.host as db_host,
         td.port as db_port,
         td.database_name as db_database_name,
@@ -38,6 +40,8 @@ export async function getAllTenants() {
           updated_at: row.updated_at,
           database_url: row.database_url,
           api_key: row.api_key,
+          theme_id: row.theme_id,
+          slug: row.slug,
         });
         
         // Add database details if available
@@ -104,7 +108,7 @@ export async function getTenantById(id) {
   try {
     // Get tenant details
     const tenantResult = await query(`
-      SELECT t.id, t.name, t.created_at as "createdAt", t.updated_at, t.database_url, t.api_key
+      SELECT t.id, t.name, t.created_at as "createdAt", t.updated_at, t.database_url, t.api_key, t.theme_id, t.slug
       FROM tenants t
       WHERE t.id = $1
     `, [id]);
@@ -150,14 +154,14 @@ export async function getTenantById(id) {
  */
 export async function createTenant(tenantData) {
   try {
-    const { name } = tenantData;
+    const { name, theme_id } = tenantData;
     const id = `tenant-${uuidv4().split('-')[0]}`;
     
     const result = await query(`
-      INSERT INTO tenants (id, name)
-      VALUES ($1, $2)
-      RETURNING id, name, created_at as "createdAt", updated_at
-    `, [id, name]);
+      INSERT INTO tenants (id, name, theme_id)
+      VALUES ($1, $2, $3)
+      RETURNING id, name, created_at as "createdAt", updated_at, theme_id
+    `, [id, name, theme_id || null]);
     
     return result.rows[0];
   } catch (error) {
@@ -171,14 +175,37 @@ export async function createTenant(tenantData) {
  */
 export async function updateTenant(id, tenantData) {
   try {
-    const { name } = tenantData;
+    const { name, theme_id } = tenantData;
+    
+    // Build dynamic update query based on provided fields
+    const updates = [];
+    const values = [];
+    let paramIndex = 1;
+    
+    if (name !== undefined) {
+      updates.push(`name = $${paramIndex++}`);
+      values.push(name);
+    }
+    
+    if (theme_id !== undefined) {
+      updates.push(`theme_id = $${paramIndex++}`);
+      values.push(theme_id || null);
+    }
+    
+    if (updates.length === 0) {
+      // No updates provided, just return the tenant
+      return await getTenantById(id);
+    }
+    
+    updates.push(`updated_at = NOW()`);
+    values.push(id);
     
     const result = await query(`
       UPDATE tenants
-      SET name = $2, updated_at = NOW()
-      WHERE id = $1
-      RETURNING id, name, created_at as "createdAt", updated_at
-    `, [id, name]);
+      SET ${updates.join(', ')}
+      WHERE id = $${paramIndex}
+      RETURNING id, name, created_at as "createdAt", updated_at, theme_id
+    `, values);
     
     return result.rows[0] || null;
   } catch (error) {

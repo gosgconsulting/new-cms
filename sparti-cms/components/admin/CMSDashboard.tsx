@@ -22,6 +22,7 @@ import { motion } from 'framer-motion';
 import gosgLogo from "@/assets/go-sg-logo-official.png";
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../utils/api';
+import { ToggleGroup, ToggleGroupItem } from '../../../src/components/ui/toggle-group';
 
 // Import existing components
 import PagesManager from '../cms/PagesManager';
@@ -214,6 +215,7 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({ hideSidebar = false }) => {
   const [seoExpanded, setSeoExpanded] = useState<boolean>(false);
   const [tenantDropdownOpen, setTenantDropdownOpen] = useState<boolean>(false);
   const [isEditMode, setIsEditMode] = useState<boolean>(false);
+  const [mode, setMode] = useState<'tenants' | 'theme'>('tenants');
   const { signOut, user, currentTenantId, handleTenantChange } = useAuth();
   const navigate = useNavigate();
 
@@ -252,7 +254,7 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({ hideSidebar = false }) => {
   const renderContent = () => {
     switch (activeTab) {
       case 'pages':
-        return <PagesManager onEditModeChange={setIsEditMode} />;
+        return <PagesManager onEditModeChange={setIsEditMode} mode={mode} />;
       case 'blog':
         return <BlogManager />;
       case 'media':
@@ -577,15 +579,26 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({ hideSidebar = false }) => {
             </div>
             
             <div className="flex items-center space-x-4">
+              <ToggleGroup 
+                type="single" 
+                value={mode} 
+                onValueChange={(value) => value && setMode(value as 'tenants' | 'theme')}
+                className="border rounded-md p-1"
+              >
+                <ToggleGroupItem value="tenants" aria-label="Tenants mode" className="px-3 py-1.5">
+                  Tenants
+                </ToggleGroupItem>
+                <ToggleGroupItem value="theme" aria-label="Theme mode" className="px-3 py-1.5">
+                  Theme
+                </ToggleGroupItem>
+              </ToggleGroup>
               <TenantSelector
                 currentTenantId={currentTenantId || ''}
                 onTenantChange={handleTenantChange}
                 isSuperAdmin={user?.is_super_admin || false}
                 onAddNewTenant={() => setActiveTab('tenants')}
+                mode={mode}
               />
-              <span className="text-sm text-muted-foreground">
-                {user ? `Welcome back, ${user.email || 'Admin'}` : 'Public Dashboard'}
-              </span>
             </div>
           </div>
         </motion.div>

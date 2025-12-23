@@ -20,6 +20,7 @@
     "test:deployment": "node scripts/tests/test-deployment.js",
     "migrate": "node scripts/migrations/migrate-railway-db.js",
     "migrate:railway": "npm run sequelize:migrate:production",
+    "migrate:template-id": "node scripts/migrations/add-template-id-to-tenants.js",
     "sequelize": "sequelize",
     "sequelize:migrate": "sequelize db:migrate",
     "sequelize:migrate:production": "NODE_ENV=production sequelize db:migrate",

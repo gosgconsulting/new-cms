@@ -29,9 +29,28 @@ interface PageItem {
 
 interface PagesManagerProps {
   onEditModeChange?: (isEditMode: boolean) => void;
+  mode?: 'tenants' | 'theme';
 }
 
-export const PagesManager: React.FC<PagesManagerProps> = ({ onEditModeChange }) => {
+// Hardcoded theme pages (no database required)
+const getThemePages = (): PageItem[] => {
+  return [
+    {
+      id: 'theme-homepage',
+      page_name: 'Homepage',
+      slug: '/',
+      status: 'published',
+      page_type: 'page',
+      meta_title: 'Homepage',
+      meta_description: 'Welcome to our homepage',
+      seo_index: true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    },
+  ];
+};
+
+export const PagesManager: React.FC<PagesManagerProps> = ({ onEditModeChange, mode = 'tenants' }) => {
   const { currentTenantId, user } = useAuth();
   const [pages, setPages] = useState<PageItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -47,14 +66,25 @@ export const PagesManager: React.FC<PagesManagerProps> = ({ onEditModeChange }) 
     { id: 'footer' as const, label: 'Footer', icon: Layout },
   ];
 
-  // Load pages from database
+  // Load pages from database or use hardcoded template pages
   useEffect(() => {
     console.log('currentTenantId', currentTenantId);
     console.log('user', user);
-    if (currentTenantId) {
+    console.log('mode', mode);
+    
+    if (mode === 'theme') {
+      // Theme mode: use hardcoded pages, no database needed
+      setLoading(true);
+      setTimeout(() => {
+        setPages(getThemePages());
+        setLoading(false);
+        setError(null);
+      }, 100); // Small delay to show loading state
+    } else if (currentTenantId) {
+      // Tenants mode: load from database
       loadPages();
     }
-  }, [currentTenantId, user]);
+  }, [currentTenantId, user, mode]);
 
   const loadPages = async () => {
     try {
@@ -123,7 +153,24 @@ export const PagesManager: React.FC<PagesManagerProps> = ({ onEditModeChange }) 
   };
 
   const handleViewPage = (slug: string) => {
-    window.open(slug, '_blank');
+    let url = slug;
+    
+    if (mode === 'theme') {
+      // Theme mode: use /theme/landingpage/{slug} format
+      // Remove leading slash from slug if present, then add it back in the path
+      const cleanSlug = slug.startsWith('/') ? slug.slice(1) : slug;
+      
+      if (cleanSlug === '' || cleanSlug === 'home' || cleanSlug === 'index') {
+        // Homepage: /theme/landingpage
+        url = '/theme/landingpage';
+      } else {
+        // Other pages: /theme/landingpage/{slug}
+        url = `/theme/landingpage/${cleanSlug}`;
+      }
+    }
+    // For tenants mode, use the slug as-is (existing behavior)
+    
+    window.open(url, '_blank');
   };
 
   // Notify parent component when entering/exiting edit mode

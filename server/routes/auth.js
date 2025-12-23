@@ -17,6 +17,8 @@ import {
   deleteTenantApiKey,
   validateApiKey
 } from '../../sparti-cms/db/tenant-management.js';
+import { createPage } from '../../sparti-cms/db/modules/pages.js';
+import { updateSiteSchema } from '../../sparti-cms/db/modules/branding.js';
 
 const router = express.Router();
 
@@ -479,14 +481,17 @@ router.get('/tenants/:id', async (req, res) => {
 // Create a new tenant
 router.post('/tenants', async (req, res) => {
   try {
-    const { name } = req.body;
+    const { name, template } = req.body;
     
     // Validate required fields
     if (!name) {
       return res.status(400).json({ error: 'Tenant name is required' });
     }
     
-    const newTenant = await createTenant({ name });
+    // Set theme_id: use theme value if provided and not 'custom', otherwise null
+    const theme_id = template && template !== 'custom' ? template : null;
+    
+    const newTenant = await createTenant({ name, theme_id });
     
     res.status(201).json(newTenant);
   } catch (error) {
@@ -495,17 +500,128 @@ router.post('/tenants', async (req, res) => {
   }
 });
 
+// Import theme data to a tenant
+router.post('/tenants/:id/import-theme', authenticateUser, async (req, res) => {
+  try {
+    const { id: tenantId } = req.params;
+    const { theme } = req.body;
+    
+    if (!theme) {
+      return res.status(400).json({ error: 'Theme name is required' });
+    }
+    
+    // Verify tenant exists
+    const tenant = await getTenantById(tenantId);
+    if (!tenant) {
+      return res.status(404).json({ error: 'Tenant not found' });
+    }
+    
+    // Update tenant's theme_id if not already set
+    if (!tenant.theme_id) {
+      await updateTenant(tenantId, { theme_id: theme });
+    }
+    
+    // Get theme pages (hardcoded for now)
+    const getThemePages = () => {
+      if (theme === 'landingpage') {
+        return [
+          {
+            page_name: 'Homepage',
+            slug: '/',
+            meta_title: 'Homepage',
+            meta_description: 'Welcome to our homepage',
+            seo_index: true,
+            status: 'published',
+            page_type: 'page'
+          }
+        ];
+      }
+      return [];
+    };
+    
+    const themePages = getThemePages();
+    const importedPages = [];
+    
+    // Import pages
+    for (const pageData of themePages) {
+      try {
+        const createdPage = await createPage({
+          ...pageData,
+          tenant_id: tenantId
+        });
+        importedPages.push(createdPage);
+      } catch (error) {
+        console.error(`[testing] Error importing page ${pageData.page_name}:`, error);
+        // Continue with other pages even if one fails
+      }
+    }
+    
+    // Import default header and footer schemas if they don't exist
+    try {
+      // Default header schema
+      const defaultHeaderSchema = {
+        logo: {
+          src: '',
+          alt: 'Logo',
+          height: '40px'
+        },
+        menu: [],
+        showCart: false,
+        showSearch: false,
+        showAccount: false
+      };
+      
+      // Default footer schema
+      const defaultFooterSchema = {
+        logo: {
+          src: '',
+          alt: 'Logo'
+        },
+        links: [],
+        socialLinks: [],
+        copyright: `© ${new Date().getFullYear()} ${tenant.name}. All rights reserved.`
+      };
+      
+      // Check if schemas exist, if not create them
+      const { getSiteSchema } = await import('../../sparti-cms/db/index.js');
+      
+      const existingHeader = await getSiteSchema('header', tenantId);
+      if (!existingHeader) {
+        await updateSiteSchema('header', defaultHeaderSchema, 'default', tenantId);
+      }
+      
+      const existingFooter = await getSiteSchema('footer', tenantId);
+      if (!existingFooter) {
+        await updateSiteSchema('footer', defaultFooterSchema, 'default', tenantId);
+      }
+    } catch (schemaError) {
+      console.error('[testing] Error importing schemas:', schemaError);
+      // Continue even if schema import fails
+    }
+    
+    res.json({
+      success: true,
+      message: `Theme "${theme}" imported successfully`,
+      importedPages: importedPages.length,
+      pages: importedPages
+    });
+  } catch (error) {
+    console.error('[testing] Error importing theme:', error);
+    res.status(500).json({ error: 'Failed to import theme' });
+  }
+});
+
 // Update an existing tenant
 router.put('/tenants/:id', async (req, res) => {
   try {
-    const { name } = req.body;
+    const { name, theme_id } = req.body;
     
     // Validate required fields
     if (!name) {
       return res.status(400).json({ error: 'Tenant name is required' });
     }
     
-    const updatedTenant = await updateTenant(req.params.id, { name });
+    const updatedTenant = await updateTenant(req.params.id, { name, theme_id });
     
     if (!updatedTenant) {
       return res.status(404).json({ error: 'Tenant not found' });

@@ -15,6 +15,9 @@ import seoRoutes from './seo.js';
 import systemRoutes from './system.js';
 import publicRoutes from './public.js';
 import usersRoutes from './users.js';
+import themeRoutes from './theme.js';
+import themeAdminRoutes from './theme-admin.js';
+import tenantsApiRoutes from './tenants-api.js';
 
 const router = express.Router();
 
@@ -39,6 +42,9 @@ router.use('/', healthRoutes);
 // Public API v1 routes (requires tenant API key authentication)
 router.use('/api/v1', authenticateTenantApiKey, publicRoutes);
 
+// Public tenant API routes (no authentication required for by-slug endpoint)
+router.use('/api/tenants', tenantsApiRoutes);
+
 // All other API routes
 router.use('/api', authRoutes);
 router.use('/api', contentRoutes);
@@ -48,6 +54,11 @@ router.use('/api', settingsRoutes);
 router.use('/api', seoRoutes);
 router.use('/api', systemRoutes);
 router.use('/api', usersRoutes);
+
+// Theme routes (mounted before other routes to catch /theme/* paths)
+// Theme admin/auth routes (must come before general theme routes)
+router.use('/theme', themeAdminRoutes);
+router.use('/theme', themeRoutes);
 
 // Server-rendered page route (mounted at root, not under /api)
 router.get('/r/:slug', async (req, res) => {

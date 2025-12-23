@@ -13,7 +13,7 @@ import {
   ArrowLeft,
   Shield
 } from 'lucide-react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate, useLocation, useParams } from 'react-router-dom';
 import gosgLogo from "@/assets/go-sg-logo-official.png";
 import { useAuth } from '../../sparti-cms/components/auth/AuthProvider';
 
@@ -40,10 +40,20 @@ const Auth: React.FC = () => {
   const { createAdminUser, signIn, user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const params = useParams<{ themeSlug?: string }>();
   
-  // Get the intended destination from location state or default to admin
+  // Check if we're in a theme context
+  const themeSlug = params.themeSlug;
+  const isThemeAuth = !!themeSlug;
+  
+  // Get the intended destination from location state or default
   const locationState = location.state as LocationState;
-  const from = locationState?.from?.pathname || "/admin";
+  let from = locationState?.from?.pathname || "/admin";
+  
+  // If in theme context, redirect to theme admin after login
+  if (isThemeAuth && from === "/admin") {
+    from = `/theme/${themeSlug}/admin`;
+  }
   
   // Initial form data
   const [formData, setFormData] = useState<FormData>({
@@ -75,11 +85,69 @@ const Auth: React.FC = () => {
       const result = await signIn(formData.email, formData.password);
       
       if (result.success) {
-        setMessage({ type: 'success', text: 'Login successful! Redirecting...' });
-        // Redirect to the intended destination
-        setTimeout(() => {
-          navigate(from, { replace: true });
-        }, 1000);
+        // If in theme context, verify user's tenant uses this theme
+        if (isThemeAuth && themeSlug) {
+          try {
+            const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4173';
+            const response = await fetch(`${API_BASE_URL}/api/tenants/by-theme/${themeSlug}`, {
+              headers: {
+                'Authorization': `Bearer ${localStorage.getItem('sparti-user-session') ? JSON.parse(localStorage.getItem('sparti-user-session') || '{}').token : ''}`,
+                'Content-Type': 'application/json',
+              },
+            });
+            
+            if (response.ok) {
+              const data = await response.json();
+              // Check if user's tenant is in the list (or if user is super admin)
+              const userSession = localStorage.getItem('sparti-user-session');
+              if (userSession) {
+                const sessionData = JSON.parse(userSession);
+                const userTenantId = sessionData.tenant_id;
+                const isSuperAdmin = sessionData.is_super_admin;
+                
+                // Super admins can access any theme
+                if (isSuperAdmin || !userTenantId || data.tenants?.some((t: any) => t.id === userTenantId)) {
+                  setMessage({ type: 'success', text: 'Login successful! Redirecting...' });
+                  setTimeout(() => {
+                    navigate(from, { replace: true });
+                  }, 1000);
+                } else {
+                  setMessage({ 
+                    type: 'error', 
+                    text: 'Access denied. Your tenant does not use this theme.' 
+                  });
+                  setLoading(false);
+                  return;
+                }
+              } else {
+                // No session data, proceed normally
+                setMessage({ type: 'success', text: 'Login successful! Redirecting...' });
+                setTimeout(() => {
+                  navigate(from, { replace: true });
+                }, 1000);
+              }
+            } else {
+              // If API fails, allow access for now (graceful degradation)
+              setMessage({ type: 'success', text: 'Login successful! Redirecting...' });
+              setTimeout(() => {
+                navigate(from, { replace: true });
+              }, 1000);
+            }
+          } catch (error) {
+            console.error('Theme validation error:', error);
+            // On error, allow access (graceful degradation)
+            setMessage({ type: 'success', text: 'Login successful! Redirecting...' });
+            setTimeout(() => {
+              navigate(from, { replace: true });
+            }, 1000);
+          }
+        } else {
+          // Not in theme context, proceed normally
+          setMessage({ type: 'success', text: 'Login successful! Redirecting...' });
+          setTimeout(() => {
+            navigate(from, { replace: true });
+          }, 1000);
+        }
       } else {
         setMessage({ type: 'error', text: result.error || 'Login failed' });
       }

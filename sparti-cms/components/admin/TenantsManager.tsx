@@ -18,6 +18,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useAuth } from '../auth/AuthProvider';
 import { api } from '../../utils/api';
 
@@ -26,6 +33,7 @@ interface Tenant {
   id: string;
   name: string;
   createdAt: string;
+  theme_id?: string | null;
 }
 
 const TenantsManager: React.FC = () => {
@@ -34,12 +42,33 @@ const TenantsManager: React.FC = () => {
   const [showAddTenantModal, setShowAddTenantModal] = useState(false);
   const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
   const [selectedTenant, setSelectedTenant] = useState<Tenant | null>(null);
-  const [newTenant, setNewTenant] = useState<Partial<Tenant>>({ name: '' });
+  const [newTenant, setNewTenant] = useState<Partial<Tenant & { template: string }>>({ 
+    name: '',
+    template: 'custom'
+  });
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [debugMode, setDebugMode] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const { toast } = useToast();
+
+  // Get available themes (from file system structure)
+  const getAvailableThemes = (): Array<{ value: string; label: string }> => {
+    // Read from sparti-cms/theme folder structure
+    // For now, hardcoded since we only have landingpage
+    // In the future, this could be an API call to list directories
+    return [
+      { value: 'custom', label: 'Custom' },
+      { value: 'landingpage', label: 'Landing Page' }
+    ];
+  };
+
+  // Get theme display name from theme_id
+  const getThemeDisplayName = (themeId: string | null | undefined): string => {
+    if (!themeId) return 'custom';
+    // Return the theme_id value directly (e.g., "landingpage")
+    return themeId;
+  };
 
   // Fetch tenants on component mount
   useEffect(() => {
@@ -110,7 +139,15 @@ const TenantsManager: React.FC = () => {
         return;
       }
       
-      setTenants(data);
+      console.log('[testing] Fetched tenants:', data);
+      
+      // Ensure theme_id is included for all tenants
+      const tenantsWithTheme = data.map((tenant: Tenant) => ({
+        ...tenant,
+        theme_id: tenant.theme_id || null
+      }));
+      
+      setTenants(tenantsWithTheme);
     } catch (error) {
       console.error('Error fetching tenants:', error);
       setFetchError(error instanceof Error ? error.message : 'Unknown error');
@@ -150,8 +187,10 @@ const TenantsManager: React.FC = () => {
     setIsSubmitting(true);
     
     try {
+      // Create tenant
       const response = await api.post('/api/tenants', {
-        name: newTenant.name
+        name: newTenant.name,
+        template: newTenant.template || 'custom'
       });
       
       if (!response.ok) {
@@ -161,18 +200,52 @@ const TenantsManager: React.FC = () => {
       
       const createdTenant = await response.json();
 
+      // If a theme is selected (not 'custom'), import theme data
+      if (newTenant.template && newTenant.template !== 'custom') {
+        try {
+          const importResponse = await api.post(`/api/tenants/${createdTenant.id}/import-theme`, {
+            theme: newTenant.template
+          });
+          
+          if (!importResponse.ok) {
+            console.warn('Theme import failed, but tenant was created:', await importResponse.text());
+            toast({
+              title: "Warning",
+              description: "Tenant created but theme import failed. You can import it manually later.",
+              variant: "default"
+            });
+          } else {
+            toast({
+              title: "Success",
+              description: `Tenant created and theme "${newTenant.template}" imported successfully`,
+              variant: "default"
+            });
+          }
+        } catch (importError) {
+          console.error('Error importing theme:', importError);
+          toast({
+            title: "Warning",
+            description: "Tenant created but theme import failed. You can import it manually later.",
+            variant: "default"
+          });
+        }
+      } else {
+        toast({
+          title: "Success",
+          description: "Tenant created successfully",
+          variant: "default"
+        });
+      }
+
       // Add the new tenant to the list
       setTenants(prev => [...prev, createdTenant]);
 
       // Reset form and close modal
-      setNewTenant({ name: '' });
+      setNewTenant({ name: '', template: 'custom' });
       setShowAddTenantModal(false);
       
-      toast({
-        title: "Success",
-        description: "Tenant created successfully",
-        variant: "default"
-      });
+      // Refresh tenants list
+      await fetchTenants();
     } catch (error) {
       console.error('Error creating tenant:', error);
       toast({
@@ -199,8 +272,12 @@ const TenantsManager: React.FC = () => {
     setIsSubmitting(true);
     
     try {
+      // Set theme_id: use theme value if provided and not 'custom', otherwise null
+      const theme_id = newTenant.template && newTenant.template !== 'custom' ? newTenant.template : null;
+      
       const response = await api.put(`/api/tenants/${selectedTenant.id}`, {
-        name: newTenant.name
+        name: newTenant.name,
+        theme_id: theme_id
       });
       
       if (!response.ok) {
@@ -210,15 +287,17 @@ const TenantsManager: React.FC = () => {
       
       const updatedTenant = await response.json();
       
+      console.log('[testing] Updated tenant response:', updatedTenant);
+      
       // Update the tenant in the list
       setTenants(prev => 
         prev.map(tenant => 
-          tenant.id === updatedTenant.id ? updatedTenant : tenant
+          tenant.id === updatedTenant.id ? { ...updatedTenant, theme_id: updatedTenant.theme_id || null } : tenant
         )
       );
       
       // Reset form and close modal
-      setNewTenant({ name: '' });
+      setNewTenant({ name: '', template: 'custom' });
       setSelectedTenant(null);
       setShowAddTenantModal(false);
       
@@ -227,6 +306,9 @@ const TenantsManager: React.FC = () => {
         description: "Tenant updated successfully",
         variant: "default"
       });
+      
+      // Refresh tenants list to get updated data
+      await fetchTenants();
     } catch (error) {
       console.error('Error updating tenant:', error);
       toast({
@@ -379,6 +461,9 @@ const TenantsManager: React.FC = () => {
                   <div>
                     <span className="font-medium">ID:</span> {tenant.id}
                   </div>
+                  <div>
+                    <span className="font-medium">Theme:</span> {getThemeDisplayName(tenant.theme_id)}
+                  </div>
                 </div>
                 
                 <div className="flex flex-col gap-2">
@@ -389,7 +474,10 @@ const TenantsManager: React.FC = () => {
                       className="flex-1"
                       onClick={() => {
                         setSelectedTenant(tenant);
-                        setNewTenant({ name: tenant.name });
+                        setNewTenant({ 
+                          name: tenant.name,
+                          template: tenant.theme_id || 'custom'
+                        });
                         setShowAddTenantModal(true);
                       }}
                     >
@@ -484,6 +572,33 @@ const TenantsManager: React.FC = () => {
                   placeholder="Enter tenant name"
                 />
               </div>
+              
+              <div>
+                <Label htmlFor="theme-select">Theme</Label>
+                  <Select
+                    value={newTenant.template || 'custom'}
+                    onValueChange={(value) => handleInputChange('template', value)}
+                  >
+                    <SelectTrigger id="theme-select">
+                      <SelectValue placeholder="Select a theme" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {getAvailableThemes().map((theme) => (
+                        <SelectItem key={theme.value} value={theme.value}>
+                          {theme.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {newTenant.template === 'custom' 
+                      ? selectedTenant 
+                        ? 'No theme assigned (blank tenant)'
+                        : 'Start with a blank tenant (no pages or schema imported)'
+                      : `Import pages and schema from the "${getAvailableThemes().find(t => t.value === newTenant.template)?.label}" theme`
+                    }
+                  </p>
+              </div>
             </div>
             
             <div className="flex justify-end space-x-3 mt-6">
@@ -493,8 +608,10 @@ const TenantsManager: React.FC = () => {
                   setShowAddTenantModal(false);
                   setSelectedTenant(null);
                   setNewTenant({
-                    name: ''
+                    name: '',
+                    template: 'custom'
                   });
+                  setSelectedTenant(null);
                 }}
                 disabled={isSubmitting}
               >

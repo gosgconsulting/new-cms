@@ -23,14 +23,26 @@ interface TenantSelectorProps {
   onTenantChange: (tenantId: string) => void;
   isSuperAdmin: boolean;
   onAddNewTenant?: () => void;
+  mode?: 'tenants' | 'theme';
 }
 
 export const TenantSelector: React.FC<TenantSelectorProps> = ({
   currentTenantId,
   onTenantChange,
   isSuperAdmin,
-  onAddNewTenant
+  onAddNewTenant,
+  mode = 'tenants'
 }) => {
+  // Get themes from file system (hardcoded for now, can be enhanced with API later)
+  const getThemes = (): Tenant[] => {
+    // Read from sparti-cms/theme folder structure
+    // For now, hardcoded since we only have landingpage
+    // In the future, this could be an API call to list directories
+    return [
+      { id: 'landingpage', name: 'Landing Page' }
+    ];
+  };
+
   // Fetch all tenants using react-query (same as CMSDashboard)
   const { data: tenants = [], isLoading: loading } = useQuery<Tenant[]>({
     queryKey: ['tenants'],
@@ -53,27 +65,31 @@ export const TenantSelector: React.FC<TenantSelectorProps> = ({
         return [];
       }
     },
+    enabled: mode === 'tenants',
   });
 
-  const currentTenant = tenants.find(t => t.id === currentTenantId);
-  console.log('currentTenant', currentTenantId, currentTenant);
+  // Get the list based on mode
+  const items = mode === 'theme' ? getThemes() : tenants;
+  const currentItem = items.find(t => t.id === currentTenantId);
+
+  console.log('currentItem', currentTenantId, currentItem);
 
   if (!isSuperAdmin) {
-    // For non-super-admins, just show their tenant name
+    // For non-super-admins, just show their tenant/template name
     return (
       <div className="flex items-center gap-2 px-3 py-2 bg-gray-100 rounded-md">
         <Building2 className="h-4 w-4 text-gray-600" />
         <span className="text-sm font-medium text-gray-700">
-          {currentTenant?.name || currentTenantId}
+          {currentItem?.name || currentTenantId}
         </span>
-        {currentTenant?.isDevelopment && (
+        {currentItem?.isDevelopment && (
           <span className="px-1.5 py-0.5 text-xs bg-amber-100 text-amber-800 rounded">Dev</span>
         )}
       </div>
     );
   }
 
-  if (loading) {
+  if (loading && mode === 'tenants') {
     return (
       <div className="flex items-center gap-2 px-3 py-2 bg-gray-100 rounded-md">
         <Building2 className="h-4 w-4 text-gray-600" />
@@ -89,9 +105,9 @@ export const TenantSelector: React.FC<TenantSelectorProps> = ({
           <div className="flex items-center gap-2">
             <Building2 className="h-4 w-4" />
             <span className="text-sm font-medium">
-              {currentTenant?.name || 'Select Tenant'}
+              {currentItem?.name || (mode === 'theme' ? 'Select Theme' : 'Select Tenant')}
             </span>
-            {currentTenant?.isDevelopment && (
+            {currentItem?.isDevelopment && (
               <span className="px-1.5 py-0.5 text-xs bg-amber-100 text-amber-800 rounded">Dev</span>
             )}
           </div>
@@ -99,26 +115,26 @@ export const TenantSelector: React.FC<TenantSelectorProps> = ({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-56">
-        <DropdownMenuLabel>Switch Tenant</DropdownMenuLabel>
+        <DropdownMenuLabel>{mode === 'theme' ? 'Switch Theme' : 'Switch Tenant'}</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        {tenants.map((tenant) => (
+        {items.map((item) => (
           <DropdownMenuItem
-            key={tenant.id}
-            onClick={() => onTenantChange(tenant.id)}
+            key={item.id}
+            onClick={() => onTenantChange(item.id)}
             className="flex items-center justify-between"
           >
             <div className="flex items-center">
-              <span className="text-sm">{tenant.name}</span>
-              {tenant.isDevelopment && (
+              <span className="text-sm">{item.name}</span>
+              {item.isDevelopment && (
                 <span className="ml-2 px-1.5 py-0.5 text-xs bg-amber-100 text-amber-800 rounded">Dev</span>
               )}
             </div>
-            {currentTenantId === tenant.id && (
+            {currentTenantId === item.id && (
               <Check className="h-4 w-4 text-brandTeal ml-2" />
             )}
           </DropdownMenuItem>
         ))}
-        {onAddNewTenant && (
+        {onAddNewTenant && mode === 'tenants' && (
           <>
             <DropdownMenuSeparator />
             <DropdownMenuItem
