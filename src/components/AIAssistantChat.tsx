@@ -175,6 +175,29 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps> = ({ className, pag
       if (onComponentSelected) {
         onComponentSelected(selectedComponentJSON);
       }
+
+      // Auto-send the full page schema to AI chat when a section is clicked
+      (async () => {
+        try {
+          const sectionName =
+            selectedComponentJSON.type ||
+            selectedComponentJSON.name ||
+            selectedComponentJSON.key ||
+            'Section';
+          const schemaPayload = {
+            components: Array.isArray(currentComponents) ? currentComponents : [],
+          };
+          const autoMessage =
+            `[Auto] Section selected: ${sectionName}\n\n` +
+            `Here is the current page schema:\n` +
+            `\`\`\`json\n${JSON.stringify(schemaPayload, null, 2)}\n\`\`\`\n` +
+            `You can suggest edits or return updated JSON for this section or the whole page.`;
+          
+          await submitMessage(autoMessage);
+        } catch {
+          // Silent fail if auto-send cannot run
+        }
+      })();
     }
   }, [selectedComponentJSON, onComponentSelected, currentComponents]);
 
@@ -850,4 +873,3 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps> = ({ className, pag
     </div>
   );
 };
-

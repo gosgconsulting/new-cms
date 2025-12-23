@@ -32,6 +32,19 @@ interface ContentsPanelProps {
 const ContentsPanel: React.FC<ContentsPanelProps> = ({ components, extractContentFromComponents }) => {
   const content = extractContentFromComponents(components);
 
+  // Group by component (section) to show section names and separators
+  const groupedByComponent: Record<
+    string,
+    { componentType?: string; items: typeof content }
+  > = {};
+  content.forEach((item) => {
+    const id = item.componentId || 'unknown';
+    if (!groupedByComponent[id]) {
+      groupedByComponent[id] = { componentType: item.componentType, items: [] as any };
+    }
+    groupedByComponent[id].items.push(item);
+  });
+
   if (content.length === 0) {
     return (
       <div className="text-center py-8">
@@ -57,65 +70,81 @@ const ContentsPanel: React.FC<ContentsPanelProps> = ({ components, extractConten
       </div>
 
       <div className="prose prose-sm max-w-none">
-        {content.map((item, index) => {
-          const key = `${item.componentId}-${index}`;
-          
-          switch (item.type) {
-            case 'heading':
-              const HeadingTag = `h${item.level || 2}` as keyof JSX.IntrinsicElements;
-              return (
-                <HeadingTag 
-                  key={key} 
-                  className={`font-bold text-foreground ${
-                    item.level === 1 ? 'text-3xl mb-4' :
-                    item.level === 2 ? 'text-2xl mb-3' :
-                    item.level === 3 ? 'text-xl mb-2' :
-                    'text-lg mb-2'
-                  }`}
-                  title={`From ${item.componentType} (${item.componentId})`}
-                >
-                  {item.text}
-                </HeadingTag>
-              );
-            
-            case 'paragraph':
-              return (
-                <p 
-                  key={key} 
-                  className="text-foreground mb-4 leading-relaxed"
-                  title={`From ${item.componentType} (${item.componentId})`}
-                >
-                  {item.text}
-                </p>
-              );
-            
-            case 'list':
-              return (
-                <li 
-                  key={key} 
-                  className="text-foreground mb-2 ml-4 list-disc"
-                  title={`From ${item.componentType} (${item.componentId})`}
-                >
-                  {item.text}
-                </li>
-              );
-            
-            case 'text':
-            default:
-              return (
-                <div 
-                  key={key} 
-                  className="text-foreground mb-2 px-3 py-2 bg-muted/50 rounded border-l-2 border-primary/20"
-                  title={`From ${item.componentType} (${item.componentId})`}
-                >
-                  <span className="text-xs text-muted-foreground uppercase tracking-wide">
-                    {item.componentType}
-                  </span>
-                  <div className="mt-1">{item.text}</div>
-                </div>
-              );
-          }
-        })}
+        {Object.entries(groupedByComponent).map(([componentId, group], groupIndex) => (
+          <div key={`${componentId}-${groupIndex}`} className="mb-6">
+            {/* Section name header with separators */}
+            <div className="flex items-center gap-2 my-4">
+              <Separator className="flex-1" />
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                {group.componentType || 'Section'}
+              </span>
+              <Separator className="flex-1" />
+            </div>
+
+            {/* Items for this section */}
+            {group.items.map((item, index) => {
+              const key = `${item.componentId}-${index}`;
+              switch (item.type) {
+                case 'heading': {
+                  const HeadingTag = `h${item.level || 2}` as keyof JSX.IntrinsicElements;
+                  return (
+                    <div key={key} className="mb-3">
+                      <HeadingTag
+                        className={`font-bold text-foreground ${
+                          item.level === 1 ? 'text-3xl mb-2' :
+                          item.level === 2 ? 'text-2xl mb-2' :
+                          item.level === 3 ? 'text-xl mb-2' :
+                          'text-lg mb-2'
+                        }`}
+                        title={`From ${item.componentType} (${item.componentId})`}
+                      >
+                        {item.text}
+                      </HeadingTag>
+                      {index < group.items.length - 1 && <Separator className="my-2" />}
+                    </div>
+                  );
+                }
+                case 'paragraph':
+                  return (
+                    <div key={key} className="mb-3">
+                      <p
+                        className="text-foreground leading-relaxed"
+                        title={`From ${item.componentType} (${item.componentId})`}
+                      >
+                        {item.text}
+                      </p>
+                      {index < group.items.length - 1 && <Separator className="my-2" />}
+                    </div>
+                  );
+                case 'list':
+                  return (
+                    <div key={key} className="mb-2">
+                      <li
+                        className="text-foreground ml-4 list-disc"
+                        title={`From ${item.componentType} (${item.componentId})`}
+                      >
+                        {item.text}
+                      </li>
+                      {index < group.items.length - 1 && <Separator className="my-2" />}
+                    </div>
+                  );
+                case 'text':
+                default:
+                  return (
+                    <div key={key} className="mb-3">
+                      <div
+                        className="text-foreground px-3 py-2 rounded"
+                        title={`From ${item.componentType} (${item.componentId})`}
+                      >
+                        <div className="mt-1">{item.text}</div>
+                      </div>
+                      {index < group.items.length - 1 && <Separator className="my-2" />}
+                    </div>
+                  );
+              }
+            })}
+          </div>
+        ))}
       </div>
 
       <div className="mt-8 p-4 bg-muted/30 rounded-lg border">
