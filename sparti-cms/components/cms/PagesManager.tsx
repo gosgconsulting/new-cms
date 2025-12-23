@@ -2,7 +2,7 @@ import React, { useState, useEffect, useLayoutEffect } from 'react';
 import { Button } from '../../../src/components/ui/button';
 import { Card } from '../../../src/components/ui/card';
 import { Badge } from '../../../src/components/ui/badge';
-import { Edit, Eye, FileText, Rocket, Scale, Layout, Minus, Monitor, Code } from 'lucide-react';
+import { Edit, Eye, FileText, Rocket, Scale, Layout, Minus, Monitor, Code, FileCode } from 'lucide-react';
 import PageEditor from './PageEditor';
 import HeaderSchemaEditor from './HeaderSchemaEditor';
 import FooterSchemaEditor from './FooterSchemaEditor';
@@ -11,6 +11,7 @@ import { getDummyPages, isDevelopmentTenant } from '../admin/DevelopmentTenantDa
 import api from '../../utils/api';
 import { AIAssistantChat } from '../../../src/components/AIAssistantChat';
 import { VisualEditorJSONDialog } from './VisualEditorJSONDialog';
+import CodeViewerDialog from './PageEditor/CodeViewerDialog';
 
 interface PageItem {
   id: string;
@@ -125,6 +126,7 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
   const [editingPageId, setEditingPageId] = useState<string | null>(null);
   const [visualEditorPage, setVisualEditorPage] = useState<{ slug: string; pageName: string } | null>(null);
   const [showJSONEditor, setShowJSONEditor] = useState(false);
+  const [showCodeViewer, setShowCodeViewer] = useState(false);
   const [activeTab, setActiveTab] = useState<'page' | 'landing' | 'legal' | 'header' | 'footer'>('page');
 
   const tabs = [
@@ -321,6 +323,15 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
             <Button
               variant="outline"
               size="sm"
+              onClick={() => setShowCodeViewer(true)}
+              title="View the page source code"
+            >
+              <FileCode className="h-4 w-4 mr-2" />
+              Code
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => setShowJSONEditor(true)}
             >
               <Code className="h-4 w-4 mr-2" />
@@ -354,6 +365,13 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
             } : null}
           />
         </div>
+        <CodeViewerDialog
+          open={showCodeViewer}
+          onOpenChange={setShowCodeViewer}
+          pageSlug={visualEditorPage?.slug || ''}
+          pageName={visualEditorPage?.pageName || ''}
+          tenantId={mode === 'tenants' ? currentTenantId : undefined}
+        />
         <VisualEditorJSONDialog
           open={showJSONEditor}
           onOpenChange={setShowJSONEditor}
