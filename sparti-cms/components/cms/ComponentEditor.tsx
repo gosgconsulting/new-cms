@@ -385,7 +385,7 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
                         <button
                           className={`px-3 py-2 text-sm font-medium border-b-2 transition-colors ${
                             isActive 
-                              ? 'border-blue-500 text-blue-600 bg-blue-50' 
+                              ? 'border-blue-500 text-blue-600' 
                               : 'border-transparent text-gray-500 hover:text-gray-700'
                           }`}
                           onClick={onClick}
@@ -437,12 +437,12 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
                             return (
                               <div className="space-y-4">
                                 {/* Single-column: preview on top with hover-delete and click-to-edit */}
-                                <div className="group relative w-full h-[180px] bg-slate-100 rounded overflow-hidden flex items-center justify-center">
+                                <div className="group relative w-full h-[180px] rounded overflow-hidden flex items-start justify-start">
                                   {imgUrl ? (
                                     <img
                                       src={imgUrl}
                                       alt={`Image ${currentTab + 1}`}
-                                      className="h-full w-auto object-cover cursor-pointer"
+                                      className="w-full h-full object-cover object-left cursor-pointer"
                                       onClick={() => fileRef?.click()}
                                     />
                                   ) : (
@@ -457,7 +457,7 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
                                     type="button"
                                     title="Remove"
                                     onClick={() => removeArrayItem(index, arrayProp, currentTab)}
-                                    className="absolute top-2 right-2 p-1 rounded bg-red-500 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                                    className="absolute top-2 right-2 p-1 rounded bg-red-500 text-white"
                                   >
                                     <Trash2 className="h-4 w-4" />
                                   </button>
@@ -527,20 +527,20 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
                                return (
                                 <div className="space-y-4">
                                   {nestedItems.map((nestedItem, nestedIndex) => (
-                                    <div key={nestedItem.key ?? `${nestedItem.type}-${nestedIndex}`} className="rounded p-3 bg-slate-50">
-                                      <ItemEditor
-                                        item={nestedItem}
-                                        onChange={(updatedNested) => {
-                                          const updatedNestedItems = [...nestedItems];
-                                          updatedNestedItems[nestedIndex] = updatedNested;
-                                          setArrayItemObject(index, arrayProp, currentTab, { ...obj, items: updatedNestedItems });
-                                        }}
-                                        onRemove={() => {
-                                          const updatedNestedItems = nestedItems.filter((_, i) => i !== nestedIndex);
-                                          setArrayItemObject(index, arrayProp, currentTab, { ...obj, items: updatedNestedItems });
-                                        }}
-                                      />
-                                    </div>
+                                    <div key={nestedItem.key ?? `${nestedItem.type}-${nestedIndex}`} className="rounded p-3">
+                                       <ItemEditor
+                                         item={nestedItem}
+                                         onChange={(updatedNested) => {
+                                           const updatedNestedItems = [...nestedItems];
+                                           updatedNestedItems[nestedIndex] = updatedNested;
+                                           setArrayItemObject(index, arrayProp, currentTab, { ...obj, items: updatedNestedItems });
+                                         }}
+                                         onRemove={() => {
+                                           const updatedNestedItems = nestedItems.filter((_, i) => i !== nestedIndex);
+                                           setArrayItemObject(index, arrayProp, currentTab, { ...obj, items: updatedNestedItems });
+                                         }}
+                                       />
+                                     </div>
                                   ))}
                                   <div className="flex justify-end pt-2 border-t">
                                     <Button

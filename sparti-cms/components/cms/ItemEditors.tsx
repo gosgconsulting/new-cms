@@ -155,13 +155,13 @@ export const ImageEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemov
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Single-column: preview on top */}
-        <div className="group relative w-full h-[180px] bg-slate-100 rounded overflow-hidden flex items-center justify-center">
+        {/* Single-column: preview on top, left-aligned, no background */}
+        <div className="group relative w-full h-[180px] rounded overflow-hidden flex items-start justify-start">
           {url ? (
             <img
               src={url}
               alt={alt || 'Preview'}
-              className="h-full w-auto object-cover cursor-pointer"
+              className="w-full h-full object-cover object-left cursor-pointer"
               onClick={() => fileInputRef?.click()}
             />
           ) : (
@@ -176,7 +176,7 @@ export const ImageEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemov
             type="button"
             title="Remove image"
             onClick={onRemove}
-            className="absolute top-2 right-2 p-1 rounded bg-red-500 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+            className="absolute top-2 right-2 p-1 rounded bg-red-500 text-white"
           >
             <X className="h-4 w-4" />
           </button>
