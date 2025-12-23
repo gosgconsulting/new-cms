@@ -38,7 +38,16 @@ interface SelectedComponent {
   lineNumber?: number;
 }
 
-export const AIAssistantChat: React.FC<AIAssistantChatProps> = ({ className, pageContext, currentComponents, onUpdateComponents, onOpenJSONEditor, selectedComponentJSON, onComponentSelected }) => {
+export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedComponents?: (components: any[]) => void }> = ({ 
+  className, 
+  pageContext, 
+  currentComponents, 
+  onUpdateComponents, 
+  onOpenJSONEditor, 
+  selectedComponentJSON, 
+  onComponentSelected,
+  onProposedComponents
+}) => {
   const { currentTenantId } = useAuth();
   // Always open - no collapse functionality
   const [messages, setMessages] = useState<Array<{ id: string; content: string; role: 'user' | 'assistant' }>>([]);
@@ -616,7 +625,7 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps> = ({ className, pag
         setMessages((prev) => [...prev, assistantMessage]);
 
         // Try to extract and apply JSON from the response if callbacks are provided
-        if (onUpdateComponents) {
+        if (onProposedComponents || onUpdateComponents) {
           try {
             let jsonString: string | null = null;
             const jsonMatch = data.message.match(/```(?:json)?\s*(\{[\s\S]*\})\s*```/);
@@ -644,11 +653,11 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps> = ({ className, pag
               }
 
               if (componentsArray.length > 0) {
-                onUpdateComponents(componentsArray);
-                if (onOpenJSONEditor) {
-                  setTimeout(() => {
-                    onOpenJSONEditor();
-                  }, 500);
+                // Route to proposals if provided; fallback to applying
+                if (onProposedComponents) {
+                  onProposedComponents(componentsArray);
+                } else if (onUpdateComponents) {
+                  onUpdateComponents(componentsArray);
                 }
               }
             }
@@ -696,7 +705,7 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps> = ({ className, pag
       <div className="flex flex-col h-full bg-card border-l shadow-lg w-full">
         {/* Always show content - no collapse functionality */}
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b flex-shrink-0 bg-background">
+            <div className="flex items-center justify-between px-4 py-2 border-b flex-shrink-0 bg-background">
               <div className="flex items-center gap-2 flex-1 min-w-0">
                 <MessageCircle className="h-5 w-5 text-primary flex-shrink-0" />
                 <div className="flex flex-col flex-1 min-w-0">
@@ -705,7 +714,7 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps> = ({ className, pag
                     {messages.length > 0 && (
                       <button
                         onClick={clearAllMessages}
-                        className="text-xs text-muted-foreground hover:text-foreground px-2 py-1 rounded transition-colors"
+                        className="text-xs text-muted-foreground hover:text-foreground px-2 py-0.5 rounded transition-colors"
                         title="Clear all messages"
                       >
                         Clear all
@@ -729,14 +738,14 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps> = ({ className, pag
 
             {/* Selected Components Display */}
             {selectedComponents.length > 0 && (
-              <div className="px-6 py-3 border-b bg-muted/30">
+              <div className="px-4 py-2 border-b bg-muted/30">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs font-medium text-muted-foreground">
                     Selected Components ({selectedComponents.length})
                   </span>
                   <button
                     onClick={() => setSelectedComponents([])}
-                    className="text-xs text-muted-foreground hover:text-foreground px-2 py-1"
+                    className="text-xs text-muted-foreground hover:text-foreground px-2 py-0.5"
                   >
                     Clear all
                   </button>
@@ -745,7 +754,7 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps> = ({ className, pag
                   {selectedComponents.map((comp) => (
                     <div
                       key={comp.id}
-                      className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-primary/10 border border-primary/20 text-primary text-xs"
+                      className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-primary/10 border border-primary/20 text-primary text-xs"
                     >
                       <span className="font-mono font-semibold">{comp.tagName}</span>
                       {comp.filePath && (
@@ -771,7 +780,7 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps> = ({ className, pag
 
             {/* Action Buttons - Show when component is selected */}
             {focusedComponentJSON && (availableActions.hasImages || availableActions.hasText) && (
-              <div className="px-6 py-4 border-b bg-muted/20">
+              <div className="px-4 py-2 border-b bg-muted/20">
                 <p className="text-xs text-muted-foreground mb-3">
                   What would you like to do with this section?
                 </p>
@@ -784,12 +793,12 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps> = ({ className, pag
                         submitMessage(message);
                       }}
                       disabled={isLoading}
-                      className="flex items-center gap-2 px-4 py-3 rounded-lg bg-background border border-border hover:bg-muted/50 transition-colors text-left group disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="flex items-center gap-2 px-3 py-2 rounded-lg bg-background border border-border hover:bg-muted/50 transition-colors text-left group disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                     >
                       <div className="p-2 rounded-md bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 group-hover:bg-purple-200 dark:group-hover:bg-purple-900/50 transition-colors">
                         <Image className="h-4 w-4" />
                       </div>
-                      <span className="text-sm font-medium">Edit image</span>
+                      <span className="font-medium">Edit image</span>
                     </button>
                   )}
                   {availableActions.hasText && (
@@ -800,12 +809,12 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps> = ({ className, pag
                         submitMessage(message);
                       }}
                       disabled={isLoading}
-                      className="flex items-center gap-2 px-4 py-3 rounded-lg bg-background border border-border hover:bg-muted/50 transition-colors text-left group disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="flex items-center gap-2 px-3 py-2 rounded-lg bg-background border border-border hover:bg-muted/50 transition-colors text-left group disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                     >
                       <div className="p-2 rounded-md bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400 group-hover:bg-yellow-200 dark:group-hover:bg-yellow-900/50 transition-colors">
                         <Type className="h-4 w-4" />
                       </div>
-                      <span className="text-sm font-medium">Edit text</span>
+                      <span className="font-medium">Edit text</span>
                     </button>
                   )}
                 </div>
@@ -813,7 +822,7 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps> = ({ className, pag
             )}
 
             {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4 custom-scrollbar">
+            <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 custom-scrollbar">
           {messages.length === 0 && !isLoading ? (
             <div className="flex items-center justify-center h-full text-muted-foreground">
               <p className="text-center text-sm">
@@ -835,7 +844,7 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps> = ({ className, pag
                 >
                   <div
                     className={cn(
-                      "max-w-[85%] rounded-lg px-4 py-2",
+                      "max-w-[85%] rounded-lg px-3 py-2",
                       message.role === 'user'
                         ? "bg-primary text-primary-foreground"
                         : message.content.startsWith('Error:')
@@ -849,7 +858,7 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps> = ({ className, pag
               ))}
               {isLoading && (
                 <div className="flex w-full justify-start">
-                  <div className="max-w-[85%] rounded-lg px-4 py-2 bg-muted text-muted-foreground flex items-center gap-2">
+                  <div className="max-w-[85%] rounded-lg px-3 py-2 bg-muted text-muted-foreground flex items-center gap-2">
                     <Loader2 className="h-4 w-4 animate-spin" />
                     <span className="text-sm">Thinking...</span>
                   </div>
@@ -861,7 +870,7 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps> = ({ className, pag
         </div>
 
             {/* Input Area */}
-            <div className="px-6 pb-6 pt-4 border-t flex-shrink-0 bg-background">
+            <div className="px-4 pb-3 pt-2 border-t flex-shrink-0 bg-background">
               <form onSubmit={handleSubmit}>
                 <PromptBox 
                   disabled={isLoading} 

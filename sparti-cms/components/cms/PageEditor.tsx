@@ -3,6 +3,7 @@ import { Button } from '../../../src/components/ui/button';
 import { ScrollArea } from '../../../src/components/ui/scroll-area';
 import { Separator } from '../../../src/components/ui/separator';
 import { ArrowLeft, Save, Loader2, Settings, Code, FileText } from 'lucide-react';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../../src/components/ui/tabs';
 import { toast } from 'sonner';
 import { useAuth } from '../auth/AuthProvider';
 import { ComponentSchema } from '../../types/schema';
@@ -193,6 +194,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
   const [selectedComponentForAI, setSelectedComponentForAI] = useState<ComponentSchema | null>(null);
   const [showSEOForm, setShowSEOForm] = useState(false);
   const [showContents, setShowContents] = useState(false);
+  const [proposedComponents, setProposedComponents] = useState<ComponentSchema[] | null>(null);
 
   // JSON Editor hook
   const {
@@ -453,14 +455,54 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
       // Show the section editor; below it, show the text contents extracted for this section
       const componentForContents = selectedComponent ? [selectedComponent] : [];
       const sectionContent = extractContentFromComponents(componentForContents as ComponentSchema[]);
+      const proposedForSelected =
+        proposedComponents?.find((c) => c.key === selectedComponent?.key) || null;
+
       return (
         <>
-          <ComponentEditorPanel
-            component={selectedComponent}
-            componentIndex={selectedComponentIndex}
-            components={components}
-            onUpdate={updateComponent}
-          />
+          <div className="mb-4">
+            <Tabs defaultValue="original" className="w-full">
+              <TabsList className="mb-3">
+                <TabsTrigger value="original">Original</TabsTrigger>
+                {proposedForSelected && <TabsTrigger value="ai">AI</TabsTrigger>}
+              </TabsList>
+              <TabsContent value="original" className="space-y-4">
+                <ComponentEditorPanel
+                  component={selectedComponent}
+                  componentIndex={selectedComponentIndex}
+                  components={components}
+                  onUpdate={updateComponent}
+                />
+              </TabsContent>
+              {proposedForSelected && (
+                <TabsContent value="ai" className="space-y-4">
+                  <div className="flex justify-end">
+                    <Button
+                      onClick={() => {
+                        if (selectedComponentIndex !== null && proposedForSelected) {
+                          updateComponent(selectedComponentIndex, proposedForSelected);
+                          // Clear proposals for this section after applying
+                          setProposedComponents((prev) =>
+                            prev ? prev.filter((c) => c.key !== proposedForSelected.key) : prev
+                          );
+                        }
+                      }}
+                      variant="outline"
+                      size="sm"
+                    >
+                      Apply AI Changes
+                    </Button>
+                  </div>
+                  <ComponentEditorPanel
+                    component={proposedForSelected}
+                    componentIndex={selectedComponentIndex}
+                    components={proposedComponents || []}
+                    onUpdate={() => { /* AI preview read-only for now */ }}
+                  />
+                </TabsContent>
+              )}
+            </Tabs>
+          </div>
           <Separator className="my-6" />
           <div className="space-y-4">
             <div className="border-b pb-2">
@@ -669,6 +711,10 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
           } : null}
           currentComponents={components}
           onUpdateComponents={setComponents}
+          onProposedComponents={(proposals) => {
+            // Store AI-proposed components for preview in the 'AI' tab
+            setProposedComponents(proposals as ComponentSchema[]);
+          }}
           onOpenJSONEditor={openJSONEditor}
           selectedComponentJSON={selectedComponentForAI}
           onComponentSelected={() => {
