@@ -555,11 +555,30 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
       return (
         <div className="w-full">
           <Tabs defaultValue="output" className="w-full">
-            <TabsList className="mb-4">
-              <TabsTrigger value="original">Original</TabsTrigger>
-              <TabsTrigger value="output">Output</TabsTrigger>
-            </TabsList>
-
+            <div className="mb-4 flex items-center justify-between">
+              <TabsList>
+                <TabsTrigger value="original">Original</TabsTrigger>
+                <TabsTrigger value="output">Output</TabsTrigger>
+              </TabsList>
+              <Button
+                onClick={() => {
+                  if (selectedComponentIndex !== null && proposedForSelected) {
+                    updateComponent(selectedComponentIndex, proposedForSelected);
+                    setProposedComponents((prev) =>
+                      prev ? prev.filter((c) => c.key !== proposedForSelected.key) : prev
+                    );
+                    toast.success('Applied output to this section');
+                  }
+                }}
+                variant="outline"
+                size="sm"
+                disabled={!proposedForSelected}
+                title={proposedForSelected ? 'Apply output to this section' : 'No output available to apply'}
+              >
+                Apply Output
+              </Button>
+            </div>
+            
             <TabsContent value="original" className="space-y-4">
               {/* Original editor (interactive) */}
               <ComponentEditorPanel
@@ -570,7 +589,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
               />
               {renderSectionContents(selectedComponent)}
             </TabsContent>
-
+            
             <TabsContent value="output" className="space-y-4">
               <div className="flex justify-end">
                 <Button
@@ -593,7 +612,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
               <ComponentEditorPanel
                 component={proposedForSelected}
                 componentIndex={selectedComponentIndex}
-                components={proposedComponents || components}
+                components={proposedForSelected ? proposedComponents || components : components}
                 onUpdate={() => { /* read-only */ }}
               />
               {renderSectionContents(proposedForSelected as ComponentSchema)}
