@@ -4,6 +4,7 @@ import { ScrollArea } from '../../../src/components/ui/scroll-area';
 import { Separator } from '../../../src/components/ui/separator';
 import { ArrowLeft, Save, Loader2, Settings, Code, FileText } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../../src/components/ui/tabs';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../../../src/components/ui/accordion';
 import { toast } from 'sonner';
 import { useAuth } from '../auth/AuthProvider';
 import { ComponentSchema } from '../../types/schema';
@@ -17,7 +18,6 @@ import { ComponentListItem } from './PageEditor/ComponentListItem';
 import { JSONEditorDialog } from './PageEditor/JSONEditorDialog';
 import { EmptyState, ComponentsErrorState, ComponentsEmptyState } from './PageEditor/EmptyStates';
 import { AIAssistantChat } from '../../../src/components/AIAssistantChat';
-import { SidebarProvider, SidebarInset } from '../../../src/components/ui/sidebar';
 
 // Contents Panel Component
 interface ContentsPanelProps {
@@ -198,7 +198,6 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
   // Holds AI-proposed or manually prepared output versions of components
   const [proposedComponents, setProposedComponents] = useState<ComponentSchema[] | null>(null);
   const [originalComponents, setOriginalComponents] = useState<ComponentSchema[]>([]);
-  const [aiActionStatus, setAIActionStatus] = useState<string | null>(null);
 
   // JSON Editor hook
   const {
@@ -219,55 +218,6 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
     selectedComponentIndex,
     setSelectedComponentIndex,
   });
-
-  // Helper to merge AI proposals consistently
-  const handleProposedComponentsMerge = useCallback((proposals: any[]) => {
-    const currentSelected = selectedComponentIndex !== null ? components[selectedComponentIndex] : null;
-    setProposedComponents((prev) => {
-      const next = [...(prev || [])];
-      const normalized = Array.isArray(proposals) ? proposals : [];
-
-      // If only one proposal and a section is selected, ensure it gets the selected key/type
-      if (normalized.length === 1 && currentSelected?.key) {
-        normalized[0] = {
-          ...normalized[0],
-          key: normalized[0].key || currentSelected.key,
-          type: normalized[0].type || currentSelected.type
-        };
-      }
-
-      normalized.forEach((p: any) => {
-        if (!p) return;
-        let proposal = { ...p };
-        if (!proposal.key) {
-          // Prefer exact type match on the currently selected component
-          if (currentSelected && (proposal.type || '').toLowerCase() === (currentSelected.type || '').toLowerCase()) {
-            proposal.key = currentSelected.key;
-            proposal.type = currentSelected.type;
-          } else {
-            // Otherwise match by type across all components (case-insensitive)
-            const match =
-              components.find((c) => (c.type || '').toLowerCase() === (proposal.type || '').toLowerCase()) ||
-              components.find((c) => c.name && proposal.type && c.name.toLowerCase().includes(String(proposal.type).toLowerCase())) ||
-              components.find((c) => proposal.type && c.type.toLowerCase().includes(String(proposal.type).toLowerCase()));
-            if (match) {
-              proposal.key = match.key;
-              proposal.type = match.type; // normalize to existing type
-            }
-          }
-        }
-        if (proposal.key) {
-          const idx = next.findIndex((c: any) => c && c.key === proposal.key);
-          if (idx >= 0) {
-            next[idx] = proposal;
-          } else {
-            next.push(proposal);
-          }
-        }
-      });
-      return next;
-    });
-  }, [components, selectedComponentIndex]);
 
   // Fetch page data
   useEffect(() => {
@@ -482,9 +432,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
     setSelectedComponentIndex(index);
     setShowSEOForm(false);
     setShowContents(false);
-    // Also focus the AI assistant on this component
-    setSelectedComponentForAI(components[index] || null);
-  }, [components]);
+  }, []);
 
   const handleSEOFormOpen = useCallback(() => {
     setShowSEOForm(true);
@@ -503,21 +451,22 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
   // Render right panel
   const renderRightPanel = () => {
     if (showContents) {
-      // Page-level view with unified tabs: Original | Output (Output contains drafted preview)
+      // Page-level view: SEO at top, then tabs for Original vs Output contents (read-only)
       const hasOutput = Array.isArray(proposedComponents) && proposedComponents.length > 0;
 
       return (
-        <div className="space-y-6" key={Array.isArray(proposedComponents) && proposedComponents.length > 0 ? 'page-output' : 'page-original'}>
+        <div className="space-y-6">
           <div className="border-b pb-4">
             <SEOForm pageData={pageData} onFieldChange={updateField} />
           </div>
 
           <Tabs defaultValue={hasOutput ? "output" : "original"} className="w-full">
-            <div className="mb-4">
+            <div className="mb-4 flex items-center justify-between">
               <TabsList>
                 <TabsTrigger value="original">Original</TabsTrigger>
                 <TabsTrigger value="output">Output</TabsTrigger>
               </TabsList>
+              <span className="text-xs text-muted-foreground">Read-only preview</span>
             </div>
 
             <TabsContent value="original">
@@ -525,18 +474,12 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
             </TabsContent>
 
             <TabsContent value="output">
-              {aiActionStatus && (
-                <div className="mb-4 inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-muted text-xs text-muted-foreground border">
-                  <span className="font-medium">Action:</span>
-                  <span>{aiActionStatus}</span>
-                </div>
-              )}
-
-              {/* Simple swap: show original until drafts exist, then show drafted output */}
-              {!hasOutput ? (
-                <ContentsPanel components={components} extractContentFromComponents={extractContentFromComponents} />
-              ) : (
+              {hasOutput ? (
                 <ContentsPanel components={proposedComponents as ComponentSchema[]} extractContentFromComponents={extractContentFromComponents} />
+              ) : (
+                <div className="p-4 rounded-lg border bg-muted/30 text-sm text-muted-foreground">
+                  No output drafts yet. Use Edit mode in the AI chat to generate drafts for all sections.
+                </div>
               )}
             </TabsContent>
           </Tabs>
@@ -549,19 +492,14 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
     }
 
     if (selectedComponentIndex !== null) {
-      // Per-section view with unified tabs: Original | Output (Output contains drafted preview)
+      // Build per-section data
       const selected = selectedComponent;
-      let proposedForSelected =
-        (proposedComponents?.find((c) => c.key === selected?.key) ||
-         proposedComponents?.find((c) => (c.type || '').toLowerCase() === (selected?.type || '').toLowerCase()) ||
-         null);
-      if (!proposedForSelected && proposedComponents && components && selectedComponentIndex >= 0) {
-        if (proposedComponents.length === components.length) {
-          proposedForSelected = proposedComponents[selectedComponentIndex] || null;
-        }
-      }
+      const originalForSelected = originalComponents.find((c) => c.key === selected?.key) || null;
+      const proposedForSelected = proposedComponents?.find((c) => c.key === selected?.key) || null;
       const hasOutput = Boolean(proposedForSelected);
+      const otherDrafts = (proposedComponents || []).filter((c) => c.key !== selected?.key);
 
+      // Helper to render contents for a given component
       const renderSectionContents = (comp: ComponentSchema | null) => {
         const items = comp ? extractContentFromComponents([comp]) : [];
         return (
@@ -625,62 +563,85 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
         );
       };
 
+      // Always render tabs; Output is read-only preview of proposedForSelected (if any)
       return (
-        <div className="w-full" key={`${selected?.key}-${hasOutput ? 'output' : 'original'}`}>
-          <div className="mb-4 flex items-center justify-end">
-            <Button
-              onClick={() => {
-                if (selectedComponentIndex !== null && proposedForSelected) {
-                  updateComponent(selectedComponentIndex, proposedForSelected);
-                  setProposedComponents((prev) =>
-                    prev ? prev.filter((c) => c.key !== proposedForSelected.key) : prev
-                  );
-                  toast.success('Applied output to this section');
-                }
-              }}
-              variant="outline"
-              size="sm"
-              disabled={!proposedForSelected}
-              title={proposedForSelected ? 'Apply output to this section' : 'No output available to apply'}
-            >
-              Apply Output
-            </Button>
-          </div>
+        <div className="w-full">
+          <Tabs defaultValue={hasOutput ? "output" : "original"} className="w-full">
+            <div className="mb-4 flex items-center justify-between">
+              <TabsList>
+                <TabsTrigger value="original">Original</TabsTrigger>
+                <TabsTrigger value="output">Output</TabsTrigger>
+              </TabsList>
+              <Button
+                onClick={() => {
+                  if (selectedComponentIndex !== null && proposedForSelected) {
+                    updateComponent(selectedComponentIndex, proposedForSelected);
+                    setProposedComponents((prev) =>
+                      prev ? prev.filter((c) => c.key !== proposedForSelected.key) : prev
+                    );
+                    toast.success('Applied output to this section');
+                  }
+                }}
+                variant="outline"
+                size="sm"
+                disabled={!proposedForSelected}
+                title={proposedForSelected ? 'Apply output to this section' : 'No output available to apply'}
+              >
+                Apply Output
+              </Button>
+            </div>
 
-          <ComponentEditorPanel
-            component={selected}
-            componentIndex={selectedComponentIndex}
-            components={components}
-            onUpdate={updateComponent}
-          />
+            <TabsContent value="original" className="space-y-4">
+              {/* Original editor (interactive) */}
+              <ComponentEditorPanel
+                component={selected}
+                componentIndex={selectedComponentIndex}
+                components={components}
+                onUpdate={updateComponent}
+              />
+              {renderSectionContents(selected)}
+            </TabsContent>
 
-          <div className="mt-4">
-            <Tabs defaultValue={hasOutput ? "output" : "original"} className="w-full">
-              <div className="mb-3">
-                <TabsList>
-                  <TabsTrigger value="original">Original</TabsTrigger>
-                  <TabsTrigger value="output">Output</TabsTrigger>
-                </TabsList>
-              </div>
-
-              <TabsContent value="original">
-                {renderSectionContents(selected)}
-              </TabsContent>
-
-              <TabsContent value="output">
-                {aiActionStatus && (
-                  <div className="mb-3 inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-muted text-xs text-muted-foreground border">
-                    <span className="font-medium">Action:</span>
-                    <span>{aiActionStatus}</span>
+            <TabsContent value="output" className="space-y-4">
+              {hasOutput ? (
+                <>
+                  {/* Output preview (read-only) */}
+                  <ComponentEditorPanel
+                    component={proposedForSelected}
+                    componentIndex={selectedComponentIndex}
+                    components={proposedForSelected ? proposedComponents || components : components}
+                    onUpdate={() => { /* read-only */ }}
+                  />
+                  {renderSectionContents(proposedForSelected as ComponentSchema)}
+                </>
+              ) : (
+                <>
+                  <div className="p-4 rounded-lg border bg-muted/30 text-sm text-muted-foreground">
+                    No output draft for this section yet. Use Edit mode in the AI chat while this section is focused to generate one.
                   </div>
-                )}
 
-                {hasOutput
-                  ? renderSectionContents(proposedForSelected as ComponentSchema)
-                  : renderSectionContents(selected)}
-              </TabsContent>
-            </Tabs>
-          </div>
+                  {/* NEW: Other drafted sections accordion (read-only) */}
+                  {otherDrafts.length > 0 && (
+                    <div className="mt-4">
+                      <h4 className="font-semibold mb-2">Other drafted sections</h4>
+                      <Accordion type="single" collapsible className="w-full">
+                        {otherDrafts.map((comp) => (
+                          <AccordionItem key={comp.key || comp.type} value={comp.key || comp.type}>
+                            <AccordionTrigger>
+                              {comp.type || comp.key || 'Section'}
+                            </AccordionTrigger>
+                            <AccordionContent>
+                              {renderSectionContents(comp as ComponentSchema)}
+                            </AccordionContent>
+                          </AccordionItem>
+                        ))}
+                      </Accordion>
+                    </div>
+                  )}
+                </>
+              )}
+            </TabsContent>
+          </Tabs>
         </div>
       );
     }
@@ -717,7 +678,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
   }
 
   return (
-    <SidebarProvider className="h-screen flex flex-col">
+    <div className="h-screen flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b bg-background">
         <div className="flex items-center gap-4">
@@ -725,9 +686,9 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h2 className="text-xl font-bold">Edit Page: {pageData?.page_name || 'Untitled'}</h2>
+            <h2 className="text-xl font-bold">Edit Page: {pageData.page_name || 'Untitled'}</h2>
             <div className="flex items-center gap-2">
-              <p className="text-sm text-muted-foreground">{pageData?.slug || 'no-slug'}</p>
+              <p className="text-sm text-muted-foreground">{pageData.slug || 'no-slug'}</p>
             </div>
           </div>
         </div>
@@ -753,100 +714,122 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
         </div>
       </div>
 
-      {/* Main Content with right sidebar */}
-      <div className="flex-1 relative">
-        {/* Editor panels inside inset area */}
-        <SidebarInset className="flex overflow-hidden">
-          {/* Left Panel - Components List */}
-          <div className="w-80 border-r bg-muted/20 flex flex-col">
-            <ScrollArea className="flex-1">
-              <div className="p-2 space-y-2">
-                <Button
-                  variant={showContents ? "default" : "ghost"}
-                  className="w-full justify-start text-lg font-semibold py-3"
-                  onClick={() => {
-                    setShowContents(true);
-                    setShowSEOForm(false);
-                    setSelectedComponentIndex(null);
-                    setSelectedComponentForAI({ __scope: 'page', schema: { components } } as any);
-                  }}
-                >
-                  Sections
-                </Button>
+      {/* Main Content */}
+      <div className="flex-1 flex overflow-hidden relative">
+        {/* Left Panel - Components List */}
+        <div className="w-80 border-r bg-muted/20 flex flex-col">
 
-                <Separator className="my-2" />
+          <ScrollArea className="flex-1">
+            <div className="p-2 space-y-2">
+              {/* Sections acts like old Contents (click to show contents panel) */}
+              <Button
+                variant={showContents ? "default" : "ghost"}
+                className="w-full justify-start text-lg font-semibold py-3"
+                onClick={() => {
+                  setShowContents(true);
+                  setShowSEOForm(false);
+                  setSelectedComponentIndex(null);
+                  // Signal AI chat to use the full page schema (page-level context)
+                  setSelectedComponentForAI({ __scope: 'page', schema: { components } } as any);
+                }}
+              >
+                Sections
+              </Button>
 
-                {isValidComponentsArray(components) && components.length > 0 && (
-                  components.map((component, index) => (
-                    <ComponentListItem
-                      key={component.key}
-                      component={component}
-                      index={index}
-                      isSelected={selectedComponentIndex === index}
-                      onSelect={handleComponentSelect}
-                      onSendToAI={(comp) => setSelectedComponentForAI(comp)}
-                    />
-                  ))
-                )}
+              <Separator className="my-2" />
 
-                {!isValidComponentsArray(components) && (
-                  <ComponentsErrorState onReset={() => setComponents([])} />
-                )}
+              {/* Components List */}
+              {isValidComponentsArray(components) && components.length > 0 && (
+                components.map((component, index) => (
+                  <ComponentListItem
+                    key={component.key}
+                    component={component}
+                    index={index}
+                    isSelected={selectedComponentIndex === index}
+                    onSelect={handleComponentSelect}
+                    onSendToAI={(comp) => setSelectedComponentForAI(comp)}
+                  />
+                ))
+              )}
 
-                {isValidComponentsArray(components) && components.length === 0 && (
-                  <ComponentsEmptyState />
-                )}
-              </div>
-            </ScrollArea>
-          </div>
+              {!isValidComponentsArray(components) && (
+                <ComponentsErrorState onReset={() => setComponents([])} />
+              )}
 
-          {/* Middle Panel - Settings */}
-          <div className="flex-1 flex flex-col overflow-hidden">
-            <ScrollArea className="h-full">
-              <div className="p-6">
-                {renderRightPanel()}
-              </div>
-            </ScrollArea>
-          </div>
+              {isValidComponentsArray(components) && components.length === 0 && (
+                <ComponentsEmptyState />
+              )}
+            </div>
+          </ScrollArea>
+        </div>
 
-          {/* RIGHT COLUMN: AI Assistant Chat widget inside editor */}
-          <div className="w-[26rem] max-w-[32rem] border-l bg-muted/20 flex flex-col">
-            <ScrollArea className="h-full">
-              <div className="p-3">
-                <div className="mb-2">
-                  <div className="text-sm font-medium">AI Assistant</div>
-                  <div className="text-xs text-muted-foreground">Ask or draft copy for the current page/section</div>
-                </div>
-                <AIAssistantChat
-                  className="h-full w-full"
-                  pageContext={pageData ? {
-                    slug: pageData.slug,
-                    pageName: pageData.page_name,
-                    tenantId: currentTenantId || undefined
-                  } : null}
-                  currentComponents={components}
-                  onUpdateComponents={setComponents}
-                  onProposedComponents={handleProposedComponentsMerge}
-                  onOpenJSONEditor={openJSONEditor}
-                  selectedComponentJSON={selectedComponentForAI || ({ __scope: 'page', schema: { components } } as any)}
-                  onComponentSelected={() => {}}
-                  onActionStatus={setAIActionStatus}
-                />
-              </div>
-            </ScrollArea>
-          </div>
+        {/* Middle Panel - Settings */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <ScrollArea className="h-full">
+            <div className="p-6">
+              {renderRightPanel()}
+            </div>
+          </ScrollArea>
+        </div>
 
-          {/* JSON Editor Dialog */}
-          <JSONEditorDialog
-            open={showJSONEditor}
-            onOpenChange={closeJSONEditor}
-            editorRef={setEditorRef}
-            jsonError={jsonError}
-            onSave={handleSave}
+        {/* Right Sidebar - Editor */}
+        <div className="w-[360px] md:w-[400px] lg:w-[420px] flex-shrink-0 border-l bg-background">
+          <AIAssistantChat 
+            className="h-full w-full"
+            pageContext={pageData ? {
+              slug: pageData.slug,
+              pageName: pageData.page_name,
+              tenantId: currentTenantId || undefined
+            } : null}
+            currentComponents={components}
+            onUpdateComponents={setComponents}
+            onProposedComponents={(proposals) => {
+              // Merge proposals; if a proposal has no key, try to attach to a matching component by type/name
+              setProposedComponents((prev) => {
+                const next = [...(prev || [])];
+                proposals.forEach((p: any) => {
+                  if (!p) return;
+                  let proposal = { ...p };
+                  if (!proposal.key) {
+                    const match =
+                      components.find((c) => c.type === proposal.type) ||
+                      components.find((c) => c.name && proposal.type && c.name.toLowerCase().includes(String(proposal.type).toLowerCase())) ||
+                      components.find((c) => proposal.type && c.type.toLowerCase().includes(String(proposal.type).toLowerCase()));
+                    if (match) {
+                      proposal.key = match.key;
+                      proposal.type = match.type; // normalize to existing type
+                    }
+                  }
+                  if (proposal.key) {
+                    const idx = next.findIndex((c: any) => c && c.key === proposal.key);
+                    if (idx >= 0) {
+                      next[idx] = proposal;
+                    } else {
+                      next.push(proposal);
+                    }
+                  }
+                });
+                return next;
+              });
+            }}
+            onOpenJSONEditor={openJSONEditor}
+            selectedComponentJSON={selectedComponentForAI}
+            onComponentSelected={() => {
+              // Keep the selection so the chat shows "Focused on" persistently
+            }}
           />
-        </SidebarInset>
+        </div>
       </div>
-    </SidebarProvider>
+
+      {/* JSON Editor Dialog */}
+      <JSONEditorDialog
+        open={showJSONEditor}
+        onOpenChange={closeJSONEditor}
+        editorRef={setEditorRef}
+        jsonError={jsonError}
+        onSave={handleSave}
+      />
+    </div>
   );
 };
 
