@@ -186,12 +186,7 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
   }, [selectedComponentJSON, onComponentSelected, currentComponents, pageContext?.pageName, pageContextData?.pageName]);
 
   // Clear focus when selection is cleared (e.g., clicking 'Sections')
-  useEffect(() => {
-    if (!selectedComponentJSON) {
-      setFocusedComponentJSON(null);
-      setComponentHierarchy([]);
-    }
-  }, [selectedComponentJSON]);
+  // Removed auto-clearing of focus so it persists until another selection is made
 
   // Component selector: Find iframe and inject selector script
   useEffect(() => {
@@ -728,7 +723,7 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
                   )}
                   {focusedComponentJSON && (
                     <span className="text-xs text-primary font-medium truncate" title={JSON.stringify(focusedComponentJSON, null, 2)}>
-                      Focused: {componentHierarchy.length > 1 ? componentHierarchy.join(' > ') : (focusedComponentJSON.type || focusedComponentJSON.key || 'Component')}
+                      Focused on: {componentHierarchy.length > 1 ? componentHierarchy.join(' > ') : (focusedComponentJSON.type || focusedComponentJSON.key || 'Component')}
                     </span>
                   )}
                 </div>

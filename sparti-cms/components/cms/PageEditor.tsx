@@ -718,8 +718,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
           onOpenJSONEditor={openJSONEditor}
           selectedComponentJSON={selectedComponentForAI}
           onComponentSelected={() => {
-            // Clear the selection after it's been processed
-            setSelectedComponentForAI(null);
+            // Keep the selection so the chat shows "Focused on" persistently
           }}
         />
       </div>
