@@ -65,7 +65,6 @@ const claudeModels = [
 // --- The Final, Self-Contained PromptBox Component ---
 export const PromptBox = React.forwardRef<HTMLTextAreaElement, React.TextareaHTMLAttributes<HTMLTextAreaElement>>(
   ({ className, ...props }, ref) => {
-    // ... all state and handlers are unchanged ...
     const internalTextareaRef = React.useRef<HTMLTextAreaElement>(null);
     const fileInputRef = React.useRef<HTMLInputElement>(null);
     const [value, setValue] = React.useState("");
@@ -74,6 +73,7 @@ export const PromptBox = React.forwardRef<HTMLTextAreaElement, React.TextareaHTM
     const [selectedModel, setSelectedModel] = React.useState<string>('claude-3-5-haiku-20241022'); // Default to most affordable
     const [isPopoverOpen, setIsPopoverOpen] = React.useState(false);
     const [isImageDialogOpen, setIsImageDialogOpen] = React.useState(false);
+    const [selectedMode, setSelectedMode] = React.useState<'edit' | 'ask'>('edit'); // NEW: mode state (default Edit)
     React.useImperativeHandle(ref, () => internalTextareaRef.current!, []);
     React.useLayoutEffect(() => { const textarea = internalTextareaRef.current; if (textarea) { textarea.style.height = "auto"; const newHeight = Math.min(textarea.scrollHeight, 200); textarea.style.height = `${newHeight}px`; } }, [value]);
     const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => { setValue(e.target.value); if (props.onChange) props.onChange(e); };
@@ -121,7 +121,20 @@ export const PromptBox = React.forwardRef<HTMLTextAreaElement, React.TextareaHTM
         
         {imagePreview && ( <Dialog open={isImageDialogOpen} onOpenChange={setIsImageDialogOpen}> <div className="relative mb-1 w-fit rounded-[1rem] px-1 pt-1"> <button type="button" className="transition-transform" onClick={() => setIsImageDialogOpen(true)}> <img src={imagePreview} alt="Image preview" className="h-[3.5rem] w-[3.5rem] rounded-[1rem]" /> </button> <button onClick={handleRemoveImage} className="absolute right-2 top-2 z-10 flex h-4 w-4 items-center justify-center rounded-full bg-white/50 dark:bg-[#303030] text-black dark:text-white transition-colors hover:bg-accent dark:hover:bg-[#515151]" aria-label="Remove image"> <XIcon className="h-4 w-4" /> </button> </div> <DialogContent> <img src={imagePreview} alt="Full size preview" className="w-full max-h-[95vh] object-contain rounded-[24px]" /> </DialogContent> </Dialog> )}
         
-        <textarea ref={internalTextareaRef} rows={1} value={value} onChange={handleInputChange} onKeyDown={handleKeyDown} placeholder="Message... (Press Enter to send, Shift+Enter for new line)" disabled={props.disabled} data-selected-tools={selectedTools.join(',')} data-selected-model={selectedModel} className="custom-scrollbar w-full resize-none border-0 bg-transparent p-3 text-foreground dark:text-white placeholder:text-muted-foreground dark:placeholder:text-gray-300 focus:ring-0 focus-visible:outline-none min-h-12 disabled:opacity-50 disabled:cursor-not-allowed" {...props} />
+        <textarea
+          ref={internalTextareaRef}
+          rows={1}
+          value={value}
+          onChange={handleInputChange}
+          onKeyDown={handleKeyDown}
+          placeholder="Message... (Press Enter to send, Shift+Enter for new line)"
+          disabled={props.disabled}
+          data-selected-tools={selectedTools.join(',')}
+          data-selected-model={selectedModel}
+          data-mode={selectedMode} // NEW: expose mode to the chat component
+          className="custom-scrollbar w-full resize-none border-0 bg-transparent p-3 text-foreground dark:text-white placeholder:text-muted-foreground dark:placeholder:text-gray-300 focus:ring-0 focus-visible:outline-none min-h-12 disabled:opacity-50 disabled:cursor-not-allowed"
+          {...props}
+        />
         
         <div className="mt-0.5 p-1 pt-0">
           <TooltipProvider delayDuration={100}>
@@ -132,36 +145,52 @@ export const PromptBox = React.forwardRef<HTMLTextAreaElement, React.TextareaHTM
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <PopoverTrigger asChild>
-                      <button type="button" className="flex h-8 items-center gap-2 rounded-full p-2 text-sm text-foreground dark:text-white transition-colors hover:bg-accent dark:hover:bg-[#515151] focus-visible:outline-none focus-visible:ring-ring">
-                        <Settings2Icon className="h-4 w-4" />
-                        Tools
+                      <button
+                        type="button"
+                        className="flex h-8 items-center gap-2 rounded-full p-2 text-sm text-foreground dark:text-white transition-colors hover:bg-accent dark:hover:bg-[#515151] focus-visible:outline-none focus-visible:ring-ring"
+                      >
+                        {/* Show current mode label */}
+                        <PencilIcon className="h-4 w-4" />
+                        {selectedMode === 'edit' ? 'Edit' : 'Ask'}
                       </button>
                     </PopoverTrigger>
                   </TooltipTrigger>
-                  <TooltipContent side="top" showArrow={true}><p>Explore Tools</p></TooltipContent>
+                  <TooltipContent side="top" showArrow={true}><p>Switch mode</p></TooltipContent>
                 </Tooltip>
                 <PopoverContent side="top" align="start">
                   <div className="flex flex-col gap-1">
-                    {toolsList.map(tool => {
-                      const isSelected = selectedTools.includes(tool.id);
-                      return (
-                        <button 
-                          key={tool.id} 
-                          onClick={() => toggleTool(tool.id)} 
-                          className={cn(
-                            "flex w-full items-center gap-2 rounded-md p-2 text-left text-sm transition-colors",
-                            isSelected 
-                              ? "bg-primary text-primary-foreground" 
-                              : "hover:bg-accent dark:hover:bg-[#515151]"
-                          )}
-                        > 
-                          <tool.icon className="h-4 w-4" /> 
-                          <span>{tool.name}</span> 
-                          {tool.extra && <span className="ml-auto text-xs text-muted-foreground dark:text-gray-400">{tool.extra}</span>}
-                          {isSelected && <span className="ml-auto text-xs">✓</span>}
-                        </button>
-                      );
-                    })}
+                    <button
+                      onClick={() => {
+                        setSelectedMode('edit');
+                        setIsPopoverOpen(false);
+                      }}
+                      className={cn(
+                        "flex w-full items-center gap-2 rounded-md p-2 text-left text-sm transition-colors",
+                        selectedMode === 'edit'
+                          ? "bg-primary text-primary-foreground"
+                          : "hover:bg-accent dark:hover:bg-[#515151]"
+                      )}
+                    >
+                      <PencilIcon className="h-4 w-4" />
+                      <span>Edit</span>
+                      {selectedMode === 'edit' && <span className="ml-auto text-xs">✓</span>}
+                    </button>
+                    <button
+                      onClick={() => {
+                        setSelectedMode('ask');
+                        setIsPopoverOpen(false);
+                      }}
+                      className={cn(
+                        "flex w-full items-center gap-2 rounded-md p-2 text-left text-sm transition-colors",
+                        selectedMode === 'ask'
+                          ? "bg-primary text-primary-foreground"
+                          : "hover:bg-accent dark:hover:bg-[#515151]"
+                      )}
+                    >
+                      <LightbulbIcon className="h-4 w-4" />
+                      <span>Ask</span>
+                      {selectedMode === 'ask' && <span className="ml-auto text-xs">✓</span>}
+                    </button>
                   </div>
                 </PopoverContent>
               </Popover>
@@ -237,4 +266,3 @@ export const PromptBox = React.forwardRef<HTMLTextAreaElement, React.TextareaHTM
   }
 );
 PromptBox.displayName = "PromptBox";
-

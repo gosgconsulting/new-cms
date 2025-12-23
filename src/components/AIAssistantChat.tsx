@@ -1,9 +1,10 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
-import { MessageCircle, Loader2, ChevronRight, ChevronLeft } from "lucide-react";
+import { MessageCircle, Loader2, ChevronRight, ChevronLeft, Image, Type } from "lucide-react";
 import { PromptBox } from "@/components/ui/chatgpt-prompt-input";
 import { cn } from "@/lib/utils";
 import api from "../../sparti-cms/utils/api";
 import { useAuth } from "../../sparti-cms/components/auth/AuthProvider";
+import { getAvailableActions } from "../../sparti-cms/utils/componentSchemaAnalyzer";
 import { Button } from "@/components/ui/button";
 
 interface PageContext {
@@ -157,6 +158,14 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
 
     loadPageContext();
   }, [pageContext?.slug, pageContext?.pageName, pageContext?.tenantId, currentTenantId]);
+
+  // Analyze component for available actions
+  const availableActions = useMemo(() => {
+    if (!focusedComponentJSON) {
+      return { hasImages: false, hasText: false };
+    }
+    return getAvailableActions(focusedComponentJSON);
+  }, [focusedComponentJSON]);
 
   // Handle component selection from left panel
   useEffect(() => {
@@ -538,6 +547,7 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
       const activeToolsString = messageInput?.dataset.selectedTools || '';
       const activeTools = activeToolsString ? activeToolsString.split(',') : [];
       const selectedModel = messageInput?.dataset.selectedModel || 'claude-3-5-haiku-20241022';
+      const mode = (messageInput?.dataset.mode as 'edit' | 'ask') || 'edit'; // NEW: read mode
 
       // Build message with selected components context
       let enhancedMessage = message;
@@ -588,6 +598,14 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
       } catch (contextError) {
         console.warn('[testing] Error building page context, continuing without it:', contextError);
         finalPageContext = undefined;
+      }
+
+      // NEW: If in Edit mode, instruct the model to return JSON edits directly
+      if (mode === 'edit') {
+        const editInstruction = focusedComponentJSON
+          ? `[Mode: Edit]\nReturn ONLY the updated component JSON for the focused section (keep the same key and type). Modify only relevant fields. Do not wrap in code fences.\n\n`
+          : `[Mode: Edit]\nReturn ONLY updated schema JSON with a top-level "components" array. Modify only relevant sections. Do not wrap in code fences.\n\n`;
+        enhancedMessage = editInstruction + enhancedMessage;
       }
 
       // Call Claude API with page context
@@ -991,6 +1009,49 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
                       </button>
                     </div>
                   ))}
+                </div>
+              </div>
+            )}
+
+            {/* Action Buttons - Show when component is selected */}
+            {focusedComponentJSON && (availableActions.hasImages || availableActions.hasText) && (
+              <div className="px-4 py-2 border-b bg-muted/20">
+                <p className="text-xs text-muted-foreground mb-3">
+                  What would you like to do with this section?
+                </p>
+                <div className="grid grid-cols-2 gap-2">
+                  {availableActions.hasImages && (
+                    <button
+                      onClick={() => {
+                        const componentName = focusedComponentJSON.type || focusedComponentJSON.key || 'this component';
+                        const message = `Edit the images in ${componentName}`;
+                        submitMessage(message);
+                      }}
+                      disabled={isLoading}
+                      className="flex items-center gap-2 px-3 py-2 rounded-lg bg-background border border-border hover:bg-muted/50 transition-colors text-left group disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                    >
+                      <div className="p-2 rounded-md bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 group-hover:bg-purple-200 dark:group-hover:bg-purple-900/50 transition-colors">
+                        <Image className="h-4 w-4" />
+                      </div>
+                      <span className="font-medium">Edit image</span>
+                    </button>
+                  )}
+                  {availableActions.hasText && (
+                    <button
+                      onClick={() => {
+                        const componentName = focusedComponentJSON.type || focusedComponentJSON.key || 'this component';
+                        const message = `Edit the text in ${componentName}`;
+                        submitMessage(message);
+                      }}
+                      disabled={isLoading}
+                      className="flex items-center gap-2 px-3 py-2 rounded-lg bg-background border border-border hover:bg-muted/50 transition-colors text-left group disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                    >
+                      <div className="p-2 rounded-md bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400 group-hover:bg-yellow-200 dark:group-hover:bg-yellow-900/50 transition-colors">
+                        <Type className="h-4 w-4" />
+                      </div>
+                      <span className="font-medium">Edit text</span>
+                    </button>
+                  )}
                 </div>
               </div>
             )}
