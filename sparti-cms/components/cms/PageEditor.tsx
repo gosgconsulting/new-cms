@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Button } from '../../../src/components/ui/button';
 import { ScrollArea } from '../../../src/components/ui/scroll-area';
 import { Separator } from '../../../src/components/ui/separator';
-import { ArrowLeft, Save, Loader2, Settings, Code, FileText, RotateCcw } from 'lucide-react';
+import { ArrowLeft, Save, Loader2, Settings, Code, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '../auth/AuthProvider';
 import { ComponentSchema } from '../../types/schema';
@@ -16,6 +16,7 @@ import { ComponentListItem } from './PageEditor/ComponentListItem';
 import { JSONEditorDialog } from './PageEditor/JSONEditorDialog';
 import { EmptyState, ComponentsErrorState, ComponentsEmptyState } from './PageEditor/EmptyStates';
 import { AIAssistantChat } from '../../../src/components/AIAssistantChat';
+import SectionContentList from '../../../src/components/SectionContentList';
 
 // Contents Panel Component
 interface ContentsPanelProps {
@@ -487,52 +488,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
                 Readable text from this section
               </p>
             </div>
-            {items.length === 0 ? (
-              <div className="text-sm text-muted-foreground">No text content found in this section.</div>
-            ) : (
-              <div className="prose prose-sm max-w-none">
-                {items.map((item, index) => {
-                  const key = `${item.componentId}-${index}`;
-                  switch (item.type) {
-                    case 'heading': {
-                      const HeadingTag = `h${item.level || 2}` as keyof JSX.IntrinsicElements;
-                      return (
-                        <HeadingTag
-                          key={key}
-                          className={`font-bold text-foreground ${
-                            item.level === 1 ? 'text-2xl mb-3' :
-                            item.level === 2 ? 'text-xl mb-2' :
-                            item.level === 3 ? 'text-lg mb-2' :
-                            'text-base mb-2'
-                          }`}
-                        >
-                          {item.text}
-                        </HeadingTag>
-                      );
-                    }
-                    case 'paragraph':
-                      return (
-                        <p key={key} className="text-foreground mb-3 leading-relaxed">
-                          {item.text}
-                        </p>
-                      );
-                    case 'list':
-                      return (
-                        <li key={key} className="text-foreground mb-2 ml-4 list-disc">
-                          {item.text}
-                        </li>
-                      );
-                    case 'text':
-                    default:
-                      return (
-                        <div key={key} className="text-foreground mb-2 px-3 py-2 rounded">
-                          <div className="mt-1">{item.text}</div>
-                        </div>
-                      );
-                  }
-                })}
-              </div>
-            )}
+            <SectionContentList items={items} />
           </div>
         );
       };
@@ -559,7 +515,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
                       key: comp.key || selected.key,
                       type: comp.type || selected.type,
                     };
-                    updateComponent(selectedComponentIndex, normalized as ComponentSchema);
+                    updateComponent(selectedComponentIndex, normalized);
                     setProposedComponents((prev) => {
                       if (!prev) return prev;
                       const key = normalized.key;
@@ -574,52 +530,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
               </div>
             </div>
 
-            {items.length === 0 ? (
-              <div className="text-sm text-muted-foreground">No text in the AI output for this section.</div>
-            ) : (
-              <div className="prose prose-sm max-w-none">
-                {items.map((item, index) => {
-                  const key = `${item.componentId}-output-${index}`;
-                  switch (item.type) {
-                    case 'heading': {
-                      const HeadingTag = `h${item.level || 2}` as keyof JSX.IntrinsicElements;
-                      return (
-                        <HeadingTag
-                          key={key}
-                          className={`font-bold text-foreground ${
-                            item.level === 1 ? 'text-2xl mb-3' :
-                            item.level === 2 ? 'text-xl mb-2' :
-                            item.level === 3 ? 'text-lg mb-2' :
-                            'text-base mb-2'
-                          }`}
-                        >
-                          {item.text}
-                        </HeadingTag>
-                      );
-                    }
-                    case 'paragraph':
-                      return (
-                        <p key={key} className="text-foreground mb-3 leading-relaxed">
-                          {item.text}
-                        </p>
-                      );
-                    case 'list':
-                      return (
-                        <li key={key} className="text-foreground mb-2 ml-4 list-disc">
-                          {item.text}
-                        </li>
-                      );
-                    case 'text':
-                    default:
-                      return (
-                        <div key={key} className="text-foreground mb-2 px-3 py-2 rounded bg-muted/30">
-                          <div className="mt-1">{item.text}</div>
-                        </div>
-                      );
-                  }
-                })}
-              </div>
-            )}
+            <SectionContentList items={items} variant="output" />
           </div>
         );
       };
