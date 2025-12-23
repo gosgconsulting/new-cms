@@ -50,7 +50,7 @@ export const HeadingEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRem
   };
 
   return (
-    <Card className="border-l-4 border-l-blue-500">
+    <Card className="border">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm flex items-center gap-2">
@@ -103,7 +103,7 @@ export const TextEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove
   };
 
   return (
-    <Card className="border-l-4 border-l-green-500">
+    <Card className="border">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm flex items-center gap-2">
@@ -132,20 +132,13 @@ export const TextEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove
 
 // Image item editor
 export const ImageEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove }) => {
-  const handleImageChange = (imageUrl: string) => {
-    onChange({ ...item, src: imageUrl });
-  };
-
-  const handleTitleChange = (title: string) => {
-    onChange({ ...item, content: title });
-  };
-
-  const handleAltChange = (alt: string) => {
-    onChange({ ...item, alt: alt });
-  };
+  const update = (field: keyof SchemaItem, value: string) => onChange({ ...item, [field]: value });
+  const url = item.src || '';
+  const alt = item.alt || '';
+  const title = item.content || '';
 
   return (
-    <Card className="border-l-4 border-l-purple-500">
+    <Card className="border">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm flex items-center gap-2">
@@ -157,16 +150,50 @@ export const ImageEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemov
           </Button>
         </div>
       </CardHeader>
-      <CardContent>
-        <ContentImageEditor
-          imageUrl={item.src || ''}
-          imageTitle={item.content || ''}
-          imageAlt={item.alt || ''}
-          onImageChange={handleImageChange}
-          onTitleChange={handleTitleChange}
-          onAltChange={handleAltChange}
-          // simpleMode defaults to true, so no need to specify
-        />
+      <CardContent className="space-y-4">
+        {/* Fixed height preview without change button */}
+        <div className="border rounded-md p-2">
+          <div className="w-full h-[180px] bg-slate-100 rounded flex items-center justify-center overflow-hidden">
+            {url ? (
+              <img
+                src={url}
+                alt={alt || 'Preview'}
+                className="h-full w-auto object-cover"
+              />
+            ) : (
+              <div className="text-xs text-gray-500">No image URL</div>
+            )}
+          </div>
+        </div>
+        <div className="space-y-2">
+          <Label className="text-xs">Image URL</Label>
+          <Input
+            value={url}
+            onChange={(e) => update('src', e.target.value)}
+            placeholder="https://example.com/image.jpg"
+            className="text-sm"
+          />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="space-y-2">
+            <Label className="text-xs">Alt Text</Label>
+            <Input
+              value={alt}
+              onChange={(e) => update('alt', e.target.value)}
+              placeholder="Describe the image"
+              className="text-sm"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label className="text-xs">Title</Label>
+            <Input
+              value={title}
+              onChange={(e) => update('content', e.target.value)}
+              placeholder="Optional title"
+              className="text-sm"
+            />
+          </div>
+        </div>
       </CardContent>
     </Card>
   );
@@ -189,7 +216,7 @@ export const LinkEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove
   };
 
   return (
-    <Card className="border-l-4 border-l-orange-500">
+    <Card className="border">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm flex items-center gap-2">
@@ -242,7 +269,7 @@ export const ButtonEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemo
   };
 
   return (
-    <Card className="border-l-4 border-l-red-500">
+    <Card className="border">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm flex items-center gap-2">
@@ -309,7 +336,7 @@ export const ArrayEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemov
   };
 
   return (
-    <Card className="border-l-4 border-l-yellow-500">
+    <Card className="border">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <div className="flex gap-2">
@@ -410,7 +437,7 @@ export const TabsEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove
   };
 
   return (
-    <Card className="border-l-4 border-l-blue-500">
+    <Card className="border">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm flex items-center gap-2">
@@ -502,9 +529,6 @@ export const TabsEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove
   );
 };
 
-// WRAPPER COMPONENTS FOR NEW CONTENT EDITORS
-// These adapt the new content editor components to work with the ItemEditorProps interface
-
 // Video item editor using the new ContentVideoEditor
 export const VideoItemEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove }) => {
   const videoItem = item as any; // Type assertion for video item
@@ -531,7 +555,7 @@ export const VideoItemEditor: React.FC<ItemEditorProps> = ({ item, onChange, onR
   };
 
   return (
-    <Card className="border-l-4 border-l-cyan-500">
+    <Card className="border">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm flex items-center gap-2">
@@ -576,7 +600,7 @@ export const GalleryItemEditor: React.FC<ItemEditorProps> = ({ item, onChange, o
   };
 
   return (
-    <Card className="border-l-4 border-l-indigo-500">
+    <Card className="border">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm flex items-center gap-2">
@@ -631,7 +655,7 @@ export const CarouselItemEditor: React.FC<ItemEditorProps> = ({ item, onChange, 
   };
 
   return (
-    <Card className="border-l-4 border-l-pink-500">
+    <Card className="border">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm flex items-center gap-2">
@@ -683,7 +707,7 @@ export const EnhancedButtonItemEditor: React.FC<ItemEditorProps> = ({ item, onCh
 
 
   return (
-    <Card className="border-l-4 border-l-red-500">
+    <Card className="border">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm flex items-center gap-2">
@@ -780,7 +804,7 @@ export const InputEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemov
   };
 
   return (
-    <Card className="bg-muted/40">
+    <Card className="border">
       <CardHeader className="p-3 flex flex-row items-center justify-between">
         <CardTitle className="text-sm flex items-center gap-2">
           <Type className="h-4 w-4" />
@@ -830,7 +854,7 @@ export const TextareaEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRe
   };
 
   return (
-    <Card className="bg-muted/40">
+    <Card className="border">
       <CardHeader className="p-3 flex flex-row items-center justify-between">
         <CardTitle className="text-sm flex items-center gap-2">
           <Type className="h-4 w-4" />
@@ -885,7 +909,7 @@ export const ReviewEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemo
   };
 
   return (
-    <Card className="bg-muted/40">
+    <Card className="border">
       <CardHeader className="p-3 flex flex-row items-center justify-between">
         <CardTitle className="text-sm flex items-center gap-2">
           <MousePointer className="h-4 w-4" />
@@ -964,7 +988,7 @@ export const FeatureEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRem
   };
 
   return (
-    <Card className="bg-muted/40">
+    <Card className="border">
       <CardHeader className="p-3 flex flex-row items-center justify-between">
         <CardTitle className="text-sm flex items-center gap-2">
           <MousePointer className="h-4 w-4" />
