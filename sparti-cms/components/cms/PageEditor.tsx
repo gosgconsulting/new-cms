@@ -15,6 +15,7 @@ import { ComponentEditorPanel } from './PageEditor/ComponentEditorPanel';
 import { ComponentListItem } from './PageEditor/ComponentListItem';
 import { JSONEditorDialog } from './PageEditor/JSONEditorDialog';
 import { EmptyState, ComponentsErrorState, ComponentsEmptyState } from './PageEditor/EmptyStates';
+import { AIAssistantChat } from '../../../src/components/AIAssistantChat';
 
 // Contents Panel Component
 interface ContentsPanelProps {
@@ -563,8 +564,8 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
         </div>
 
         {/* Right Sidebar - Editor */}
-        {/* <AIAssistantChat 
-          className="h-full" 
+        <AIAssistantChat 
+          className="h-full"
           pageContext={pageData ? {
             slug: pageData.slug,
             pageName: pageData.page_name,
@@ -578,7 +579,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
             // Clear the selection after it's been processed
             setSelectedComponentForAI(null);
           }}
-        /> */}
+        />
       </div>
 
       {/* JSON Editor Dialog */}
