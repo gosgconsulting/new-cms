@@ -178,6 +178,14 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps> = ({ className, pag
     }
   }, [selectedComponentJSON, onComponentSelected, currentComponents]);
 
+  // Clear focus when selection is cleared (e.g., clicking 'Sections')
+  useEffect(() => {
+    if (!selectedComponentJSON) {
+      setFocusedComponentJSON(null);
+      setComponentHierarchy([]);
+    }
+  }, [selectedComponentJSON]);
+
   // Component selector: Find iframe and inject selector script
   useEffect(() => {
     if (!isSelectorActive || !pageContext) return;

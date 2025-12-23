@@ -567,6 +567,8 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
                   setShowContents(true);
                   setShowSEOForm(false);
                   setSelectedComponentIndex(null);
+                  // Clear AI chat focus to show page-level context only
+                  setSelectedComponentForAI(null);
                 }}
               >
                 <FileText className="h-4 w-4 mr-2" />
