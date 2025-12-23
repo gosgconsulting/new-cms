@@ -42,6 +42,87 @@ function formatThemeName(slug) {
 }
 
 /**
+ * Read theme.json config file from a theme folder
+ * @param {string} slug - Theme slug (folder name)
+ * @returns {Object|null} Parsed theme config or null if file doesn't exist or is invalid
+ */
+function readThemeConfig(slug) {
+  try {
+    const themesDir = path.join(__dirname, '../theme');
+    const themePath = path.join(themesDir, slug);
+    const configPath = path.join(themePath, 'theme.json');
+    
+    // Check if theme folder exists
+    if (!fs.existsSync(themePath)) {
+      console.log(`[testing] Theme folder does not exist: ${themePath}`);
+      return null;
+    }
+    
+    // Check if theme.json exists
+    if (!fs.existsSync(configPath)) {
+      console.log(`[testing] theme.json not found for theme: ${slug}`);
+      return null;
+    }
+    
+    // Read and parse JSON
+    const configContent = fs.readFileSync(configPath, 'utf8');
+    const config = JSON.parse(configContent);
+    
+    // Validate that name field exists (required)
+    if (!config.name) {
+      console.warn(`[testing] theme.json for ${slug} is missing required 'name' field`);
+      return null;
+    }
+    
+    return config;
+  } catch (error) {
+    if (error.code === 'ENOENT') {
+      // File doesn't exist - this is fine, we'll use fallback
+      return null;
+    }
+    // JSON parse error or other error
+    console.error(`[testing] Error reading theme.json for ${slug}:`, error.message);
+    return null;
+  }
+}
+
+/**
+ * Write theme.json config file to a theme folder
+ * @param {string} slug - Theme slug (folder name)
+ * @param {Object} config - Theme configuration object
+ * @returns {boolean} True if successful, false otherwise
+ */
+function writeThemeConfig(slug, config) {
+  try {
+    const themesDir = path.join(__dirname, '../theme');
+    const themePath = path.join(themesDir, slug);
+    const configPath = path.join(themePath, 'theme.json');
+    
+    // Ensure theme folder exists
+    if (!fs.existsSync(themePath)) {
+      fs.mkdirSync(themePath, { recursive: true });
+    }
+    
+    // Ensure config has required fields
+    if (!config.name) {
+      throw new Error('Theme config must have a "name" field');
+    }
+    
+    // Format JSON with proper indentation
+    const jsonContent = JSON.stringify(config, null, 2);
+    
+    // Write to file
+    fs.writeFileSync(configPath, jsonContent, 'utf8');
+    console.log(`[testing] Created theme.json for theme: ${slug}`);
+    
+    return true;
+  } catch (error) {
+    console.error(`[testing] Error writing theme.json for ${slug}:`, error);
+    return false;
+  }
+}
+
+/**
  * Get themes from file system only (no database required)
  * Scans sparti-cms/theme/ directory and returns theme information
  * This is used as a fallback when database is not available
@@ -66,15 +147,36 @@ export function getThemesFromFileSystem() {
       return [];
     }
 
-    // Format themes from folder names
-    const themes = themeFolders.map(slug => ({
-      id: slug,
-      slug: slug,
-      name: formatThemeName(slug),
-      description: `Theme: ${formatThemeName(slug)}`,
-      is_active: true,
-      from_filesystem: true // Flag to indicate this came from file system
-    }));
+    // Read theme.json from each folder and format themes
+    const themes = themeFolders.map(slug => {
+      // Try to read theme.json
+      const config = readThemeConfig(slug);
+      
+      if (config) {
+        // Use metadata from theme.json
+        return {
+          id: slug,
+          slug: slug,
+          name: config.name,
+          description: config.description || `Theme: ${config.name}`,
+          version: config.version,
+          author: config.author,
+          is_active: config.is_active !== undefined ? config.is_active : true,
+          from_filesystem: true
+        };
+      } else {
+        // Fallback to folder name if theme.json doesn't exist
+        const fallbackName = formatThemeName(slug);
+        return {
+          id: slug,
+          slug: slug,
+          name: fallbackName,
+          description: `Theme: ${fallbackName}`,
+          is_active: true,
+          from_filesystem: true
+        };
+      }
+    });
 
     return themes;
   } catch (error) {
@@ -137,26 +239,32 @@ export async function syncThemesFromFileSystem() {
           throw dbError;
         }
 
-        const themeName = formatThemeName(themeSlug);
+        // Read theme.json for metadata
+        const config = readThemeConfig(themeSlug);
+        
+        // Use metadata from theme.json if available, otherwise fallback to folder name
+        const themeName = config?.name || formatThemeName(themeSlug);
+        const themeDescription = config?.description || `Theme: ${themeName}`;
+        const isActive = config?.is_active !== undefined ? config.is_active : true;
         const now = new Date().toISOString();
 
         if (existingTheme.rows.length > 0) {
-          // Theme exists, update updated_at timestamp
+          // Theme exists, update with metadata from theme.json
           await query(`
             UPDATE themes
-            SET updated_at = $1, is_active = true
-            WHERE slug = $2 OR id = $2
-          `, [now, themeSlug]);
+            SET name = $1, description = $2, updated_at = $3, is_active = $4
+            WHERE slug = $5 OR id = $5
+          `, [themeName, themeDescription, now, isActive, themeSlug]);
           
           results.push({
             slug: themeSlug,
             action: 'updated',
-            name: existingTheme.rows[0].name || themeName
+            name: themeName
           });
           syncedCount++;
-          console.log(`[testing] Updated theme: ${themeSlug}`);
+          console.log(`[testing] Updated theme: ${themeSlug} (${themeName})`);
         } else {
-          // Theme doesn't exist, create new record
+          // Theme doesn't exist, create new record with metadata from theme.json
           await query(`
             INSERT INTO themes (id, name, slug, description, created_at, updated_at, is_active)
             VALUES ($1, $2, $3, $4, $5, $6, $7)
@@ -164,10 +272,10 @@ export async function syncThemesFromFileSystem() {
             themeSlug,
             themeName,
             themeSlug,
-            `Theme: ${themeName}`,
+            themeDescription,
             now,
             now,
-            true
+            isActive
           ]);
           
           results.push({
@@ -359,9 +467,22 @@ export default TenantLanding;
     fs.writeFileSync(indexFile, themeComponent, 'utf8');
     console.log('[testing] Created theme index file:', indexFile);
     
-    // Create database entry
+    // Create theme.json config file
     const themeNameFormatted = name || formatThemeName(slug);
     const themeDescription = description || `Theme: ${themeNameFormatted}`;
+    const themeConfig = {
+      name: themeNameFormatted,
+      description: themeDescription,
+      version: '1.0.0',
+      is_active: true
+    };
+    
+    const configWritten = writeThemeConfig(slug, themeConfig);
+    if (!configWritten) {
+      console.warn(`[testing] Failed to create theme.json for ${slug}, but theme folder was created`);
+    }
+    
+    // Create database entry
     const now = new Date().toISOString();
     
     try {
