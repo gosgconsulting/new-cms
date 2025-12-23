@@ -506,7 +506,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
       const hasOutput = Array.isArray(proposedComponents) && proposedComponents.length > 0;
 
       return (
-        <div className="space-y-6">
+        <div className="space-y-6" key={Array.isArray(proposedComponents) && proposedComponents.length > 0 ? 'output' : 'original'}>
           <div className="border-b pb-4">
             <SEOForm pageData={pageData} onFieldChange={updateField} />
           </div>
@@ -569,14 +569,17 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
     if (selectedComponentIndex !== null) {
       // Per-section view with unified tabs: Original | Output (Output contains AI chat + drafted preview)
       const selected = selectedComponent;
-      const proposedForSelected = proposedComponents?.find((c) => c.key === selected?.key) || null;
+      const proposedForSelected =
+        (proposedComponents?.find((c) => c.key === selected?.key) ||
+         proposedComponents?.find((c) => (c.type || '').toLowerCase() === (selected?.type || '').toLowerCase()) ||
+         null);
       const hasOutput = Boolean(proposedForSelected);
 
       // Helper to render contents for a given component
-      const renderSectionContents = (comp: ComponentSchema | null) => {
+      const renderSectionContents = (comp: ComponentSchema | null, variant: 'original' | 'output' = 'original') => {
         const items = comp ? extractContentFromComponents([comp]) : [];
         return (
-          <div className="space-y-4 mt-6">
+          <div className="space-y-4 mt-6" key={`${(comp as any)?.key || 'section'}-${variant}`}>
             <div className="border-b pb-2">
               <h3 className="text-lg font-semibold flex items-center">
                 <FileText className="h-5 w-5 mr-2" />
@@ -670,7 +673,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
                 components={components}
                 onUpdate={updateComponent}
               />
-              {renderSectionContents(selected)}
+              {renderSectionContents(selected, 'original')}
             </TabsContent>
 
             <TabsContent value="output" className="space-y-4">
@@ -703,7 +706,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
               {/* Simple swap below input: show original until draft exists, else show drafted editor + contents */}
               {!hasOutput ? (
                 <>
-                  {renderSectionContents(selected)}
+                  {renderSectionContents(selected, 'original')}
                 </>
               ) : (
                 <>
@@ -713,7 +716,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
                     components={proposedForSelected ? proposedComponents || components : components}
                     onUpdate={() => { /* read-only */ }}
                   />
-                  {renderSectionContents(proposedForSelected as ComponentSchema)}
+                  {renderSectionContents(proposedForSelected as ComponentSchema, 'output')}
                 </>
               )}
             </TabsContent>
