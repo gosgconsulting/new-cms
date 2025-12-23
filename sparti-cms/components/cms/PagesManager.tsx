@@ -9,6 +9,7 @@ import FooterSchemaEditor from './FooterSchemaEditor';
 import { useAuth } from '../auth/AuthProvider';
 import { getDummyPages, isDevelopmentTenant } from '../admin/DevelopmentTenantData';
 import api from '../../utils/api';
+import { AIAssistantChat } from '../../../src/components/AIAssistantChat';
 
 interface PageItem {
   id: string;
@@ -330,6 +331,7 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
             title={`Visual Editor: ${visualEditorPage.pageName}`}
             style={{ height: '100%' }}
           />
+          <AIAssistantChat />
         </div>
       </div>
     );

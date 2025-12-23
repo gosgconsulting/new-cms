@@ -19,6 +19,7 @@ import themeRoutes from './theme.js';
 import themeAdminRoutes from './theme-admin.js';
 import themesApiRoutes from './themes.js';
 import tenantsApiRoutes from './tenants-api.js';
+import aiAssistantRoutes from './ai-assistant.js';
 
 const router = express.Router();
 
@@ -58,6 +59,7 @@ router.use('/api', settingsRoutes);
 router.use('/api', seoRoutes);
 router.use('/api', systemRoutes);
 router.use('/api', usersRoutes);
+router.use('/api', aiAssistantRoutes);
 
 // Theme routes (mounted before other routes to catch /theme/* paths)
 // Theme admin/auth routes (must come before general theme routes)
