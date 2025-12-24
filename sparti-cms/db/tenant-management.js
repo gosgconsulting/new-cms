@@ -345,6 +345,41 @@ export async function generateTenantApiKey(tenantId, description = 'API Access K
 }
 
 /**
+ * Generate API key for a theme
+ * Uses tenant_api_keys table with special tenant_id format: theme-{themeId}
+ */
+export async function generateThemeApiKey(themeId, description = 'API Access Key') {
+  try {
+    // Check if theme exists
+    const themeExists = await query(`
+      SELECT id, slug FROM themes WHERE id = $1 OR slug = $1
+    `, [themeId]);
+    
+    if (themeExists.rows.length === 0) {
+      return { success: false, message: 'Theme not found' };
+    }
+    
+    // Use theme slug or id as the identifier
+    const themeIdentifier = themeExists.rows[0].slug || themeExists.rows[0].id;
+    const themeTenantId = `theme-${themeIdentifier}`;
+    
+    // Generate a new API key
+    const apiKey = `theme_${themeIdentifier}_${uuidv4().replace(/-/g, '')}`;
+    
+    // Store the API key in the tenant_api_keys table with special tenant_id format
+    await query(`
+      INSERT INTO tenant_api_keys (tenant_id, api_key, description)
+      VALUES ($1, $2, $3)
+    `, [themeTenantId, apiKey, description]);
+    
+    return { success: true, apiKey };
+  } catch (error) {
+    console.error(`[testing] Error generating API key for theme ${themeId}:`, error);
+    throw error;
+  }
+}
+
+/**
  * Get API keys for a tenant
  */
 export async function getTenantApiKeys(tenantId) {

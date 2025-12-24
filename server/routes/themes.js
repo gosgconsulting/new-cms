@@ -2,6 +2,7 @@ import express from 'express';
 import { authenticateUser } from '../middleware/auth.js';
 import { syncThemesFromFileSystem, getAllThemes, getThemeBySlug, getThemesFromFileSystem, createTheme, syncThemePages } from '../../sparti-cms/services/themeSync.js';
 import { query } from '../../sparti-cms/db/index.js';
+import { generateThemeApiKey } from '../../sparti-cms/db/tenant-management.js';
 
 const router = express.Router();
 
@@ -283,6 +284,29 @@ router.put('/:id', authenticateUser, async (req, res) => {
       error: 'Failed to update theme',
       message: error.message
     });
+  }
+});
+
+/**
+ * POST /api/themes/:themeId/api-keys
+ * Generate API key for a theme
+ * Requires authentication
+ */
+router.post('/:themeId/api-keys', authenticateUser, async (req, res) => {
+  try {
+    const { themeId } = req.params;
+    const { description } = req.body;
+    
+    const result = await generateThemeApiKey(themeId, description || 'API Key from Developer Section');
+    
+    if (!result.success) {
+      return res.status(404).json({ error: result.message });
+    }
+    
+    res.json({ apiKey: result.apiKey });
+  } catch (error) {
+    console.error(`[testing] Error generating API key for theme ${req.params.themeId}:`, error);
+    res.status(500).json({ error: 'Failed to generate API key' });
   }
 });
 
