@@ -20,7 +20,6 @@ export function buildHead(seo, pageMeta) {
   const title = pageMeta?.meta_title || seo?.meta_title || 'Website';
   const description = pageMeta?.meta_description || seo?.meta_description || '';
   const ogImage = seo?.og_image || '';
-  const favicon = seo?.site_favicon || '';
 
   return [
     `<title>${escapeHtml(title)}</title>`,
@@ -28,7 +27,6 @@ export function buildHead(seo, pageMeta) {
     `<meta property="og:title" content="${escapeAttr(title)}" />`,
     description ? `<meta property="og:description" content="${escapeAttr(description)}" />` : '',
     ogImage ? `<meta property="og:image" content="${escapeAttr(ogImage)}" />` : '',
-    favicon ? `<link rel="icon" href="${escapeAttr(favicon)}" />` : '',
   ].filter(Boolean).join('\n');
 }
 

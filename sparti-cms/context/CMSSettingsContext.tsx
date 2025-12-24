@@ -25,7 +25,6 @@ export interface ColorSettings {
 
 export interface LogoSettings {
   logo: string | null;
-  favicon: string | null;
   logoAlt: string;
   logoWidth: number;
   logoHeight: number | null;
@@ -108,7 +107,6 @@ const defaultSettings: CMSSettings = {
   },
   logo: {
     logo: null,
-    favicon: null,
     logoAlt: 'Site Logo',
     logoWidth: 200,
     logoHeight: null,

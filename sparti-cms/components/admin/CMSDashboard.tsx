@@ -288,7 +288,10 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({ hideSidebar = false }) => {
           currentThemeId={mode === 'theme' ? currentThemeId : null}
         />;
       case 'developer':
-        return <DeveloperManager />;
+        return <DeveloperManager 
+          mode={mode} 
+          currentThemeId={mode === 'theme' ? currentThemeId : null}
+        />;
       case 'redirects':
         return <RedirectsManager />;
       case 'robots':

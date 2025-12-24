@@ -13,16 +13,9 @@ interface SEOHeadProps {
 
 const SEOHead: React.FC<SEOHeadProps> = ({ meta, favicon }) => {
   React.useEffect(() => {
-    // Update favicon
-    if (favicon) {
-      let link = document.querySelector('link[rel="icon"]') as HTMLLinkElement;
-      if (!link) {
-        link = document.createElement('link');
-        link.setAttribute('rel', 'icon');
-        document.head.appendChild(link);
-      }
-      link.setAttribute('href', favicon);
-    }
+    // Always remove any existing favicon links
+    const existingFavicons = document.querySelectorAll('link[rel="icon"], link[rel="shortcut icon"], link[rel="apple-touch-icon"]');
+    existingFavicons.forEach(favicon => favicon.remove());
     
     // Update document title
     if (meta.title) {

@@ -67,7 +67,7 @@ const GOSGContent: React.FC<TenantLandingProps> = ({
   // Extract branding values with fallbacks
   const siteName = branding?.site_name || tenantName;
   const logoSrc = branding?.site_logo || '/theme/gosgconsulting/assets/go-sg-logo-official.png';
-  const favicon = branding?.site_favicon || '/favicon.png';
+  const favicon = branding?.site_favicon || null;
   
   // Log branding loading state for debugging
   useEffect(() => {
@@ -152,7 +152,7 @@ const GOSGContent: React.FC<TenantLandingProps> = ({
   return (
     <div className="min-h-screen flex flex-col">
       {/* SEO metadata */}
-      <SEOHead meta={homepageData.meta} favicon={favicon} />
+      <SEOHead meta={homepageData.meta} />
       
       {/* Header */}
       <Header 

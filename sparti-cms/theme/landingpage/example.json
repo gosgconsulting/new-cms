@@ -1,0 +1,266 @@
+{
+  "branding": {
+    "site_name": "ACATR Business Services",
+    "site_tagline": "Singapore Business Setup In 24 Hours - ACRA Registered",
+    "site_description": "ACRA-registered filing agents providing complete Singapore company incorporation, professional accounting services, and 100% compliance guarantee. Start your business today with expert guidance from day one.",
+    "site_logo": "/theme/landingpage/assets/752d249c-df1b-46fb-b5e2-fb20a9bb88d8.png"
+  },
+  "localization": {
+    "country": "SG",
+    "timezone": "Asia/Singapore",
+    "language": "en"
+  },
+  "theme": {
+    "theme_styles": {
+      "primary": "#8b5cf6",
+      "primaryForeground": "#ffffff",
+      "secondary": "#f1f5f9",
+      "secondaryForeground": "#1e293b",
+      "background": "#ffffff",
+      "foreground": "#1e293b",
+      "card": "#ffffff",
+      "cardForeground": "#1e293b",
+      "accent": "#f59e0b",
+      "accentForeground": "#ffffff",
+      "muted": "#f1f5f9",
+      "mutedForeground": "#64748b",
+      "border": "#e2e8f0",
+      "input": "#e2e8f0",
+      "ring": "#3b82f6",
+      "destructive": "#ef4444",
+      "destructiveForeground": "#ffffff",
+      "typography": {
+        "fontSans": "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+        "fontSerif": "Georgia, 'Times New Roman', serif",
+        "fontMono": "'Courier New', Courier, monospace",
+        "baseFontSize": "16px",
+        "headingScale": "1.25",
+        "lineHeight": "1.5"
+      }
+    }
+  },
+  "navigation": {
+    "items": [
+      { "label": "Incorporation", "sectionId": "company-incorporation" },
+      { "label": "Accounting", "sectionId": "accounting-services" },
+      { "label": "Corporate Secretary", "sectionId": "corporate-secretarial" },
+      { "label": "Reviews", "sectionId": "testimonials" },
+      { "label": "FAQ", "sectionId": "faq" }
+    ],
+    "contactButtonText": "Contact Us"
+  },
+  "hero": {
+    "title": "Singapore Business Setup In 24 Hours - ACRA Registered",
+    "description": "ACRA-registered filing agents providing complete Singapore company incorporation, professional accounting services, and 100% compliance guarantee. Start your business today with expert guidance from day one.",
+    "imageSrc": "/theme/landingpage/assets/hero-business.jpg",
+    "imageAlt": "Professional business team collaboration",
+    "buttonText": "Start Your Business Journey Today",
+    "buttonLink": "#contact",
+    "features": [
+      "Singapore Company Incorporation in 24 Hours",
+      "100% ACRA & IRAS Compliance Guaranteed",
+      "Professional Accounting & GST Filing"
+    ]
+  },
+  "services": {
+    "title": "Complete Singapore Business Solutions with ACRA Guarantee",
+    "subtitle": "ACRA-registered filing agents providing 24-hour company incorporation, professional accounting services, and guaranteed compliance for Singapore businesses.",
+    "items": [
+      {
+        "title": "Singapore Company Incorporation Services",
+        "subtitle": "One-Time Fee: S$1,815 (S$1,115 for Locals)",
+        "description": "Professional incorporation services for Singapore Pte. Ltd. companies, providing comprehensive setup and ongoing compliance support for local and international entrepreneurs. Includes professional fees (S$1,500) + government fees (S$315). Local clients pay only S$800 professional fee + S$315 government fee.",
+        "image": "/theme/landingpage/assets/incorporation-services.jpg",
+        "features": [
+          "Company registration with ACRA",
+          "Corporate secretary services included",
+          "Company constitution and statutory documents",
+          "Initial compliance setup",
+          "Complete documentation for local & international clients",
+          "Standard incorporation: 1 week timeline"
+        ],
+        "highlight": "Fast-track option available with complete documentation"
+      },
+      {
+        "title": "Annual Ongoing Services",
+        "subtitle": "S$4,300/year (varies by transaction volume)",
+        "description": "Comprehensive annual compliance and support services to maintain your Singapore company in good standing. Includes corporate secretary fee (S$800), tax filing services (S$800), basic bookkeeping (S$200), and local director services (S$2,500). Accounting fees are variable based on transaction volume and can increase up to S$6,000/year for high-volume businesses.",
+        "image": "/theme/landingpage/assets/accounting-dashboard.jpg",
+        "features": [
+          "Corporate Secretary Fee (S$800/year)",
+          "Tax Filing Services (S$800/year)",
+          "Basic Bookkeeping (S$200/year minimum)",
+          "Local Director Services (S$2,500/year)",
+          "Annual compliance filing",
+          "Regulatory authority submissions"
+        ],
+        "highlight": "Local director fee waived if client provides their own"
+      },
+      {
+        "title": "Additional Services & Support",
+        "subtitle": "Enhanced Business Operations",
+        "description": "Comprehensive additional services to support your Singapore business operations beyond basic incorporation and compliance. From registered address services to employment pass assistance, we provide end-to-end support for your business growth and operational needs in Singapore.",
+        "image": "/theme/landingpage/assets/corporate-secretarial.jpg",
+        "features": [
+          "Registered address and mailroom services",
+          "Enhanced bookkeeping (monthly/weekly)",
+          "Payroll services",
+          "GST registration and filing",
+          "Employment pass visa assistance",
+          "Banking account opening support"
+        ],
+        "highlight": "Streamlined process from setup to operations with professional oversight"
+      }
+    ]
+  },
+  "testimonials": {
+    "title": "Trusted by Businesses Worldwide",
+    "subtitle": "Local and international businesses trust our ACRA-registered filing agents for 24-hour Singapore company incorporation, professional accounting services, and guaranteed compliance with zero penalties.",
+    "stats": [
+      { "label": "Client Satisfaction", "value": "98%" },
+      { "label": "Average Time Saved", "value": "15+ hrs/month" },
+      { "label": "Compliance Success", "value": "99%" },
+      { "label": "Business Growth", "value": "250% avg" }
+    ],
+    "items": [
+      {
+        "name": "Sarah Chen",
+        "role": "Tech Startup Founder",
+        "company": "InnovateTech Solutions",
+        "location": "Local Client",
+        "image": "/theme/landingpage/assets/testimonial-1.jpg",
+        "rating": 5,
+        "quote": "ACATR's ACRA-registered filing agents completed our Singapore company incorporation in exactly 24 hours as promised. Their chartered accountants handle all our IRAS compliance and GST filing, giving us complete peace of mind to focus on scaling our tech startup.",
+        "results": "Singapore company incorporated in 24 hours with 100% ACRA compliance"
+      },
+      {
+        "name": "Marcus Rodriguez",
+        "role": "International Entrepreneur",
+        "company": "Global Trade Partners",
+        "location": "International Client",
+        "image": "/theme/landingpage/assets/testimonial-2.jpg",
+        "rating": 5,
+        "quote": "As an international business owner, ACATR's Singapore company incorporation services were perfect for remote setup. Their qualified company secretaries ensure 100% ACRA compliance, and we've had zero penalties thanks to their 99% compliance success rate guarantee.",
+        "results": "International business setup with zero ACRA penalties and perfect compliance"
+      },
+      {
+        "name": "Lisa Thompson",
+        "role": "Small Business Owner",
+        "company": "Artisan Crafts Co.",
+        "location": "Local Client",
+        "image": "/theme/landingpage/assets/testimonial-1.jpg",
+        "rating": 5,
+        "quote": "ACATR's professional Singapore accounting services transformed our financial management. Their qualified chartered accountants handle all our IRAS compliance and GST filing, saving us over 20 hours monthly while ensuring perfect regulatory compliance.",
+        "results": "20+ hours saved monthly with 100% IRAS and GST compliance"
+      }
+    ]
+  },
+  "faq": {
+    "title": "Frequently Asked Questions",
+    "subtitle": "Everything you need to know about our services, processes, and how we can help your business succeed.",
+    "items": [
+      {
+        "question": "How quickly can you incorporate my Singapore company?",
+        "answer": "Our ACRA-registered filing agents can complete your Singapore company incorporation in just 24 hours. We handle all documentation, ACRA submissions, and compliance requirements. For standard incorporation, the process typically takes 1 week, but our fast-track service ensures same-day processing for urgent business needs."
+      },
+      {
+        "question": "What are the costs involved in Singapore company incorporation?",
+        "answer": "Our incorporation package costs S$1,815 for international clients (S$1,500 professional fees + S$315 government fees) and S$1,115 for local clients (S$800 professional fees + S$315 government fees). This includes company registration, corporate secretary services, company constitution, and all statutory documents required by ACRA."
+      },
+      {
+        "question": "Do you serve international clients who want to set up in Singapore?",
+        "answer": "Yes, we specialize in helping international entrepreneurs establish their Singapore presence. We provide complete support including registered office address, local director services (if needed), bank account opening assistance, and employment pass visa support. Our team understands the unique challenges international clients face."
+      },
+      {
+        "question": "What ongoing services do you provide after incorporation?",
+        "answer": "Our annual ongoing services package (S$4,300/year) includes corporate secretary services (S$800), tax filing (S$800), basic bookkeeping (S$200), and local director services (S$2,500). We also handle ACRA annual returns, IRAS compliance, GST registration and filing, and regulatory submissions to keep your company compliant."
+      },
+      {
+        "question": "How do you ensure 100% compliance with Singapore regulations?",
+        "answer": "As ACRA-registered filing agents, we maintain a 99% compliance success rate with zero penalties guarantee. Our qualified chartered accountants and company secretaries monitor all regulatory deadlines, handle mandatory filings, and ensure your business meets ACRA and IRAS requirements. We provide proactive compliance management to prevent any regulatory issues."
+      },
+      {
+        "question": "Can I add additional services as my business grows?",
+        "answer": "Absolutely. We offer flexible, scalable packages that grow with your business. You can add enhanced bookkeeping, payroll services, GST registration, employment pass assistance, or additional compliance services at any time. Our team will recommend the best service mix based on your business evolution and transaction volume."
+      }
+    ]
+  },
+  "cta": {
+    "title": "Results You Can Count On",
+    "description": "Our clients consistently experience accelerated growth, improved compliance, and valuable time savings thanks to our all-encompassing support. By providing end-to-end solutions from incorporation to regulatory management, we enable businesses to operate seamlessly and confidently.",
+    "buttonText": "Start Your Business Journey Today",
+    "buttonLink": "#contact",
+    "contactMethods": [
+      {
+        "title": "Call Us Today",
+        "description": "Speak directly with our experts",
+        "action": "Call Now",
+        "highlight": "Immediate Support"
+      },
+      {
+        "title": "Email Consultation",
+        "description": "Get detailed information via email",
+        "action": "Send Email",
+        "highlight": "Detailed Response"
+      },
+      {
+        "title": "Schedule Meeting",
+        "description": "Book a personalized consultation",
+        "action": "Book Now",
+        "highlight": "Free Consultation"
+      },
+      {
+        "title": "Live Chat",
+        "description": "Quick answers to your questions",
+        "action": "Start Chat",
+        "highlight": "Instant Connection"
+      }
+    ]
+  },
+  "footer": {
+    "companyDescription": "Empowering businesses with professional, efficient, and scalable support. Your trusted partner for business success from day one.",
+    "services": [
+      { "name": "Company Incorporation", "sectionId": "company-incorporation" },
+      { "name": "Accounting Services", "sectionId": "accounting-services" },
+      { "name": "Corporate Secretary", "sectionId": "corporate-secretarial" }
+    ],
+    "quickLinks": [
+      { "label": "Services", "sectionId": "services" },
+      { "label": "Reviews", "sectionId": "testimonials" },
+      { "label": "FAQ", "sectionId": "faq" }
+    ],
+    "contactInfo": [
+      {
+        "label": "Phone",
+        "value": "Available 9 AM - 6 PM weekdays"
+      },
+      {
+        "label": "Email",
+        "value": "Response within 4 hours"
+      },
+      {
+        "label": "Address",
+        "value": "Professional business center location"
+      }
+    ],
+    "legalLinks": [
+      { "label": "Privacy Policy", "url": "/theme/landingpage/privacy-policy" },
+      { "label": "Terms of Service", "url": "/theme/landingpage/terms-conditions" },
+      { "label": "Cookie Policy", "url": "#" }
+    ]
+  },
+  "seo": {
+    "meta_title": "Singapore Business Setup In 24 Hours - ACRA Registered | Professional Business Services",
+    "meta_description": "ACRA-registered filing agents providing complete Singapore company incorporation, professional accounting services, and 100% compliance guarantee. Start your business today with expert guidance.",
+    "keywords": [
+      "singapore company incorporation",
+      "acra registered",
+      "business setup",
+      "accounting services",
+      "corporate secretary",
+      "compliance guarantee"
+    ],
+    "og_image": "/theme/landingpage/assets/hero-business.jpg"
+  }
+}
+

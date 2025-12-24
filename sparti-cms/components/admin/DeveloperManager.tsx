@@ -22,7 +22,12 @@ interface Project {
   completion_percentage?: number;
 }
 
-const DeveloperManager: React.FC = () => {
+interface DeveloperManagerProps {
+  mode?: 'tenants' | 'theme';
+  currentThemeId?: string | null;
+}
+
+const DeveloperManager: React.FC<DeveloperManagerProps> = ({ mode = 'tenants', currentThemeId = null }) => {
   const [activeTab, setActiveTab] = React.useState('projects');
 
   const tabs = [
@@ -38,7 +43,7 @@ const DeveloperManager: React.FC = () => {
       case 'projects':
         return <ProjectsTab />;
       case 'integrations':
-        return <IntegrationsTab />;
+        return <IntegrationsTab mode={mode} currentThemeId={currentThemeId} />;
       case 'code':
         return <CodeTab />;
 
@@ -389,36 +394,79 @@ const NewProjectModal: React.FC<{ onClose: () => void; onSave: () => void }> = (
   );
 };
 
-const IntegrationsTab: React.FC = () => {
+interface IntegrationsTabProps {
+  mode?: 'tenants' | 'theme';
+  currentThemeId?: string | null;
+}
+
+const IntegrationsTab: React.FC<IntegrationsTabProps> = ({ mode = 'tenants', currentThemeId = null }) => {
   const navigate = useNavigate();
   const [showAddIntegration, setShowAddIntegration] = useState(false);
   const [currentTenant, setCurrentTenant] = useState<Tenant | null>(null);
+  const [currentTheme, setCurrentTheme] = useState<any | null>(null);
   const { currentTenantId } = useAuth();
 
-  // Fetch tenant data when currentTenantId changes
+  // Fetch tenant or theme data based on mode
   useEffect(() => {
-    const fetchTenantData = async () => {
-      if (currentTenantId) {
+    const fetchData = async () => {
+      if (mode === 'theme' && currentThemeId) {
+        // Theme mode: fetch theme data
+        try {
+          const response = await fetch(`/api/themes`);
+          if (response.ok) {
+            const data = await response.json();
+            const theme = data.themes?.find((t: any) => t.slug === currentThemeId || t.id === currentThemeId);
+            if (theme) {
+              // Create a theme representation that can be used like a tenant
+              setCurrentTheme({
+                id: `theme-${theme.slug || theme.id}`,
+                name: theme.name || theme.slug || currentThemeId,
+                slug: theme.slug || theme.id,
+                isTheme: true,
+                themeId: theme.slug || theme.id
+              });
+              setCurrentTenant(null);
+            } else {
+              console.error(`Theme ${currentThemeId} not found`);
+              setCurrentTheme(null);
+              setCurrentTenant(null);
+            }
+          } else {
+            console.error(`Failed to fetch themes`);
+            setCurrentTheme(null);
+            setCurrentTenant(null);
+          }
+        } catch (error) {
+          console.error('Error fetching theme data:', error);
+          setCurrentTheme(null);
+          setCurrentTenant(null);
+        }
+      } else if (mode === 'tenants' && currentTenantId) {
+        // Tenant mode: fetch tenant data
         try {
           const response = await fetch(`/api/tenants/${currentTenantId}`);
           if (response.ok) {
             const data = await response.json();
             setCurrentTenant(data);
+            setCurrentTheme(null);
           } else {
             console.error(`Failed to fetch tenant ${currentTenantId}`);
             setCurrentTenant(null);
+            setCurrentTheme(null);
           }
         } catch (error) {
           console.error('Error fetching tenant data:', error);
           setCurrentTenant(null);
+          setCurrentTheme(null);
         }
       } else {
         setCurrentTenant(null);
+        setCurrentTheme(null);
       }
     };
 
-    fetchTenantData();
-  }, [currentTenantId]);
+    fetchData();
+  }, [currentTenantId, mode, currentThemeId]);
 
   return (
     <div className="space-y-6">
@@ -437,10 +485,25 @@ const IntegrationsTab: React.FC = () => {
               tenant={currentTenant}
               onViewClick={() => navigate('/database-viewer')} 
             />
+          ) : currentTheme ? (
+            <PostgresIntegration 
+              tenant={{
+                id: currentTheme.id,
+                name: currentTheme.name,
+                createdAt: new Date().toISOString().split('T')[0],
+                isTheme: true,
+                themeId: currentTheme.themeId
+              } as Tenant & { isTheme?: boolean; themeId?: string }}
+              onViewClick={() => navigate('/database-viewer')} 
+            />
           ) : (
             <div className="p-4 border border-dashed border-gray-300 rounded-lg text-center text-gray-500">
               <Database className="h-8 w-8 mx-auto mb-2" />
-              <p>No tenant selected. Please select a tenant to view database integration.</p>
+              <p>
+                {mode === 'theme' 
+                  ? 'No theme selected. Please select a theme to view database integration.'
+                  : 'No tenant selected. Please select a tenant to view database integration.'}
+              </p>
             </div>
           )}
           
@@ -473,8 +536,10 @@ const IntegrationsTab: React.FC = () => {
             <ul className="text-sm text-gray-600 mb-4 space-y-1">
               {currentTenant ? (
                 <PostgresIntegrationListItem tenant={currentTenant} />
+              ) : currentTheme ? (
+                <li>• PostgreSQL Database (Theme: {currentTheme.name})</li>
               ) : (
-                <li>• PostgreSQL Database (No tenant selected)</li>
+                <li>• PostgreSQL Database ({mode === 'theme' ? 'No theme selected' : 'No tenant selected'})</li>
               )}
               <ComponentsIntegrationListItem />
               <GoogleTranslationIntegrationListItem />

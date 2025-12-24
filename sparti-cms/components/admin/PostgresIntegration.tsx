@@ -12,6 +12,8 @@ export interface Tenant {
   databaseUrl?: string;
   apiKey?: string;
   isDevelopment?: boolean;
+  isTheme?: boolean;
+  themeId?: string;
 }
 
 // Default tenant for demo purposes
@@ -65,8 +67,21 @@ export const PostgresIntegration: React.FC<PostgresIntegrationProps> = ({ tenant
       const token = localStorage.getItem('sparti-user-session');
       const authToken = token ? JSON.parse(token).token : null;
       
-      // Call the actual backend API to generate and save the key
-      const response = await fetch(`/api/tenants/${tenant.id}/api-keys`, {
+      // Determine if this is a theme or tenant
+      const isTheme = tenant.isTheme || tenant.id.startsWith('theme-');
+      const themeId = tenant.themeId || (isTheme ? tenant.id.replace('theme-', '') : null);
+      
+      // Call the appropriate backend API
+      let apiUrl: string;
+      if (isTheme && themeId) {
+        // Use theme API endpoint
+        apiUrl = `/api/themes/${themeId}/api-keys`;
+      } else {
+        // Use tenant API endpoint
+        apiUrl = `/api/tenants/${tenant.id}/api-keys`;
+      }
+      
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -107,9 +122,15 @@ export const PostgresIntegration: React.FC<PostgresIntegrationProps> = ({ tenant
           <div>
             <div className="flex items-center gap-2 mb-1">
               <h3 className="font-semibold">PostgreSQL Database</h3>
-              <Badge variant="outline" className="bg-green-500/10 text-green-700 border-green-300">
-                Tenant: {tenant.name}
-              </Badge>
+              {tenant.isTheme ? (
+                <Badge variant="outline" className="bg-purple-500/10 text-purple-700 border-purple-300">
+                  Theme: {tenant.name}
+                </Badge>
+              ) : (
+                <Badge variant="outline" className="bg-green-500/10 text-green-700 border-green-300">
+                  Tenant: {tenant.name}
+                </Badge>
+              )}
             </div>
             <p className="text-sm text-muted-foreground mb-1">
               Database for storing project data, user information, and content
@@ -139,7 +160,7 @@ export const PostgresIntegration: React.FC<PostgresIntegrationProps> = ({ tenant
               Create API Key for {tenant.name}
             </h3>
             <p className="text-sm text-gray-600 mb-4">
-              Generate an API key to establish a secure connection between the CMS and this tenant's database.
+              Generate an API key to establish a secure connection between the CMS and {tenant.isTheme ? 'this theme\'s' : 'this tenant\'s'} database.
             </p>
 
             {apiKey ? (
