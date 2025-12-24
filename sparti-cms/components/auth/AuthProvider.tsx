@@ -118,10 +118,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, [signOut]);
 
   const handleTenantChange = useCallback((tenantId: string) => {
-    setCurrentTenantId(tenantId);
-    localStorage.setItem('sparti-current-tenant-id', tenantId);
-    // Here you would typically fetch data for the selected tenant
-    console.log(`Switched to tenant ID: ${tenantId}`);
+    // Handle clearing tenant selection (empty string or null)
+    if (!tenantId || tenantId === '') {
+      setCurrentTenantId(null);
+      localStorage.removeItem('sparti-current-tenant-id');
+      console.log('Cleared tenant selection');
+    } else {
+      setCurrentTenantId(tenantId);
+      localStorage.setItem('sparti-current-tenant-id', tenantId);
+      // Here you would typically fetch data for the selected tenant
+      console.log(`Switched to tenant ID: ${tenantId}`);
+    }
   }, []);
 
   const signIn = useCallback(async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {

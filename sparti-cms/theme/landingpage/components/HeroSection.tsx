@@ -1,5 +1,14 @@
 import React from 'react';
 import { Button } from './ui/button';
+import { 
+  getContentByKey, 
+  getHeading, 
+  getText, 
+  getButton, 
+  getImageSrc, 
+  getImageAlt,
+  SchemaComponent 
+} from '../utils/schemaHelpers';
 
 interface HeroSectionProps {
   tenantName?: string;
@@ -12,39 +21,61 @@ interface HeroSectionProps {
   buttonLink?: string;
   features?: string[];
   onButtonClick?: () => void;
+  data?: SchemaComponent;
 }
 
 const HeroSection: React.FC<HeroSectionProps> = ({
   tenantName = 'ACATR',
-  title = 'Singapore Business Setup In 24 Hours - ACRA Registered',
+  title,
   subtitle,
-  description = 'ACRA-registered filing agents providing complete Singapore company incorporation, professional accounting services, and 100% compliance guarantee. Start your business today with expert guidance from day one.',
-  imageSrc = '/theme/landingpage/assets/hero-business.jpg',
-  imageAlt = 'Professional business team collaboration',
-  buttonText = 'Start Your Business Journey Today',
-  buttonLink = '#contact',
-  features = [
-    'Singapore Company Incorporation in 24 Hours',
-    '100% ACRA & IRAS Compliance Guaranteed',
-    'Professional Accounting & GST Filing'
-  ],
-  onButtonClick
+  description,
+  imageSrc,
+  imageAlt,
+  buttonText,
+  buttonLink,
+  features = [],
+  onButtonClick,
+  data
 }) => {
+  // Extract from schema if data is provided
+  const items = data?.items || [];
+  const badge = getContentByKey(items, 'badge');
+  const highlight = getHeading(items, 'highlight', 1) || getContentByKey(items, 'highlight');
+  const subtitleText = getHeading(items, 'subtitle', 1) || getContentByKey(items, 'subtitle');
+  const descriptionText = getText(items, 'description') || getContentByKey(items, 'description');
+  const button = getButton(items, 'button');
+  const heroImage = getImageSrc(items, 'heroImage') || getImageSrc(items, 'image');
+  const heroImageAlt = getImageAlt(items, 'heroImage') || getImageAlt(items, 'image');
+
+  // Use schema values if available, otherwise fall back to props
+  const finalTitle = highlight || title || 'Singapore Business Setup In 24 Hours - ACRA Registered';
+  const finalSubtitle = subtitleText || subtitle || '';
+  const finalDescription = descriptionText || description || 'ACRA-registered filing agents providing complete Singapore company incorporation, professional accounting services, and 100% compliance guarantee. Start your business today with expert guidance from day one.';
+  const finalImageSrc = heroImage || imageSrc || '/theme/landingpage/assets/hero-business.jpg';
+  const finalImageAlt = heroImageAlt || imageAlt || 'Professional business team collaboration';
+  const finalButtonText = button.content || buttonText || 'Start Your Business Journey Today';
+  const finalButtonLink = button.link || buttonLink || '#contact';
+
   // Parse title to extract gradient part if needed
-  const titleParts = title.split(' - ');
-  const mainTitle = titleParts[0] || title;
-  const subtitleTitle = titleParts[1] || subtitle || '';
+  const titleParts = finalTitle.split(' - ');
+  const mainTitle = titleParts[0] || finalTitle;
+  const subtitleTitle = titleParts[1] || finalSubtitle || '';
 
   const handleButtonClick = () => {
     if (onButtonClick) {
       onButtonClick();
-    } else if (buttonLink && buttonLink.startsWith('#')) {
-      const element = document.getElementById(buttonLink.substring(1));
+    } else if (finalButtonLink && finalButtonLink.startsWith('#')) {
+      const element = document.getElementById(finalButtonLink.substring(1));
       if (element) {
         element.scrollIntoView({ behavior: 'smooth' });
       }
-    } else if (buttonLink) {
-      window.open(buttonLink, '_blank');
+    } else if (finalButtonLink && finalButtonLink.startsWith('popup:')) {
+      // Handle popup links (e.g., popup:contact)
+      if (onButtonClick) {
+        onButtonClick();
+      }
+    } else if (finalButtonLink) {
+      window.open(finalButtonLink, '_blank');
     }
   };
 
@@ -55,6 +86,12 @@ const HeroSection: React.FC<HeroSectionProps> = ({
           {/* Content */}
           <div className="space-y-8">
             <div className="space-y-6">
+              {badge && (
+                <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium">
+                  {badge}
+                </div>
+              )}
+              
               <h1 className="text-4xl lg:text-6xl font-bold leading-tight text-foreground">
                 {mainTitle.includes('In 24 Hours') ? (
                   <>
@@ -77,7 +114,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
               </h1>
               
               <p className="text-xl text-muted-foreground leading-relaxed">
-                {description}
+                {finalDescription}
               </p>
 
               {/* Feature List */}
@@ -102,7 +139,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
                 className="bg-gradient-primary hover:opacity-90 transition-opacity group"
                 onClick={handleButtonClick}
               >
-                {buttonText}
+                {finalButtonText}
                 <svg className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                 </svg>
@@ -114,8 +151,8 @@ const HeroSection: React.FC<HeroSectionProps> = ({
           <div className="relative">
             <div className="relative rounded-2xl overflow-hidden shadow-strong">
               <img 
-                src={imageSrc} 
-                alt={imageAlt} 
+                src={finalImageSrc} 
+                alt={finalImageAlt} 
                 className="w-full h-[600px] object-cover" 
                 loading="lazy"
                 onError={(e) => {

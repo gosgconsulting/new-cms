@@ -155,11 +155,6 @@ const ContentsPanel: React.FC<ContentsPanelProps> = ({ components, extractConten
   );
 };
 
-interface PageEditorProps {
-  pageId: string;
-  onBack: () => void;
-}
-
 interface PageData {
   id: string;
   page_name: string;
@@ -186,8 +181,15 @@ interface PageWithLayout extends PageData {
   layout?: PageLayout;
 }
 
-const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
-  const { currentTenantId, user } = useAuth();
+interface PageEditorProps {
+  pageId: string;
+  onBack: () => void;
+  currentTenantId: string;
+  currentThemeId: string;
+}
+
+const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack, currentTenantId, currentThemeId }) => {
+  const { user } = useAuth();
   const [pageData, setPageData] = useState<PageWithLayout | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -205,6 +207,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
   // JSON Editor hook
   const {
     showEditor: showJSONEditor,
+    jsonString,
     jsonError,
     setEditorRef,
     openEditor: openJSONEditor,
@@ -227,8 +230,37 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
     const fetchPageData = async () => {
       try {
         setLoading(true);
-        const response = await api.get(`/api/pages/${pageId}?tenantId=${currentTenantId}`);
+        
+        // Determine API endpoint based on tenant + theme
+        let apiUrl: string;
+        if (currentTenantId && currentThemeId) {
+          // Use tenant + theme combination
+          if (currentThemeId === 'custom') {
+            // Custom theme: use tenant-based endpoint
+            apiUrl = `/api/pages/${pageId}?tenantId=${currentTenantId}`;
+          } else {
+            // Specific theme: use tenant + theme endpoint
+            apiUrl = `/api/pages/${pageId}?tenantId=${currentTenantId}&themeId=${currentThemeId}`;
+          }
+        } else {
+          console.error('No tenant or theme ID available');
+          toast.error('Failed to load page data: No tenant or theme selected');
+          setLoading(false);
+          return;
+        }
+        
+        const response = await api.get(apiUrl);
         const data = await response.json();
+        
+        // Convert testimonials sections to proper items structure if needed
+        if (data.page && data.page.layout && data.page.layout.components) {
+          try {
+            const { convertLayoutTestimonialsToItems } = await import('../../utils/convertTestimonialsToItems.js');
+            data.page.layout = convertLayoutTestimonialsToItems(data.page.layout);
+          } catch (error) {
+            console.log('[testing] Note: Could not convert testimonials structure:', error);
+          }
+        }
 
         if (data.success) {
           setPageData(data.page);
@@ -255,10 +287,11 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
       }
     };
 
-    if (currentTenantId) {
+    // Fetch if we have either tenantId (tenant mode) or themeId (theme mode)
+    if (currentTenantId && currentThemeId) {
       fetchPageData();
     }
-  }, [pageId, currentTenantId]);
+  }, [pageId, currentTenantId, currentThemeId]);
 
   // Update page field
   const updateField = useCallback((field: keyof PageData, value: string | boolean) => {
@@ -785,6 +818,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack }) => {
         open={showJSONEditor}
         onOpenChange={closeJSONEditor}
         editorRef={setEditorRef}
+        jsonString={jsonString}
         jsonError={jsonError}
         onSave={handleSave}
       />

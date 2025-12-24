@@ -2,7 +2,8 @@ import React, { useState, useEffect, useLayoutEffect } from 'react';
 import { Button } from '../../../src/components/ui/button';
 import { Card } from '../../../src/components/ui/card';
 import { Badge } from '../../../src/components/ui/badge';
-import { Edit, Eye, FileText, Rocket, Scale, Layout, Minus, Monitor, Code, FileCode } from 'lucide-react';
+import { Edit, Eye, FileText, Rocket, Scale, Layout, Minus, Monitor, Code, FileCode, RefreshCw } from 'lucide-react';
+import { toast } from '../../../src/hooks/use-toast';
 import PageEditor from './PageEditor';
 import HeaderSchemaEditor from './HeaderSchemaEditor';
 import FooterSchemaEditor from './FooterSchemaEditor';
@@ -32,8 +33,8 @@ interface PageItem {
 
 interface PagesManagerProps {
   onEditModeChange?: (isEditMode: boolean) => void;
-  mode?: 'tenants' | 'theme';
-  currentThemeId?: string | null;
+  currentTenantId: string;
+  currentThemeId: string;
 }
 
 // Hardcoded pages for themes (fallback when database and file system are unavailable)
@@ -116,10 +117,10 @@ const loadThemePages = async (themeId: string | null): Promise<PageItem[]> => {
 
 export const PagesManager: React.FC<PagesManagerProps> = ({ 
   onEditModeChange, 
-  mode = 'tenants',
-  currentThemeId = null 
+  currentTenantId,
+  currentThemeId
 }) => {
-  const { currentTenantId, user } = useAuth();
+  const { user } = useAuth();
   const [pages, setPages] = useState<PageItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -137,50 +138,34 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
     { id: 'footer' as const, label: 'Footer', icon: Layout },
   ];
 
-  // Load pages from database or theme
+  // Load pages from database for tenant + theme combination
   useEffect(() => {
-    console.log('currentTenantId', currentTenantId);
-    console.log('currentThemeId', currentThemeId);
-    console.log('user', user);
-    console.log('mode', mode);
+    console.log('[testing] Loading pages for tenant:', currentTenantId, 'theme:', currentThemeId);
     
-    if (mode === 'theme') {
-      // Theme mode: load pages for selected theme
-      if (currentThemeId) {
-        setLoading(true);
-        loadThemePages(currentThemeId).then(themePages => {
-          setPages(themePages);
-          setLoading(false);
-          setError(null);
-        }).catch(err => {
-          console.error('Error loading theme pages:', err);
-          setPages([]);
-          setLoading(false);
-          setError('Failed to load theme pages');
-        });
-      } else {
-        // No theme selected, show empty
-        setPages([]);
-        setLoading(false);
-        setError(null);
-      }
-    } else if (currentTenantId) {
-      // Tenants mode: load from database
+    if (currentTenantId && currentThemeId) {
+      // Load pages for tenant + theme combination
       loadPages();
     } else {
-      // No tenant selected
+      // No tenant or theme selected, show empty
       setPages([]);
       setLoading(false);
+      setError(null);
     }
-  }, [currentTenantId, currentThemeId, user, mode]);
+  }, [currentTenantId, currentThemeId, user]);
 
   const loadPages = async () => {
     try {
       setLoading(true);
       setError(null);
       
-      // Regular tenant - use API
-      const response = await api.get(`/api/pages/all?tenantId=${currentTenantId}`, {
+      // Load pages for tenant + theme combination
+      // If theme is 'custom', load tenant pages without theme filter
+      // Otherwise, load pages filtered by both tenant and theme
+      const url = currentThemeId === 'custom' 
+        ? `/api/pages/all?tenantId=${currentTenantId}`
+        : `/api/pages/all?tenantId=${currentTenantId}&themeId=${currentThemeId}`;
+      
+      const response = await api.get(url, {
         headers: {
           'X-Tenant-Id': currentTenantId || ''
         }
@@ -188,14 +173,14 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
       
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('Failed to load pages:', errorText);
+        console.error('[testing] Failed to load pages:', errorText);
         throw new Error(`Failed to load pages: ${response.status} ${response.statusText}`);
       }
       
       const data = await response.json();
       setPages(data.pages || []);
     } catch (error) {
-      console.error('Error loading pages:', error);
+      console.error('[testing] Error loading pages:', error);
       setError(error instanceof Error ? error.message : 'Failed to load pages');
     } finally {
       setLoading(false);
@@ -243,7 +228,7 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
   const handleViewPage = (slug: string) => {
     let url = slug;
     
-    if (mode === 'theme' && currentThemeId) {
+    if (currentThemeId && currentThemeId !== 'custom') {
       // Theme mode: use /theme/{themeId}/{slug} format
       // Remove leading slash from slug if present
       const cleanSlug = slug.startsWith('/') ? slug.slice(1) : slug;
@@ -256,7 +241,7 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
         url = `/theme/${currentThemeId}/${cleanSlug}`;
       }
     }
-    // For tenants mode, use the slug as-is (existing behavior)
+    // For custom theme, use the slug as-is (existing behavior)
     
     window.open(url, '_blank');
   };
@@ -268,6 +253,48 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
     });
     if (onEditModeChange) {
       onEditModeChange(true);
+    }
+  };
+
+  const handleMigrateLayouts = async () => {
+    if (!currentThemeId) {
+      toast({
+        title: 'Error',
+        description: 'No theme selected',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await api.post(`/api/themes/${currentThemeId}/migrate-layouts`);
+      
+      if (response.ok) {
+        const data = await response.json();
+        toast({
+          title: 'Layouts Migrated',
+          description: data.message || `Migrated ${data.migrated} layout(s)`,
+        });
+        // Reload pages to see updated layouts
+        loadPages();
+      } else {
+        const errorData = await response.json();
+        toast({
+          title: 'Migration Failed',
+          description: errorData.message || 'Failed to migrate layouts',
+          variant: 'destructive',
+        });
+      }
+    } catch (error: any) {
+      console.error('Error migrating layouts:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to migrate layouts',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -295,7 +322,7 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
 
   // Show visual editor if a page is being viewed (works for both tenant and theme modes, even without connection)
   if (visualEditorPage) {
-    const pageUrl = mode === 'theme' && currentThemeId 
+    const pageUrl = (currentThemeId && currentThemeId !== 'custom')
       ? getThemePageUrl(visualEditorPage.slug)
       : visualEditorPage.slug;
     
@@ -370,15 +397,14 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
           onOpenChange={setShowCodeViewer}
           pageSlug={visualEditorPage?.slug || ''}
           pageName={visualEditorPage?.pageName || ''}
-          tenantId={mode === 'tenants' ? currentTenantId : undefined}
+          tenantId={currentTenantId}
         />
         <VisualEditorJSONDialog
           open={showJSONEditor}
           onOpenChange={setShowJSONEditor}
           pageSlug={visualEditorPage?.slug || ''}
           pageName={visualEditorPage?.pageName || ''}
-          tenantId={mode === 'tenants' ? currentTenantId : undefined}
-          mode={mode}
+          tenantId={currentTenantId}
           currentThemeId={currentThemeId}
           currentTenantId={currentTenantId}
         />
@@ -391,6 +417,8 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
     return (
       <PageEditor 
         pageId={editingPageId} 
+        currentTenantId={currentTenantId}
+        currentThemeId={currentThemeId}
         onBack={() => {
           setEditingPageId(null);
           if (onEditModeChange) {
@@ -401,23 +429,7 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
     );
   }
 
-  // Show header schema editor
-  if (activeTab === 'header') {
-    return (
-      <HeaderSchemaEditor 
-        onBack={() => setActiveTab('page')} 
-      />
-    );
-  }
-
-  // Show footer schema editor
-  if (activeTab === 'footer') {
-    return (
-      <FooterSchemaEditor 
-        onBack={() => setActiveTab('page')} 
-      />
-    );
-  }
+  // Header and footer editors will be rendered within the tab content
 
   // Filter and sort pages based on active tab (only for page types)
   const filteredPages = ['page', 'landing', 'legal'].includes(activeTab) 
@@ -433,14 +445,14 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
         })
     : [];
 
-  // Show message when in theme mode but no theme is selected
-  if (mode === 'theme' && !currentThemeId) {
+  // Show message when no tenant or theme is selected
+  if (!currentTenantId || !currentThemeId) {
     return (
       <div className="max-w-6xl mx-auto">
         <div className="bg-white rounded-lg border border-gray-200 p-6">
           <div className="text-center py-12">
-            <p className="text-gray-500 text-lg mb-2">No theme selected</p>
-            <p className="text-gray-400 text-sm">Please select a theme from the dropdown above to view its pages</p>
+            <p className="text-gray-500 text-lg mb-2">No tenant or theme selected</p>
+            <p className="text-gray-400 text-sm">Please select a tenant and theme from the dropdowns above to view pages</p>
           </div>
         </div>
       </div>
@@ -466,14 +478,7 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
           <div className="text-center py-12">
             <p className="text-red-600">Error: {error}</p>
             <Button onClick={() => {
-              if (mode === 'theme' && currentThemeId) {
-                loadThemePages(currentThemeId).then(themePages => {
-                  setPages(themePages);
-                  setError(null);
-                });
-              } else {
-                loadPages();
-              }
+              loadPages();
             }} className="mt-4">
               Retry
             </Button>
@@ -485,6 +490,29 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
 
   return (
     <div className="max-w-6xl mx-auto">
+      {/* Theme Mode: Migrate Layouts Button */}
+      {currentThemeId && currentThemeId !== 'custom' && (
+        <div className="bg-white rounded-lg border border-gray-200 mb-6 p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-sm font-medium text-gray-900">Page Layouts</h3>
+              <p className="text-sm text-gray-500 mt-1">
+                Migrate page layouts to match your theme's component structure
+              </p>
+            </div>
+            <Button
+              onClick={handleMigrateLayouts}
+              disabled={loading}
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+              {loading ? 'Migrating...' : 'Migrate Layouts'}
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Tab Navigation */}
       <div className="bg-white rounded-lg border border-gray-200 mb-6">
         <div className="border-b border-gray-200">
@@ -514,16 +542,21 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
         {/* Tab Content */}
         <div className="p-6">
           <div className="space-y-6">
+            {activeTab === 'header' ? (
+              <HeaderSchemaEditor 
+                onBack={() => setActiveTab('page')} 
+              />
+            ) : activeTab === 'footer' ? (
+              <FooterSchemaEditor 
+                onBack={() => setActiveTab('page')} 
+              />
+            ) : (
+              <>
             <div>
             </div>
 
             <div className="grid gap-4">
-              {['header', 'footer'].includes(activeTab) ? (
-                <div className="text-center py-12 bg-blue-50 rounded-lg border border-blue-200">
-                  <p className="text-blue-600 font-medium">Click on the {activeTab} tab to configure your site's {activeTab} settings</p>
-                  <p className="text-sm text-blue-500 mt-1">This will open the {activeTab} schema editor</p>
-                </div>
-              ) : filteredPages.length === 0 ? (
+              {filteredPages.length === 0 ? (
                 <div className="text-center py-12 bg-gray-50 rounded-lg border border-dashed border-gray-300">
                   <p className="text-gray-500">No {tabs.find(t => t.id === activeTab)?.label.toLowerCase()} found</p>
                 </div>
@@ -543,14 +576,14 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
                             Campaign: {page.campaign_source} → {page.conversion_goal}
                           </p>
                         )}
-                        {page.page_type === 'legal' && page.version && (
+                        {page.page_type === 'legal' && page.legal_type && (
                           <p className="text-xs text-purple-600">
-                            Version: {page.version} | Type: {page.legal_type}
+                            Type: {page.legal_type}
                           </p>
                         )}
                       </div>
                       <div className="flex items-center gap-2">
-                        {mode === 'theme' && (
+                        {currentThemeId && currentThemeId !== 'custom' && (
                           <Button
                             variant="default"
                             size="sm"
@@ -592,6 +625,8 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
                 <strong>SEO Index:</strong> Click on "Index" or "No Index" badges to toggle whether the page should be indexed by search engines.
               </p>
             </div> */}
+              </>
+            )}
           </div>
         </div>
       </div>

@@ -350,31 +350,80 @@ export async function generateTenantApiKey(tenantId, description = 'API Access K
  */
 export async function generateThemeApiKey(themeId, description = 'API Access Key') {
   try {
+    console.log(`[testing] generateThemeApiKey called with themeId: ${themeId}`);
+    
     // Check if theme exists
     const themeExists = await query(`
       SELECT id, slug FROM themes WHERE id = $1 OR slug = $1
     `, [themeId]);
     
+    console.log(`[testing] Theme query result:`, themeExists.rows);
+    
     if (themeExists.rows.length === 0) {
-      return { success: false, message: 'Theme not found' };
+      console.log(`[testing] Theme ${themeId} not found in database`);
+      return { success: false, message: `Theme '${themeId}' not found in database. Please sync themes first.` };
     }
     
     // Use theme slug or id as the identifier
     const themeIdentifier = themeExists.rows[0].slug || themeExists.rows[0].id;
     const themeTenantId = `theme-${themeIdentifier}`;
     
+    console.log(`[testing] Using theme identifier: ${themeIdentifier}, tenant_id: ${themeTenantId}`);
+    
     // Generate a new API key
     const apiKey = `theme_${themeIdentifier}_${uuidv4().replace(/-/g, '')}`;
     
+    console.log(`[testing] Generated API key: ${apiKey.substring(0, 20)}...`);
+    
     // Store the API key in the tenant_api_keys table with special tenant_id format
-    await query(`
-      INSERT INTO tenant_api_keys (tenant_id, api_key, description)
-      VALUES ($1, $2, $3)
-    `, [themeTenantId, apiKey, description]);
+    // Note: This may fail if there's a foreign key constraint. We'll handle that.
+    try {
+      await query(`
+        INSERT INTO tenant_api_keys (tenant_id, api_key, description)
+        VALUES ($1, $2, $3)
+      `, [themeTenantId, apiKey, description]);
+    } catch (insertError) {
+      // Check if it's a foreign key constraint error
+      if (insertError.code === '23503' || insertError.constraint === 'tenant_api_keys_tenant_id_fkey') {
+        // Foreign key constraint violation - we need to create a virtual tenant entry
+        // or modify the constraint. For now, let's try to insert without the constraint check.
+        console.log(`[testing] Foreign key constraint detected, attempting workaround...`);
+        
+        // Try to temporarily disable the constraint or use a workaround
+        // Option 1: Create a minimal tenant entry for the theme
+        try {
+          await query(`
+            INSERT INTO tenants (id, name, created_at, updated_at)
+            VALUES ($1, $2, NOW(), NOW())
+            ON CONFLICT (id) DO NOTHING
+          `, [themeTenantId, `Theme: ${themeIdentifier}`]);
+          
+          // Now try inserting the API key again
+          await query(`
+            INSERT INTO tenant_api_keys (tenant_id, api_key, description)
+            VALUES ($1, $2, $3)
+          `, [themeTenantId, apiKey, description]);
+        } catch (tenantError) {
+          console.error(`[testing] Error creating virtual tenant or inserting API key:`, tenantError);
+          throw new Error(`Failed to create API key: Database constraint violation. Please ensure the theme exists in the database.`);
+        }
+      } else {
+        // Re-throw other errors
+        throw insertError;
+      }
+    }
+    
+    console.log(`[testing] API key stored successfully`);
     
     return { success: true, apiKey };
   } catch (error) {
     console.error(`[testing] Error generating API key for theme ${themeId}:`, error);
+    console.error(`[testing] Error details:`, {
+      message: error.message,
+      code: error.code,
+      detail: error.detail,
+      constraint: error.constraint
+    });
     throw error;
   }
 }

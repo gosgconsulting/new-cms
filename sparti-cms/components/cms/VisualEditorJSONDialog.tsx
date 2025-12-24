@@ -15,7 +15,7 @@ import Prism from 'prismjs';
 import 'prismjs/components/prism-json';
 import 'prismjs/themes/prism.css';
 import { validateJSON } from '../../utils/validation';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Copy, Check } from 'lucide-react';
 import api from '../../utils/api';
 
 interface VisualEditorJSONDialogProps {
@@ -24,9 +24,8 @@ interface VisualEditorJSONDialogProps {
   pageSlug: string;
   pageName: string;
   tenantId?: string;
-  mode?: 'tenants' | 'theme';
-  currentThemeId?: string | null;
-  currentTenantId?: string | null;
+  currentThemeId: string;
+  currentTenantId: string;
   connectionName?: string;
 }
 
@@ -36,7 +35,6 @@ export const VisualEditorJSONDialog: React.FC<VisualEditorJSONDialogProps> = ({
   pageSlug,
   pageName,
   tenantId,
-  mode = 'tenants',
   currentThemeId,
   currentTenantId,
   connectionName,
@@ -47,6 +45,7 @@ export const VisualEditorJSONDialog: React.FC<VisualEditorJSONDialogProps> = ({
   const [saving, setSaving] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [connectionInfo, setConnectionInfo] = useState<{ type: 'tenant' | 'theme' | 'none'; name: string } | null>(null);
+  const [copied, setCopied] = useState(false);
   const editorRef = useRef<HTMLDivElement>(null);
   const codeJarRef = useRef<CodeJar | null>(null);
   const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -57,14 +56,14 @@ export const VisualEditorJSONDialog: React.FC<VisualEditorJSONDialogProps> = ({
       // If connectionName is provided, use it
       if (connectionName) {
         setConnectionInfo({
-          type: mode === 'theme' ? 'theme' : 'tenant',
+          type: 'tenant',
           name: connectionName
         });
         return;
       }
 
       // Otherwise, fetch from API
-      if (mode === 'theme' && currentThemeId) {
+      if (currentThemeId && currentThemeId !== 'custom') {
         // Fetch theme name
         const response = await api.get(`/api/themes`);
         if (response.ok) {
@@ -80,7 +79,7 @@ export const VisualEditorJSONDialog: React.FC<VisualEditorJSONDialogProps> = ({
             name: currentThemeId
           });
         }
-      } else if (mode === 'tenants' && currentTenantId) {
+      } else if (currentTenantId) {
         // Fetch tenant name
         const response = await api.get(`/api/tenants`);
         if (response.ok) {
@@ -106,7 +105,7 @@ export const VisualEditorJSONDialog: React.FC<VisualEditorJSONDialogProps> = ({
       console.error('[testing] Error loading connection info:', error);
       setConnectionInfo({
         type: mode === 'theme' ? 'theme' : 'tenant',
-        name: mode === 'theme' ? (currentThemeId || 'Not connected') : (currentTenantId || 'Not connected')
+        name: currentTenantId || 'Not connected'
       });
     }
   };
@@ -136,7 +135,7 @@ export const VisualEditorJSONDialog: React.FC<VisualEditorJSONDialogProps> = ({
       setJsonError(null);
       setLoading(false);
     }
-  }, [open, pageSlug, tenantId, mode, currentThemeId, currentTenantId]);
+  }, [open, pageSlug, tenantId, currentThemeId, currentTenantId]);
 
   const loadPageLayout = async () => {
     try {
@@ -144,7 +143,7 @@ export const VisualEditorJSONDialog: React.FC<VisualEditorJSONDialogProps> = ({
       setJsonError(null);
       
       // For themes, we might not have a tenantId, so handle that
-      const effectiveTenantId = tenantId || (mode === 'tenants' ? currentTenantId : undefined) || 'tenant-gosg';
+      const effectiveTenantId = tenantId || currentTenantId || 'tenant-gosg';
       
       const encodedSlug = encodeURIComponent(pageSlug);
       const response = await api.get(`/api/ai-assistant/page-context?slug=${encodedSlug}&tenantId=${effectiveTenantId}`);
@@ -280,7 +279,7 @@ export const VisualEditorJSONDialog: React.FC<VisualEditorJSONDialogProps> = ({
       const parsed = JSON.parse(jsonString);
       
       // First get pageId from slug
-      const effectiveTenantId = tenantId || (mode === 'tenants' ? currentTenantId : undefined) || 'tenant-gosg';
+      const effectiveTenantId = tenantId || currentTenantId || 'tenant-gosg';
       const encodedSlug = encodeURIComponent(pageSlug);
       const pageContextResponse = await api.get(`/api/ai-assistant/page-context?slug=${encodedSlug}&tenantId=${effectiveTenantId}`);
       const pageContextData = await pageContextResponse.json();
@@ -325,13 +324,23 @@ export const VisualEditorJSONDialog: React.FC<VisualEditorJSONDialogProps> = ({
     return 'claude-3-5-haiku-20241022';
   };
 
+  const handleCopyJSON = async () => {
+    try {
+      await navigator.clipboard.writeText(jsonString);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (error) {
+      console.error('[testing] Failed to copy JSON:', error);
+    }
+  };
+
   const handleSyncJSON = async () => {
     try {
       setSyncing(true);
       setJsonError(null);
 
       const selectedModel = getSelectedModelFromAIAssistant();
-      const effectiveTenantId = tenantId || (mode === 'tenants' ? currentTenantId : undefined) || 'tenant-gosg';
+      const effectiveTenantId = tenantId || currentTenantId || 'tenant-gosg';
 
       const requestPayload = {
         pageSlug,
@@ -368,7 +377,29 @@ export const VisualEditorJSONDialog: React.FC<VisualEditorJSONDialogProps> = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl h-[80vh] flex flex-col">
         <DialogHeader>
-          <DialogTitle>Page Schema JSON Editor</DialogTitle>
+          <DialogTitle className="flex items-center justify-between">
+            <span>Page Schema JSON Editor</span>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleCopyJSON}
+              disabled={loading || !jsonString}
+              className="ml-4"
+            >
+              {copied ? (
+                <>
+                  <Check className="h-4 w-4 mr-2" />
+                  Copied!
+                </>
+              ) : (
+                <>
+                  <Copy className="h-4 w-4 mr-2" />
+                  Copy JSON
+                </>
+              )}
+            </Button>
+          </DialogTitle>
           <DialogDescription>
             Edit the complete page structure. Be careful with this editor.
             {connectionInfo && (
@@ -386,7 +417,7 @@ export const VisualEditorJSONDialog: React.FC<VisualEditorJSONDialogProps> = ({
           ) : (
             <div
               ref={setEditorRef}
-              className="w-full h-full p-4 outline-none font-mono text-sm border border-gray-300 rounded overflow-auto bg-white"
+              className="w-full h-full p-4 outline-none font-mono text-sm border border-gray-300 rounded bg-white"
               style={{
                 minHeight: JSON_EDITOR_CONFIG.MIN_HEIGHT,
                 whiteSpace: 'pre-wrap',

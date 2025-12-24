@@ -35,12 +35,11 @@ interface ContactsData {
 }
 
 interface ContactsManagerProps {
-  mode?: 'tenants' | 'theme';
-  currentThemeId?: string | null;
+  currentTenantId: string;
 }
 
-const ContactsManager: React.FC<ContactsManagerProps> = ({ mode = 'tenants', currentThemeId }) => {
-  const { user, currentTenantId } = useAuth();
+const ContactsManager: React.FC<ContactsManagerProps> = ({ currentTenantId }) => {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('contacts');
   const [currentPage, setCurrentPage] = useState(1);
   const [contactsData, setContactsData] = useState<ContactsData>({

@@ -41,16 +41,18 @@ const router = express.Router();
 // Get all pages
 router.get('/pages/all', authenticateUser, async (req, res) => {
   try {
-    console.log(`[testing] API: Fetching all pages with types for tenant: ${req.tenantId}`);
+    const { themeId } = req.query;
+    console.log(`[testing] API: Fetching all pages with types for tenant: ${req.tenantId}, theme: ${themeId || 'custom'}`);
     
-    // Filter pages by tenant
-    const pages = await getAllPagesWithTypes(req.tenantId);
+    // Filter pages by tenant and optionally by theme
+    const pages = await getAllPagesWithTypes(req.tenantId, themeId || null);
     
     res.json({ 
       success: true, 
       pages: pages,
       total: pages.length,
-      tenantId: req.tenantId
+      tenantId: req.tenantId,
+      themeId: themeId || 'custom'
     });
   } catch (error) {
     console.error('[testing] API: Error fetching pages:', error);
@@ -143,22 +145,169 @@ router.get('/pages/theme/:themeId', async (req, res) => {
 router.get('/pages/:pageId', async (req, res) => {
   try {
     const { pageId } = req.params;
-    const { tenantId } = req.query;
-    console.log(`[testing] API: Fetching page ${pageId} for tenant: ${tenantId || 'default'}`);
+    const { tenantId, themeId } = req.query;
     
-    const page = await getPageWithLayout(pageId, tenantId);
+    // Check if this is a theme page (pageId starts with "theme-") or if we're in theme mode
+    const isThemePage = pageId.startsWith('theme-');
+    const isThemeMode = themeId && !tenantId;
     
-    if (!page) {
-      return res.status(404).json({
-        success: false,
-        error: 'Page not found'
+    if ((isThemePage || isThemeMode) && themeId) {
+      // Theme mode: query by theme_id
+      console.log(`[testing] API: Fetching theme page ${pageId} for theme: ${themeId}`);
+      
+      // First, try to query by page ID directly (works for both numeric IDs and theme- prefixed IDs)
+      // Try as string first (most common case)
+      let pageResult = await query(`
+        SELECT 
+          id,
+          page_name,
+          slug,
+          meta_title,
+          meta_description,
+          seo_index,
+          status,
+          page_type,
+          theme_id,
+          created_at,
+          updated_at
+        FROM pages
+        WHERE id::text = $1 AND theme_id = $2
+        LIMIT 1
+      `, [pageId, themeId]);
+      
+      // If not found and pageId is numeric, try as integer
+      if (pageResult.rows.length === 0 && /^\d+$/.test(pageId)) {
+        pageResult = await query(`
+          SELECT 
+            id,
+            page_name,
+            slug,
+            meta_title,
+            meta_description,
+            seo_index,
+            status,
+            page_type,
+            theme_id,
+            created_at,
+            updated_at
+          FROM pages
+          WHERE id = $1 AND theme_id = $2
+          LIMIT 1
+        `, [parseInt(pageId), themeId]);
+      }
+      
+      // If not found by ID, try to extract slug from pageId and query by slug
+      if (pageResult.rows.length === 0) {
+        // Extract slug from pageId (format: theme-{themeSlug}-{pageSlug})
+        // Remove "theme-{themeSlug}-" prefix to get the page slug part
+        const prefix = `theme-${themeId}-`;
+        if (pageId.startsWith(prefix)) {
+          const pageSlugPart = pageId.substring(prefix.length);
+          // Convert hyphens back to slashes and ensure it starts with /
+          const pageSlug = '/' + pageSlugPart.replace(/-/g, '/');
+          
+          // Query by theme_id and slug
+          pageResult = await query(`
+            SELECT 
+              id,
+              page_name,
+              slug,
+              meta_title,
+              meta_description,
+              seo_index,
+              status,
+              page_type,
+              theme_id,
+              created_at,
+              updated_at
+            FROM pages
+            WHERE slug = $1 AND theme_id = $2
+            LIMIT 1
+          `, [pageSlug, themeId]);
+        }
+      }
+      
+      if (pageResult.rows.length === 0) {
+        // Try to get from file system as fallback
+        const fsPages = getThemePagesFromFileSystem(themeId);
+        const fsPage = fsPages.find(p => p.id === pageId);
+        
+        if (fsPage) {
+          // Return file system page with empty layout
+          return res.json({
+            success: true,
+            page: {
+              ...fsPage,
+              layout: { components: [] }
+            }
+          });
+        }
+        
+        return res.status(404).json({
+          success: false,
+          error: 'Page not found'
+        });
+      }
+      
+      const page = pageResult.rows[0];
+      
+      // Get the layout data (default language)
+      const layoutResult = await query(`
+        SELECT layout_json, version, updated_at
+        FROM page_layouts
+        WHERE page_id = $1 AND language = 'default'
+        ORDER BY version DESC
+        LIMIT 1
+      `, [page.id]);
+      
+      if (layoutResult.rows.length > 0) {
+        let layout = layoutResult.rows[0].layout_json;
+        
+        // Convert testimonials sections to proper items structure
+        try {
+          const { convertLayoutTestimonialsToItems } = await import('../../sparti-cms/utils/convertTestimonialsToItems.js');
+          layout = convertLayoutTestimonialsToItems(layout);
+        } catch (error) {
+          console.log('[testing] Note: Could not convert testimonials structure:', error.message);
+        }
+        
+        page.layout = layout;
+      } else {
+        page.layout = { components: [] };
+      }
+      
+      return res.json({
+        success: true,
+        page: page
+      });
+    } else {
+      // Tenant mode: use existing logic
+      console.log(`[testing] API: Fetching page ${pageId} for tenant: ${tenantId || 'default'}`);
+      
+      const page = await getPageWithLayout(pageId, tenantId);
+      
+      if (!page) {
+        return res.status(404).json({
+          success: false,
+          error: 'Page not found'
+        });
+      }
+      
+      // Convert testimonials sections to proper items structure
+      if (page.layout && page.layout.components) {
+        try {
+          const { convertLayoutTestimonialsToItems } = await import('../../sparti-cms/utils/convertTestimonialsToItems.js');
+          page.layout = convertLayoutTestimonialsToItems(page.layout);
+        } catch (error) {
+          console.log('[testing] Note: Could not convert testimonials structure:', error.message);
+        }
+      }
+      
+      res.json({
+        success: true,
+        page: page
       });
     }
-    
-    res.json({
-      success: true,
-      page: page
-    });
   } catch (error) {
     console.error('[testing] API: Error fetching page:', error);
     res.status(500).json({

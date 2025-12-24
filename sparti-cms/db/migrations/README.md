@@ -1,63 +1,121 @@
 # Database Migrations
 
-This directory previously contained SQL migration files. All migrations have been migrated to Sequelize migrations.
+This directory contains SQL migration files and scripts for the Sparti CMS database schema.
 
-## Sequelize Migrations
+## Quick Fix: Check and Fix Schema
 
-All database migrations are now managed through Sequelize migrations located in:
-- `../sequelize/migrations/`
+If you're getting "not valid JSON" errors when saving styles, the database schema might be missing required columns. Run this script to automatically check and fix the schema:
 
-## Migration Files
+```bash
+node sparti-cms/db/migrations/check-and-fix-schema.js
+```
 
-All migrations are now Sequelize migration files with the following naming convention:
-- `YYYYMMDDHHMMSS-description.js`
-
-### Current Migrations
-
-1. `20241202000000-create-core-tables.js` - Core tables (site_settings, form_submissions, contacts, projects, project_steps)
-2. `20241202000001-create-tenant-tables.js` - Tenant management tables (tenants, tenant_databases, tenant_api_keys)
-3. `20241202000002-create-user-tables.js` - User management tables (users, sessions, permissions, etc.) with views and triggers
-4. `20241202000003-create-page-tables.js` - Page tables (pages, page_layouts, page_components, slug_change_log)
-5. `20241202000004-create-content-tables.js` - Content tables (posts, terms, term_taxonomy, term_relationships, breadcrumbs)
-6. `20241202000005-create-seo-tables.js` - SEO tables (redirects, seo_meta, sitemap_entries, robots_config, seo_analytics)
-7. `20241202000006-create-media-tables.js` - Media and component tables
-8. `20241202000007-create-analytics-tables.js` - Analytics tracking tables
-9. `20241201000000-create-categories-and-tags.js` - Categories and tags tables
+This script will:
+- Check if the `site_settings` table exists
+- Add missing columns (`tenant_id`, `theme_id`, `setting_category`, `is_public`)
+- Create required indexes
+- Set up the unique constraint
+- Update existing records with default values
 
 ## Running Migrations
 
-### Run all pending migrations
+### Option 1: Using the Check and Fix Script (Recommended)
+
 ```bash
-npm run sequelize:migrate
+node sparti-cms/db/migrations/check-and-fix-schema.js
 ```
 
-### Undo last migration
+### Option 2: Using psql (PostgreSQL command line)
+
 ```bash
-npm run sequelize:migrate:undo
+psql -U your_username -d your_database -f create-site-settings-schema.sql
 ```
 
-### Check migration status
+### Option 3: Using Node.js Migration Script
+
 ```bash
-npm run sequelize:migrate:status
+node sparti-cms/db/migrations/run-migration.js
 ```
 
-## Programmatic Migration Execution
-
-Migrations can also be run programmatically from initialization functions using the `runMigrations` helper:
+### Option 4: Manual SQL Execution
 
 ```javascript
-import { runMigrations } from '../sequelize/run-migrations.js';
-
-// Run specific migrations
-await runMigrations(['20241202000000-create-core-tables.js']);
-
-// Run all pending migrations
-await runMigrations();
+import { query } from './db/index.js';
+import fs from 'fs';
+const sql = fs.readFileSync('create-site-settings-schema.sql', 'utf8');
+await query(sql);
 ```
 
-## Notes
+## Migration Files
 
-- All migrations are idempotent (check for table existence before creating)
-- Migrations preserve existing data
-- Migrations are backward compatible when possible
-- Views and triggers are created using raw SQL within migrations for PostgreSQL-specific features
+### `create-site-settings-schema.sql`
+
+Creates or updates the `site_settings` table with all required columns for theme styles:
+
+- **Columns**: `id`, `setting_key`, `setting_value`, `setting_type`, `setting_category`, `is_public`, `tenant_id`, `theme_id`, `created_at`, `updated_at`
+- **Unique Constraint**: `(setting_key, tenant_id, theme_id)` - Allows same key for different tenant+theme combinations
+- **Indexes**: 
+  - `idx_site_settings_tenant_theme` on `(tenant_id, theme_id)`
+  - `idx_site_settings_theme_id` on `(theme_id)`
+  - `idx_site_settings_category` on `(setting_category)`
+
+This migration is idempotent - it can be run multiple times safely.
+
+## Schema for Theme Styles
+
+The `theme_styles` setting is stored as JSON in the `setting_value` column:
+
+```json
+{
+  "primary": "#8b5cf6",
+  "primaryForeground": "#ffffff",
+  "secondary": "#f3f0ff",
+  "secondaryForeground": "#4338ca",
+  "background": "#ffffff",
+  "foreground": "#1f2937",
+  "card": "#ffffff",
+  "cardForeground": "#1f2937",
+  "accent": "#dbeafe",
+  "accentForeground": "#1e40af",
+  "muted": "#f9fafb",
+  "mutedForeground": "#6b7280",
+  "border": "#e5e7eb",
+  "input": "#e5e7eb",
+  "ring": "#8b5cf6",
+  "destructive": "#ef4444",
+  "destructiveForeground": "#ffffff",
+  "typography": {
+    "fontSans": "Inter, sans-serif",
+    "fontSerif": "Playfair Display, serif",
+    "fontMono": "Fira Code, monospace",
+    "baseFontSize": "16px",
+    "headingScale": "1.25",
+    "lineHeight": "1.6"
+  }
+}
+```
+
+## Example Queries
+
+### Get theme styles for a specific tenant and theme
+
+```sql
+SELECT setting_value 
+FROM site_settings 
+WHERE setting_key = 'theme_styles' 
+  AND tenant_id = 'tenant-gosg' 
+  AND theme_id = 'landingpage';
+```
+
+### Update theme styles
+
+```sql
+UPDATE site_settings 
+SET setting_value = '{"primary": "#f97316", ...}',
+    setting_type = 'json',
+    setting_category = 'theme',
+    updated_at = CURRENT_TIMESTAMP
+WHERE setting_key = 'theme_styles' 
+  AND tenant_id = 'tenant-gosg' 
+  AND theme_id = 'landingpage';
+```

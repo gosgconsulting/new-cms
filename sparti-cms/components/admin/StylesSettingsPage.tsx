@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -6,6 +6,7 @@ import { Palette, Save, Eye, Type, RefreshCw, Sparkles, Link2, FileText, Externa
 import { useAuth } from '../auth/AuthProvider';
 import api from '../../utils/api';
 import { useQuery } from '@tanstack/react-query';
+import { MASTER_TENANT_ID } from '../../utils/constants';
 
 interface TypographySettings {
   fontSans: string;
@@ -183,75 +184,90 @@ const defaultStyles: ThemeStyles = {
   typography: defaultTypography,
 };
 
-const StylesSettingsPage: React.FC = () => {
-  const { currentTenantId } = useAuth();
+interface StylesSettingsPageProps {
+  currentTenantId: string;
+}
+
+const StylesSettingsPage: React.FC<StylesSettingsPageProps> = ({ currentTenantId }) => {
   const [styles, setStyles] = useState<ThemeStyles>(defaultStyles);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [activeColorGroup, setActiveColorGroup] = useState<'primary' | 'secondary' | 'base' | 'accent'>('primary');
   const [activeSection, setActiveSection] = useState<'colors' | 'typography'>('colors');
-  const [currentThemeId, setCurrentThemeId] = useState<string | null>(null);
+  const justSavedRef = useRef(false);
 
-  // Fetch current tenant to get theme_id
-  const { data: tenant } = useQuery({
-    queryKey: ['tenant', currentTenantId],
-    queryFn: async () => {
-      if (!currentTenantId) return null;
-      try {
-        const response = await api.get(`/api/tenants`);
-        if (response.ok) {
-          const tenants = await response.json();
-          return tenants.find((t: any) => t.id === currentTenantId) || null;
-        }
-        return null;
-      } catch (error) {
-        console.error('Error fetching tenant:', error);
-        return null;
-      }
-    },
-    enabled: !!currentTenantId,
-  });
+  // Fetch current tenant to get theme_id (only in tenants mode)
+  // Styles are tenant-level (shared across themes)
 
-  // Get theme_id from tenant
-  useEffect(() => {
-    if (tenant?.theme_id) {
-      setCurrentThemeId(tenant.theme_id);
-    } else {
-      // Default to 'landingpage' for now (hardcoded as requested)
-      setCurrentThemeId('landingpage');
-    }
-  }, [tenant]);
-
-  // Load saved styles from API
+  // Load saved styles from API (tenant-level, shared across themes)
   useEffect(() => {
     const loadStyles = async () => {
-      if (!currentTenantId || !currentThemeId) return;
+      if (!currentTenantId) return;
+      
+      // Skip loading if we just saved - the save handler already reloaded the styles
+      if (justSavedRef.current) {
+        console.log('[testing] Skipping initial load - styles were just saved');
+        return;
+      }
       
       try {
         setLoading(true);
-        // Use theme-specific styles endpoint
-        const endpoint = `/api/settings/theme/${encodeURIComponent(currentThemeId)}/styles?tenantId=${encodeURIComponent(currentTenantId)}`;
+        // Use tenant-level styles endpoint with cache-busting
+        const cacheBuster = Date.now();
+        const endpoint = `/api/settings/styles?tenantId=${encodeURIComponent(currentTenantId)}&_t=${cacheBuster}`;
         const response = await api.get(endpoint);
         if (response.ok) {
           const savedStyles = await response.json();
+          console.log('[testing] Raw styles from API:', savedStyles);
+          
           if (savedStyles && Object.keys(savedStyles).length > 0) {
             // Remove theme_id and css_path if present (they're metadata, not style properties)
             const { theme_id, css_path, ...styleProperties } = savedStyles;
-            setStyles({ ...defaultStyles, ...styleProperties });
-            console.log('[testing] Loaded styles from database for theme:', currentThemeId);
+            
+            console.log('[testing] Style properties from API:', {
+              primary: styleProperties.primary,
+              hasTypography: !!styleProperties.typography,
+              allKeys: Object.keys(styleProperties)
+            });
+            
+            // Use saved styles as base - saved styles should have all properties
+            // Only merge typography deeply to fill in any missing typography fields
+            const finalStyles: ThemeStyles = {
+              // Saved styles take priority - they should have all color properties
+              ...styleProperties,
+              // Deep merge typography - saved typography takes priority, but fill missing fields from defaults
+              typography: {
+                ...defaultStyles.typography,
+                ...(styleProperties.typography || {})
+              }
+            };
+            
+            console.log('[testing] Final loaded styles:', {
+              primary: finalStyles.primary,
+              secondary: finalStyles.secondary,
+              hasTypography: !!finalStyles.typography,
+              typographyFontSans: finalStyles.typography?.fontSans
+            });
+            
+            setStyles(finalStyles);
           } else {
             console.log('[testing] No saved styles found, using defaults');
+            setStyles(defaultStyles);
           }
+        } else {
+          console.log('[testing] API response not OK, using defaults');
+          setStyles(defaultStyles);
         }
       } catch (error) {
-        console.log('[testing] No saved styles found, using defaults:', error);
+        console.error('[testing] Error loading styles, using defaults:', error);
+        setStyles(defaultStyles);
       } finally {
         setLoading(false);
       }
     };
 
     loadStyles();
-  }, [currentTenantId, currentThemeId]);
+  }, [currentTenantId]);
 
   const handleColorChange = (field: keyof Omit<ThemeStyles, 'typography'>, value: string) => {
     setStyles(prev => ({
@@ -270,41 +286,223 @@ const StylesSettingsPage: React.FC = () => {
     }));
   };
 
-  const applyPreset = (preset: StylePreset) => {
-    setStyles({
+  const applyPreset = async (preset: StylePreset) => {
+    const newStyles: ThemeStyles = {
       ...preset.colors,
       typography: preset.typography,
-    });
+    };
+    setStyles(newStyles);
+    justSavedRef.current = true;
+    
+    // Auto-save when preset is applied
+    if (currentTenantId) {
+      try {
+        setSaving(true);
+        const response = await api.put(
+          `/api/settings/styles?tenantId=${encodeURIComponent(currentTenantId)}`,
+          {
+            setting_value: JSON.stringify(newStyles),
+            setting_type: 'json',
+            setting_category: 'theme'
+          }
+        );
+        
+        if (response.ok) {
+          const savedData = await response.json();
+          console.log('[testing] Preset save response from server:', savedData);
+          
+          // Wait longer for database to commit (increased from 300ms to 500ms)
+          await new Promise(resolve => setTimeout(resolve, 500));
+          
+          try {
+            // Add cache-busting parameter to prevent stale data
+            const cacheBuster = Date.now();
+            const endpoint = `/api/settings/styles?tenantId=${encodeURIComponent(currentTenantId)}&_t=${cacheBuster}`;
+            const reloadResponse = await api.get(endpoint);
+            
+            if (reloadResponse.ok) {
+              const savedStyles = await reloadResponse.json();
+              console.log('[testing] Reloaded styles after preset:', savedStyles);
+              
+              if (savedStyles && Object.keys(savedStyles).length > 0) {
+                const { theme_id, css_path, ...styleProperties } = savedStyles;
+                
+                // Use saved styles as base
+                const mergedStyles: ThemeStyles = {
+                  ...styleProperties,
+                  // Deep merge typography
+                  typography: {
+                    ...defaultStyles.typography,
+                    ...(styleProperties.typography || {})
+                  }
+                };
+                
+                // Verify that reloaded data matches what we saved
+                const savedPrimary = newStyles.primary;
+                const loadedPrimary = mergedStyles.primary;
+                
+                if (savedPrimary !== loadedPrimary) {
+                  console.warn('[testing] WARNING: Saved and loaded primary colors do not match after preset!', {
+                    saved: savedPrimary,
+                    loaded: loadedPrimary
+                  });
+                }
+                
+                setStyles(mergedStyles);
+                console.log('[testing] Reloaded styles after preset application:', {
+                  primary: mergedStyles.primary,
+                  savedPrimary: savedPrimary,
+                  loadedPrimary: loadedPrimary,
+                  match: savedPrimary === loadedPrimary,
+                  hasTypography: !!mergedStyles.typography
+                });
+              } else {
+                console.warn('[testing] WARNING: No styles returned after preset reload, keeping current state');
+              }
+            } else {
+              console.error('[testing] Preset reload response not OK:', reloadResponse.status);
+            }
+          } catch (error) {
+            console.error('[testing] Error reloading styles after preset:', error);
+          }
+          
+          // Reset the flag after a delay
+          setTimeout(() => {
+            justSavedRef.current = false;
+          }, 1000);
+        } else {
+          const errorText = await response.text();
+          console.error('[testing] Preset save failed:', errorText);
+          justSavedRef.current = false;
+          alert('Preset applied but failed to save. Please click Save manually.');
+        }
+      } catch (error) {
+        console.error('[testing] Error auto-saving preset:', error);
+        justSavedRef.current = false;
+        alert('Preset applied but failed to save. Please click Save manually.');
+      } finally {
+        setSaving(false);
+      }
+    }
   };
 
   const handleSave = async () => {
-    if (!currentTenantId || !currentThemeId) {
-      alert('Please select a tenant and ensure a theme is assigned');
+    if (!currentTenantId) {
+      alert('Please select a tenant');
       return;
     }
     
     try {
       setSaving(true);
+      justSavedRef.current = true;
       
-      // Use theme-specific endpoint to save styles
+      // Use styles state directly - it should already have all properties
+      // Only ensure typography is complete (deep merge with defaults for missing fields)
+      const stylesToSave: ThemeStyles = {
+        ...styles,
+        // Deep merge typography to ensure all typography fields are present
+        typography: {
+          ...defaultStyles.typography,
+          ...(styles.typography || {})
+        }
+      };
+      
+      console.log('[testing] Saving styles object:', {
+        primary: stylesToSave.primary,
+        secondary: stylesToSave.secondary,
+        hasTypography: !!stylesToSave.typography,
+        allKeys: Object.keys(stylesToSave),
+        primaryColor: stylesToSave.primary
+      });
+      
+      // Use tenant-level endpoint to save styles (shared across themes)
       const response = await api.put(
-        `/api/settings/theme/${encodeURIComponent(currentThemeId)}/theme_styles?tenantId=${encodeURIComponent(currentTenantId)}`,
+        `/api/settings/styles?tenantId=${encodeURIComponent(currentTenantId)}`,
         {
-          setting_value: JSON.stringify(styles),
+          setting_value: JSON.stringify(stylesToSave),
           setting_type: 'json',
           setting_category: 'theme'
         }
       );
       
       if (response.ok) {
-        alert(`Styles saved successfully to database!\n\nTheme: ${currentThemeId}\nTenant: ${currentTenantId}\n\nStyles are now stored in the database and will be applied to your theme pages.`);
+        const savedData = await response.json();
+        console.log('[testing] Save response from server:', savedData);
+        
+        // Wait longer for database to commit (increased from 300ms to 500ms)
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        try {
+          // Add cache-busting parameter to prevent stale data
+          const cacheBuster = Date.now();
+          const endpoint = `/api/settings/theme/${encodeURIComponent(currentThemeId)}/styles?tenantId=${encodeURIComponent(currentTenantId)}&_t=${cacheBuster}`;
+          const reloadResponse = await api.get(endpoint);
+          
+          if (reloadResponse.ok) {
+            const savedStyles = await reloadResponse.json();
+            console.log('[testing] Reloaded styles after save:', savedStyles);
+            
+            if (savedStyles && Object.keys(savedStyles).length > 0) {
+              const { theme_id, css_path, ...styleProperties } = savedStyles;
+              
+              // Use saved styles as base - they should have all properties
+              const mergedStyles: ThemeStyles = {
+                ...styleProperties,
+                // Deep merge typography - saved typography takes priority, but fill missing fields from defaults
+                typography: {
+                  ...defaultStyles.typography,
+                  ...(styleProperties.typography || {})
+                }
+              };
+              
+              // Verify that reloaded data matches what we saved
+              const savedPrimary = stylesToSave.primary;
+              const loadedPrimary = mergedStyles.primary;
+              
+              if (savedPrimary !== loadedPrimary) {
+                console.warn('[testing] WARNING: Saved and loaded primary colors do not match!', {
+                  saved: savedPrimary,
+                  loaded: loadedPrimary
+                });
+                // Still use the loaded value (from database) but log the mismatch
+              }
+              
+              setStyles(mergedStyles);
+              console.log('[testing] Reloaded and merged styles after save:', {
+                primary: mergedStyles.primary,
+                savedPrimary: savedPrimary,
+                loadedPrimary: loadedPrimary,
+                match: savedPrimary === loadedPrimary,
+                hasTypography: !!mergedStyles.typography
+              });
+            } else {
+              console.warn('[testing] WARNING: No styles returned after reload, keeping current state');
+              // Don't reset state if reload returns empty
+            }
+          } else {
+            console.error('[testing] Reload response not OK:', reloadResponse.status);
+            // Don't reset state if reload fails
+          }
+        } catch (reloadError) {
+          console.error('[testing] Error reloading styles after save:', reloadError);
+          // Don't reset state if reload fails - keep what user just saved
+        }
+        
+        // Reset the flag after a delay to allow useEffect to skip if needed
+        setTimeout(() => {
+          justSavedRef.current = false;
+        }, 1000);
+        
+        alert(`Styles saved successfully to database!\n\nTenant: ${currentTenantId}\n\nStyles are now stored in the database and will be applied to all themes for this tenant.`);
       } else {
         const errorText = await response.text();
         console.error('[testing] Save failed:', errorText);
+        justSavedRef.current = false;
         alert('Failed to save styles. Please check the console for details.');
       }
     } catch (error) {
       console.error('Error saving styles:', error);
+      justSavedRef.current = false;
       alert('Error saving styles');
     } finally {
       setSaving(false);
@@ -371,13 +569,7 @@ const StylesSettingsPage: React.FC = () => {
     );
   }
 
-  const themeCssPath = currentThemeId 
-    ? `/theme/${currentThemeId}/theme.css`
-    : null;
-
-  const themeCssUrl = currentThemeId
-    ? `${window.location.origin}/theme/${currentThemeId}/theme.css`
-    : null;
+  // Styles are tenant-level, not theme-specific
 
   return (
     <div className="space-y-8">
@@ -391,8 +583,8 @@ const StylesSettingsPage: React.FC = () => {
         </p>
       </div>
 
-      {/* Theme CSS File Information */}
-      {currentThemeId && (
+      {/* Tenant Styles Information */}
+      {currentTenantId && (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
           <div className="flex items-start gap-4">
             <div className="flex-shrink-0">
@@ -401,40 +593,21 @@ const StylesSettingsPage: React.FC = () => {
             <div className="flex-1">
               <h4 className="text-lg font-semibold text-blue-900 mb-2 flex items-center gap-2">
                 <FileText className="h-5 w-5" />
-                Linked Theme CSS File
+                Tenant Styles
               </h4>
               <p className="text-sm text-blue-800 mb-3">
-                Your styles are linked to the theme's CSS file. Changes you make here will be saved to the theme's stylesheet.
+                Your styles are tenant-level and shared across all themes. Changes you make here will be applied to all themes for this tenant.
               </p>
               <div className="bg-white rounded-md p-4 border border-blue-200">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-700 mb-1">Theme:</p>
-                    <p className="text-lg font-semibold text-gray-900">{currentThemeId}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm font-medium text-gray-700 mb-1">CSS File Path:</p>
-                    <code className="text-sm text-gray-900 bg-gray-50 px-2 py-1 rounded">
-                      {themeCssPath}
-                    </code>
+                    <p className="text-sm font-medium text-gray-700 mb-1">Tenant:</p>
+                    <p className="text-lg font-semibold text-gray-900">{currentTenantId}</p>
                   </div>
                 </div>
-                {themeCssUrl && (
-                  <div className="mt-3 pt-3 border-t border-blue-200">
-                    <a
-                      href={themeCssUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 font-medium"
-                    >
-                      <ExternalLink className="h-4 w-4" />
-                      View Theme CSS File
-                    </a>
-                  </div>
-                )}
               </div>
               <p className="text-xs text-blue-700 mt-3">
-                ✅ <strong>Note:</strong> Styles are now stored in the database and applied dynamically to your theme. Changes take effect immediately.
+                ✅ <strong>Note:</strong> Styles are stored in the database and applied dynamically to all themes for this tenant. Changes take effect immediately.
               </p>
             </div>
           </div>
@@ -460,7 +633,8 @@ const StylesSettingsPage: React.FC = () => {
             <button
               key={preset.name}
               onClick={() => applyPreset(preset)}
-              className="p-4 rounded-lg border-2 border-border hover:border-brandPurple transition-all text-left bg-white hover:bg-secondary/50"
+              disabled={saving}
+              className="p-4 rounded-lg border-2 border-border hover:border-brandPurple transition-all text-left bg-white hover:bg-secondary/50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <div className="flex items-center gap-2 mb-2">
                 <div className="flex gap-1">
@@ -474,6 +648,9 @@ const StylesSettingsPage: React.FC = () => {
                   />
                 </div>
                 <span className="font-semibold text-foreground">{preset.name}</span>
+                {saving && (
+                  <RefreshCw className="h-4 w-4 animate-spin text-brandPurple ml-auto" />
+                )}
               </div>
               <p className="text-xs text-muted-foreground">{preset.description}</p>
             </button>

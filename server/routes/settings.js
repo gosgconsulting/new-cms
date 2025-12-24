@@ -295,21 +295,56 @@ router.put('/theme/:themeId/:key', authenticateUser, async (req, res) => {
     const { setting_value, setting_type, setting_category } = req.body;
     const tenantId = req.query.tenantId || req.user?.tenant_id || 'tenant-gosg';
     
-    console.log(`[testing] API: Updating setting ${key} for tenant: ${tenantId}, theme: ${themeId}`, req.body);
+    console.log(`[testing] API: Updating setting ${key} for tenant: ${tenantId}, theme: ${themeId}`, {
+      setting_type,
+      setting_category,
+      valueLength: setting_value?.length
+    });
     
-    const result = await updateSiteSettingByKey(
-      key,
-      setting_value,
-      setting_type || 'text',
-      setting_category || 'general',
-      tenantId,
-      themeId
-    );
-    
-    res.json(result);
+    // Ensure we always return JSON, even on error
+    try {
+      const result = await updateSiteSettingByKey(
+        key,
+        setting_value,
+        setting_type || 'text',
+        setting_category || 'general',
+        tenantId,
+        themeId
+      );
+      
+      console.log(`[testing] API: Successfully updated setting ${key}`, {
+        id: result?.id,
+        hasValue: !!result?.setting_value
+      });
+      
+      res.json(result);
+    } catch (dbError) {
+      console.error(`[testing] API: Database error updating setting ${key}:`, dbError);
+      
+      // Check if it's a schema issue
+      if (dbError.message?.includes('column') || dbError.message?.includes('does not exist')) {
+        res.status(500).json({ 
+          error: 'Database schema error',
+          message: 'The site_settings table is missing required columns. Please run the migration: sparti-cms/db/migrations/create-site-settings-schema.sql',
+          details: dbError.message,
+          migrationFile: 'sparti-cms/db/migrations/create-site-settings-schema.sql'
+        });
+      } else {
+        res.status(500).json({ 
+          error: 'Failed to update theme setting',
+          message: dbError.message || 'Unknown database error',
+          details: process.env.NODE_ENV === 'development' ? dbError.stack : undefined
+        });
+      }
+    }
   } catch (error) {
     console.error(`[testing] API: Error updating theme setting:`, error);
-    res.status(500).json({ error: 'Failed to update theme setting' });
+    // Ensure we always return JSON
+    res.status(500).json({ 
+      error: 'Failed to update theme setting',
+      message: error.message || 'Unknown error',
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 });
 

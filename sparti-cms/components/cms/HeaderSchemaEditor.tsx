@@ -4,9 +4,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../../src/component
 import { Textarea } from '../../../src/components/ui/textarea';
 import { Input } from '../../../src/components/ui/input';
 import { Label } from '../../../src/components/ui/label';
-import { ArrowLeft, Save, Loader2, Code } from 'lucide-react';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../../../src/components/ui/accordion';
+import { ArrowLeft, Save, Loader2, Code, Copy, Check } from 'lucide-react';
 import { HeaderSchema } from '../../types/schema';
-import { LogoEditor } from './schema-form-helpers/LogoEditor';
+import { ImageEditor } from '../content-editors';
 import { MenuItemsList } from './schema-form-helpers/MenuItemEditor';
 import { ToggleField } from './schema-form-helpers/ToggleField';
 import { DynamicFieldsSection } from './schema-form-helpers/DynamicFieldsSection';
@@ -49,6 +50,7 @@ export const HeaderSchemaEditor: React.FC<HeaderSchemaEditorProps> = ({ onBack }
   const [showJSONEditor, setShowJSONEditor] = useState(false);
   const [jsonString, setJsonString] = useState('');
   const [jsonError, setJsonError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (showJSONEditor) {
@@ -71,6 +73,16 @@ export const HeaderSchemaEditor: React.FC<HeaderSchemaEditorProps> = ({ onBack }
 
   const handleSave = async () => {
     await saveSchema(schema);
+  };
+
+  const handleCopyJSON = async () => {
+    try {
+      await navigator.clipboard.writeText(jsonString);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (error) {
+      console.error('[testing] Failed to copy JSON:', error);
+    }
   };
 
   const updateLogo = (logo: HeaderSchema['logo']) => {
@@ -175,105 +187,150 @@ export const HeaderSchemaEditor: React.FC<HeaderSchemaEditorProps> = ({ onBack }
         </div>
 
         {/* Content */}
-        <div className="p-6 space-y-8">
-          {/* Logo Section */}
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Logo Configuration</h3>
-            <LogoEditor
-              logo={schema.logo}
-              onChange={updateLogo}
-              showHeight={true}
-              title="Header Logo"
-            />
-          </div>
-
-          {/* Button Section */}
-          {schema.button !== undefined && (
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Call to Action Button</h3>
-              <Card>
-                <CardContent className="p-6 space-y-4">
+        <div className="p-6">
+          <Accordion type="multiple" className="w-full space-y-2">
+            {/* Logo Section */}
+            <AccordionItem value="logo" className="border rounded-lg px-4">
+              <AccordionTrigger className="hover:no-underline">
+                <h3 className="text-lg font-semibold text-gray-900">Logo Configuration</h3>
+              </AccordionTrigger>
+              <AccordionContent className="pt-4 pb-6">
+                <div className="space-y-4">
+                  <ImageEditor
+                    imageUrl={schema.logo?.src || ''}
+                    imageAlt={schema.logo?.alt || ''}
+                    onImageChange={(imageUrl) => updateLogo({ ...schema.logo, src: imageUrl })}
+                    onAltChange={(alt) => updateLogo({ ...schema.logo, alt })}
+                    simpleMode={true}
+                  />
                   <div>
-                    <Label className="text-xs">Button Label</Label>
+                    <Label className="text-xs">Alt Text</Label>
                     <Input
-                      value={schema.button.label || ''}
-                      onChange={(e) => updateButton({...schema.button, label: e.target.value})}
-                      placeholder="e.g., Contact Us, Get Started"
+                      value={schema.logo?.alt || ''}
+                      onChange={(e) => updateLogo({ ...schema.logo, alt: e.target.value })}
+                      placeholder="Descriptive text for accessibility"
                       className="text-sm"
                     />
                   </div>
                   <div>
-                    <Label className="text-xs">Button Link</Label>
+                    <Label className="text-xs">Height Class</Label>
                     <Input
-                      value={schema.button.link || ''}
-                      onChange={(e) => updateButton({...schema.button, link: e.target.value})}
-                      placeholder="e.g., /contact, /get-started"
+                      value={schema.logo?.height || ''}
+                      onChange={(e) => updateLogo({ ...schema.logo, height: e.target.value })}
+                      placeholder="e.g., h-8, h-10, h-12"
                       className="text-sm"
                     />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Tailwind CSS height class (e.g., h-8, h-10, h-12)
+                    </p>
                   </div>
-                </CardContent>
-              </Card>
-            </div>
-          )}
-          
-          {/* Menu Items Section */}
-          {schema.menu !== undefined && (
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Navigation Menu</h3>
-              <MenuItemsList
-                items={schema.menu}
-                onChange={updateMenu}
-                title="Menu Items"
-                addButtonText="Add Menu Item"
-              />
-            </div>
-          )}
+                </div>
+              </AccordionContent>
+            </AccordionItem>
 
-          {/* Display Options Section */}
-          {(schema.showCart !== undefined || schema.showSearch !== undefined || schema.showAccount !== undefined) && (
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Display Options</h3>
-              <Card>
-                <CardContent className="p-6 space-y-4">
-                  {schema.showCart !== undefined && (
-                    <ToggleField
-                      id="show-cart"
-                      label="Show Shopping Cart"
-                      checked={schema.showCart}
-                      onChange={(checked) => updateDisplayOption('showCart', checked)}
-                      description="Display shopping cart icon in header"
-                    />
-                  )}
-                  {schema.showSearch !== undefined && (
-                    <ToggleField
-                      id="show-search"
-                      label="Show Search"
-                      checked={schema.showSearch}
-                      onChange={(checked) => updateDisplayOption('showSearch', checked)}
-                      description="Display search icon in header"
-                    />
-                  )}
-                  {schema.showAccount !== undefined && (
-                    <ToggleField
-                      id="show-account"
-                      label="Show Account"
-                      checked={schema.showAccount}
-                      onChange={(checked) => updateDisplayOption('showAccount', checked)}
-                      description="Display account/user icon in header"
-                    />
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-          )}
+            {/* Button Section */}
+            {schema.button !== undefined && (
+              <AccordionItem value="button" className="border rounded-lg px-4">
+                <AccordionTrigger className="hover:no-underline">
+                  <h3 className="text-lg font-semibold text-gray-900">Call to Action Button</h3>
+                </AccordionTrigger>
+                <AccordionContent className="pt-4 pb-6">
+                  <div className="space-y-4">
+                    <div>
+                      <Label className="text-xs">Button Label</Label>
+                      <Input
+                        value={schema.button.label || ''}
+                        onChange={(e) => updateButton({...schema.button, label: e.target.value})}
+                        placeholder="e.g., Contact Us, Get Started"
+                        className="text-sm"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs">Button Link</Label>
+                      <Input
+                        value={schema.button.link || ''}
+                        onChange={(e) => updateButton({...schema.button, link: e.target.value})}
+                        placeholder="e.g., /contact, /get-started"
+                        className="text-sm"
+                      />
+                    </div>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            )}
+            
+            {/* Menu Items Section */}
+            {schema.menu !== undefined && (
+              <AccordionItem value="menu" className="border rounded-lg px-4">
+                <AccordionTrigger className="hover:no-underline">
+                  <h3 className="text-lg font-semibold text-gray-900">Navigation Menu</h3>
+                </AccordionTrigger>
+                <AccordionContent className="pt-4 pb-6">
+                  <MenuItemsList
+                    items={schema.menu}
+                    onChange={updateMenu}
+                    title="Menu Items"
+                    addButtonText="Add Menu Item"
+                  />
+                </AccordionContent>
+              </AccordionItem>
+            )}
 
-          {/* Custom Fields Section */}
-          <DynamicFieldsSection
-            schema={schema}
-            knownFields={getKnownFields('header')}
-            onUpdateSchema={handleDynamicFieldsUpdate}
-            title="Custom Fields"
-          />
+            {/* Display Options Section */}
+            {(schema.showCart !== undefined || schema.showSearch !== undefined || schema.showAccount !== undefined) && (
+              <AccordionItem value="display-options" className="border rounded-lg px-4">
+                <AccordionTrigger className="hover:no-underline">
+                  <h3 className="text-lg font-semibold text-gray-900">Display Options</h3>
+                </AccordionTrigger>
+                <AccordionContent className="pt-4 pb-6">
+                  <div className="space-y-4">
+                    {schema.showCart !== undefined && (
+                      <ToggleField
+                        id="show-cart"
+                        label="Show Shopping Cart"
+                        checked={schema.showCart}
+                        onChange={(checked) => updateDisplayOption('showCart', checked)}
+                        description="Display shopping cart icon in header"
+                      />
+                    )}
+                    {schema.showSearch !== undefined && (
+                      <ToggleField
+                        id="show-search"
+                        label="Show Search"
+                        checked={schema.showSearch}
+                        onChange={(checked) => updateDisplayOption('showSearch', checked)}
+                        description="Display search icon in header"
+                      />
+                    )}
+                    {schema.showAccount !== undefined && (
+                      <ToggleField
+                        id="show-account"
+                        label="Show Account"
+                        checked={schema.showAccount}
+                        onChange={(checked) => updateDisplayOption('showAccount', checked)}
+                        description="Display account/user icon in header"
+                      />
+                    )}
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            )}
+
+            {/* Custom Fields Section */}
+            <AccordionItem value="custom-fields" className="border rounded-lg px-4">
+              <AccordionTrigger className="hover:no-underline">
+                <h3 className="text-lg font-semibold text-gray-900">Custom Fields</h3>
+              </AccordionTrigger>
+              <AccordionContent className="pt-4 pb-6">
+                <DynamicFieldsSection
+                  schema={schema}
+                  knownFields={getKnownFields('header')}
+                  onUpdateSchema={handleDynamicFieldsUpdate}
+                  title="Custom Fields"
+                />
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </div>
       </div>
       
@@ -281,7 +338,29 @@ export const HeaderSchemaEditor: React.FC<HeaderSchemaEditorProps> = ({ onBack }
       <Dialog open={showJSONEditor} onOpenChange={setShowJSONEditor}>
         <DialogContent className="max-w-4xl h-[80vh] flex flex-col">
           <DialogHeader>
-            <DialogTitle>Header Schema JSON Editor</DialogTitle>
+            <DialogTitle className="flex items-center justify-between">
+              <span>Header Schema JSON Editor</span>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleCopyJSON}
+                disabled={!jsonString}
+                className="ml-4"
+              >
+                {copied ? (
+                  <>
+                    <Check className="h-4 w-4 mr-2" />
+                    Copied!
+                  </>
+                ) : (
+                  <>
+                    <Copy className="h-4 w-4 mr-2" />
+                    Copy JSON
+                  </>
+                )}
+              </Button>
+            </DialogTitle>
             <DialogDescription>
               Edit the complete header schema structure. Be careful with this editor.
             </DialogDescription>

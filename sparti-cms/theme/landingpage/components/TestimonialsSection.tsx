@@ -1,5 +1,14 @@
 import React, { memo } from 'react';
 import { Card, CardContent } from './ui/card';
+import { 
+  getHeading, 
+  getText, 
+  getImageSrc,
+  getImageAlt,
+  getArrayItems,
+  getContentByKey,
+  SchemaComponent 
+} from '../utils/schemaHelpers';
 
 interface Testimonial {
   name: string;
@@ -16,12 +25,19 @@ interface TestimonialsSectionProps {
   title?: string;
   subtitle?: string;
   testimonials?: Testimonial[];
+  data?: SchemaComponent;
 }
 
 const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({
-  title = 'Trusted by Businesses Worldwide',
-  subtitle = 'Local and international businesses trust our ACRA-registered filing agents for 24-hour Singapore company incorporation, professional accounting services, and guaranteed compliance with zero penalties.',
-  testimonials = [
+  title,
+  subtitle,
+  testimonials,
+  data
+}) => {
+  // ACATR hardcoded defaults
+  const defaultTitle = 'Trusted by Businesses Worldwide';
+  const defaultSubtitle = 'Local and international businesses trust our ACRA-registered filing agents for 24-hour Singapore company incorporation, professional accounting services, and guaranteed compliance with zero penalties.';
+  const defaultTestimonials: Testimonial[] = [
     {
       name: 'Sarah Chen',
       role: 'Tech Startup Founder',
@@ -52,8 +68,55 @@ const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({
       quote: 'ACATR\'s professional Singapore accounting services transformed our financial management. Their qualified chartered accountants handle all our IRAS compliance and GST filing, saving us over 20 hours monthly while ensuring perfect regulatory compliance.',
       results: '20+ hours saved monthly with 100% IRAS and GST compliance'
     }
-  ]
-}) => {
+  ];
+
+  // Extract from schema if data is provided
+  const items = data?.items || [];
+  const testimonialsArray = getArrayItems(items, 'testimonials');
+  
+  // Use schema values if available, otherwise fall back to props or defaults
+  const finalTitle = getHeading(items, 'title', 2) || 
+                     getContentByKey(items, 'title') || 
+                     title || 
+                     defaultTitle;
+  const finalSubtitle = getText(items, 'subtitle') || 
+                       getContentByKey(items, 'subtitle') || 
+                       subtitle || 
+                       defaultSubtitle;
+
+  // Extract testimonials from schema or use provided/default testimonials
+  let finalTestimonials = testimonials || defaultTestimonials;
+  
+  if (testimonialsArray.length > 0) {
+    finalTestimonials = testimonialsArray.map((testimonialItem) => {
+      const testimonialItems = testimonialItem.items || [];
+      const name = getHeading(testimonialItems, `${testimonialItem.key}_name`, 4) || 
+                   getContentByKey(testimonialItems, 'name') || 
+                   getContentByKey(testimonialItems, `${testimonialItem.key}_name`) || '';
+      const role = getText(testimonialItems, `${testimonialItem.key}_role`) || 
+                   getContentByKey(testimonialItems, 'role') || '';
+      const quote = getText(testimonialItems, `${testimonialItem.key}_text`) || 
+                    getContentByKey(testimonialItems, 'text') || 
+                    getContentByKey(testimonialItems, 'content') || '';
+      const image = getImageSrc(testimonialItems, `${testimonialItem.key}_image`) || 
+                    getContentByKey(testimonialItems, 'image') || 
+                    '/theme/landingpage/assets/placeholder.svg';
+      const alt = getImageAlt(testimonialItems, `${testimonialItem.key}_image`) || 
+                  getContentByKey(testimonialItems, 'alt') || 
+                  name;
+
+      return {
+        name: name || 'Anonymous',
+        role: role || '',
+        company: '', // Not in schema format
+        location: '', // Not in schema format
+        image: image,
+        rating: 5, // Default rating
+        quote: quote,
+        results: '' // Not in schema format
+      };
+    });
+  }
   const stats = [
     { label: 'Client Satisfaction', value: '98%' },
     { label: 'Average Time Saved', value: '15+ hrs/month' },
@@ -67,20 +130,20 @@ const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({
         {/* Section Header */}
         <div className="text-center mb-16">
           <h2 className="text-3xl lg:text-4xl font-bold mb-6 text-foreground">
-            {title.includes('Worldwide') ? (
+            {finalTitle.includes('Worldwide') ? (
               <>
-                {title.split('Worldwide')[0]}
+                {finalTitle.split('Worldwide')[0]}
                 <span className="text-primary">
                   {'Worldwide'}
                 </span>
               </>
             ) : (
-              title
+              finalTitle
             )}
           </h2>
-          {subtitle && (
+          {finalSubtitle && (
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              {subtitle}
+              {finalSubtitle}
             </p>
           )}
         </div>
@@ -101,7 +164,7 @@ const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({
 
         {/* Testimonials Grid */}
         <div className="grid lg:grid-cols-3 gap-8 mb-16">
-          {testimonials.map((testimonial, index) => (
+          {finalTestimonials.map((testimonial, index) => (
             <Card key={index} className="relative group hover:shadow-medium transition-all duration-300">
               <CardContent className="p-8">
                 {/* Quote Icon */}
@@ -125,11 +188,13 @@ const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({
                   "{testimonial.quote}"
                 </blockquote>
 
-                {/* Results Highlight */}
-                <div className="bg-accent/10 border border-accent/20 rounded-lg p-4 mb-6">
-                  <div className="text-sm font-medium text-accent">Key Result:</div>
-                  <div className="text-sm text-foreground">{testimonial.results}</div>
-                </div>
+                {/* Results Highlight - only show if results exist */}
+                {testimonial.results && (
+                  <div className="bg-accent/10 border border-accent/20 rounded-lg p-4 mb-6">
+                    <div className="text-sm font-medium text-accent">Key Result:</div>
+                    <div className="text-sm text-foreground">{testimonial.results}</div>
+                  </div>
+                )}
 
                 {/* Author */}
                 <div className="flex items-center gap-4">
@@ -145,9 +210,15 @@ const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({
                   />
                   <div>
                     <div className="font-semibold text-foreground">{testimonial.name}</div>
-                    <div className="text-sm text-muted-foreground">{testimonial.role}</div>
-                    <div className="text-sm text-muted-foreground">{testimonial.company}</div>
-                    <div className="text-xs text-primary font-medium">{testimonial.location}</div>
+                    {testimonial.role && (
+                      <div className="text-sm text-muted-foreground">{testimonial.role}</div>
+                    )}
+                    {testimonial.company && (
+                      <div className="text-sm text-muted-foreground">{testimonial.company}</div>
+                    )}
+                    {testimonial.location && (
+                      <div className="text-xs text-primary font-medium">{testimonial.location}</div>
+                    )}
                   </div>
                 </div>
 

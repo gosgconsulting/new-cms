@@ -23,7 +23,6 @@ import { motion } from 'framer-motion';
 import gosgLogo from "@/assets/go-sg-logo-official.png";
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../utils/api';
-import { ToggleGroup, ToggleGroupItem } from '../../../src/components/ui/toggle-group';
 
 // Import existing components
 import PagesManager from '../cms/PagesManager';
@@ -43,7 +42,6 @@ import SitemapManager from '../seo/SitemapManager';
 // Import new components
 import DeveloperManager from './DeveloperManager';
 import ContactsManager from './ContactsManager';
-import SMTPManager from './SMTPManager';
 import MyAccountPage from './MyAccountPage';
 import UsersManager from './UsersManager';
 import TenantsManager from './TenantsManager';
@@ -52,6 +50,7 @@ import ThemesManager from './ThemesManager';
 import BrandingSettingsPage from './BrandingSettingsPage';
 import StylesSettingsPage from './StylesSettingsPage';
 import TenantSelector from './TenantSelector';
+import ThemeSelector from './ThemeSelector';
 import AccessKeysManager from './AccessKeysManager';
 
 // Tenant type for local state
@@ -124,23 +123,22 @@ const BlogManager = () => {
 };
 
 interface SettingsManagerProps {
-  mode?: 'tenants' | 'theme';
-  currentThemeId?: string | null;
+  currentTenantId: string;
 }
 
-const SettingsManager: React.FC<SettingsManagerProps> = ({ mode = 'tenants', currentThemeId }) => {
+const SettingsManager: React.FC<SettingsManagerProps> = ({ currentTenantId }) => {
   const [activeSettingsTab, setActiveSettingsTab] = useState('branding');
 
   const renderSettingsContent = () => {
     switch (activeSettingsTab) {
       case 'branding':
-        return <BrandingSettingsPage mode={mode} currentThemeId={currentThemeId} />;
+        return <BrandingSettingsPage currentTenantId={currentTenantId} />;
       case 'styles':
-        return <StylesSettingsPage />;
+        return <StylesSettingsPage currentTenantId={currentTenantId} />;
       case 'access-keys':
         return <AccessKeysManager />;
       default:
-        return <BrandingSettingsPage mode={mode} currentThemeId={currentThemeId} />;
+        return <BrandingSettingsPage currentTenantId={currentTenantId} />;
     }
   };
 
@@ -200,30 +198,28 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({ hideSidebar = false }) => {
   const [seoExpanded, setSeoExpanded] = useState<boolean>(false);
   const [tenantDropdownOpen, setTenantDropdownOpen] = useState<boolean>(false);
   const [isEditMode, setIsEditMode] = useState<boolean>(false);
-  const [mode, setMode] = useState<'tenants' | 'theme'>('tenants');
-  const [currentThemeId, setCurrentThemeId] = useState<string | null>(null);
+  const [currentThemeId, setCurrentThemeId] = useState<string>('custom');
   const { signOut, user, currentTenantId, handleTenantChange } = useAuth();
   const navigate = useNavigate();
   
-  // Handle theme change (separate from tenant change)
+  // Handle theme change
   const handleThemeChange = (themeId: string) => {
     setCurrentThemeId(themeId);
     // Store in localStorage for persistence
     localStorage.setItem('sparti-current-theme-id', themeId);
   };
-  
-  // Load current theme from localStorage on mount
+
+  // Load current theme from localStorage on mount (default to 'custom')
   useEffect(() => {
-    if (mode === 'theme') {
-      const savedThemeId = localStorage.getItem('sparti-current-theme-id');
-      if (savedThemeId) {
-        setCurrentThemeId(savedThemeId);
-      }
+    const savedThemeId = localStorage.getItem('sparti-current-theme-id');
+    if (savedThemeId) {
+      setCurrentThemeId(savedThemeId);
     } else {
-      // Clear theme selection when switching to tenants mode
-      setCurrentThemeId(null);
+      // Default to 'custom' if no saved theme
+      setCurrentThemeId('custom');
+      localStorage.setItem('sparti-current-theme-id', 'custom');
     }
-  }, [mode]);
+  }, []);
 
   // Fetch all tenants (returns full tenant data including database and API keys)
   // For super admins: returns all tenants
@@ -262,8 +258,8 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({ hideSidebar = false }) => {
       case 'pages':
         return <PagesManager 
           onEditModeChange={setIsEditMode} 
-          mode={mode} 
-          currentThemeId={mode === 'theme' ? currentThemeId : null}
+          currentTenantId={currentTenantId || ''}
+          currentThemeId={currentThemeId}
         />;
       case 'blog':
         return <BlogManager />;
@@ -271,26 +267,22 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({ hideSidebar = false }) => {
         return <MediaManager />;
       case 'contacts':
         return <ContactsManager 
-          mode={mode} 
-          currentThemeId={mode === 'theme' ? currentThemeId : null}
+          currentTenantId={currentTenantId || ''}
         />;
       case 'forms':
         return <FormsManager />;
-      case 'smtp':
-        return <SMTPManager />;
       case 'my-account':
         return <MyAccountPage />;
       case 'users':
         return <UsersManager />;
       case 'settings':
         return <SettingsManager 
-          mode={mode} 
-          currentThemeId={mode === 'theme' ? currentThemeId : null}
+          currentTenantId={currentTenantId || ''}
         />;
       case 'developer':
         return <DeveloperManager 
-          mode={mode} 
-          currentThemeId={mode === 'theme' ? currentThemeId : null}
+          currentTenantId={currentTenantId || ''}
+          currentThemeId={currentThemeId}
         />;
       case 'redirects':
         return <RedirectsManager />;
@@ -325,7 +317,6 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({ hideSidebar = false }) => {
   const crmItems = [
     { id: 'contacts', label: 'Contacts', icon: Users },
     { id: 'forms', label: 'Forms', icon: FileInput },
-    { id: 'smtp', label: 'SMTP', icon: Mail },
   ];
 
   const seoItems = [
@@ -601,25 +592,16 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({ hideSidebar = false }) => {
             </div>
             
             <div className="flex items-center space-x-4">
-              <ToggleGroup 
-                type="single" 
-                value={mode} 
-                onValueChange={(value) => value && setMode(value as 'tenants' | 'theme')}
-                className="border rounded-md p-1"
-              >
-                <ToggleGroupItem value="tenants" aria-label="Tenants mode" className="px-3 py-1.5">
-                  Tenants
-                </ToggleGroupItem>
-                <ToggleGroupItem value="theme" aria-label="Theme mode" className="px-3 py-1.5">
-                  Theme
-                </ToggleGroupItem>
-              </ToggleGroup>
               <TenantSelector
-                currentTenantId={mode === 'theme' ? (currentThemeId || '') : (currentTenantId || '')}
-                onTenantChange={mode === 'theme' ? handleThemeChange : handleTenantChange}
+                currentTenantId={currentTenantId || ''}
+                onTenantChange={handleTenantChange}
                 isSuperAdmin={user?.is_super_admin || false}
                 onAddNewTenant={() => setActiveTab('tenants')}
-                mode={mode}
+              />
+              <ThemeSelector
+                currentThemeId={currentThemeId}
+                onThemeChange={handleThemeChange}
+                isSuperAdmin={user?.is_super_admin || false}
               />
             </div>
           </div>

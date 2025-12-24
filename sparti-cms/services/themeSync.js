@@ -356,8 +356,11 @@ export async function syncThemesFromFileSystem() {
         const isActive = config?.is_active !== undefined ? config.is_active : true;
         const now = new Date().toISOString();
 
+        let themeDbId;
+        
         if (existingTheme.rows.length > 0) {
           // Theme exists, update with metadata from theme.json
+          themeDbId = existingTheme.rows[0].id;
           await query(`
             UPDATE themes
             SET name = $1, description = $2, updated_at = $3, is_active = $4
@@ -366,18 +369,20 @@ export async function syncThemesFromFileSystem() {
           
           results.push({
             slug: themeSlug,
+            id: themeDbId,
             action: 'updated',
             name: themeName
           });
           syncedCount++;
-          console.log(`[testing] Updated theme: ${themeSlug} (${themeName})`);
+          console.log(`[testing] Updated theme: ${themeSlug} (${themeName}) with ID: ${themeDbId}`);
         } else {
           // Theme doesn't exist, create new record with metadata from theme.json
+          themeDbId = themeSlug; // Use slug as ID
           await query(`
             INSERT INTO themes (id, name, slug, description, created_at, updated_at, is_active)
             VALUES ($1, $2, $3, $4, $5, $6, $7)
           `, [
-            themeSlug,
+            themeDbId,
             themeName,
             themeSlug,
             themeDescription,
@@ -388,11 +393,12 @@ export async function syncThemesFromFileSystem() {
           
           results.push({
             slug: themeSlug,
+            id: themeDbId,
             action: 'created',
             name: themeName
           });
           syncedCount++;
-          console.log(`[testing] Created theme: ${themeSlug} (${themeName})`);
+          console.log(`[testing] Created theme: ${themeSlug} (${themeName}) with ID: ${themeDbId}`);
         }
       } catch (error) {
         console.error(`[testing] Error syncing theme ${themeSlug}:`, error);
@@ -404,12 +410,58 @@ export async function syncThemesFromFileSystem() {
       }
     }
 
+    // After syncing all themes, sync theme settings for all tenants
+    let settingsSyncedCount = 0;
+    try {
+      // Get all unique tenant IDs from site_settings
+      const tenantsResult = await query(`
+        SELECT DISTINCT tenant_id 
+        FROM site_settings 
+        WHERE tenant_id IS NOT NULL
+      `);
+      
+      const tenantIds = tenantsResult.rows.map(row => row.tenant_id);
+      console.log(`[testing] Found ${tenantIds.length} tenant(s) to sync settings for`);
+      
+      // For each theme that was synced, update settings for all tenants
+      for (const themeResult of results) {
+        if (themeResult.action === 'created' || themeResult.action === 'updated') {
+          const themeDbId = themeResult.id || themeResult.slug;
+          
+          for (const tenantId of tenantIds) {
+            try {
+              // Update settings that reference this theme by slug to use the database ID
+              const updated = await query(`
+                UPDATE site_settings
+                SET theme_id = $1, updated_at = CURRENT_TIMESTAMP
+                WHERE tenant_id = $2
+                  AND (theme_id = $3 OR theme_id IS NULL)
+                  AND setting_key IN ('theme_styles', 'site_name', 'site_tagline', 'site_description', 'site_logo', 'site_favicon')
+                  AND (theme_id != $1 OR theme_id IS NULL)
+                RETURNING id, setting_key
+              `, [themeDbId, tenantId, themeResult.slug]);
+              
+              if (updated.rows.length > 0) {
+                settingsSyncedCount += updated.rows.length;
+                console.log(`[testing] Synced ${updated.rows.length} setting(s) for tenant ${tenantId}, theme ${themeResult.slug} (ID: ${themeDbId})`);
+              }
+            } catch (tenantError) {
+              console.log(`[testing] Note: Could not sync settings for tenant ${tenantId}, theme ${themeResult.slug}:`, tenantError.message);
+            }
+          }
+        }
+      }
+    } catch (settingsError) {
+      console.log(`[testing] Note: Could not sync theme settings:`, settingsError.message);
+    }
+
     return {
       success: true,
       synced: syncedCount,
       total: themeFolders.length,
       results: results,
-      message: `Synced ${syncedCount} theme(s)`
+      settingsSynced: settingsSyncedCount,
+      message: `Synced ${syncedCount} theme(s) and ${settingsSyncedCount} setting(s)`
     };
   } catch (error) {
     console.error('[testing] Error in syncThemesFromFileSystem:', error);
@@ -442,6 +494,193 @@ export async function getAllThemes() {
     console.log('[testing] Using file system themes as fallback');
     return getThemesFromFileSystem();
   }
+}
+
+/**
+ * Get default layout structure for a theme based on its component structure
+ * @param {string} themeSlug - Theme slug
+ * @returns {Object} Default layout JSON structure
+ */
+/**
+ * Get default layout structure for a theme based on its component structure
+ * @param {string} themeSlug - Theme slug
+ * @returns {Object} Default layout JSON structure
+ */
+export function getDefaultLayoutForTheme(themeSlug) {
+  // Map theme components to CMS component registry IDs with default props
+  // Default props are extracted from component registry definitions
+  const themeComponentMap = {
+    'landingpage': {
+      components: [
+        {
+          id: 'header-1',
+          type: 'header-main',
+          props: {
+            logo: {
+              src: '/assets/go-sg-logo-official.png',
+              alt: 'GO SG Digital Marketing Agency'
+            },
+            ctaText: 'Contact Us',
+            showCTA: true,
+            isFixed: true
+          }
+        },
+        {
+          id: 'hero-1',
+          type: 'hero-main',
+          props: {
+            badgeText: 'Results in 3 months or less',
+            showBadge: true,
+            headingLine1: 'We Boost Your SEO',
+            headingLine2: 'In 3 Months',
+            description: 'We help businesses dominate search results through proven SEO strategies that increase organic traffic, boost rankings, and drive qualified leads to your website.',
+            ctaButtonText: 'Get a Quote',
+            showClientLogos: true,
+            clientLogos: [
+              { src: '/assets/logos/art-in-bloom.png', alt: 'Art in Bloom' },
+              { src: '/assets/logos/selenightco.png', alt: 'Selenightco' },
+              { src: '/assets/logos/smooy.png', alt: 'Smooy' },
+              { src: '/assets/logos/solstice.png', alt: 'Solstice' },
+              { src: '/assets/logos/grub.png', alt: 'Grub' },
+              { src: '/assets/logos/nail-queen.png', alt: 'Nail Queen' },
+              { src: '/assets/logos/caro-patisserie.png', alt: 'Caro Pâtisserie' },
+              { src: '/assets/logos/spirit-stretch.png', alt: 'Spirit Stretch' }
+            ],
+            backgroundType: 'gradient',
+            backgroundColor: '#ffffff'
+          }
+        },
+        {
+          id: 'services-1',
+          type: 'services-showcase-section',
+          props: {
+            services: [
+              {
+                id: 'keywords-research',
+                title: 'Rank on keywords with',
+                highlight: 'search volume',
+                description: 'Discover high-volume keywords with precise search data and user intent analysis. Find the perfect keywords to target for maximum organic traffic growth.',
+                buttonText: 'Learn More',
+                images: [
+                  '/src/assets/seo/keyword-research-1.png',
+                  '/src/assets/seo/keyword-research-2.png'
+                ]
+              },
+              {
+                id: 'content-strategy',
+                title: 'Find topics based on',
+                highlight: 'real google search results',
+                description: 'Discover content opportunities by analyzing actual Google search results and user behavior. Get real insights from search data to create content that ranks and converts.',
+                buttonText: 'View Analytics',
+                images: [
+                  '/src/assets/seo/content-strategy-1.png',
+                  '/src/assets/seo/content-strategy-2.png'
+                ]
+              },
+              {
+                id: 'link-building',
+                title: 'Build authority with',
+                highlight: 'high-quality backlinks',
+                description: 'Strengthen your website\'s authority through strategic link building campaigns. Acquire high-quality backlinks from reputable sources to boost your domain authority and rankings.',
+                buttonText: 'Try Link Builder',
+                images: [
+                  '/src/assets/seo/link-building-1.png',
+                  '/src/assets/seo/link-building-2.png'
+                ]
+              }
+            ],
+            backgroundColor: '#ffffff'
+          }
+        },
+        {
+          id: 'testimonials-1',
+          type: 'testimonials-section',
+          props: {
+            sectionTitle: 'What our clients say',
+            sectionSubtitle: 'See what our customers have to say about our SEO services and results.',
+            testimonials: [
+              {
+                text: 'GoSG\'s SEO strategies boosted our organic traffic by 400% in just 3 months. Our website now ranks #1 for our main keywords.',
+                image: 'https://randomuser.me/api/portraits/women/1.jpg',
+                name: 'Sarah Chen',
+                role: 'Marketing Director'
+              },
+              {
+                text: 'Their technical SEO audit revealed critical issues we didn\'t know existed. After fixes, our search rankings improved dramatically.',
+                image: 'https://randomuser.me/api/portraits/men/2.jpg',
+                name: 'Marcus Tan',
+                role: 'Business Owner'
+              },
+              {
+                text: 'GoSG\'s local SEO expertise helped us dominate Singapore search results. We\'re now the top choice in our area.',
+                image: 'https://randomuser.me/api/portraits/women/3.jpg',
+                name: 'Priya Sharma',
+                role: 'E-commerce Manager'
+              },
+              {
+                text: 'From page 5 to page 1 in Google in just 4 months. GoSG\'s SEO approach delivered exactly what they promised.',
+                image: 'https://randomuser.me/api/portraits/men/4.jpg',
+                name: 'David Lim',
+                role: 'CEO'
+              },
+              {
+                text: 'Their SEO content strategy doubled our organic leads. Every blog post now ranks and brings qualified traffic.',
+                image: 'https://randomuser.me/api/portraits/women/5.jpg',
+                name: 'Jennifer Wong',
+                role: 'Operations Manager'
+              }
+            ],
+            backgroundColor: '#f9fafb'
+          }
+        },
+        {
+          id: 'faq-1',
+          type: 'faq-section',
+          props: {
+            title: 'Frequently Asked Questions',
+            subtitle: 'Everything you need to know about our SEO services',
+            items: [
+              {
+                question: 'How long does it take to see results from SEO?',
+                answer: 'Most clients start seeing initial improvements within 1-2 months, with significant results typically appearing around the 3-4 month mark. SEO is a long-term strategy, and results continue to compound over time.'
+              },
+              {
+                question: 'What services are included in your SEO packages?',
+                answer: 'Our comprehensive SEO packages include keyword research, technical SEO audits, on-page optimization, content creation, link building, local SEO, and detailed monthly reporting with actionable insights.'
+              },
+              {
+                question: 'How do you measure SEO success?',
+                answer: 'We track multiple metrics including organic traffic growth, keyword rankings, conversion rates, backlink quality and quantity, page load speed, and ultimately, your return on investment from organic search.'
+              }
+            ]
+          }
+        },
+        {
+          id: 'footer-1',
+          type: 'footer-main',
+          props: {
+            ctaHeading: 'Get Your SEO Strategy',
+            ctaDescription: 'Ready to dominate search results? Let\'s discuss how we can help your business grow.',
+            ctaButtonText: 'Start Your Journey',
+            contactLinks: [
+              { text: 'WhatsApp', url: 'https://wa.me/1234567890' },
+              { text: 'Book a Meeting', url: 'https://calendly.com' }
+            ],
+            legalLinks: [
+              { text: 'Privacy Policy', url: '/privacy-policy' },
+              { text: 'Terms of Service', url: '/terms-of-service' },
+              { text: 'Blog', url: '/blog' }
+            ],
+            copyrightText: 'GO SG CONSULTING. All rights reserved.',
+            backgroundColor: '#0f172a'
+          }
+        }
+      ]
+    }
+  };
+  
+  // Return theme-specific layout or default empty layout
+  return themeComponentMap[themeSlug] || { components: [] };
 }
 
 /**
@@ -478,8 +717,11 @@ export async function syncThemePages(themeSlug) {
         
         const now = new Date().toISOString();
         
+        let pageId;
+        
         if (existingPage.rows.length > 0) {
           // Page exists, update it
+          pageId = existingPage.rows[0].id;
           await query(`
             UPDATE pages
             SET page_name = $1,
@@ -498,7 +740,7 @@ export async function syncThemePages(themeSlug) {
             pageData.status || 'published',
             pageData.page_type || 'page',
             now,
-            existingPage.rows[0].id
+            pageId
           ]);
           
           results.push({
@@ -511,9 +753,10 @@ export async function syncThemePages(themeSlug) {
           // Page doesn't exist, create it
           // Use null for tenant_id - these are template pages that belong to the theme
           // When a tenant uses this theme, they can copy these pages to their tenant_id
-          await query(`
+          const insertResult = await query(`
             INSERT INTO pages (page_name, slug, meta_title, meta_description, seo_index, status, page_type, theme_id, tenant_id, created_at, updated_at)
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+            RETURNING id
           `, [
             pageData.page_name,
             pageData.slug,
@@ -528,12 +771,45 @@ export async function syncThemePages(themeSlug) {
             now
           ]);
           
+          pageId = insertResult.rows[0].id;
+          
           results.push({
             slug: pageData.slug,
             action: 'created',
             name: pageData.page_name
           });
           syncedCount++;
+        }
+        
+        // Ensure a default layout exists for this page
+        // Check if layout already exists
+        const layoutCheck = await query(`
+          SELECT id FROM page_layouts 
+          WHERE page_id = $1 AND language = 'default'
+        `, [pageId]);
+        
+        if (layoutCheck.rows.length === 0) {
+          // Get default layout structure for this theme
+          // For homepage (slug = '/'), use theme's default component structure
+          // For other pages, use empty layout (can be customized later)
+          let defaultLayout;
+          if (pageData.slug === '/' || pageData.slug === '/home' || pageData.slug === '/index') {
+            // Homepage: use theme's default component structure
+            defaultLayout = getDefaultLayoutForTheme(themeSlug);
+            console.log(`[testing] Creating default theme layout for homepage: ${themeSlug}`);
+          } else {
+            // Other pages: start with empty layout
+            defaultLayout = { components: [] };
+            console.log(`[testing] Creating empty layout for page: ${pageData.page_name}`);
+          }
+          
+          await query(`
+            INSERT INTO page_layouts (page_id, language, layout_json, version, updated_at)
+            VALUES ($1, 'default', $2, 1, NOW())
+            ON CONFLICT (page_id, language) DO NOTHING
+          `, [pageId, JSON.stringify(defaultLayout)]);
+          
+          console.log(`[testing] Created layout for page ${pageData.page_name} (ID: ${pageId}) with ${defaultLayout.components?.length || 0} components`);
         }
       } catch (error) {
         console.error(`[testing] Error syncing page ${pageData.slug} for theme ${themeSlug}:`, error);

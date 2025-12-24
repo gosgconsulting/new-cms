@@ -23,11 +23,11 @@ interface Project {
 }
 
 interface DeveloperManagerProps {
-  mode?: 'tenants' | 'theme';
-  currentThemeId?: string | null;
+  currentTenantId: string;
+  currentThemeId: string;
 }
 
-const DeveloperManager: React.FC<DeveloperManagerProps> = ({ mode = 'tenants', currentThemeId = null }) => {
+const DeveloperManager: React.FC<DeveloperManagerProps> = ({ currentTenantId, currentThemeId }) => {
   const [activeTab, setActiveTab] = React.useState('projects');
 
   const tabs = [
@@ -43,7 +43,7 @@ const DeveloperManager: React.FC<DeveloperManagerProps> = ({ mode = 'tenants', c
       case 'projects':
         return <ProjectsTab />;
       case 'integrations':
-        return <IntegrationsTab mode={mode} currentThemeId={currentThemeId} />;
+        return <IntegrationsTab currentTenantId={currentTenantId} currentThemeId={currentThemeId} />;
       case 'code':
         return <CodeTab />;
 
@@ -395,22 +395,44 @@ const NewProjectModal: React.FC<{ onClose: () => void; onSave: () => void }> = (
 };
 
 interface IntegrationsTabProps {
-  mode?: 'tenants' | 'theme';
-  currentThemeId?: string | null;
+  currentTenantId: string;
+  currentThemeId: string;
 }
 
-const IntegrationsTab: React.FC<IntegrationsTabProps> = ({ mode = 'tenants', currentThemeId = null }) => {
+const IntegrationsTab: React.FC<IntegrationsTabProps> = ({ currentTenantId, currentThemeId }) => {
   const navigate = useNavigate();
   const [showAddIntegration, setShowAddIntegration] = useState(false);
   const [currentTenant, setCurrentTenant] = useState<Tenant | null>(null);
   const [currentTheme, setCurrentTheme] = useState<any | null>(null);
-  const { currentTenantId } = useAuth();
 
-  // Fetch tenant or theme data based on mode
+  // Fetch tenant and theme data
   useEffect(() => {
     const fetchData = async () => {
-      if (mode === 'theme' && currentThemeId) {
-        // Theme mode: fetch theme data
+      // Always fetch tenant data
+      if (currentTenantId) {
+        try {
+          const response = await fetch(`/api/tenants`);
+          if (response.ok) {
+            const data = await response.json();
+            const tenant = data.find((t: any) => t.id === currentTenantId);
+            if (tenant) {
+              setCurrentTenant(tenant);
+            } else {
+              console.error(`Tenant ${currentTenantId} not found`);
+              setCurrentTenant(null);
+            }
+          } else {
+            console.error(`Failed to fetch tenants`);
+            setCurrentTenant(null);
+          }
+        } catch (error) {
+          console.error('Error fetching tenant:', error);
+          setCurrentTenant(null);
+        }
+      }
+      
+      // Fetch theme data if not 'custom'
+      if (currentThemeId && currentThemeId !== 'custom') {
         try {
           const response = await fetch(`/api/themes`);
           if (response.ok) {
@@ -425,48 +447,23 @@ const IntegrationsTab: React.FC<IntegrationsTabProps> = ({ mode = 'tenants', cur
                 isTheme: true,
                 themeId: theme.slug || theme.id
               });
-              setCurrentTenant(null);
             } else {
               console.error(`Theme ${currentThemeId} not found`);
               setCurrentTheme(null);
-              setCurrentTenant(null);
             }
           } else {
             console.error(`Failed to fetch themes`);
             setCurrentTheme(null);
-            setCurrentTenant(null);
           }
         } catch (error) {
           console.error('Error fetching theme data:', error);
           setCurrentTheme(null);
-          setCurrentTenant(null);
         }
-      } else if (mode === 'tenants' && currentTenantId) {
-        // Tenant mode: fetch tenant data
-        try {
-          const response = await fetch(`/api/tenants/${currentTenantId}`);
-          if (response.ok) {
-            const data = await response.json();
-            setCurrentTenant(data);
-            setCurrentTheme(null);
-          } else {
-            console.error(`Failed to fetch tenant ${currentTenantId}`);
-            setCurrentTenant(null);
-            setCurrentTheme(null);
-          }
-        } catch (error) {
-          console.error('Error fetching tenant data:', error);
-          setCurrentTenant(null);
-          setCurrentTheme(null);
-        }
-      } else {
-        setCurrentTenant(null);
-        setCurrentTheme(null);
       }
     };
 
     fetchData();
-  }, [currentTenantId, mode, currentThemeId]);
+  }, [currentTenantId, currentThemeId]);
 
   return (
     <div className="space-y-6">

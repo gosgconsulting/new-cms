@@ -4,14 +4,10 @@ import {
   Search, 
   Edit, 
   Trash2, 
-  FolderTree,
-  Hash,
-  Globe,
-  FileText
+  FolderTree
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { 
   Dialog,
   DialogContent,
@@ -22,7 +18,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Table,
   TableBody,
@@ -138,9 +133,16 @@ const CategoriesManager: React.FC = () => {
 
   const handleEdit = (category: Category) => {
     setEditingCategory(category);
+    // Strip /blog/ prefix from slug when editing
+    let slugForEdit = category.slug;
+    if (slugForEdit.startsWith('/blog/')) {
+      slugForEdit = slugForEdit.replace(/^\/blog\//, '');
+    } else if (slugForEdit === '/blog' || slugForEdit === 'blog') {
+      slugForEdit = '';
+    }
     setFormData({
       name: category.name,
-      slug: category.slug,
+      slug: slugForEdit,
       description: category.description || '',
       meta_title: category.meta_title || '',
       meta_description: category.meta_description || '',
@@ -177,12 +179,27 @@ const CategoriesManager: React.FC = () => {
   };
 
   const generateSlug = (name: string) => {
+    // Generate slug without /blog/ prefix - it will be added when displaying
     return name
       .toLowerCase()
       .replace(/[^a-z0-9 -]/g, '')
       .replace(/\s+/g, '-')
       .replace(/-+/g, '-')
       .trim();
+  };
+
+  // Get the full slug with /blog/ prefix for display
+  const getFullSlug = (slug: string) => {
+    // If slug already starts with /blog/, return as is
+    if (slug.startsWith('/blog/')) {
+      return slug;
+    }
+    // If slug starts with /blog (without trailing slash), return with trailing slash
+    if (slug === '/blog' || slug === 'blog') {
+      return '/blog';
+    }
+    // Otherwise, prepend /blog/
+    return `/blog/${slug.replace(/^\/+/, '')}`;
   };
 
   const handleNameChange = (name: string) => {
@@ -194,10 +211,15 @@ const CategoriesManager: React.FC = () => {
     }));
   };
 
-  const filteredCategories = categories.filter(category =>
-    category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    category.description.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Filter out the "blog" category (it's a page, not a category) and filter by search term
+  const filteredCategories = categories.filter(category => {
+    // Exclude the blog category itself
+    if (category.slug === 'blog' || category.slug === '/blog') {
+      return false;
+    }
+    // Filter by search term (only search in name now since we removed description)
+    return category.name.toLowerCase().includes(searchTerm.toLowerCase());
+  });
 
   if (loading) {
     return (
@@ -270,46 +292,19 @@ const CategoriesManager: React.FC = () => {
                   </div>
                   <div>
                     <Label htmlFor="slug">URL Slug *</Label>
-                    <Input
-                      id="slug"
-                      value={formData.slug}
-                      onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value }))}
-                      placeholder="seo-tips"
-                      required
-                    />
+                    <div className="flex items-center">
+                      <span className="text-sm text-muted-foreground mr-2">/blog/</span>
+                      <Input
+                        id="slug"
+                        value={formData.slug}
+                        onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value }))}
+                        placeholder="seo-tips"
+                        required
+                        className="flex-1"
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">Category will be accessible at /blog/[slug]</p>
                   </div>
-                </div>
-
-                <div>
-                  <Label htmlFor="description">Description</Label>
-                  <Textarea
-                    id="description"
-                    value={formData.description}
-                    onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                    placeholder="Brief description of this category..."
-                    rows={3}
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="meta_title">SEO Title</Label>
-                  <Input
-                    id="meta_title"
-                    value={formData.meta_title}
-                    onChange={(e) => setFormData(prev => ({ ...prev, meta_title: e.target.value }))}
-                    placeholder="SEO-optimized title for search engines"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="meta_description">SEO Description</Label>
-                  <Textarea
-                    id="meta_description"
-                    value={formData.meta_description}
-                    onChange={(e) => setFormData(prev => ({ ...prev, meta_description: e.target.value }))}
-                    placeholder="SEO meta description (150-160 characters recommended)"
-                    rows={2}
-                  />
                 </div>
 
                 <DialogFooter>
@@ -345,16 +340,13 @@ const CategoriesManager: React.FC = () => {
               <TableRow>
                 <TableHead>Name</TableHead>
                 <TableHead>Slug</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead>Posts</TableHead>
-                <TableHead>SEO Status</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredCategories.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8">
+                  <TableCell colSpan={3} className="text-center py-8">
                     <div className="flex flex-col items-center">
                       <FolderTree className="h-12 w-12 text-muted-foreground mb-2" />
                       <p className="text-muted-foreground">No categories found</p>
@@ -375,35 +367,8 @@ const CategoriesManager: React.FC = () => {
                     </TableCell>
                     <TableCell>
                       <code className="text-sm bg-gray-100 px-2 py-1 rounded">
-                        /{category.slug}
+                        {getFullSlug(category.slug)}
                       </code>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm text-muted-foreground max-w-xs truncate">
-                        {category.description || 'No description'}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center">
-                        <FileText className="mr-1 h-4 w-4 text-muted-foreground" />
-                        <span className="font-medium">{category.post_count || 0}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-1">
-                        {category.meta_title && (
-                          <Badge variant="outline" className="text-xs">
-                            <Hash className="mr-1 h-3 w-3" />
-                            Title
-                          </Badge>
-                        )}
-                        {category.meta_description && (
-                          <Badge variant="outline" className="text-xs">
-                            <Globe className="mr-1 h-3 w-3" />
-                            Desc
-                          </Badge>
-                        )}
-                      </div>
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">
@@ -432,37 +397,13 @@ const CategoriesManager: React.FC = () => {
         </div>
 
         {/* Stats */}
-        <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="mt-6">
           <div className="bg-blue-50 p-4 rounded-lg">
             <div className="flex items-center">
               <FolderTree className="h-8 w-8 text-blue-600" />
               <div className="ml-3">
                 <p className="text-sm font-medium text-blue-600">Total Categories</p>
-                <p className="text-2xl font-bold text-blue-900">{categories.length}</p>
-              </div>
-            </div>
-          </div>
-          
-          <div className="bg-green-50 p-4 rounded-lg">
-            <div className="flex items-center">
-              <FileText className="h-8 w-8 text-green-600" />
-              <div className="ml-3">
-                <p className="text-sm font-medium text-green-600">Total Posts</p>
-                <p className="text-2xl font-bold text-green-900">
-                  {categories.reduce((sum, cat) => sum + (cat.post_count || 0), 0)}
-                </p>
-              </div>
-            </div>
-          </div>
-          
-          <div className="bg-purple-50 p-4 rounded-lg">
-            <div className="flex items-center">
-              <Globe className="h-8 w-8 text-purple-600" />
-              <div className="ml-3">
-                <p className="text-sm font-medium text-purple-600">SEO Optimized</p>
-                <p className="text-2xl font-bold text-purple-900">
-                  {categories.filter(cat => cat.meta_title && cat.meta_description).length}
-                </p>
+                <p className="text-2xl font-bold text-blue-900">{filteredCategories.length}</p>
               </div>
             </div>
           </div>

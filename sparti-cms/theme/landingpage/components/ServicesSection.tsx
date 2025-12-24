@@ -1,6 +1,16 @@
 import React from 'react';
 import { Card, CardContent } from './ui/card';
 import { Button } from './ui/button';
+import { 
+  getHeading, 
+  getText, 
+  getButton, 
+  getImageSrc,
+  getArrayItems,
+  getServiceItems,
+  getContentByKey,
+  SchemaComponent 
+} from '../utils/schemaHelpers';
 
 interface Service {
   title: string;
@@ -16,12 +26,20 @@ interface ServicesSectionProps {
   subtitle?: string;
   services?: Service[];
   onContactClick?: () => void;
+  data?: SchemaComponent;
 }
 
 const ServicesSection: React.FC<ServicesSectionProps> = ({
-  title = 'Complete Singapore Business Solutions with ACRA Guarantee',
-  subtitle = 'ACRA-registered filing agents providing 24-hour company incorporation, professional accounting services, and guaranteed compliance for Singapore businesses.',
-  services = [
+  title,
+  subtitle,
+  services,
+  onContactClick,
+  data
+}) => {
+  // ACATR hardcoded defaults
+  const defaultTitle = 'Complete Singapore Business Solutions with ACRA Guarantee';
+  const defaultSubtitle = 'ACRA-registered filing agents providing 24-hour company incorporation, professional accounting services, and guaranteed compliance for Singapore businesses.';
+  const defaultServices: Service[] = [
     {
       title: 'Singapore Company Incorporation Services',
       subtitle: 'One-Time Fee: S$1,815 (S$1,115 for Locals)',
@@ -67,36 +85,106 @@ const ServicesSection: React.FC<ServicesSectionProps> = ({
       ],
       highlight: 'Streamlined process from setup to operations with professional oversight'
     }
-  ],
-  onContactClick
-}) => {
+  ];
+
+  // Extract from schema if data is provided
+  const items = data?.items || [];
+  
+  // Use schema values if available, otherwise fall back to props or defaults
+  const finalTitle = getHeading(items, 'title', 2) || 
+                     getContentByKey(items, 'title') || 
+                     title || 
+                     defaultTitle;
+  const finalSubtitle = getText(items, 'subtitle') || 
+                        getContentByKey(items, 'subtitle') || 
+                        subtitle || 
+                        defaultSubtitle;
+
+  // Extract services from schema or use provided/default services
+  let finalServices = services || defaultServices;
+  let servicesArrayItem: any = null;
+  
+  // Try to get Services array - it might be directly in items or nested
+  const servicesArray = getArrayItems(items, 'Services');
+  if (servicesArray.length > 0) {
+    servicesArrayItem = servicesArray[0];
+  } else {
+    servicesArrayItem = items.find((item: any) => item.key === 'Services' && item.type === 'array');
+  }
+  
+  if (servicesArrayItem && servicesArrayItem.items && Array.isArray(servicesArrayItem.items)) {
+    const serviceSections = servicesArrayItem.items;
+    
+    if (serviceSections.length > 0) {
+      finalServices = serviceSections.map((serviceSection: any, index: number) => {
+        const serviceItems = serviceSection.items || [];
+        const serviceTitle = getHeading(serviceItems, 'title', 2) || 
+                            getContentByKey(serviceItems, 'title') || 
+                            defaultServices[index]?.title || '';
+        const serviceHighlight = getHeading(serviceItems, 'highlight', 2) || 
+                                getContentByKey(serviceItems, 'highlight') || 
+                                defaultServices[index]?.subtitle || '';
+        const serviceDescription = getText(serviceItems, 'description') || 
+                                  getContentByKey(serviceItems, 'description') || 
+                                  defaultServices[index]?.description || '';
+        const serviceImage = getImageSrc(serviceItems, 'image') || 
+                            getContentByKey(serviceItems, 'image') || 
+                            defaultServices[index]?.image || '';
+        
+        // Extract features from nested array items if available
+        const featuresArray = getArrayItems(serviceItems, 'features');
+        const serviceFeatures = featuresArray.length > 0 
+          ? featuresArray.map(f => getContentByKey([f], 'content') || f.content || '')
+          : (defaultServices[index]?.features || []);
+
+        return {
+          title: serviceTitle,
+          subtitle: serviceHighlight,
+          description: serviceDescription,
+          image: serviceImage,
+          features: serviceFeatures,
+          highlight: defaultServices[index]?.highlight || ''
+        };
+      });
+    }
+  }
+
+  const handleButtonClick = (link?: string) => {
+    if (link && link.startsWith('popup:')) {
+      if (onContactClick) {
+        onContactClick();
+      }
+    } else if (onContactClick) {
+      onContactClick();
+    }
+  };
   return (
     <section id="services" className="py-20 bg-gradient-subtle">
       <div className="container mx-auto px-6">
         {/* Section Header */}
         <div className="text-center mb-16">
           <h2 className="text-3xl lg:text-4xl font-bold mb-6 text-foreground">
-            {title.includes('ACRA Guarantee') ? (
+            {finalTitle.includes('ACRA Guarantee') ? (
               <>
-                {title.split('ACRA Guarantee')[0]}
+                {finalTitle.split('ACRA Guarantee')[0]}
                 <span className="text-primary">
                   {'ACRA Guarantee'}
                 </span>
               </>
             ) : (
-              title
+              finalTitle
             )}
           </h2>
-          {subtitle && (
+          {finalSubtitle && (
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              {subtitle}
+              {finalSubtitle}
             </p>
           )}
         </div>
 
         {/* Services Grid */}
         <div className="space-y-16">
-          {services.map((service, index) => {
+          {finalServices.map((service, index) => {
             const sectionIds = ['company-incorporation', 'accounting-services', 'corporate-secretarial'];
             return (
               <div 
@@ -141,15 +229,26 @@ const ServicesSection: React.FC<ServicesSectionProps> = ({
 
                   {/* CTA */}
                   <div className="pt-4">
-                    <Button 
-                      className="bg-gradient-primary hover:opacity-90 transition-opacity group"
-                      onClick={onContactClick}
-                    >
-                      Contact Us
-                      <svg className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                      </svg>
-                    </Button>
+                    {(() => {
+                      // Get button from the service section if available
+                      const serviceSection = servicesArrayItem?.items?.[index];
+                      const serviceItems = serviceSection?.items || [];
+                      const button = getButton(serviceItems, 'button');
+                      const buttonContent = button.content || 'Contact Us';
+                      const buttonLink = button.link;
+                      
+                      return (
+                        <Button 
+                          className="bg-gradient-primary hover:opacity-90 transition-opacity group"
+                          onClick={() => handleButtonClick(buttonLink)}
+                        >
+                          {buttonContent}
+                          <svg className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                          </svg>
+                        </Button>
+                      );
+                    })()}
                   </div>
                 </div>
 

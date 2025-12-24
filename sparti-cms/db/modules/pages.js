@@ -196,9 +196,9 @@ export async function deletePage(pageId, tenantId = 'tenant-gosg') {
 // Use the unified createPage, getPages, updatePage, deletePage functions with page_type parameter.
 
 // Utility function to get all pages with their types
-export async function getAllPagesWithTypes(tenantId = 'tenant-gosg') {
+export async function getAllPagesWithTypes(tenantId = 'tenant-gosg', themeId = null) {
   try {
-    const result = await query(`
+    let queryText = `
       SELECT 
         id,
         page_name,
@@ -208,6 +208,7 @@ export async function getAllPagesWithTypes(tenantId = 'tenant-gosg') {
         seo_index,
         status,
         page_type,
+        theme_id,
         created_at,
         updated_at,
         campaign_source,
@@ -217,12 +218,27 @@ export async function getAllPagesWithTypes(tenantId = 'tenant-gosg') {
         version
       FROM pages
       WHERE tenant_id = $1
-      ORDER BY page_type, created_at DESC
-    `, [tenantId]);
+    `;
+    
+    const params = [tenantId];
+    
+    // Filter by theme_id
+    if (themeId === 'custom' || themeId === null) {
+      // For 'custom' theme, show pages where theme_id IS NULL
+      queryText += ` AND (theme_id IS NULL OR theme_id = 'custom')`;
+    } else if (themeId) {
+      // For specific theme, show pages where theme_id matches
+      queryText += ` AND theme_id = $2`;
+      params.push(themeId);
+    }
+    
+    queryText += ` ORDER BY page_type, created_at DESC`;
+    
+    const result = await query(queryText, params);
     
     return result.rows;
   } catch (error) {
-    console.error('Error fetching all pages with types:', error);
+    console.error('[testing] Error fetching all pages with types:', error);
     throw error;
   }
 }

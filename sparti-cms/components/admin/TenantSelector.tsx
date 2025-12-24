@@ -23,7 +23,6 @@ interface TenantSelectorProps {
   onTenantChange: (tenantId: string) => void;
   isSuperAdmin: boolean;
   onAddNewTenant?: () => void;
-  mode?: 'tenants' | 'theme';
 }
 
 export const TenantSelector: React.FC<TenantSelectorProps> = ({
@@ -31,52 +30,8 @@ export const TenantSelector: React.FC<TenantSelectorProps> = ({
   onTenantChange,
   isSuperAdmin,
   onAddNewTenant,
-  mode = 'tenants'
 }) => {
-  // Fetch themes from API (with fallback to file system)
-  const { data: themesData = [], isLoading: themesLoading } = useQuery<Array<{ id: string; name: string; slug: string }>>({
-    queryKey: ['themes'],
-    queryFn: async () => {
-      try {
-        const response = await api.get('/api/themes');
-        if (response.ok) {
-          const data = await response.json();
-          const themes = data.themes || [];
-          
-          // If themes array is empty, the API might have failed silently
-          // The API should handle fallback, but we log it for debugging
-          if (themes.length === 0) {
-            console.log('[testing] No themes returned from API, but API call succeeded');
-          }
-          
-          return themes;
-        } else {
-          // API call failed, but we'll return empty array
-          // The API endpoint should handle file system fallback
-          console.error('[testing] Failed to fetch themes from API, status:', response.status);
-          return [];
-        }
-      } catch (error) {
-        // Network or other error - API endpoint should handle file system fallback
-        console.error('[testing] Error fetching themes:', error);
-        // Return empty array - the API should have handled fallback
-        return [];
-      }
-    },
-    enabled: mode === 'theme',
-    retry: 1, // Retry once on failure
-    retryDelay: 500,
-  });
-
-  // Get themes formatted as Tenant[] for compatibility
-  const getThemes = (): Tenant[] => {
-    return themesData.map(theme => ({
-      id: theme.slug || theme.id,
-      name: theme.name || theme.slug
-    }));
-  };
-
-  // Fetch all tenants using react-query (same as CMSDashboard)
+  // Fetch all tenants using react-query
   const { data: tenants = [], isLoading: loading } = useQuery<Tenant[]>({
     queryKey: ['tenants'],
     queryFn: async () => {
@@ -84,7 +39,7 @@ export const TenantSelector: React.FC<TenantSelectorProps> = ({
         const response = await api.get(`/api/tenants`);
         if (response.ok) {
           const data = await response.json();
-          // Add isDevelopment flag based on tenant id (same as CMSDashboard)
+          // Add isDevelopment flag based on tenant id
           return data.map((t: any) => ({
             ...t,
             isDevelopment: t.id === 'tenant-dev' || !!t.isDevelopment,
@@ -98,32 +53,26 @@ export const TenantSelector: React.FC<TenantSelectorProps> = ({
         return [];
       }
     },
-    enabled: mode === 'tenants',
   });
 
-  // Get the list based on mode
-  const items = mode === 'theme' ? getThemes() : tenants;
-  const isLoading = mode === 'theme' ? themesLoading : loading;
-  const currentItem = items.find(t => t.id === currentTenantId);
-
-  console.log('currentItem', currentTenantId, currentItem);
+  const currentTenant = tenants.find(t => t.id === currentTenantId);
 
   if (!isSuperAdmin) {
-    // For non-super-admins, just show their tenant/template name
+    // For non-super-admins, just show their tenant name
     return (
       <div className="flex items-center gap-2 px-3 py-2 bg-gray-100 rounded-md">
         <Building2 className="h-4 w-4 text-gray-600" />
         <span className="text-sm font-medium text-gray-700">
-          {currentItem?.name || currentTenantId}
+          {currentTenant?.name || currentTenantId}
         </span>
-        {currentItem?.isDevelopment && (
+        {currentTenant?.isDevelopment && (
           <span className="px-1.5 py-0.5 text-xs bg-amber-100 text-amber-800 rounded">Dev</span>
         )}
       </div>
     );
   }
 
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="flex items-center gap-2 px-3 py-2 bg-gray-100 rounded-md">
         <Building2 className="h-4 w-4 text-gray-600" />
@@ -139,9 +88,9 @@ export const TenantSelector: React.FC<TenantSelectorProps> = ({
           <div className="flex items-center gap-2">
             <Building2 className="h-4 w-4" />
             <span className="text-sm font-medium">
-              {currentItem?.name || (mode === 'theme' ? 'Select Theme' : 'Select Tenant')}
+              {currentTenant?.name || 'Select Tenant'}
             </span>
-            {currentItem?.isDevelopment && (
+            {currentTenant?.isDevelopment && (
               <span className="px-1.5 py-0.5 text-xs bg-amber-100 text-amber-800 rounded">Dev</span>
             )}
           </div>
@@ -149,26 +98,26 @@ export const TenantSelector: React.FC<TenantSelectorProps> = ({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-56">
-        <DropdownMenuLabel>{mode === 'theme' ? 'Switch Theme' : 'Switch Tenant'}</DropdownMenuLabel>
+        <DropdownMenuLabel>Switch Tenant</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        {items.map((item) => (
+        {tenants.map((tenant) => (
           <DropdownMenuItem
-            key={item.id}
-            onClick={() => onTenantChange(item.id)}
+            key={tenant.id}
+            onClick={() => onTenantChange(tenant.id)}
             className="flex items-center justify-between"
           >
             <div className="flex items-center">
-              <span className="text-sm">{item.name}</span>
-              {item.isDevelopment && (
+              <span className="text-sm">{tenant.name}</span>
+              {tenant.isDevelopment && (
                 <span className="ml-2 px-1.5 py-0.5 text-xs bg-amber-100 text-amber-800 rounded">Dev</span>
               )}
             </div>
-            {currentTenantId === item.id && (
+            {currentTenantId === tenant.id && (
               <Check className="h-4 w-4 text-brandTeal ml-2" />
             )}
           </DropdownMenuItem>
         ))}
-        {onAddNewTenant && mode === 'tenants' && (
+        {onAddNewTenant && (
           <>
             <DropdownMenuSeparator />
             <DropdownMenuItem

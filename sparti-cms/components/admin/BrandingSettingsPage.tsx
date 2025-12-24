@@ -210,12 +210,10 @@ const timezones = [
 ].sort((a, b) => a.name.localeCompare(b.name));
 
 interface BrandingSettingsPageProps {
-  mode?: 'tenants' | 'theme';
-  currentThemeId?: string | null;
+  currentTenantId: string;
 }
 
-const BrandingSettingsPage: React.FC<BrandingSettingsPageProps> = ({ mode = 'tenants', currentThemeId }) => {
-  const { currentTenantId } = useAuth();
+const BrandingSettingsPage: React.FC<BrandingSettingsPageProps> = ({ currentTenantId }) => {
   const [brandingData, setBrandingData] = useState({
     site_name: '',
     site_tagline: '',
@@ -421,9 +419,10 @@ const BrandingSettingsPage: React.FC<BrandingSettingsPageProps> = ({ mode = 'ten
         site_timezone: brandingData.timezone
       };
 
-      console.log(`[testing] Saving branding settings for tenant ${currentTenantId}:`, settingsToSave);
+      console.log(`[testing] Saving branding settings for tenant ${currentTenantId} (mode: ${mode}):`, settingsToSave);
       
       // Use the API utility with tenant ID and theme context
+      // In theme mode, always use MASTER_TENANT_ID (demo)
       let endpoint = currentTenantId 
         ? `/api/branding?tenantId=${encodeURIComponent(currentTenantId)}`
         : '/api/branding';
@@ -766,82 +765,6 @@ const BrandingSettingsPage: React.FC<BrandingSettingsPageProps> = ({ mode = 'ten
                 </div>
               )}
             </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Preview Section */}
-      <div className="space-y-6">
-        <h4 className="text-lg font-medium text-foreground border-b border-border pb-2">Branding Preview</h4>
-        
-        <div className="bg-secondary/20 rounded-lg border border-border p-6">
-          <div className="flex flex-col items-center space-y-4">
-            {/* Logo - Use database value with fallback */}
-            {brandingData.site_logo ? (
-              <img 
-                src={brandingData.site_logo} 
-                alt="Site Logo" 
-                className="h-16 w-auto"
-                onError={(e) => {
-                  console.error('Error loading logo from database, using fallback');
-                  e.currentTarget.src = gosgLogo;
-                }}
-              />
-            ) : (
-              <img 
-                src={gosgLogo} 
-                alt="Default Site Logo" 
-                className="h-16 w-auto opacity-60"
-              />
-            )}
-            
-            {/* Site Name and Tagline */}
-            <div className="text-center">
-              <h2 className="text-2xl font-bold text-foreground">
-                {brandingData.site_name || 'Your Site Name'}
-              </h2>
-              <p className="text-muted-foreground">
-                {brandingData.site_tagline || 'Your site tagline goes here'}
-              </p>
-            </div>
-            
-            {/* Site Description */}
-            <div className="max-w-lg text-center mt-2">
-              <p className="text-sm text-foreground">
-                {brandingData.site_description || 'Your site description will appear here. Add a compelling description to engage your visitors.'}
-              </p>
-            </div>
-            
-            {/* Country, Language and Timezone Display */}
-            <div className="flex items-center justify-center gap-4 mt-4 pt-4 border-t border-border/50 flex-wrap">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Globe className="h-4 w-4 text-brandTeal" />
-                <span>{brandingData.country || 'Country'}</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Languages className="h-4 w-4 text-brandPurple" />
-                <span>{brandingData.language || 'Language'}</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Clock className="h-4 w-4 text-brandGold" />
-                <span>{brandingData.timezone || 'Timezone'}</span>
-              </div>
-            </div>
-            
-            {/* Favicon preview */}
-            {brandingData.site_favicon && (
-              <div className="mt-2 flex items-center gap-2">
-                <img 
-                  src={brandingData.site_favicon} 
-                  alt="Favicon" 
-                  className="h-6 w-6"
-                  onError={(e) => {
-                    e.currentTarget.style.display = 'none';
-                  }}
-                />
-                <span className="text-xs text-muted-foreground">Favicon preview</span>
-              </div>
-            )}
           </div>
         </div>
       </div>

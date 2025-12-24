@@ -1,5 +1,12 @@
 import React from 'react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './ui/accordion';
+import { 
+  getHeading, 
+  getText, 
+  getFAQItems,
+  getContentByKey,
+  SchemaComponent 
+} from '../utils/schemaHelpers';
 
 interface FAQ {
   question: string;
@@ -10,12 +17,19 @@ interface FAQSectionProps {
   title?: string;
   subtitle?: string;
   faqs?: FAQ[];
+  data?: SchemaComponent;
 }
 
 const FAQSection: React.FC<FAQSectionProps> = ({
-  title = 'Frequently Asked Questions',
-  subtitle = 'Everything you need to know about our services, processes, and how we can help your business succeed.',
-  faqs = [
+  title,
+  subtitle,
+  faqs,
+  data
+}) => {
+  // ACATR hardcoded defaults
+  const defaultTitle = 'Frequently Asked Questions';
+  const defaultSubtitle = 'Everything you need to know about our services, processes, and how we can help your business succeed.';
+  const defaultFAQs: FAQ[] = [
     {
       question: 'How quickly can you incorporate my Singapore company?',
       answer: 'Our ACRA-registered filing agents can complete your Singapore company incorporation in just 24 hours. We handle all documentation, ACRA submissions, and compliance requirements. For standard incorporation, the process typically takes 1 week, but our fast-track service ensures same-day processing for urgent business needs.'
@@ -40,28 +54,44 @@ const FAQSection: React.FC<FAQSectionProps> = ({
       question: 'Can I add additional services as my business grows?',
       answer: 'Absolutely. We offer flexible, scalable packages that grow with your business. You can add enhanced bookkeeping, payroll services, GST registration, employment pass assistance, or additional compliance services at any time. Our team will recommend the best service mix based on your business evolution and transaction volume.'
     }
-  ]
-}) => {
+  ];
+
+  // Extract from schema if data is provided
+  const items = data?.items || [];
+  
+  // Use schema values if available, otherwise fall back to props or defaults
+  const finalTitle = getHeading(items, 'title', 2) || 
+                     getContentByKey(items, 'title') || 
+                     title || 
+                     defaultTitle;
+  const finalSubtitle = getText(items, 'subtitle') || 
+                       getContentByKey(items, 'subtitle') || 
+                       subtitle || 
+                       defaultSubtitle;
+
+  // Extract FAQs from schema or use provided/default FAQs
+  const schemaFAQs = getFAQItems(items, 'faqs');
+  const finalFAQs = schemaFAQs.length > 0 ? schemaFAQs : (faqs || defaultFAQs);
   return (
     <section id="faq" className="py-20 faq-section">
       <div className="container mx-auto px-6">
         {/* Section Header */}
         <div className="text-center mb-16">
           <h2 className="text-3xl lg:text-4xl font-bold mb-6 text-foreground">
-            {title.includes('Questions') ? (
+            {finalTitle.includes('Questions') ? (
               <>
-                {title.split('Questions')[0]}
+                {finalTitle.split('Questions')[0]}
                 <span className="text-primary">
                   {'Questions'}
                 </span>
               </>
             ) : (
-              title
+              finalTitle
             )}
           </h2>
-          {subtitle && (
+          {finalSubtitle && (
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              {subtitle}
+              {finalSubtitle}
             </p>
           )}
         </div>
@@ -69,7 +99,7 @@ const FAQSection: React.FC<FAQSectionProps> = ({
         {/* FAQ Accordion */}
         <div className="max-w-4xl mx-auto mb-16">
           <Accordion type="single" collapsible className="space-y-4">
-            {faqs.map((faq, index) => (
+            {finalFAQs.map((faq, index) => (
               <AccordionItem 
                 key={index} 
                 value={`item-${index}`} 

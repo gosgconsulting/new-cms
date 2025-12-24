@@ -49,6 +49,14 @@
 
   --radius: 0.5rem;
 
+  /* Typography variables - can be overridden by theme settings */
+  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-serif: Georgia, 'Times New Roman', serif;
+  --font-mono: 'Courier New', Courier, monospace;
+  --font-base-size: 16px;
+  --font-heading-scale: 1.25;
+  --font-line-height: 1.6;
+
   /* Sidebar variables for compatibility */
   --sidebar-background: 0 0% 98%;
   --sidebar-foreground: 240 5.3% 26.1%;

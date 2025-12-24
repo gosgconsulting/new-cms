@@ -1,5 +1,12 @@
 import React from 'react';
 import { Button } from './ui/button';
+import { 
+  getHeading, 
+  getText, 
+  getButton,
+  getContentByKey,
+  SchemaComponent 
+} from '../utils/schemaHelpers';
 
 interface CTASectionProps {
   title?: string;
@@ -7,25 +14,54 @@ interface CTASectionProps {
   buttonText?: string;
   buttonLink?: string;
   onButtonClick?: () => void;
+  data?: SchemaComponent;
 }
 
 const CTASection: React.FC<CTASectionProps> = ({
-  title = 'Results You Can Count On',
-  description = 'Our clients consistently experience accelerated growth, improved compliance, and valuable time savings thanks to our all-encompassing support. By providing end-to-end solutions from incorporation to regulatory management, we enable businesses to operate seamlessly and confidently.',
-  buttonText = 'Start Your Business Journey Today',
-  buttonLink = '#contact',
-  onButtonClick
+  title,
+  description,
+  buttonText,
+  buttonLink,
+  onButtonClick,
+  data
 }) => {
+  // ACATR hardcoded defaults
+  const defaultTitle = 'Results You Can Count On';
+  const defaultDescription = 'Our clients consistently experience accelerated growth, improved compliance, and valuable time savings thanks to our all-encompassing support. By providing end-to-end solutions from incorporation to regulatory management, we enable businesses to operate seamlessly and confidently.';
+  const defaultButtonText = 'Start Your Business Journey Today';
+  const defaultButtonLink = '#contact';
+
+  // Extract from schema if data is provided
+  const items = data?.items || [];
+  
+  // Use schema values if available, otherwise fall back to props or defaults
+  const finalTitle = getHeading(items, 'title', 2) || 
+                     getContentByKey(items, 'title') || 
+                     title || 
+                     defaultTitle;
+  const finalDescription = getText(items, 'description') || 
+                          getContentByKey(items, 'description') || 
+                          description || 
+                          defaultDescription;
+  const button = getButton(items, 'submitButton') || getButton(items, 'button');
+  const finalButtonText = button.content || buttonText || defaultButtonText;
+  const finalButtonLink = button.link || buttonLink || defaultButtonLink;
+
   const handleButtonClick = () => {
     if (onButtonClick) {
       onButtonClick();
-    } else if (buttonLink && buttonLink.startsWith('#')) {
-      const element = document.getElementById(buttonLink.substring(1));
+    } else if (finalButtonLink && finalButtonLink.startsWith('#')) {
+      const element = document.getElementById(finalButtonLink.substring(1));
       if (element) {
         element.scrollIntoView({ behavior: 'smooth' });
       }
-    } else if (buttonLink) {
-      window.open(buttonLink, '_blank');
+    } else if (finalButtonLink && finalButtonLink.startsWith('popup:')) {
+      // Handle popup links (e.g., popup:contact)
+      if (onButtonClick) {
+        onButtonClick();
+      }
+    } else if (finalButtonLink) {
+      window.open(finalButtonLink, '_blank');
     }
   };
 
@@ -82,11 +118,11 @@ const CTASection: React.FC<CTASectionProps> = ({
         {/* Primary CTA */}
         <div className="text-center mb-20">
           <h2 className="text-3xl lg:text-5xl font-bold mb-6 text-primary">
-            {title}
+            {finalTitle}
           </h2>
-          {description && (
+          {finalDescription && (
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-12">
-              {description}
+              {finalDescription}
             </p>
           )}
           
@@ -96,7 +132,7 @@ const CTASection: React.FC<CTASectionProps> = ({
               className="bg-gradient-primary hover:opacity-90 transition-opacity text-lg px-8 py-4 group"
               onClick={handleButtonClick}
             >
-              {buttonText}
+              {finalButtonText}
               <svg className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
               </svg>

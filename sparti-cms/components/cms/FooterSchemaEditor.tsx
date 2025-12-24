@@ -4,9 +4,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../../src/component
 import { Input } from '../../../src/components/ui/input';
 import { Label } from '../../../src/components/ui/label';
 import { Textarea } from '../../../src/components/ui/textarea';
-import { ArrowLeft, Save, Loader2, Plus, X, GripVertical, Code } from 'lucide-react';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../../../src/components/ui/accordion';
+import { ArrowLeft, Save, Loader2, Plus, X, GripVertical, Code, Copy, Check } from 'lucide-react';
 import { FooterSchema } from '../../types/schema';
-import { LogoEditor } from './schema-form-helpers/LogoEditor';
+import { ImageEditor } from '../content-editors';
 import { MenuItemsList } from './schema-form-helpers/MenuItemEditor';
 import { ToggleField } from './schema-form-helpers/ToggleField';
 import { DynamicFieldsSection } from './schema-form-helpers/DynamicFieldsSection';
@@ -77,6 +78,7 @@ export const FooterSchemaEditor: React.FC<FooterSchemaEditorProps> = ({ onBack }
   const [showJSONEditor, setShowJSONEditor] = useState(false);
   const [jsonString, setJsonString] = useState('');
   const [jsonError, setJsonError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (showJSONEditor) {
@@ -99,6 +101,16 @@ export const FooterSchemaEditor: React.FC<FooterSchemaEditorProps> = ({ onBack }
 
   const handleSave = async () => {
     await saveSchema(schema);
+  };
+
+  const handleCopyJSON = async () => {
+    try {
+      await navigator.clipboard.writeText(jsonString);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (error) {
+      console.error('[testing] Failed to copy JSON:', error);
+    }
   };
 
   const updateLogo = (logo: FooterSchema['logo']) => {
@@ -279,30 +291,58 @@ export const FooterSchemaEditor: React.FC<FooterSchemaEditorProps> = ({ onBack }
         </div>
 
         {/* Content */}
-        <div className="p-6 space-y-8">
-          {/* Logo Section */}
-          {schema.logo !== undefined && (
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Footer Logo</h3>
-              <LogoEditor
-                logo={schema.logo}
-                onChange={updateLogo}
-                showHeight={false}
-                title="Footer Logo"
-              />
-            </div>
-          )}
+        <div className="p-6">
+          <Accordion type="multiple" className="w-full space-y-2">
+            {/* Logo Section */}
+            {schema.logo !== undefined && (
+              <AccordionItem value="logo" className="border rounded-lg px-4">
+                <AccordionTrigger className="hover:no-underline">
+                  <h3 className="text-lg font-semibold text-gray-900">Footer Logo</h3>
+                </AccordionTrigger>
+                <AccordionContent className="pt-4 pb-6">
+                  <div className="space-y-4">
+                    <ImageEditor
+                      imageUrl={schema.logo?.src || ''}
+                      imageAlt={schema.logo?.alt || ''}
+                      onImageChange={(imageUrl) => updateLogo({ ...schema.logo, src: imageUrl })}
+                      onAltChange={(alt) => updateLogo({ ...schema.logo, alt })}
+                      simpleMode={true}
+                    />
+                    <div>
+                      <Label className="text-xs">Alt Text</Label>
+                      <Input
+                        value={schema.logo?.alt || ''}
+                        onChange={(e) => updateLogo({ ...schema.logo, alt: e.target.value })}
+                        placeholder="Descriptive text for accessibility"
+                        className="text-sm"
+                      />
+                    </div>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            )}
 
-          {/* Navigation Sections */}
-          {schema.sections !== undefined && (
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">Navigation Sections</h3>
-                <Button onClick={addSection} size="sm" variant="outline">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Section
-                </Button>
-              </div>
+            {/* Navigation Sections */}
+            {schema.sections !== undefined && (
+              <AccordionItem value="sections" className="border rounded-lg px-4">
+                <AccordionTrigger className="hover:no-underline">
+                  <div className="flex items-center justify-between w-full mr-4">
+                    <h3 className="text-lg font-semibold text-gray-900">Navigation Sections</h3>
+                    <Button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        addSection();
+                      }} 
+                      size="sm" 
+                      variant="outline"
+                      className="ml-auto"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Section
+                    </Button>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="pt-4 pb-6">
               
               <div className="space-y-4">
                 {(schema.sections || []).map((sectionObj, sectionIndex) => {
@@ -509,129 +549,148 @@ export const FooterSchemaEditor: React.FC<FooterSchemaEditorProps> = ({ onBack }
                 })}
               </div>
               
-              {(schema.sections?.length === 0 || !schema.sections) && (
-                <div className="text-center py-8 text-gray-500 border-2 border-dashed border-gray-200 rounded-lg">
-                  <p className="text-sm">No sections added yet</p>
-                  <Button onClick={addSection} size="sm" variant="outline" className="mt-2">
-                    Add Section
-                  </Button>
-                </div>
-              )}
-            </div>
-          )}
+                  {(schema.sections?.length === 0 || !schema.sections) && (
+                    <div className="text-center py-8 text-gray-500 border-2 border-dashed border-gray-200 rounded-lg">
+                      <p className="text-sm">No sections added yet</p>
+                      <Button onClick={addSection} size="sm" variant="outline" className="mt-2">
+                        Add Section
+                      </Button>
+                    </div>
+                  )}
+                </AccordionContent>
+              </AccordionItem>
+            )}
 
-          {/* Blog Link Section */}
-          {schema.blog !== undefined && (
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Blog Link</h3>
-              <Card>
-                <CardContent className="p-6 space-y-4">
-                  <div>
-                    <Label className="text-xs">Label</Label>
-                    <Input
-                      value={schema.blog.label || ''}
-                      onChange={(e) => updateBlog({...schema.blog, label: e.target.value})}
-                      placeholder="e.g., Blog, News, Articles"
-                      className="text-sm"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-xs">Link</Label>
-                    <Input
-                      value={schema.blog.link || ''}
-                      onChange={(e) => updateBlog({...schema.blog, link: e.target.value})}
-                      placeholder="e.g., /blog, /news"
-                      className="text-sm"
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          )}
-
-          {/* Legal Links Section */}
-          {schema.legalLinks !== undefined && (
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Legal Links</h3>
-              <MenuItemsList
-                items={schema.legalLinks}
-                onChange={updateLegalLinks}
-                title="Legal Links"
-                addButtonText="Add Legal Link"
-              />
-            </div>
-          )}
-
-          {/* Content Section */}
-          {(schema.copyright !== undefined || schema.description !== undefined) && (
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Footer Content</h3>
-              <Card>
-                <CardContent className="p-6 space-y-4">
-                  {schema.copyright !== undefined && (
+            {/* Blog Link Section */}
+            {schema.blog !== undefined && (
+              <AccordionItem value="blog" className="border rounded-lg px-4">
+                <AccordionTrigger className="hover:no-underline">
+                  <h3 className="text-lg font-semibold text-gray-900">Blog Link</h3>
+                </AccordionTrigger>
+                <AccordionContent className="pt-4 pb-6">
+                  <div className="space-y-4">
                     <div>
-                      <Label className="text-xs">Copyright Text</Label>
+                      <Label className="text-xs">Label</Label>
                       <Input
-                        value={schema.copyright}
-                        onChange={(e) => updateCopyright(e.target.value)}
-                        placeholder="e.g., © 2024 Company Name. All rights reserved."
+                        value={schema.blog.label || ''}
+                        onChange={(e) => updateBlog({...schema.blog, label: e.target.value})}
+                        placeholder="e.g., Blog, News, Articles"
                         className="text-sm"
                       />
                     </div>
-                  )}
-                  {schema.description !== undefined && (
                     <div>
-                      <Label className="text-xs">Description</Label>
-                      <Textarea
-                        value={schema.description}
-                        onChange={(e) => updateDescription(e.target.value)}
-                        placeholder="Brief description of your company or website..."
+                      <Label className="text-xs">Link</Label>
+                      <Input
+                        value={schema.blog.link || ''}
+                        onChange={(e) => updateBlog({...schema.blog, link: e.target.value})}
+                        placeholder="e.g., /blog, /news"
                         className="text-sm"
-                        rows={3}
                       />
                     </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-          )}
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            )}
 
-          {/* Display Options Section */}
-          {(schema.showCurrencySwitcher !== undefined || schema.showLanguageSwitcher !== undefined) && (
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Display Options</h3>
-              <Card>
-                <CardContent className="p-6 space-y-4">
-                  {schema.showCurrencySwitcher !== undefined && (
-                    <ToggleField
-                      id="show-currency-switcher"
-                      label="Show Currency Switcher"
-                      checked={schema.showCurrencySwitcher}
-                      onChange={(checked) => updateDisplayOption('showCurrencySwitcher', checked)}
-                      description="Display currency selection dropdown"
-                    />
-                  )}
-                  {schema.showLanguageSwitcher !== undefined && (
-                    <ToggleField
-                      id="show-language-switcher"
-                      label="Show Language Switcher"
-                      checked={schema.showLanguageSwitcher}
-                      onChange={(checked) => updateDisplayOption('showLanguageSwitcher', checked)}
-                      description="Display language selection dropdown"
-                    />
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-          )}
+            {/* Legal Links Section */}
+            {schema.legalLinks !== undefined && (
+              <AccordionItem value="legal-links" className="border rounded-lg px-4">
+                <AccordionTrigger className="hover:no-underline">
+                  <h3 className="text-lg font-semibold text-gray-900">Legal Links</h3>
+                </AccordionTrigger>
+                <AccordionContent className="pt-4 pb-6">
+                  <MenuItemsList
+                    items={schema.legalLinks}
+                    onChange={updateLegalLinks}
+                    title="Legal Links"
+                    addButtonText="Add Legal Link"
+                  />
+                </AccordionContent>
+              </AccordionItem>
+            )}
 
-          {/* Custom Fields Section */}
-          <DynamicFieldsSection
-            schema={schema}
-            knownFields={getKnownFields('footer')}
-            onUpdateSchema={handleDynamicFieldsUpdate}
-            title="Custom Fields"
-          />
+            {/* Content Section */}
+            {(schema.copyright !== undefined || schema.description !== undefined) && (
+              <AccordionItem value="content" className="border rounded-lg px-4">
+                <AccordionTrigger className="hover:no-underline">
+                  <h3 className="text-lg font-semibold text-gray-900">Footer Content</h3>
+                </AccordionTrigger>
+                <AccordionContent className="pt-4 pb-6">
+                  <div className="space-y-4">
+                    {schema.copyright !== undefined && (
+                      <div>
+                        <Label className="text-xs">Copyright Text</Label>
+                        <Input
+                          value={schema.copyright}
+                          onChange={(e) => updateCopyright(e.target.value)}
+                          placeholder="e.g., © 2024 Company Name. All rights reserved."
+                          className="text-sm"
+                        />
+                      </div>
+                    )}
+                    {schema.description !== undefined && (
+                      <div>
+                        <Label className="text-xs">Description</Label>
+                        <Textarea
+                          value={schema.description}
+                          onChange={(e) => updateDescription(e.target.value)}
+                          placeholder="Brief description of your company or website..."
+                          className="text-sm"
+                          rows={3}
+                        />
+                      </div>
+                    )}
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            )}
+
+            {/* Display Options Section */}
+            {(schema.showCurrencySwitcher !== undefined || schema.showLanguageSwitcher !== undefined) && (
+              <AccordionItem value="display-options" className="border rounded-lg px-4">
+                <AccordionTrigger className="hover:no-underline">
+                  <h3 className="text-lg font-semibold text-gray-900">Display Options</h3>
+                </AccordionTrigger>
+                <AccordionContent className="pt-4 pb-6">
+                  <div className="space-y-4">
+                    {schema.showCurrencySwitcher !== undefined && (
+                      <ToggleField
+                        id="show-currency-switcher"
+                        label="Show Currency Switcher"
+                        checked={schema.showCurrencySwitcher}
+                        onChange={(checked) => updateDisplayOption('showCurrencySwitcher', checked)}
+                        description="Display currency selection dropdown"
+                      />
+                    )}
+                    {schema.showLanguageSwitcher !== undefined && (
+                      <ToggleField
+                        id="show-language-switcher"
+                        label="Show Language Switcher"
+                        checked={schema.showLanguageSwitcher}
+                        onChange={(checked) => updateDisplayOption('showLanguageSwitcher', checked)}
+                        description="Display language selection dropdown"
+                      />
+                    )}
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            )}
+
+            {/* Custom Fields Section */}
+            <AccordionItem value="custom-fields" className="border rounded-lg px-4">
+              <AccordionTrigger className="hover:no-underline">
+                <h3 className="text-lg font-semibold text-gray-900">Custom Fields</h3>
+              </AccordionTrigger>
+              <AccordionContent className="pt-4 pb-6">
+                <DynamicFieldsSection
+                  schema={schema}
+                  knownFields={getKnownFields('footer')}
+                  onUpdateSchema={handleDynamicFieldsUpdate}
+                  title="Custom Fields"
+                />
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </div>
       </div>
       
@@ -639,7 +698,29 @@ export const FooterSchemaEditor: React.FC<FooterSchemaEditorProps> = ({ onBack }
       <Dialog open={showJSONEditor} onOpenChange={setShowJSONEditor}>
         <DialogContent className="max-w-4xl h-[80vh] flex flex-col">
           <DialogHeader>
-            <DialogTitle>Footer Schema JSON Editor</DialogTitle>
+            <DialogTitle className="flex items-center justify-between">
+              <span>Footer Schema JSON Editor</span>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleCopyJSON}
+                disabled={!jsonString}
+                className="ml-4"
+              >
+                {copied ? (
+                  <>
+                    <Check className="h-4 w-4 mr-2" />
+                    Copied!
+                  </>
+                ) : (
+                  <>
+                    <Copy className="h-4 w-4 mr-2" />
+                    Copy JSON
+                  </>
+                )}
+              </Button>
+            </DialogTitle>
             <DialogDescription>
               Edit the complete footer schema structure. Be careful with this editor.
             </DialogDescription>

@@ -11,7 +11,8 @@ import {
   RefreshCw,
   Eye,
   FileCode,
-  X
+  X,
+  Zap
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -27,6 +28,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from '../../../src/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../../../src/components/ui/select';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../auth/AuthProvider';
 import { api } from '../../utils/api';
@@ -42,6 +50,12 @@ interface Theme {
   from_filesystem?: boolean;
 }
 
+interface Tenant {
+  id: string;
+  name: string;
+  theme_id?: string | null;
+}
+
 const ThemesManager: React.FC = () => {
   const { user } = useAuth();
   const [themes, setThemes] = useState<Theme[]>([]);
@@ -50,6 +64,10 @@ const ThemesManager: React.FC = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [showAddThemeModal, setShowAddThemeModal] = useState(false);
+  const [showActivateModal, setShowActivateModal] = useState(false);
+  const [selectedThemeForActivation, setSelectedThemeForActivation] = useState<Theme | null>(null);
+  const [selectedTenantId, setSelectedTenantId] = useState<string>('');
+  const [isActivating, setIsActivating] = useState(false);
   const [newTheme, setNewTheme] = useState({
     slug: '',
     name: '',
@@ -75,6 +93,27 @@ const ThemesManager: React.FC = () => {
         return [];
       }
     },
+  });
+
+  // Fetch tenants for activation
+  const { data: tenantsData = [], isLoading: tenantsLoading } = useQuery<Tenant[]>({
+    queryKey: ['tenants'],
+    queryFn: async () => {
+      try {
+        const response = await api.get('/api/tenants');
+        if (response.ok) {
+          const data = await response.json();
+          return Array.isArray(data) ? data : [];
+        } else {
+          console.error('Failed to fetch tenants');
+          return [];
+        }
+      } catch (error) {
+        console.error('Error fetching tenants:', error);
+        return [];
+      }
+    },
+    enabled: !!user?.is_super_admin || showActivateModal,
   });
 
   useEffect(() => {
@@ -127,14 +166,61 @@ const ThemesManager: React.FC = () => {
     }
   };
 
-  // View theme folder
+  // View theme - opens theme page in new tab
   const handleViewTheme = (theme: Theme) => {
-    // Open theme folder in file explorer (if possible)
-    // For now, just show a message
-    toast({
-      title: 'Theme Location',
-      description: `Theme folder: sparti-cms/theme/${theme.slug}`,
-    });
+    // Open theme page in new tab
+    const themeUrl = `/theme/${theme.slug}`;
+    window.open(themeUrl, '_blank');
+  };
+
+  // Handle activate theme - opens dialog to select tenant
+  const handleActivateTheme = (theme: Theme) => {
+    setSelectedThemeForActivation(theme);
+    setSelectedTenantId('');
+    setShowActivateModal(true);
+  };
+
+  // Confirm theme activation
+  const handleConfirmActivation = async () => {
+    if (!selectedThemeForActivation || !selectedTenantId) {
+      toast({
+        title: 'Validation Error',
+        description: 'Please select a tenant',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsActivating(true);
+    try {
+      const response = await api.put(`/api/tenants/${selectedTenantId}`, {
+        name: tenantsData.find(t => t.id === selectedTenantId)?.name,
+        theme_id: selectedThemeForActivation.slug,
+      });
+
+      if (response.ok) {
+        const updatedTenant = await response.json();
+        toast({
+          title: 'Theme Activated',
+          description: `Theme "${selectedThemeForActivation.name}" has been activated for "${updatedTenant.name}"`,
+        });
+        setShowActivateModal(false);
+        setSelectedThemeForActivation(null);
+        setSelectedTenantId('');
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to activate theme');
+      }
+    } catch (error: any) {
+      console.error('Error activating theme:', error);
+      toast({
+        title: 'Activation Failed',
+        description: error.message || 'Failed to activate theme',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsActivating(false);
+    }
   };
 
   // Handle slug input change and auto-generate name
@@ -376,6 +462,15 @@ const ThemesManager: React.FC = () => {
                   <Button
                     variant="outline"
                     size="sm"
+                    onClick={() => handleActivateTheme(theme)}
+                    className="flex-1 bg-brandPurple/10 hover:bg-brandPurple/20 text-brandPurple border-brandPurple/20"
+                  >
+                    <Zap className="h-4 w-4 mr-2" />
+                    Activate
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
                     onClick={() => {
                       toast({
                         title: 'Theme Folder',
@@ -414,6 +509,102 @@ const ThemesManager: React.FC = () => {
           </p>
         </CardContent>
       </Card>
+
+      {/* Activate Theme Modal */}
+      <Dialog open={showActivateModal} onOpenChange={setShowActivateModal}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Activate Theme</DialogTitle>
+            <DialogDescription>
+              Select a tenant to activate the theme "{selectedThemeForActivation?.name}" for.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="tenant-select">Select Tenant</Label>
+              {tenantsLoading ? (
+                <div className="flex items-center justify-center py-4">
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  <span className="text-sm text-muted-foreground">Loading tenants...</span>
+                </div>
+              ) : tenantsData.length === 0 ? (
+                <Alert>
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>No Tenants Found</AlertTitle>
+                  <AlertDescription>
+                    No tenants available. Please create a tenant first, or run the demo tenant script:
+                    <code className="block mt-2 bg-muted px-2 py-1 rounded text-xs">
+                      node scripts/setup/create-demo-tenant.js
+                    </code>
+                  </AlertDescription>
+                </Alert>
+              ) : (
+                <Select value={selectedTenantId} onValueChange={setSelectedTenantId}>
+                  <SelectTrigger id="tenant-select">
+                    <SelectValue placeholder="Select a tenant" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[...tenantsData]
+                      .sort((a, b) => {
+                        // Demo tenant always at the top
+                        if (a.id === 'demo') return -1;
+                        if (b.id === 'demo') return 1;
+                        // Other tenants sorted alphabetically by name
+                        return a.name.localeCompare(b.name);
+                      })
+                      .map((tenant) => (
+                        <SelectItem key={tenant.id} value={tenant.id}>
+                          <div className="flex items-center justify-between w-full">
+                            <span>{tenant.name}</span>
+                            {tenant.theme_id === selectedThemeForActivation?.slug && (
+                              <CheckCircle className="h-4 w-4 text-green-600 ml-2" />
+                            )}
+                          </div>
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              )}
+              {selectedTenantId && tenantsData.find(t => t.id === selectedTenantId)?.theme_id && (
+                <p className="text-xs text-amber-600">
+                  This tenant currently has theme "{tenantsData.find(t => t.id === selectedTenantId)?.theme_id}" activated.
+                  Activating this theme will replace it.
+                </p>
+              )}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowActivateModal(false);
+                setSelectedThemeForActivation(null);
+                setSelectedTenantId('');
+              }}
+              disabled={isActivating}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleConfirmActivation}
+              disabled={isActivating || !selectedTenantId || tenantsLoading}
+              className="bg-brandPurple hover:bg-brandPurple/90"
+            >
+              {isActivating ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Activating...
+                </>
+              ) : (
+                <>
+                  <Zap className="h-4 w-4 mr-2" />
+                  Activate Theme
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Add New Theme Modal */}
       <Dialog open={showAddThemeModal} onOpenChange={setShowAddThemeModal}>
