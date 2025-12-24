@@ -17,6 +17,12 @@ import {
   Map,
   Building2,
   Palette,
+  Store,
+  LayoutDashboard,
+  Package,
+  FolderTree,
+  ShoppingCart,
+  CreditCard,
 } from 'lucide-react';
 import { useAuth } from '../auth/AuthProvider';
 import { motion } from 'framer-motion';
@@ -53,11 +59,19 @@ import TenantSelector from './TenantSelector';
 import ThemeSelector from './ThemeSelector';
 import AccessKeysManager from './AccessKeysManager';
 
+// Import shop components
+import ProductsManager from './ProductsManager';
+import ProductCategoriesManager from './ProductCategoriesManager';
+import OrdersManager from './OrdersManager';
+import PaymentsManager from './PaymentsManager';
+import ShopSettingsManager from './ShopSettingsManager';
+
 // Tenant type for local state
 interface Tenant {
   id: string;
   name: string;
   isDevelopment?: boolean;
+  theme_id?: string | null;
 }
 
 // Blog Management Component
@@ -193,6 +207,7 @@ interface CMSDashboardProps {
 
 const CMSDashboard: React.FC<CMSDashboardProps> = ({ hideSidebar = false }) => {
   const [activeTab, setActiveTab] = useState<string>('pages');
+  const [mode, setMode] = useState<'cms' | 'shop'>('cms');
   const [crmExpanded, setCrmExpanded] = useState<boolean>(false);
   const [usersExpanded, setUsersExpanded] = useState<boolean>(false);
   const [seoExpanded, setSeoExpanded] = useState<boolean>(false);
@@ -201,6 +216,15 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({ hideSidebar = false }) => {
   const [currentThemeId, setCurrentThemeId] = useState<string>('custom');
   const { signOut, user, currentTenantId, handleTenantChange } = useAuth();
   const navigate = useNavigate();
+
+  // Reset activeTab when switching modes
+  useEffect(() => {
+    if (mode === 'cms') {
+      setActiveTab('pages');
+    } else {
+      setActiveTab('products');
+    }
+  }, [mode]);
   
   // Handle theme change
   const handleThemeChange = (themeId: string) => {
@@ -208,18 +232,6 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({ hideSidebar = false }) => {
     // Store in localStorage for persistence
     localStorage.setItem('sparti-current-theme-id', themeId);
   };
-
-  // Load current theme from localStorage on mount (default to 'custom')
-  useEffect(() => {
-    const savedThemeId = localStorage.getItem('sparti-current-theme-id');
-    if (savedThemeId) {
-      setCurrentThemeId(savedThemeId);
-    } else {
-      // Default to 'custom' if no saved theme
-      setCurrentThemeId('custom');
-      localStorage.setItem('sparti-current-theme-id', 'custom');
-    }
-  }, []);
 
   // Fetch all tenants (returns full tenant data including database and API keys)
   // For super admins: returns all tenants
@@ -248,12 +260,62 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({ hideSidebar = false }) => {
     enabled: !!user,
   });
 
+  // Automatically set currentThemeId based on tenant's theme_id when tenant changes
+  // This runs after tenants are loaded and when currentTenantId changes
+  useEffect(() => {
+    try {
+      if (currentTenantId && Array.isArray(tenants) && tenants.length > 0) {
+        const currentTenant = tenants.find(t => t && t.id === currentTenantId);
+        if (currentTenant) {
+          // If tenant has a theme_id, use it; otherwise use 'custom'
+          const themeIdToUse = currentTenant.theme_id || 'custom';
+          console.log(`[testing] Setting theme based on tenant ${currentTenant.id}: theme_id=${currentTenant.theme_id}, using=${themeIdToUse}`);
+          setCurrentThemeId(themeIdToUse);
+          localStorage.setItem('sparti-current-theme-id', themeIdToUse);
+          return;
+        }
+      }
+      
+      // No tenant selected or tenant not found, default to 'custom'
+      // Only update if not already 'custom' to avoid unnecessary updates
+      const currentSavedTheme = localStorage.getItem('sparti-current-theme-id');
+      if (!currentSavedTheme || currentSavedTheme !== 'custom') {
+        setCurrentThemeId('custom');
+        localStorage.setItem('sparti-current-theme-id', 'custom');
+      }
+    } catch (error) {
+      console.error('[testing] Error in theme selection useEffect:', error);
+      // Fallback to 'custom' on error
+      setCurrentThemeId('custom');
+      localStorage.setItem('sparti-current-theme-id', 'custom');
+    }
+  }, [currentTenantId, tenants]);
+
   // Find current tenant from the tenants array
   const tenant = currentTenantId 
     ? tenants.find(t => t.id === currentTenantId) || null
     : null;
 
   const renderContent = () => {
+    // Shop mode content
+    if (mode === 'shop') {
+      switch (activeTab) {
+        case 'products':
+          return <ProductsManager currentTenantId={currentTenantId || ''} />;
+        case 'categories':
+          return <ProductCategoriesManager currentTenantId={currentTenantId || ''} />;
+        case 'orders':
+          return <OrdersManager currentTenantId={currentTenantId || ''} />;
+        case 'payments':
+          return <PaymentsManager currentTenantId={currentTenantId || ''} />;
+        case 'shop-settings':
+          return <ShopSettingsManager currentTenantId={currentTenantId || ''} />;
+        default:
+          return <div className="text-muted-foreground">Select a section from the sidebar</div>;
+      }
+    }
+
+    // CMS mode content
     switch (activeTab) {
       case 'pages':
         return <PagesManager 
@@ -299,7 +361,7 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({ hideSidebar = false }) => {
     }
   };
 
-  const navItems = [
+  const cmsNavItems = [
     { id: 'pages', label: 'Pages', icon: FileText },
     { id: 'blog', label: 'Blog', icon: PenTool },
     { id: 'media', label: 'Media', icon: ImageIcon },
@@ -308,6 +370,16 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({ hideSidebar = false }) => {
     { id: 'tenants', label: 'Tenants', icon: Building2 },
     { id: 'themes', label: 'Themes', icon: Palette },
   ].filter(item => user?.is_super_admin || (item.id !== 'tenants' && item.id !== 'themes'));
+
+  const shopNavItems = [
+    { id: 'products', label: 'Products', icon: Package },
+    { id: 'categories', label: 'Categories', icon: FolderTree },
+    { id: 'orders', label: 'Orders', icon: ShoppingCart },
+    { id: 'payments', label: 'Payments', icon: CreditCard },
+    { id: 'shop-settings', label: 'Shop Settings', icon: SettingsIcon },
+  ];
+
+  const navItems = mode === 'cms' ? cmsNavItems : shopNavItems;
 
   const usersItems = [
     { id: 'my-account', label: 'My Account', icon: Users },
@@ -358,6 +430,34 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({ hideSidebar = false }) => {
           </div>
         </div>
         
+        {/* Mode Switcher */}
+        <div className="p-4 border-b border-border">
+          <div className="flex items-center space-x-2 bg-secondary rounded-lg p-1">
+            <button
+              onClick={() => setMode('cms')}
+              className={`flex-1 flex items-center justify-center px-3 py-2 rounded-md transition-all ${
+                mode === 'cms'
+                  ? 'bg-background text-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <LayoutDashboard className="h-4 w-4 mr-2" />
+              <span className="text-sm font-medium">CMS</span>
+            </button>
+            <button
+              onClick={() => setMode('shop')}
+              className={`flex-1 flex items-center justify-center px-3 py-2 rounded-md transition-all ${
+                mode === 'shop'
+                  ? 'bg-background text-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <Store className="h-4 w-4 mr-2" />
+              <span className="text-sm font-medium">Shop</span>
+            </button>
+          </div>
+        </div>
+
         {/* Navigation */}
         <nav className="flex-1 p-4">
           <ul className="space-y-1">
