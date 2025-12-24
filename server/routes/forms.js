@@ -16,9 +16,9 @@ const router = express.Router();
 // Submit form
 router.post('/form-submissions', async (req, res) => {
   try {
-    const { form_id, form_name, name, email, phone, company, message } = req.body;
+    const { form_id, form_name, name, email, phone, company, message, tenant_id } = req.body;
     
-    console.log('[testing] Form submission received:', { form_id, name, email });
+    console.log('[testing] Form submission received:', { form_id, name, email, tenant_id });
     
     // Save form submission
     const submission = await saveFormSubmission({ 
@@ -29,11 +29,12 @@ router.post('/form-submissions', async (req, res) => {
       phone,
       company, 
       message,
+      tenant_id,
       ip_address: req.ip,
       user_agent: req.get('User-Agent')
     });
 
-    // Also create/update contact record
+    // Also create/update contact record with tenant information
     try {
       const nameParts = name.split(' ');
       const first_name = nameParts[0] || name;
@@ -48,9 +49,9 @@ router.post('/form-submissions', async (req, res) => {
         source: form_name || form_id || 'form',
         status: 'new',
         notes: message ? `Form message: ${message}` : null
-      });
+      }, tenant_id); // Pass tenant_id as second parameter
       
-      console.log('[testing] Contact created from form submission');
+      console.log('[testing] Contact created from form submission for tenant:', tenant_id);
     } catch (contactError) {
       console.error('[testing] Error creating contact from form:', contactError);
       // Don't fail the form submission if contact creation fails

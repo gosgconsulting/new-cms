@@ -1,0 +1,396 @@
+/* GO SG Consulting Theme Styles */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 96%;
+    --foreground: 210 100% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 210 100% 12%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 210 100% 12%;
+    --primary: 270 70% 60%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 210 50% 90%;
+    --secondary-foreground: 210 100% 12%;
+    --muted: 210 50% 90%;
+    --muted-foreground: 210 50% 40%;
+    --accent: 210 50% 90%;
+    --accent-foreground: 210 100% 12%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 210 50% 85%;
+    --input: 210 50% 85%;
+    --ring: 270 70% 60%;
+    --radius: 0.5rem;
+
+    /* GOSG Brand Colors - Matching original gosgwebsite-main */
+    --brand-teal: 174 80% 45%;
+    --brand-blue: 210 100% 50%;
+    --brand-gold: 36 100% 65%; 
+    --brand-purple: 270 70% 60%;
+    --coral: 5 88% 62%;
+
+    /* Global theme variables (matching original) */
+    --brand-primary: #9b87f5;
+    --brand-secondary: #7E69AB;
+    --brand-accent: #F94E40;
+    --brand-background: #FFFFFF;
+    --brand-text: #333333;
+    
+    /* Enhanced color variables for advanced styling */
+    --gradient-start: #9b87f5;
+    --gradient-end: #7E69AB;
+    --label-color: #666666;
+    --footer-dark-text: #FFFFFF;
+    
+    /* Global typography variables */
+    --font-heading: "Inter", sans-serif;
+    --font-body: "Inter", sans-serif;
+    --font-base-size: 16px;
+    --font-heading-weight: 700;
+    --font-body-weight: 400;
+
+    /* GOSG Theme Variables (for backward compatibility) */
+    --gosg-primary: #9b87f5;
+    --gosg-secondary: #7E69AB;
+    --gosg-accent: #F94E40;
+    --gosg-purple: #9b87f5;
+    --gosg-teal: hsl(174, 80%, 45%);
+    --gosg-coral: #F94E40;
+  }
+
+  .dark {
+    --background: 210 100% 12%;
+    --foreground: 0 0% 98%;
+    --card: 210 100% 10%;
+    --card-foreground: 0 0% 98%;
+    --popover: 210 100% 10%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 270 70% 60%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 210 100% 18%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 210 50% 25%;
+    --muted-foreground: 0 0% 83%;
+    --accent: 210 50% 25%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 210 50% 18%;
+    --input: 210 50% 18%;
+    --ring: 270 70% 60%;
+  }
+}
+
+/* Global theme styles */
+.gosg-theme {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    /* Apply global typography variables */
+    font-family: var(--font-body);
+    font-size: var(--font-base-size);
+    font-weight: var(--font-body-weight);
+    color: var(--brand-text);
+    background-color: var(--brand-background);
+  }
+
+  /* Apply global typography to headings */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    font-weight: var(--font-heading-weight);
+    color: var(--brand-text);
+  }
+
+  /* Global button styles using brand colors */
+  .btn-primary, button[data-variant="default"] {
+    background-color: var(--brand-primary);
+    color: white;
+  }
+
+  .btn-secondary, button[data-variant="secondary"] {
+    background-color: var(--brand-secondary);
+    color: white;
+  }
+
+  .btn-accent {
+    background-color: var(--brand-accent);
+    color: white;
+  }
+
+  /* Label styling using global label color */
+  .digital-agency-label, .label-text {
+    color: var(--label-color) !important;
+  }
+
+  /* Footer text styling for dark backgrounds */
+  .footer-dark-text {
+    color: var(--footer-dark-text) !important;
+  }
+}
+
+/* Custom gradient backgrounds */
+.gosg-gradient-bg {
+  background: linear-gradient(135deg, 
+    rgba(139, 92, 246, 0.1) 0%, 
+    rgba(6, 182, 212, 0.1) 50%, 
+    rgba(249, 115, 22, 0.1) 100%);
+}
+
+/* Custom button styles */
+.gosg-cta-button {
+  background: linear-gradient(135deg, var(--gosg-purple) 0%, var(--gosg-cyan) 100%);
+  transition: all 0.3s ease;
+}
+
+.gosg-cta-button:hover {
+  background: linear-gradient(135deg, #7c3aed 0%, #0891b2 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(139, 92, 246, 0.3);
+}
+
+/* Custom card styles */
+.gosg-card {
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.dark .gosg-card {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Animation utilities */
+.gosg-fade-in {
+  animation: fadeIn 0.6s ease-out;
+}
+
+.gosg-slide-up {
+  animation: slideUp 0.6s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive utilities */
+@media (max-width: 768px) {
+  .gosg-hero-title {
+    font-size: 2rem;
+    line-height: 1.2;
+  }
+}
+
+@media (min-width: 769px) {
+  .gosg-hero-title {
+    font-size: 4rem;
+    line-height: 1.1;
+  }
+}
+
+@media (min-width: 1024px) {
+  .gosg-hero-title {
+    font-size: 5rem;
+    line-height: 1.1;
+  }
+}
+
+/* Blog post styling */
+.gosg-blog-card {
+  transition: all 0.3s ease;
+}
+
+.gosg-blog-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
+.gosg-blog-card img {
+  transition: transform 0.3s ease;
+}
+
+.gosg-blog-card:hover img {
+  transform: scale(1.05);
+}
+
+/* Line clamp utilities */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Hero section specific styles */
+.hero-gradient-bg {
+  background: linear-gradient(135deg, 
+    rgba(139, 92, 246, 0.05) 0%, 
+    rgba(6, 182, 212, 0.05) 50%, 
+    rgba(249, 115, 22, 0.05) 100%);
+}
+
+/* Challenge section styles */
+.challenge-gradient-bg {
+  background: linear-gradient(135deg, 
+    rgb(51, 65, 85) 0%, 
+    rgb(55, 65, 81) 50%, 
+    rgb(67, 56, 202) 100%);
+}
+
+/* Pricing section styles */
+.pricing-gradient-bg {
+  background: linear-gradient(135deg, 
+    rgb(248, 250, 252) 0%, 
+    rgb(239, 246, 255) 100%);
+}
+
+.dark .pricing-gradient-bg {
+  background: linear-gradient(135deg, 
+    rgb(15, 23, 42) 0%, 
+    rgb(30, 41, 59) 100%);
+}
+
+/* Gallery section styles */
+.gallery-card-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.gallery-card-hover:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+/* Contact modal styles */
+.contact-modal-bg {
+  background: linear-gradient(135deg, 
+    rgb(51, 65, 85) 0%, 
+    rgb(55, 65, 81) 50%, 
+    rgb(67, 56, 202) 100%);
+}
+
+/* Utility classes for GOSG theme - matching original brand colors */
+.text-brandPurple {
+  color: var(--brand-primary) !important;
+}
+
+.bg-brandPurple {
+  background-color: var(--brand-primary) !important;
+}
+
+.text-brandTeal {
+  color: hsl(var(--brand-teal)) !important;
+}
+
+.bg-brandTeal {
+  background-color: hsl(var(--brand-teal)) !important;
+}
+
+.text-coral {
+  color: var(--brand-accent) !important;
+}
+
+.bg-coral {
+  background-color: var(--brand-accent) !important;
+}
+
+.border-coral {
+  border-color: var(--brand-accent) !important;
+}
+
+/* Gradient utilities matching original */
+.text-gradient-purple-cyan {
+  background: linear-gradient(135deg, var(--brand-primary) 0%, hsl(var(--brand-teal)) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.bg-gradient-purple-cyan {
+  background: linear-gradient(135deg, var(--brand-primary) 0%, hsl(var(--brand-teal)) 100%);
+}
+
+.border-gradient-purple-cyan {
+  border-image: linear-gradient(135deg, var(--brand-primary) 0%, hsl(var(--brand-teal)) 100%) 1;
+}
+
+/* Gradient text with coral */
+.text-gradient-purple-teal-coral {
+  background: linear-gradient(135deg, var(--brand-primary) 0%, hsl(var(--brand-teal)) 50%, var(--brand-accent) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* CTA gradient buttons using global variables */
+.cta-gradient {
+  background: linear-gradient(to right, var(--brand-accent), var(--brand-primary));
+  transition: all 0.3s ease;
+}
+
+.cta-gradient:hover {
+  background: linear-gradient(to right, var(--brand-primary), var(--brand-accent));
+}
+
+/* Enhanced gradient text styles */
+.gradient-text {
+  background: linear-gradient(to right, var(--gradient-start), var(--gradient-end));
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  background-size: 200% 200%;
+}
+
+.gradient-text-animated {
+  background: linear-gradient(to right, var(--gradient-start), var(--gradient-end), var(--gradient-start));
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  background-size: 200% auto;
+  animation: gradient 3s linear infinite;
+}
+
+@keyframes gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}

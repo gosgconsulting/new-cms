@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover" />
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Sparti">
+    <meta name="theme-color" content="#00D4FF">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" href="/lovable-uploads/592b7f4d-d29b-45e3-9810-c9ecbbde4719.png" type="image/png">
+    <link rel="apple-touch-icon" href="/lovable-uploads/paw-icon.png">
+    <title>Sparti - AI-Powered SEO Content Automation & Keyword Research Platform</title>
+    <meta name="description" content="Automate your SEO content strategy with AI. Generate high-quality articles, discover winning keywords, research trending topics, and boost organic rankings with Sparti's all-in-one SEO automation platform." />
+    <meta name="author" content="Sparti" />
+
+    <meta property="og:title" content="Sparti - AI SEO Content Automation Platform" />
+    <meta property="og:description" content="Automate SEO content creation with AI-powered article generation, keyword research, and topic discovery. Scale your organic traffic with Sparti's intelligent content automation." />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@lovable_dev" />
+    <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+    
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=AW-17263846214"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'AW-17263846214');
+    </script>
+    
+    <!-- Facebook Pixel Code -->
+    <script>
+      !function(f,b,e,v,n,t,s)
+      {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+      n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+      if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+      n.queue=[];t=b.createElement(e);t.async=!0;
+      t.src=v;s=b.getElementsByTagName(e)[0];
+      s.parentNode.insertBefore(t,s)}(window, document,'script',
+      'https://connect.facebook.net/en_US/fbevents.js');
+      fbq('init', '1374869373806724');
+      fbq('track', 'PageView');
+    </script>
+    <!-- End Facebook Pixel Code -->
+    
+    <!-- Korean Futuristic Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Montserrat:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Brevo Chat Widget Custom Styling -->
+    <style>
+      /* Customize Brevo chat widget with Sparti brand colors */
+      #brevo-conversations-widget {
+        --primary-color: hsl(190, 100%, 50%) !important;
+        --primary-hover-color: hsl(190, 100%, 45%) !important;
+      }
+      
+      /* Style the chat button */
+      .brevo-conversations-launcher {
+        background: linear-gradient(135deg, hsl(190, 100%, 50%), hsl(190, 100%, 40%)) !important;
+        box-shadow: 0 4px 20px hsla(190, 100%, 50%, 0.4) !important;
+      }
+      
+      .brevo-conversations-launcher:hover {
+        background: linear-gradient(135deg, hsl(190, 100%, 45%), hsl(190, 100%, 35%)) !important;
+        box-shadow: 0 6px 24px hsla(190, 100%, 50%, 0.6) !important;
+      }
+      
+      /* Style the chat header */
+      .brevo-conversations-header {
+        background: linear-gradient(135deg, hsl(190, 100%, 50%), hsl(190, 100%, 40%)) !important;
+      }
+      
+      /* Hide "Powered by Brevo" branding */
+      .brevo-conversations-branding,
+      .brevo-conversations-footer,
+      [class*="brevo-conversations"][class*="branding"],
+      [class*="brevo-conversations"][class*="powered"],
+      a[href*="brevo.com"],
+      a[href*="sendinblue.com"] {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        height: 0 !important;
+        overflow: hidden !important;
+      }
+      
+      /* Style message bubbles */
+      .brevo-conversations-message-sent {
+        background: hsl(190, 100%, 50%) !important;
+      }
+      
+      /* Style input field focus */
+      .brevo-conversations-input:focus {
+        border-color: hsl(190, 100%, 50%) !important;
+        box-shadow: 0 0 0 2px hsla(190, 100%, 50%, 0.2) !important;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- Facebook Pixel Noscript -->
+    <noscript><img height="1" width="1" style="display:none"
+      src="https://www.facebook.com/tr?id=1374869373806724&ev=PageView&noscript=1"
+    /></noscript>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- Brevo Conversations -->
+    <script>
+        (function(d, w, c) {
+            w.BrevoConversationsID = '68df40d71f4f328a32040bea';
+            w[c] = w[c] || function() {
+                (w[c].q = w[c].q || []).push(arguments);
+            };
+            var s = d.createElement('script');
+            s.async = true;
+            s.src = 'https://conversations-widget.brevo.com/brevo-conversations.js';
+            if (d.head) d.head.appendChild(s);
+            
+            // Track Brevo chat messages as Google Ads conversions
+            w[c]('onReady', function() {
+                w[c]('onMessage', function(message) {
+                    // Track when user sends a message (lead generation)
+                    if (message.author === 'visitor' && typeof gtag !== 'undefined') {
+                        gtag('event', 'conversion', {
+                            'send_to': 'AW-17263846214/4aH-COXIaOTaEMbOhah1',
+                            'value': 0,
+                            'currency': 'SGD'
+                        });
+                    }
+                });
+            });
+        })(document, window, 'BrevoConversations');
+    </script>
+    <!-- /Brevo Conversations -->
+  </body>
+</html>

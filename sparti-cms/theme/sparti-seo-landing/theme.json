@@ -1,0 +1,22 @@
+{
+  "name": "Sparti SEO Landing",
+  "description": "Modern AI-powered SEO automation landing page with interactive features, pricing tables, and conversion-optimized design",
+  "version": "1.0.0",
+  "author": "Sparti",
+  "is_active": true,
+  "category": "saas",
+  "tags": ["ai", "seo", "automation", "saas", "landing-page", "conversion"],
+  "features": [
+    "AI-powered SEO automation showcase",
+    "Interactive feature demonstrations", 
+    "Animated hero section with floating icons",
+    "Sparti vs competitors comparison",
+    "Dynamic pricing tables with billing toggle",
+    "Testimonials with motion animations",
+    "Mobile-first responsive design",
+    "Conversion-optimized CTAs"
+  ],
+  "preview_image": "assets/hero-background.jpg",
+  "demo_url": "/theme/sparti-seo-landing",
+  "documentation_url": "/docs/themes/sparti-seo-landing"
+}

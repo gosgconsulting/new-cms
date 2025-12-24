@@ -20,6 +20,9 @@ app.use(corsMiddleware);
 // Routes (includes access key authentication middleware)
 app.use(routes);
 
+// Serve theme assets from sparti-cms/theme directory
+app.use('/theme', express.static(join(__dirname, '..', 'sparti-cms', 'theme')));
+
 // Serve static files from the 'public' directory
 app.use(express.static(join(__dirname, '..', 'public')));
 

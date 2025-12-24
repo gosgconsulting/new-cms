@@ -1,0 +1,86 @@
+project_id = "fkemumodynkaeojrrkbj"
+
+[functions.apify-hotels]
+verify_jwt = false
+
+[functions.hotel-details-firecrawl]
+verify_jwt = false
+
+[functions.quick-setup-website-analysis]
+verify_jwt = false
+
+[functions.quick-setup-ai-questions]
+verify_jwt = false
+
+[functions.quick-setup-keyword-extraction]
+verify_jwt = false
+
+[functions.quick-setup-seo-objective]
+verify_jwt = false
+
+[functions.quick-setup-sitemap-discovery]
+verify_jwt = false
+
+[functions.quick-setup-source-discovery]
+verify_jwt = false
+
+[functions.quick-setup-longtail-variants]
+verify_jwt = false
+
+[functions.quick-setup-source-fetching]
+verify_jwt = false
+
+[functions.quick-setup-competitor-analysis]
+verify_jwt = false
+
+[functions.quick-setup-topic-generation]
+verify_jwt = false
+
+[functions.quick-setup-intent-analysis]
+verify_jwt = false
+
+[functions.analyze-source-content]
+verify_jwt = false
+
+[functions.sync-brevo-contact]
+verify_jwt = false
+
+[functions.openrouter-chat]
+verify_jwt = false
+
+[functions.stripe-setup-session]
+verify_jwt = true
+
+[functions.topic-research-webhook]
+verify_jwt = false
+
+[functions.generate-backlink-topics]
+verify_jwt = false
+
+[functions.generate-meta-description]
+verify_jwt = true
+
+[functions.quick-setup-backlink-discovery]
+verify_jwt = false
+
+[functions.quick-setup-internal-backlinks]
+verify_jwt = false
+
+[functions.cancel-subscription]
+verify_jwt = true
+
+[functions.content-writing-unified]
+verify_jwt = true
+
+[functions.assets-website-analysis]
+verify_jwt = false
+
+[functions.assets-marketing-hooks]
+verify_jwt = false
+
+[functions.assets-generate]
+verify_jwt = false
+
+[functions.generate-colors]
+verify_jwt = false
+

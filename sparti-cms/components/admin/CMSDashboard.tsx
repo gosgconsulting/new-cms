@@ -123,19 +123,24 @@ const BlogManager = () => {
   );
 };
 
-const SettingsManager = () => {
+interface SettingsManagerProps {
+  mode?: 'tenants' | 'theme';
+  currentThemeId?: string | null;
+}
+
+const SettingsManager: React.FC<SettingsManagerProps> = ({ mode = 'tenants', currentThemeId }) => {
   const [activeSettingsTab, setActiveSettingsTab] = useState('branding');
 
   const renderSettingsContent = () => {
     switch (activeSettingsTab) {
       case 'branding':
-        return <BrandingSettingsPage />;
+        return <BrandingSettingsPage mode={mode} currentThemeId={currentThemeId} />;
       case 'styles':
         return <StylesSettingsPage />;
       case 'access-keys':
         return <AccessKeysManager />;
       default:
-        return <BrandingSettingsPage />;
+        return <BrandingSettingsPage mode={mode} currentThemeId={currentThemeId} />;
     }
   };
 
@@ -265,7 +270,10 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({ hideSidebar = false }) => {
       case 'media':
         return <MediaManager />;
       case 'contacts':
-        return <ContactsManager />;
+        return <ContactsManager 
+          mode={mode} 
+          currentThemeId={mode === 'theme' ? currentThemeId : null}
+        />;
       case 'forms':
         return <FormsManager />;
       case 'smtp':
@@ -275,7 +283,10 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({ hideSidebar = false }) => {
       case 'users':
         return <UsersManager />;
       case 'settings':
-        return <SettingsManager />;
+        return <SettingsManager 
+          mode={mode} 
+          currentThemeId={mode === 'theme' ? currentThemeId : null}
+        />;
       case 'developer':
         return <DeveloperManager />;
       case 'redirects':

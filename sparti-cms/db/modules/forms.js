@@ -117,8 +117,8 @@ export async function saveFormSubmission(formData) {
     // Save to both old and new tables for compatibility
     const legacyResult = await query(`
       INSERT INTO form_submissions 
-        (form_id, form_name, name, email, phone, company, message, status, ip_address, user_agent, submitted_at)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, CURRENT_TIMESTAMP)
+        (form_id, form_name, name, email, phone, company, message, status, ip_address, user_agent, tenant_id, submitted_at)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, CURRENT_TIMESTAMP)
       RETURNING *
     `, [
       formData.form_id,
@@ -130,7 +130,8 @@ export async function saveFormSubmission(formData) {
       formData.message || null,
       formData.status || 'new',
       formData.ip_address || null,
-      formData.user_agent || null
+      formData.user_agent || null,
+      formData.tenant_id || null
     ]);
     
     // Also save to new forms database for integration

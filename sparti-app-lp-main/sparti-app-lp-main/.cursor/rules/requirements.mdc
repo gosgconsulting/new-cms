@@ -1,0 +1,10 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+
+Always map all feature dependencies before any change, then isolate and test the exact code section first.
+Make one micro-change at a time only, immediately verify the changed feature works, and always retest all mapped dependencies after each change.
+Never work on assumptions - if you lack API documentation, configuration details, or any critical information, you must ask clarifying questions.
+Working autonomously unless you are blocked and need my approval for missing information or clarification.

@@ -4,7 +4,9 @@ import {
   getPageWithLayout,
   getSiteSchema,
   getSiteSettingByKey,
-  getsitesettingsbytenant
+  getsitesettingsbytenant,
+  getThemeSettings,
+  getBrandingSettings
 } from '../../sparti-cms/db/index.js';
 import models, { sequelize } from '../../sparti-cms/db/sequelize/models/index.js';
 import { Op } from 'sequelize';
@@ -495,6 +497,101 @@ router.get('/settings/:key', async (req, res) => {
   } catch (error) {
     console.error('[testing] Error fetching setting:', error);
     res.status(500).json(errorResponse(error, 'FETCH_SETTING_ERROR'));
+  }
+});
+
+/**
+ * GET /api/v1/theme/:themeSlug/settings
+ * Get all public settings for a theme (filtered by tenant from subdomain/header)
+ */
+router.get('/theme/:themeSlug/settings', async (req, res) => {
+  try {
+    const tenantId = req.tenantId;
+    const { themeSlug } = req.params;
+    
+    if (!tenantId) {
+      return res.status(400).json(errorResponse('Tenant ID is required', 'TENANT_ID_REQUIRED', 400));
+    }
+    
+    const settings = await getThemeSettings(tenantId, themeSlug);
+    
+    // Filter only public settings
+    const publicSettings = {};
+    Object.keys(settings).forEach(category => {
+      publicSettings[category] = {};
+      // Note: Individual settings' is_public flag would need to be checked
+      // For now, we return all settings from getThemeSettings
+      // In production, you might want to filter by is_public per setting
+      Object.assign(publicSettings[category], settings[category]);
+    });
+    
+    res.json(successResponse(publicSettings, tenantId));
+  } catch (error) {
+    console.error('[testing] Error fetching theme settings:', error);
+    res.status(500).json(errorResponse(error, 'FETCH_THEME_SETTINGS_ERROR'));
+  }
+});
+
+/**
+ * GET /api/v1/theme/:themeSlug/branding
+ * Get public branding settings for a theme
+ */
+router.get('/theme/:themeSlug/branding', async (req, res) => {
+  try {
+    // Get tenant ID from middleware, query param, or default to tenant-gosg
+    const tenantId = req.tenantId || req.query.tenantId || req.query.tenantId || 'tenant-gosg';
+    const { themeSlug } = req.params;
+    
+    console.log(`[testing] Fetching branding for theme: ${themeSlug}, tenant: ${tenantId}`);
+    
+    const settings = await getBrandingSettings(tenantId, themeSlug);
+    
+    console.log(`[testing] Branding settings retrieved:`, Object.keys(settings.branding || {}));
+    
+    res.json(successResponse(settings.branding || {}, tenantId));
+  } catch (error) {
+    console.error('[testing] Error fetching theme branding:', error);
+    res.status(500).json(errorResponse(error, 'FETCH_THEME_BRANDING_ERROR'));
+  }
+});
+
+/**
+ * GET /api/v1/theme/:themeSlug/styles
+ * Get public style settings for a theme
+ */
+router.get('/theme/:themeSlug/styles', async (req, res) => {
+  try {
+    // Get tenant ID from middleware, query param, or default to tenant-gosg
+    const tenantId = req.tenantId || req.query.tenantId || 'tenant-gosg';
+    const { themeSlug } = req.params;
+    
+    console.log(`[testing] Fetching styles for theme: ${themeSlug}, tenant: ${tenantId}`);
+    
+    const setting = await getSiteSettingByKey('theme_styles', tenantId, themeSlug);
+    
+    if (!setting) {
+      console.log(`[testing] No styles found for theme: ${themeSlug}, tenant: ${tenantId}`);
+      return res.json(successResponse({}, tenantId));
+    }
+    
+    // Check if setting is public (if is_public is false, still return it for theme-specific styles)
+    // Theme styles should be accessible if they exist
+    let styles = {};
+    if (setting.setting_value) {
+      try {
+        styles = typeof setting.setting_value === 'string' 
+          ? JSON.parse(setting.setting_value) 
+          : setting.setting_value;
+        console.log(`[testing] Styles retrieved for theme: ${themeSlug}`, Object.keys(styles));
+      } catch (e) {
+        console.error('[testing] Error parsing theme styles:', e);
+      }
+    }
+    
+    res.json(successResponse(styles, tenantId));
+  } catch (error) {
+    console.error('[testing] Error fetching theme styles:', error);
+    res.status(500).json(errorResponse(error, 'FETCH_THEME_STYLES_ERROR'));
   }
 });
 

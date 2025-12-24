@@ -22,7 +22,9 @@ export {
   updateSiteSettingByKey,
   updateSEOSettings,
   migrateLogoToDatabase,
-  migrateFaviconToDatabase
+  migrateFaviconToDatabase,
+  getThemeSettings,
+  getThemeStyles
 } from './modules/branding.js';
 
 // Forms

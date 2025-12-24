@@ -13,6 +13,8 @@ import {
   MessageSquare
 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useAuth } from '../auth/AuthProvider';
+import { api } from '../../utils/api';
 
 interface Contact {
   id: string;
@@ -32,7 +34,13 @@ interface ContactsData {
   offset: number;
 }
 
-const ContactsManager: React.FC = () => {
+interface ContactsManagerProps {
+  mode?: 'tenants' | 'theme';
+  currentThemeId?: string | null;
+}
+
+const ContactsManager: React.FC<ContactsManagerProps> = ({ mode = 'tenants', currentThemeId }) => {
+  const { user, currentTenantId } = useAuth();
   const [activeTab, setActiveTab] = useState('contacts');
   const [currentPage, setCurrentPage] = useState(1);
   const [contactsData, setContactsData] = useState<ContactsData>({
@@ -61,8 +69,8 @@ const ContactsManager: React.FC = () => {
     setError(null);
     
     try {
-      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4173';
-      const response = await fetch(`${API_BASE_URL}/api/contacts?limit=100&search=${encodeURIComponent(search)}`);
+      // Use the authenticated API utility which includes tenant context
+      const response = await api.get(`/api/contacts?limit=100&search=${encodeURIComponent(search)}`);
       
       if (!response.ok) {
         throw new Error('Failed to fetch contacts');
@@ -105,8 +113,8 @@ const ContactsManager: React.FC = () => {
 
   const loadLeads = async () => {
     try {
-      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4173';
-      const response = await fetch(`${API_BASE_URL}/api/form-submissions/contact-modal`);
+      // Use the authenticated API utility which includes tenant context
+      const response = await api.get('/api/form-submissions/contact-modal');
       
       if (!response.ok) {
         throw new Error('Failed to fetch leads');
@@ -227,6 +235,16 @@ const ContactsManager: React.FC = () => {
         </h2>
         <p className="text-gray-600 mt-1">
           Manage your contact database and leads
+          {mode === 'theme' && currentThemeId && (
+            <span className="ml-2 text-sm text-purple-600 font-medium">
+              (Theme: {currentThemeId})
+            </span>
+          )}
+          {mode === 'tenants' && currentTenantId && (
+            <span className="ml-2 text-sm text-blue-600 font-medium">
+              (Tenant: {currentTenantId})
+            </span>
+          )}
         </p>
       </div>
       </div>

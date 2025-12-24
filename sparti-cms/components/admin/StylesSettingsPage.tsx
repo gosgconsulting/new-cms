@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Palette, Save, Eye, Type, RefreshCw, Sparkles } from 'lucide-react';
+import { Palette, Save, Eye, Type, RefreshCw, Sparkles, Link2, FileText, ExternalLink } from 'lucide-react';
 import { useAuth } from '../auth/AuthProvider';
 import api from '../../utils/api';
+import { useQuery } from '@tanstack/react-query';
 
 interface TypographySettings {
   fontSans: string;
@@ -189,35 +190,68 @@ const StylesSettingsPage: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [activeColorGroup, setActiveColorGroup] = useState<'primary' | 'secondary' | 'base' | 'accent'>('primary');
   const [activeSection, setActiveSection] = useState<'colors' | 'typography'>('colors');
+  const [currentThemeId, setCurrentThemeId] = useState<string | null>(null);
+
+  // Fetch current tenant to get theme_id
+  const { data: tenant } = useQuery({
+    queryKey: ['tenant', currentTenantId],
+    queryFn: async () => {
+      if (!currentTenantId) return null;
+      try {
+        const response = await api.get(`/api/tenants`);
+        if (response.ok) {
+          const tenants = await response.json();
+          return tenants.find((t: any) => t.id === currentTenantId) || null;
+        }
+        return null;
+      } catch (error) {
+        console.error('Error fetching tenant:', error);
+        return null;
+      }
+    },
+    enabled: !!currentTenantId,
+  });
+
+  // Get theme_id from tenant
+  useEffect(() => {
+    if (tenant?.theme_id) {
+      setCurrentThemeId(tenant.theme_id);
+    } else {
+      // Default to 'landingpage' for now (hardcoded as requested)
+      setCurrentThemeId('landingpage');
+    }
+  }, [tenant]);
 
   // Load saved styles from API
   useEffect(() => {
     const loadStyles = async () => {
-      if (!currentTenantId) return;
+      if (!currentTenantId || !currentThemeId) return;
       
       try {
         setLoading(true);
-        const response = await api.get(`/api/settings/site-settings/theme_styles?tenantId=${encodeURIComponent(currentTenantId)}`);
+        // Use theme-specific styles endpoint
+        const endpoint = `/api/settings/theme/${encodeURIComponent(currentThemeId)}/styles?tenantId=${encodeURIComponent(currentTenantId)}`;
+        const response = await api.get(endpoint);
         if (response.ok) {
-          const data = await response.json();
-          if (data.setting_value) {
-            try {
-              const savedStyles = JSON.parse(data.setting_value);
-              setStyles({ ...defaultStyles, ...savedStyles });
-            } catch (e) {
-              console.error('Error parsing saved styles:', e);
-            }
+          const savedStyles = await response.json();
+          if (savedStyles && Object.keys(savedStyles).length > 0) {
+            // Remove theme_id and css_path if present (they're metadata, not style properties)
+            const { theme_id, css_path, ...styleProperties } = savedStyles;
+            setStyles({ ...defaultStyles, ...styleProperties });
+            console.log('[testing] Loaded styles from database for theme:', currentThemeId);
+          } else {
+            console.log('[testing] No saved styles found, using defaults');
           }
         }
       } catch (error) {
-        console.log('No saved styles found, using defaults');
+        console.log('[testing] No saved styles found, using defaults:', error);
       } finally {
         setLoading(false);
       }
     };
 
     loadStyles();
-  }, [currentTenantId]);
+  }, [currentTenantId, currentThemeId]);
 
   const handleColorChange = (field: keyof Omit<ThemeStyles, 'typography'>, value: string) => {
     setStyles(prev => ({
@@ -244,21 +278,30 @@ const StylesSettingsPage: React.FC = () => {
   };
 
   const handleSave = async () => {
-    if (!currentTenantId) return;
+    if (!currentTenantId || !currentThemeId) {
+      alert('Please select a tenant and ensure a theme is assigned');
+      return;
+    }
     
     try {
       setSaving(true);
-      const response = await api.put(`/api/settings/site-settings/theme_styles?tenantId=${encodeURIComponent(currentTenantId)}`, {
-        setting_value: JSON.stringify(styles),
-        setting_type: 'json',
-        setting_category: 'theme'
-      });
+      
+      // Use theme-specific endpoint to save styles
+      const response = await api.put(
+        `/api/settings/theme/${encodeURIComponent(currentThemeId)}/theme_styles?tenantId=${encodeURIComponent(currentTenantId)}`,
+        {
+          setting_value: JSON.stringify(styles),
+          setting_type: 'json',
+          setting_category: 'theme'
+        }
+      );
       
       if (response.ok) {
-        applyStylesToDocument(styles);
-        alert('Styles saved successfully!');
+        alert(`Styles saved successfully to database!\n\nTheme: ${currentThemeId}\nTenant: ${currentTenantId}\n\nStyles are now stored in the database and will be applied to your theme pages.`);
       } else {
-        alert('Failed to save styles');
+        const errorText = await response.text();
+        console.error('[testing] Save failed:', errorText);
+        alert('Failed to save styles. Please check the console for details.');
       }
     } catch (error) {
       console.error('Error saving styles:', error);
@@ -267,42 +310,6 @@ const StylesSettingsPage: React.FC = () => {
       setSaving(false);
     }
   };
-
-  const applyStylesToDocument = (stylesToApply: ThemeStyles) => {
-    const root = document.documentElement;
-    
-    // Apply CSS variables
-    root.style.setProperty('--primary', stylesToApply.primary);
-    root.style.setProperty('--primary-foreground', stylesToApply.primaryForeground);
-    root.style.setProperty('--secondary', stylesToApply.secondary);
-    root.style.setProperty('--secondary-foreground', stylesToApply.secondaryForeground);
-    root.style.setProperty('--background', stylesToApply.background);
-    root.style.setProperty('--foreground', stylesToApply.foreground);
-    root.style.setProperty('--card', stylesToApply.card);
-    root.style.setProperty('--card-foreground', stylesToApply.cardForeground);
-    root.style.setProperty('--accent', stylesToApply.accent);
-    root.style.setProperty('--accent-foreground', stylesToApply.accentForeground);
-    root.style.setProperty('--muted', stylesToApply.muted);
-    root.style.setProperty('--muted-foreground', stylesToApply.mutedForeground);
-    root.style.setProperty('--border', stylesToApply.border);
-    root.style.setProperty('--input', stylesToApply.input);
-    root.style.setProperty('--ring', stylesToApply.ring);
-    root.style.setProperty('--destructive', stylesToApply.destructive);
-    root.style.setProperty('--destructive-foreground', stylesToApply.destructiveForeground);
-    
-    // Apply typography
-    root.style.setProperty('--font-sans', stylesToApply.typography.fontSans);
-    root.style.setProperty('--font-serif', stylesToApply.typography.fontSerif);
-    root.style.setProperty('--font-mono', stylesToApply.typography.fontMono);
-    root.style.setProperty('--font-base-size', stylesToApply.typography.baseFontSize);
-    root.style.setProperty('--font-heading-scale', stylesToApply.typography.headingScale);
-    root.style.setProperty('--font-line-height', stylesToApply.typography.lineHeight);
-  };
-
-  // Apply styles on mount and when styles change
-  useEffect(() => {
-    applyStylesToDocument(styles);
-  }, [styles]);
 
   const colorGroups = {
     primary: [
@@ -364,6 +371,14 @@ const StylesSettingsPage: React.FC = () => {
     );
   }
 
+  const themeCssPath = currentThemeId 
+    ? `/theme/${currentThemeId}/theme.css`
+    : null;
+
+  const themeCssUrl = currentThemeId
+    ? `${window.location.origin}/theme/${currentThemeId}/theme.css`
+    : null;
+
   return (
     <div className="space-y-8">
       <div>
@@ -372,9 +387,59 @@ const StylesSettingsPage: React.FC = () => {
           Theme Styles
         </h3>
         <p className="text-muted-foreground">
-          Customize the color scheme and typography for the Landing Page theme. Changes are applied in real-time.
+          Manage styles for your theme. Styles are linked to your theme's CSS file and applied to the theme pages.
         </p>
       </div>
+
+      {/* Theme CSS File Information */}
+      {currentThemeId && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+          <div className="flex items-start gap-4">
+            <div className="flex-shrink-0">
+              <Link2 className="h-6 w-6 text-blue-600" />
+            </div>
+            <div className="flex-1">
+              <h4 className="text-lg font-semibold text-blue-900 mb-2 flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                Linked Theme CSS File
+              </h4>
+              <p className="text-sm text-blue-800 mb-3">
+                Your styles are linked to the theme's CSS file. Changes you make here will be saved to the theme's stylesheet.
+              </p>
+              <div className="bg-white rounded-md p-4 border border-blue-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-700 mb-1">Theme:</p>
+                    <p className="text-lg font-semibold text-gray-900">{currentThemeId}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-medium text-gray-700 mb-1">CSS File Path:</p>
+                    <code className="text-sm text-gray-900 bg-gray-50 px-2 py-1 rounded">
+                      {themeCssPath}
+                    </code>
+                  </div>
+                </div>
+                {themeCssUrl && (
+                  <div className="mt-3 pt-3 border-t border-blue-200">
+                    <a
+                      href={themeCssUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 font-medium"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                      View Theme CSS File
+                    </a>
+                  </div>
+                )}
+              </div>
+              <p className="text-xs text-blue-700 mt-3">
+                ✅ <strong>Note:</strong> Styles are now stored in the database and applied dynamically to your theme. Changes take effect immediately.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Quick Style Presets */}
       <div className="bg-white rounded-lg border border-border p-6">

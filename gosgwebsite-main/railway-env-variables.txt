@@ -1,0 +1,9 @@
+# Database Configuration - Railway PostgreSQL Variable
+DATABASE_PUBLIC_URL=${{Postgres.DATABASE_PUBLIC_URL}}
+
+# Frontend Configuration
+VITE_BACKEND_SERVER_URL=https://gosgconsulting.com
+
+# Notes:
+# - DATABASE_PUBLIC_URL is provided automatically by Railway's Postgres service
+# - VITE_BACKEND_SERVER_URL should be your app's public domain (used by the frontend)

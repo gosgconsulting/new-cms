@@ -1,0 +1,51 @@
+{
+  "pages": [
+    {
+      "page_name": "Homepage", 
+      "slug": "/",
+      "meta_title": "Research, Write & Rank on Complete Autopilot - Sparti AI SEO",
+      "meta_description": "AI-powered SEO automation platform. Research trending topics, generate optimized articles, and schedule them across all platforms automatically.",
+      "seo_index": true,
+      "status": "published", 
+      "page_type": "page",
+      "keywords": ["ai seo", "content automation", "keyword research", "automated publishing", "seo tools"],
+      "sections": [
+        {
+          "id": "hero",
+          "name": "Hero Section",
+          "description": "AI-powered SEO hero with floating icons and search volume chart"
+        },
+        {
+          "id": "workflow",
+          "name": "SEO Workflow Section",
+          "description": "SEO importance and automation workflow demonstration"
+        },
+        {
+          "id": "comparison",
+          "name": "Comparison Section",
+          "description": "Sparti vs Generic AI feature comparison"
+        },
+        {
+          "id": "features",
+          "name": "Features Section",
+          "description": "Detailed feature showcase with image carousels"
+        },
+        {
+          "id": "interactive-seo",
+          "name": "Interactive SEO Section",
+          "description": "Interactive SEO demonstration and tools"
+        },
+        {
+          "id": "testimonials",
+          "name": "Testimonials Section",
+          "description": "User testimonials with motion animations"
+        },
+        {
+          "id": "pricing",
+          "name": "Pricing Section",
+          "description": "Subscription plans with billing toggle and feature comparison"
+        }
+      ]
+    }
+  ]
+}

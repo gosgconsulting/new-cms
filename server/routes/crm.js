@@ -1,4 +1,5 @@
 import express from 'express';
+import { authenticateUser } from '../middleware/auth.js';
 import {
   getContacts,
   getContact,
@@ -19,15 +20,18 @@ const router = express.Router();
 
 // ===== CONTACTS ROUTES =====
 
-// Get all contacts
-router.get('/contacts', async (req, res) => {
+// Get all contacts (filtered by tenant)
+router.get('/contacts', authenticateUser, async (req, res) => {
   try {
     const limit = parseInt(req.query.limit) || 50;
     const offset = parseInt(req.query.offset) || 0;
     const search = req.query.search || '';
     
-    console.log('[testing] API: Getting contacts', { limit, offset, search });
-    const result = await getContacts(limit, offset, search);
+    // Get tenant ID from authenticated user
+    const tenantId = req.tenantId || req.user.tenant_id;
+    
+    console.log('[testing] API: Getting contacts', { limit, offset, search, tenantId });
+    const result = await getContacts(limit, offset, search, tenantId);
     res.json(result);
   } catch (error) {
     console.error('[testing] API: Error getting contacts:', error);
@@ -35,12 +39,16 @@ router.get('/contacts', async (req, res) => {
   }
 });
 
-// Get contact by ID
-router.get('/contacts/:id', async (req, res) => {
+// Get contact by ID (filtered by tenant)
+router.get('/contacts/:id', authenticateUser, async (req, res) => {
   try {
     const { id } = req.params;
-    console.log('[testing] API: Getting contact:', id);
-    const contact = await getContact(id);
+    
+    // Get tenant ID from authenticated user
+    const tenantId = req.tenantId || req.user.tenant_id;
+    
+    console.log('[testing] API: Getting contact:', id, 'for tenant:', tenantId);
+    const contact = await getContact(id, tenantId);
     
     if (!contact) {
       return res.status(404).json({ error: 'Contact not found' });
@@ -54,10 +62,13 @@ router.get('/contacts/:id', async (req, res) => {
 });
 
 // Create new contact
-router.post('/contacts', async (req, res) => {
+router.post('/contacts', authenticateUser, async (req, res) => {
   try {
-    console.log('[testing] API: Creating contact:', req.body);
-    const contact = await createContact(req.body);
+    // Get tenant ID from authenticated user
+    const tenantId = req.tenantId || req.user.tenant_id;
+    
+    console.log('[testing] API: Creating contact:', req.body, 'for tenant:', tenantId);
+    const contact = await createContact(req.body, tenantId);
     res.json({ success: true, contact });
   } catch (error) {
     console.error('[testing] API: Error creating contact:', error);
@@ -66,10 +77,20 @@ router.post('/contacts', async (req, res) => {
 });
 
 // Update contact
-router.put('/contacts/:id', async (req, res) => {
+router.put('/contacts/:id', authenticateUser, async (req, res) => {
   try {
     const { id } = req.params;
-    console.log('[testing] API: Updating contact:', id, req.body);
+    
+    // Get tenant ID from authenticated user
+    const tenantId = req.tenantId || req.user.tenant_id;
+    
+    // First check if contact exists and belongs to tenant
+    const existingContact = await getContact(id, tenantId);
+    if (!existingContact) {
+      return res.status(404).json({ error: 'Contact not found' });
+    }
+    
+    console.log('[testing] API: Updating contact:', id, req.body, 'for tenant:', tenantId);
     const contact = await updateContact(id, req.body);
     res.json({ success: true, contact });
   } catch (error) {
@@ -79,10 +100,20 @@ router.put('/contacts/:id', async (req, res) => {
 });
 
 // Delete contact
-router.delete('/contacts/:id', async (req, res) => {
+router.delete('/contacts/:id', authenticateUser, async (req, res) => {
   try {
     const { id } = req.params;
-    console.log('[testing] API: Deleting contact:', id);
+    
+    // Get tenant ID from authenticated user
+    const tenantId = req.tenantId || req.user.tenant_id;
+    
+    // First check if contact exists and belongs to tenant
+    const existingContact = await getContact(id, tenantId);
+    if (!existingContact) {
+      return res.status(404).json({ error: 'Contact not found' });
+    }
+    
+    console.log('[testing] API: Deleting contact:', id, 'for tenant:', tenantId);
     await deleteContact(id);
     res.json({ success: true, message: 'Contact deleted successfully' });
   } catch (error) {

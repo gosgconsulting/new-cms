@@ -1,0 +1,26 @@
+{
+  "name": "GO SG Consulting",
+  "description": "Complete full-stack digital growth solution theme with dynamic page rendering, advanced components, and comprehensive blog functionality",
+  "version": "2.0.0",
+  "author": "GOSG",
+  "is_active": true,
+  "category": "business",
+  "tags": ["digital-marketing", "seo", "consulting", "blog", "dynamic-rendering", "full-stack"],
+  "features": [
+    "Dynamic page rendering system",
+    "Advanced hero section with animations",
+    "Challenge/problem-solution layout",
+    "Services gallery showcase",
+    "Pricing page with multiple plans",
+    "Complete blog system with WordPress integration",
+    "Contact forms and modals",
+    "WhatsApp integration",
+    "SEO optimization",
+    "Mobile responsive design",
+    "Advanced animations and transitions",
+    "Popup context management"
+  ],
+  "preview_image": "assets/go-sg-logo-official.png",
+  "demo_url": "/theme/gosgconsulting",
+  "documentation_url": "/docs/themes/gosg-consulting"
+}

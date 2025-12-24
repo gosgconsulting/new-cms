@@ -209,7 +209,12 @@ const timezones = [
   { code: 'PETT', name: 'PETT - Kamchatka Time', offset: '+12:00' }
 ].sort((a, b) => a.name.localeCompare(b.name));
 
-const BrandingSettingsPage: React.FC = () => {
+interface BrandingSettingsPageProps {
+  mode?: 'tenants' | 'theme';
+  currentThemeId?: string | null;
+}
+
+const BrandingSettingsPage: React.FC<BrandingSettingsPageProps> = ({ mode = 'tenants', currentThemeId }) => {
   const { currentTenantId } = useAuth();
   const [brandingData, setBrandingData] = useState({
     site_name: '',
@@ -239,9 +244,14 @@ const BrandingSettingsPage: React.FC = () => {
         setIsLoading(true);
         // Use the API utility with tenant ID
         console.log(`[testing] Fetching branding settings with tenant ID: ${currentTenantId || 'default'}`);
-        const endpoint = currentTenantId 
+        // Build endpoint with theme context if in theme mode
+        let endpoint = currentTenantId 
           ? `/api/branding?tenantId=${encodeURIComponent(currentTenantId)}`
           : '/api/branding';
+        
+        if (mode === 'theme' && currentThemeId) {
+          endpoint += `&themeId=${encodeURIComponent(currentThemeId)}`;
+        }
         
         console.log(`[testing] Making authenticated API call to: ${endpoint}`);
         const response = await api.get(endpoint);
@@ -322,7 +332,7 @@ const BrandingSettingsPage: React.FC = () => {
     };
 
     loadBrandingSettings();
-  }, [currentTenantId]);
+  }, [currentTenantId, mode, currentThemeId]);
   
   // Function to load language settings
   const loadLanguageSettings = async () => {
@@ -413,13 +423,22 @@ const BrandingSettingsPage: React.FC = () => {
 
       console.log(`[testing] Saving branding settings for tenant ${currentTenantId}:`, settingsToSave);
       
-      // Use the API utility with tenant ID
-      const endpoint = currentTenantId 
+      // Use the API utility with tenant ID and theme context
+      let endpoint = currentTenantId 
         ? `/api/branding?tenantId=${encodeURIComponent(currentTenantId)}`
         : '/api/branding';
       
-      console.log(`[testing] Making authenticated API call to: ${endpoint}`);
-      const response = await api.post(endpoint, settingsToSave);
+      if (mode === 'theme' && currentThemeId) {
+        endpoint += `&themeId=${encodeURIComponent(currentThemeId)}`;
+      }
+      
+      // Include themeId in request body for updateMultipleBrandingSettings
+      const requestBody = mode === 'theme' && currentThemeId
+        ? { ...settingsToSave, themeId: currentThemeId }
+        : settingsToSave;
+      
+      console.log(`[testing] Making authenticated API call to: ${endpoint}`, requestBody);
+      const response = await api.post(endpoint, requestBody);
       
       if (!response.ok) {
         const errorText = await response.text();
@@ -545,6 +564,16 @@ const BrandingSettingsPage: React.FC = () => {
         <h3 className="text-xl font-semibold text-foreground mb-2">Branding Settings</h3>
         <p className="text-muted-foreground">
           Customize your site's branding elements including name, tagline, logo, and favicon
+          {mode === 'theme' && currentThemeId && (
+            <span className="ml-2 text-sm text-purple-600 font-medium">
+              (Theme: {currentThemeId})
+            </span>
+          )}
+          {mode === 'tenants' && currentTenantId && (
+            <span className="ml-2 text-sm text-blue-600 font-medium">
+              (Tenant: {currentTenantId})
+            </span>
+          )}
         </p>
       </div>
 

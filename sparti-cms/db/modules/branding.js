@@ -6,18 +6,30 @@ import { Op } from 'sequelize';
 const { SiteSchema } = models;
 
 // Branding-specific functions
-export async function getBrandingSettings(tenantId = 'tenant-gosg') {
+export async function getBrandingSettings(tenantId = 'tenant-gosg', themeId = null) {
   try {
-    const result = await query(`
-      SELECT setting_key, setting_value, setting_type, setting_category, is_public, tenant_id
+    let queryText = `
+      SELECT setting_key, setting_value, setting_type, setting_category, is_public, tenant_id, theme_id
       FROM site_settings
       WHERE setting_category IN ('branding', 'seo', 'localization') 
         AND is_public = true
         AND tenant_id = $1
-      ORDER BY setting_category, setting_key
-    `, [tenantId]);
+    `;
+    const params = [tenantId];
+    
+    if (themeId) {
+      queryText += ` AND (theme_id = $2 OR theme_id IS NULL)`;
+      params.push(themeId);
+      queryText += ` ORDER BY theme_id DESC NULLS LAST, setting_category, setting_key`;
+    } else {
+      queryText += ` AND theme_id IS NULL`;
+      queryText += ` ORDER BY setting_category, setting_key`;
+    }
+    
+    const result = await query(queryText, params);
     
     // Convert to object format grouped by category
+    // Prefer theme-specific settings over tenant-only settings
     const settings = {
       branding: {},
       seo: {},
@@ -27,12 +39,15 @@ export async function getBrandingSettings(tenantId = 'tenant-gosg') {
     result.rows.forEach((row) => {
       const category = row.setting_category || 'branding';
       if (!settings[category]) settings[category] = {};
-      settings[category][row.setting_key] = row.setting_value;
+      // Only set if not already set (theme-specific takes precedence)
+      if (!settings[category][row.setting_key] || row.theme_id) {
+        settings[category][row.setting_key] = row.setting_value;
+      }
     });
     
     return settings;
   } catch (error) {
-    console.error(`Error fetching branding settings for tenant ${tenantId}:`, error);
+    console.error(`Error fetching branding settings for tenant ${tenantId}, theme ${themeId}:`, error);
     throw error;
   }
 }
@@ -455,7 +470,7 @@ export async function updateSiteSchema(schemaKey, schemaValue, tenantId, languag
   }
 }
 
-export async function updateMultipleBrandingSettings(settings, tenantId = 'tenant-gosg') {
+export async function updateMultipleBrandingSettings(settings, tenantId = 'tenant-gosg', themeId = null) {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
@@ -463,22 +478,41 @@ export async function updateMultipleBrandingSettings(settings, tenantId = 'tenan
     for (const [key, value] of Object.entries(settings)) {
       const settingType = key.includes('logo') || key.includes('favicon') || key.includes('image') ? 'media' : 
                          key.includes('description') ? 'textarea' : 'text';
+      const category = key.startsWith('site_') ? 'branding' : 
+                      ['country', 'timezone', 'language'].includes(key) ? 'localization' : 'general';
       
-      await client.query(`
-        INSERT INTO site_settings (setting_key, setting_value, setting_type, updated_at, tenant_id)
-        VALUES ($1, $2, $3, CURRENT_TIMESTAMP, $4)
-        ON CONFLICT (setting_key, tenant_id) 
-        DO UPDATE SET 
-          setting_value = EXCLUDED.setting_value,
-          updated_at = CURRENT_TIMESTAMP
-      `, [key, value, settingType, tenantId]);
+      // Check if setting exists
+      const existing = await client.query(`
+        SELECT id FROM site_settings 
+        WHERE setting_key = $1 AND tenant_id = $2 AND (theme_id = $3 OR (theme_id IS NULL AND $3 IS NULL))
+        LIMIT 1
+      `, [key, tenantId, themeId]);
+      
+      if (existing.rows.length > 0) {
+        // Update existing
+        await client.query(`
+          UPDATE site_settings 
+          SET setting_value = $1,
+              setting_type = $2,
+              setting_category = $3,
+              updated_at = CURRENT_TIMESTAMP,
+              theme_id = $4
+          WHERE id = $5
+        `, [value, settingType, category, themeId, existing.rows[0].id]);
+      } else {
+        // Insert new
+        await client.query(`
+          INSERT INTO site_settings (setting_key, setting_value, setting_type, setting_category, updated_at, tenant_id, theme_id)
+          VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP, $5, $6)
+        `, [key, value, settingType, category, tenantId, themeId]);
+      }
     }
     
     await client.query('COMMIT');
     return true;
   } catch (error) {
     await client.query('ROLLBACK');
-    console.error(`Error updating multiple branding settings for tenant ${tenantId}:`, error);
+    console.error(`Error updating multiple branding settings for tenant ${tenantId}, theme ${themeId}:`, error);
     throw error;
   } finally {
     client.release();
@@ -497,40 +531,138 @@ export async function getsitesettingsbytenant(tenantId) {
   }
 }
 
-// Site Settings functions
-export async function getSiteSettingByKey(key, tenantId = 'tenant-gosg') {
+// Get theme styles specifically
+export async function getThemeStyles(tenantId = 'tenant-gosg', themeId = null) {
   try {
-    const result = await query(`
-      SELECT setting_key, setting_value, setting_type, setting_category, is_public, tenant_id
-      FROM site_settings
-      WHERE setting_key = $1 AND tenant_id = $2
-      LIMIT 1
-    `, [key, tenantId]);
-    
-    return result.rows.length > 0 ? result.rows[0] : null;
+    const setting = await getSiteSettingByKey('theme_styles', tenantId, themeId);
+    if (setting && setting.setting_value) {
+      try {
+        return typeof setting.setting_value === 'string' 
+          ? JSON.parse(setting.setting_value) 
+          : setting.setting_value;
+      } catch (e) {
+        console.error(`Error parsing theme styles for tenant ${tenantId}, theme ${themeId}:`, e);
+        return null;
+      }
+    }
+    return null;
   } catch (error) {
-    console.error(`Error fetching site setting for key ${key} and tenant ${tenantId}:`, error);
+    console.error(`Error fetching theme styles for tenant ${tenantId}, theme ${themeId}:`, error);
     throw error;
   }
 }
 
-export async function updateSiteSettingByKey(key, value, type = 'text', category = 'general', tenantId = 'tenant-gosg') {
+// Get all settings for a specific tenant + theme combination
+export async function getThemeSettings(tenantId = 'tenant-gosg', themeId = null) {
   try {
-    const result = await query(`
-      INSERT INTO site_settings (setting_key, setting_value, setting_type, setting_category, updated_at, tenant_id)
-      VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP, $5)
-      ON CONFLICT (setting_key, tenant_id) 
-      DO UPDATE SET 
-        setting_value = EXCLUDED.setting_value,
-        setting_type = COALESCE(EXCLUDED.setting_type, site_settings.setting_type),
-        setting_category = COALESCE(EXCLUDED.setting_category, site_settings.setting_category),
-        updated_at = CURRENT_TIMESTAMP
-      RETURNING *
-    `, [key, value, type, category, tenantId]);
+    let queryText = `
+      SELECT setting_key, setting_value, setting_type, setting_category, is_public, tenant_id, theme_id
+      FROM site_settings
+      WHERE tenant_id = $1
+    `;
+    const params = [tenantId];
     
-    return result.rows[0];
+    if (themeId) {
+      // Get theme-specific settings, with fallback to tenant-only settings
+      queryText += ` AND (theme_id = $2 OR theme_id IS NULL)
+                     ORDER BY theme_id DESC NULLS LAST, setting_category, setting_key`;
+      params.push(themeId);
+    } else {
+      // Get only tenant-level settings (no theme)
+      queryText += ` AND theme_id IS NULL
+                     ORDER BY setting_category, setting_key`;
+    }
+    
+    const result = await query(queryText, params);
+    
+    // Group by category and merge (theme-specific overrides tenant-only)
+    const settings = {};
+    const seenKeys = new Set();
+    
+    result.rows.forEach((row) => {
+      const category = row.setting_category || 'general';
+      if (!settings[category]) settings[category] = {};
+      
+      // Only use theme-specific if we haven't seen this key with a theme_id already
+      const key = `${category}.${row.setting_key}`;
+      if (!seenKeys.has(key) || row.theme_id) {
+        settings[category][row.setting_key] = row.setting_value;
+        if (row.theme_id) {
+          seenKeys.add(key);
+        }
+      }
+    });
+    
+    return settings;
   } catch (error) {
-    console.error(`Error updating site setting for key ${key} and tenant ${tenantId}:`, error);
+    console.error(`Error fetching theme settings for tenant ${tenantId}, theme ${themeId}:`, error);
+    throw error;
+  }
+}
+
+// Site Settings functions
+export async function getSiteSettingByKey(key, tenantId = 'tenant-gosg', themeId = null) {
+  try {
+    let queryText = `
+      SELECT setting_key, setting_value, setting_type, setting_category, is_public, tenant_id, theme_id
+      FROM site_settings
+      WHERE setting_key = $1 AND tenant_id = $2
+    `;
+    const params = [key, tenantId];
+    
+    if (themeId) {
+      // Prefer theme-specific setting, fallback to tenant-only
+      queryText += ` AND (theme_id = $3 OR theme_id IS NULL)
+                     ORDER BY theme_id DESC NULLS LAST
+                     LIMIT 1`;
+      params.push(themeId);
+    } else {
+      queryText += ` AND theme_id IS NULL
+                     LIMIT 1`;
+    }
+    
+    const result = await query(queryText, params);
+    
+    return result.rows.length > 0 ? result.rows[0] : null;
+  } catch (error) {
+    console.error(`Error fetching site setting for key ${key}, tenant ${tenantId}, theme ${themeId}:`, error);
+    throw error;
+  }
+}
+
+export async function updateSiteSettingByKey(key, value, type = 'text', category = 'general', tenantId = 'tenant-gosg', themeId = null) {
+  try {
+    // First, try to find existing setting
+    const existing = await query(`
+      SELECT id FROM site_settings 
+      WHERE setting_key = $1 AND tenant_id = $2 AND (theme_id = $3 OR (theme_id IS NULL AND $3 IS NULL))
+      LIMIT 1
+    `, [key, tenantId, themeId]);
+    
+    if (existing.rows.length > 0) {
+      // Update existing
+      const result = await query(`
+        UPDATE site_settings 
+        SET setting_value = $1,
+            setting_type = $2,
+            setting_category = $3,
+            updated_at = CURRENT_TIMESTAMP,
+            theme_id = $4
+        WHERE id = $5
+        RETURNING *
+      `, [value, type, category, themeId, existing.rows[0].id]);
+      return result.rows[0];
+    } else {
+      // Insert new
+      const result = await query(`
+        INSERT INTO site_settings (setting_key, setting_value, setting_type, setting_category, updated_at, tenant_id, theme_id)
+        VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP, $5, $6)
+        RETURNING *
+      `, [key, value, type, category, tenantId, themeId]);
+      return result.rows[0];
+    }
+  } catch (error) {
+    console.error(`Error updating site setting for key ${key}, tenant ${tenantId}, theme ${themeId}:`, error);
     throw error;
   }
 }

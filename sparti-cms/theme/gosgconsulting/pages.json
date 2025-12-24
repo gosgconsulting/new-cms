@@ -1,0 +1,86 @@
+{
+  "pages": [
+    {
+      "page_name": "Homepage",
+      "slug": "/",
+      "meta_title": "GO SG Consulting - Full-Stack Digital Growth Solution",
+      "meta_description": "Helping brands grow their revenue and leads through comprehensive digital marketing services including SEO, SEM, Social Media Ads, Website Design, and Graphic Design.",
+      "seo_index": true,
+      "status": "published",
+      "page_type": "page",
+      "keywords": ["digital marketing", "SEO", "SEM", "social media ads", "website design", "graphic design", "Singapore", "full-stack"],
+      "sections": [
+        {
+          "id": "hero",
+          "name": "Advanced Hero Section",
+          "description": "Main landing section with animated value proposition, logo, and marketing badges"
+        },
+        {
+          "id": "challenge",
+          "name": "Challenge Section",
+          "description": "Problem/solution layout with animated timeline and pain points"
+        },
+        {
+          "id": "about",
+          "name": "Animated About Section",
+          "description": "Vision into reality section with feature highlights"
+        },
+        {
+          "id": "pricing",
+          "name": "Pricing Section",
+          "description": "Comprehensive pricing plans with features and CTAs"
+        },
+        {
+          "id": "services",
+          "name": "Services Gallery",
+          "description": "Gallery showcase of all digital marketing services"
+        }
+      ]
+    },
+    {
+      "page_name": "Blog",
+      "slug": "/blog",
+      "meta_title": "SEO Insights & Expert Tips - GO SG Consulting Blog",
+      "meta_description": "Stay ahead of the curve with our latest SEO strategies, industry insights, and actionable tips to grow your online presence.",
+      "seo_index": true,
+      "status": "published",
+      "page_type": "blog_index"
+    },
+    {
+      "page_name": "Blog Post",
+      "slug": "/blog/:slug",
+      "meta_title": "Blog Post - GO SG Consulting",
+      "meta_description": "Read our latest insights on digital marketing and SEO strategies.",
+      "seo_index": true,
+      "status": "published",
+      "page_type": "blog_post"
+    },
+    {
+      "page_name": "About Us",
+      "slug": "/about",
+      "meta_title": "About GO SG Consulting - Digital Marketing Experts",
+      "meta_description": "Learn about our team of digital marketing experts and our mission to help businesses grow online.",
+      "seo_index": true,
+      "status": "draft",
+      "page_type": "page"
+    },
+    {
+      "page_name": "Contact",
+      "slug": "/contact",
+      "meta_title": "Contact GO SG Consulting - Get Your Free Consultation",
+      "meta_description": "Get in touch with our digital marketing experts for a free consultation and start growing your business online today.",
+      "seo_index": true,
+      "status": "draft",
+      "page_type": "page"
+    },
+    {
+      "page_name": "Thank You",
+      "slug": "/thank-you",
+      "meta_title": "Thank You - GO SG Consulting",
+      "meta_description": "Thank you for contacting GO SG Consulting. We'll be in touch soon!",
+      "seo_index": false,
+      "status": "published",
+      "page_type": "page"
+    }
+  ]
+}

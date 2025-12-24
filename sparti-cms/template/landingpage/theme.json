@@ -1,0 +1,20 @@
+{
+  "name": "Template Landing Page",
+  "description": "A clean, customizable landing page template for any business or organization. Perfect starting point for creating your own theme.",
+  "version": "1.0.0",
+  "author": "Sparti CMS",
+  "is_active": true,
+  "category": "template",
+  "tags": ["template", "landing", "business", "minimal", "customizable"],
+  "features": [
+    "Responsive design",
+    "Clean and modern layout",
+    "Customizable content sections",
+    "Mobile-first approach",
+    "SEO-friendly structure",
+    "Easy to customize"
+  ],
+  "preview_image": "assets/preview.jpg",
+  "demo_url": "/template/landingpage",
+  "documentation_url": "/docs/themes/template-landing"
+}

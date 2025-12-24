@@ -1,126 +1,217 @@
 :root {
-  --card: #ffffff;
-  --ring: #8b5cf6;
-  --input: #e0e7ff;
-  --muted: #f5f3ff;
-  --accent: #dbeafe;
-  --border: #e0e7ff;
-  --radius: 0.625rem;
-  --chart-1: #8b5cf6;
-  --chart-2: #7c3aed;
-  --chart-3: #6d28d9;
-  --chart-4: #5b21b6;
-  --chart-5: #4c1d95;
-  --popover: #ffffff;
-  --primary: #8b5cf6;
-  --sidebar: #f5f3ff;
-  --font-mono: Fira Code, monospace;
-  --font-sans: Roboto, sans-serif;
-  --secondary: #f3f0ff;
-  --background: #ffffff;
-  --font-serif: Playfair Display, serif;
-  --foreground: #312e81;
-  --destructive: #ef4444;
-  --shadow-blur: 4px;
-  --shadow-color: hsl(255 86% 66%);
-  --sidebar-ring: #8b5cf6;
-  --shadow-spread: 0px;
-  --shadow-opacity: 0.2;
-  --sidebar-accent: #dbeafe;
-  --sidebar-border: #e0e7ff;
-  --card-foreground: #312e81;
-  --shadow-offset-x: 2px;
-  --shadow-offset-y: 2px;
-  --sidebar-primary: #8b5cf6;
-  --muted-foreground: #7c3aed;
-  --accent-foreground: #1e40af;
-  --popover-foreground: #312e81;
-  --primary-foreground: #ffffff;
-  --sidebar-foreground: #312e81;
-  --secondary-foreground: #4338ca;
-  --destructive-foreground: #ffffff;
-  --sidebar-accent-foreground: #1e40af;
-  --sidebar-primary-foreground: #ffffff;
+  /* ACATR Professional Color System */
+  --background: 0 0% 100%;
+  --foreground: 210 15% 20%;
+
+  --card: 0 0% 100%;
+  --card-foreground: 210 15% 20%;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 210 15% 20%;
+
+  --primary: 263 70% 59%;
+  --primary-foreground: 0 0% 98%;
+  --primary-light: 263 70% 85%;
+
+  --secondary: 210 30% 96%;
+  --secondary-foreground: 210 15% 25%;
+
+  --muted: 210 20% 96%;
+  --muted-foreground: 210 15% 45%;
+
+  --faq-background: 197 20% 96%;
+
+  --accent: 35 100% 55%;
+  --accent-foreground: 0 0% 98%;
+  --accent-light: 35 100% 95%;
+
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 98%;
+
+  --border: 210 20% 90%;
+  --input: 210 20% 90%;
+  --ring: 210 100% 45%;
+
+  /* Professional gradients */
+  --gradient-primary: linear-gradient(135deg, hsl(263 70% 59%), hsl(263 70% 65%));
+  --gradient-hero: linear-gradient(135deg, hsl(263 70% 59%), hsl(263 60% 45%));
+  --gradient-accent: linear-gradient(135deg, hsl(35 100% 55%), hsl(35 90% 45%));
+  --gradient-subtle: linear-gradient(180deg, hsl(210 30% 98%), hsl(210 20% 96%));
+
+  /* Professional shadows */
+  --shadow-soft: 0 4px 20px -4px hsl(263 70% 59% / 0.1);
+  --shadow-medium: 0 8px 30px -8px hsl(263 70% 59% / 0.15);
+  --shadow-strong: 0 16px 40px -12px hsl(263 70% 59% / 0.2);
+
+  /* Smooth transitions */
+  --transition-base: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-fast: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+  --radius: 0.5rem;
+
+  /* Sidebar variables for compatibility */
+  --sidebar-background: 0 0% 98%;
+  --sidebar-foreground: 240 5.3% 26.1%;
+  --sidebar-primary: 240 5.9% 10%;
+  --sidebar-primary-foreground: 0 0% 98%;
+  --sidebar-accent: 240 4.8% 95.9%;
+  --sidebar-accent-foreground: 240 5.9% 10%;
+  --sidebar-border: 220 13% 91%;
+  --sidebar-ring: 217.2 91.2% 59.8%;
 }
 
 .dark {
-  --card: #1e1b4b;
-  --ring: #8b5cf6;
-  --input: #2e1065;
-  --muted: #1e1b4b;
-  --accent: #4338ca;
-  --border: #2e1065;
-  --radius: 0.625rem;
-  --chart-1: #a78bfa;
-  --chart-2: #8b5cf6;
-  --chart-3: #7c3aed;
-  --chart-4: #6d28d9;
-  --chart-5: #5b21b6;
-  --popover: #1e1b4b;
-  --primary: #8b5cf6;
-  --sidebar: #0f172a;
-  --secondary: #1e1b4b;
-  --background: #0f172a;
-  --foreground: #e0e7ff;
-  --destructive: #ef4444;
-  --sidebar-ring: #8b5cf6;
-  --sidebar-accent: #4338ca;
-  --sidebar-border: #2e1065;
-  --card-foreground: #e0e7ff;
-  --sidebar-primary: #8b5cf6;
-  --muted-foreground: #c4b5fd;
-  --accent-foreground: #e0e7ff;
-  --popover-foreground: #e0e7ff;
-  --primary-foreground: #ffffff;
-  --sidebar-foreground: #e0e7ff;
-  --secondary-foreground: #e0e7ff;
-  --destructive-foreground: #ffffff;
-  --sidebar-accent-foreground: #e0e7ff;
-  --sidebar-primary-foreground: #ffffff;
+  --background: 222.2 84% 4.9%;
+  --foreground: 210 40% 98%;
+
+  --card: 222.2 84% 4.9%;
+  --card-foreground: 210 40% 98%;
+
+  --popover: 222.2 84% 4.9%;
+  --popover-foreground: 210 40% 98%;
+
+  --primary: 210 40% 98%;
+  --primary-foreground: 222.2 47.4% 11.2%;
+
+  --secondary: 217.2 32.6% 17.5%;
+  --secondary-foreground: 210 40% 98%;
+
+  --muted: 217.2 32.6% 17.5%;
+  --muted-foreground: 215 20.2% 65.1%;
+
+  --accent: 217.2 32.6% 17.5%;
+  --accent-foreground: 210 40% 98%;
+
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 210 40% 98%;
+
+  --border: 217.2 32.6% 17.5%;
+  --input: 217.2 32.6% 17.5%;
+  --ring: 212.7 26.8% 83.9%;
+  
+  --sidebar-background: 240 5.9% 10%;
+  --sidebar-foreground: 240 4.8% 95.9%;
+  --sidebar-primary: 224.3 76.3% 48%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 240 3.7% 15.9%;
+  --sidebar-accent-foreground: 240 4.8% 95.9%;
+  --sidebar-border: 240 3.7% 15.9%;
+  --sidebar-ring: 217.2 91.2% 59.8%;
 }
 
-@theme inline {
-  --color-card: var(--card);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-muted: var(--muted);
-  --color-accent: var(--accent);
-  --color-border: var(--border);
-  --color-radius: var(--radius);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-  --color-popover: var(--popover);
-  --color-primary: var(--primary);
-  --color-sidebar: var(--sidebar);
-  --color-font-mono: var(--font-mono);
-  --color-font-sans: var(--font-sans);
-  --color-secondary: var(--secondary);
-  --color-background: var(--background);
-  --color-font-serif: var(--font-serif);
-  --color-foreground: var(--foreground);
-  --color-destructive: var(--destructive);
-  --color-shadow-blur: var(--shadow-blur);
-  --color-shadow-color: var(--shadow-color);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-shadow-spread: var(--shadow-spread);
-  --color-shadow-opacity: var(--shadow-opacity);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-card-foreground: var(--card-foreground);
-  --color-shadow-offset-x: var(--shadow-offset-x);
-  --color-shadow-offset-y: var(--shadow-offset-y);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-destructive-foreground: var(--destructive-foreground);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+/* Professional utility classes */
+.bg-gradient-primary {
+  background: var(--gradient-primary);
 }
+
+.bg-gradient-hero {
+  background: var(--gradient-hero);
+}
+
+.bg-gradient-accent {
+  background: var(--gradient-accent);
+}
+
+.bg-gradient-subtle {
+  background: var(--gradient-subtle);
+}
+
+.shadow-soft {
+  box-shadow: var(--shadow-soft);
+}
+
+.shadow-medium {
+  box-shadow: var(--shadow-medium);
+}
+
+.shadow-strong {
+  box-shadow: var(--shadow-strong);
+}
+
+.transition-base {
+  transition: var(--transition-base);
+}
+
+.transition-fast {
+  transition: var(--transition-fast);
+}
+
+/* Accordion animations */
+@keyframes accordion-down {
+  from {
+    height: 0;
+  }
+  to {
+    height: var(--radix-accordion-content-height);
+  }
+}
+
+@keyframes accordion-up {
+  from {
+    height: var(--radix-accordion-content-height);
+  }
+  to {
+    height: 0;
+  }
+}
+
+.animate-accordion-down {
+  animation: accordion-down 0.2s ease-out;
+}
+
+.animate-accordion-up {
+  animation: accordion-up 0.2s ease-out;
+}
+
+/* Sidebar slide-in animation */
+@keyframes slide-in-right {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.3s ease-out;
+}
+
+/* Backdrop fade-in animation */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.2s ease-out;
+}
+
+/* FAQ Section Enhancements */
+.faq-section {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+}
+
+/* Accordion Item Hover Effects */
+.accordion-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px -8px rgba(0, 0, 0, 0.1);
+}
+
+/* Accordion Content Animation */
+.accordion-content-enter {
+  max-height: 0;
+  opacity: 0;
+}
+
+.accordion-content-enter-active {
+  max-height: 1000px;
+  opacity: 1;
+  transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out;
+}
+
 

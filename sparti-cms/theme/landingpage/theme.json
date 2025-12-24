@@ -1,8 +1,26 @@
 {
-  "name": "Landing Page",
-  "description": "A professional landing page theme with hero section, features, and CTA",
-  "version": "1.0.0",
+  "name": "ACATR Business Services",
+  "description": "A sophisticated professional business services landing page theme with advanced components, dynamic content support, and comprehensive service showcases. Perfect for business incorporation, accounting, and corporate services.",
+  "version": "2.0.0",
   "author": "GOSG",
-  "is_active": true
+  "is_active": true,
+  "category": "business",
+  "tags": ["business", "services", "professional", "incorporation", "accounting", "corporate"],
+  "features": [
+    "Professional business services design",
+    "Multi-component architecture",
+    "Dynamic content support",
+    "Contact form integration",
+    "Responsive design",
+    "SEO optimized",
+    "Professional gradients and shadows",
+    "Service showcase sections",
+    "Customer testimonials",
+    "FAQ accordion",
+    "Trust indicators"
+  ],
+  "preview_image": "assets/hero-business.jpg",
+  "demo_url": "/theme/landingpage",
+  "documentation_url": "/docs/themes/acatr-business-services"
 }
 

@@ -5,7 +5,8 @@ import {
   updateMultipleBrandingSettings,
   getSiteSettingByKey,
   updateSiteSettingByKey,
-  getsitesettingsbytenant
+  getsitesettingsbytenant,
+  getThemeSettings
 } from '../../sparti-cms/db/index.js';
 import { invalidateAll } from '../../sparti-cms/cache/index.js';
 import languageManagementService from '../../sparti-cms/services/languageManagementService.js';
@@ -19,8 +20,10 @@ router.get('/branding', authenticateUser, async (req, res) => {
   try {
     // Get tenant ID from query parameter, user context, or default to tenant-gosg
     const tenantId = req.query.tenantId || req.user?.tenant_id || 'tenant-gosg';
-    console.log(`[testing] API: Getting branding settings for tenant: ${tenantId}`);
-    const settings = await getBrandingSettings(tenantId);
+    // Get theme ID from query parameter (optional for backward compatibility)
+    const themeId = req.query.themeId || null;
+    console.log(`[testing] API: Getting branding settings for tenant: ${tenantId}, theme: ${themeId}`);
+    const settings = await getBrandingSettings(tenantId, themeId);
     res.json(settings);
   } catch (error) {
     console.error('[testing] API: Error getting branding settings:', error);
@@ -33,8 +36,10 @@ router.post('/branding', authenticateUser, async (req, res) => {
   try {
     // Get tenant ID from query parameter, user context, or default to tenant-gosg
     const tenantId = req.query.tenantId || req.user?.tenant_id || 'tenant-gosg';
-    console.log(`[testing] API: Updating branding settings for tenant: ${tenantId}`, req.body);
-    await updateMultipleBrandingSettings(req.body, tenantId);
+    // Get theme ID from query parameter or request body (optional for backward compatibility)
+    const themeId = req.query.themeId || req.body.themeId || null;
+    console.log(`[testing] API: Updating branding settings for tenant: ${tenantId}, theme: ${themeId}`, req.body);
+    await updateMultipleBrandingSettings(req.body, tenantId, themeId);
     // Smart invalidation: settings can affect many pages; clear all for now
     try { invalidateAll(); } catch (e) { /* no-op */ }
     res.json({ success: true, message: 'Branding settings updated successfully' });
@@ -133,9 +138,11 @@ router.get('/site-settings/:key', async (req, res) => {
     const { key } = req.params;
     // Get tenant ID from query parameter, user context, or default to tenant-gosg
     const tenantId = req.query.tenantId || req.user?.tenant_id || 'tenant-gosg';
-    console.log(`[testing] API: Getting site setting for key: ${key}, tenant: ${tenantId}`);
+    // Get theme ID from query parameter (optional for backward compatibility)
+    const themeId = req.query.themeId || null;
+    console.log(`[testing] API: Getting site setting for key: ${key}, tenant: ${tenantId}, theme: ${themeId}`);
     
-    const setting = await getSiteSettingByKey(key, tenantId);
+    const setting = await getSiteSettingByKey(key, tenantId, themeId);
     
     if (!setting) {
       return res.status(404).json({ error: 'Setting not found' });
@@ -184,24 +191,145 @@ router.get('/tenant-gosg-settings', async (req, res) => {
 router.put('/site-settings/:key', async (req, res) => {
   try {
     const { key } = req.params;
-    const { setting_value, setting_type, setting_category } = req.body;
+    const { setting_value, setting_type, setting_category, themeId } = req.body;
     // Get tenant ID from query parameter, user context, or default to tenant-gosg
     const tenantId = req.query.tenantId || req.user?.tenant_id || 'tenant-gosg';
+    // Get theme ID from body or query parameter (optional for backward compatibility)
+    const theme_id = themeId || req.query.themeId || null;
     
-    console.log(`[testing] API: Updating site setting for key: ${key}, tenant: ${tenantId}`, req.body);
+    console.log(`[testing] API: Updating site setting for key: ${key}, tenant: ${tenantId}, theme: ${theme_id}`, req.body);
     
     const result = await updateSiteSettingByKey(
       key, 
       setting_value, 
       setting_type || 'text', 
       setting_category || 'general',
-      tenantId
+      tenantId,
+      theme_id
     );
     
     res.json(result);
   } catch (error) {
     console.error(`[testing] API: Error updating site setting for key ${req.params.key}:`, error);
     res.status(500).json({ error: 'Failed to update site setting' });
+  }
+});
+
+// ===== THEME SETTINGS ROUTES =====
+
+// Get all settings for a theme
+router.get('/theme/:themeId', authenticateUser, async (req, res) => {
+  try {
+    const { themeId } = req.params;
+    const tenantId = req.query.tenantId || req.user?.tenant_id || 'tenant-gosg';
+    console.log(`[testing] API: Getting all settings for tenant: ${tenantId}, theme: ${themeId}`);
+    
+    const settings = await getThemeSettings(tenantId, themeId);
+    res.json(settings);
+  } catch (error) {
+    console.error(`[testing] API: Error getting theme settings:`, error);
+    res.status(500).json({ error: 'Failed to get theme settings' });
+  }
+});
+
+// Get branding settings for a theme
+router.get('/theme/:themeId/branding', authenticateUser, async (req, res) => {
+  try {
+    const { themeId } = req.params;
+    const tenantId = req.query.tenantId || req.user?.tenant_id || 'tenant-gosg';
+    console.log(`[testing] API: Getting branding settings for tenant: ${tenantId}, theme: ${themeId}`);
+    
+    const settings = await getBrandingSettings(tenantId, themeId);
+    res.json(settings.branding || {});
+  } catch (error) {
+    console.error(`[testing] API: Error getting theme branding:`, error);
+    res.status(500).json({ error: 'Failed to get theme branding' });
+  }
+});
+
+// Get localization settings for a theme
+router.get('/theme/:themeId/localization', authenticateUser, async (req, res) => {
+  try {
+    const { themeId } = req.params;
+    const tenantId = req.query.tenantId || req.user?.tenant_id || 'tenant-gosg';
+    console.log(`[testing] API: Getting localization settings for tenant: ${tenantId}, theme: ${themeId}`);
+    
+    const settings = await getBrandingSettings(tenantId, themeId);
+    res.json(settings.localization || {});
+  } catch (error) {
+    console.error(`[testing] API: Error getting theme localization:`, error);
+    res.status(500).json({ error: 'Failed to get theme localization' });
+  }
+});
+
+// Get style settings for a theme
+router.get('/theme/:themeId/styles', authenticateUser, async (req, res) => {
+  try {
+    const { themeId } = req.params;
+    const tenantId = req.query.tenantId || req.user?.tenant_id || 'tenant-gosg';
+    console.log(`[testing] API: Getting style settings for tenant: ${tenantId}, theme: ${themeId}`);
+    
+    const setting = await getSiteSettingByKey('theme_styles', tenantId, themeId);
+    if (setting && setting.setting_value) {
+      try {
+        const styles = typeof setting.setting_value === 'string' 
+          ? JSON.parse(setting.setting_value) 
+          : setting.setting_value;
+        res.json(styles);
+      } catch (e) {
+        res.json({});
+      }
+    } else {
+      res.json({});
+    }
+  } catch (error) {
+    console.error(`[testing] API: Error getting theme styles:`, error);
+    res.status(500).json({ error: 'Failed to get theme styles' });
+  }
+});
+
+// Update specific setting for a theme
+router.put('/theme/:themeId/:key', authenticateUser, async (req, res) => {
+  try {
+    const { themeId, key } = req.params;
+    const { setting_value, setting_type, setting_category } = req.body;
+    const tenantId = req.query.tenantId || req.user?.tenant_id || 'tenant-gosg';
+    
+    console.log(`[testing] API: Updating setting ${key} for tenant: ${tenantId}, theme: ${themeId}`, req.body);
+    
+    const result = await updateSiteSettingByKey(
+      key,
+      setting_value,
+      setting_type || 'text',
+      setting_category || 'general',
+      tenantId,
+      themeId
+    );
+    
+    res.json(result);
+  } catch (error) {
+    console.error(`[testing] API: Error updating theme setting:`, error);
+    res.status(500).json({ error: 'Failed to update theme setting' });
+  }
+});
+
+// Sync all settings to theme (placeholder for future file sync)
+router.post('/theme/:themeId/sync', authenticateUser, async (req, res) => {
+  try {
+    const { themeId } = req.params;
+    const tenantId = req.query.tenantId || req.user?.tenant_id || 'tenant-gosg';
+    console.log(`[testing] API: Syncing settings for tenant: ${tenantId}, theme: ${themeId}`);
+    
+    // For now, just return success - file sync will be implemented later
+    res.json({ 
+      success: true, 
+      message: 'Settings sync initiated (database integration complete, file sync coming soon)',
+      tenantId,
+      themeId
+    });
+  } catch (error) {
+    console.error(`[testing] API: Error syncing theme settings:`, error);
+    res.status(500).json({ error: 'Failed to sync theme settings' });
   }
 });
 

@@ -1,0 +1,2 @@
+-- Fix function search path security for our custom function
+ALTER FUNCTION public.search_venues_by_location(double precision,double precision,double precision,text[],boolean) SET search_path = public;
