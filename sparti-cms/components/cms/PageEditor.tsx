@@ -18,7 +18,8 @@ import { ComponentListItem } from './PageEditor/ComponentListItem';
 import { JSONEditorDialog } from './PageEditor/JSONEditorDialog';
 import { EmptyState, ComponentsErrorState, ComponentsEmptyState } from './PageEditor/EmptyStates';
 import { AIAssistantChat } from '../../../src/components/AIAssistantChat';
-import SectionContentList, { ContentItem } from '../../../src/components/SectionContentList';
+import SectionContentList, { ContentItem } from '@/components/SectionContentList';
+import ComponentPreview from '../../../src/components/visual-builder/ComponentPreview';
 import CodeViewerDialog from './PageEditor/CodeViewerDialog';
 
 // Contents Panel Component
@@ -30,7 +31,6 @@ interface ContentsPanelProps {
 const ContentsPanel: React.FC<ContentsPanelProps> = ({ components, extractContentFromComponents }) => {
   const content = extractContentFromComponents(components);
 
-  // Group content by componentId/componentType
   const groupedContent = React.useMemo(() => {
     const groups: Record<string, ContentItem[]> = {};
     content.forEach((item) => {
@@ -43,17 +43,12 @@ const ContentsPanel: React.FC<ContentsPanelProps> = ({ components, extractConten
     return groups;
   }, [content]);
 
-  // Get component type name for display
-  const getComponentDisplayName = (componentId: string) => {
-    const component = components.find(c => (c.key || '').includes(componentId) || componentId.includes(c.key || ''));
-    if (component) {
-      const type = component.type || '';
-      return type
-        .replace(/([A-Z])/g, ' $1')
-        .replace(/^./, str => str.toUpperCase())
-        .trim() || componentId;
-    }
-    return componentId.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+  const getComponentByGroupKey = (groupKey: string) => {
+    // Try direct key match first
+    const byKey = components.find((c) => c.key === groupKey);
+    if (byKey) return byKey;
+    // Fallback: includes heuristic
+    return components.find((c) => (c.key || '').includes(groupKey) || groupKey.includes(c.key || '')) || null;
   };
 
   if (content.length === 0) {
@@ -69,44 +64,42 @@ const ContentsPanel: React.FC<ContentsPanelProps> = ({ components, extractConten
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div className="border-b pb-4">
         <h2 className="text-2xl font-bold flex items-center">
           <FileText className="h-6 w-6 mr-2" />
-          Page Contents
+          Visual Builder Preview
         </h2>
+        <p className="text-sm text-muted-foreground mt-1">
+          Realistic mockups of each section based on JSON, including sliders and cards.
+        </p>
       </div>
 
-      {/* Grouped sections */}
-      <div className="space-y-6">
-        {Object.entries(groupedContent).map(([groupKey, items]) => {
-          const componentName = getComponentDisplayName(groupKey);
-          const componentType = items[0]?.componentType || 'section';
-
-          return (
-            <div
-              key={groupKey}
-              className="bg-white border border-gray-200 rounded-lg p-5 shadow-sm"
-            >
-              {/* Section Header */}
-              <div className="flex items-center justify-between mb-4 pb-3 border-b border-gray-200">
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline" className="text-xs font-medium uppercase tracking-wide">
-                    {componentType}
-                  </Badge>
-                  <h3 className="text-sm font-semibold text-gray-600">{componentName}</h3>
-                </div>
-                <span className="text-xs text-gray-400">{items.length} items</span>
+      {/* Visual previews per section */}
+      <div className="space-y-8">
+        {Object.keys(groupedContent).map((groupKey) => {
+          const comp = getComponentByGroupKey(groupKey);
+          if (comp) {
+            return (
+              <div key={groupKey}>
+                <ComponentPreview component={comp} />
               </div>
-
-              {/* Unified content renderer */}
-              <SectionContentList items={items} />
+            );
+          }
+          // Fallback to text-only for unmatched groups
+          return (
+            <div key={groupKey} className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="text-xs">Section</Badge>
+                <span className="text-sm font-semibold">{groupKey}</span>
+              </div>
+              <SectionContentList items={groupedContent[groupKey]} />
             </div>
           );
         })}
       </div>
 
-      {/* Statistics */}
+      {/* Simple stats at the bottom */}
       <div className="mt-8 p-4 bg-gray-50 rounded-lg border border-gray-200">
         <h4 className="font-semibold mb-3 flex items-center text-gray-800">
           <Settings className="h-4 w-4 mr-2" />
@@ -578,6 +571,20 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack, currentTenantId
             components={components}
             onUpdate={updateComponent}
           />
+
+          {/* NEW: Visual mock preview for this section */}
+          <div className="space-y-4 mt-6">
+            <div className="border-b pb-2">
+              <h3 className="text-lg font-semibold flex items-center">
+                <FileText className="h-5 w-5 mr-2" />
+                Visual Preview
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                Realistic mock of this section (cards, sliders, etc.) from JSON.
+              </p>
+            </div>
+            {selected ? <ComponentPreview component={selected} compact /> : null}
+          </div>
 
           {/* Single preview: always show the current component content */}
           {renderSectionContents(selected)}
