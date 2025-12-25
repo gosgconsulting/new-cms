@@ -171,10 +171,65 @@ export const ContentEditPanel: React.FC = () => {
       </div>
 
       <div
+        id="sparti-editor-scroll"
         className="sparti-edit-panel-content flex-1 overflow-y-auto"
         onWheel={(e) => {
           // Prevent scroll from bubbling to the page viewer
           e.stopPropagation();
+        }}
+        onClickCapture={(e) => {
+          // Try to detect accordion trigger clicks and scroll opened item to top
+          const container = document.getElementById('sparti-editor-scroll');
+          if (!container) return;
+
+          const target = e.target as HTMLElement | null;
+          if (!target) return;
+
+          // Heuristics to find an accordion item root and its content:
+          // - shadcn accordions structure: [data-state="open"] on item or content/trigger
+          // - Look for nearest item that becomes open after click
+          // Defer measurement to next frame to let open state apply
+          requestAnimationFrame(() => {
+            // Find any open accordion content within the container that contains the click target
+            // Priority: the nearest opened item to the click target
+            const possibleItem = target.closest('[data-state="open"], [aria-expanded="true"]') as HTMLElement | null;
+
+            // If none based on target, pick the first newly opened item in container
+            const opened =
+              possibleItem ||
+              (container.querySelector('.accordion-item[data-state="open"]') as HTMLElement | null) ||
+              (container.querySelector('[data-state="open"]') as HTMLElement | null) ||
+              (container.querySelector('[aria-expanded="true"]') as HTMLElement | null);
+
+            if (!opened) return;
+
+            // Determine the element we want to align to the top: prefer the item's header/trigger; fallback to the item itself
+            let alignEl: HTMLElement | null = null;
+
+            // Common shadcn selectors
+            alignEl =
+              (opened.querySelector?.('[data-radix-collection-item]') as HTMLElement | null) ||
+              (opened.querySelector?.('[data-state="open"][role="button"]') as HTMLElement | null) ||
+              (opened.querySelector?.('[data-accordion-trigger]') as HTMLElement | null) ||
+              (opened.querySelector?.('[aria-expanded="true"]') as HTMLElement | null) ||
+              (opened.closest?.('.accordion-item') as HTMLElement | null) ||
+              opened;
+
+            if (!alignEl) return;
+
+            // Compute positions relative to the scroll container
+            const containerRect = container.getBoundingClientRect();
+            const itemRect = alignEl.getBoundingClientRect();
+
+            // Current scrollTop + offset from container top to item top
+            const delta = itemRect.top - containerRect.top;
+
+            // Scroll so that the alignEl is at the very top of the scroll container
+            container.scrollTo({
+              top: container.scrollTop + delta,
+              behavior: 'smooth',
+            });
+          });
         }}
       >
         {saveSuccess && (
