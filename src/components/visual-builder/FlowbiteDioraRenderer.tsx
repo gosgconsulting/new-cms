@@ -3,6 +3,12 @@
 import React, { useState } from "react";
 import type { ComponentSchema, SchemaItem } from "../../../sparti-cms/types/schema";
 import FlowbiteSection from "@/libraries/flowbite/components/FlowbiteSection";
+import { SpartiBuilderProvider } from "../../../sparti-cms/components/SpartiBuilderProvider";
+import { ElementSelector } from "../../../sparti-cms/components/ElementSelector";
+import { EditingOverlay } from "../../../sparti-cms/components/EditingOverlay";
+import { ContentEditPanel } from "../../../sparti-cms/components/ContentEditPanel";
+import EditorToggle from "./EditorToggle";
+import "../../../sparti-cms/components/sparti-builder.css";
 
 interface FlowbiteDioraRendererProps {
   components: ComponentSchema[];
@@ -64,7 +70,7 @@ function SectionHero({ items }: { items: SchemaItem[] }) {
           (e.target as HTMLImageElement).src = "/placeholder.svg";
         }}
       />
-      <div className="absolute inset-0 bg-black/30" />
+      <div className="absolute inset-0 bg-black/30" data-sparti-ignore />
       <div className="relative z-10 flex h-full items-center justify-center px-6">
         <div className="max-w-3xl text-center">
           {welcomeText ? (
@@ -367,57 +373,65 @@ const FlowbiteDioraRenderer: React.FC<FlowbiteDioraRendererProps> = ({
   }
 
   return (
-    <main className="w-full">
-      {components.map((comp, idx) => {
-        const t = normalizeType(comp.type || comp.name || comp.key);
+    <SpartiBuilderProvider>
+      <ElementSelector>
+        <main className="w-full">
+          {components.map((comp, idx) => {
+            const t = normalizeType(comp.type || comp.name || comp.key);
 
-        if (
-          t.includes("herosection") ||
-          t === "herosection" ||
-          t === "herosectionsimple" ||
-          t.includes("hero")
-        ) {
-          return (
-            <SectionHero key={comp.key || idx} items={comp.items || []} />
-          );
-        }
-        if (
-          t.includes("servicessection") ||
-          t.includes("services-grid") ||
-          t.includes("services")
-        ) {
-          return (
-            <SectionServices key={comp.key || idx} items={comp.items || []} />
-          );
-        }
-        if (t.includes("featuressection") || t.includes("features")) {
-          return (
-            <SectionFeatures key={comp.key || idx} items={comp.items || []} />
-          );
-        }
-        if (t.includes("ingredientssection") || t.includes("ingredients")) {
-          return (
-            <SectionIngredients
-              key={comp.key || idx}
-              items={comp.items || []}
-            />
-          );
-        }
-        if (t.includes("teamsection") || t.includes("team")) {
-          return (
-            <SectionTeam key={comp.key || idx} items={comp.items || []} />
-          );
-        }
-        if (t.includes("aboutsection") || t.includes("about")) {
-          return (
-            <SectionAbout key={comp.key || idx} items={comp.items || []} />
-          );
-        }
+            if (
+              t.includes("herosection") ||
+              t === "herosection" ||
+              t === "herosectionsimple" ||
+              t.includes("hero")
+            ) {
+              return (
+                <SectionHero key={comp.key || idx} items={comp.items || []} />
+              );
+            }
+            if (
+              t.includes("servicessection") ||
+              t.includes("services-grid") ||
+              t.includes("services")
+            ) {
+              return (
+                <SectionServices key={comp.key || idx} items={comp.items || []} />
+              );
+            }
+            if (t.includes("featuressection") || t.includes("features")) {
+              return (
+                <SectionFeatures key={comp.key || idx} items={comp.items || []} />
+              );
+            }
+            if (t.includes("ingredientssection") || t.includes("ingredients")) {
+              return (
+                <SectionIngredients
+                  key={comp.key || idx}
+                  items={comp.items || []}
+                />
+              );
+            }
+            if (t.includes("teamsection") || t.includes("team")) {
+              return (
+                <SectionTeam key={comp.key || idx} items={comp.items || []} />
+              );
+            }
+            if (t.includes("aboutsection") || t.includes("about")) {
+              return (
+                <SectionAbout key={comp.key || idx} items={comp.items || []} />
+              );
+            }
 
-        // Hide unmapped types
-        return null;
-      })}
-    </main>
+            // Hide unmapped types
+            return null;
+          })}
+        </main>
+      </ElementSelector>
+
+      <EditingOverlay />
+      <ContentEditPanel />
+      <EditorToggle />
+    </SpartiBuilderProvider>
   );
 };
 
