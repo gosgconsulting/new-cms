@@ -16,16 +16,14 @@ const SectionList: React.FC = () => {
   const handleSelect = (idx: number) => {
     const el = document.querySelector(`[data-sparti-component-index="${idx}"]`) as HTMLElement | null;
     if (!el) return;
-    // Scroll into view in the center preview
     el.scrollIntoView({ behavior: "smooth", block: "center" });
-    // Select element in builder
     selectElement({ element: el, data: { tagName: el.tagName.toLowerCase() } } as any);
   };
 
   if (!isEditing) return null;
 
   return (
-    <aside className="w-64 min-w-64 max-w-64 border-r bg-muted/20 p-3 overflow-y-auto">
+    <aside className="sticky top-0 h-screen w-64 min-w-64 max-w-64 border-r bg-muted/20 p-3 overflow-y-auto">
       <h3 className="text-sm font-semibold mb-3">Sections</h3>
       <div className="space-y-2">
         {Array.isArray(components) && components.length > 0 ? (

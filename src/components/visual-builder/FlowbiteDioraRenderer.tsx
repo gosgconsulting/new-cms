@@ -468,8 +468,8 @@ const FlowbiteDioraRenderer: React.FC<FlowbiteDioraRendererProps> = ({
           </div>
         </div>
 
-        {/* Right: always-visible editor sidebar */}
-        <div className="w-[420px] min-w-[420px] max-w-[420px] border-l bg-background">
+        {/* Right: always-visible editor sidebar (sticky) */}
+        <div className="sticky top-0 h-screen w-[420px] min-w-[420px] max-w-[420px] border-l bg-background overflow-y-auto">
           <ContentEditPanel />
         </div>
       </div>
