@@ -4,6 +4,7 @@ import { Button } from '../../../src/components/ui/button';
 import { X, HelpCircle } from 'lucide-react';
 import { SchemaItem } from '../../types/schema';
 import { FAQEditor as ContentFAQEditor } from '../content-editors';
+import { QuillEditor } from './QuillEditor';
 
 interface FAQItemEditorProps {
   item: SchemaItem;
@@ -45,18 +46,16 @@ const FAQItemEditor: React.FC<FAQItemEditorProps> = ({ item, onChange, onRemove 
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Answer</label>
-            <textarea
-              value={item.props?.answer || ''}
-              onChange={(e) => onChange({ 
+            <QuillEditor
+              content={item.props?.answer || ''}
+              onChange={(value) => onChange({ 
                 ...item, 
                 props: { 
                   ...item.props, 
-                  answer: e.target.value 
+                  answer: value 
                 } 
               })}
               placeholder="Enter answer"
-              rows={4}
-              className="w-full p-2 border border-gray-300 rounded-md"
             />
           </div>
         </div>

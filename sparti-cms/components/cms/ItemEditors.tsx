@@ -11,6 +11,7 @@ import { Badge } from '../../../src/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../../src/components/ui/tabs';
 import { X, Plus, Image as ImageIcon, Link as LinkIcon, Type, MousePointer, Video, Grid, Layers, Mail, FolderOpen } from 'lucide-react';
 import { SchemaItem, SchemaItemType } from '../../types/schema';
+import { QuillEditor } from './QuillEditor';
 // Import the new content editor components
 import {
   VideoEditor as ContentVideoEditor,
@@ -118,11 +119,10 @@ export const TextEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove
         </div>
       </CardHeader>
       <CardContent>
-        <Textarea
-          value={item.content || ''}
-          onChange={(e) => updateValue(e.target.value)}
+        <QuillEditor
+          content={item.content || ''}
+          onChange={updateValue}
           placeholder="Enter text..."
-          className="text-sm bg-transparent"
         />
       </CardContent>
     </Card>
@@ -918,11 +918,10 @@ export const ReviewEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemo
         </div>
         <div>
           <Label className="text-xs">Review Text</Label>
-          <Textarea
-            value={item.props?.content || ''}
-            onChange={(e) => updateProps('content', e.target.value)}
+          <QuillEditor
+            content={item.props?.content || ''}
+            onChange={(value) => updateProps('content', value)}
             placeholder="Enter review text..."
-            className="text-sm"
           />
         </div>
         <div className="space-y-2">
@@ -990,11 +989,10 @@ export const FeatureEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRem
         </div>
         <div>
           <Label className="text-xs">Feature Description</Label>
-          <Textarea
-            value={item.props?.description || ''}
-            onChange={(e) => updateProps('description', e.target.value)}
+          <QuillEditor
+            content={item.props?.description || ''}
+            onChange={(value) => updateProps('description', value)}
             placeholder="Enter feature description..."
-            className="text-sm"
           />
         </div>
       </CardContent>

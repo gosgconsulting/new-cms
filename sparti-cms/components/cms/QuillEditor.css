@@ -1,0 +1,93 @@
+/* Quill Editor Styles - White background with border */
+.quill-editor-wrapper {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.375rem;
+  overflow: hidden;
+}
+
+.quill-editor-wrapper .ql-container {
+  background: white;
+  border: none;
+  border-top: 1px solid #e5e7eb;
+  font-family: inherit;
+  font-size: 0.875rem;
+  min-height: 200px;
+}
+
+.quill-editor-wrapper .ql-editor {
+  background: white;
+  color: #1f2937;
+  min-height: 200px;
+  padding: 1rem;
+}
+
+.quill-editor-wrapper .ql-editor.ql-blank::before {
+  color: #9ca3af;
+  font-style: normal;
+}
+
+.quill-editor-wrapper .ql-toolbar {
+  background: #f9fafb;
+  border: none;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 0.5rem;
+}
+
+.quill-editor-wrapper .ql-toolbar .ql-stroke {
+  stroke: #4b5563;
+}
+
+.quill-editor-wrapper .ql-toolbar .ql-fill {
+  fill: #4b5563;
+}
+
+.quill-editor-wrapper .ql-toolbar button:hover,
+.quill-editor-wrapper .ql-toolbar button:focus,
+.quill-editor-wrapper .ql-toolbar button.ql-active {
+  color: #3b82f6;
+}
+
+.quill-editor-wrapper .ql-toolbar button:hover .ql-stroke,
+.quill-editor-wrapper .ql-toolbar button:focus .ql-stroke,
+.quill-editor-wrapper .ql-toolbar button.ql-active .ql-stroke {
+  stroke: #3b82f6;
+}
+
+.quill-editor-wrapper .ql-toolbar button:hover .ql-fill,
+.quill-editor-wrapper .ql-toolbar button:focus .ql-fill,
+.quill-editor-wrapper .ql-toolbar button.ql-active .ql-fill {
+  fill: #3b82f6;
+}
+
+.quill-editor-wrapper .ql-snow .ql-picker {
+  color: #4b5563;
+}
+
+.quill-editor-wrapper .ql-snow .ql-picker-options {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.375rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.quill-editor-wrapper .ql-snow .ql-picker-item:hover {
+  color: #3b82f6;
+  background: #f3f4f6;
+}
+
+/* Focus state */
+.quill-editor-wrapper:focus-within {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Read-only state */
+.quill-editor-wrapper.read-only .ql-toolbar {
+  display: none;
+}
+
+.quill-editor-wrapper.read-only .ql-container {
+  border-top: none;
+}
+

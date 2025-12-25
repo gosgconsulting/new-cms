@@ -5,6 +5,7 @@ import { Label } from '../../../../src/components/ui/label';
 import { Textarea } from '../../../../src/components/ui/textarea';
 import { Button } from '../../../../src/components/ui/button';
 import { Badge } from '../../../../src/components/ui/badge';
+import { QuillEditor } from '../QuillEditor';
 import {
   Select,
   SelectContent,
@@ -387,18 +388,16 @@ export const DynamicFieldEditor: React.FC<DynamicFieldEditorProps> = ({
         return (
           <div className="space-y-2">
             {isLongString ? (
-              <Textarea
-                value={fieldValue || ''}
-                onChange={(e) => onChange(e.target.value)}
-                className="text-sm font-mono"
-                rows={6}
+              <QuillEditor
+                content={fieldValue || ''}
+                onChange={onChange}
                 placeholder="Enter text..."
               />
             ) : (
               <Input
                 value={fieldValue || ''}
                 onChange={(e) => onChange(e.target.value)}
-                className="text-sm"
+                className="text-sm bg-white border border-gray-300"
                 placeholder="Enter text..."
               />
             )}

@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "@/components/ui/use-toast";
 import { useAuth } from '../auth/AuthProvider';
-import TiptapEditor from './TiptapEditor';
+import QuillEditor from './QuillEditor';
 import api from '../../utils/api';
 
 interface Category {
@@ -319,7 +319,7 @@ const NewPostEditor: React.FC<NewPostEditorProps> = ({ onBack, onSave, initialDa
               <div>
                 <Label htmlFor="content">Content</Label>
                 <div className="mt-2">
-                  <TiptapEditor
+                  <QuillEditor
                     content={postData.content}
                     onChange={(html) => handleInputChange('content', html)}
                     placeholder="This is a sample post to get you started."

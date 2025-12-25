@@ -3,6 +3,7 @@ import { ComponentSchema, SchemaItem } from '../../types/schema';
 import { Button } from '../../../src/components/ui/button';
 import { Label } from '../../../src/components/ui/label';
 import { ItemEditor } from './ItemEditors';
+import { QuillEditor } from './QuillEditor';
 import { 
   ChevronDown, 
   ChevronRight, 
@@ -558,11 +559,10 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
                                             />
                                           </div>
                                         ) : (
-                                          value.length > 100 ? (
-                                            <textarea
-                                              value={value}
-                                              onChange={(e) => updateArrayItem(index, arrayProp, currentTab, key, e.target.value)}
-                                              className="w-full p-2 border rounded-md resize-vertical min-h-[80px]"
+                                          key === 'content' || key === 'description' || key === 'text' || (typeof value === 'string' && value.length > 100) ? (
+                                            <QuillEditor
+                                              content={value || ''}
+                                              onChange={(newValue) => updateArrayItem(index, arrayProp, currentTab, key, newValue)}
                                               placeholder={`Enter ${key === 'content' ? 'text' : key === 'link' || key === 'href' ? 'URL' : key}`}
                                             />
                                           ) : (
@@ -570,7 +570,7 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
                                               type={key === 'link' || key === 'href' || key === 'src' ? 'url' : 'text'}
                                               value={value}
                                               onChange={(e) => updateArrayItem(index, arrayProp, currentTab, key, e.target.value)}
-                                              className="w-full p-2 border rounded-md"
+                                              className="w-full p-2 border border-gray-300 rounded-md bg-white"
                                               placeholder={`Enter ${key === 'content' ? 'text' : key === 'link' || key === 'href' ? 'URL' : key}`}
                                             />
                                           )
