@@ -377,6 +377,18 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack, currentTenantId
 
     try {
       setSaving(true);
+      setIsSavingRef(true); // Block component updates during save
+
+      // Get the latest components state - create a deep copy to ensure we have the current state
+      const componentsToSave = JSON.parse(JSON.stringify(components));
+      console.log('[testing] Saving components:', {
+        count: componentsToSave.length,
+        firstComponent: componentsToSave[0] ? {
+          type: componentsToSave[0].type,
+          key: componentsToSave[0].key,
+          propsKeys: Object.keys(componentsToSave[0].props || {})
+        } : null
+      });
 
       const pageResponse = await api.put(`/api/pages/${pageId}`, {
         page_name: pageData.page_name || '',
@@ -390,19 +402,58 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack, currentTenantId
         throw new Error('Failed to update page data');
       }
 
+      // Ensure layout_json has the complete structure with components array
+      // This replaces the entire JSON, not merging
+      const layoutJson = { components: componentsToSave };
+      
       // Include themeId when available and not 'custom' to ensure correct page is updated
       const layoutRequestBody: any = {
-        layout_json: { components },
+        layout_json: layoutJson,
         tenantId: currentTenantId
       };
       if (currentThemeId && currentThemeId !== 'custom') {
         layoutRequestBody.themeId = currentThemeId;
       }
 
+      console.log('[testing] Saving layout JSON:', {
+        pageId,
+        tenantId: currentTenantId,
+        themeId: currentThemeId,
+        componentsCount: componentsToSave.length,
+        layoutJsonStructure: Object.keys(layoutJson)
+      });
+
       const layoutResponse = await api.put(`/api/pages/${pageId}/layout`, layoutRequestBody);
 
       if (!layoutResponse.ok) {
+        const errorText = await layoutResponse.text();
+        console.error('[testing] Layout save failed:', errorText);
         throw new Error('Failed to update page layout');
+      }
+
+      const layoutResponseData = await layoutResponse.json();
+      console.log('[testing] Layout save response:', layoutResponseData);
+
+      // Wait a bit for database to commit
+      await new Promise(resolve => setTimeout(resolve, 300));
+
+      // Reload page data to ensure UI reflects saved state
+      const apiUrl = currentThemeId && currentThemeId !== 'custom' 
+        ? `/api/pages/${pageId}?tenantId=${currentTenantId}&themeId=${currentThemeId}&_t=${Date.now()}`
+        : `/api/pages/${pageId}?tenantId=${currentTenantId}&_t=${Date.now()}`;
+      
+      const reloadResponse = await api.get(apiUrl);
+      const reloadData = await reloadResponse.json();
+      
+      if (reloadData.success && reloadData.page?.layout?.components) {
+        const reloadedComponents = reloadData.page.layout.components;
+        console.log('[testing] Reloaded components after save:', reloadedComponents.length);
+        setComponents(reloadedComponents);
+        setOriginalComponents(JSON.parse(JSON.stringify(reloadedComponents)));
+        setPageData(reloadData.page);
+      } else {
+        // Fallback: use saved components
+        setOriginalComponents(JSON.parse(JSON.stringify(componentsToSave)));
       }
 
       // Save version if requested
@@ -422,7 +473,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack, currentTenantId
               legal_type: pageData.legal_type || null,
               last_reviewed_date: pageData.last_reviewed_date || null,
             },
-            layoutJson: { components },
+            layoutJson: { components: componentsToSave },
             comment: comment,
             tenantId: currentTenantId
           });
@@ -436,16 +487,20 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack, currentTenantId
         }
       }
 
-      // refresh snapshot after successful save
-      setOriginalComponents(JSON.parse(JSON.stringify(components)));
+      setIsSavingRef(false); // Reset flag after successful save
       toast.success('Page saved successfully');
     } catch (error) {
-      console.error('Error saving page:', error);
-      toast.error('Failed to save page');
+      console.error('[testing] Error saving page:', error);
+      setIsSavingRef(false); // Reset flag on error
+      toast.error(error instanceof Error ? error.message : 'Failed to save page');
     } finally {
       setSaving(false);
+      // Ensure flag is reset
+      if (isSavingRef) {
+        setIsSavingRef(false);
+      }
     }
-  }, [pageData, pageId, currentTenantId, currentThemeId, components]);
+  }, [pageData, pageId, currentTenantId, currentThemeId, components, isSavingRef]);
 
   // Handle save from JSON Editor - ensures JSON is parsed and saved correctly
   const handleJSONEditorSave = useCallback(async () => {

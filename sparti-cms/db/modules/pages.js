@@ -907,14 +907,20 @@ async function updateExistingLayout(pageId, layoutJson, language) {
     console.warn('[testing] pageId is not a number or numeric string:', pageId);
   }
 
-  const jsonString = JSON.stringify(layoutJson);
+  // Ensure we have a complete JSON structure - replace entirely, don't merge
+  const completeLayoutJson = layoutJson && typeof layoutJson === 'object' 
+    ? layoutJson 
+    : { components: [] };
+  
+  const jsonString = JSON.stringify(completeLayoutJson);
   console.log('[testing] JSON stringified length:', jsonString.length);
   console.log('[testing] JSON stringified preview (first 200 chars):', jsonString.substring(0, 200));
 
+  // Explicitly cast to JSONB to ensure full replacement
   const updateResult = await query(`
     UPDATE page_layouts 
     SET 
-      layout_json = $2,
+      layout_json = $2::jsonb,
       version = version + 1,
       updated_at = NOW()
     WHERE page_id = $1 AND language = $3
@@ -935,7 +941,7 @@ async function updateExistingLayout(pageId, layoutJson, language) {
       const retryResult = await query(`
         UPDATE page_layouts 
         SET 
-          layout_json = $2,
+          layout_json = $2::jsonb,
           version = version + 1,
           updated_at = NOW()
         WHERE page_id::text = $1 AND language = $3
@@ -972,14 +978,20 @@ async function insertNewLayout(pageId, layoutJson, language) {
     console.warn('[testing] pageId is not a number or numeric string:', pageId);
   }
 
-  const jsonString = JSON.stringify(layoutJson);
+  // Ensure we have a complete JSON structure
+  const completeLayoutJson = layoutJson && typeof layoutJson === 'object' 
+    ? layoutJson 
+    : { components: [] };
+  
+  const jsonString = JSON.stringify(completeLayoutJson);
   console.log('[testing] JSON stringified length:', jsonString.length);
   console.log('[testing] JSON stringified preview (first 200 chars):', jsonString.substring(0, 200));
 
   try {
+    // Explicitly cast to JSONB to ensure proper storage
     const insertResult = await query(`
       INSERT INTO page_layouts (page_id, language, layout_json, version, updated_at)
-      VALUES ($1, $2, $3, 1, NOW())
+      VALUES ($1, $2, $3::jsonb, 1, NOW())
       RETURNING id, page_id, language, version
     `, [normalizedPageId, language, jsonString]);
     
