@@ -4,6 +4,8 @@ import { api } from '../../sparti-cms/utils/api';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import MasterHeader from '@/components/master/MasterHeader';
+import MasterFooter from '@/components/master/MasterFooter';
 
 interface Page {
   id: number;
@@ -143,22 +145,8 @@ const TenantPage: React.FC = () => {
   return (
     <ErrorBoundary>
       <div className="min-h-screen bg-background">
-        {/* Simple header */}
-        <header className="border-b border-border py-4 px-4 md:px-8">
-          <div className="container mx-auto flex items-center justify-between">
-            <a href={`/theme/${tenant.slug}`} className="font-bold text-xl">
-              {tenant.name}
-            </a>
-            <nav className="flex gap-4">
-              <a 
-                href={`/theme/${tenant.slug}`}
-                className="text-muted-foreground hover:text-foreground"
-              >
-                Home
-              </a>
-            </nav>
-          </div>
-        </header>
+        {/* Master header from JSON schema */}
+        <MasterHeader tenantId={tenant.id} />
 
         {/* Page content */}
         <main className="container mx-auto px-4 py-16">
@@ -175,16 +163,11 @@ const TenantPage: React.FC = () => {
           </div>
         </main>
 
-        {/* Simple footer */}
-        <footer className="border-t border-border py-8 px-4 mt-16">
-          <div className="container mx-auto text-center text-muted-foreground">
-            <p>© {new Date().getFullYear()} {tenant.name}. All rights reserved.</p>
-          </div>
-        </footer>
+        {/* Master footer from JSON schema */}
+        <MasterFooter tenantId={tenant.id} />
       </div>
     </ErrorBoundary>
   );
 };
 
 export default TenantPage;
-

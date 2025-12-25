@@ -20,6 +20,8 @@ export { default as ContactModal } from './ContactModal';
 export { default as Header } from './Header';
 export { default as Footer } from './Footer';
 export { default as AdminTopBar } from './AdminTopBar';
+export { default as MasterHeader } from './master/MasterHeader';
+export { default as MasterFooter } from './master/MasterFooter';
 
 // Section Components
 export { default as HeroSection } from './HeroSection';
