@@ -279,46 +279,15 @@ const VisualEditorRenderer: React.FC<VisualEditorRendererProps> = ({ components,
         try {
           const componentType = mapComponentType(component.type || '');
 
+          // If we cannot resolve a mapping for this schema type, skip rendering entirely
           if (!componentType) {
-            // Log debug info for unknown components
-            if (typeof window !== 'undefined') {
-              console.warn('[testing] Failed to map component type:', component.type);
-              console.warn('[testing] Available registry keys:', Object.keys(registry).slice(0, 20));
-            }
-            
-            return (
-              <div
-                key={component.key || `component-${index}`}
-                className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg mb-4"
-              >
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-xs font-semibold text-yellow-800">Unknown Component</span>
-                  <span className="text-xs text-yellow-600">({component.type || 'unknown'})</span>
-                </div>
-                <p className="text-xs text-yellow-700">
-                  Component type "{component.type || 'unknown'}" not found in registry. Please ensure the component is implemented and registered.
-                </p>
-                {component.items && component.items.length > 0 && (
-                  <div className="mt-2 text-xs text-yellow-600">
-                    Component has {component.items.length} item(s) that could not be rendered.
-                  </div>
-                )}
-              </div>
-            );
+            return null;
           }
 
           const Component = registry[componentType];
+          // If the mapped component is not found in the active registry, skip rendering
           if (!Component) {
-            return (
-              <div
-                key={component.key || `component-${index}`}
-                className="p-4 bg-red-50 border border-red-200 rounded-lg mb-4"
-              >
-                <div className="text-xs font-semibold text-red-800">
-                  Component "{componentType}" not found in registry
-                </div>
-              </div>
-            );
+            return null;
           }
 
           // Transform props
