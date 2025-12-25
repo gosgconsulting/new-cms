@@ -19,114 +19,43 @@ import { JSONEditorDialog } from './PageEditor/JSONEditorDialog';
 import { EmptyState, ComponentsErrorState, ComponentsEmptyState } from './PageEditor/EmptyStates';
 import { AIAssistantChat } from '../../../src/components/AIAssistantChat';
 import SectionContentList, { ContentItem } from '@/components/SectionContentList';
-import ComponentPreview from '../../../src/components/visual-builder/ComponentPreview';
+import VisualEditorRenderer from '../../../src/components/visual-builder/VisualEditorRenderer';
 import CodeViewerDialog from './PageEditor/CodeViewerDialog';
 
-// Contents Panel Component
+// Visual Editor Panel Component - Shows full page preview
 interface ContentsPanelProps {
   components: ComponentSchema[];
   extractContentFromComponents: (components: ComponentSchema[]) => ContentItem[];
 }
 
-const ContentsPanel: React.FC<ContentsPanelProps> = ({ components, extractContentFromComponents }) => {
-  const content = extractContentFromComponents(components);
-
-  const groupedContent = React.useMemo(() => {
-    const groups: Record<string, ContentItem[]> = {};
-    content.forEach((item) => {
-      const groupKey = item.componentId || item.componentType || 'unknown';
-      if (!groups[groupKey]) {
-        groups[groupKey] = [];
-      }
-      groups[groupKey].push(item);
-    });
-    return groups;
-  }, [content]);
-
-  const getComponentByGroupKey = (groupKey: string) => {
-    // Try direct key match first
-    const byKey = components.find((c) => c.key === groupKey);
-    if (byKey) return byKey;
-    // Fallback: includes heuristic
-    return components.find((c) => (c.key || '').includes(groupKey) || groupKey.includes(c.key || '')) || null;
-  };
-
-  if (content.length === 0) {
+const ContentsPanel: React.FC<ContentsPanelProps> = ({ components }) => {
+  if (!components || components.length === 0) {
     return (
       <div className="text-center py-8">
         <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-        <h3 className="text-lg font-semibold mb-2">No Content Found</h3>
+        <h3 className="text-lg font-semibold mb-2">No Components Found</h3>
         <p className="text-muted-foreground">
-          Add components with text content to see the page contents here.
+          Add components to see the visual preview here.
         </p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4">
       <div className="border-b pb-4">
         <h2 className="text-2xl font-bold flex items-center">
           <FileText className="h-6 w-6 mr-2" />
-          Visual Builder Preview
+          Visual Editor
         </h2>
         <p className="text-sm text-muted-foreground mt-1">
-          Realistic mockups of each section based on JSON, including sliders and cards.
+          Full page preview using actual component implementations from the theme registry.
         </p>
       </div>
 
-      {/* Visual previews per section */}
-      <div className="space-y-8">
-        {Object.keys(groupedContent).map((groupKey) => {
-          const comp = getComponentByGroupKey(groupKey);
-          if (comp) {
-            return (
-              <div key={groupKey}>
-                <ComponentPreview component={comp} />
-              </div>
-            );
-          }
-          // Fallback to text-only for unmatched groups
-          return (
-            <div key={groupKey} className="space-y-3">
-              <div className="flex items-center gap-2">
-                <Badge variant="outline" className="text-xs">Section</Badge>
-                <span className="text-sm font-semibold">{groupKey}</span>
-              </div>
-              <SectionContentList items={groupedContent[groupKey]} />
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Simple stats at the bottom */}
-      <div className="mt-8 p-4 bg-gray-50 rounded-lg border border-gray-200">
-        <h4 className="font-semibold mb-3 flex items-center text-gray-800">
-          <Settings className="h-4 w-4 mr-2" />
-          Content Statistics
-        </h4>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 text-sm">
-          <div>
-            <span className="text-gray-600">Total Items:</span>
-            <span className="ml-2 font-medium text-gray-900">{content.length}</span>
-          </div>
-          <div>
-            <span className="text-gray-600">Headings:</span>
-            <span className="ml-2 font-medium text-gray-900">{content.filter(c => c.type === 'heading').length}</span>
-          </div>
-          <div>
-            <span className="text-gray-600">Paragraphs:</span>
-            <span className="ml-2 font-medium text-gray-900">{content.filter(c => c.type === 'paragraph').length}</span>
-          </div>
-          <div>
-            <span className="text-gray-600">Images:</span>
-            <span className="ml-2 font-medium text-gray-900">{content.filter(c => c.type === 'image').length}</span>
-          </div>
-          <div>
-            <span className="text-gray-600">Sections:</span>
-            <span className="ml-2 font-medium text-gray-900">{Object.keys(groupedContent).length}</span>
-          </div>
-        </div>
+      {/* Full visual editor with all components */}
+      <div className="w-full">
+        <VisualEditorRenderer components={components} />
       </div>
     </div>
   );
@@ -230,6 +159,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack, currentTenantId
         const data = await response.json();
         
         // Convert testimonials sections to proper items structure if needed
+        // NOTE: This only transforms data in memory for display - does NOT modify database
         if (data.page && data.page.layout && data.page.layout.components) {
           try {
             const { convertLayoutTestimonialsToItems } = await import('../../utils/convertTestimonialsToItems.js');
@@ -246,9 +176,23 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack, currentTenantId
             const layoutComponents = isValidComponentsArray(data.page.layout.components)
               ? data.page.layout.components
               : [];
-            setComponents(layoutComponents);
+            
+            // Remove duplicates based on component key to prevent duplicate sections
+            const uniqueComponents = layoutComponents.filter((component, index, self) => {
+              // If component has a key, use it for deduplication
+              if (component.key) {
+                return index === self.findIndex(c => c.key === component.key);
+              }
+              // If no key, use type + index as fallback
+              return index === self.findIndex((c, i) => 
+                c.type === component.type && 
+                (c.key || `component-${i}`) === (component.key || `component-${index}`)
+              );
+            });
+            
+            setComponents(uniqueComponents);
             // store snapshot to detect unsaved/manual changes
-            setOriginalComponents(JSON.parse(JSON.stringify(layoutComponents)));
+            setOriginalComponents(JSON.parse(JSON.stringify(uniqueComponents)));
           } else {
             setComponents([]);
             setOriginalComponents([]);
@@ -572,18 +516,22 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack, currentTenantId
             onUpdate={updateComponent}
           />
 
-          {/* NEW: Visual mock preview for this section */}
+          {/* Visual Editor - Replaces static preview */}
           <div className="space-y-4 mt-6">
             <div className="border-b pb-2">
               <h3 className="text-lg font-semibold flex items-center">
                 <FileText className="h-5 w-5 mr-2" />
-                Visual Preview
+                Visual Editor
               </h3>
               <p className="text-sm text-muted-foreground">
-                Realistic mock of this section (cards, sliders, etc.) from JSON.
+                Live preview using actual component implementations from the theme registry.
               </p>
             </div>
-            {selected ? <ComponentPreview component={selected} compact /> : null}
+            {selected ? (
+              <div className="border rounded-lg p-4 bg-background">
+                <VisualEditorRenderer components={[selected]} compact />
+              </div>
+            ) : null}
           </div>
 
           {/* Single preview: always show the current component content */}

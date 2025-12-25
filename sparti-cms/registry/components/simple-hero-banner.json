@@ -1,0 +1,18 @@
+{
+  "id": "simple-hero-banner",
+  "name": "Simple Hero Banner",
+  "type": "SimpleHeroBanner",
+  "category": "content",
+  "description": "Simple Hero Banner component with 0 configurable properties",
+  "properties": {},
+  "editor": "ContainerEditor",
+  "version": "1.0.0",
+  "tenant_scope": "tenant",
+  "tags": [
+    "content",
+    "hero",
+    "banner",
+    "simpleherobanner"
+  ],
+  "last_updated": "2025-12-25T09:34:01.389Z"
+}

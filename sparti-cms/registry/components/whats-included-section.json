@@ -1,0 +1,16 @@
+{
+  "id": "whats-included-section",
+  "name": "Whats Included Section",
+  "type": "whatsIncludedSection",
+  "category": "content",
+  "description": "Whats Included Section component with 0 configurable properties",
+  "properties": {},
+  "editor": "ContainerEditor",
+  "version": "1.0.0",
+  "tenant_scope": "tenant",
+  "tags": [
+    "content",
+    "whatsincludedsection"
+  ],
+  "last_updated": "2025-12-25T09:34:01.398Z"
+}

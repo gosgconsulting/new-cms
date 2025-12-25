@@ -18,6 +18,55 @@ import SimpleTextSection from './SimpleTextSection';
 import SimpleListSection from './SimpleListSection';
 import SimpleStatsSection from './SimpleStatsSection';
 
+// Auto-generated component imports
+import Accordion from './Accordion';
+import Array from './Array';
+import AvatarGroup from './AvatarGroup';
+import Blog from './Blog';
+import ContactFormDialog from './ContactFormDialog';
+import ContactModal from './ContactModal';
+import Content from './Content';
+import DynamicPageRenderer from './DynamicPageRenderer';
+import Footer from './Footer';
+import Header from './Header';
+import ModalContactForm from './ModalContactForm';
+import Newsletter from './Newsletter';
+import Reviews from './Reviews';
+import SEOHead from './SEOHead';
+import Showcase from './Showcase';
+import StickyChat from './StickyChat';
+import WhatsAppButton from './WhatsAppButton';
+
+// Auto-generated component imports
+import AboutSection from './AboutSection';
+import BackgroundImage from './BackgroundImage';
+import ContactInfo from './ContactInfo';
+import ContentSection from './ContentSection';
+import FAQAccordion from './FAQAccordion';
+import FAQSection from './FAQSection';
+import FeaturesSection from './FeaturesSection';
+import GallerySection from './GallerySection';
+import HeroSectionSimple from './HeroSectionSimple';
+import ImageGallery from './ImageGallery';
+import IngredientsSection from './IngredientsSection';
+import PageTitle from './PageTitle';
+import PainPointSection from './PainPointSection';
+import ProductGrid from './ProductGrid';
+import ResultsSection from './ResultsSection';
+import SEO from './SEO';
+import SEOExplanation from './SEOExplanation';
+import ServicesGrid from './ServicesGrid';
+import ServicesSection from './ServicesSection';
+import ServicesShowcase from './ServicesShowcase';
+import SimpleHeader from './SimpleHeader';
+import SimpleHeroBanner from './SimpleHeroBanner';
+import SocialMedia from './SocialMedia';
+import TeamSection from './TeamSection';
+import TestimonialsSection from './TestimonialsSection';
+import VideoSection from './VideoSection';
+import WhatsIncludedSection from './WhatsIncludedSection';
+import WhyChooseUsSection from './WhyChooseUsSection';
+
 /**
  * Registry of components available for dynamic rendering
  * The keys should match the "type" field in the component schema
@@ -41,7 +90,54 @@ export const componentRegistry = {
   SimpleTextSection,
   SimpleListSection,
   SimpleStatsSection,
-};
+
+  // Auto-generated components
+  Accordion,
+  Array,
+  AvatarGroup,
+  Blog,
+  ContactFormDialog,
+  ContactModal,
+  Content,
+  DynamicPageRenderer,
+  Footer,
+  Header,
+  ModalContactForm,
+  Newsletter,
+  Reviews,
+  SEOHead,
+  Showcase,
+  StickyChat,
+  WhatsAppButton,
+  // Auto-generated components
+  AboutSection,
+  BackgroundImage,
+  ContactInfo,
+  ContentSection,
+  FAQAccordion,
+  FAQSection,
+  FeaturesSection,
+  GallerySection,
+  HeroSectionSimple,
+  ImageGallery,
+  IngredientsSection,
+  PageTitle,
+  PainPointSection,
+  ProductGrid,
+  ResultsSection,
+  SEO,
+  SEOExplanation,
+  ServicesGrid,
+  ServicesSection,
+  ServicesShowcase,
+  SimpleHeader,
+  SimpleHeroBanner,
+  SocialMedia,
+  TeamSection,
+  TestimonialsSection,
+  VideoSection,
+  WhatsIncludedSection,
+  WhyChooseUsSection,};
 
 export type ComponentRegistryType = typeof componentRegistry;
 export type ComponentType = keyof ComponentRegistryType;

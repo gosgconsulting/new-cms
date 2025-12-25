@@ -1,0 +1,18 @@
+{
+  "id": "c-t-a-section",
+  "name": "C T A Section",
+  "type": "CTASection",
+  "category": "interactive",
+  "description": "C T A Section component with 0 configurable properties",
+  "properties": {},
+  "editor": "ButtonEditor",
+  "version": "1.0.0",
+  "tenant_scope": "tenant",
+  "tags": [
+    "interactive",
+    "cta",
+    "button",
+    "ctasection"
+  ],
+  "last_updated": "2025-12-25T09:34:01.402Z"
+}

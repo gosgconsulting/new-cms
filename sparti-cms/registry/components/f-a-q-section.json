@@ -1,0 +1,16 @@
+{
+  "id": "f-a-q-section",
+  "name": "F A Q Section",
+  "type": "FAQSection",
+  "category": "content",
+  "description": "F A Q Section component with 0 configurable properties",
+  "properties": {},
+  "editor": "ContainerEditor",
+  "version": "1.0.0",
+  "tenant_scope": "tenant",
+  "tags": [
+    "content",
+    "faqsection"
+  ],
+  "last_updated": "2025-12-25T09:34:01.397Z"
+}

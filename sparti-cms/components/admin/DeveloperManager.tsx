@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
-import { Database, Plus, FolderKanban, Puzzle, FileCode, Code, Globe, Monitor, FileText, Languages } from 'lucide-react';
+import { Database, Plus, FolderKanban, Puzzle, FileCode, Code, Globe, Monitor, FileText, Languages, Key } from 'lucide-react';
 import { PostgresIntegration, PostgresIntegrationListItem, Tenant } from './PostgresIntegration';
 import { ComponentsIntegration, ComponentsIntegrationListItem } from './ComponentsIntegration';
 import { AIAssistantIntegration, AIAssistantIntegrationListItem } from './AIAssistantIntegration';
@@ -477,7 +477,7 @@ const IntegrationsTab: React.FC<IntegrationsTabProps> = ({ currentTenantId, curr
 
       <Card>
         <CardContent className="pt-6 space-y-4">
-          {/* PostgreSQL Database - Now using the dedicated component */}
+          {/* PostgreSQL Database - Always shown, even when inactive */}
           {currentTenant ? (
             <PostgresIntegration 
               tenant={currentTenant}
@@ -495,13 +495,41 @@ const IntegrationsTab: React.FC<IntegrationsTabProps> = ({ currentTenantId, curr
               onViewClick={() => navigate('/database-viewer')} 
             />
           ) : (
-            <div className="p-4 border border-dashed border-gray-300 rounded-lg text-center text-gray-500">
-              <Database className="h-8 w-8 mx-auto mb-2" />
-              <p>
-                {mode === 'theme' 
-                  ? 'No theme selected. Please select a theme to view database integration.'
-                  : 'No tenant selected. Please select a tenant to view database integration.'}
-              </p>
+            <div className="border rounded-lg p-4 flex items-start justify-between opacity-60">
+              <div className="flex items-start gap-4">
+                <div className="p-2 bg-gray-100 rounded-lg">
+                  <Database className="h-6 w-6 text-gray-400" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="font-semibold text-gray-700">PostgreSQL Database</h3>
+                    <Badge variant="outline" className="bg-gray-100 text-gray-600 border-gray-300">
+                      Inactive
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-1">
+                    Database for storing project data, user information, and content
+                  </p>
+                  <div className="flex gap-4 text-xs text-muted-foreground">
+                    <span>Type: Database</span>
+                    <span>Provider: Railway</span>
+                  </div>
+                  <p className="text-xs text-amber-600 mt-2">
+                    {mode === 'theme' 
+                      ? 'Select a theme to activate database integration.'
+                      : 'Select a tenant to activate database integration.'}
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" disabled>
+                  <Key className="h-4 w-4 mr-1" />
+                  API
+                </Button>
+                <Button variant="outline" size="sm" disabled>
+                  View
+                </Button>
+              </div>
             </div>
           )}
           

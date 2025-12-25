@@ -1,0 +1,16 @@
+{
+  "id": "showcase",
+  "name": "Showcase",
+  "type": "Showcase",
+  "category": "content",
+  "description": "Showcase component with 0 configurable properties",
+  "properties": {},
+  "editor": "ContainerEditor",
+  "version": "1.0.0",
+  "tenant_scope": "global",
+  "tags": [
+    "content",
+    "showcase"
+  ],
+  "last_updated": "2025-12-25T09:34:01.390Z"
+}

@@ -1,0 +1,16 @@
+{
+  "id": "team-section",
+  "name": "Team Section",
+  "type": "teamSection",
+  "category": "content",
+  "description": "Team Section component with 0 configurable properties",
+  "properties": {},
+  "editor": "ContainerEditor",
+  "version": "1.0.0",
+  "tenant_scope": "tenant",
+  "tags": [
+    "content",
+    "teamsection"
+  ],
+  "last_updated": "2025-12-25T09:34:01.403Z"
+}

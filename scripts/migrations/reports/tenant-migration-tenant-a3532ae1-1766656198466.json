@@ -1,0 +1,231 @@
+{
+  "timestamp": "2025-12-25T09:49:58.463Z",
+  "tenant": {
+    "id": "tenant-a3532ae1",
+    "name": "Moski B2B",
+    "slug": null
+  },
+  "analysis": {
+    "totalPages": 1,
+    "totalComponents": 5,
+    "componentTypes": [
+      {
+        "type": "HeroSection",
+        "count": 1,
+        "hasProps": false,
+        "hasItems": true,
+        "sampleComponent": {
+          "key": "MinimalHeroSection",
+          "name": "Hero",
+          "type": "HeroSection",
+          "items": [
+            {
+              "alt": "",
+              "key": "image",
+              "src": "https://admin.moskiparis.com/uploads/file-1761210859004-654483269.png",
+              "type": "image",
+              "settings": {
+                "layout": "full"
+              }
+            },
+            {
+              "key": "title",
+              "type": "heading",
+              "level": 1,
+              "content": ""
+            },
+            {
+              "key": "button",
+              "link": "/collections",
+              "type": "button",
+              "content": "Découvrir Collections"
+            },
+            {
+              "key": "showScrollArrow",
+              "type": "boolean",
+              "value": true
+            }
+          ]
+        }
+      },
+      {
+        "type": "Showcase",
+        "count": 1,
+        "hasProps": false,
+        "hasItems": true,
+        "sampleComponent": {
+          "key": "LifestyleShowcase",
+          "name": "Lifestyle",
+          "type": "Showcase",
+          "items": [
+            {
+              "key": "items",
+              "type": "array",
+              "items": [
+                {
+                  "key": "item1",
+                  "src": "https://admin.moskiparis.com/uploads/file-1761628579792-172827925.jpg",
+                  "link": "/optical",
+                  "type": "image",
+                  "content": "Optique"
+                },
+                {
+                  "key": "item2",
+                  "src": "https://admin.moskiparis.com/uploads/file-1761636374876-54510674.jpg",
+                  "link": "/sunglasses",
+                  "type": "image",
+                  "title": "Solaires"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "type": "ProductGrid",
+        "count": 1,
+        "hasProps": false,
+        "hasItems": true,
+        "sampleComponent": {
+          "key": "ProductGridShowcase",
+          "name": "ProductGrid",
+          "type": "ProductGrid",
+          "items": [
+            {
+              "key": "title",
+              "type": "heading",
+              "level": 2,
+              "content": "Collections"
+            },
+            {
+              "key": "subtitle",
+              "type": "heading",
+              "level": 3,
+              "content": ""
+            }
+          ]
+        }
+      },
+      {
+        "type": "Reviews",
+        "count": 1,
+        "hasProps": false,
+        "hasItems": true,
+        "sampleComponent": {
+          "key": "ReviewsSection",
+          "name": "Reviews",
+          "type": "Reviews",
+          "items": [
+            {
+              "key": "title",
+              "type": "heading",
+              "level": 2,
+              "content": "Ce que disent nos clients"
+            },
+            {
+              "key": "subtitle",
+              "type": "heading",
+              "level": 3,
+              "content": "Découvrez les témoignages de ceux qui portent déjà MOSKI"
+            },
+            {
+              "key": "reviews",
+              "type": "array",
+              "items": [
+                {
+                  "id": "1761646428586",
+                  "key": "review_1761646428586",
+                  "type": "review",
+                  "props": {
+                    "name": "Sophie Martin",
+                    "title": "Paris, France",
+                    "rating": 5,
+                    "content": "Qualité exceptionnelle et design intemporel. Mes lunettes MOSKI sont devenues mon accessoire préféré."
+                  }
+                },
+                {
+                  "id": "1761646428648",
+                  "key": "review_1761646428648",
+                  "type": "review",
+                  "props": {
+                    "name": "Alexandre Dubois",
+                    "title": "Lyon, France",
+                    "rating": 5,
+                    "content": "Artisanat français remarquable. Le service client est également exceptionnel."
+                  }
+                },
+                {
+                  "id": "1761646428761",
+                  "key": "review_1761646428761",
+                  "type": "review",
+                  "props": {
+                    "name": "Emma Laurent",
+                    "title": "Marseille, France",
+                    "rating": 5,
+                    "content": "Confort parfait et style élégant. Je recommande vivement MOSKI à tous mes amis."
+                  }
+                },
+                {
+                  "id": "1761646462385",
+                  "key": "review_1761646462385",
+                  "type": "review",
+                  "props": {
+                    "name": "Thomas Bernard",
+                    "title": "Bordeaux, France",
+                    "rating": 5,
+                    "content": "Design moderne et finitions impeccables. Exactement ce que je recherchais."
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "type": "Newsletter",
+        "count": 1,
+        "hasProps": false,
+        "hasItems": true,
+        "sampleComponent": {
+          "key": "MinimalNewsletterSection",
+          "name": "Newsletter",
+          "type": "Newsletter",
+          "items": [
+            {
+              "key": "title",
+              "type": "heading",
+              "level": 2,
+              "content": "MOSKI PARIS"
+            },
+            {
+              "key": "subtitle",
+              "type": "heading",
+              "level": 3,
+              "content": "Soyez les premiers à découvrir nos nouvelles séries limitées"
+            },
+            {
+              "key": "placeholder",
+              "type": "text",
+              "content": "Votre adresse email"
+            },
+            {
+              "key": "button",
+              "type": "button",
+              "content": "S'inscrire"
+            }
+          ]
+        }
+      }
+    ],
+    "pagesWithIssues": [],
+    "migrationNeeded": false,
+    "issues": []
+  },
+  "recommendations": [
+    {
+      "type": "success",
+      "message": "5 component type(s) use items format (schema-based)",
+      "action": "These components should work with VisualEditorRenderer"
+    }
+  ]
+}

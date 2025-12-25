@@ -1,0 +1,16 @@
+{
+  "id": "video-section",
+  "name": "Video Section",
+  "type": "videoSection",
+  "category": "content",
+  "description": "Video Section component with 0 configurable properties",
+  "properties": {},
+  "editor": "VideoEditor",
+  "version": "1.0.0",
+  "tenant_scope": "tenant",
+  "tags": [
+    "content",
+    "videosection"
+  ],
+  "last_updated": "2025-12-25T09:34:01.398Z"
+}

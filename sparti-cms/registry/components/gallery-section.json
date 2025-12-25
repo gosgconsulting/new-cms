@@ -1,0 +1,18 @@
+{
+  "id": "gallery-section",
+  "name": "Gallery Section",
+  "type": "GallerySection",
+  "category": "media",
+  "description": "Gallery Section component with 0 configurable properties",
+  "properties": {},
+  "editor": "ContainerEditor",
+  "version": "1.0.0",
+  "tenant_scope": "tenant",
+  "tags": [
+    "media",
+    "media",
+    "image",
+    "gallerysection"
+  ],
+  "last_updated": "2025-12-25T09:34:01.393Z"
+}

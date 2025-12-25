@@ -1,0 +1,16 @@
+{
+  "id": "about-section",
+  "name": "About Section",
+  "type": "aboutSection",
+  "category": "content",
+  "description": "About Section component with 0 configurable properties",
+  "properties": {},
+  "editor": "ContainerEditor",
+  "version": "1.0.0",
+  "tenant_scope": "tenant",
+  "tags": [
+    "content",
+    "aboutsection"
+  ],
+  "last_updated": "2025-12-25T09:34:01.403Z"
+}

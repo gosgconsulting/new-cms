@@ -1,11 +1,13 @@
 {
   "id": "section-image-content",
   "name": "Image + Content Section",
+  "type": "container",
   "description": "A section with images on the left and content on the right",
   "category": "layout",
   "subcategory": "Feature",
   "tags": ["image", "content", "layout", "section"],
   "version": "1.0.0",
+  "editor": "ContainerEditor",
   "properties": {
     "backgroundColor": {
       "type": "string",

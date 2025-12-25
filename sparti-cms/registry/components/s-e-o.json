@@ -1,0 +1,16 @@
+{
+  "id": "s-e-o",
+  "name": "S E O",
+  "type": "SEO",
+  "category": "content",
+  "description": "S E O component with 0 configurable properties",
+  "properties": {},
+  "editor": "ContainerEditor",
+  "version": "1.0.0",
+  "tenant_scope": "global",
+  "tags": [
+    "content",
+    "seo"
+  ],
+  "last_updated": "2025-12-25T09:34:01.388Z"
+}

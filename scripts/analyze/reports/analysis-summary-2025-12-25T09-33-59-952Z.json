@@ -1,0 +1,2993 @@
+{
+  "timestamp": "2025-12-25T09:33:59.952Z",
+  "steps": [
+    {
+      "step": "generate-missing-components-report",
+      "status": "success",
+      "missingCount": 39
+    },
+    {
+      "step": "generate-component-definitions",
+      "status": "success",
+      "total": 39,
+      "success": 38,
+      "skipped": 1,
+      "errors": 0
+    },
+    {
+      "step": "generate-react-components",
+      "status": "success",
+      "total": 6,
+      "success": 6,
+      "skipped": 0,
+      "errors": 0
+    },
+    {
+      "step": "update-registries",
+      "status": "success",
+      "registryIndexUpdates": 50,
+      "themeRegistryUpdates": 17
+    }
+  ],
+  "errors": [],
+  "results": {
+    "missingComponentsReport": {
+      "timestamp": "2025-12-25T09:34:01.381Z",
+      "summary": {
+        "totalDbComponentTypes": 39,
+        "totalRegistryComponentTypes": 4,
+        "missingComponentCount": 39,
+        "unusedComponentCount": 4
+      },
+      "missingComponents": [
+        {
+          "type": "HeroSection",
+          "totalUsage": 13,
+          "tenantCount": 7,
+          "tenants": [
+            "tenant-a3532ae1",
+            "tenant-c0a02b18",
+            "tenant-8361048f",
+            "tenant-ec969a4e",
+            "tenant-24da8cd6",
+            "tenant-110ee38b",
+            "tenant-gosg"
+          ],
+          "pageCount": 13,
+          "samples": [
+            {
+              "tenantId": "tenant-a3532ae1",
+              "tenantName": "Moski B2B",
+              "pageId": 48,
+              "pageSlug": "/home",
+              "pageName": "MOSKI Paris Home B2B",
+              "component": {
+                "type": "HeroSection",
+                "props": {}
+              }
+            },
+            {
+              "tenantId": "tenant-c0a02b18",
+              "tenantName": "Global Modul",
+              "pageId": 46,
+              "pageSlug": "/home",
+              "pageName": "Home Page",
+              "component": {
+                "type": "HeroSection",
+                "props": {}
+              }
+            },
+            {
+              "tenantId": "tenant-c0a02b18",
+              "tenantName": "Global Modul",
+              "pageId": 47,
+              "pageSlug": "/blog",
+              "pageName": "Blog",
+              "component": {
+                "type": "HeroSection",
+                "props": {}
+              }
+            },
+            {
+              "tenantId": "tenant-8361048f",
+              "tenantName": "Julia Paris B2B",
+              "pageId": 33,
+              "pageSlug": "/home",
+              "pageName": "Julia Paris Home Page",
+              "component": {
+                "type": "HeroSection",
+                "props": {}
+              }
+            },
+            {
+              "tenantId": "tenant-8361048f",
+              "tenantName": "Julia Paris B2B",
+              "pageId": 35,
+              "pageSlug": "/contact",
+              "pageName": "Contact Page",
+              "component": {
+                "type": "HeroSection",
+                "props": {}
+              }
+            }
+          ],
+          "inferredProperties": {},
+          "recommendedId": "hero-section",
+          "recommendedCategory": "content",
+          "recommendedEditor": "ContainerEditor"
+        },
+        {
+          "type": "array",
+          "totalUsage": 11,
+          "tenantCount": 3,
+          "tenants": [
+            "tenant-c0a02b18",
+            "tenant-b9bf6277",
+            "tenant-ec969a4e"
+          ],
+          "pageCount": 9,
+          "samples": [
+            {
+              "tenantId": "tenant-c0a02b18",
+              "tenantName": "Global Modul",
+              "pageId": 46,
+              "pageSlug": "/home",
+              "pageName": "Home Page",
+              "component": {
+                "type": "array",
+                "props": {}
+              }
+            },
+            {
+              "tenantId": "tenant-b9bf6277",
+              "tenantName": "ACATR",
+              "pageId": 45,
+              "pageSlug": "/terms",
+              "pageName": "Terms of Service",
+              "component": {
+                "type": "array",
+                "props": {}
+              }
+            },
+            {
+              "tenantId": "tenant-b9bf6277",
+              "tenantName": "ACATR",
+              "pageId": 31,
+              "pageSlug": "/home",
+              "pageName": "ACATR Homepage",
+              "component": {
+                "type": "array",
+                "props": {}
+              }
+            },
+            {
+              "tenantId": "tenant-b9bf6277",
+              "tenantName": "ACATR",
+              "pageId": 44,
+              "pageSlug": "/cookie-policy",
+              "pageName": "Cookies Policy",
+              "component": {
+                "type": "array",
+                "props": {}
+              }
+            },
+            {
+              "tenantId": "tenant-ec969a4e",
+              "tenantName": "Diora",
+              "pageId": 30,
+              "pageSlug": "/terms",
+              "pageName": "Diora Terms and Condition Page",
+              "component": {
+                "type": "array",
+                "props": {}
+              }
+            }
+          ],
+          "inferredProperties": {},
+          "recommendedId": "array",
+          "recommendedCategory": "content",
+          "recommendedEditor": "ContainerEditor"
+        },
+        {
+          "type": "ContentSection",
+          "totalUsage": 10,
+          "tenantCount": 2,
+          "tenants": [
+            "tenant-8361048f",
+            "tenant-24da8cd6"
+          ],
+          "pageCount": 5,
+          "samples": [
+            {
+              "tenantId": "tenant-8361048f",
+              "tenantName": "Julia Paris B2B",
+              "pageId": 33,
+              "pageSlug": "/home",
+              "pageName": "Julia Paris Home Page",
+              "component": {
+                "type": "ContentSection",
+                "props": {}
+              }
+            },
+            {
+              "tenantId": "tenant-8361048f",
+              "tenantName": "Julia Paris B2B",
+              "pageId": 38,
+              "pageSlug": "/about",
+              "pageName": "About Us Page",
+              "component": {
+                "type": "ContentSection",
+                "props": {}
+              }
+            },
+            {
+              "tenantId": "tenant-8361048f",
+              "tenantName": "Julia Paris B2B",
+              "pageId": 38,
+              "pageSlug": "/about",
+              "pageName": "About Us Page",
+              "component": {
+                "type": "ContentSection",
+                "props": {}
+              }
+            },
+            {
+              "tenantId": "tenant-24da8cd6",
+              "tenantName": "Julia Paris B2C",
+              "pageId": 13,
+              "pageSlug": "/home",
+              "pageName": "Julia Paris Home Page",
+              "component": {
+                "type": "ContentSection",
+                "props": {}
+              }
+            },
+            {
+              "tenantId": "tenant-24da8cd6",
+              "tenantName": "Julia Paris B2C",
+              "pageId": 14,
+              "pageSlug": "/about",
+              "pageName": "About Us Page",
+              "component": {
+                "type": "ContentSection",
+                "props": {}
+              }
+            }
+          ],
+          "inferredProperties": {},
+          "recommendedId": "content-section",
+          "recommendedCategory": "content",
+          "recommendedEditor": "ContainerEditor"
+        },
+        {
+          "type": "PageTitle",
+          "totalUsage": 9,
+          "tenantCount": 4,
+          "tenants": [
+            "tenant-8361048f",
+            "tenant-24da8cd6",
+            "tenant-110ee38b",
+            "tenant-gosg"
+          ],
+          "pageCount": 9,
+          "samples": [
+            {
+              "tenantId": "tenant-8361048f",
+              "tenantName": "Julia Paris B2B",
+              "pageId": 37,
+              "pageSlug": "/legal",
+              "pageName": "Legal",
+              "component": {
+                "type": "PageTitle",
+                "props": {}
+              }
+            },
+            {
+              "tenantId": "tenant-24da8cd6",
+              "tenantName": "Julia Paris B2C",
+              "pageId": 17,
+              "pageSlug": "/legal",
+              "pageName": "Legal",
+              "component": {
+                "type": "PageTitle",
+                "props": {}
+              }
+            },
+            {
+              "tenantId": "tenant-110ee38b",
+              "tenantName": "Moski",
+              "pageId": 12,
+              "pageSlug": "/garantie",
+              "pageName": "Notre Garantie",
+              "component": {
+                "type": "PageTitle",
+                "props": {}
+              }
+            },
+            {
+              "tenantId": "tenant-110ee38b",
+              "tenantName": "Moski",
+              "pageId": 2,
+              "pageSlug": "/contact",
+              "pageName": "Contact",
+              "component": {
+                "type": "PageTitle",
+                "props": {}
+              }
+            },
+            {
+              "tenantId": "tenant-110ee38b",
+              "tenantName": "Moski",
+              "pageId": 5,
+              "pageSlug": "/faq",
+              "pageName": "FAQ",
+              "component": {
+                "type": "PageTitle",
+                "props": {}
+              }
+            }
+          ],
+          "inferredProperties": {},
+          "recommendedId": "page-title",
+          "recommendedCategory": "content",
+          "recommendedEditor": "ContainerEditor"
+        },
+        {
+          "type": "Content",
+          "totalUsage": 9,
+          "tenantCount": 4,
+          "tenants": [
+            "tenant-8361048f",
+            "tenant-24da8cd6",
+            "tenant-110ee38b",
+            "tenant-gosg"
+          ],
+          "pageCount": 9,
+          "samples": [
+            {
+              "tenantId": "tenant-8361048f",
+              "tenantName": "Julia Paris B2B",
+              "pageId": 37,
+              "pageSlug": "/legal",
+              "pageName": "Legal",
+              "component": {
+                "type": "Content",
+                "props": {}
+              }
+            },
+            {
+              "tenantId": "tenant-24da8cd6",
+              "tenantName": "Julia Paris B2C",
+              "pageId": 17,
+              "pageSlug": "/legal",
+              "pageName": "Legal",
+              "component": {
+                "type": "Content",
+                "props": {}
+              }
+            },
+            {
+              "tenantId": "tenant-24da8cd6",
+              "tenantName": "Julia Paris B2C",
+              "pageId": 16,
+              "pageSlug": "/terms",
+              "pageName": "Terms",
+              "component": {
+                "type": "Content",
+                "props": {}
+              }
+            },
+            {
+              "tenantId": "tenant-110ee38b",
+              "tenantName": "Moski",
+              "pageId": 12,
+              "pageSlug": "/garantie",
+              "pageName": "Notre Garantie",
+              "component": {
+                "type": "Content",
+                "props": {}
+              }
+            },
+            {
+              "tenantId": "tenant-110ee38b",
+              "tenantName": "Moski",
+              "pageId": 5,
+              "pageSlug": "/faq",
+              "pageName": "FAQ",
+              "component": {
+                "type": "Content",
+                "props": {}
+              }
+            }
+          ],
+          "inferredProperties": {},
+          "recommendedId": "content",
+          "recommendedCategory": "content",
+          "recommendedEditor": "ContainerEditor"
+        },
+        {
+          "type": "SEO",
+          "totalUsage": 8,
+          "tenantCount": 2,
+          "tenants": [
+            "tenant-8361048f",
+            "tenant-24da8cd6"
+          ],
+          "pageCount": 8,
+          "samples": [
+            {
+              "tenantId": "tenant-8361048f",
+              "tenantName": "Julia Paris B2B",
+              "pageId": 41,
+              "pageSlug": "/shop",
+              "pageName": "Shop SEO Content",
+              "component": {
+                "type": "SEO",
+                "props": {}
+              }
+            },
+            {
+              "tenantId": "tenant-8361048f",
+              "tenantName": "Julia Paris B2B",
+              "pageId": 36,
+              "pageSlug": "/accessoires",
+              "pageName": "Accessories Page SEO Content",
+              "component": {
+                "type": "SEO",
+                "props": {}
+              }
+            },
+            {
+              "tenantId": "tenant-8361048f",
+              "tenantName": "Julia Paris B2B",
+              "pageId": 39,
+              "pageSlug": "/maille",
+              "pageName": "Maille Page SEO Content",
+              "component": {
+                "type": "SEO",
+                "props": {}
+              }
+            },
+            {
+              "tenantId": "tenant-24da8cd6",
+              "tenantName": "Julia Paris B2C",
+              "pageId": 19,
+              "pageSlug": "/shop",
+              "pageName": "Shop SEO Content",
+              "component": {
+                "type": "SEO",
+                "props": {}
+              }
+            },
+            {
+              "tenantId": "tenant-24da8cd6",
+              "tenantName": "Julia Paris B2C",
+              "pageId": 22,
+              "pageSlug": "/accessoires",
+              "pageName": "Accessories Page SEO Content",
+              "component": {
+                "type": "SEO",
+                "props": {}
+              }
+            }
+          ],
+          "inferredProperties": {},
+          "recommendedId": "s-e-o",
+          "recommendedCategory": "content",
+          "recommendedEditor": "ContainerEditor"
+        },
+        {
+          "type": "Accordion",
+          "totalUsage": 6,
+          "tenantCount": 2,
+          "tenants": [
+            "tenant-24da8cd6",
+            "tenant-110ee38b"
+          ],
+          "pageCount": 2,
+          "samples": [
+            {
+              "tenantId": "tenant-24da8cd6",
+              "tenantName": "Julia Paris B2C",
+              "pageId": 18,
+              "pageSlug": "/faq",
+              "pageName": "FAQ",
+              "component": {
+                "type": "Accordion",
+                "props": {}
+              }
+            },
+            {
+              "tenantId": "tenant-24da8cd6",
+              "tenantName": "Julia Paris B2C",
+              "pageId": 18,
+              "pageSlug": "/faq",
+              "pageName": "FAQ",
+              "component": {
+                "type": "Accordion",
+                "props": {}
+              }
+            },
+            {
+              "tenantId": "tenant-110ee38b",
+              "tenantName": "Moski",
+              "pageId": 5,
+              "pageSlug": "/faq",
+              "pageName": "FAQ",
+              "component": {
+                "type": "Accordion",
+                "props": {}
+              }
+            },
+            {
+              "tenantId": "tenant-110ee38b",
+              "tenantName": "Moski",
+              "pageId": 5,
+              "pageSlug": "/faq",
+              "pageName": "FAQ",
+              "component": {
+                "type": "Accordion",
+                "props": {}
+              }
+            },
+            {
+              "tenantId": "tenant-110ee38b",
+              "tenantName": "Moski",
+              "pageId": 5,
+              "pageSlug": "/faq",
+              "pageName": "FAQ",
+              "component": {
+                "type": "Accordion",
+                "props": {}
+              }
+            }
+          ],
+          "inferredProperties": {},
+          "recommendedId": "accordion",
+          "recommendedCategory": "content",
+          "recommendedEditor": "ContainerEditor"
+        },
+        {
+          "type": "SimpleHeroBanner",
+          "totalUsage": 5,
+          "tenantCount": 1,
+          "tenants": [
+            "tenant-ec969a4e"
+          ],
+          "pageCount": 5,
+          "samples": [
+            {
+              "tenantId": "tenant-ec969a4e",
+              "tenantName": "Diora",
+              "pageId": 30,
+              "pageSlug": "/terms",
+              "pageName": "Diora Terms and Condition Page",
+              "component": {
+                "type": "SimpleHeroBanner",
+                "props": {}
+              }
+            },
+            {
+              "tenantId": "tenant-ec969a4e",
+              "tenantName": "Diora",
+              "pageId": 26,
+              "pageSlug": "/blog",
+              "pageName": "Diora Blog Page",
+              "component": {
+                "type": "SimpleHeroBanner",
+                "props": {}
+              }
+            },
+            {
+              "tenantId": "tenant-ec969a4e",
+              "tenantName": "Diora",
+              "pageId": 24,
+              "pageSlug": "/pricing",
+              "pageName": "Diora Pricing Page",
+              "component": {
+                "type": "SimpleHeroBanner",
+                "props": {}
+              }
+            }
+          ],
+          "inferredProperties": {},
+          "recommendedId": "simple-hero-banner",
+          "recommendedCategory": "content",
+          "recommendedEditor": "ContainerEditor"
+        },
+        {
+          "type": "Showcase",
+          "totalUsage": 4,
+          "tenantCount": 4,
+          "tenants": [
+            "tenant-a3532ae1",
+            "tenant-8361048f",
+            "tenant-24da8cd6",
+            "tenant-110ee38b"
+          ],
+          "pageCount": 4,
+          "samples": [
+            {
+              "tenantId": "tenant-a3532ae1",
+              "tenantName": "Moski B2B",
+              "pageId": 48,
+              "pageSlug": "/home",
+              "pageName": "MOSKI Paris Home B2B",
+              "component": {
+                "type": "Showcase",
+                "props": {}
+              }
+            },
+            {
+              "tenantId": "tenant-8361048f",
+              "tenantName": "Julia Paris B2B",
+              "pageId": 33,
+              "pageSlug": "/home",
+              "pageName": "Julia Paris Home Page",
+              "component": {
+                "type": "Showcase",
+                "props": {}
+              }
+            },
+            {
+              "tenantId": "tenant-24da8cd6",
+              "tenantName": "Julia Paris B2C",
+              "pageId": 13,
+              "pageSlug": "/home",
+              "pageName": "Julia Paris Home Page",
+              "component": {
+                "type": "Showcase",
+                "props": {}
+              }
+            },
+            {
+              "tenantId": "tenant-110ee38b",
+              "tenantName": "Moski",
+              "pageId": 3,
+              "pageSlug": "/home",
+              "pageName": "MOSKI Paris Home",
+              "component": {
+                "type": "Showcase",
+                "props": {}
+              }
+            }
+          ],
+          "inferredProperties": {},
+          "recommendedId": "showcase",
+          "recommendedCategory": "content",
+          "recommendedEditor": "ContainerEditor"
+        },
+        {
+          "type": "ProductGrid",
+          "totalUsage": 4,
+          "tenantCount": 4,
+          "tenants": [
+            "tenant-a3532ae1",
+            "tenant-8361048f",
+            "tenant-24da8cd6",
+            "tenant-110ee38b"
+          ],
+          "pageCount": 4,
+          "samples": [
+            {
+              "tenantId": "tenant-a3532ae1",
+              "tenantName": "Moski B2B",
+              "pageId": 48,
+              "pageSlug": "/home",
+              "pageName": "MOSKI Paris Home B2B",
+              "component": {
+                "type": "ProductGrid",
+                "props": {}
+              }
+            },
+            {
+              "tenantId": "tenant-8361048f",
+              "tenantName": "Julia Paris B2B",
+              "pageId": 33,
+              "pageSlug": "/home",
+              "pageName": "Julia Paris Home Page",
+              "component": {
+                "type": "ProductGrid",
+                "props": {}
+              }
+            },
+            {
+              "tenantId": "tenant-24da8cd6",
+              "tenantName": "Julia Paris B2C",
+              "pageId": 13,
+              "pageSlug": "/home",
+              "pageName": "Julia Paris Home Page",
+              "component": {
+                "type": "ProductGrid",
+                "props": {}
+              }
+            },
+            {
+              "tenantId": "tenant-110ee38b",
+              "tenantName": "Moski",
+              "pageId": 3,
+              "pageSlug": "/home",
+              "pageName": "MOSKI Paris Home",
+              "component": {
+                "type": "ProductGrid",
+                "props": {}
+              }
+            }
+          ],
+          "inferredProperties": {},
+          "recommendedId": "product-grid",
+          "recommendedCategory": "content",
+          "recommendedEditor": "ContainerEditor"
+        },
+        {
+          "type": "Reviews",
+          "totalUsage": 4,
+          "tenantCount": 4,
+          "tenants": [
+            "tenant-a3532ae1",
+            "tenant-8361048f",
+            "tenant-24da8cd6",
+            "tenant-110ee38b"
+          ],
+          "pageCount": 4,
+          "samples": [
+            {
+              "tenantId": "tenant-a3532ae1",
+              "tenantName": "Moski B2B",
+              "pageId": 48,
+              "pageSlug": "/home",
+              "pageName": "MOSKI Paris Home B2B",
+              "component": {
+                "type": "Reviews",
+                "props": {}
+              }
+            },
+            {
+              "tenantId": "tenant-8361048f",
+              "tenantName": "Julia Paris B2B",
+              "pageId": 33,
+              "pageSlug": "/home",
+              "pageName": "Julia Paris Home Page",
+              "component": {
+                "type": "Reviews",
+                "props": {}
+              }
+            },
+            {
+              "tenantId": "tenant-24da8cd6",
+              "tenantName": "Julia Paris B2C",
+              "pageId": 13,
+              "pageSlug": "/home",
+              "pageName": "Julia Paris Home Page",
+              "component": {
+                "type": "Reviews",
+                "props": {}
+              }
+            },
+            {
+              "tenantId": "tenant-110ee38b",
+              "tenantName": "Moski",
+              "pageId": 3,
+              "pageSlug": "/home",
+              "pageName": "MOSKI Paris Home",
+              "component": {
+                "type": "Reviews",
+                "props": {}
+              }
+            }
+          ],
+          "inferredProperties": {},
+          "recommendedId": "reviews",
+          "recommendedCategory": "content",
+          "recommendedEditor": "ContainerEditor"
+        },
+        {
+          "type": "SimpleHeader",
+          "totalUsage": 4,
+          "tenantCount": 1,
+          "tenants": [
+            "tenant-b9bf6277"
+          ],
+          "pageCount": 4,
+          "samples": [
+            {
+              "tenantId": "tenant-b9bf6277",
+              "tenantName": "ACATR",
+              "pageId": 45,
+              "pageSlug": "/terms",
+              "pageName": "Terms of Service",
+              "component": {
+                "type": "SimpleHeader",
+                "props": {}
+              }
+            },
+            {
+              "tenantId": "tenant-b9bf6277",
+              "tenantName": "ACATR",
+              "pageId": 31,
+              "pageSlug": "/home",
+              "pageName": "ACATR Homepage",
+              "component": {
+                "type": "SimpleHeader",
+                "props": {}
+              }
+            },
+            {
+              "tenantId": "tenant-b9bf6277",
+              "tenantName": "ACATR",
+              "pageId": 44,
+              "pageSlug": "/cookie-policy",
+              "pageName": "Cookies Policy",
+              "component": {
+                "type": "SimpleHeader",
+                "props": {}
+              }
+            }
+          ],
+          "inferredProperties": {},
+          "recommendedId": "simple-header",
+          "recommendedCategory": "layout",
+          "recommendedEditor": "ContainerEditor"
+        },
+        {
+          "type": "GallerySection",
+          "totalUsage": 4,
+          "tenantCount": 1,
+          "tenants": [
+            "tenant-ec969a4e"
+          ],
+          "pageCount": 1,
+          "samples": [
+            {
+              "tenantId": "tenant-ec969a4e",
+              "tenantName": "Diora",
+              "pageId": 25,
+              "pageSlug": "/gallery",
+              "pageName": "Diora Gallery Page",
+              "component": {
+                "type": "GallerySection",
+                "props": {}
+              }
+            },
+            {
+              "tenantId": "tenant-ec969a4e",
+              "tenantName": "Diora",
+              "pageId": 25,
+              "pageSlug": "/gallery",
+              "pageName": "Diora Gallery Page",
+              "component": {
+                "type": "GallerySection",
+                "props": {}
+              }
+            },
+            {
+              "tenantId": "tenant-ec969a4e",
+              "tenantName": "Diora",
+              "pageId": 25,
+              "pageSlug": "/gallery",
+              "pageName": "Diora Gallery Page",
+              "component": {
+                "type": "GallerySection",
+                "props": {}
+              }
+            }
+          ],
+          "inferredProperties": {},
+          "recommendedId": "gallery-section",
+          "recommendedCategory": "media",
+          "recommendedEditor": "ContainerEditor"
+        },
+        {
+          "type": "Newsletter",
+          "totalUsage": 2,
+          "tenantCount": 2,
+          "tenants": [
+            "tenant-a3532ae1",
+            "tenant-110ee38b"
+          ],
+          "pageCount": 2,
+          "samples": [
+            {
+              "tenantId": "tenant-a3532ae1",
+              "tenantName": "Moski B2B",
+              "pageId": 48,
+              "pageSlug": "/home",
+              "pageName": "MOSKI Paris Home B2B",
+              "component": {
+                "type": "Newsletter",
+                "props": {}
+              }
+            },
+            {
+              "tenantId": "tenant-110ee38b",
+              "tenantName": "Moski",
+              "pageId": 3,
+              "pageSlug": "/home",
+              "pageName": "MOSKI Paris Home",
+              "component": {
+                "type": "Newsletter",
+                "props": {}
+              }
+            }
+          ],
+          "inferredProperties": {},
+          "recommendedId": "newsletter",
+          "recommendedCategory": "content",
+          "recommendedEditor": "ContainerEditor"
+        },
+        {
+          "type": "featuresSection",
+          "totalUsage": 2,
+          "tenantCount": 2,
+          "tenants": [
+            "tenant-c0a02b18",
+            "tenant-ec969a4e"
+          ],
+          "pageCount": 2,
+          "samples": [
+            {
+              "tenantId": "tenant-c0a02b18",
+              "tenantName": "Global Modul",
+              "pageId": 46,
+              "pageSlug": "/home",
+              "pageName": "Home Page",
+              "component": {
+                "type": "featuresSection",
+                "props": {}
+              }
+            },
+            {
+              "tenantId": "tenant-ec969a4e",
+              "tenantName": "Diora",
+              "pageId": 23,
+              "pageSlug": "/home",
+              "pageName": "Diora Home Page",
+              "component": {
+                "type": "featuresSection",
+                "props": {}
+              }
+            }
+          ],
+          "inferredProperties": {},
+          "recommendedId": "features-section",
+          "recommendedCategory": "content",
+          "recommendedEditor": "ContainerEditor"
+        },
+        {
+          "type": "servicesSection",
+          "totalUsage": 2,
+          "tenantCount": 2,
+          "tenants": [
+            "tenant-c0a02b18",
+            "tenant-ec969a4e"
+          ],
+          "pageCount": 2,
+          "samples": [
+            {
+              "tenantId": "tenant-c0a02b18",
+              "tenantName": "Global Modul",
+              "pageId": 46,
+              "pageSlug": "/home",
+              "pageName": "Home Page",
+              "component": {
+                "type": "servicesSection",
+                "props": {}
+              }
+            },
+            {
+              "tenantId": "tenant-ec969a4e",
+              "tenantName": "Diora",
+              "pageId": 23,
+              "pageSlug": "/home",
+              "pageName": "Diora Home Page",
+              "component": {
+                "type": "servicesSection",
+                "props": {}
+              }
+            }
+          ],
+          "inferredProperties": {},
+          "recommendedId": "services-section",
+          "recommendedCategory": "content",
+          "recommendedEditor": "ContainerEditor"
+        },
+        {
+          "type": "SocialMedia",
+          "totalUsage": 2,
+          "tenantCount": 2,
+          "tenants": [
+            "tenant-8361048f",
+            "tenant-24da8cd6"
+          ],
+          "pageCount": 2,
+          "samples": [
+            {
+              "tenantId": "tenant-8361048f",
+              "tenantName": "Julia Paris B2B",
+              "pageId": 33,
+              "pageSlug": "/home",
+              "pageName": "Julia Paris Home Page",
+              "component": {
+                "type": "SocialMedia",
+                "props": {}
+              }
+            },
+            {
+              "tenantId": "tenant-24da8cd6",
+              "tenantName": "Julia Paris B2C",
+              "pageId": 13,
+              "pageSlug": "/home",
+              "pageName": "Julia Paris Home Page",
+              "component": {
+                "type": "SocialMedia",
+                "props": {}
+              }
+            }
+          ],
+          "inferredProperties": {},
+          "recommendedId": "social-media",
+          "recommendedCategory": "media",
+          "recommendedEditor": "ContainerEditor"
+        },
+        {
+          "type": "ServicesGrid",
+          "totalUsage": 2,
+          "tenantCount": 2,
+          "tenants": [
+            "tenant-8361048f",
+            "tenant-24da8cd6"
+          ],
+          "pageCount": 2,
+          "samples": [
+            {
+              "tenantId": "tenant-8361048f",
+              "tenantName": "Julia Paris B2B",
+              "pageId": 33,
+              "pageSlug": "/home",
+              "pageName": "Julia Paris Home Page",
+              "component": {
+                "type": "ServicesGrid",
+                "props": {}
+              }
+            },
+            {
+              "tenantId": "tenant-24da8cd6",
+              "tenantName": "Julia Paris B2C",
+              "pageId": 13,
+              "pageSlug": "/home",
+              "pageName": "Julia Paris Home Page",
+              "component": {
+                "type": "ServicesGrid",
+                "props": {}
+              }
+            }
+          ],
+          "inferredProperties": {},
+          "recommendedId": "services-grid",
+          "recommendedCategory": "content",
+          "recommendedEditor": "ContainerEditor"
+        },
+        {
+          "type": "HeroSectionSimple",
+          "totalUsage": 2,
+          "tenantCount": 1,
+          "tenants": [
+            "tenant-8361048f"
+          ],
+          "pageCount": 2,
+          "samples": [
+            {
+              "tenantId": "tenant-8361048f",
+              "tenantName": "Julia Paris B2B",
+              "pageId": 38,
+              "pageSlug": "/about",
+              "pageName": "About Us Page",
+              "component": {
+                "type": "HeroSectionSimple",
+                "props": {}
+              }
+            },
+            {
+              "tenantId": "tenant-8361048f",
+              "tenantName": "Julia Paris B2B",
+              "pageId": 34,
+              "pageSlug": "/faq",
+              "pageName": "FAQ",
+              "component": {
+                "type": "HeroSectionSimple",
+                "props": {}
+              }
+            }
+          ],
+          "inferredProperties": {},
+          "recommendedId": "hero-section-simple",
+          "recommendedCategory": "content",
+          "recommendedEditor": "ContainerEditor"
+        },
+        {
+          "type": "FAQSection",
+          "totalUsage": 2,
+          "tenantCount": 1,
+          "tenants": [
+            "tenant-8361048f"
+          ],
+          "pageCount": 1,
+          "samples": [
+            {
+              "tenantId": "tenant-8361048f",
+              "tenantName": "Julia Paris B2B",
+              "pageId": 34,
+              "pageSlug": "/faq",
+              "pageName": "FAQ",
+              "component": {
+                "type": "FAQSection",
+                "props": {}
+              }
+            },
+            {
+              "tenantId": "tenant-8361048f",
+              "tenantName": "Julia Paris B2B",
+              "pageId": 34,
+              "pageSlug": "/faq",
+              "pageName": "FAQ",
+              "component": {
+                "type": "FAQSection",
+                "props": {}
+              }
+            }
+          ],
+          "inferredProperties": {},
+          "recommendedId": "f-a-q-section",
+          "recommendedCategory": "content",
+          "recommendedEditor": "ContainerEditor"
+        },
+        {
+          "type": "videoSection",
+          "totalUsage": 1,
+          "tenantCount": 1,
+          "tenants": [
+            "tenant-c0a02b18"
+          ],
+          "pageCount": 1,
+          "samples": [
+            {
+              "tenantId": "tenant-c0a02b18",
+              "tenantName": "Global Modul",
+              "pageId": 46,
+              "pageSlug": "/home",
+              "pageName": "Home Page",
+              "component": {
+                "type": "videoSection",
+                "props": {}
+              }
+            }
+          ],
+          "inferredProperties": {},
+          "recommendedId": "video-section",
+          "recommendedCategory": "content",
+          "recommendedEditor": "VideoEditor"
+        },
+        {
+          "type": "whatsIncludedSection",
+          "totalUsage": 1,
+          "tenantCount": 1,
+          "tenants": [
+            "tenant-c0a02b18"
+          ],
+          "pageCount": 1,
+          "samples": [
+            {
+              "tenantId": "tenant-c0a02b18",
+              "tenantName": "Global Modul",
+              "pageId": 46,
+              "pageSlug": "/home",
+              "pageName": "Home Page",
+              "component": {
+                "type": "whatsIncludedSection",
+                "props": {}
+              }
+            }
+          ],
+          "inferredProperties": {},
+          "recommendedId": "whats-included-section",
+          "recommendedCategory": "content",
+          "recommendedEditor": "ContainerEditor"
+        },
+        {
+          "type": "testimonialsSection",
+          "totalUsage": 1,
+          "tenantCount": 1,
+          "tenants": [
+            "tenant-c0a02b18"
+          ],
+          "pageCount": 1,
+          "samples": [
+            {
+              "tenantId": "tenant-c0a02b18",
+              "tenantName": "Global Modul",
+              "pageId": 46,
+              "pageSlug": "/home",
+              "pageName": "Home Page",
+              "component": {
+                "type": "testimonialsSection",
+                "props": {}
+              }
+            }
+          ],
+          "inferredProperties": {},
+          "recommendedId": "testimonials-section",
+          "recommendedCategory": "content",
+          "recommendedEditor": "ContainerEditor"
+        },
+        {
+          "type": "whyChooseUsSection",
+          "totalUsage": 1,
+          "tenantCount": 1,
+          "tenants": [
+            "tenant-c0a02b18"
+          ],
+          "pageCount": 1,
+          "samples": [
+            {
+              "tenantId": "tenant-c0a02b18",
+              "tenantName": "Global Modul",
+              "pageId": 46,
+              "pageSlug": "/home",
+              "pageName": "Home Page",
+              "component": {
+                "type": "whyChooseUsSection",
+                "props": {}
+              }
+            }
+          ],
+          "inferredProperties": {},
+          "recommendedId": "why-choose-us-section",
+          "recommendedCategory": "content",
+          "recommendedEditor": "ContainerEditor"
+        },
+        {
+          "type": "faqSection",
+          "totalUsage": 1,
+          "tenantCount": 1,
+          "tenants": [
+            "tenant-c0a02b18"
+          ],
+          "pageCount": 1,
+          "samples": [
+            {
+              "tenantId": "tenant-c0a02b18",
+              "tenantName": "Global Modul",
+              "pageId": 46,
+              "pageSlug": "/home",
+              "pageName": "Home Page",
+              "component": {
+                "type": "faqSection",
+                "props": {}
+              }
+            }
+          ],
+          "inferredProperties": {},
+          "recommendedId": "faq-section",
+          "recommendedCategory": "content",
+          "recommendedEditor": "ContainerEditor"
+        },
+        {
+          "type": "ctaSection",
+          "totalUsage": 1,
+          "tenantCount": 1,
+          "tenants": [
+            "tenant-c0a02b18"
+          ],
+          "pageCount": 1,
+          "samples": [
+            {
+              "tenantId": "tenant-c0a02b18",
+              "tenantName": "Global Modul",
+              "pageId": 46,
+              "pageSlug": "/home",
+              "pageName": "Home Page",
+              "component": {
+                "type": "ctaSection",
+                "props": {}
+              }
+            }
+          ],
+          "inferredProperties": {},
+          "recommendedId": "cta-section",
+          "recommendedCategory": "interactive",
+          "recommendedEditor": "ButtonEditor"
+        },
+        {
+          "type": "CTASection",
+          "totalUsage": 1,
+          "tenantCount": 1,
+          "tenants": [
+            "tenant-8361048f"
+          ],
+          "pageCount": 1,
+          "samples": [
+            {
+              "tenantId": "tenant-8361048f",
+              "tenantName": "Julia Paris B2B",
+              "pageId": 38,
+              "pageSlug": "/about",
+              "pageName": "About Us Page",
+              "component": {
+                "type": "CTASection",
+                "props": {}
+              }
+            }
+          ],
+          "inferredProperties": {},
+          "recommendedId": "c-t-a-section",
+          "recommendedCategory": "interactive",
+          "recommendedEditor": "ButtonEditor"
+        },
+        {
+          "type": "ingredientsSection",
+          "totalUsage": 1,
+          "tenantCount": 1,
+          "tenants": [
+            "tenant-ec969a4e"
+          ],
+          "pageCount": 1,
+          "samples": [
+            {
+              "tenantId": "tenant-ec969a4e",
+              "tenantName": "Diora",
+              "pageId": 23,
+              "pageSlug": "/home",
+              "pageName": "Diora Home Page",
+              "component": {
+                "type": "ingredientsSection",
+                "props": {}
+              }
+            }
+          ],
+          "inferredProperties": {},
+          "recommendedId": "ingredients-section",
+          "recommendedCategory": "content",
+          "recommendedEditor": "ContainerEditor"
+        },
+        {
+          "type": "teamSection",
+          "totalUsage": 1,
+          "tenantCount": 1,
+          "tenants": [
+            "tenant-ec969a4e"
+          ],
+          "pageCount": 1,
+          "samples": [
+            {
+              "tenantId": "tenant-ec969a4e",
+              "tenantName": "Diora",
+              "pageId": 23,
+              "pageSlug": "/home",
+              "pageName": "Diora Home Page",
+              "component": {
+                "type": "teamSection",
+                "props": {}
+              }
+            }
+          ],
+          "inferredProperties": {},
+          "recommendedId": "team-section",
+          "recommendedCategory": "content",
+          "recommendedEditor": "ContainerEditor"
+        },
+        {
+          "type": "aboutSection",
+          "totalUsage": 1,
+          "tenantCount": 1,
+          "tenants": [
+            "tenant-ec969a4e"
+          ],
+          "pageCount": 1,
+          "samples": [
+            {
+              "tenantId": "tenant-ec969a4e",
+              "tenantName": "Diora",
+              "pageId": 23,
+              "pageSlug": "/home",
+              "pageName": "Diora Home Page",
+              "component": {
+                "type": "aboutSection",
+                "props": {}
+              }
+            }
+          ],
+          "inferredProperties": {},
+          "recommendedId": "about-section",
+          "recommendedCategory": "content",
+          "recommendedEditor": "ContainerEditor"
+        },
+        {
+          "type": "ContactInfo",
+          "totalUsage": 1,
+          "tenantCount": 1,
+          "tenants": [
+            "tenant-110ee38b"
+          ],
+          "pageCount": 1,
+          "samples": [
+            {
+              "tenantId": "tenant-110ee38b",
+              "tenantName": "Moski",
+              "pageId": 2,
+              "pageSlug": "/contact",
+              "pageName": "Contact",
+              "component": {
+                "type": "ContactInfo",
+                "props": {}
+              }
+            }
+          ],
+          "inferredProperties": {},
+          "recommendedId": "contact-info",
+          "recommendedCategory": "content",
+          "recommendedEditor": "ContainerEditor"
+        },
+        {
+          "type": "PainPointSection",
+          "totalUsage": 1,
+          "tenantCount": 1,
+          "tenants": [
+            "tenant-gosg"
+          ],
+          "pageCount": 1,
+          "samples": [
+            {
+              "tenantId": "tenant-gosg",
+              "tenantName": "GO SG CONSULTING",
+              "pageId": 49,
+              "pageSlug": "seo",
+              "pageName": "SEO",
+              "component": {
+                "type": "PainPointSection",
+                "props": {}
+              }
+            }
+          ],
+          "inferredProperties": {},
+          "recommendedId": "pain-point-section",
+          "recommendedCategory": "content",
+          "recommendedEditor": "ContainerEditor"
+        },
+        {
+          "type": "ResultsSection",
+          "totalUsage": 1,
+          "tenantCount": 1,
+          "tenants": [
+            "tenant-gosg"
+          ],
+          "pageCount": 1,
+          "samples": [
+            {
+              "tenantId": "tenant-gosg",
+              "tenantName": "GO SG CONSULTING",
+              "pageId": 49,
+              "pageSlug": "seo",
+              "pageName": "SEO",
+              "component": {
+                "type": "ResultsSection",
+                "props": {}
+              }
+            }
+          ],
+          "inferredProperties": {},
+          "recommendedId": "results-section",
+          "recommendedCategory": "content",
+          "recommendedEditor": "ContainerEditor"
+        },
+        {
+          "type": "ServicesShowcase",
+          "totalUsage": 1,
+          "tenantCount": 1,
+          "tenants": [
+            "tenant-gosg"
+          ],
+          "pageCount": 1,
+          "samples": [
+            {
+              "tenantId": "tenant-gosg",
+              "tenantName": "GO SG CONSULTING",
+              "pageId": 49,
+              "pageSlug": "seo",
+              "pageName": "SEO",
+              "component": {
+                "type": "ServicesShowcase",
+                "props": {}
+              }
+            }
+          ],
+          "inferredProperties": {},
+          "recommendedId": "services-showcase",
+          "recommendedCategory": "content",
+          "recommendedEditor": "ContainerEditor"
+        },
+        {
+          "type": "SEOExplanation",
+          "totalUsage": 1,
+          "tenantCount": 1,
+          "tenants": [
+            "tenant-gosg"
+          ],
+          "pageCount": 1,
+          "samples": [
+            {
+              "tenantId": "tenant-gosg",
+              "tenantName": "GO SG CONSULTING",
+              "pageId": 49,
+              "pageSlug": "seo",
+              "pageName": "SEO",
+              "component": {
+                "type": "SEOExplanation",
+                "props": {}
+              }
+            }
+          ],
+          "inferredProperties": {},
+          "recommendedId": "s-e-o-explanation",
+          "recommendedCategory": "content",
+          "recommendedEditor": "ContainerEditor"
+        },
+        {
+          "type": "Testimonials",
+          "totalUsage": 1,
+          "tenantCount": 1,
+          "tenants": [
+            "tenant-gosg"
+          ],
+          "pageCount": 1,
+          "samples": [
+            {
+              "tenantId": "tenant-gosg",
+              "tenantName": "GO SG CONSULTING",
+              "pageId": 49,
+              "pageSlug": "seo",
+              "pageName": "SEO",
+              "component": {
+                "type": "Testimonials",
+                "props": {}
+              }
+            }
+          ],
+          "inferredProperties": {},
+          "recommendedId": "testimonials",
+          "recommendedCategory": "content",
+          "recommendedEditor": "ContainerEditor"
+        },
+        {
+          "type": "FAQAccordion",
+          "totalUsage": 1,
+          "tenantCount": 1,
+          "tenants": [
+            "tenant-gosg"
+          ],
+          "pageCount": 1,
+          "samples": [
+            {
+              "tenantId": "tenant-gosg",
+              "tenantName": "GO SG CONSULTING",
+              "pageId": 49,
+              "pageSlug": "seo",
+              "pageName": "SEO",
+              "component": {
+                "type": "FAQAccordion",
+                "props": {}
+              }
+            }
+          ],
+          "inferredProperties": {},
+          "recommendedId": "f-a-q-accordion",
+          "recommendedCategory": "content",
+          "recommendedEditor": "ContainerEditor"
+        },
+        {
+          "type": "BlogSection",
+          "totalUsage": 1,
+          "tenantCount": 1,
+          "tenants": [
+            "tenant-gosg"
+          ],
+          "pageCount": 1,
+          "samples": [
+            {
+              "tenantId": "tenant-gosg",
+              "tenantName": "GO SG CONSULTING",
+              "pageId": 49,
+              "pageSlug": "seo",
+              "pageName": "SEO",
+              "component": {
+                "type": "BlogSection",
+                "props": {}
+              }
+            }
+          ],
+          "inferredProperties": {},
+          "recommendedId": "blog-section",
+          "recommendedCategory": "content",
+          "recommendedEditor": "ContainerEditor"
+        },
+        {
+          "type": "ContactForm",
+          "totalUsage": 1,
+          "tenantCount": 1,
+          "tenants": [
+            "tenant-gosg"
+          ],
+          "pageCount": 1,
+          "samples": [
+            {
+              "tenantId": "tenant-gosg",
+              "tenantName": "GO SG CONSULTING",
+              "pageId": 49,
+              "pageSlug": "seo",
+              "pageName": "SEO",
+              "component": {
+                "type": "ContactForm",
+                "props": {}
+              }
+            }
+          ],
+          "inferredProperties": {},
+          "recommendedId": "contact-form",
+          "recommendedCategory": "form",
+          "recommendedEditor": "InputEditor"
+        }
+      ],
+      "unusedComponents": [
+        {
+          "type": "container",
+          "registryInfo": null
+        },
+        {
+          "type": "media",
+          "registryInfo": null
+        },
+        {
+          "type": "text",
+          "registryInfo": null
+        },
+        {
+          "type": "button",
+          "registryInfo": null
+        }
+      ],
+      "dbComponentTypes": [
+        "Accordion",
+        "BlogSection",
+        "CTASection",
+        "ContactForm",
+        "ContactInfo",
+        "Content",
+        "ContentSection",
+        "FAQAccordion",
+        "FAQSection",
+        "GallerySection",
+        "HeroSection",
+        "HeroSectionSimple",
+        "Newsletter",
+        "PageTitle",
+        "PainPointSection",
+        "ProductGrid",
+        "ResultsSection",
+        "Reviews",
+        "SEO",
+        "SEOExplanation",
+        "ServicesGrid",
+        "ServicesShowcase",
+        "Showcase",
+        "SimpleHeader",
+        "SimpleHeroBanner",
+        "SocialMedia",
+        "Testimonials",
+        "aboutSection",
+        "array",
+        "ctaSection",
+        "faqSection",
+        "featuresSection",
+        "ingredientsSection",
+        "servicesSection",
+        "teamSection",
+        "testimonialsSection",
+        "videoSection",
+        "whatsIncludedSection",
+        "whyChooseUsSection"
+      ],
+      "registryComponentTypes": [
+        "button",
+        "container",
+        "media",
+        "text"
+      ]
+    },
+    "componentDefinitions": {
+      "timestamp": "2025-12-25T09:34:01.409Z",
+      "results": [
+        {
+          "componentType": "HeroSection",
+          "success": true,
+          "path": "C:\\Users\\Oliver\\OneDrive\\Bureau\\GITHUBS\\new-cms\\sparti-cms\\registry\\components\\hero-section.json",
+          "component": {
+            "id": "hero-section",
+            "name": "Hero Section",
+            "type": "HeroSection",
+            "category": "content",
+            "description": "Hero Section component with 0 configurable properties",
+            "properties": {},
+            "editor": "ContainerEditor",
+            "version": "1.0.0",
+            "tenant_scope": "global",
+            "tags": [
+              "content",
+              "hero",
+              "banner",
+              "herosection"
+            ],
+            "last_updated": "2025-12-25T09:34:01.384Z"
+          }
+        },
+        {
+          "componentType": "array",
+          "success": true,
+          "path": "C:\\Users\\Oliver\\OneDrive\\Bureau\\GITHUBS\\new-cms\\sparti-cms\\registry\\components\\array.json",
+          "component": {
+            "id": "array",
+            "name": "Array",
+            "type": "array",
+            "category": "content",
+            "description": "Array component with 0 configurable properties",
+            "properties": {},
+            "editor": "ContainerEditor",
+            "version": "1.0.0",
+            "tenant_scope": "global",
+            "tags": [
+              "content",
+              "array"
+            ],
+            "last_updated": "2025-12-25T09:34:01.385Z"
+          }
+        },
+        {
+          "componentType": "ContentSection",
+          "success": true,
+          "path": "C:\\Users\\Oliver\\OneDrive\\Bureau\\GITHUBS\\new-cms\\sparti-cms\\registry\\components\\content-section.json",
+          "component": {
+            "id": "content-section",
+            "name": "Content Section",
+            "type": "ContentSection",
+            "category": "content",
+            "description": "Content Section component with 0 configurable properties",
+            "properties": {},
+            "editor": "ContainerEditor",
+            "version": "1.0.0",
+            "tenant_scope": "global",
+            "tags": [
+              "content",
+              "content",
+              "text",
+              "contentsection"
+            ],
+            "last_updated": "2025-12-25T09:34:01.386Z"
+          }
+        },
+        {
+          "componentType": "PageTitle",
+          "success": true,
+          "path": "C:\\Users\\Oliver\\OneDrive\\Bureau\\GITHUBS\\new-cms\\sparti-cms\\registry\\components\\page-title.json",
+          "component": {
+            "id": "page-title",
+            "name": "Page Title",
+            "type": "PageTitle",
+            "category": "content",
+            "description": "Page Title component with 0 configurable properties",
+            "properties": {},
+            "editor": "ContainerEditor",
+            "version": "1.0.0",
+            "tenant_scope": "global",
+            "tags": [
+              "content",
+              "pagetitle"
+            ],
+            "last_updated": "2025-12-25T09:34:01.386Z"
+          }
+        },
+        {
+          "componentType": "Content",
+          "success": true,
+          "path": "C:\\Users\\Oliver\\OneDrive\\Bureau\\GITHUBS\\new-cms\\sparti-cms\\registry\\components\\content.json",
+          "component": {
+            "id": "content",
+            "name": "Content",
+            "type": "Content",
+            "category": "content",
+            "description": "Content component with 0 configurable properties",
+            "properties": {},
+            "editor": "ContainerEditor",
+            "version": "1.0.0",
+            "tenant_scope": "global",
+            "tags": [
+              "content",
+              "content",
+              "text"
+            ],
+            "last_updated": "2025-12-25T09:34:01.387Z"
+          }
+        },
+        {
+          "componentType": "SEO",
+          "success": true,
+          "path": "C:\\Users\\Oliver\\OneDrive\\Bureau\\GITHUBS\\new-cms\\sparti-cms\\registry\\components\\s-e-o.json",
+          "component": {
+            "id": "s-e-o",
+            "name": "S E O",
+            "type": "SEO",
+            "category": "content",
+            "description": "S E O component with 0 configurable properties",
+            "properties": {},
+            "editor": "ContainerEditor",
+            "version": "1.0.0",
+            "tenant_scope": "global",
+            "tags": [
+              "content",
+              "seo"
+            ],
+            "last_updated": "2025-12-25T09:34:01.388Z"
+          }
+        },
+        {
+          "componentType": "Accordion",
+          "success": true,
+          "path": "C:\\Users\\Oliver\\OneDrive\\Bureau\\GITHUBS\\new-cms\\sparti-cms\\registry\\components\\accordion.json",
+          "component": {
+            "id": "accordion",
+            "name": "Accordion",
+            "type": "Accordion",
+            "category": "content",
+            "description": "Accordion component with 0 configurable properties",
+            "properties": {},
+            "editor": "ContainerEditor",
+            "version": "1.0.0",
+            "tenant_scope": "global",
+            "tags": [
+              "content",
+              "accordion"
+            ],
+            "last_updated": "2025-12-25T09:34:01.388Z"
+          }
+        },
+        {
+          "componentType": "SimpleHeroBanner",
+          "success": true,
+          "path": "C:\\Users\\Oliver\\OneDrive\\Bureau\\GITHUBS\\new-cms\\sparti-cms\\registry\\components\\simple-hero-banner.json",
+          "component": {
+            "id": "simple-hero-banner",
+            "name": "Simple Hero Banner",
+            "type": "SimpleHeroBanner",
+            "category": "content",
+            "description": "Simple Hero Banner component with 0 configurable properties",
+            "properties": {},
+            "editor": "ContainerEditor",
+            "version": "1.0.0",
+            "tenant_scope": "tenant",
+            "tags": [
+              "content",
+              "hero",
+              "banner",
+              "simpleherobanner"
+            ],
+            "last_updated": "2025-12-25T09:34:01.389Z"
+          }
+        },
+        {
+          "componentType": "Showcase",
+          "success": true,
+          "path": "C:\\Users\\Oliver\\OneDrive\\Bureau\\GITHUBS\\new-cms\\sparti-cms\\registry\\components\\showcase.json",
+          "component": {
+            "id": "showcase",
+            "name": "Showcase",
+            "type": "Showcase",
+            "category": "content",
+            "description": "Showcase component with 0 configurable properties",
+            "properties": {},
+            "editor": "ContainerEditor",
+            "version": "1.0.0",
+            "tenant_scope": "global",
+            "tags": [
+              "content",
+              "showcase"
+            ],
+            "last_updated": "2025-12-25T09:34:01.390Z"
+          }
+        },
+        {
+          "componentType": "ProductGrid",
+          "success": true,
+          "path": "C:\\Users\\Oliver\\OneDrive\\Bureau\\GITHUBS\\new-cms\\sparti-cms\\registry\\components\\product-grid.json",
+          "component": {
+            "id": "product-grid",
+            "name": "Product Grid",
+            "type": "ProductGrid",
+            "category": "content",
+            "description": "Product Grid component with 0 configurable properties",
+            "properties": {},
+            "editor": "ContainerEditor",
+            "version": "1.0.0",
+            "tenant_scope": "global",
+            "tags": [
+              "content",
+              "productgrid"
+            ],
+            "last_updated": "2025-12-25T09:34:01.391Z"
+          }
+        },
+        {
+          "componentType": "Reviews",
+          "success": true,
+          "path": "C:\\Users\\Oliver\\OneDrive\\Bureau\\GITHUBS\\new-cms\\sparti-cms\\registry\\components\\reviews.json",
+          "component": {
+            "id": "reviews",
+            "name": "Reviews",
+            "type": "Reviews",
+            "category": "content",
+            "description": "Reviews component with 0 configurable properties",
+            "properties": {},
+            "editor": "ContainerEditor",
+            "version": "1.0.0",
+            "tenant_scope": "global",
+            "tags": [
+              "content",
+              "reviews"
+            ],
+            "last_updated": "2025-12-25T09:34:01.392Z"
+          }
+        },
+        {
+          "componentType": "SimpleHeader",
+          "success": true,
+          "path": "C:\\Users\\Oliver\\OneDrive\\Bureau\\GITHUBS\\new-cms\\sparti-cms\\registry\\components\\simple-header.json",
+          "component": {
+            "id": "simple-header",
+            "name": "Simple Header",
+            "type": "SimpleHeader",
+            "category": "layout",
+            "description": "Simple Header component with 0 configurable properties",
+            "properties": {},
+            "editor": "ContainerEditor",
+            "version": "1.0.0",
+            "tenant_scope": "tenant",
+            "tags": [
+              "layout",
+              "navigation",
+              "header",
+              "simpleheader"
+            ],
+            "last_updated": "2025-12-25T09:34:01.392Z"
+          }
+        },
+        {
+          "componentType": "GallerySection",
+          "success": true,
+          "path": "C:\\Users\\Oliver\\OneDrive\\Bureau\\GITHUBS\\new-cms\\sparti-cms\\registry\\components\\gallery-section.json",
+          "component": {
+            "id": "gallery-section",
+            "name": "Gallery Section",
+            "type": "GallerySection",
+            "category": "media",
+            "description": "Gallery Section component with 0 configurable properties",
+            "properties": {},
+            "editor": "ContainerEditor",
+            "version": "1.0.0",
+            "tenant_scope": "tenant",
+            "tags": [
+              "media",
+              "media",
+              "image",
+              "gallerysection"
+            ],
+            "last_updated": "2025-12-25T09:34:01.393Z"
+          }
+        },
+        {
+          "componentType": "Newsletter",
+          "success": true,
+          "path": "C:\\Users\\Oliver\\OneDrive\\Bureau\\GITHUBS\\new-cms\\sparti-cms\\registry\\components\\newsletter.json",
+          "component": {
+            "id": "newsletter",
+            "name": "Newsletter",
+            "type": "Newsletter",
+            "category": "content",
+            "description": "Newsletter component with 0 configurable properties",
+            "properties": {},
+            "editor": "ContainerEditor",
+            "version": "1.0.0",
+            "tenant_scope": "global",
+            "tags": [
+              "content",
+              "newsletter"
+            ],
+            "last_updated": "2025-12-25T09:34:01.393Z"
+          }
+        },
+        {
+          "componentType": "featuresSection",
+          "success": true,
+          "path": "C:\\Users\\Oliver\\OneDrive\\Bureau\\GITHUBS\\new-cms\\sparti-cms\\registry\\components\\features-section.json",
+          "component": {
+            "id": "features-section",
+            "name": "Features Section",
+            "type": "featuresSection",
+            "category": "content",
+            "description": "Features Section component with 0 configurable properties",
+            "properties": {},
+            "editor": "ContainerEditor",
+            "version": "1.0.0",
+            "tenant_scope": "global",
+            "tags": [
+              "content",
+              "featuressection"
+            ],
+            "last_updated": "2025-12-25T09:34:01.394Z"
+          }
+        },
+        {
+          "componentType": "servicesSection",
+          "success": true,
+          "path": "C:\\Users\\Oliver\\OneDrive\\Bureau\\GITHUBS\\new-cms\\sparti-cms\\registry\\components\\services-section.json",
+          "component": {
+            "id": "services-section",
+            "name": "Services Section",
+            "type": "servicesSection",
+            "category": "content",
+            "description": "Services Section component with 0 configurable properties",
+            "properties": {},
+            "editor": "ContainerEditor",
+            "version": "1.0.0",
+            "tenant_scope": "global",
+            "tags": [
+              "content",
+              "servicessection"
+            ],
+            "last_updated": "2025-12-25T09:34:01.395Z"
+          }
+        },
+        {
+          "componentType": "SocialMedia",
+          "success": true,
+          "path": "C:\\Users\\Oliver\\OneDrive\\Bureau\\GITHUBS\\new-cms\\sparti-cms\\registry\\components\\social-media.json",
+          "component": {
+            "id": "social-media",
+            "name": "Social Media",
+            "type": "SocialMedia",
+            "category": "media",
+            "description": "Social Media component with 0 configurable properties",
+            "properties": {},
+            "editor": "ContainerEditor",
+            "version": "1.0.0",
+            "tenant_scope": "global",
+            "tags": [
+              "media",
+              "socialmedia"
+            ],
+            "last_updated": "2025-12-25T09:34:01.396Z"
+          }
+        },
+        {
+          "componentType": "ServicesGrid",
+          "success": true,
+          "path": "C:\\Users\\Oliver\\OneDrive\\Bureau\\GITHUBS\\new-cms\\sparti-cms\\registry\\components\\services-grid.json",
+          "component": {
+            "id": "services-grid",
+            "name": "Services Grid",
+            "type": "ServicesGrid",
+            "category": "content",
+            "description": "Services Grid component with 0 configurable properties",
+            "properties": {},
+            "editor": "ContainerEditor",
+            "version": "1.0.0",
+            "tenant_scope": "global",
+            "tags": [
+              "content",
+              "servicesgrid"
+            ],
+            "last_updated": "2025-12-25T09:34:01.396Z"
+          }
+        },
+        {
+          "componentType": "HeroSectionSimple",
+          "success": true,
+          "path": "C:\\Users\\Oliver\\OneDrive\\Bureau\\GITHUBS\\new-cms\\sparti-cms\\registry\\components\\hero-section-simple.json",
+          "component": {
+            "id": "hero-section-simple",
+            "name": "Hero Section Simple",
+            "type": "HeroSectionSimple",
+            "category": "content",
+            "description": "Hero Section Simple component with 0 configurable properties",
+            "properties": {},
+            "editor": "ContainerEditor",
+            "version": "1.0.0",
+            "tenant_scope": "tenant",
+            "tags": [
+              "content",
+              "hero",
+              "banner",
+              "herosectionsimple"
+            ],
+            "last_updated": "2025-12-25T09:34:01.397Z"
+          }
+        },
+        {
+          "componentType": "FAQSection",
+          "success": true,
+          "path": "C:\\Users\\Oliver\\OneDrive\\Bureau\\GITHUBS\\new-cms\\sparti-cms\\registry\\components\\f-a-q-section.json",
+          "component": {
+            "id": "f-a-q-section",
+            "name": "F A Q Section",
+            "type": "FAQSection",
+            "category": "content",
+            "description": "F A Q Section component with 0 configurable properties",
+            "properties": {},
+            "editor": "ContainerEditor",
+            "version": "1.0.0",
+            "tenant_scope": "tenant",
+            "tags": [
+              "content",
+              "faqsection"
+            ],
+            "last_updated": "2025-12-25T09:34:01.397Z"
+          }
+        },
+        {
+          "componentType": "videoSection",
+          "success": true,
+          "path": "C:\\Users\\Oliver\\OneDrive\\Bureau\\GITHUBS\\new-cms\\sparti-cms\\registry\\components\\video-section.json",
+          "component": {
+            "id": "video-section",
+            "name": "Video Section",
+            "type": "videoSection",
+            "category": "content",
+            "description": "Video Section component with 0 configurable properties",
+            "properties": {},
+            "editor": "VideoEditor",
+            "version": "1.0.0",
+            "tenant_scope": "tenant",
+            "tags": [
+              "content",
+              "videosection"
+            ],
+            "last_updated": "2025-12-25T09:34:01.398Z"
+          }
+        },
+        {
+          "componentType": "whatsIncludedSection",
+          "success": true,
+          "path": "C:\\Users\\Oliver\\OneDrive\\Bureau\\GITHUBS\\new-cms\\sparti-cms\\registry\\components\\whats-included-section.json",
+          "component": {
+            "id": "whats-included-section",
+            "name": "Whats Included Section",
+            "type": "whatsIncludedSection",
+            "category": "content",
+            "description": "Whats Included Section component with 0 configurable properties",
+            "properties": {},
+            "editor": "ContainerEditor",
+            "version": "1.0.0",
+            "tenant_scope": "tenant",
+            "tags": [
+              "content",
+              "whatsincludedsection"
+            ],
+            "last_updated": "2025-12-25T09:34:01.398Z"
+          }
+        },
+        {
+          "componentType": "testimonialsSection",
+          "success": true,
+          "path": "C:\\Users\\Oliver\\OneDrive\\Bureau\\GITHUBS\\new-cms\\sparti-cms\\registry\\components\\testimonials-section.json",
+          "component": {
+            "id": "testimonials-section",
+            "name": "Testimonials Section",
+            "type": "testimonialsSection",
+            "category": "content",
+            "description": "Testimonials Section component with 0 configurable properties",
+            "properties": {},
+            "editor": "ContainerEditor",
+            "version": "1.0.0",
+            "tenant_scope": "tenant",
+            "tags": [
+              "content",
+              "testimonialssection"
+            ],
+            "last_updated": "2025-12-25T09:34:01.399Z"
+          }
+        },
+        {
+          "componentType": "whyChooseUsSection",
+          "success": true,
+          "path": "C:\\Users\\Oliver\\OneDrive\\Bureau\\GITHUBS\\new-cms\\sparti-cms\\registry\\components\\why-choose-us-section.json",
+          "component": {
+            "id": "why-choose-us-section",
+            "name": "Why Choose Us Section",
+            "type": "whyChooseUsSection",
+            "category": "content",
+            "description": "Why Choose Us Section component with 0 configurable properties",
+            "properties": {},
+            "editor": "ContainerEditor",
+            "version": "1.0.0",
+            "tenant_scope": "tenant",
+            "tags": [
+              "content",
+              "whychooseussection"
+            ],
+            "last_updated": "2025-12-25T09:34:01.400Z"
+          }
+        },
+        {
+          "componentType": "faqSection",
+          "success": true,
+          "path": "C:\\Users\\Oliver\\OneDrive\\Bureau\\GITHUBS\\new-cms\\sparti-cms\\registry\\components\\faq-section.json",
+          "component": {
+            "id": "faq-section",
+            "name": "Faq Section",
+            "type": "faqSection",
+            "category": "content",
+            "description": "Faq Section component with 0 configurable properties",
+            "properties": {},
+            "editor": "ContainerEditor",
+            "version": "1.0.0",
+            "tenant_scope": "tenant",
+            "tags": [
+              "content",
+              "faqsection"
+            ],
+            "last_updated": "2025-12-25T09:34:01.400Z"
+          }
+        },
+        {
+          "componentType": "ctaSection",
+          "success": true,
+          "path": "C:\\Users\\Oliver\\OneDrive\\Bureau\\GITHUBS\\new-cms\\sparti-cms\\registry\\components\\cta-section.json",
+          "component": {
+            "id": "cta-section",
+            "name": "Cta Section",
+            "type": "ctaSection",
+            "category": "interactive",
+            "description": "Cta Section component with 0 configurable properties",
+            "properties": {},
+            "editor": "ButtonEditor",
+            "version": "1.0.0",
+            "tenant_scope": "tenant",
+            "tags": [
+              "interactive",
+              "cta",
+              "button",
+              "ctasection"
+            ],
+            "last_updated": "2025-12-25T09:34:01.401Z"
+          }
+        },
+        {
+          "componentType": "CTASection",
+          "success": true,
+          "path": "C:\\Users\\Oliver\\OneDrive\\Bureau\\GITHUBS\\new-cms\\sparti-cms\\registry\\components\\c-t-a-section.json",
+          "component": {
+            "id": "c-t-a-section",
+            "name": "C T A Section",
+            "type": "CTASection",
+            "category": "interactive",
+            "description": "C T A Section component with 0 configurable properties",
+            "properties": {},
+            "editor": "ButtonEditor",
+            "version": "1.0.0",
+            "tenant_scope": "tenant",
+            "tags": [
+              "interactive",
+              "cta",
+              "button",
+              "ctasection"
+            ],
+            "last_updated": "2025-12-25T09:34:01.402Z"
+          }
+        },
+        {
+          "componentType": "ingredientsSection",
+          "success": true,
+          "path": "C:\\Users\\Oliver\\OneDrive\\Bureau\\GITHUBS\\new-cms\\sparti-cms\\registry\\components\\ingredients-section.json",
+          "component": {
+            "id": "ingredients-section",
+            "name": "Ingredients Section",
+            "type": "ingredientsSection",
+            "category": "content",
+            "description": "Ingredients Section component with 0 configurable properties",
+            "properties": {},
+            "editor": "ContainerEditor",
+            "version": "1.0.0",
+            "tenant_scope": "tenant",
+            "tags": [
+              "content",
+              "ingredientssection"
+            ],
+            "last_updated": "2025-12-25T09:34:01.402Z"
+          }
+        },
+        {
+          "componentType": "teamSection",
+          "success": true,
+          "path": "C:\\Users\\Oliver\\OneDrive\\Bureau\\GITHUBS\\new-cms\\sparti-cms\\registry\\components\\team-section.json",
+          "component": {
+            "id": "team-section",
+            "name": "Team Section",
+            "type": "teamSection",
+            "category": "content",
+            "description": "Team Section component with 0 configurable properties",
+            "properties": {},
+            "editor": "ContainerEditor",
+            "version": "1.0.0",
+            "tenant_scope": "tenant",
+            "tags": [
+              "content",
+              "teamsection"
+            ],
+            "last_updated": "2025-12-25T09:34:01.403Z"
+          }
+        },
+        {
+          "componentType": "aboutSection",
+          "success": true,
+          "path": "C:\\Users\\Oliver\\OneDrive\\Bureau\\GITHUBS\\new-cms\\sparti-cms\\registry\\components\\about-section.json",
+          "component": {
+            "id": "about-section",
+            "name": "About Section",
+            "type": "aboutSection",
+            "category": "content",
+            "description": "About Section component with 0 configurable properties",
+            "properties": {},
+            "editor": "ContainerEditor",
+            "version": "1.0.0",
+            "tenant_scope": "tenant",
+            "tags": [
+              "content",
+              "aboutsection"
+            ],
+            "last_updated": "2025-12-25T09:34:01.403Z"
+          }
+        },
+        {
+          "componentType": "ContactInfo",
+          "success": true,
+          "path": "C:\\Users\\Oliver\\OneDrive\\Bureau\\GITHUBS\\new-cms\\sparti-cms\\registry\\components\\contact-info.json",
+          "component": {
+            "id": "contact-info",
+            "name": "Contact Info",
+            "type": "ContactInfo",
+            "category": "content",
+            "description": "Contact Info component with 0 configurable properties",
+            "properties": {},
+            "editor": "ContainerEditor",
+            "version": "1.0.0",
+            "tenant_scope": "tenant",
+            "tags": [
+              "content",
+              "contactinfo"
+            ],
+            "last_updated": "2025-12-25T09:34:01.404Z"
+          }
+        },
+        {
+          "componentType": "PainPointSection",
+          "success": true,
+          "path": "C:\\Users\\Oliver\\OneDrive\\Bureau\\GITHUBS\\new-cms\\sparti-cms\\registry\\components\\pain-point-section.json",
+          "component": {
+            "id": "pain-point-section",
+            "name": "Pain Point Section",
+            "type": "PainPointSection",
+            "category": "content",
+            "description": "Pain Point Section component with 0 configurable properties",
+            "properties": {},
+            "editor": "ContainerEditor",
+            "version": "1.0.0",
+            "tenant_scope": "tenant",
+            "tags": [
+              "content",
+              "painpointsection"
+            ],
+            "last_updated": "2025-12-25T09:34:01.404Z"
+          }
+        },
+        {
+          "componentType": "ResultsSection",
+          "success": true,
+          "path": "C:\\Users\\Oliver\\OneDrive\\Bureau\\GITHUBS\\new-cms\\sparti-cms\\registry\\components\\results-section.json",
+          "component": {
+            "id": "results-section",
+            "name": "Results Section",
+            "type": "ResultsSection",
+            "category": "content",
+            "description": "Results Section component with 0 configurable properties",
+            "properties": {},
+            "editor": "ContainerEditor",
+            "version": "1.0.0",
+            "tenant_scope": "tenant",
+            "tags": [
+              "content",
+              "resultssection"
+            ],
+            "last_updated": "2025-12-25T09:34:01.405Z"
+          }
+        },
+        {
+          "componentType": "ServicesShowcase",
+          "success": true,
+          "path": "C:\\Users\\Oliver\\OneDrive\\Bureau\\GITHUBS\\new-cms\\sparti-cms\\registry\\components\\services-showcase.json",
+          "component": {
+            "id": "services-showcase",
+            "name": "Services Showcase",
+            "type": "ServicesShowcase",
+            "category": "content",
+            "description": "Services Showcase component with 0 configurable properties",
+            "properties": {},
+            "editor": "ContainerEditor",
+            "version": "1.0.0",
+            "tenant_scope": "tenant",
+            "tags": [
+              "content",
+              "servicesshowcase"
+            ],
+            "last_updated": "2025-12-25T09:34:01.405Z"
+          }
+        },
+        {
+          "componentType": "SEOExplanation",
+          "success": true,
+          "path": "C:\\Users\\Oliver\\OneDrive\\Bureau\\GITHUBS\\new-cms\\sparti-cms\\registry\\components\\s-e-o-explanation.json",
+          "component": {
+            "id": "s-e-o-explanation",
+            "name": "S E O Explanation",
+            "type": "SEOExplanation",
+            "category": "content",
+            "description": "S E O Explanation component with 0 configurable properties",
+            "properties": {},
+            "editor": "ContainerEditor",
+            "version": "1.0.0",
+            "tenant_scope": "tenant",
+            "tags": [
+              "content",
+              "seoexplanation"
+            ],
+            "last_updated": "2025-12-25T09:34:01.406Z"
+          }
+        },
+        {
+          "componentType": "Testimonials",
+          "skipped": true,
+          "path": "C:\\Users\\Oliver\\OneDrive\\Bureau\\GITHUBS\\new-cms\\sparti-cms\\registry\\components\\testimonials.json"
+        },
+        {
+          "componentType": "FAQAccordion",
+          "success": true,
+          "path": "C:\\Users\\Oliver\\OneDrive\\Bureau\\GITHUBS\\new-cms\\sparti-cms\\registry\\components\\f-a-q-accordion.json",
+          "component": {
+            "id": "f-a-q-accordion",
+            "name": "F A Q Accordion",
+            "type": "FAQAccordion",
+            "category": "content",
+            "description": "F A Q Accordion component with 0 configurable properties",
+            "properties": {},
+            "editor": "ContainerEditor",
+            "version": "1.0.0",
+            "tenant_scope": "tenant",
+            "tags": [
+              "content",
+              "faqaccordion"
+            ],
+            "last_updated": "2025-12-25T09:34:01.407Z"
+          }
+        },
+        {
+          "componentType": "BlogSection",
+          "success": true,
+          "path": "C:\\Users\\Oliver\\OneDrive\\Bureau\\GITHUBS\\new-cms\\sparti-cms\\registry\\components\\blog-section.json",
+          "component": {
+            "id": "blog-section",
+            "name": "Blog Section",
+            "type": "BlogSection",
+            "category": "content",
+            "description": "Blog Section component with 0 configurable properties",
+            "properties": {},
+            "editor": "ContainerEditor",
+            "version": "1.0.0",
+            "tenant_scope": "tenant",
+            "tags": [
+              "content",
+              "blogsection"
+            ],
+            "last_updated": "2025-12-25T09:34:01.408Z"
+          }
+        },
+        {
+          "componentType": "ContactForm",
+          "success": true,
+          "path": "C:\\Users\\Oliver\\OneDrive\\Bureau\\GITHUBS\\new-cms\\sparti-cms\\registry\\components\\contact-form.json",
+          "component": {
+            "id": "contact-form",
+            "name": "Contact Form",
+            "type": "ContactForm",
+            "category": "form",
+            "description": "Contact Form component with 0 configurable properties",
+            "properties": {},
+            "editor": "InputEditor",
+            "version": "1.0.0",
+            "tenant_scope": "tenant",
+            "tags": [
+              "form",
+              "form",
+              "input",
+              "contactform"
+            ],
+            "last_updated": "2025-12-25T09:34:01.408Z"
+          }
+        }
+      ],
+      "summary": {
+        "total": 39,
+        "success": 38,
+        "skipped": 1,
+        "errors": 0
+      }
+    },
+    "reactComponents": {
+      "timestamp": "2025-12-25T09:34:01.419Z",
+      "results": [
+        {
+          "componentId": "array",
+          "success": true,
+          "path": "C:\\Users\\Oliver\\OneDrive\\Bureau\\GITHUBS\\new-cms\\sparti-cms\\theme\\gosgconsulting\\components\\Array.tsx",
+          "componentName": "Array",
+          "fileName": "Array.tsx"
+        },
+        {
+          "componentId": "content",
+          "success": true,
+          "path": "C:\\Users\\Oliver\\OneDrive\\Bureau\\GITHUBS\\new-cms\\sparti-cms\\theme\\gosgconsulting\\components\\Content.tsx",
+          "componentName": "Content",
+          "fileName": "Content.tsx"
+        },
+        {
+          "componentId": "accordion",
+          "success": true,
+          "path": "C:\\Users\\Oliver\\OneDrive\\Bureau\\GITHUBS\\new-cms\\sparti-cms\\theme\\gosgconsulting\\components\\Accordion.tsx",
+          "componentName": "Accordion",
+          "fileName": "Accordion.tsx"
+        },
+        {
+          "componentId": "showcase",
+          "success": true,
+          "path": "C:\\Users\\Oliver\\OneDrive\\Bureau\\GITHUBS\\new-cms\\sparti-cms\\theme\\gosgconsulting\\components\\Showcase.tsx",
+          "componentName": "Showcase",
+          "fileName": "Showcase.tsx"
+        },
+        {
+          "componentId": "reviews",
+          "success": true,
+          "path": "C:\\Users\\Oliver\\OneDrive\\Bureau\\GITHUBS\\new-cms\\sparti-cms\\theme\\gosgconsulting\\components\\Reviews.tsx",
+          "componentName": "Reviews",
+          "fileName": "Reviews.tsx"
+        },
+        {
+          "componentId": "newsletter",
+          "success": true,
+          "path": "C:\\Users\\Oliver\\OneDrive\\Bureau\\GITHUBS\\new-cms\\sparti-cms\\theme\\gosgconsulting\\components\\Newsletter.tsx",
+          "componentName": "Newsletter",
+          "fileName": "Newsletter.tsx"
+        }
+      ],
+      "summary": {
+        "total": 6,
+        "success": 6,
+        "skipped": 0,
+        "errors": 0
+      }
+    },
+    "registryUpdates": {
+      "registryIndex": {
+        "updated": true,
+        "newComponents": 50,
+        "components": [
+          {
+            "name": "about-section",
+            "importVar": "aboutSectionComponent",
+            "category": "content",
+            "id": "about-section"
+          },
+          {
+            "name": "accordion",
+            "importVar": "accordionComponent",
+            "category": "content",
+            "id": "accordion"
+          },
+          {
+            "name": "array",
+            "importVar": "arrayComponent",
+            "category": "content",
+            "id": "array"
+          },
+          {
+            "name": "background-image",
+            "importVar": "backgroundImageComponent",
+            "category": "layout",
+            "id": "background-image"
+          },
+          {
+            "name": "blog-preview",
+            "importVar": "blogPreviewComponent",
+            "category": "content",
+            "id": "blog-preview-section"
+          },
+          {
+            "name": "blog-section",
+            "importVar": "blogSectionComponent",
+            "category": "content",
+            "id": "blog-section"
+          },
+          {
+            "name": "c-t-a-section",
+            "importVar": "cTASectionComponent",
+            "category": "interactive",
+            "id": "c-t-a-section"
+          },
+          {
+            "name": "client-logos",
+            "importVar": "clientLogosComponent",
+            "category": "content",
+            "id": "client-logos-carousel"
+          },
+          {
+            "name": "contact-form",
+            "importVar": "contactFormComponent",
+            "category": "form",
+            "id": "contact-form"
+          },
+          {
+            "name": "contact-info",
+            "importVar": "contactInfoComponent",
+            "category": "content",
+            "id": "contact-info"
+          },
+          {
+            "name": "contact-modal",
+            "importVar": "contactModalComponent",
+            "category": "interactive",
+            "id": "contact-modal"
+          },
+          {
+            "name": "content-image-section",
+            "importVar": "contentImageSectionComponent",
+            "category": "layout",
+            "id": "section-content-image"
+          },
+          {
+            "name": "content-section",
+            "importVar": "contentSectionComponent",
+            "category": "content",
+            "id": "content-section"
+          },
+          {
+            "name": "content",
+            "importVar": "contentComponent",
+            "category": "content",
+            "id": "content"
+          },
+          {
+            "name": "cta-section",
+            "importVar": "ctaSectionComponent",
+            "category": "interactive",
+            "id": "cta-section"
+          },
+          {
+            "name": "f-a-q-accordion",
+            "importVar": "fAQAccordionComponent",
+            "category": "content",
+            "id": "f-a-q-accordion"
+          },
+          {
+            "name": "f-a-q-section",
+            "importVar": "fAQSectionComponent",
+            "category": "content",
+            "id": "f-a-q-section"
+          },
+          {
+            "name": "faq-section",
+            "importVar": "faqSectionComponent",
+            "category": "content",
+            "id": "faq-section"
+          },
+          {
+            "name": "features-section",
+            "importVar": "featuresSectionComponent",
+            "category": "content",
+            "id": "features-section"
+          },
+          {
+            "name": "gallery-section",
+            "importVar": "gallerySectionComponent",
+            "category": "media",
+            "id": "gallery-section"
+          },
+          {
+            "name": "hero-section-simple",
+            "importVar": "heroSectionSimpleComponent",
+            "category": "content",
+            "id": "hero-section-simple"
+          },
+          {
+            "name": "hero-section",
+            "importVar": "heroSectionComponent",
+            "category": "content",
+            "id": "hero-section"
+          },
+          {
+            "name": "image-content-section",
+            "importVar": "imageContentSectionComponent",
+            "category": "layout",
+            "id": "section-image-content"
+          },
+          {
+            "name": "image-gallery",
+            "importVar": "imageGalleryComponent",
+            "category": "media",
+            "id": "image-gallery"
+          },
+          {
+            "name": "ingredients-section",
+            "importVar": "ingredientsSectionComponent",
+            "category": "content",
+            "id": "ingredients-section"
+          },
+          {
+            "name": "newsletter",
+            "importVar": "newsletterComponent",
+            "category": "content",
+            "id": "newsletter"
+          },
+          {
+            "name": "page-title",
+            "importVar": "pageTitleComponent",
+            "category": "content",
+            "id": "page-title"
+          },
+          {
+            "name": "pain-point-section",
+            "importVar": "painPointSectionComponent",
+            "category": "content",
+            "id": "pain-point-section"
+          },
+          {
+            "name": "pain-points",
+            "importVar": "painPointsComponent",
+            "category": "content",
+            "id": "pain-point-section"
+          },
+          {
+            "name": "product-grid",
+            "importVar": "productGridComponent",
+            "category": "content",
+            "id": "product-grid"
+          },
+          {
+            "name": "results-section",
+            "importVar": "resultsSectionComponent",
+            "category": "content",
+            "id": "results-section"
+          },
+          {
+            "name": "reviews",
+            "importVar": "reviewsComponent",
+            "category": "content",
+            "id": "reviews"
+          },
+          {
+            "name": "rich-text",
+            "importVar": "richTextComponent",
+            "category": "content",
+            "id": "rich-text-editor"
+          },
+          {
+            "name": "s-e-o-explanation",
+            "importVar": "sEOExplanationComponent",
+            "category": "content",
+            "id": "s-e-o-explanation"
+          },
+          {
+            "name": "s-e-o",
+            "importVar": "sEOComponent",
+            "category": "content",
+            "id": "s-e-o"
+          },
+          {
+            "name": "seo-results",
+            "importVar": "seoResultsComponent",
+            "category": "content",
+            "id": "seo-results-section"
+          },
+          {
+            "name": "services-grid",
+            "importVar": "servicesGridComponent",
+            "category": "content",
+            "id": "services-grid"
+          },
+          {
+            "name": "services-section",
+            "importVar": "servicesSectionComponent",
+            "category": "content",
+            "id": "services-section"
+          },
+          {
+            "name": "services-showcase",
+            "importVar": "servicesShowcaseComponent",
+            "category": "content",
+            "id": "services-showcase"
+          },
+          {
+            "name": "showcase",
+            "importVar": "showcaseComponent",
+            "category": "content",
+            "id": "showcase"
+          },
+          {
+            "name": "simple-header",
+            "importVar": "simpleHeaderComponent",
+            "category": "layout",
+            "id": "simple-header"
+          },
+          {
+            "name": "simple-hero-banner",
+            "importVar": "simpleHeroBannerComponent",
+            "category": "content",
+            "id": "simple-hero-banner"
+          },
+          {
+            "name": "social-media",
+            "importVar": "socialMediaComponent",
+            "category": "media",
+            "id": "social-media"
+          },
+          {
+            "name": "team-section",
+            "importVar": "teamSectionComponent",
+            "category": "content",
+            "id": "team-section"
+          },
+          {
+            "name": "testimonials-section",
+            "importVar": "testimonialsSectionComponent",
+            "category": "content",
+            "id": "testimonials-section"
+          },
+          {
+            "name": "video-section",
+            "importVar": "videoSectionComponent",
+            "category": "content",
+            "id": "video-section"
+          },
+          {
+            "name": "what-is-seo",
+            "importVar": "whatIsSeoComponent",
+            "category": "content",
+            "id": "what-is-seo-section"
+          },
+          {
+            "name": "whats-included-section",
+            "importVar": "whatsIncludedSectionComponent",
+            "category": "content",
+            "id": "whats-included-section"
+          },
+          {
+            "name": "whatsapp-button",
+            "importVar": "whatsappButtonComponent",
+            "category": "interactive",
+            "id": "whatsapp-button"
+          },
+          {
+            "name": "why-choose-us-section",
+            "importVar": "whyChooseUsSectionComponent",
+            "category": "content",
+            "id": "why-choose-us-section"
+          }
+        ]
+      },
+      "themeRegistry": {
+        "updated": true,
+        "newComponents": 17,
+        "components": [
+          {
+            "name": "Accordion",
+            "pascalName": "Accordion",
+            "importVar": "Accordion"
+          },
+          {
+            "name": "Array",
+            "pascalName": "Array",
+            "importVar": "Array"
+          },
+          {
+            "name": "AvatarGroup",
+            "pascalName": "AvatarGroup",
+            "importVar": "AvatarGroup"
+          },
+          {
+            "name": "Blog",
+            "pascalName": "Blog",
+            "importVar": "Blog"
+          },
+          {
+            "name": "ContactFormDialog",
+            "pascalName": "ContactFormDialog",
+            "importVar": "ContactFormDialog"
+          },
+          {
+            "name": "ContactModal",
+            "pascalName": "ContactModal",
+            "importVar": "ContactModal"
+          },
+          {
+            "name": "Content",
+            "pascalName": "Content",
+            "importVar": "Content"
+          },
+          {
+            "name": "DynamicPageRenderer",
+            "pascalName": "DynamicPageRenderer",
+            "importVar": "DynamicPageRenderer"
+          },
+          {
+            "name": "Footer",
+            "pascalName": "Footer",
+            "importVar": "Footer"
+          },
+          {
+            "name": "Header",
+            "pascalName": "Header",
+            "importVar": "Header"
+          },
+          {
+            "name": "ModalContactForm",
+            "pascalName": "ModalContactForm",
+            "importVar": "ModalContactForm"
+          },
+          {
+            "name": "Newsletter",
+            "pascalName": "Newsletter",
+            "importVar": "Newsletter"
+          },
+          {
+            "name": "Reviews",
+            "pascalName": "Reviews",
+            "importVar": "Reviews"
+          },
+          {
+            "name": "SEOHead",
+            "pascalName": "SEOHead",
+            "importVar": "SEOHead"
+          },
+          {
+            "name": "Showcase",
+            "pascalName": "Showcase",
+            "importVar": "Showcase"
+          },
+          {
+            "name": "StickyChat",
+            "pascalName": "StickyChat",
+            "importVar": "StickyChat"
+          },
+          {
+            "name": "WhatsAppButton",
+            "pascalName": "WhatsAppButton",
+            "importVar": "WhatsAppButton"
+          }
+        ]
+      }
+    }
+  },
+  "duration": "1.48s",
+  "completed": true
+}

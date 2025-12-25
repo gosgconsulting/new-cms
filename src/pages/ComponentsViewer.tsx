@@ -1,8 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { SpartiCMSWrapper } from '../../sparti-cms';
 import { useAuth } from '../../sparti-cms/components/auth/AuthProvider';
 import { Shield } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import ErrorBoundary from '../components/ErrorBoundary';
+import { componentRegistry, ComponentDefinition } from '../../sparti-cms/registry';
+import VisualEditorRenderer from '../components/visual-builder/VisualEditorRenderer';
+import { ComponentSchema } from '../../sparti-cms/types/schema';
 import { 
   TextEditor, 
   ImageEditor, 
@@ -52,30 +56,38 @@ import {
   Quote,
   TextQuote,
   Type as TextSize,
-  ChevronDown
+  ChevronDown,
+  Navigation,
+  FileText,
+  Box,
+  Code,
+  Copy,
+  CheckCircle,
+  Monitor
 } from 'lucide-react';
 
-// Component placeholder types
-type PlaceholderType = 'heading' | 'paragraph' | 'image' | 'video' | 'gallery' | 'carousel' | 'section' | 'icon-text' | 'icon-heading' | 'badge' | 'button' | 'hero' | 'icon' | 'showcase' | 'product-grid' | 'reviews' | 'review' | 'newsletter' | 'contact-form' | 'form-field' | 'feature' | 'input' | 'textarea' | 'boolean' | 'number';
-type CategoryType = 'Sections' | 'Components' | 'Fields' | 'All';
-type SubCategoryType = 'Text' | 'Media' | 'Layout' | 'UI' | 'Hero' | 'Feature' | 'CTA' | 'None';
+// Component category types - using registry categories
+type CategoryType = 'All' | 'content' | 'media' | 'navigation' | 'form' | 'layout' | 'interactive';
 
-interface Placeholder {
+// Legacy placeholder types
+type PlaceholderType = 'heading' | 'paragraph' | 'icon-heading' | 'icon-text' | 'badge' | 'image' | 'gallery' | 'video' | 'carousel' | 'section' | 'icon' | 'input' | 'textarea' | 'boolean' | 'number';
+type SubCategoryType = 'Text' | 'Media' | 'Layout' | 'UI' | 'Hero' | 'Feature' | 'CTA';
+type Placeholder = {
   id: string;
   name: string;
   type: PlaceholderType;
-  description: string;
-  createdAt: string;
-  updatedAt: string;
-  category: CategoryType;
-  subcategory: SubCategoryType;
+  description?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  category?: string;
+  subcategory?: string;
   defaultContent?: string;
   fields?: string[];
   components?: string[];
-}
+};
 
-// Hardcoded placeholders
-const PLACEHOLDERS: Placeholder[] = [
+// Legacy placeholder data (keeping for backward compatibility with editor)
+  const PLACEHOLDERS: any[] = [
   // FIELDS - Text Category
   {
     id: 'field-rich-text',
@@ -459,9 +471,284 @@ const FONT_SIZES = [
 ];
 
 const ComponentsViewerContent = () => {
-  const [activeCategory, setActiveCategory] = useState<CategoryType>('Sections');
-  const [activeSubcategory, setActiveSubcategory] = useState<SubCategoryType | 'All'>('All');
-  const [selectedPlaceholder, setSelectedPlaceholder] = useState<Placeholder | null>(null);
+  // Get all components from registry
+  const allComponents = useMemo(() => {
+    return componentRegistry.getAll();
+  }, []);
+
+  // Get unique categories from components
+  const categories = useMemo(() => {
+    const cats = new Set<CategoryType>(['All']);
+    allComponents.forEach(comp => {
+      if (comp.category) {
+        cats.add(comp.category as CategoryType);
+      }
+    });
+    return Array.from(cats);
+  }, [allComponents]);
+
+  const [activeCategory, setActiveCategory] = useState<CategoryType>('All');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [selectedComponent, setSelectedComponent] = useState<ComponentDefinition | null>(null);
+  const [jsonViewComponent, setJsonViewComponent] = useState<ComponentDefinition | null>(null);
+  const [jsonCopied, setJsonCopied] = useState<boolean>(false);
+  const [previewComponent, setPreviewComponent] = useState<ComponentDefinition | null>(null);
+
+  // Filter components based on active category and search
+  const filteredComponents = useMemo(() => {
+    try {
+      let filtered = allComponents;
+      
+      // Filter by category
+      if (activeCategory !== 'All') {
+        filtered = filtered.filter(comp => comp.category === activeCategory);
+      }
+      
+      // Filter by search query
+      if (searchQuery.trim()) {
+        const query = searchQuery.toLowerCase();
+        filtered = filtered.filter(comp => 
+          comp.name.toLowerCase().includes(query) ||
+          (comp.description && comp.description.toLowerCase().includes(query)) ||
+          (comp.tags && comp.tags.some(tag => tag.toLowerCase().includes(query)))
+        );
+      }
+      
+      return filtered;
+    } catch (error) {
+      console.error('[testing] Error filtering components:', error);
+      return allComponents; // Return all components on error
+    }
+  }, [allComponents, activeCategory, searchQuery]);
+
+  // Get component icon based on type
+  const getComponentIcon = (component: ComponentDefinition) => {
+    switch (component.type) {
+      case 'text':
+        return <Type className="h-5 w-5 text-purple-600" />;
+      case 'image':
+        return <ImageIcon className="h-5 w-5 text-blue-600" />;
+      case 'video':
+        return <Video className="h-5 w-5 text-red-600" />;
+      case 'button':
+        return <Link className="h-5 w-5 text-green-600" />;
+      case 'container':
+        return <Layout className="h-5 w-5 text-gray-600" />;
+      default:
+        return <Box className="h-5 w-5 text-gray-600" />;
+    }
+  };
+
+  // Map component IDs to their registry component type names
+  const mapComponentIdToType = (id: string, name: string): string => {
+    // Common mappings based on component IDs and names
+    const idMappings: Record<string, string> = {
+      'hero-main': 'HeroSection',
+      'hero-section': 'HeroSection',
+      'seo-results-section': 'ResultsSection',
+      'services-showcase-section': 'ServicesShowcase',
+      'services-section': 'ServicesSection',
+      'features-section': 'FeaturesSection',
+      'ingredients-section': 'IngredientsSection',
+      'team-section': 'TeamSection',
+      'about-section': 'AboutSection',
+      'testimonials-section': 'TestimonialsSection',
+      'faq-section': 'FAQSection',
+      'gallery-section': 'GallerySection',
+      'contact-form': 'ContactForm',
+      'contact-info': 'ContactInfo',
+      'cta-section': 'CTASection',
+      'content-section': 'ContentSection',
+    };
+
+    // Check ID mappings first
+    if (idMappings[id]) {
+      return idMappings[id];
+    }
+
+    // Try to infer from ID pattern
+    const idLower = id.toLowerCase();
+    if (idLower.includes('hero')) return 'HeroSection';
+    if (idLower.includes('services')) return 'ServicesSection';
+    if (idLower.includes('features')) return 'FeaturesSection';
+    if (idLower.includes('ingredients')) return 'IngredientsSection';
+    if (idLower.includes('team')) return 'TeamSection';
+    if (idLower.includes('about')) return 'AboutSection';
+    if (idLower.includes('testimonial')) return 'TestimonialsSection';
+    if (idLower.includes('faq')) return 'FAQSection';
+    if (idLower.includes('gallery')) return 'GallerySection';
+    if (idLower.includes('results') || idLower.includes('seo-results')) return 'ResultsSection';
+    if (idLower.includes('contact')) return 'ContactInfo';
+    if (idLower.includes('cta') || idLower.includes('call-to-action')) return 'CTASection';
+
+    // Fallback: convert name to PascalCase
+    return name
+      .split(/[\s-]/)
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join('');
+  };
+
+  // Convert ComponentDefinition to ComponentSchema for preview
+  const convertToComponentSchema = (component: ComponentDefinition): ComponentSchema => {
+    // Map component type - for container types, map to actual component name
+    let componentType = component.type;
+    if (componentType === 'container') {
+      componentType = mapComponentIdToType(component.id, component.name);
+    }
+
+    // Create items array from properties with default values
+    const items: any[] = [];
+    const props: Record<string, any> = {};
+
+    if (component.properties) {
+      Object.entries(component.properties).forEach(([key, prop]: [string, any]) => {
+        const defaultValue = prop.default !== undefined ? prop.default : (prop.example || null);
+
+        // Handle arrays - convert to items structure
+        if (prop.type === 'array' && Array.isArray(defaultValue) && defaultValue.length > 0) {
+          // Convert array items to schema items
+          const arrayItems = defaultValue.map((item: any, index: number) => {
+            if (typeof item === 'string') {
+              return {
+                key: `${key}-${index}`,
+                type: 'text',
+                content: item
+              };
+            } else if (typeof item === 'object' && item !== null) {
+              // Convert object to schema items
+              const itemSchemaItems: any[] = [];
+              Object.entries(item).forEach(([itemKey, itemValue]) => {
+                if (typeof itemValue === 'string') {
+                  itemSchemaItems.push({
+                    key: itemKey,
+                    type: itemKey.toLowerCase().includes('image') || itemKey.toLowerCase().includes('img') || itemKey.toLowerCase().includes('src') ? 'image' : 'text',
+                    content: itemValue,
+                    ...(itemKey.toLowerCase().includes('image') || itemKey.toLowerCase().includes('img') || itemKey.toLowerCase().includes('src') ? { src: itemValue } : {})
+                  });
+                }
+              });
+              return {
+                key: `${key}-${index}`,
+                type: 'array',
+                items: itemSchemaItems.length > 0 ? itemSchemaItems : [{ key: 'content', type: 'text', content: JSON.stringify(item) }]
+              };
+            }
+            return {
+              key: `${key}-${index}`,
+              type: 'text',
+              content: String(item)
+            };
+          });
+
+          items.push({
+            key,
+            type: 'array',
+            items: arrayItems
+          });
+        }
+        // Handle strings/text
+        else if (prop.type === 'string' || prop.type === 'text') {
+          if (defaultValue) {
+            items.push({
+              key,
+              type: 'text',
+              content: defaultValue,
+              label: prop.description || key
+            });
+            // Also add to props for components that use props
+            props[key] = defaultValue;
+          }
+        }
+        // Handle images/URLs
+        else if (prop.type === 'image' || prop.type === 'url') {
+          if (defaultValue) {
+            items.push({
+              key,
+              type: 'image',
+              src: defaultValue,
+              alt: key
+            });
+            props[key] = defaultValue;
+          } else {
+            items.push({
+              key,
+              type: 'image',
+              src: 'https://via.placeholder.com/400x300',
+              alt: key
+            });
+          }
+        }
+        // Handle booleans
+        else if (prop.type === 'boolean') {
+          props[key] = defaultValue !== undefined ? defaultValue : false;
+        }
+        // Handle other types - add to props
+        else if (defaultValue !== null && defaultValue !== undefined) {
+          props[key] = defaultValue;
+        }
+      });
+    }
+
+    // If no items were created, add a default text item
+    if (items.length === 0) {
+      items.push({
+        key: 'content',
+        type: 'text',
+        content: component.description || `Preview of ${component.name}`,
+        label: 'Content'
+      });
+    }
+
+    // Create component schema
+    const schema: ComponentSchema = {
+      key: component.id || `preview-${component.name}`,
+      name: component.name,
+      type: componentType,
+      items
+    };
+
+    // Add props if any were created
+    if (Object.keys(props).length > 0) {
+      (schema as any).props = props;
+    }
+
+    return schema;
+  };
+
+  // Handle preview
+  const handlePreview = (component: ComponentDefinition) => {
+    setPreviewComponent(component);
+  };
+
+  // Handle JSON view
+  const handleViewJSON = (component: ComponentDefinition) => {
+    setJsonViewComponent(component);
+    setJsonCopied(false);
+  };
+
+  // Handle JSON copy
+  const handleCopyJSON = async () => {
+    if (!jsonViewComponent) return;
+    
+    try {
+      const jsonString = JSON.stringify(jsonViewComponent, null, 2);
+      await navigator.clipboard.writeText(jsonString);
+      setJsonCopied(true);
+      setTimeout(() => setJsonCopied(false), 2000);
+    } catch (error) {
+      console.error('[testing] Failed to copy JSON:', error);
+    }
+  };
+
+  // Get formatted JSON string
+  const getFormattedJSON = (component: ComponentDefinition | null): string => {
+    if (!component) return '';
+    return JSON.stringify(component, null, 2);
+  };
+  
+  // Legacy state for backward compatibility
+  const [activeSubcategory, setActiveSubcategory] = useState<string>('All');
+  const [selectedPlaceholder, setSelectedPlaceholder] = useState<any | null>(null);
   const [editorContent, setEditorContent] = useState<string>('');
   const [selectedImages, setSelectedImages] = useState<typeof MOCK_IMAGES>([]);
   const [videoUrl, setVideoUrl] = useState<string>('');
@@ -537,7 +824,7 @@ const ComponentsViewerContent = () => {
     }
   };
 
-  const getCategoryIcon = (subcategory: SubCategoryType) => {
+  const getSubcategoryIcon = (subcategory: SubCategoryType) => {
     switch (subcategory) {
       case 'Text':
         return <Type className="h-5 w-5" />;
@@ -600,18 +887,27 @@ const ComponentsViewerContent = () => {
     return ['All', ...subcategories];
   };
   
-  // Filter placeholders based on active category and subcategory
-  const filteredPlaceholders = activeCategory === 'All' 
-    ? PLACEHOLDERS 
-    : activeSubcategory === 'All'
-      ? PLACEHOLDERS.filter(p => p.category === activeCategory)
-      : PLACEHOLDERS.filter(p => p.category === activeCategory && p.subcategory === activeSubcategory);
-
-  // Main categories
-  const categories: CategoryType[] = ['Sections', 'Components', 'Fields'];
-  
-  // Subcategories for the active main category
-  const subcategories = getSubcategories(activeCategory);
+  // Get category icon
+  const getCategoryIcon = (category: CategoryType) => {
+    switch (category) {
+      case 'All':
+        return <Box className="h-5 w-5" />;
+      case 'content':
+        return <Type className="h-5 w-5" />;
+      case 'media':
+        return <ImageIcon className="h-5 w-5" />;
+      case 'navigation':
+        return <Navigation className="h-5 w-5" />;
+      case 'form':
+        return <FileText className="h-5 w-5" />;
+      case 'layout':
+        return <Layout className="h-5 w-5" />;
+      case 'interactive':
+        return <Code className="h-5 w-5" />;
+      default:
+        return <Box className="h-5 w-5" />;
+    }
+  };
 
   // Text selection and formatting handlers
   const getSelectedText = () => {
@@ -1250,7 +1546,7 @@ const ComponentsViewerContent = () => {
                   <button
                     onClick={() => {
                       setActiveCategory(category);
-                      setActiveSubcategory('All');
+                      setSearchQuery(''); // Clear search when changing category
                     }}
                     className={`w-full flex items-center px-3 py-2 text-left rounded-md transition-colors ${
                       activeCategory === category
@@ -1258,44 +1554,21 @@ const ComponentsViewerContent = () => {
                         : 'text-gray-700 hover:bg-gray-100'
                     }`}
                   >
-                    {category === 'Fields' && <Type className="h-4 w-4 mr-2" />}
-                    {category === 'Components' && <Layout className="h-4 w-4 mr-2" />}
-                    {category === 'Sections' && <Layers className="h-4 w-4 mr-2" />}
-                    {category}
+                    {getCategoryIcon(category)}
+                    <span className="ml-2 capitalize">{category === 'All' ? 'All Components' : category}</span>
+                    {activeCategory === category && (
+                      <span className="ml-auto text-xs bg-blue-200 text-blue-800 px-2 py-0.5 rounded-full">
+                        {category === 'All' 
+                          ? allComponents.length 
+                          : allComponents.filter(c => c.category === category).length}
+                      </span>
+                    )}
                   </button>
                 </li>
               ))}
             </ul>
           </nav>
         </div>
-        
-        {/* Subcategories */}
-        {subcategories.length > 1 && (
-          <div className="p-3">
-            <h3 className="text-xs uppercase tracking-wider text-gray-500 font-semibold mb-2">
-              {activeCategory === 'Fields' ? 'Field Types' : 
-               activeCategory === 'Components' ? 'Component Types' : 'Section Types'}
-            </h3>
-            <nav>
-              <ul className="space-y-1">
-                {subcategories.map((subcategory) => (
-                  <li key={subcategory}>
-                    <button
-                      onClick={() => setActiveSubcategory(subcategory)}
-                      className={`w-full flex items-center px-3 py-2 text-sm text-left rounded-md transition-colors ${
-                        activeSubcategory === subcategory
-                          ? 'bg-gray-100 text-gray-900'
-                          : 'text-gray-600 hover:bg-gray-50'
-                      }`}
-                    >
-                      {subcategory}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </nav>
-          </div>
-        )}
         
         {/* Documentation Link */}
         <div className="p-3 mt-auto border-t border-gray-200">
@@ -1315,13 +1588,11 @@ const ComponentsViewerContent = () => {
           <div className="flex justify-between items-center mb-6">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">
-                {activeCategory}
-                {activeSubcategory !== 'All' && ` / ${activeSubcategory}`}
+                {activeCategory === 'All' ? 'All Components' : activeCategory.charAt(0).toUpperCase() + activeCategory.slice(1)}
               </h1>
               <p className="text-gray-500 mt-1">
-                {activeCategory === 'Fields' && 'Basic building blocks for content creation'}
-                {activeCategory === 'Components' && 'Reusable UI elements combining multiple fields'}
-                {activeCategory === 'Sections' && 'Pre-designed sections for page layouts'}
+                {filteredComponents.length} {filteredComponents.length === 1 ? 'component' : 'components'} available
+                {activeCategory !== 'All' && ` in ${activeCategory} category`}
               </p>
             </div>
             <div className="flex gap-2">
@@ -1337,8 +1608,10 @@ const ComponentsViewerContent = () => {
             <div className="flex gap-2">
               <input 
                 type="text" 
-                placeholder="Search..." 
-                className="px-3 py-1.5 border border-gray-300 rounded-md text-sm"
+                placeholder="Search components..." 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="px-3 py-1.5 border border-gray-300 rounded-md text-sm w-64"
               />
             </div>
             <div className="flex items-center gap-2 text-sm">
@@ -1351,154 +1624,361 @@ const ComponentsViewerContent = () => {
             </div>
           </div>
           
-          {/* Placeholder Grid */}
-          {activeCategory === 'Fields' && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredPlaceholders.map((placeholder) => (
-                <div 
-                  key={placeholder.id} 
-                  className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-md transition-shadow"
-                >
-                  <div className="p-4 border-b border-gray-100">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center">
-                        <div className="p-1.5 bg-blue-50 rounded-md mr-3">
-                          {getPlaceholderIcon(placeholder.type)}
-                        </div>
-                        <h3 className="font-medium text-gray-900">{placeholder.name}</h3>
-                      </div>
-                      <span className="text-xs px-2 py-1 bg-blue-50 text-blue-700 rounded-full">
-                        {placeholder.subcategory}
-                      </span>
-                    </div>
-                    <p className="text-sm text-gray-600 line-clamp-2">{placeholder.description}</p>
-                  </div>
-                  <div className="px-4 py-2 bg-gray-50 flex justify-end">
-                    <button
-                      onClick={() => handleViewPlaceholder(placeholder)}
-                      className="flex items-center space-x-1 px-3 py-1.5 bg-green-100 text-green-700 rounded-md hover:bg-green-200 transition-colors"
-                    >
-                      <Eye className="h-4 w-4 mr-1" />
-                      <span>Edit</span>
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-          
           {/* Components Grid */}
-          {activeCategory === 'Components' && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredPlaceholders.map((placeholder) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredComponents.map((component) => {
+              const categoryColors: Record<string, { bg: string; text: string; border: string }> = {
+                content: { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' },
+                media: { bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200' },
+                navigation: { bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-200' },
+                form: { bg: 'bg-yellow-50', text: 'text-yellow-700', border: 'border-yellow-200' },
+                layout: { bg: 'bg-indigo-50', text: 'text-indigo-700', border: 'border-indigo-200' },
+                interactive: { bg: 'bg-pink-50', text: 'text-pink-700', border: 'border-pink-200' },
+              };
+              const colors = categoryColors[component.category || 'content'] || categoryColors.content;
+              
+              return (
                 <div 
-                  key={placeholder.id} 
+                  key={component.id} 
                   className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-md transition-shadow"
                 >
                   <div className="p-4 border-b border-gray-100">
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center">
-                        <div className="p-1.5 bg-purple-50 rounded-md mr-3">
-                          {getPlaceholderIcon(placeholder.type)}
+                        <div className={`p-1.5 ${colors.bg} rounded-md mr-3`}>
+                          {getComponentIcon(component)}
                         </div>
-                        <h3 className="font-medium text-gray-900">{placeholder.name}</h3>
+                        <h3 className="font-medium text-gray-900">{component.name}</h3>
                       </div>
-                      <span className="text-xs px-2 py-1 bg-purple-50 text-purple-700 rounded-full">
-                        {placeholder.subcategory}
+                      <span className={`text-xs px-2 py-1 ${colors.bg} ${colors.text} rounded-full capitalize`}>
+                        {component.category || 'content'}
                       </span>
                     </div>
-                    <p className="text-sm text-gray-600 line-clamp-2">{placeholder.description}</p>
-                    {placeholder.fields && (
-                      <div className="mt-3">
-                        <p className="text-xs text-gray-500 mb-1">Uses fields:</p>
+                    <p className="text-sm text-gray-600 line-clamp-2 mb-2">
+                      {component.description || 'No description available'}
+                    </p>
+                    {component.tags && component.tags.length > 0 && (
+                      <div className="mt-2">
                         <div className="flex flex-wrap gap-1">
-                          {placeholder.fields.map(fieldId => (
-                            <span key={fieldId} className="text-xs px-2 py-0.5 bg-gray-100 text-gray-700 rounded-full">
-                              {fieldId.replace('field-', '')}
+                          {component.tags.slice(0, 3).map(tag => (
+                            <span key={tag} className="text-xs px-2 py-0.5 bg-gray-100 text-gray-700 rounded-full">
+                              {tag}
                             </span>
                           ))}
+                          {component.tags.length > 3 && (
+                            <span className="text-xs px-2 py-0.5 bg-gray-100 text-gray-700 rounded-full">
+                              +{component.tags.length - 3}
+                            </span>
+                          )}
                         </div>
                       </div>
                     )}
-                  </div>
-                  <div className="px-4 py-2 bg-gray-50 flex justify-end">
-                    <button
-                      onClick={() => handleViewPlaceholder(placeholder)}
-                      className="flex items-center space-x-1 px-3 py-1.5 bg-green-100 text-green-700 rounded-md hover:bg-green-200 transition-colors"
-                    >
-                      <Eye className="h-4 w-4 mr-1" />
-                      <span>Edit</span>
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-          
-          {/* Sections Grid */}
-          {activeCategory === 'Sections' && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {filteredPlaceholders.map((placeholder) => (
-                <div 
-                  key={placeholder.id} 
-                  className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-md transition-shadow"
-                >
-                  <div className="p-4 border-b border-gray-100">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center">
-                        <div className="p-1.5 bg-green-50 rounded-md mr-3">
-                          {getPlaceholderIcon(placeholder.type)}
-                        </div>
-                        <h3 className="font-medium text-gray-900">{placeholder.name}</h3>
-                      </div>
-                      <span className="text-xs px-2 py-1 bg-green-50 text-green-700 rounded-full">
-                        {placeholder.subcategory}
-                      </span>
-                    </div>
-                    <p className="text-sm text-gray-600">{placeholder.description}</p>
-                    {placeholder.components && (
-                      <div className="mt-3">
-                        <p className="text-xs text-gray-500 mb-1">Contains:</p>
-                        <div className="flex flex-wrap gap-1">
-                          {placeholder.components.map(componentId => (
-                            <span key={componentId} className="text-xs px-2 py-0.5 bg-gray-100 text-gray-700 rounded-full">
-                              {componentId.replace('component-', '').replace('field-', '')}
-                            </span>
-                          ))}
-                        </div>
+                    {component.properties && Object.keys(component.properties).length > 0 && (
+                      <div className="mt-2">
+                        <p className="text-xs text-gray-500 mb-1">
+                          {Object.keys(component.properties).length} {Object.keys(component.properties).length === 1 ? 'property' : 'properties'}
+                        </p>
                       </div>
                     )}
                   </div>
-                  <div className="px-4 py-2 bg-gray-50 flex justify-end">
-                    <button
-                      onClick={() => handleViewPlaceholder(placeholder)}
-                      className="flex items-center space-x-1 px-3 py-1.5 bg-green-100 text-green-700 rounded-md hover:bg-green-200 transition-colors"
-                    >
-                      <Eye className="h-4 w-4 mr-1" />
-                      <span>Edit</span>
-                    </button>
+                  <div className="px-4 py-2 bg-gray-50 flex justify-between items-center">
+                    <div className="text-xs text-gray-500">
+                      v{component.version}
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleViewJSON(component)}
+                        className="flex items-center space-x-1 px-3 py-1.5 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors"
+                        title="View JSON structure"
+                      >
+                        <Code className="h-4 w-4 mr-1" />
+                        <span>JSON</span>
+                      </button>
+                      <button
+                        onClick={() => handlePreview(component)}
+                        className="flex items-center space-x-1 px-3 py-1.5 bg-purple-100 text-purple-700 rounded-md hover:bg-purple-200 transition-colors"
+                        title="Preview component"
+                      >
+                        <Monitor className="h-4 w-4 mr-1" />
+                        <span>Preview</span>
+                      </button>
+                      <button
+                        onClick={() => setSelectedComponent(component)}
+                        className="flex items-center space-x-1 px-3 py-1.5 bg-green-100 text-green-700 rounded-md hover:bg-green-200 transition-colors"
+                      >
+                        <Eye className="h-4 w-4 mr-1" />
+                        <span>View</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
+              );
+            })}
+          </div>
           
-          {filteredPlaceholders.length === 0 && (
+          {filteredComponents.length === 0 && (
             <div className="p-8 text-center bg-white rounded-lg shadow">
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 mb-4">
                 <Layout className="h-8 w-8 text-gray-400" />
               </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-1">No items found</h3>
-              <p className="text-gray-500 mb-4">There are no {activeCategory.toLowerCase()} in this category yet.</p>
+              <h3 className="text-lg font-medium text-gray-900 mb-1">No components found</h3>
+              <p className="text-gray-500 mb-4">
+                {searchQuery 
+                  ? `No components match "${searchQuery}"`
+                  : activeCategory !== 'All' 
+                    ? `No components found in ${activeCategory} category`
+                    : 'No components available'}
+              </p>
+              {searchQuery && (
+                <button 
+                  onClick={() => setSearchQuery('')}
+                  className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors mr-2"
+                >
+                  Clear Search
+                </button>
+              )}
               <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
-                Create New {activeCategory === 'Fields' ? 'Field' : activeCategory === 'Components' ? 'Component' : 'Section'}
+                Create New Component
               </button>
             </div>
           )}
         </div>
       </div>
 
-      {/* Placeholder Editor Modal */}
+      {/* JSON View Modal */}
+      {jsonViewComponent && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg w-full max-w-4xl mx-4 max-h-[90vh] flex flex-col">
+            <div className="flex justify-between items-center p-6 border-b border-gray-200">
+              <div className="flex items-center">
+                <Code className="h-5 w-5 text-blue-600 mr-2" />
+                <h3 className="text-xl font-semibold text-gray-900">
+                  {jsonViewComponent.name} - JSON Structure
+                </h3>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleCopyJSON}
+                  className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                  title="Copy JSON to clipboard"
+                >
+                  {jsonCopied ? (
+                    <>
+                      <CheckCircle className="h-4 w-4" />
+                      <span>Copied!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="h-4 w-4" />
+                      <span>Copy JSON</span>
+                    </>
+                  )}
+                </button>
+                <button
+                  onClick={() => setJsonViewComponent(null)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
+            
+            <div className="flex-1 overflow-auto p-6 bg-gray-50">
+              <pre className="bg-white p-4 rounded-lg border border-gray-200 overflow-auto text-sm font-mono text-gray-800 whitespace-pre-wrap break-words">
+                {getFormattedJSON(jsonViewComponent)}
+              </pre>
+            </div>
+            
+            <div className="flex justify-end space-x-3 p-6 border-t border-gray-200">
+              <button
+                onClick={() => setJsonViewComponent(null)}
+                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Component Preview Modal */}
+      {previewComponent && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg w-full max-w-6xl mx-4 max-h-[90vh] flex flex-col">
+            <div className="flex justify-between items-center p-6 border-b border-gray-200">
+              <div className="flex items-center">
+                {getComponentIcon(previewComponent)}
+                <h3 className="text-xl font-semibold text-gray-900 ml-2">
+                  {previewComponent.name} - Preview
+                </h3>
+                <span className="ml-2 text-sm font-normal text-gray-500">
+                  (v{previewComponent.version})
+                </span>
+              </div>
+              <button
+                onClick={() => setPreviewComponent(null)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            
+            <div className="flex-1 overflow-auto p-6 bg-gray-50">
+              <div className="bg-white rounded-lg border border-gray-200 p-6 min-h-[400px]">
+                <ErrorBoundary
+                  fallback={
+                    <div className="p-4 text-center text-gray-500">
+                      <p className="text-sm">Unable to render component preview.</p>
+                      <p className="text-xs mt-2 text-gray-400">
+                        Component type: {previewComponent.type}
+                      </p>
+                    </div>
+                  }
+                >
+                  <VisualEditorRenderer 
+                    components={[convertToComponentSchema(previewComponent)]} 
+                    compact={false}
+                  />
+                </ErrorBoundary>
+              </div>
+            </div>
+            
+            <div className="flex justify-between items-center p-6 border-t border-gray-200">
+              <div className="text-sm text-gray-500">
+                <span className="font-medium">Category:</span> {previewComponent.category || 'N/A'}
+                {previewComponent.description && (
+                  <>
+                    <span className="mx-2">•</span>
+                    <span>{previewComponent.description}</span>
+                  </>
+                )}
+              </div>
+              <button
+                onClick={() => setPreviewComponent(null)}
+                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Component Detail Modal */}
+      {selectedComponent && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-3xl mx-4 max-h-[90vh] flex flex-col">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-semibold text-gray-900 flex items-center">
+                {getComponentIcon(selectedComponent)}
+                <span className="ml-2">{selectedComponent.name}</span>
+                <span className="ml-2 text-sm font-normal text-gray-500">
+                  (v{selectedComponent.version})
+                </span>
+              </h3>
+              <button
+                onClick={() => setSelectedComponent(null)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto mb-6">
+              <div className="space-y-4">
+                {selectedComponent.description && (
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-700 mb-2">Description</h4>
+                    <p className="text-sm text-gray-600">{selectedComponent.description}</p>
+                  </div>
+                )}
+                
+                <div>
+                  <h4 className="text-sm font-medium text-gray-700 mb-2">Component Details</h4>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-gray-500">Type:</span>
+                      <span className="ml-2 font-medium">{selectedComponent.type}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Category:</span>
+                      <span className="ml-2 font-medium capitalize">{selectedComponent.category}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Editor:</span>
+                      <span className="ml-2 font-medium">{selectedComponent.editor}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Scope:</span>
+                      <span className="ml-2 font-medium">{selectedComponent.tenant_scope || 'global'}</span>
+                    </div>
+                  </div>
+                </div>
+                
+                {selectedComponent.tags && selectedComponent.tags.length > 0 && (
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-700 mb-2">Tags</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedComponent.tags.map(tag => (
+                        <span key={tag} className="text-xs px-2 py-1 bg-gray-100 text-gray-700 rounded-full">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {selectedComponent.properties && Object.keys(selectedComponent.properties).length > 0 && (
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-700 mb-2">Properties</h4>
+                    <div className="bg-gray-50 rounded-md p-4">
+                      <div className="space-y-2">
+                        {Object.entries(selectedComponent.properties).map(([key, prop]) => (
+                          <div key={key} className="border-b border-gray-200 pb-2 last:border-0">
+                            <div className="flex items-center justify-between">
+                              <span className="font-medium text-sm text-gray-900">{key}</span>
+                              <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 rounded">
+                                {prop.type}
+                              </span>
+                            </div>
+                            {prop.description && (
+                              <p className="text-xs text-gray-600 mt-1">{prop.description}</p>
+                            )}
+                            <div className="flex gap-2 mt-1">
+                              {prop.required && (
+                                <span className="text-xs text-red-600">Required</span>
+                              )}
+                              {prop.editable && (
+                                <span className="text-xs text-green-600">Editable</span>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            <div className="flex justify-end space-x-3 pt-3 border-t border-gray-200">
+              <button
+                onClick={() => setSelectedComponent(null)}
+                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+              >
+                Close
+              </button>
+              <button
+                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+              >
+                Use Component
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Legacy Placeholder Editor Modal */}
       {selectedPlaceholder && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-3xl mx-4 max-h-[90vh] flex flex-col">
@@ -1712,9 +2192,29 @@ const ComponentsViewer = () => {
   }
 
   return (
-    <SpartiCMSWrapper>
-      <ComponentsViewerContent />
-    </SpartiCMSWrapper>
+    <ErrorBoundary
+      fallback={
+        <div className="min-h-screen bg-background flex items-center justify-center p-4">
+          <div className="text-center max-w-md">
+            <Shield className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <h2 className="text-lg font-semibold text-foreground mb-2">Error Loading Components Viewer</h2>
+            <p className="text-muted-foreground mb-4">
+              An error occurred while loading the components viewer. Please refresh the page or contact support.
+            </p>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-brandPurple text-white rounded-lg hover:bg-brandPurple/90 transition-colors"
+            >
+              Reload Page
+            </button>
+          </div>
+        </div>
+      }
+    >
+      <SpartiCMSWrapper>
+        <ComponentsViewerContent />
+      </SpartiCMSWrapper>
+    </ErrorBoundary>
   );
 };
 

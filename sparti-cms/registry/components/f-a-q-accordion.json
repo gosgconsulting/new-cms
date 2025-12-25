@@ -1,0 +1,16 @@
+{
+  "id": "f-a-q-accordion",
+  "name": "F A Q Accordion",
+  "type": "FAQAccordion",
+  "category": "content",
+  "description": "F A Q Accordion component with 0 configurable properties",
+  "properties": {},
+  "editor": "ContainerEditor",
+  "version": "1.0.0",
+  "tenant_scope": "tenant",
+  "tags": [
+    "content",
+    "faqaccordion"
+  ],
+  "last_updated": "2025-12-25T09:34:01.407Z"
+}

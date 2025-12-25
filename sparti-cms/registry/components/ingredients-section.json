@@ -1,0 +1,16 @@
+{
+  "id": "ingredients-section",
+  "name": "Ingredients Section",
+  "type": "ingredientsSection",
+  "category": "content",
+  "description": "Ingredients Section component with 0 configurable properties",
+  "properties": {},
+  "editor": "ContainerEditor",
+  "version": "1.0.0",
+  "tenant_scope": "tenant",
+  "tags": [
+    "content",
+    "ingredientssection"
+  ],
+  "last_updated": "2025-12-25T09:34:01.402Z"
+}

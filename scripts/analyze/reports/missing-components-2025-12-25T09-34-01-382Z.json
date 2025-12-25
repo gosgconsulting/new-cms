@@ -1,0 +1,1671 @@
+{
+  "timestamp": "2025-12-25T09:34:01.381Z",
+  "summary": {
+    "totalDbComponentTypes": 39,
+    "totalRegistryComponentTypes": 4,
+    "missingComponentCount": 39,
+    "unusedComponentCount": 4
+  },
+  "missingComponents": [
+    {
+      "type": "HeroSection",
+      "totalUsage": 13,
+      "tenantCount": 7,
+      "tenants": [
+        "tenant-a3532ae1",
+        "tenant-c0a02b18",
+        "tenant-8361048f",
+        "tenant-ec969a4e",
+        "tenant-24da8cd6",
+        "tenant-110ee38b",
+        "tenant-gosg"
+      ],
+      "pageCount": 13,
+      "samples": [
+        {
+          "tenantId": "tenant-a3532ae1",
+          "tenantName": "Moski B2B",
+          "pageId": 48,
+          "pageSlug": "/home",
+          "pageName": "MOSKI Paris Home B2B",
+          "component": {
+            "type": "HeroSection",
+            "props": {}
+          }
+        },
+        {
+          "tenantId": "tenant-c0a02b18",
+          "tenantName": "Global Modul",
+          "pageId": 46,
+          "pageSlug": "/home",
+          "pageName": "Home Page",
+          "component": {
+            "type": "HeroSection",
+            "props": {}
+          }
+        },
+        {
+          "tenantId": "tenant-c0a02b18",
+          "tenantName": "Global Modul",
+          "pageId": 47,
+          "pageSlug": "/blog",
+          "pageName": "Blog",
+          "component": {
+            "type": "HeroSection",
+            "props": {}
+          }
+        },
+        {
+          "tenantId": "tenant-8361048f",
+          "tenantName": "Julia Paris B2B",
+          "pageId": 33,
+          "pageSlug": "/home",
+          "pageName": "Julia Paris Home Page",
+          "component": {
+            "type": "HeroSection",
+            "props": {}
+          }
+        },
+        {
+          "tenantId": "tenant-8361048f",
+          "tenantName": "Julia Paris B2B",
+          "pageId": 35,
+          "pageSlug": "/contact",
+          "pageName": "Contact Page",
+          "component": {
+            "type": "HeroSection",
+            "props": {}
+          }
+        }
+      ],
+      "inferredProperties": {},
+      "recommendedId": "hero-section",
+      "recommendedCategory": "content",
+      "recommendedEditor": "ContainerEditor"
+    },
+    {
+      "type": "array",
+      "totalUsage": 11,
+      "tenantCount": 3,
+      "tenants": [
+        "tenant-c0a02b18",
+        "tenant-b9bf6277",
+        "tenant-ec969a4e"
+      ],
+      "pageCount": 9,
+      "samples": [
+        {
+          "tenantId": "tenant-c0a02b18",
+          "tenantName": "Global Modul",
+          "pageId": 46,
+          "pageSlug": "/home",
+          "pageName": "Home Page",
+          "component": {
+            "type": "array",
+            "props": {}
+          }
+        },
+        {
+          "tenantId": "tenant-b9bf6277",
+          "tenantName": "ACATR",
+          "pageId": 45,
+          "pageSlug": "/terms",
+          "pageName": "Terms of Service",
+          "component": {
+            "type": "array",
+            "props": {}
+          }
+        },
+        {
+          "tenantId": "tenant-b9bf6277",
+          "tenantName": "ACATR",
+          "pageId": 31,
+          "pageSlug": "/home",
+          "pageName": "ACATR Homepage",
+          "component": {
+            "type": "array",
+            "props": {}
+          }
+        },
+        {
+          "tenantId": "tenant-b9bf6277",
+          "tenantName": "ACATR",
+          "pageId": 44,
+          "pageSlug": "/cookie-policy",
+          "pageName": "Cookies Policy",
+          "component": {
+            "type": "array",
+            "props": {}
+          }
+        },
+        {
+          "tenantId": "tenant-ec969a4e",
+          "tenantName": "Diora",
+          "pageId": 30,
+          "pageSlug": "/terms",
+          "pageName": "Diora Terms and Condition Page",
+          "component": {
+            "type": "array",
+            "props": {}
+          }
+        }
+      ],
+      "inferredProperties": {},
+      "recommendedId": "array",
+      "recommendedCategory": "content",
+      "recommendedEditor": "ContainerEditor"
+    },
+    {
+      "type": "ContentSection",
+      "totalUsage": 10,
+      "tenantCount": 2,
+      "tenants": [
+        "tenant-8361048f",
+        "tenant-24da8cd6"
+      ],
+      "pageCount": 5,
+      "samples": [
+        {
+          "tenantId": "tenant-8361048f",
+          "tenantName": "Julia Paris B2B",
+          "pageId": 33,
+          "pageSlug": "/home",
+          "pageName": "Julia Paris Home Page",
+          "component": {
+            "type": "ContentSection",
+            "props": {}
+          }
+        },
+        {
+          "tenantId": "tenant-8361048f",
+          "tenantName": "Julia Paris B2B",
+          "pageId": 38,
+          "pageSlug": "/about",
+          "pageName": "About Us Page",
+          "component": {
+            "type": "ContentSection",
+            "props": {}
+          }
+        },
+        {
+          "tenantId": "tenant-8361048f",
+          "tenantName": "Julia Paris B2B",
+          "pageId": 38,
+          "pageSlug": "/about",
+          "pageName": "About Us Page",
+          "component": {
+            "type": "ContentSection",
+            "props": {}
+          }
+        },
+        {
+          "tenantId": "tenant-24da8cd6",
+          "tenantName": "Julia Paris B2C",
+          "pageId": 13,
+          "pageSlug": "/home",
+          "pageName": "Julia Paris Home Page",
+          "component": {
+            "type": "ContentSection",
+            "props": {}
+          }
+        },
+        {
+          "tenantId": "tenant-24da8cd6",
+          "tenantName": "Julia Paris B2C",
+          "pageId": 14,
+          "pageSlug": "/about",
+          "pageName": "About Us Page",
+          "component": {
+            "type": "ContentSection",
+            "props": {}
+          }
+        }
+      ],
+      "inferredProperties": {},
+      "recommendedId": "content-section",
+      "recommendedCategory": "content",
+      "recommendedEditor": "ContainerEditor"
+    },
+    {
+      "type": "PageTitle",
+      "totalUsage": 9,
+      "tenantCount": 4,
+      "tenants": [
+        "tenant-8361048f",
+        "tenant-24da8cd6",
+        "tenant-110ee38b",
+        "tenant-gosg"
+      ],
+      "pageCount": 9,
+      "samples": [
+        {
+          "tenantId": "tenant-8361048f",
+          "tenantName": "Julia Paris B2B",
+          "pageId": 37,
+          "pageSlug": "/legal",
+          "pageName": "Legal",
+          "component": {
+            "type": "PageTitle",
+            "props": {}
+          }
+        },
+        {
+          "tenantId": "tenant-24da8cd6",
+          "tenantName": "Julia Paris B2C",
+          "pageId": 17,
+          "pageSlug": "/legal",
+          "pageName": "Legal",
+          "component": {
+            "type": "PageTitle",
+            "props": {}
+          }
+        },
+        {
+          "tenantId": "tenant-110ee38b",
+          "tenantName": "Moski",
+          "pageId": 12,
+          "pageSlug": "/garantie",
+          "pageName": "Notre Garantie",
+          "component": {
+            "type": "PageTitle",
+            "props": {}
+          }
+        },
+        {
+          "tenantId": "tenant-110ee38b",
+          "tenantName": "Moski",
+          "pageId": 2,
+          "pageSlug": "/contact",
+          "pageName": "Contact",
+          "component": {
+            "type": "PageTitle",
+            "props": {}
+          }
+        },
+        {
+          "tenantId": "tenant-110ee38b",
+          "tenantName": "Moski",
+          "pageId": 5,
+          "pageSlug": "/faq",
+          "pageName": "FAQ",
+          "component": {
+            "type": "PageTitle",
+            "props": {}
+          }
+        }
+      ],
+      "inferredProperties": {},
+      "recommendedId": "page-title",
+      "recommendedCategory": "content",
+      "recommendedEditor": "ContainerEditor"
+    },
+    {
+      "type": "Content",
+      "totalUsage": 9,
+      "tenantCount": 4,
+      "tenants": [
+        "tenant-8361048f",
+        "tenant-24da8cd6",
+        "tenant-110ee38b",
+        "tenant-gosg"
+      ],
+      "pageCount": 9,
+      "samples": [
+        {
+          "tenantId": "tenant-8361048f",
+          "tenantName": "Julia Paris B2B",
+          "pageId": 37,
+          "pageSlug": "/legal",
+          "pageName": "Legal",
+          "component": {
+            "type": "Content",
+            "props": {}
+          }
+        },
+        {
+          "tenantId": "tenant-24da8cd6",
+          "tenantName": "Julia Paris B2C",
+          "pageId": 17,
+          "pageSlug": "/legal",
+          "pageName": "Legal",
+          "component": {
+            "type": "Content",
+            "props": {}
+          }
+        },
+        {
+          "tenantId": "tenant-24da8cd6",
+          "tenantName": "Julia Paris B2C",
+          "pageId": 16,
+          "pageSlug": "/terms",
+          "pageName": "Terms",
+          "component": {
+            "type": "Content",
+            "props": {}
+          }
+        },
+        {
+          "tenantId": "tenant-110ee38b",
+          "tenantName": "Moski",
+          "pageId": 12,
+          "pageSlug": "/garantie",
+          "pageName": "Notre Garantie",
+          "component": {
+            "type": "Content",
+            "props": {}
+          }
+        },
+        {
+          "tenantId": "tenant-110ee38b",
+          "tenantName": "Moski",
+          "pageId": 5,
+          "pageSlug": "/faq",
+          "pageName": "FAQ",
+          "component": {
+            "type": "Content",
+            "props": {}
+          }
+        }
+      ],
+      "inferredProperties": {},
+      "recommendedId": "content",
+      "recommendedCategory": "content",
+      "recommendedEditor": "ContainerEditor"
+    },
+    {
+      "type": "SEO",
+      "totalUsage": 8,
+      "tenantCount": 2,
+      "tenants": [
+        "tenant-8361048f",
+        "tenant-24da8cd6"
+      ],
+      "pageCount": 8,
+      "samples": [
+        {
+          "tenantId": "tenant-8361048f",
+          "tenantName": "Julia Paris B2B",
+          "pageId": 41,
+          "pageSlug": "/shop",
+          "pageName": "Shop SEO Content",
+          "component": {
+            "type": "SEO",
+            "props": {}
+          }
+        },
+        {
+          "tenantId": "tenant-8361048f",
+          "tenantName": "Julia Paris B2B",
+          "pageId": 36,
+          "pageSlug": "/accessoires",
+          "pageName": "Accessories Page SEO Content",
+          "component": {
+            "type": "SEO",
+            "props": {}
+          }
+        },
+        {
+          "tenantId": "tenant-8361048f",
+          "tenantName": "Julia Paris B2B",
+          "pageId": 39,
+          "pageSlug": "/maille",
+          "pageName": "Maille Page SEO Content",
+          "component": {
+            "type": "SEO",
+            "props": {}
+          }
+        },
+        {
+          "tenantId": "tenant-24da8cd6",
+          "tenantName": "Julia Paris B2C",
+          "pageId": 19,
+          "pageSlug": "/shop",
+          "pageName": "Shop SEO Content",
+          "component": {
+            "type": "SEO",
+            "props": {}
+          }
+        },
+        {
+          "tenantId": "tenant-24da8cd6",
+          "tenantName": "Julia Paris B2C",
+          "pageId": 22,
+          "pageSlug": "/accessoires",
+          "pageName": "Accessories Page SEO Content",
+          "component": {
+            "type": "SEO",
+            "props": {}
+          }
+        }
+      ],
+      "inferredProperties": {},
+      "recommendedId": "s-e-o",
+      "recommendedCategory": "content",
+      "recommendedEditor": "ContainerEditor"
+    },
+    {
+      "type": "Accordion",
+      "totalUsage": 6,
+      "tenantCount": 2,
+      "tenants": [
+        "tenant-24da8cd6",
+        "tenant-110ee38b"
+      ],
+      "pageCount": 2,
+      "samples": [
+        {
+          "tenantId": "tenant-24da8cd6",
+          "tenantName": "Julia Paris B2C",
+          "pageId": 18,
+          "pageSlug": "/faq",
+          "pageName": "FAQ",
+          "component": {
+            "type": "Accordion",
+            "props": {}
+          }
+        },
+        {
+          "tenantId": "tenant-24da8cd6",
+          "tenantName": "Julia Paris B2C",
+          "pageId": 18,
+          "pageSlug": "/faq",
+          "pageName": "FAQ",
+          "component": {
+            "type": "Accordion",
+            "props": {}
+          }
+        },
+        {
+          "tenantId": "tenant-110ee38b",
+          "tenantName": "Moski",
+          "pageId": 5,
+          "pageSlug": "/faq",
+          "pageName": "FAQ",
+          "component": {
+            "type": "Accordion",
+            "props": {}
+          }
+        },
+        {
+          "tenantId": "tenant-110ee38b",
+          "tenantName": "Moski",
+          "pageId": 5,
+          "pageSlug": "/faq",
+          "pageName": "FAQ",
+          "component": {
+            "type": "Accordion",
+            "props": {}
+          }
+        },
+        {
+          "tenantId": "tenant-110ee38b",
+          "tenantName": "Moski",
+          "pageId": 5,
+          "pageSlug": "/faq",
+          "pageName": "FAQ",
+          "component": {
+            "type": "Accordion",
+            "props": {}
+          }
+        }
+      ],
+      "inferredProperties": {},
+      "recommendedId": "accordion",
+      "recommendedCategory": "content",
+      "recommendedEditor": "ContainerEditor"
+    },
+    {
+      "type": "SimpleHeroBanner",
+      "totalUsage": 5,
+      "tenantCount": 1,
+      "tenants": [
+        "tenant-ec969a4e"
+      ],
+      "pageCount": 5,
+      "samples": [
+        {
+          "tenantId": "tenant-ec969a4e",
+          "tenantName": "Diora",
+          "pageId": 30,
+          "pageSlug": "/terms",
+          "pageName": "Diora Terms and Condition Page",
+          "component": {
+            "type": "SimpleHeroBanner",
+            "props": {}
+          }
+        },
+        {
+          "tenantId": "tenant-ec969a4e",
+          "tenantName": "Diora",
+          "pageId": 26,
+          "pageSlug": "/blog",
+          "pageName": "Diora Blog Page",
+          "component": {
+            "type": "SimpleHeroBanner",
+            "props": {}
+          }
+        },
+        {
+          "tenantId": "tenant-ec969a4e",
+          "tenantName": "Diora",
+          "pageId": 24,
+          "pageSlug": "/pricing",
+          "pageName": "Diora Pricing Page",
+          "component": {
+            "type": "SimpleHeroBanner",
+            "props": {}
+          }
+        }
+      ],
+      "inferredProperties": {},
+      "recommendedId": "simple-hero-banner",
+      "recommendedCategory": "content",
+      "recommendedEditor": "ContainerEditor"
+    },
+    {
+      "type": "Showcase",
+      "totalUsage": 4,
+      "tenantCount": 4,
+      "tenants": [
+        "tenant-a3532ae1",
+        "tenant-8361048f",
+        "tenant-24da8cd6",
+        "tenant-110ee38b"
+      ],
+      "pageCount": 4,
+      "samples": [
+        {
+          "tenantId": "tenant-a3532ae1",
+          "tenantName": "Moski B2B",
+          "pageId": 48,
+          "pageSlug": "/home",
+          "pageName": "MOSKI Paris Home B2B",
+          "component": {
+            "type": "Showcase",
+            "props": {}
+          }
+        },
+        {
+          "tenantId": "tenant-8361048f",
+          "tenantName": "Julia Paris B2B",
+          "pageId": 33,
+          "pageSlug": "/home",
+          "pageName": "Julia Paris Home Page",
+          "component": {
+            "type": "Showcase",
+            "props": {}
+          }
+        },
+        {
+          "tenantId": "tenant-24da8cd6",
+          "tenantName": "Julia Paris B2C",
+          "pageId": 13,
+          "pageSlug": "/home",
+          "pageName": "Julia Paris Home Page",
+          "component": {
+            "type": "Showcase",
+            "props": {}
+          }
+        },
+        {
+          "tenantId": "tenant-110ee38b",
+          "tenantName": "Moski",
+          "pageId": 3,
+          "pageSlug": "/home",
+          "pageName": "MOSKI Paris Home",
+          "component": {
+            "type": "Showcase",
+            "props": {}
+          }
+        }
+      ],
+      "inferredProperties": {},
+      "recommendedId": "showcase",
+      "recommendedCategory": "content",
+      "recommendedEditor": "ContainerEditor"
+    },
+    {
+      "type": "ProductGrid",
+      "totalUsage": 4,
+      "tenantCount": 4,
+      "tenants": [
+        "tenant-a3532ae1",
+        "tenant-8361048f",
+        "tenant-24da8cd6",
+        "tenant-110ee38b"
+      ],
+      "pageCount": 4,
+      "samples": [
+        {
+          "tenantId": "tenant-a3532ae1",
+          "tenantName": "Moski B2B",
+          "pageId": 48,
+          "pageSlug": "/home",
+          "pageName": "MOSKI Paris Home B2B",
+          "component": {
+            "type": "ProductGrid",
+            "props": {}
+          }
+        },
+        {
+          "tenantId": "tenant-8361048f",
+          "tenantName": "Julia Paris B2B",
+          "pageId": 33,
+          "pageSlug": "/home",
+          "pageName": "Julia Paris Home Page",
+          "component": {
+            "type": "ProductGrid",
+            "props": {}
+          }
+        },
+        {
+          "tenantId": "tenant-24da8cd6",
+          "tenantName": "Julia Paris B2C",
+          "pageId": 13,
+          "pageSlug": "/home",
+          "pageName": "Julia Paris Home Page",
+          "component": {
+            "type": "ProductGrid",
+            "props": {}
+          }
+        },
+        {
+          "tenantId": "tenant-110ee38b",
+          "tenantName": "Moski",
+          "pageId": 3,
+          "pageSlug": "/home",
+          "pageName": "MOSKI Paris Home",
+          "component": {
+            "type": "ProductGrid",
+            "props": {}
+          }
+        }
+      ],
+      "inferredProperties": {},
+      "recommendedId": "product-grid",
+      "recommendedCategory": "content",
+      "recommendedEditor": "ContainerEditor"
+    },
+    {
+      "type": "Reviews",
+      "totalUsage": 4,
+      "tenantCount": 4,
+      "tenants": [
+        "tenant-a3532ae1",
+        "tenant-8361048f",
+        "tenant-24da8cd6",
+        "tenant-110ee38b"
+      ],
+      "pageCount": 4,
+      "samples": [
+        {
+          "tenantId": "tenant-a3532ae1",
+          "tenantName": "Moski B2B",
+          "pageId": 48,
+          "pageSlug": "/home",
+          "pageName": "MOSKI Paris Home B2B",
+          "component": {
+            "type": "Reviews",
+            "props": {}
+          }
+        },
+        {
+          "tenantId": "tenant-8361048f",
+          "tenantName": "Julia Paris B2B",
+          "pageId": 33,
+          "pageSlug": "/home",
+          "pageName": "Julia Paris Home Page",
+          "component": {
+            "type": "Reviews",
+            "props": {}
+          }
+        },
+        {
+          "tenantId": "tenant-24da8cd6",
+          "tenantName": "Julia Paris B2C",
+          "pageId": 13,
+          "pageSlug": "/home",
+          "pageName": "Julia Paris Home Page",
+          "component": {
+            "type": "Reviews",
+            "props": {}
+          }
+        },
+        {
+          "tenantId": "tenant-110ee38b",
+          "tenantName": "Moski",
+          "pageId": 3,
+          "pageSlug": "/home",
+          "pageName": "MOSKI Paris Home",
+          "component": {
+            "type": "Reviews",
+            "props": {}
+          }
+        }
+      ],
+      "inferredProperties": {},
+      "recommendedId": "reviews",
+      "recommendedCategory": "content",
+      "recommendedEditor": "ContainerEditor"
+    },
+    {
+      "type": "SimpleHeader",
+      "totalUsage": 4,
+      "tenantCount": 1,
+      "tenants": [
+        "tenant-b9bf6277"
+      ],
+      "pageCount": 4,
+      "samples": [
+        {
+          "tenantId": "tenant-b9bf6277",
+          "tenantName": "ACATR",
+          "pageId": 45,
+          "pageSlug": "/terms",
+          "pageName": "Terms of Service",
+          "component": {
+            "type": "SimpleHeader",
+            "props": {}
+          }
+        },
+        {
+          "tenantId": "tenant-b9bf6277",
+          "tenantName": "ACATR",
+          "pageId": 31,
+          "pageSlug": "/home",
+          "pageName": "ACATR Homepage",
+          "component": {
+            "type": "SimpleHeader",
+            "props": {}
+          }
+        },
+        {
+          "tenantId": "tenant-b9bf6277",
+          "tenantName": "ACATR",
+          "pageId": 44,
+          "pageSlug": "/cookie-policy",
+          "pageName": "Cookies Policy",
+          "component": {
+            "type": "SimpleHeader",
+            "props": {}
+          }
+        }
+      ],
+      "inferredProperties": {},
+      "recommendedId": "simple-header",
+      "recommendedCategory": "layout",
+      "recommendedEditor": "ContainerEditor"
+    },
+    {
+      "type": "GallerySection",
+      "totalUsage": 4,
+      "tenantCount": 1,
+      "tenants": [
+        "tenant-ec969a4e"
+      ],
+      "pageCount": 1,
+      "samples": [
+        {
+          "tenantId": "tenant-ec969a4e",
+          "tenantName": "Diora",
+          "pageId": 25,
+          "pageSlug": "/gallery",
+          "pageName": "Diora Gallery Page",
+          "component": {
+            "type": "GallerySection",
+            "props": {}
+          }
+        },
+        {
+          "tenantId": "tenant-ec969a4e",
+          "tenantName": "Diora",
+          "pageId": 25,
+          "pageSlug": "/gallery",
+          "pageName": "Diora Gallery Page",
+          "component": {
+            "type": "GallerySection",
+            "props": {}
+          }
+        },
+        {
+          "tenantId": "tenant-ec969a4e",
+          "tenantName": "Diora",
+          "pageId": 25,
+          "pageSlug": "/gallery",
+          "pageName": "Diora Gallery Page",
+          "component": {
+            "type": "GallerySection",
+            "props": {}
+          }
+        }
+      ],
+      "inferredProperties": {},
+      "recommendedId": "gallery-section",
+      "recommendedCategory": "media",
+      "recommendedEditor": "ContainerEditor"
+    },
+    {
+      "type": "Newsletter",
+      "totalUsage": 2,
+      "tenantCount": 2,
+      "tenants": [
+        "tenant-a3532ae1",
+        "tenant-110ee38b"
+      ],
+      "pageCount": 2,
+      "samples": [
+        {
+          "tenantId": "tenant-a3532ae1",
+          "tenantName": "Moski B2B",
+          "pageId": 48,
+          "pageSlug": "/home",
+          "pageName": "MOSKI Paris Home B2B",
+          "component": {
+            "type": "Newsletter",
+            "props": {}
+          }
+        },
+        {
+          "tenantId": "tenant-110ee38b",
+          "tenantName": "Moski",
+          "pageId": 3,
+          "pageSlug": "/home",
+          "pageName": "MOSKI Paris Home",
+          "component": {
+            "type": "Newsletter",
+            "props": {}
+          }
+        }
+      ],
+      "inferredProperties": {},
+      "recommendedId": "newsletter",
+      "recommendedCategory": "content",
+      "recommendedEditor": "ContainerEditor"
+    },
+    {
+      "type": "featuresSection",
+      "totalUsage": 2,
+      "tenantCount": 2,
+      "tenants": [
+        "tenant-c0a02b18",
+        "tenant-ec969a4e"
+      ],
+      "pageCount": 2,
+      "samples": [
+        {
+          "tenantId": "tenant-c0a02b18",
+          "tenantName": "Global Modul",
+          "pageId": 46,
+          "pageSlug": "/home",
+          "pageName": "Home Page",
+          "component": {
+            "type": "featuresSection",
+            "props": {}
+          }
+        },
+        {
+          "tenantId": "tenant-ec969a4e",
+          "tenantName": "Diora",
+          "pageId": 23,
+          "pageSlug": "/home",
+          "pageName": "Diora Home Page",
+          "component": {
+            "type": "featuresSection",
+            "props": {}
+          }
+        }
+      ],
+      "inferredProperties": {},
+      "recommendedId": "features-section",
+      "recommendedCategory": "content",
+      "recommendedEditor": "ContainerEditor"
+    },
+    {
+      "type": "servicesSection",
+      "totalUsage": 2,
+      "tenantCount": 2,
+      "tenants": [
+        "tenant-c0a02b18",
+        "tenant-ec969a4e"
+      ],
+      "pageCount": 2,
+      "samples": [
+        {
+          "tenantId": "tenant-c0a02b18",
+          "tenantName": "Global Modul",
+          "pageId": 46,
+          "pageSlug": "/home",
+          "pageName": "Home Page",
+          "component": {
+            "type": "servicesSection",
+            "props": {}
+          }
+        },
+        {
+          "tenantId": "tenant-ec969a4e",
+          "tenantName": "Diora",
+          "pageId": 23,
+          "pageSlug": "/home",
+          "pageName": "Diora Home Page",
+          "component": {
+            "type": "servicesSection",
+            "props": {}
+          }
+        }
+      ],
+      "inferredProperties": {},
+      "recommendedId": "services-section",
+      "recommendedCategory": "content",
+      "recommendedEditor": "ContainerEditor"
+    },
+    {
+      "type": "SocialMedia",
+      "totalUsage": 2,
+      "tenantCount": 2,
+      "tenants": [
+        "tenant-8361048f",
+        "tenant-24da8cd6"
+      ],
+      "pageCount": 2,
+      "samples": [
+        {
+          "tenantId": "tenant-8361048f",
+          "tenantName": "Julia Paris B2B",
+          "pageId": 33,
+          "pageSlug": "/home",
+          "pageName": "Julia Paris Home Page",
+          "component": {
+            "type": "SocialMedia",
+            "props": {}
+          }
+        },
+        {
+          "tenantId": "tenant-24da8cd6",
+          "tenantName": "Julia Paris B2C",
+          "pageId": 13,
+          "pageSlug": "/home",
+          "pageName": "Julia Paris Home Page",
+          "component": {
+            "type": "SocialMedia",
+            "props": {}
+          }
+        }
+      ],
+      "inferredProperties": {},
+      "recommendedId": "social-media",
+      "recommendedCategory": "media",
+      "recommendedEditor": "ContainerEditor"
+    },
+    {
+      "type": "ServicesGrid",
+      "totalUsage": 2,
+      "tenantCount": 2,
+      "tenants": [
+        "tenant-8361048f",
+        "tenant-24da8cd6"
+      ],
+      "pageCount": 2,
+      "samples": [
+        {
+          "tenantId": "tenant-8361048f",
+          "tenantName": "Julia Paris B2B",
+          "pageId": 33,
+          "pageSlug": "/home",
+          "pageName": "Julia Paris Home Page",
+          "component": {
+            "type": "ServicesGrid",
+            "props": {}
+          }
+        },
+        {
+          "tenantId": "tenant-24da8cd6",
+          "tenantName": "Julia Paris B2C",
+          "pageId": 13,
+          "pageSlug": "/home",
+          "pageName": "Julia Paris Home Page",
+          "component": {
+            "type": "ServicesGrid",
+            "props": {}
+          }
+        }
+      ],
+      "inferredProperties": {},
+      "recommendedId": "services-grid",
+      "recommendedCategory": "content",
+      "recommendedEditor": "ContainerEditor"
+    },
+    {
+      "type": "HeroSectionSimple",
+      "totalUsage": 2,
+      "tenantCount": 1,
+      "tenants": [
+        "tenant-8361048f"
+      ],
+      "pageCount": 2,
+      "samples": [
+        {
+          "tenantId": "tenant-8361048f",
+          "tenantName": "Julia Paris B2B",
+          "pageId": 38,
+          "pageSlug": "/about",
+          "pageName": "About Us Page",
+          "component": {
+            "type": "HeroSectionSimple",
+            "props": {}
+          }
+        },
+        {
+          "tenantId": "tenant-8361048f",
+          "tenantName": "Julia Paris B2B",
+          "pageId": 34,
+          "pageSlug": "/faq",
+          "pageName": "FAQ",
+          "component": {
+            "type": "HeroSectionSimple",
+            "props": {}
+          }
+        }
+      ],
+      "inferredProperties": {},
+      "recommendedId": "hero-section-simple",
+      "recommendedCategory": "content",
+      "recommendedEditor": "ContainerEditor"
+    },
+    {
+      "type": "FAQSection",
+      "totalUsage": 2,
+      "tenantCount": 1,
+      "tenants": [
+        "tenant-8361048f"
+      ],
+      "pageCount": 1,
+      "samples": [
+        {
+          "tenantId": "tenant-8361048f",
+          "tenantName": "Julia Paris B2B",
+          "pageId": 34,
+          "pageSlug": "/faq",
+          "pageName": "FAQ",
+          "component": {
+            "type": "FAQSection",
+            "props": {}
+          }
+        },
+        {
+          "tenantId": "tenant-8361048f",
+          "tenantName": "Julia Paris B2B",
+          "pageId": 34,
+          "pageSlug": "/faq",
+          "pageName": "FAQ",
+          "component": {
+            "type": "FAQSection",
+            "props": {}
+          }
+        }
+      ],
+      "inferredProperties": {},
+      "recommendedId": "f-a-q-section",
+      "recommendedCategory": "content",
+      "recommendedEditor": "ContainerEditor"
+    },
+    {
+      "type": "videoSection",
+      "totalUsage": 1,
+      "tenantCount": 1,
+      "tenants": [
+        "tenant-c0a02b18"
+      ],
+      "pageCount": 1,
+      "samples": [
+        {
+          "tenantId": "tenant-c0a02b18",
+          "tenantName": "Global Modul",
+          "pageId": 46,
+          "pageSlug": "/home",
+          "pageName": "Home Page",
+          "component": {
+            "type": "videoSection",
+            "props": {}
+          }
+        }
+      ],
+      "inferredProperties": {},
+      "recommendedId": "video-section",
+      "recommendedCategory": "content",
+      "recommendedEditor": "VideoEditor"
+    },
+    {
+      "type": "whatsIncludedSection",
+      "totalUsage": 1,
+      "tenantCount": 1,
+      "tenants": [
+        "tenant-c0a02b18"
+      ],
+      "pageCount": 1,
+      "samples": [
+        {
+          "tenantId": "tenant-c0a02b18",
+          "tenantName": "Global Modul",
+          "pageId": 46,
+          "pageSlug": "/home",
+          "pageName": "Home Page",
+          "component": {
+            "type": "whatsIncludedSection",
+            "props": {}
+          }
+        }
+      ],
+      "inferredProperties": {},
+      "recommendedId": "whats-included-section",
+      "recommendedCategory": "content",
+      "recommendedEditor": "ContainerEditor"
+    },
+    {
+      "type": "testimonialsSection",
+      "totalUsage": 1,
+      "tenantCount": 1,
+      "tenants": [
+        "tenant-c0a02b18"
+      ],
+      "pageCount": 1,
+      "samples": [
+        {
+          "tenantId": "tenant-c0a02b18",
+          "tenantName": "Global Modul",
+          "pageId": 46,
+          "pageSlug": "/home",
+          "pageName": "Home Page",
+          "component": {
+            "type": "testimonialsSection",
+            "props": {}
+          }
+        }
+      ],
+      "inferredProperties": {},
+      "recommendedId": "testimonials-section",
+      "recommendedCategory": "content",
+      "recommendedEditor": "ContainerEditor"
+    },
+    {
+      "type": "whyChooseUsSection",
+      "totalUsage": 1,
+      "tenantCount": 1,
+      "tenants": [
+        "tenant-c0a02b18"
+      ],
+      "pageCount": 1,
+      "samples": [
+        {
+          "tenantId": "tenant-c0a02b18",
+          "tenantName": "Global Modul",
+          "pageId": 46,
+          "pageSlug": "/home",
+          "pageName": "Home Page",
+          "component": {
+            "type": "whyChooseUsSection",
+            "props": {}
+          }
+        }
+      ],
+      "inferredProperties": {},
+      "recommendedId": "why-choose-us-section",
+      "recommendedCategory": "content",
+      "recommendedEditor": "ContainerEditor"
+    },
+    {
+      "type": "faqSection",
+      "totalUsage": 1,
+      "tenantCount": 1,
+      "tenants": [
+        "tenant-c0a02b18"
+      ],
+      "pageCount": 1,
+      "samples": [
+        {
+          "tenantId": "tenant-c0a02b18",
+          "tenantName": "Global Modul",
+          "pageId": 46,
+          "pageSlug": "/home",
+          "pageName": "Home Page",
+          "component": {
+            "type": "faqSection",
+            "props": {}
+          }
+        }
+      ],
+      "inferredProperties": {},
+      "recommendedId": "faq-section",
+      "recommendedCategory": "content",
+      "recommendedEditor": "ContainerEditor"
+    },
+    {
+      "type": "ctaSection",
+      "totalUsage": 1,
+      "tenantCount": 1,
+      "tenants": [
+        "tenant-c0a02b18"
+      ],
+      "pageCount": 1,
+      "samples": [
+        {
+          "tenantId": "tenant-c0a02b18",
+          "tenantName": "Global Modul",
+          "pageId": 46,
+          "pageSlug": "/home",
+          "pageName": "Home Page",
+          "component": {
+            "type": "ctaSection",
+            "props": {}
+          }
+        }
+      ],
+      "inferredProperties": {},
+      "recommendedId": "cta-section",
+      "recommendedCategory": "interactive",
+      "recommendedEditor": "ButtonEditor"
+    },
+    {
+      "type": "CTASection",
+      "totalUsage": 1,
+      "tenantCount": 1,
+      "tenants": [
+        "tenant-8361048f"
+      ],
+      "pageCount": 1,
+      "samples": [
+        {
+          "tenantId": "tenant-8361048f",
+          "tenantName": "Julia Paris B2B",
+          "pageId": 38,
+          "pageSlug": "/about",
+          "pageName": "About Us Page",
+          "component": {
+            "type": "CTASection",
+            "props": {}
+          }
+        }
+      ],
+      "inferredProperties": {},
+      "recommendedId": "c-t-a-section",
+      "recommendedCategory": "interactive",
+      "recommendedEditor": "ButtonEditor"
+    },
+    {
+      "type": "ingredientsSection",
+      "totalUsage": 1,
+      "tenantCount": 1,
+      "tenants": [
+        "tenant-ec969a4e"
+      ],
+      "pageCount": 1,
+      "samples": [
+        {
+          "tenantId": "tenant-ec969a4e",
+          "tenantName": "Diora",
+          "pageId": 23,
+          "pageSlug": "/home",
+          "pageName": "Diora Home Page",
+          "component": {
+            "type": "ingredientsSection",
+            "props": {}
+          }
+        }
+      ],
+      "inferredProperties": {},
+      "recommendedId": "ingredients-section",
+      "recommendedCategory": "content",
+      "recommendedEditor": "ContainerEditor"
+    },
+    {
+      "type": "teamSection",
+      "totalUsage": 1,
+      "tenantCount": 1,
+      "tenants": [
+        "tenant-ec969a4e"
+      ],
+      "pageCount": 1,
+      "samples": [
+        {
+          "tenantId": "tenant-ec969a4e",
+          "tenantName": "Diora",
+          "pageId": 23,
+          "pageSlug": "/home",
+          "pageName": "Diora Home Page",
+          "component": {
+            "type": "teamSection",
+            "props": {}
+          }
+        }
+      ],
+      "inferredProperties": {},
+      "recommendedId": "team-section",
+      "recommendedCategory": "content",
+      "recommendedEditor": "ContainerEditor"
+    },
+    {
+      "type": "aboutSection",
+      "totalUsage": 1,
+      "tenantCount": 1,
+      "tenants": [
+        "tenant-ec969a4e"
+      ],
+      "pageCount": 1,
+      "samples": [
+        {
+          "tenantId": "tenant-ec969a4e",
+          "tenantName": "Diora",
+          "pageId": 23,
+          "pageSlug": "/home",
+          "pageName": "Diora Home Page",
+          "component": {
+            "type": "aboutSection",
+            "props": {}
+          }
+        }
+      ],
+      "inferredProperties": {},
+      "recommendedId": "about-section",
+      "recommendedCategory": "content",
+      "recommendedEditor": "ContainerEditor"
+    },
+    {
+      "type": "ContactInfo",
+      "totalUsage": 1,
+      "tenantCount": 1,
+      "tenants": [
+        "tenant-110ee38b"
+      ],
+      "pageCount": 1,
+      "samples": [
+        {
+          "tenantId": "tenant-110ee38b",
+          "tenantName": "Moski",
+          "pageId": 2,
+          "pageSlug": "/contact",
+          "pageName": "Contact",
+          "component": {
+            "type": "ContactInfo",
+            "props": {}
+          }
+        }
+      ],
+      "inferredProperties": {},
+      "recommendedId": "contact-info",
+      "recommendedCategory": "content",
+      "recommendedEditor": "ContainerEditor"
+    },
+    {
+      "type": "PainPointSection",
+      "totalUsage": 1,
+      "tenantCount": 1,
+      "tenants": [
+        "tenant-gosg"
+      ],
+      "pageCount": 1,
+      "samples": [
+        {
+          "tenantId": "tenant-gosg",
+          "tenantName": "GO SG CONSULTING",
+          "pageId": 49,
+          "pageSlug": "seo",
+          "pageName": "SEO",
+          "component": {
+            "type": "PainPointSection",
+            "props": {}
+          }
+        }
+      ],
+      "inferredProperties": {},
+      "recommendedId": "pain-point-section",
+      "recommendedCategory": "content",
+      "recommendedEditor": "ContainerEditor"
+    },
+    {
+      "type": "ResultsSection",
+      "totalUsage": 1,
+      "tenantCount": 1,
+      "tenants": [
+        "tenant-gosg"
+      ],
+      "pageCount": 1,
+      "samples": [
+        {
+          "tenantId": "tenant-gosg",
+          "tenantName": "GO SG CONSULTING",
+          "pageId": 49,
+          "pageSlug": "seo",
+          "pageName": "SEO",
+          "component": {
+            "type": "ResultsSection",
+            "props": {}
+          }
+        }
+      ],
+      "inferredProperties": {},
+      "recommendedId": "results-section",
+      "recommendedCategory": "content",
+      "recommendedEditor": "ContainerEditor"
+    },
+    {
+      "type": "ServicesShowcase",
+      "totalUsage": 1,
+      "tenantCount": 1,
+      "tenants": [
+        "tenant-gosg"
+      ],
+      "pageCount": 1,
+      "samples": [
+        {
+          "tenantId": "tenant-gosg",
+          "tenantName": "GO SG CONSULTING",
+          "pageId": 49,
+          "pageSlug": "seo",
+          "pageName": "SEO",
+          "component": {
+            "type": "ServicesShowcase",
+            "props": {}
+          }
+        }
+      ],
+      "inferredProperties": {},
+      "recommendedId": "services-showcase",
+      "recommendedCategory": "content",
+      "recommendedEditor": "ContainerEditor"
+    },
+    {
+      "type": "SEOExplanation",
+      "totalUsage": 1,
+      "tenantCount": 1,
+      "tenants": [
+        "tenant-gosg"
+      ],
+      "pageCount": 1,
+      "samples": [
+        {
+          "tenantId": "tenant-gosg",
+          "tenantName": "GO SG CONSULTING",
+          "pageId": 49,
+          "pageSlug": "seo",
+          "pageName": "SEO",
+          "component": {
+            "type": "SEOExplanation",
+            "props": {}
+          }
+        }
+      ],
+      "inferredProperties": {},
+      "recommendedId": "s-e-o-explanation",
+      "recommendedCategory": "content",
+      "recommendedEditor": "ContainerEditor"
+    },
+    {
+      "type": "Testimonials",
+      "totalUsage": 1,
+      "tenantCount": 1,
+      "tenants": [
+        "tenant-gosg"
+      ],
+      "pageCount": 1,
+      "samples": [
+        {
+          "tenantId": "tenant-gosg",
+          "tenantName": "GO SG CONSULTING",
+          "pageId": 49,
+          "pageSlug": "seo",
+          "pageName": "SEO",
+          "component": {
+            "type": "Testimonials",
+            "props": {}
+          }
+        }
+      ],
+      "inferredProperties": {},
+      "recommendedId": "testimonials",
+      "recommendedCategory": "content",
+      "recommendedEditor": "ContainerEditor"
+    },
+    {
+      "type": "FAQAccordion",
+      "totalUsage": 1,
+      "tenantCount": 1,
+      "tenants": [
+        "tenant-gosg"
+      ],
+      "pageCount": 1,
+      "samples": [
+        {
+          "tenantId": "tenant-gosg",
+          "tenantName": "GO SG CONSULTING",
+          "pageId": 49,
+          "pageSlug": "seo",
+          "pageName": "SEO",
+          "component": {
+            "type": "FAQAccordion",
+            "props": {}
+          }
+        }
+      ],
+      "inferredProperties": {},
+      "recommendedId": "f-a-q-accordion",
+      "recommendedCategory": "content",
+      "recommendedEditor": "ContainerEditor"
+    },
+    {
+      "type": "BlogSection",
+      "totalUsage": 1,
+      "tenantCount": 1,
+      "tenants": [
+        "tenant-gosg"
+      ],
+      "pageCount": 1,
+      "samples": [
+        {
+          "tenantId": "tenant-gosg",
+          "tenantName": "GO SG CONSULTING",
+          "pageId": 49,
+          "pageSlug": "seo",
+          "pageName": "SEO",
+          "component": {
+            "type": "BlogSection",
+            "props": {}
+          }
+        }
+      ],
+      "inferredProperties": {},
+      "recommendedId": "blog-section",
+      "recommendedCategory": "content",
+      "recommendedEditor": "ContainerEditor"
+    },
+    {
+      "type": "ContactForm",
+      "totalUsage": 1,
+      "tenantCount": 1,
+      "tenants": [
+        "tenant-gosg"
+      ],
+      "pageCount": 1,
+      "samples": [
+        {
+          "tenantId": "tenant-gosg",
+          "tenantName": "GO SG CONSULTING",
+          "pageId": 49,
+          "pageSlug": "seo",
+          "pageName": "SEO",
+          "component": {
+            "type": "ContactForm",
+            "props": {}
+          }
+        }
+      ],
+      "inferredProperties": {},
+      "recommendedId": "contact-form",
+      "recommendedCategory": "form",
+      "recommendedEditor": "InputEditor"
+    }
+  ],
+  "unusedComponents": [
+    {
+      "type": "container",
+      "registryInfo": null
+    },
+    {
+      "type": "media",
+      "registryInfo": null
+    },
+    {
+      "type": "text",
+      "registryInfo": null
+    },
+    {
+      "type": "button",
+      "registryInfo": null
+    }
+  ],
+  "dbComponentTypes": [
+    "Accordion",
+    "BlogSection",
+    "CTASection",
+    "ContactForm",
+    "ContactInfo",
+    "Content",
+    "ContentSection",
+    "FAQAccordion",
+    "FAQSection",
+    "GallerySection",
+    "HeroSection",
+    "HeroSectionSimple",
+    "Newsletter",
+    "PageTitle",
+    "PainPointSection",
+    "ProductGrid",
+    "ResultsSection",
+    "Reviews",
+    "SEO",
+    "SEOExplanation",
+    "ServicesGrid",
+    "ServicesShowcase",
+    "Showcase",
+    "SimpleHeader",
+    "SimpleHeroBanner",
+    "SocialMedia",
+    "Testimonials",
+    "aboutSection",
+    "array",
+    "ctaSection",
+    "faqSection",
+    "featuresSection",
+    "ingredientsSection",
+    "servicesSection",
+    "teamSection",
+    "testimonialsSection",
+    "videoSection",
+    "whatsIncludedSection",
+    "whyChooseUsSection"
+  ],
+  "registryComponentTypes": [
+    "button",
+    "container",
+    "media",
+    "text"
+  ]
+}

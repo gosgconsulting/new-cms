@@ -10,6 +10,14 @@ export interface Tenant {
   name: string;
   createdAt: string;
   databaseUrl?: string;
+  database_url?: string;
+  database?: {
+    host?: string;
+    port?: number;
+    database_name?: string;
+    username?: string;
+    ssl?: boolean;
+  };
   apiKey?: string;
   isDevelopment?: boolean;
   isTheme?: boolean;
@@ -36,6 +44,51 @@ export const PostgresIntegration: React.FC<PostgresIntegrationProps> = ({ tenant
   const [showApiKeyModal, setShowApiKeyModal] = useState(false);
   const [apiKey, setApiKey] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [hasDatabase, setHasDatabase] = useState<boolean | null>(null);
+
+  // Check if tenant has database connection
+  React.useEffect(() => {
+    if (!tenant || tenant.isTheme) {
+      setHasDatabase(false);
+      return;
+    }
+
+    // Check if tenant has database_url or database object (from getAllTenants)
+    // The getAllTenants function includes database_url and database object with host, etc.
+    const hasDb = !!(
+      tenant.databaseUrl || 
+      tenant.database_url || 
+      (tenant.database && (tenant.database.host || tenant.database.database_name))
+    );
+    
+    setHasDatabase(hasDb);
+    
+    // If not found in tenant object, try fetching from API as fallback
+    if (!hasDb) {
+      const checkDatabase = async () => {
+        try {
+          const token = localStorage.getItem('sparti-user-session');
+          const authToken = token ? JSON.parse(token).token : null;
+          
+          // Check tenant_databases table via API
+          const dbResponse = await fetch(`/api/tenants/${tenant.id}/database`, {
+            headers: {
+              ...(authToken && { 'Authorization': `Bearer ${authToken}` })
+            }
+          });
+          
+          if (dbResponse.ok) {
+            const dbData = await dbResponse.json();
+            setHasDatabase(!!(dbData.host || dbData.database_name));
+          }
+        } catch (error) {
+          console.error('[testing] Error checking database status:', error);
+        }
+      };
+      
+      checkDatabase();
+    }
+  }, [tenant]);
 
   // Safety check for undefined tenant
   if (!tenant) {
@@ -127,9 +180,20 @@ export const PostgresIntegration: React.FC<PostgresIntegrationProps> = ({ tenant
                   Theme: {tenant.name}
                 </Badge>
               ) : (
-                <Badge variant="outline" className="bg-green-500/10 text-green-700 border-green-300">
-                  Tenant: {tenant.name}
-                </Badge>
+                <>
+                  <Badge variant="outline" className="bg-green-500/10 text-green-700 border-green-300">
+                    Tenant: {tenant.name}
+                  </Badge>
+                  {hasDatabase === false ? (
+                    <Badge variant="outline" className="bg-gray-100 text-gray-600 border-gray-300">
+                      Inactive
+                    </Badge>
+                  ) : hasDatabase === true ? (
+                    <Badge variant="outline" className="bg-green-500/10 text-green-700 border-green-300">
+                      Active
+                    </Badge>
+                  ) : null}
+                </>
               )}
             </div>
             <p className="text-sm text-muted-foreground mb-1">

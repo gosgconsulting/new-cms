@@ -21,6 +21,49 @@ import richTextComponent from './components/rich-text.json';
 import imageGalleryComponent from './components/image-gallery.json';
 import backgroundImageComponent from './components/background-image.json';
 
+// Import auto-generated components
+import aboutSectionComponent from './components/about-section.json';
+import accordionComponent from './components/accordion.json';
+import arrayComponent from './components/array.json';
+import blogSectionComponent from './components/blog-section.json';
+import cTASectionComponent from './components/c-t-a-section.json';
+import contactFormComponent from './components/contact-form.json';
+import contactInfoComponent from './components/contact-info.json';
+import contentImageSectionComponent from './components/content-image-section.json';
+import contentSectionComponent from './components/content-section.json';
+import contentComponent from './components/content.json';
+import ctaSectionComponent from './components/cta-section.json';
+import fAQAccordionComponent from './components/f-a-q-accordion.json';
+import fAQSectionComponent from './components/f-a-q-section.json';
+import faqSectionComponent from './components/faq-section.json';
+import featuresSectionComponent from './components/features-section.json';
+import gallerySectionComponent from './components/gallery-section.json';
+import heroSectionSimpleComponent from './components/hero-section-simple.json';
+import heroSectionComponent from './components/hero-section.json';
+import imageContentSectionComponent from './components/image-content-section.json';
+import ingredientsSectionComponent from './components/ingredients-section.json';
+import newsletterComponent from './components/newsletter.json';
+import pageTitleComponent from './components/page-title.json';
+import painPointSectionComponent from './components/pain-point-section.json';
+import productGridComponent from './components/product-grid.json';
+import resultsSectionComponent from './components/results-section.json';
+import reviewsComponent from './components/reviews.json';
+import sEOExplanationComponent from './components/s-e-o-explanation.json';
+import sEOComponent from './components/s-e-o.json';
+import servicesGridComponent from './components/services-grid.json';
+import servicesSectionComponent from './components/services-section.json';
+import servicesShowcaseComponent from './components/services-showcase.json';
+import showcaseComponent from './components/showcase.json';
+import simpleHeaderComponent from './components/simple-header.json';
+import simpleHeroBannerComponent from './components/simple-hero-banner.json';
+import socialMediaComponent from './components/social-media.json';
+import teamSectionComponent from './components/team-section.json';
+import testimonialsSectionComponent from './components/testimonials-section.json';
+import videoSectionComponent from './components/video-section.json';
+import whatIsSeoComponent from './components/what-is-seo.json';
+import whatsIncludedSectionComponent from './components/whats-included-section.json';
+import whyChooseUsSectionComponent from './components/why-choose-us-section.json';
+
 class ComponentRegistry {
   private static instance: ComponentRegistry;
   private components: Map<string, ComponentDefinition> = new Map();
@@ -67,6 +110,49 @@ class ComponentRegistry {
       richTextComponent as ComponentDefinition,
       imageGalleryComponent as ComponentDefinition,
       backgroundImageComponent as ComponentDefinition,
+    
+      // Auto-generated components
+      aboutSectionComponent as ComponentDefinition,
+      accordionComponent as ComponentDefinition,
+      arrayComponent as ComponentDefinition,
+      blogSectionComponent as ComponentDefinition,
+      cTASectionComponent as ComponentDefinition,
+      contactFormComponent as ComponentDefinition,
+      contactInfoComponent as ComponentDefinition,
+      contentImageSectionComponent as unknown as ComponentDefinition,
+      contentSectionComponent as ComponentDefinition,
+      contentComponent as ComponentDefinition,
+      ctaSectionComponent as ComponentDefinition,
+      fAQAccordionComponent as ComponentDefinition,
+      fAQSectionComponent as ComponentDefinition,
+      faqSectionComponent as ComponentDefinition,
+      featuresSectionComponent as ComponentDefinition,
+      gallerySectionComponent as ComponentDefinition,
+      heroSectionSimpleComponent as ComponentDefinition,
+      heroSectionComponent as ComponentDefinition,
+      imageContentSectionComponent as unknown as ComponentDefinition,
+      ingredientsSectionComponent as ComponentDefinition,
+      newsletterComponent as ComponentDefinition,
+      pageTitleComponent as ComponentDefinition,
+      painPointSectionComponent as ComponentDefinition,
+      productGridComponent as ComponentDefinition,
+      resultsSectionComponent as ComponentDefinition,
+      reviewsComponent as ComponentDefinition,
+      sEOExplanationComponent as ComponentDefinition,
+      sEOComponent as ComponentDefinition,
+      servicesGridComponent as ComponentDefinition,
+      servicesSectionComponent as ComponentDefinition,
+      servicesShowcaseComponent as ComponentDefinition,
+      showcaseComponent as ComponentDefinition,
+      simpleHeaderComponent as ComponentDefinition,
+      simpleHeroBannerComponent as ComponentDefinition,
+      socialMediaComponent as ComponentDefinition,
+      teamSectionComponent as ComponentDefinition,
+      testimonialsSectionComponent as ComponentDefinition,
+      videoSectionComponent as ComponentDefinition,
+      whatIsSeoComponent as ComponentDefinition,
+      whatsIncludedSectionComponent as ComponentDefinition,
+      whyChooseUsSectionComponent as ComponentDefinition,
     ];
 
     gosgComponents.forEach(component => {

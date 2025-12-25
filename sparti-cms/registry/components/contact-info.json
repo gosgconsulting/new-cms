@@ -1,0 +1,16 @@
+{
+  "id": "contact-info",
+  "name": "Contact Info",
+  "type": "ContactInfo",
+  "category": "content",
+  "description": "Contact Info component with 0 configurable properties",
+  "properties": {},
+  "editor": "ContainerEditor",
+  "version": "1.0.0",
+  "tenant_scope": "tenant",
+  "tags": [
+    "content",
+    "contactinfo"
+  ],
+  "last_updated": "2025-12-25T09:34:01.404Z"
+}

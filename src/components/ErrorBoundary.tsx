@@ -1,9 +1,11 @@
+"use client";
+
 import React, { Component, ErrorInfo, ReactNode } from 'react';
-import { AlertCircle } from 'lucide-react';
 
 interface Props {
   children: ReactNode;
   fallback?: ReactNode;
+  onError?: (error: Error, errorInfo: ErrorInfo) => void;
 }
 
 interface State {
@@ -11,46 +13,63 @@ interface State {
   error: Error | null;
 }
 
-class ErrorBoundary extends Component<Props, State> {
+/**
+ * Error Boundary Component
+ * Catches JavaScript errors anywhere in the child component tree
+ * and displays a fallback UI instead of crashing the whole app
+ */
+export class ErrorBoundary extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
-    this.state = { 
+    this.state = {
       hasError: false,
-      error: null
+      error: null,
     };
   }
 
   static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, error };
+    // Update state so the next render will show the fallback UI
+    return {
+      hasError: true,
+      error,
+    };
   }
 
-  componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
-    console.error("Error caught by ErrorBoundary:", error, errorInfo);
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    // Log error to console
+    console.error('[testing] ErrorBoundary caught an error:', error, errorInfo);
+    
+    // Call optional error handler
+    if (this.props.onError) {
+      this.props.onError(error, errorInfo);
+    }
   }
 
-  render(): ReactNode {
+  render() {
     if (this.state.hasError) {
+      // Render custom fallback UI
       if (this.props.fallback) {
         return this.props.fallback;
       }
-      
+
+      // Default fallback UI
       return (
-        <div className="min-h-screen flex items-center justify-center bg-background p-4">
-          <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-6 text-center">
-            <div className="flex justify-center mb-4">
-              <AlertCircle className="h-12 w-12 text-red-500" />
-            </div>
-            <h2 className="text-xl font-bold mb-2">Something went wrong</h2>
-            <p className="text-muted-foreground mb-4">
-              {this.state.error?.message || "An unexpected error occurred"}
-            </p>
-            <button
-              onClick={() => window.location.href = '/'}
-              className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
-            >
-              Go to Home Page
-            </button>
+        <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-red-600 font-semibold">Something went wrong</span>
           </div>
+          <p className="text-sm text-red-700 mb-2">
+            {this.state.error?.message || 'An unexpected error occurred'}
+          </p>
+          <button
+            onClick={() => {
+              this.setState({ hasError: false, error: null });
+              window.location.reload();
+            }}
+            className="text-sm text-red-600 hover:text-red-800 underline"
+          >
+            Reload page
+          </button>
         </div>
       );
     }
