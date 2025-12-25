@@ -10,13 +10,13 @@
       "description": "Section title",
       "editable": true,
       "required": true,
-      "default": "What our clients say"
+      "default": "What customers say"
     },
     "sectionSubtitle": {
       "type": "string",
       "description": "Section subtitle",
       "editable": true,
-      "default": "See what our customers have to say about our SEO services and results."
+      "default": "Short, neutral subtitle for testimonials."
     },
     "testimonials": {
       "type": "array",
@@ -24,36 +24,11 @@
       "editable": true,
       "required": true,
       "default": [
-        {
-          "text": "GoSG's SEO strategies boosted our organic traffic by 400% in just 3 months. Our website now ranks #1 for our main keywords.",
-          "image": "https://randomuser.me/api/portraits/women/1.jpg",
-          "name": "Sarah Chen",
-          "role": "Marketing Director"
-        },
-        {
-          "text": "Their technical SEO audit revealed critical issues we didn't know existed. After fixes, our search rankings improved dramatically.",
-          "image": "https://randomuser.me/api/portraits/men/2.jpg",
-          "name": "Marcus Tan",
-          "role": "Business Owner"
-        },
-        {
-          "text": "GoSG's local SEO expertise helped us dominate Singapore search results. We're now the top choice in our area.",
-          "image": "https://randomuser.me/api/portraits/women/3.jpg",
-          "name": "Priya Sharma",
-          "role": "E-commerce Manager"
-        },
-        {
-          "text": "From page 5 to page 1 in Google in just 4 months. GoSG's SEO approach delivered exactly what they promised.",
-          "image": "https://randomuser.me/api/portraits/men/4.jpg",
-          "name": "David Lim",
-          "role": "CEO"
-        },
-        {
-          "text": "Their SEO content strategy doubled our organic leads. Every blog post now ranks and brings qualified traffic.",
-          "image": "https://randomuser.me/api/portraits/women/5.jpg",
-          "name": "Jennifer Wong",
-          "role": "Operations Manager"
-        }
+        { "text": "This is a sample testimonial used for layout testing.", "image": "/placeholder.svg", "name": "Alex Doe", "role": "Product Manager" },
+        { "text": "Great experience — this placeholder quote demonstrates the component state.", "image": "/placeholder.svg", "name": "Sam Lee", "role": "Founder" },
+        { "text": "A concise example testimonial to verify styles and spacing.", "image": "/placeholder.svg", "name": "Jordan Kim", "role": "Operations Lead" },
+        { "text": "Neutral review text for design validation and QA.", "image": "/placeholder.svg", "name": "Taylor Ray", "role": "CTO" },
+        { "text": "Another sample quote for the testimonials grid or carousel.", "image": "/placeholder.svg", "name": "Riley Chen", "role": "Marketing Lead" }
       ]
     },
     "backgroundColor": {

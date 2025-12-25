@@ -11,8 +11,8 @@
       "editable": true,
       "required": true,
       "default": {
-        "src": "/assets/go-sg-logo-official.png",
-        "alt": "GO SG Digital Marketing Agency"
+        "src": "/placeholder.svg",
+        "alt": "Site Logo"
       }
     },
     "ctaText": {

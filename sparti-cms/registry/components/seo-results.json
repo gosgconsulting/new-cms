@@ -10,19 +10,19 @@
       "description": "Section title",
       "editable": true,
       "required": true,
-      "default": "Real SEO Results"
+      "default": "Sample Results"
     },
     "highlightedText": {
       "type": "string",
       "description": "Highlighted text in the title",
       "editable": true,
-      "default": "SEO Results"
+      "default": "Results"
     },
     "subtitle": {
       "type": "string",
       "description": "Section subtitle",
       "editable": true,
-      "default": "See how we've helped businesses like yours achieve remarkable growth through strategic SEO implementation."
+      "default": "Example outcomes shown for demonstration purposes."
     },
     "results": {
       "type": "array",
@@ -30,45 +30,21 @@
       "editable": true,
       "required": true,
       "default": [
-        {
-          "img": "/assets/results/result-1.png",
-          "label": "+245% Organic Traffic in 6 months"
-        },
-        {
-          "img": "/assets/results/result-2.png",
-          "label": "+180% Organic Traffic in 4 months"
-        },
-        {
-          "img": "/assets/results/result-3.png",
-          "label": "+320% Organic Traffic in 5 months"
-        },
-        {
-          "img": "/assets/results/result-4.png",
-          "label": "+195% Organic Traffic in 3 months"
-        },
-        {
-          "img": "/assets/results/result-5.png",
-          "label": "+275% Organic Traffic in 6 months"
-        },
-        {
-          "img": "/assets/results/result-6.png",
-          "label": "+160% Organic Traffic in 4 months"
-        },
-        {
-          "img": "/assets/results/result-7.png",
-          "label": "+215% Organic Traffic in 5 months"
-        },
-        {
-          "img": "/assets/results/result-8.png",
-          "label": "+290% Organic Traffic in 6 months"
-        }
+        { "img": "/placeholder.svg", "label": "Result example 1" },
+        { "img": "/placeholder.svg", "label": "Result example 2" },
+        { "img": "/placeholder.svg", "label": "Result example 3" },
+        { "img": "/placeholder.svg", "label": "Result example 4" },
+        { "img": "/placeholder.svg", "label": "Result example 5" },
+        { "img": "/placeholder.svg", "label": "Result example 6" },
+        { "img": "/placeholder.svg", "label": "Result example 7" },
+        { "img": "/placeholder.svg", "label": "Result example 8" }
       ]
     },
     "ctaButtonText": {
       "type": "string",
       "description": "CTA button text",
       "editable": true,
-      "default": "Become Our Next Case Study"
+      "default": "Learn More"
     },
     "backgroundColor": {
       "type": "string",
