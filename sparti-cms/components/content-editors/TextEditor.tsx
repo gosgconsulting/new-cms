@@ -6,6 +6,7 @@ import { CodeJar } from 'codejar';
 import Prism from 'prismjs';
 import 'prismjs/components/prism-markup';
 import 'prismjs/themes/prism.css';
+import '../cms/QuillEditor.css';
 
 // Quill toolbar configuration
 const QUILL_TOOLBAR_OPTIONS = [
@@ -46,7 +47,6 @@ export const TextEditor: React.FC<TextEditorProps> = ({
   
   const sourceEditorRef = useRef<HTMLDivElement>(null);
   const codeJarRef = useRef<CodeJar | null>(null);
-  const quillRef = useRef<ReactQuill>(null);
 
   // Update editor content when prop changes
   useEffect(() => {
@@ -54,6 +54,7 @@ export const TextEditor: React.FC<TextEditorProps> = ({
       setEditorContent(content);
       setSourceContent(content);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [content]);
 
   useEffect(() => {
@@ -94,235 +95,51 @@ export const TextEditor: React.FC<TextEditorProps> = ({
   // Separate effect to update CodeJar when content prop changes externally while modal is open
   // This handles external content updates without interfering with user edits
   useEffect(() => {
-    if (showSourceModal && codeJarRef.current && content !== lastContentPropRef.current) {
+    if (showSourceModal && codeJarRef.current && content !== sourceContent) {
       // Content prop changed externally - update CodeJar and sourceContent
       codeJarRef.current.updateCode(content);
       setSourceContent(content);
-      lastContentPropRef.current = content;
+      setEditorContent(content);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [content, showSourceModal]);
 
-  // Text selection and formatting handlers
-  const getSelectedText = () => {
-    if (window.getSelection) {
-      const selection = window.getSelection();
-      if (selection && selection.rangeCount > 0) {
-        return {
-          selection,
-          range: selection.getRangeAt(0),
-          text: selection.toString()
-        };
-      }
+  // Quill modules configuration
+  const quillModules = useMemo(() => ({
+    toolbar: QUILL_TOOLBAR_OPTIONS,
+    clipboard: {
+      matchVisual: false,
+    },
+    history: {
+      delay: 300,
+      maxStack: 50,
+      userOnly: true
     }
-    return null;
-  };
-  
-  const applyFormatToSelection = (formatFn) => {
-    const selectionData = getSelectedText();
-    if (!selectionData || !selectionData.text) return;
-    
-    const { selection, range } = selectionData;
-    const span = document.createElement('span');
-    
-    // Apply the formatting function to the span
-    formatFn(span);
-    
-    // Delete the current selection content and insert our formatted span
-    range.deleteContents();
-    range.insertNode(span);
-    
-    // Create a new range that selects our newly inserted span
-    const newRange = document.createRange();
-    newRange.selectNodeContents(span);
-    
-    // Update the editor content after DOM manipulation
-    if (editorRef.current) {
-      // Preserve the selection during content update
-      const tempSelection = window.getSelection();
-      if (tempSelection) {
-        tempSelection.removeAllRanges();
-        tempSelection.addRange(newRange);
-      }
-      
-      // Update the editor content state
-      const newContent = editorRef.current.innerHTML;
-      contentRef.current = newContent;
-      onChange?.(newContent);
-    }
-    
-    // Keep the selection visible but collapsed at the end of our span
-    // This allows for continuous editing
-    selection.removeAllRanges();
-    const endRange = document.createRange();
-    endRange.setStartAfter(span);
-    endRange.collapse(true);
-    selection.addRange(endRange);
-  };
+  }), []);
 
-  // Text formatting handlers
-  const handleBold = () => {
-    const selectionData = getSelectedText();
-    if (selectionData && selectionData.text) {
-      applyFormatToSelection(span => {
-        span.style.fontWeight = 'bold';
-        span.textContent = selectionData.text;
-      });
-    } else {
-      const newContent = `<strong>${contentRef.current}</strong>`;
-      contentRef.current = newContent;
-      onChange?.(newContent);
-    }
-  };
+  // Quill formats
+  const quillFormats = [
+    'header', 'font', 'size',
+    'bold', 'italic', 'underline', 'strike',
+    'color', 'background',
+    'script',
+    'list', 'bullet', 'indent',
+    'align',
+    'link', 'image', 'video',
+    'blockquote', 'code-block'
+  ];
 
-  const handleItalic = () => {
-    const selectionData = getSelectedText();
-    if (selectionData && selectionData.text) {
-      applyFormatToSelection(span => {
-        span.style.fontStyle = 'italic';
-        span.textContent = selectionData.text;
-      });
-    } else {
-      const newContent = `<em>${contentRef.current}</em>`;
-      contentRef.current = newContent;
-      onChange?.(newContent);
-    }
-  };
-
-  const handleUnderline = () => {
-    const selectionData = getSelectedText();
-    if (selectionData && selectionData.text) {
-      applyFormatToSelection(span => {
-        span.style.textDecoration = 'underline';
-        span.textContent = selectionData.text;
-      });
-    } else {
-      const newContent = `<u>${contentRef.current}</u>`;
-      contentRef.current = newContent;
-      onChange?.(newContent);
-    }
-  };
-
-  const handleAlignment = (alignment: string) => {
-    const newContent = `<div style="text-align: ${alignment}">${contentRef.current}</div>`;
-    contentRef.current = newContent;
-    onChange?.(newContent);
-  };
-  
-  const handleColorChange = (color: string) => {
-    setSelectedColor(color);
-    const selectionData = getSelectedText();
-    
-    if (selectionData && selectionData.text) {
-      applyFormatToSelection(span => {
-        span.style.color = color;
-        span.textContent = selectionData.text;
-      });
-    } else {
-      const newContent = `<span style="color: ${color}">${contentRef.current}</span>`;
-      contentRef.current = newContent;
-      onChange?.(newContent);
-    }
-    
-    setShowColorPicker(false);
-  };
-  
-  const handleGradientChange = (gradient: string) => {
-    setSelectedColor(gradient);
-    const selectionData = getSelectedText();
-    
-    if (selectionData && selectionData.text) {
-      applyFormatToSelection(span => {
-        // Apply proper gradient styling with all necessary properties
-        span.style.backgroundImage = gradient;
-        span.style.webkitBackgroundClip = 'text';
-        span.style.backgroundClip = 'text';  // Standard property
-        span.style.webkitTextFillColor = 'transparent';
-        span.style.color = 'transparent';    // Fallback for non-webkit
-        span.style.display = 'inline-block'; // Ensures gradient applies properly
-        span.textContent = selectionData.text;
-      });
-    } else {
-      // If no selection, apply to entire content with all necessary properties
-      const newContent = `<span style="background-image: ${gradient}; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; display: inline-block;">${contentRef.current}</span>`;
-      contentRef.current = newContent;
-      onChange?.(newContent);
-    }
-    
-    setShowColorPicker(false);
-  };
-  
-  // Handle text style selection
-  const handleTextStyleChange = (style: string) => {
-    setSelectedTextStyle(style);
-    setShowTextStylePicker(false);
-    
-    // Apply the style to the selected text or entire content
-    const selectionData = getSelectedText();
-    if (selectionData && selectionData.text) {
-      const textStyle = TEXT_STYLES.find(s => s.value === style);
-      if (textStyle) {
-        applyFormatToSelection(span => {
-          span.className = textStyle.className;
-          span.textContent = selectionData.text;
-        });
-      }
-    } else {
-      // Apply to entire content
-      const textStyle = TEXT_STYLES.find(s => s.value === style);
-      if (textStyle) {
-        const newContent = `<div class="${textStyle.className}">${contentRef.current}</div>`;
-        contentRef.current = newContent;
-        onChange?.(newContent);
-      }
-    }
-  };
-  
-  // Handle font size selection
-  const handleFontSizeChange = (size: string) => {
-    setSelectedFontSize(size);
-    setShowFontSizePicker(false);
-    
-    // Apply the font size to the selected text or entire content
-    const selectionData = getSelectedText();
-    if (selectionData && selectionData.text) {
-      applyFormatToSelection(span => {
-        span.style.fontSize = size;
-        span.textContent = selectionData.text;
-      });
-    } else {
-      const newContent = `<span style="font-size: ${size}">${contentRef.current}</span>`;
-      contentRef.current = newContent;
-      onChange?.(newContent);
-    }
-  };
-  
-  // Get text style component by value
-  const getTextStyleComponent = (value: string) => {
-    const textStyle = TEXT_STYLES.find(s => s.value === value);
-    if (textStyle) {
-      const StyleComponent = textStyle.component;
-      return <StyleComponent className="h-5 w-5" />;
-    }
-    return <Pilcrow className="h-5 w-5" />;
-  };
-
-  const handleContentChange = (e: React.FormEvent<HTMLDivElement>) => {
-    const newContent = e.currentTarget.innerHTML;
-    if (contentRef.current !== newContent) {
-      contentRef.current = newContent;
-      setSourceContent(newContent);
-      onChange?.(newContent);
-    }
-  };
+  // Handle Quill content change
+  const handleQuillChange = useCallback((html: string) => {
+    setEditorContent(html);
+    onChange?.(html);
+  }, [onChange]);
 
   // Removed handleSourceContentChange - CodeJar handles updates via onUpdate callback
 
   const openSourceModal = () => {
-    // Get current content from contentEditable div
-    if (editorRef.current) {
-      const currentContent = editorRef.current.innerHTML;
-      setSourceContent(currentContent);
-    }
+    // Get current content from Quill editor
+    setSourceContent(editorContent);
     setShowSourceModal(true);
   };
 
@@ -337,14 +154,10 @@ export const TextEditor: React.FC<TextEditorProps> = ({
 
   const saveSourceContent = () => {
     // Use sourceContent state which is kept in sync via CodeJar's onUpdate callback
-    // Using textContent would strip HTML tags, so we use the state directly
     const latestContent = sourceContent;
     
-    // Update the contentEditable div with the source content
-    if (editorRef.current) {
-      editorRef.current.innerHTML = latestContent;
-    }
-    contentRef.current = latestContent;
+    // Update Quill editor with the source content
+    setEditorContent(latestContent);
     onChange?.(latestContent);
     
     // Cleanup CodeJar instance
@@ -357,212 +170,27 @@ export const TextEditor: React.FC<TextEditorProps> = ({
 
   return (
     <div className={`space-y-4 ${className}`}>
-      <div className="flex items-center gap-2 p-2 border-b border-gray-200 bg-gray-50 rounded-t-md">
-        <div className="relative">
-        <button 
-          onClick={() => setShowTextStylePicker(!showTextStylePicker)}
-          className="flex items-center py-1 px-2 hover:bg-gray-100 rounded border border-gray-200"
-        >
-            {getTextStyleComponent(selectedTextStyle)}
-            <span className="text-sm text-gray-700 ml-1">
-              {TEXT_STYLES.find(s => s.value === selectedTextStyle)?.name || 'Paragraph'}
-            </span>
-            <ChevronDown className="h-3 w-3 ml-1 text-gray-500" />
-          </button>
-          
-          {showTextStylePicker && (
-            <div className="absolute z-10 mt-1 w-48 bg-white rounded-md shadow-lg border border-gray-200">
-              <div className="p-2">
-                {TEXT_STYLES.map((style) => {
-                  const StyleComponent = style.component;
-                  return (
-                    <button
-                      key={style.value}
-                      onClick={() => handleTextStyleChange(style.value)}
-                      className="w-full flex items-center px-3 py-2 text-sm hover:bg-gray-100 rounded"
-                    >
-                        <StyleComponent className="h-4 w-4 mr-2" />
-                        <span>{style.name}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-          )}
-        </div>
-        
-        <div className="h-6 border-r border-gray-300 mx-1"></div>
-        
-        <button 
-          onClick={handleBold}
-          className="p-2 hover:bg-gray-200 rounded"
-          title="Bold"
-        >
-          <Bold className="h-4 w-4" />
-        </button>
-        <button 
-          onClick={handleItalic}
-          className="p-2 hover:bg-gray-200 rounded"
-          title="Italic"
-        >
-          <Italic className="h-4 w-4" />
-        </button>
-        <button 
-          onClick={handleUnderline}
-          className="p-2 hover:bg-gray-200 rounded"
-          title="Underline"
-        >
-          <Underline className="h-4 w-4" />
-        </button>
-        
-        <div className="h-6 border-r border-gray-300 mx-1"></div>
-        
-        <button 
-          onClick={() => handleAlignment('left')}
-          className="p-2 hover:bg-gray-200 rounded"
-          title="Align Left"
-        >
-          <AlignLeft className="h-4 w-4" />
-        </button>
-        <button 
-          onClick={() => handleAlignment('center')}
-          className="p-2 hover:bg-gray-200 rounded"
-          title="Align Center"
-        >
-          <AlignCenter className="h-4 w-4" />
-        </button>
-        <button 
-          onClick={() => handleAlignment('right')}
-          className="p-2 hover:bg-gray-200 rounded"
-          title="Align Right"
-        >
-          <AlignRight className="h-4 w-4" />
-        </button>
-        
-        <div className="h-6 border-r border-gray-300 mx-1"></div>
-        
-        <div className="relative">
-          <button 
-            onClick={() => setShowLinkInput(!showLinkInput)}
-            className={`p-2 hover:bg-gray-200 rounded ${linkUrl ? 'text-blue-600' : ''}`} 
-            title="Link"
-          >
-            <Link className="h-4 w-4" />
-          </button>
-          
-          {showLinkInput && (
-            <div className="absolute z-10 mt-1 w-72 bg-white rounded-md shadow-lg border border-gray-200 p-3">
-              <div className="space-y-2">
-                <label className="block text-xs font-medium text-gray-700">URL</label>
-                <input
-                  type="text"
-                  value={linkUrl}
-                  onChange={(e) => setLinkUrl(e.target.value)}
-                  placeholder="https://example.com"
-                  className="w-full p-2 border border-gray-300 rounded-md text-sm"
-                />
-                <div className="flex justify-end space-x-2 pt-2">
-                  <button 
-                    onClick={() => {
-                      setLinkUrl('');
-                      if (onLinkChange) onLinkChange('');
-                      setShowLinkInput(false);
-                    }}
-                    className="px-3 py-1 text-xs border border-gray-300 rounded hover:bg-gray-100"
-                  >
-                    Remove
-                  </button>
-                  <button 
-                    onClick={() => {
-                      if (onLinkChange) onLinkChange(linkUrl);
-                      setShowLinkInput(false);
-                    }}
-                    className="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
-                  >
-                    Apply
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-        
-        {/* Color Picker */}
-        <div className="relative">
-          <button 
-            onClick={() => setShowColorPicker(!showColorPicker)}
-            className="flex items-center p-2 hover:bg-gray-200 rounded"
-            title="Text Color"
-          >
-            <Palette className="h-4 w-4" />
-          </button>
-          
-          {showColorPicker && (
-            <div className="absolute z-10 mt-1 w-64 bg-white rounded-md shadow-lg border border-gray-200">
-              <div className="p-2 border-b border-gray-200">
-                <p className="text-xs font-medium text-gray-500">Brand Colors</p>
-              </div>
-              <div className="p-2 grid grid-cols-4 gap-2">
-                {BRANDING_COLORS.map((color) => (
-                  <button
-                    key={color.name}
-                    onClick={() => handleColorChange(color.value)}
-                    className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center"
-                    style={{ backgroundColor: color.value }}
-                    title={color.name}
-                  />
-                ))}
-              </div>
-              <div className="p-2 border-t border-gray-200">
-                <p className="text-xs font-medium text-gray-500 mb-2">Gradients</p>
-                <div className="grid grid-cols-2 gap-2">
-                  {BRANDING_COLORS.map((color) => (
-                    <button
-                      key={`gradient-${color.name}`}
-                      onClick={() => handleGradientChange(color.gradient)}
-                      className="w-full h-8 rounded border border-gray-300"
-                      style={{ background: color.gradient }}
-                      title={`${color.name} Gradient`}
-                    />
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        <div className="h-6 border-r border-gray-300 mx-1"></div>
-
-        {/* HTML/Source Editor Button */}
-        <button 
-          onClick={openSourceModal}
-          className="p-2 hover:bg-gray-200 rounded"
-          title="Edit HTML Source"
-        >
-          <Code className="h-4 w-4" />
-        </button>
+      {/* Quill Editor with Toolbar */}
+      <div className="quill-editor-wrapper">
+        <ReactQuill
+          theme="snow"
+          value={editorContent}
+          onChange={handleQuillChange}
+          modules={quillModules}
+          formats={quillFormats}
+          placeholder={placeholder}
+        />
       </div>
       
-      {/* Direct Editor with Live Preview */}
-      <div 
-        className={`w-full p-3 border border-gray-300 rounded-b-md focus-within:ring-1 focus-within:ring-blue-400 focus-within:border-blue-400`}
-        style={{ 
-          minHeight: '200px',
-          fontSize: selectedFontSize
-        }}
-      >
-        <div
-          ref={editorRef}
-          contentEditable
-          suppressContentEditableWarning
-          onInput={handleContentChange}
-          className={`outline-none min-h-[1.5em] w-full ${
-            TEXT_STYLES.find(s => s.value === selectedTextStyle)?.className || ''
-          }`}
-          data-placeholder={placeholder}
-          spellCheck="false"
-          dir="ltr" // Explicitly set left-to-right text direction
-        />
+      {/* HTML/Source Editor Button */}
+      <div className="flex justify-end">
+        <button 
+          onClick={openSourceModal}
+          className="px-3 py-1 text-sm text-gray-600 hover:bg-gray-100 rounded border border-gray-300"
+          title="Edit HTML Source"
+        >
+          Edit HTML Source
+        </button>
       </div>
 
       {/* HTML Source Editor Modal */}
@@ -623,27 +251,27 @@ export const TextEditor: React.FC<TextEditorProps> = ({
       )}
       
       {/* Link Preview */}
-      {linkUrl && (
+      {link && (
         <div className="mt-4 p-3 border border-gray-200 rounded-md bg-gray-50">
           <div className="flex justify-between items-center">
             <span className="text-sm text-gray-500">Link Preview:</span>
             <a 
-              href={linkUrl} 
+              href={link} 
               target="_blank" 
               rel="noopener noreferrer"
               className="text-xs text-blue-600 hover:underline"
             >
-              {linkUrl}
+              {link}
             </a>
           </div>
           <div className="mt-2 p-2 border border-gray-200 rounded bg-white">
             <a 
-              href={linkUrl} 
+              href={link} 
               target="_blank" 
               rel="noopener noreferrer" 
               className="text-blue-600 hover:underline"
             >
-              <div dangerouslySetInnerHTML={{ __html: content }} />
+              <div dangerouslySetInnerHTML={{ __html: editorContent }} />
             </a>
           </div>
         </div>

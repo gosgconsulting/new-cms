@@ -28,6 +28,7 @@ interface AIAssistantChatProps {
   selectedComponentJSON?: any; // Component JSON selected from left panel
   onComponentSelected?: (component: any) => void; // Callback when component is selected
   onClosedChange?: (closed: boolean) => void; // NEW: notify parent when closed/opened
+  isCompact?: boolean; // Compact mode for floating widget
 }
 
 interface SelectedComponent {
@@ -47,7 +48,8 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
   selectedComponentJSON, 
   onComponentSelected,
   onProposedComponents,
-  onClosedChange
+  onClosedChange,
+  isCompact = false
 }) => {
   const { currentTenantId } = useAuth();
   // Always open - no collapse functionality
@@ -1052,17 +1054,17 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
       {/* Closed state: show a responsive Sections panel on the right */}
       {/* REMOVED: Closed-state Sections panel to avoid duplication */}
       {/* Sidebar - Always visible */}
-      <div className={cn("flex flex-col h-full bg-card border-l shadow-lg overflow-hidden", isCollapsed ? "w-12" : "w-full", isClosed ? "hidden" : "")}>
+      <div className={cn("flex flex-col h-full bg-card overflow-hidden", isCompact ? "" : "border-l shadow-lg", isCollapsed ? "w-12" : "w-full", isClosed ? "hidden" : "")}>
         {/* Always show content - no collapse functionality */}
             {/* Header */}
-            <div className={cn("flex items-center justify-between border-b flex-shrink-0 bg-background", isCollapsed ? "px-2 py-2" : "px-4 py-2")}>
+            <div className={cn("flex items-center justify-between border-b flex-shrink-0 bg-background", isCompact ? "px-2 py-1.5" : isCollapsed ? "px-2 py-2" : "px-4 py-2")}>
               <div className={cn("flex items-center gap-2 min-w-0", isCollapsed ? "justify-center w-full" : "flex-1")}>
-                <MessageCircle className="h-5 w-5 text-primary flex-shrink-0" />
+                <MessageCircle className={cn("text-primary flex-shrink-0", isCompact ? "h-3.5 w-3.5" : "h-5 w-5")} />
                 {!isCollapsed && (
-                  <div className="flex flex-col flex-1 min-w-0">
+                  <div className={cn("flex flex-col flex-1 min-w-0", isCompact && "gap-0")}>
                     <div className="flex items-center justify-between">
-                      <h2 className="text-lg font-semibold">Editor</h2>
-                      {messages.length > 0 && (
+                      <h2 className={cn("font-semibold", isCompact ? "text-xs" : "text-lg")}>Editor</h2>
+                      {messages.length > 0 && !isCompact && (
                         <button
                           onClick={clearAllMessages}
                           className="text-xs text-muted-foreground hover:text-foreground px-2 py-0.5 rounded transition-colors"
@@ -1072,12 +1074,12 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
                         </button>
                       )}
                     </div>
-                    {pageContextData && (
+                    {!isCompact && pageContextData && (
                       <span className="text-xs text-muted-foreground truncate">
                         {pageContextData.pageName}
                       </span>
                     )}
-                    {focusedComponentJSON && (
+                    {!isCompact && focusedComponentJSON && (
                       <span className="text-xs text-primary font-medium truncate" title={JSON.stringify(focusedComponentJSON, null, 2)}>
                         Focused on: {componentHierarchy.length > 1
                           ? componentHierarchy.join(' > ')
@@ -1087,19 +1089,21 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
                   </div>
                 )}
               </div>
-              {/* Close button */}
-              <button
-                onClick={() => { setIsClosed(true); onClosedChange?.(true); }}
-                className="ml-2 inline-flex items-center justify-center h-8 w-8 rounded-md hover:bg-muted transition-colors"
-                aria-label="Close editor"
-                title="Close editor"
-              >
-                <X className="h-4 w-4" />
-              </button>
+              {/* Close button - hidden in compact mode */}
+              {!isCompact && (
+                <button
+                  onClick={() => { setIsClosed(true); onClosedChange?.(true); }}
+                  className="ml-2 inline-flex items-center justify-center h-8 w-8 rounded-md hover:bg-muted transition-colors"
+                  aria-label="Close editor"
+                  title="Close editor"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
             </div>
 
-            {/* Selected Components Display */}
-            {!isCollapsed && selectedComponents.length > 0 && (
+            {/* Selected Components Display - hidden in compact mode */}
+            {!isCollapsed && !isCompact && selectedComponents.length > 0 && (
               <div className="px-4 py-2 border-b bg-muted/30">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs font-medium text-muted-foreground">
@@ -1142,18 +1146,24 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
 
             {/* Messages Area */}
             {!isCollapsed && (
-            <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 custom-scrollbar">
+            <div className={cn("flex-1 overflow-y-auto custom-scrollbar", isCompact ? "px-2 py-2 space-y-2" : "px-4 py-3 space-y-3")}>
            {messages.length === 0 && !isLoading ? (
-             <div className="flex flex-col items-center justify-center h-full text-muted-foreground gap-3">
-               <p className="text-center text-sm">
+             <div className={cn("flex flex-col items-center justify-center h-full text-muted-foreground", isCompact ? "gap-2" : "gap-3")}>
+               <p className={cn("text-center", isCompact ? "text-xs" : "text-sm")}>
                  Start a conversation with the Editor.
-                 <br />
-                 <br />
-                 Ask questions, get help, or request assistance with your content.
+                 {!isCompact && (
+                   <>
+                     <br />
+                     <br />
+                     Ask questions, get help, or request assistance with your content.
+                   </>
+                 )}
                </p>
-               <p className="text-[11px] text-muted-foreground">
-                 Tip: Switch modes with the toggle. Edit mode drafts outputs for the focused section or all sections; Ask mode shows answers here.
-               </p>
+               {!isCompact && (
+                 <p className="text-[11px] text-muted-foreground">
+                   Tip: Switch modes with the toggle. Edit mode drafts outputs for the focused section or all sections; Ask mode shows answers here.
+                 </p>
+               )}
              </div>
            ) : (
              <>
@@ -1167,7 +1177,8 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
                  >
                    <div
                      className={cn(
-                       "max-w-[85%] rounded-lg px-3 py-2",
+                       "rounded-lg",
+                       isCompact ? "max-w-[90%] px-2 py-1.5" : "max-w-[85%] px-3 py-2",
                        message.role === 'user'
                          ? "bg-primary text-primary-foreground"
                          : message.content.startsWith('Error:')
@@ -1175,15 +1186,15 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
                          : "bg-muted text-muted-foreground"
                      )}
                    >
-                     <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                     <p className={cn("whitespace-pre-wrap", isCompact ? "text-xs" : "text-sm")}>{message.content}</p>
                    </div>
                  </div>
                ))}
                {isLoading && !isBatchGenerating && (
                  <div className="flex w-full justify-start">
-                   <div className="max-w-[85%] rounded-lg px-3 py-2 bg-muted text-muted-foreground flex items-center gap-2">
-                     <Loader2 className="h-4 w-4 animate-spin" />
-                     <span className="text-sm">Thinking...</span>
+                   <div className={cn("rounded-lg bg-muted text-muted-foreground flex items-center gap-2", isCompact ? "max-w-[90%] px-2 py-1.5" : "max-w-[85%] px-3 py-2")}>
+                     <Loader2 className={cn("animate-spin", isCompact ? "h-3 w-3" : "h-4 w-4")} />
+                     <span className={isCompact ? "text-xs" : "text-sm"}>Thinking...</span>
                    </div>
                  </div>
                )}
@@ -1195,7 +1206,7 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
 
             {/* Input Area */}
             {!isCollapsed && (
-            <div className="px-4 pb-3 pt-2 border-t flex-shrink-0 bg-background">
+            <div className={cn("border-t flex-shrink-0 bg-background", isCompact ? "px-2 pb-2 pt-1.5" : "px-4 pb-3 pt-2")}>
               <form onSubmit={handleSubmit}>
                 <PromptBox 
                   disabled={isLoading} 

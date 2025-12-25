@@ -5,7 +5,6 @@ import { Separator } from '../../../src/components/ui/separator';
 import { Badge } from '../../../src/components/ui/badge';
 import { ArrowLeft, Save, Loader2, Settings, Code, FileText } from 'lucide-react';
 import { FileCode } from 'lucide-react';
-import { MessageCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '../auth/AuthProvider';
 import { ComponentSchema } from '../../types/schema';
@@ -18,7 +17,7 @@ import { ComponentEditorPanel } from './PageEditor/ComponentEditorPanel';
 import { ComponentListItem } from './PageEditor/ComponentListItem';
 import { JSONEditorDialog } from './PageEditor/JSONEditorDialog';
 import { EmptyState, ComponentsErrorState, ComponentsEmptyState } from './PageEditor/EmptyStates';
-import { AIAssistantChat } from '../../../src/components/AIAssistantChat';
+import { FloatingAIAssistant } from '../../../src/components/FloatingAIAssistant';
 import SectionContentList from '@/components/SectionContentList';
 import CodeViewerDialog from './PageEditor/CodeViewerDialog';
 
@@ -112,7 +111,6 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack, currentTenantId
   const [originalComponents, setOriginalComponents] = useState<ComponentSchema[]>([]);
   const [showCodeViewer, setShowCodeViewer] = useState(false);
   const [pageFileHint, setPageFileHint] = useState<string | null>(null);
-  const [assistantClosed, setAssistantClosed] = useState(false); // NEW: track assistant visibility
   const [isSavingRef, setIsSavingRef] = useState(false); // Prevent useEffect from overwriting during save
 
   // JSON Editor hook - use a wrapper to prevent updates during save
@@ -874,18 +872,6 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack, currentTenantId
 
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden relative">
-        {/* Reopen button when assistant is closed */}
-        {assistantClosed && (
-          <button
-            onClick={() => setAssistantClosed(false)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 z-50 bg-primary text-primary-foreground shadow-lg px-3 py-2 rounded-l-full flex items-center gap-2 hover:opacity-90"
-            aria-label="Open AI Assistant"
-            title="Open AI Assistant"
-          >
-            <MessageCircle className="h-4 w-4" />
-            <span className="hidden sm:inline">AI Assistant</span>
-          </button>
-        )}
         {/* Left Panel - Components List */}
         <div className="w-80 border-r bg-muted/20 flex flex-col">
 
@@ -942,107 +928,101 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack, currentTenantId
           </ScrollArea>
         </div>
 
-        {/* Right Sidebar - Editor */}
-        {!assistantClosed && (
-          <div className="w-[420px] min-w-[420px] max-w-[420px] flex-shrink-0 border-l bg-background">
-            <AIAssistantChat 
-              className="h-full w-full"
-              pageContext={pageData ? {
-                slug: pageData.slug,
-                pageName: pageData.page_name,
-                tenantId: currentTenantId || undefined
-              } : null}
-              currentComponents={components}
-              onUpdateComponents={setComponents}
-              onProposedComponents={async (proposals) => {
-                // Auto-apply proposals into components by key or by best-effort type match.
-                let updatedComponents: ComponentSchema[] = [];
-                setComponents((prev) => {
-                  const next = [...prev]
-                  const matchIndex = (proposal: any) => {
-                    if (proposal.key) {
-                      const idx = next.findIndex((c) => c.key === proposal.key)
-                      if (idx !== -1) return idx
-                    }
-                    if (proposal.type) {
-                      const lower = String(proposal.type).toLowerCase()
-                      const byType = next.findIndex((c) => (c.type || '').toLowerCase() === lower)
-                      if (byType !== -1) return byType
-                      const byName = next.findIndex((c) => c.name && c.name.toLowerCase().includes(lower))
-                      if (byName !== -1) return byName
-                    }
-                    return -1
-                  }
-                  proposals.forEach((p: any) => {
-                    if (!p) return
-                    const idx = matchIndex(p)
-                    if (idx !== -1) {
-                      // Preserve original key if missing
-                      const incoming = { ...p, key: p.key || next[idx].key, type: p.type || next[idx].type }
-                      next[idx] = incoming
-                    }
-                  })
-                  updatedComponents = next;
-                  return next
-                })
-                
-                // Clear proposed components since we're auto-applying
-                setProposedComponents(null);
-                
-                // Auto-save the version and update layout
-                if (pageData && updatedComponents.length > 0) {
-                  try {
-                    // Update layout in database
-                    const autoSaveLayoutBody: any = {
-                      layout_json: { components: updatedComponents },
-                      tenantId: currentTenantId
-                    };
-                    if (currentThemeId && currentThemeId !== 'custom') {
-                      autoSaveLayoutBody.themeId = currentThemeId;
-                    }
-                    const layoutResponse = await api.put(`/api/pages/${pageId}/layout`, autoSaveLayoutBody);
+        {/* Floating AI Assistant Widget - Bottom Right */}
+        <FloatingAIAssistant
+          pageContext={pageData ? {
+            slug: pageData.slug,
+            pageName: pageData.page_name,
+            tenantId: currentTenantId || undefined
+          } : null}
+          currentComponents={components}
+          onUpdateComponents={setComponents}
+          onProposedComponents={async (proposals) => {
+            // Auto-apply proposals into components by key or by best-effort type match.
+            let updatedComponents: ComponentSchema[] = [];
+            setComponents((prev) => {
+              const next = [...prev]
+              const matchIndex = (proposal: any) => {
+                if (proposal.key) {
+                  const idx = next.findIndex((c) => c.key === proposal.key)
+                  if (idx !== -1) return idx
+                }
+                if (proposal.type) {
+                  const lower = String(proposal.type).toLowerCase()
+                  const byType = next.findIndex((c) => (c.type || '').toLowerCase() === lower)
+                  if (byType !== -1) return byType
+                  const byName = next.findIndex((c) => c.name && c.name.toLowerCase().includes(lower))
+                  if (byName !== -1) return byName
+                }
+                return -1
+              }
+              proposals.forEach((p: any) => {
+                if (!p) return
+                const idx = matchIndex(p)
+                if (idx !== -1) {
+                  // Preserve original key if missing
+                  const incoming = { ...p, key: p.key || next[idx].key, type: p.type || next[idx].type }
+                  next[idx] = incoming
+                }
+              })
+              updatedComponents = next;
+              return next
+            })
+            
+            // Clear proposed components since we're auto-applying
+            setProposedComponents(null);
+            
+            // Auto-save the version and update layout
+            if (pageData && updatedComponents.length > 0) {
+              try {
+                // Update layout in database
+                const autoSaveLayoutBody: any = {
+                  layout_json: { components: updatedComponents },
+                  tenantId: currentTenantId
+                };
+                if (currentThemeId && currentThemeId !== 'custom') {
+                  autoSaveLayoutBody.themeId = currentThemeId;
+                }
+                const layoutResponse = await api.put(`/api/pages/${pageId}/layout`, autoSaveLayoutBody);
 
-                    if (layoutResponse.ok) {
-                      // Save as version
-                      try {
-                        await api.post(`/api/pages/${pageId}/versions`, {
-                          pageData: {
-                            page_name: pageData.page_name || '',
-                            slug: pageData.slug || '',
-                            meta_title: pageData.meta_title || '',
-                            meta_description: pageData.meta_description || '',
-                            seo_index: pageData.seo_index || false,
-                            status: pageData.status || 'draft',
-                            page_type: pageData.page_type || 'page',
-                            campaign_source: pageData.campaign_source || null,
-                            conversion_goal: pageData.conversion_goal || null,
-                            legal_type: pageData.legal_type || null,
-                            last_reviewed_date: pageData.last_reviewed_date || null,
-                          },
-                          layoutJson: { components: updatedComponents },
-                          comment: 'Auto-saved from AI assistant output',
-                          tenantId: currentTenantId
-                        });
-                        console.log('[testing] AI output auto-applied and saved as version');
-                        toast.success('AI output applied and saved');
-                      } catch (versionError) {
-                        console.error('[testing] Error saving version (non-blocking):', versionError);
-                        toast.success('AI output applied');
-                      }
-                    }
-                  } catch (error) {
-                    console.error('[testing] Error auto-saving AI output:', error);
-                    toast.success('AI output applied (save failed)');
+                if (layoutResponse.ok) {
+                  // Save as version
+                  try {
+                    await api.post(`/api/pages/${pageId}/versions`, {
+                      pageData: {
+                        page_name: pageData.page_name || '',
+                        slug: pageData.slug || '',
+                        meta_title: pageData.meta_title || '',
+                        meta_description: pageData.meta_description || '',
+                        seo_index: pageData.seo_index || false,
+                        status: pageData.status || 'draft',
+                        page_type: pageData.page_type || 'page',
+                        campaign_source: pageData.campaign_source || null,
+                        conversion_goal: pageData.conversion_goal || null,
+                        legal_type: pageData.legal_type || null,
+                        last_reviewed_date: pageData.last_reviewed_date || null,
+                      },
+                      layoutJson: { components: updatedComponents },
+                      comment: 'Auto-saved from AI assistant output',
+                      tenantId: currentTenantId
+                    });
+                    console.log('[testing] AI output auto-applied and saved as version');
+                    toast.success('AI output applied and saved');
+                  } catch (versionError) {
+                    console.error('[testing] Error saving version (non-blocking):', versionError);
+                    toast.success('AI output applied');
                   }
                 }
-              }}
-              onOpenJSONEditor={openJSONEditor}
-              selectedComponentJSON={selectedComponentForAI || ({ __scope: 'page', schema: { components } } as any)}
-              onComponentSelected={() => {}}
-              onClosedChange={(closed) => setAssistantClosed(closed)} // NEW: collapse to 2 columns
-            />
-          </div>
-        )}
+              } catch (error) {
+                console.error('[testing] Error auto-saving AI output:', error);
+                toast.success('AI output applied (save failed)');
+              }
+            }
+          }}
+          onOpenJSONEditor={openJSONEditor}
+          selectedComponentJSON={selectedComponentForAI || ({ __scope: 'page', schema: { components } } as any)}
+          onComponentSelected={() => {}}
+        />
       </div>
 
       {/* Code Viewer Dialog */}
