@@ -13,6 +13,9 @@ import api from '../../utils/api';
 import { AIAssistantChat } from '../../../src/components/AIAssistantChat';
 import { VisualEditorJSONDialog } from './VisualEditorJSONDialog';
 import CodeViewerDialog from './PageEditor/CodeViewerDialog';
+import ComponentPreview from '../../../src/components/visual-builder/ComponentPreview';
+import { isValidComponentsArray } from '../../utils/componentHelpers';
+import { ComponentSchema } from '../../types/schema';
 
 interface PageItem {
   id: string;
@@ -125,10 +128,15 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [editingPageId, setEditingPageId] = useState<string | null>(null);
-  const [visualEditorPage, setVisualEditorPage] = useState<{ slug: string; pageName: string } | null>(null);
+  const [visualEditorPage, setVisualEditorPage] = useState<{ slug: string; pageName: string; id?: string } | null>(null);
   const [showJSONEditor, setShowJSONEditor] = useState(false);
   const [showCodeViewer, setShowCodeViewer] = useState(false);
   const [activeTab, setActiveTab] = useState<'page' | 'landing' | 'legal' | 'header' | 'footer'>('page');
+
+  // NEW: builder state for custom theme visual editor
+  const [builderComponents, setBuilderComponents] = useState<ComponentSchema[]>([]);
+  const [builderLoading, setBuilderLoading] = useState(false);
+  const [builderError, setBuilderError] = useState<string | null>(null);
 
   const tabs = [
     { id: 'page' as const, label: 'Pages', icon: FileText },
@@ -285,12 +293,47 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
   const handleVisualEditor = (page: PageItem) => {
     setVisualEditorPage({
       slug: page.slug,
-      pageName: page.page_name
+      pageName: page.page_name,
+      id: page.id
     });
     if (onEditModeChange) {
       onEditModeChange(true);
     }
   };
+
+  // NEW: When custom theme and visual editor is open, load page layout for builder
+  useEffect(() => {
+    const loadBuilderLayout = async () => {
+      if (!visualEditorPage || currentThemeId !== 'custom') return;
+      if (!currentTenantId || !visualEditorPage.id) return;
+
+      try {
+        setBuilderLoading(true);
+        setBuilderError(null);
+
+        const url = `/api/pages/${visualEditorPage.id}?tenantId=${currentTenantId}`;
+        const response = await api.get(url, {
+          headers: { 'X-Tenant-Id': currentTenantId || '' }
+        });
+
+        if (!response.ok) {
+          const text = await response.text();
+          throw new Error(text || 'Failed to load page');
+        }
+
+        const data = await response.json();
+        const comps = data?.page?.layout?.components || [];
+        setBuilderComponents(isValidComponentsArray(comps) ? comps : []);
+      } catch (err: any) {
+        setBuilderError(err?.message || 'Failed to load page layout');
+        setBuilderComponents([]);
+      } finally {
+        setBuilderLoading(false);
+      }
+    };
+
+    loadBuilderLayout();
+  }, [visualEditorPage, currentThemeId, currentTenantId]);
 
   const handleMigrateLayouts = async () => {
     if (!currentThemeId) {
@@ -362,6 +405,8 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
       ? getThemePageUrl(visualEditorPage.slug)
       : visualEditorPage.slug;
 
+    const isCustomTheme = currentThemeId === 'custom';
+
     return (
       <div className="flex flex-col" style={{ height: 'calc(100vh - 120px)' }}>
         <div className="flex items-center justify-between p-4 border-b bg-white rounded-t-lg">
@@ -411,25 +456,84 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
           </div>
         </div>
 
-        {/* Unified Visual Editor layout for all themes */}
-        <div className="flex-1 relative bg-gray-100 rounded-b-lg overflow-hidden flex">
-          <div className="flex-1 relative" id="visual-editor-iframe-container">
-            <iframe
-              id="visual-editor-iframe"
-              src={pageUrl}
-              className="w-full h-full border-0"
-              title={`Visual Editor: ${visualEditorPage.pageName}`}
-              style={{ height: '100%' }}
+        {/* Visual Editor content */}
+        {!isCustomTheme ? (
+          // Theme mode: show real page in iframe with AI assistant
+          <div className="flex-1 relative bg-gray-100 rounded-b-lg overflow-hidden flex">
+            <div className="flex-1 relative" id="visual-editor-iframe-container">
+              <iframe
+                id="visual-editor-iframe"
+                src={pageUrl}
+                className="w-full h-full border-0"
+                title={`Visual Editor: ${visualEditorPage.pageName}`}
+                style={{ height: '100%' }}
+              />
+            </div>
+            <AIAssistantChat 
+              className="h-full" 
+              pageContext={visualEditorPage ? {
+                slug: visualEditorPage.slug,
+                pageName: visualEditorPage.pageName
+              } : null}
             />
           </div>
-          <AIAssistantChat 
-            className="h-full" 
-            pageContext={visualEditorPage ? {
-              slug: visualEditorPage.slug,
-              pageName: visualEditorPage.pageName
-            } : null}
-          />
-        </div>
+        ) : (
+          // Custom theme: visual builder mock website with component previews + AI assistant
+          <div className="flex-1 bg-gray-100 rounded-b-lg overflow-hidden flex">
+            <div className="flex-1 overflow-auto">
+              <div className="max-w-5xl mx-auto p-6 space-y-6">
+                {/* Site header mock */}
+                <div className="bg-white border rounded-lg p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 bg-muted rounded" />
+                    <span className="text-sm font-medium">Your Site</span>
+                  </div>
+                  <div className="flex gap-3 text-sm text-muted-foreground">
+                    <span>Home</span>
+                    <span>Services</span>
+                    <span>About</span>
+                    <span>Contact</span>
+                  </div>
+                </div>
+
+                {/* Builder body */}
+                {builderLoading ? (
+                  <div className="bg-white border rounded-lg p-8 text-center text-muted-foreground">
+                    Loading page layout...
+                  </div>
+                ) : builderError ? (
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-sm text-red-700">
+                    {builderError}
+                  </div>
+                ) : builderComponents.length === 0 ? (
+                  <div className="bg-white border rounded-lg p-8 text-center text-muted-foreground">
+                    No components found in layout. Use JSON to add sections.
+                  </div>
+                ) : (
+                  builderComponents.map((comp, idx) => (
+                    <div key={comp.key || `${comp.type}-${idx}`} className="bg-transparent">
+                      <ComponentPreview component={comp} />
+                    </div>
+                  ))
+                )}
+
+                {/* Site footer mock */}
+                <div className="bg-white border rounded-lg p-4 text-xs text-muted-foreground text-center">
+                  © Visual Builder Preview
+                </div>
+              </div>
+            </div>
+
+            {/* AI Assistant panel */}
+            <AIAssistantChat 
+              className="h-full" 
+              pageContext={visualEditorPage ? {
+                slug: visualEditorPage.slug,
+                pageName: visualEditorPage.pageName
+              } : null}
+            />
+          </div>
+        )}
 
         <CodeViewerDialog
           open={showCodeViewer}
