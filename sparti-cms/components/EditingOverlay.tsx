@@ -43,6 +43,12 @@ export const EditingOverlay: React.FC = () => {
       setHoverStyles({ display: 'none' });
       return;
     }
+    // REMOVED: suppression of hover overlay while a section is selected
+    // if (selectedElement) {
+    //   setHoverStyles({ display: 'none' });
+    //   return;
+    // }
+
     if (hoveredElement?.element) {
       const bounds = getViewportBounds(hoveredElement.element);
       setHoverStyles({

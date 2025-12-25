@@ -186,7 +186,7 @@ body.gosg-editing .sparti-content::before {
 /* Selection overlay: border only, no background tint */
 .sparti-selection-overlay {
   border: 2px solid rgba(155, 135, 245, 0.9);
-  background: transparent;
+  background: transparent !important;
 }
 
 /* Modal backdrop and panel sit above overlays */

@@ -69,7 +69,7 @@ export const ElementSelector: React.FC<ElementSelectorProps> = ({ children }) =>
 
     const targetElement = contentRef.current || document.body;
 
-    // Always track clicks and mouseleave; ALWAYS track mouseover (even when a section is selected)
+    // Always track clicks, mouseover, and mouseleave—even when a section is selected
     targetElement.addEventListener('click', handleElementClick, true);
     targetElement.addEventListener('mouseover', handleElementHover, true);
     targetElement.addEventListener('mouseleave', handleElementLeave, true);
