@@ -106,7 +106,8 @@ router.put('/robots-config', async (req, res) => {
 // Generate robots.txt
 router.post('/robots-txt/generate', async (req, res) => {
   try {
-    const robotsTxt = await generateRobotsTxt();
+    const tenantId = req.query.tenantId || req.user?.tenant_id || 'tenant-gosg';
+    const robotsTxt = await generateRobotsTxt(tenantId);
     res.setHeader('Content-Type', 'text/plain');
     res.send(robotsTxt);
   } catch (error) {
@@ -118,7 +119,8 @@ router.post('/robots-txt/generate', async (req, res) => {
 // Update robots.txt file
 router.post('/robots-txt/update', async (req, res) => {
   try {
-    const robotsTxt = await generateRobotsTxt();
+    const tenantId = req.query.tenantId || req.user?.tenant_id || 'tenant-gosg';
+    const robotsTxt = await generateRobotsTxt(tenantId);
     
     // Write to public/robots.txt
     const fs = await import('fs');
@@ -210,7 +212,8 @@ router.delete('/sitemap-entries/:id', async (req, res) => {
 // Generate sitemap XML
 router.post('/sitemap/generate', async (req, res) => {
   try {
-    const sitemapXML = await generateSitemapXML();
+    const tenantId = req.query.tenantId || req.user?.tenant_id || 'tenant-gosg';
+    const sitemapXML = await generateSitemapXML(tenantId);
     
     // Write to public/sitemap.xml
     const fs = await import('fs');

@@ -1,4 +1,5 @@
 import { query } from './index.js';
+import { getSiteSettingByKey } from './modules/branding.js';
 
 // ===== SEO MANAGEMENT SYSTEM FUNCTIONS =====
 
@@ -226,7 +227,7 @@ export async function updateRobotsConfig(rules) {
   }
 }
 
-export async function generateRobotsTxt() {
+export async function generateRobotsTxt(tenantId = 'tenant-gosg') {
   try {
     const rules = await getRobotsConfig();
     
@@ -241,9 +242,20 @@ export async function generateRobotsTxt() {
       robotsTxt += `${rule.directive}: ${rule.path}\n`;
     }
     
+    // Get site URL from settings
+    let siteUrl = 'https://cms.sparti.ai'; // Default fallback
+    try {
+      const siteUrlSetting = await getSiteSettingByKey('site_url', tenantId);
+      if (siteUrlSetting && siteUrlSetting.setting_value) {
+        siteUrl = siteUrlSetting.setting_value.replace(/\/$/, ''); // Remove trailing slash
+      }
+    } catch (err) {
+      console.warn('[testing] Could not load site_url setting, using default:', err);
+    }
+    
     // Add sitemap reference
     robotsTxt += '\n# Sitemap\n';
-    robotsTxt += 'Sitemap: https://gosgconsulting.com/sitemap.xml\n';
+    robotsTxt += `Sitemap: ${siteUrl}/sitemap.xml\n`;
     
     return robotsTxt;
   } catch (error) {
@@ -307,9 +319,20 @@ export async function createSitemapEntry(entryData) {
   }
 }
 
-export async function generateSitemapXML() {
+export async function generateSitemapXML(tenantId = 'tenant-gosg') {
   try {
     const entries = await getSitemapEntries();
+    
+    // Get site URL from settings
+    let siteUrl = 'https://cms.sparti.ai'; // Default fallback
+    try {
+      const siteUrlSetting = await getSiteSettingByKey('site_url', tenantId);
+      if (siteUrlSetting && siteUrlSetting.setting_value) {
+        siteUrl = siteUrlSetting.setting_value.replace(/\/$/, ''); // Remove trailing slash
+      }
+    } catch (err) {
+      console.warn('[testing] Could not load site_url setting, using default:', err);
+    }
     
     let sitemapXML = '<?xml version="1.0" encoding="UTF-8"?>\n';
     sitemapXML += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"\n';
@@ -321,7 +344,7 @@ export async function generateSitemapXML() {
     
     for (const entry of entries) {
       sitemapXML += '  <url>\n';
-      sitemapXML += `    <loc>https://gosgconsulting.com${entry.url}</loc>\n`;
+      sitemapXML += `    <loc>${siteUrl}${entry.url}</loc>\n`;
       sitemapXML += `    <lastmod>${entry.lastmod.toISOString().split('T')[0]}</lastmod>\n`;
       sitemapXML += `    <changefreq>${entry.changefreq}</changefreq>\n`;
       sitemapXML += `    <priority>${entry.priority}</priority>\n`;

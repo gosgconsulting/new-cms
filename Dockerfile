@@ -24,11 +24,11 @@ ENV VITE_API_BASE_URL=${VITE_API_BASE_URL}
 
 # Build based on DEPLOY_THEME_SLUG
 # Railway passes environment variables that are available during build
-# When DEPLOY_THEME_SLUG is set, build hybrid app (theme + admin)
+# When DEPLOY_THEME_SLUG is set, build standalone theme (no admin/CMS routes)
 # Otherwise, build the full CMS application
 # VITE_API_BASE_URL must be available at build time for frontend API calls
 RUN if [ -n "${DEPLOY_THEME_SLUG}" ]; then \
-      echo "Building hybrid app: Theme at /, Admin at /admin for: ${DEPLOY_THEME_SLUG}" && \
+      echo "Building standalone theme: Theme at / (no admin/CMS) for: ${DEPLOY_THEME_SLUG}" && \
       echo "VITE_API_BASE_URL=${VITE_API_BASE_URL}" && \
       DEPLOY_THEME_SLUG=${DEPLOY_THEME_SLUG} VITE_API_BASE_URL=${VITE_API_BASE_URL} npm run build:theme || exit 1; \
     else \
@@ -47,10 +47,10 @@ RUN if [ ! -d "dist" ] || [ -z "$(ls -A dist 2>/dev/null)" ]; then \
 # Setup phase - expose port
 EXPOSE 4173
 
-# Install serve for static theme hosting and make scripts executable
-RUN npm install -g serve && \
-    chmod +x scripts/docker-entrypoint.js && \
-    chmod +x scripts/docker-theme-start.sh
+# Make scripts executable
+RUN chmod +x scripts/docker-entrypoint.js && \
+    chmod +x scripts/docker-theme-start.sh && \
+    chmod +x scripts/serve-theme-static.js
 
 # Start command - script will check DEPLOY_THEME_SLUG and route accordingly
 CMD ["sh", "scripts/docker-theme-start.sh"]

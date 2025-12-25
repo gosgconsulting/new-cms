@@ -766,6 +766,7 @@ const ColorSettings: React.FC = () => {
 
 const SEOTab: React.FC = () => {
   const [seoSettings, setSeoSettings] = useState({
+    liveSiteUrl: '',
     sitemapEnabled: true,
     titleTemplate: '{{page_title}} | {{site_name}}',
     homeTitleTemplate: '{{site_name}} | {{tagline}}',
@@ -778,12 +779,116 @@ Allow: /
 
 Sitemap: {{site_url}}/sitemap.xml`,
   });
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Load SEO settings including live site URL
+  useEffect(() => {
+    loadSEOSettings();
+  }, []);
+
+  const loadSEOSettings = async () => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      // Get tenant ID from URL or default
+      const urlParams = new URLSearchParams(window.location.search);
+      const tenantId = urlParams.get('tenantId') || 'tenant-gosg';
+      
+      // Load live site URL setting
+      const siteUrlResponse = await fetch(`/api/settings/site-settings/site_url?tenantId=${tenantId}`);
+      if (siteUrlResponse.ok) {
+        const siteUrlSetting = await siteUrlResponse.json();
+        if (siteUrlSetting.setting_value) {
+          setSeoSettings(prev => ({
+            ...prev,
+            liveSiteUrl: siteUrlSetting.setting_value
+          }));
+        }
+      }
+      
+      // If no site URL is set, try to get from environment or use a sensible default
+      if (!seoSettings.liveSiteUrl) {
+        const defaultUrl = import.meta.env.VITE_API_BASE_URL || 
+                          import.meta.env.VITE_SITE_URL || 
+                          (window.location.origin.includes('localhost') ? 'https://cms.sparti.ai' : window.location.origin);
+        setSeoSettings(prev => ({
+          ...prev,
+          liveSiteUrl: defaultUrl.replace(/\/$/, '') // Remove trailing slash
+        }));
+      }
+    } catch (err) {
+      console.error('[testing] Error loading SEO settings:', err);
+      setError('Failed to load SEO settings');
+      // Set default URL if loading fails
+      const defaultUrl = import.meta.env.VITE_API_BASE_URL || 
+                        import.meta.env.VITE_SITE_URL || 
+                        (window.location.origin.includes('localhost') ? 'https://cms.sparti.ai' : window.location.origin);
+      setSeoSettings(prev => ({
+        ...prev,
+        liveSiteUrl: defaultUrl.replace(/\/$/, '')
+      }));
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleInputChange = (field: string, value: string | boolean | string[]) => {
     setSeoSettings(prev => ({
       ...prev,
       [field]: value
     }));
+  };
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    setError(null);
+    
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const tenantId = urlParams.get('tenantId') || 'tenant-gosg';
+      
+      // Validate live site URL
+      if (seoSettings.liveSiteUrl) {
+        try {
+          const url = new URL(seoSettings.liveSiteUrl);
+          if (!url.protocol.startsWith('http')) {
+            throw new Error('URL must start with http:// or https://');
+          }
+        } catch (e) {
+          setError('Invalid URL format. Please use a full URL like https://example.com');
+          setIsSaving(false);
+          return;
+        }
+      }
+      
+      // Save live site URL
+      const siteUrlResponse = await fetch(`/api/settings/site-settings/site_url?tenantId=${tenantId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          setting_value: seoSettings.liveSiteUrl.replace(/\/$/, ''), // Remove trailing slash
+          setting_type: 'text',
+          setting_category: 'seo'
+        }),
+      });
+      
+      if (!siteUrlResponse.ok) {
+        throw new Error('Failed to save live site URL');
+      }
+      
+      console.log('[testing] SEO settings saved successfully');
+      // Show success message (you could add a toast notification here)
+    } catch (err) {
+      console.error('[testing] Error saving SEO settings:', err);
+      setError(err instanceof Error ? err.message : 'Failed to save SEO settings');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const separatorOptions = [
@@ -794,6 +899,18 @@ Sitemap: {{site_url}}/sitemap.xml`,
     { value: ':', label: ': (Colon)' },
   ];
 
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="animate-pulse">
+          <div className="h-4 bg-gray-200 rounded w-1/4 mb-4"></div>
+          <div className="h-4 bg-gray-200 rounded w-3/4 mb-6"></div>
+          <div className="h-20 bg-gray-200 rounded"></div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8">
       <div>
@@ -801,6 +918,43 @@ Sitemap: {{site_url}}/sitemap.xml`,
         <p className="text-sm text-gray-600 mb-6">
           Configure search engine optimization settings for better visibility and ranking.
         </p>
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+            <p className="text-sm text-red-800">{error}</p>
+          </div>
+        )}
+      </div>
+      
+      {/* Live Site URL Section */}
+      <div className="bg-gray-50 rounded-lg p-6">
+        <div className="mb-6">
+          <h4 className="text-base font-semibold text-gray-900 flex items-center">
+            <Globe className="h-5 w-5 mr-2" />
+            Live Site URL
+          </h4>
+          <p className="text-sm text-gray-600 mt-1">
+            The public URL of your live website. This is used in sitemaps and robots.txt.
+          </p>
+        </div>
+        
+        <div className="bg-white rounded-lg p-4 border border-gray-200">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Live Site URL <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="url"
+              value={seoSettings.liveSiteUrl}
+              onChange={(e) => handleInputChange('liveSiteUrl', e.target.value)}
+              placeholder="https://example.com"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              required
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Enter the full URL of your live website (e.g., https://cms.sparti.ai). Do not include a trailing slash.
+            </p>
+          </div>
+        </div>
       </div>
       
       {/* Sitemap Section */}
@@ -1044,9 +1198,13 @@ Sitemap: {{site_url}}/sitemap.xml`,
       </div>
       
       {/* Save Button */}
-      <div className="flex justify-end">
-        <button className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium">
-          Save SEO Settings
+      <div className="flex justify-end pt-4 border-t border-gray-200">
+        <button
+          onClick={handleSave}
+          disabled={isSaving || !seoSettings.liveSiteUrl}
+          className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isSaving ? 'Saving...' : 'Save SEO Settings'}
         </button>
       </div>
     </div>

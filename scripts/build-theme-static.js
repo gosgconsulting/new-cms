@@ -48,7 +48,7 @@ if (!fs.existsSync(themePath)) {
   process.exit(1);
 }
 
-// Create hybrid entry point that includes both theme and admin
+// Create standalone entry point with only the theme (no admin/CMS)
 const standaloneEntryPath = path.join(__dirname, '..', 'src', 'theme-standalone.tsx');
 const standaloneEntryContent = `import React, { lazy, Suspense } from 'react';
 import { createRoot } from 'react-dom/client';
@@ -57,10 +57,6 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import AdminTopBar from "@/components/AdminTopBar";
-import { AuthProvider } from "../sparti-cms/components/auth/AuthProvider";
-import Admin from "./pages/Admin";
-import Auth from "./pages/Auth";
 import ErrorBoundary from "./components/ErrorBoundary";
 import './index.css';
 import '../sparti-cms/styles/modal-sparti-fix.css';
@@ -87,38 +83,29 @@ const App = () => {
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <AuthProvider>
-            <AdminTopBar />
-            <Routes>
-              {/* Root shows theme */}
-              <Route path="/" element={
-                <ErrorBoundary>
-                  <Suspense fallback={
-                    <div className="min-h-screen flex items-center justify-center bg-background">
-                      <div className="text-center">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-                        <p className="text-muted-foreground">Loading theme...</p>
-                      </div>
+          <Routes>
+            {/* Root shows theme */}
+            <Route path="/" element={
+              <ErrorBoundary>
+                <Suspense fallback={
+                  <div className="min-h-screen flex items-center justify-center bg-background">
+                    <div className="text-center">
+                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                      <p className="text-muted-foreground">Loading theme...</p>
                     </div>
-                  }>
-                    <ThemeComponent 
-                      tenantName={themeName} 
-                      tenantSlug="${themeSlug}" 
-                    />
-                  </Suspense>
-                </ErrorBoundary>
-              } />
-              
-              {/* Admin routes - accessible at /admin */}
-              <Route path="/admin/*" element={<Admin />} />
-              
-              {/* Auth route */}
-              <Route path="/auth" element={<Auth />} />
-              
-              {/* Catch all - redirect to theme */}
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </AuthProvider>
+                  </div>
+                }>
+                  <ThemeComponent 
+                    tenantName={themeName} 
+                    tenantSlug="${themeSlug}" 
+                  />
+                </Suspense>
+              </ErrorBoundary>
+            } />
+            
+            {/* Catch all - redirect to theme */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
@@ -152,8 +139,8 @@ if (fs.existsSync(originalIndexPath)) {
   console.log(`[testing] Backed up original index.html`);
 }
 
-// Create hybrid HTML file that uses our standalone entry point
-const hybridHtmlContent = `<!doctype html>
+// Create standalone HTML file that uses our theme-only entry point
+const standaloneHtmlContent = `<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -169,8 +156,8 @@ const hybridHtmlContent = `<!doctype html>
 </html>
 `;
 
-fs.writeFileSync(originalIndexPath, hybridHtmlContent);
-console.log(`[testing] Created hybrid HTML with theme at / and admin at /admin`);
+fs.writeFileSync(originalIndexPath, standaloneHtmlContent);
+console.log(`[testing] Created standalone HTML with theme at /`);
 
 // Build configuration for theme-only build
 const buildConfig = defineConfig({
@@ -246,11 +233,11 @@ build(buildConfig)
     // Verify build output
     verifyBuildOutput();
     
-    console.log(`[testing] ✅ Hybrid app build completed successfully!`);
+    console.log(`[testing] ✅ Standalone theme build completed successfully!`);
     console.log(`[testing] Output directory: dist/`);
     console.log(`[testing] Theme: ${themeSlug}`);
     console.log(`[testing] Theme available at: /`);
-    console.log(`[testing] Admin available at: /admin`);
+    console.log(`[testing] Standalone deployment - no admin/CMS routes`);
     
     // Clean up temporary files and restore original index.html
     try {
