@@ -1,11 +1,10 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import App from './App';
+import { createRoot } from 'react-dom/client'
+import App from './App.tsx'
 import './index.css'
 import '../sparti-cms/styles/modal-sparti-fix.css'
 import '../sparti-cms/styles/rich-text-editor.css'
 import { initializeGlobalTheme } from '@/lib/utils-dashboard'
-import 'flowbite';
+import 'flowbite'
 
 // Set light mode by default
 document.documentElement.classList.add("light");
@@ -13,4 +12,4 @@ document.documentElement.classList.add("light");
 // Initialize global theme settings from localStorage
 initializeGlobalTheme();
 
-ReactDOM.createRoot(document.getElementById("root")!).render(<App />);
+createRoot(document.getElementById("root")!).render(<App />);

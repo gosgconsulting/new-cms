@@ -1,6 +1,8 @@
 import React from 'react';
 import { SpartiCMSWrapper } from '../../sparti-cms';
 import FlowbiteExamples from '../components/FlowbiteExamples';
+import { useEffect, useState } from 'react';
+import { applyFlowbiteTheme, getAvailableFlowbiteThemes, initFlowbiteTheme } from '@/utils/flowbiteThemeManager';
 
 const ComponentsViewer: React.FC = () => {
   const sections = [
@@ -20,7 +22,16 @@ const ComponentsViewer: React.FC = () => {
     { id: 'forms', title: 'Forms' },
     { id: 'table', title: 'Table' },
   ];
-
+  const themes = getAvailableFlowbiteThemes();
+  const [theme, setTheme] = useState<string>('default');
+  useEffect(() => {
+    initFlowbiteTheme('default');
+    // sync UI with stored selection
+    try {
+      const saved = localStorage.getItem('flowbite-theme');
+      if (saved) setTheme(saved);
+    } catch {}
+  }, []);
   return (
     <SpartiCMSWrapper>
       <div className="flex min-h-screen bg-background">
@@ -46,11 +57,29 @@ const ComponentsViewer: React.FC = () => {
             Flowbite examples
           </div>
         </aside>
-
         {/* Main Content */}
         <main className="flex-1 overflow-auto">
           <div className="p-6">
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">Components Viewer (Flowbite)</h1>
+            <div className="flex items-center justify-between mb-4 gap-4 flex-wrap">
+              <h1 className="text-2xl font-bold text-gray-900">Components Viewer (Flowbite)</h1>
+              <div className="flex items-center gap-2">
+                <label htmlFor="flowbite-theme" className="text-sm text-gray-600">Theme</label>
+                <select
+                  id="flowbite-theme"
+                  className="px-3 py-2 border border-gray-300 rounded-md text-sm bg-white"
+                  value={theme}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setTheme(val);
+                    applyFlowbiteTheme(val as any);
+                  }}
+                >
+                  {themes.map(t => (
+                    <option key={t.id} value={t.id}>{t.label}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
             <FlowbiteExamples />
           </div>
         </main>

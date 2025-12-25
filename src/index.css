@@ -1,6 +1,5 @@
-/* Flowbite theme variables (Tailwind v4) */
-/* To switch themes, replace 'default' with 'minimal', 'enterprise', 'playful', or 'mono' */
-@import "flowbite/src/themes/default";
+@plugin "flowbite/plugin";
+@source "../node_modules/flowbite";
 
 @tailwind base;
 @tailwind components;
