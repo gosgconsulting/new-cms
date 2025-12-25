@@ -12,12 +12,6 @@ const Chip = ({ children, active = false, onClick }: { children: React.ReactNode
 );
 
 const ComponentsViewer: React.FC = () => {
-  // Libraries dropdown (only Flowbite for now)
-  const libraries = useMemo(() => [{ id: FLOWBITE_LIBRARY.id, name: FLOWBITE_LIBRARY.name }], []);
-  const [library, setLibrary] = useState<string>(FLOWBITE_LIBRARY.id);
-  const [mode, setMode] = useState<'library' | 'components'>('components');
-
-  // Sidebar state
   const [category, setCategory] = useState<typeof FLOWBITE_CATEGORIES[number]['id']>('all');
   const [search, setSearch] = useState<string>('');
   const [activeTags, setActiveTags] = useState<string[]>([]);
@@ -31,7 +25,6 @@ const ComponentsViewer: React.FC = () => {
 
   // Filtered list
   const list: FlowbiteComponentDef[] = useMemo(() => {
-    if (library !== FLOWBITE_LIBRARY.id) return [];
     let items = [...FLOWBITE_COMPONENTS];
 
     // Category filter
@@ -54,7 +47,7 @@ const ComponentsViewer: React.FC = () => {
       items = items.filter(i => activeTags.every(t => (i.tags || []).includes(t)));
     }
 
-    // Recently added (simple heuristic: sort by name desc as placeholder)
+    // Sort
     if (category === 'recent') {
       items = items.sort((a, b) => a.name.localeCompare(b.name)).reverse();
     } else {
@@ -62,7 +55,7 @@ const ComponentsViewer: React.FC = () => {
     }
 
     return items;
-  }, [library, category, search, activeTags]);
+  }, [category, search, activeTags]);
 
   // Category counts
   const counts = useMemo(() => {
@@ -85,40 +78,42 @@ const ComponentsViewer: React.FC = () => {
     setActiveTags(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]);
   };
 
+  // Scroll to a section in the main content
+  const handleSidebarSelect = (catId: typeof FLOWBITE_CATEGORIES[number]['id']) => {
+    setCategory(catId);
+    const anchorId = `section-${String(catId)}`;
+    const el = document.getElementById(anchorId);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  // Group components by category for sectioned display
+  const groupedByCategory = useMemo(() => {
+    const groups = new Map<string, FlowbiteComponentDef[]>();
+    FLOWBITE_CATEGORIES
+      .filter(c => c.id !== 'all' && c.id !== 'recent')
+      .forEach(c => {
+        groups.set(
+          String(c.id),
+          list.filter(item => item.category === c.id)
+        );
+      });
+    return groups;
+  }, [list]);
+
   return (
     <div className="min-h-screen bg-background">
-      {/* Top controls */}
+      {/* Header */}
       <div className="border-b bg-card">
-        <div className="container mx-auto px-4 py-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          {/* Library dropdown */}
-          <div className="flex items-center gap-3">
-            <label htmlFor="lib" className="text-sm text-muted-foreground">Library</label>
-            <select
-              id="lib"
-              value={library}
-              onChange={(e) => setLibrary(e.target.value)}
-              className="h-9 rounded-md border px-3 text-sm bg-background"
-            >
-              {libraries.map(l => (
-                <option key={l.id} value={l.id}>{l.name}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Mode switcher */}
-          <div className="inline-flex rounded-md border bg-muted p-1">
-            <button
-              onClick={() => setMode('library')}
-              className={`px-3 py-1.5 text-sm rounded ${mode === 'library' ? 'bg-background shadow' : 'text-muted-foreground'}`}
-            >
-              Library
-            </button>
-            <button
-              onClick={() => setMode('components')}
-              className={`px-3 py-1.5 text-sm rounded ${mode === 'components' ? 'bg-background shadow' : 'text-muted-foreground'}`}
-            >
-              Components
-            </button>
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+          <h1 className="text-xl md:text-2xl font-semibold">
+            Components Viewer (Flowbite)
+          </h1>
+          <div className="hidden md:flex items-center gap-3">
+            <span className="text-sm text-muted-foreground">
+              {FLOWBITE_LIBRARY.description}
+            </span>
           </div>
         </div>
       </div>
@@ -135,24 +130,28 @@ const ComponentsViewer: React.FC = () => {
               className="w-full h-9 rounded-md border px-3 text-sm bg-background"
             />
           </div>
-          {/* Categories */}
+
+          {/* Sections list */}
           <div className="space-y-1">
-            <div className="text-xs font-medium text-muted-foreground uppercase px-1">Types</div>
+            <div className="text-xs font-medium text-muted-foreground uppercase px-1">Sections</div>
             <nav className="mt-1 space-y-1">
-              {FLOWBITE_CATEGORIES.map(cat => (
-                <button
-                  key={cat.id}
-                  onClick={() => setCategory(cat.id)}
-                  className={`w-full flex items-center justify-between px-2 py-1.5 rounded text-sm ${category === cat.id ? 'bg-muted' : 'hover:bg-muted/60'}`}
-                >
-                  <span>{cat.label}</span>
-                  <span className="text-xs text-muted-foreground">
-                    {counts[String(cat.id)] ?? 0}
-                  </span>
-                </button>
-              ))}
+              {FLOWBITE_CATEGORIES
+                .filter(cat => cat.id !== 'all' && cat.id !== 'recent')
+                .map(cat => (
+                  <button
+                    key={cat.id}
+                    onClick={() => handleSidebarSelect(cat.id)}
+                    className={`w-full flex items-center justify-between px-2 py-1.5 rounded text-sm ${category === cat.id ? 'bg-muted' : 'hover:bg-muted/60'}`}
+                  >
+                    <span>{cat.label}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {counts[String(cat.id)] ?? 0}
+                    </span>
+                  </button>
+                ))}
             </nav>
           </div>
+
           {/* Tags */}
           {allTags.length > 0 && (
             <div className="mt-4 space-y-2">
@@ -170,76 +169,64 @@ const ComponentsViewer: React.FC = () => {
 
         {/* Main content */}
         <main>
-          {mode === 'library' ? (
-            <div className="max-w-3xl space-y-4">
-              <h1 className="text-2xl font-semibold">{FLOWBITE_LIBRARY.name} Library</h1>
-              <p className="text-muted-foreground">{FLOWBITE_LIBRARY.description}</p>
-              <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {FLOWBITE_CATEGORIES.filter(c => c.id !== 'all' && c.id !== 'recent').map(cat => (
-                  <div key={cat.id} className="border rounded-lg p-4">
-                    <div className="text-xs text-muted-foreground">{cat.id}</div>
-                    <div className="text-base font-medium mt-1">{cat.label}</div>
-                    <div className="text-xs text-muted-foreground mt-2">
-                      {counts[String(cat.id)]} component{(counts[String(cat.id)] || 0) === 1 ? '' : 's'}
-                    </div>
-                    <div className="mt-3">
-                      <button
-                        className="text-sm text-primary hover:underline"
-                        onClick={() => {
-                          setMode('components');
-                          setCategory(cat.id);
-                        }}
-                      >
-                        View components
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div>
-              <div className="mb-4 text-sm text-muted-foreground">
-                Showing {list.length} result{list.length === 1 ? '' : 's'}
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {list.map((c) => (
-                  <div key={c.key} className="border rounded-lg p-4 bg-card">
-                    <div className="text-xs text-muted-foreground">{c.key}</div>
-                    <h3 className="font-semibold mt-1">{c.name}</h3>
-                    <div className="mt-1 text-xs text-muted-foreground">v{c.version} • {c.category}</div>
-                    {c.tags && c.tags.length > 0 && (
-                      <div className="mt-2 flex flex-wrap gap-1">
-                        {c.tags.map(t => (
-                          <span key={t} className="px-1.5 py-0.5 rounded bg-muted text-xs">{t}</span>
+          {/* Overview counters */}
+          <div className="mb-4 text-sm text-muted-foreground">
+            Showing {list.length} result{list.length === 1 ? '' : 's'}
+          </div>
+
+          {/* Render sectioned content by category */}
+          <div className="space-y-10">
+            {FLOWBITE_CATEGORIES
+              .filter(cat => cat.id !== 'all' && cat.id !== 'recent')
+              .map(cat => {
+                const items = groupedByCategory.get(String(cat.id)) || [];
+                return (
+                  <section id={`section-${String(cat.id)}`} key={cat.id} className="space-y-4">
+                    <h2 className="text-lg font-semibold">{cat.label}</h2>
+                    {items.length === 0 ? (
+                      <div className="text-sm text-muted-foreground">No components in this category.</div>
+                    ) : (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {items.map((c) => (
+                          <div key={c.key} className="border rounded-lg p-4 bg-card">
+                            <div className="text-xs text-muted-foreground">{c.key}</div>
+                            <h3 className="font-semibold mt-1">{c.name}</h3>
+                            <div className="mt-1 text-xs text-muted-foreground">v{c.version} • {c.category}</div>
+                            {c.tags && c.tags.length > 0 && (
+                              <div className="mt-2 flex flex-wrap gap-1">
+                                {c.tags.map(t => (
+                                  <span key={t} className="px-1.5 py-0.5 rounded bg-muted text-xs">{t}</span>
+                                ))}
+                              </div>
+                            )}
+                            <div className="mt-3 flex items-center gap-2">
+                              <button
+                                className="text-sm text-primary hover:underline"
+                                onClick={() => {/* preview drawer hook can open */}}
+                                title="Preview (coming soon)"
+                              >
+                                Preview
+                              </button>
+                              <span className="text-muted-foreground text-xs">•</span>
+                              <button
+                                className="text-sm text-primary hover:underline"
+                                onClick={() => {/* use component flow */}}
+                                title="Use this component (coming soon)"
+                              >
+                                Use
+                              </button>
+                            </div>
+                            {c.path && (
+                              <div className="mt-3 text-xs text-muted-foreground">{c.path}</div>
+                            )}
+                          </div>
                         ))}
                       </div>
                     )}
-                    <div className="mt-3 flex items-center gap-2">
-                      <button
-                        className="text-sm text-primary hover:underline"
-                        onClick={() => {/* TODO: open preview drawer */}}
-                        title="Preview (coming soon)"
-                      >
-                        Preview
-                      </button>
-                      <span className="text-muted-foreground text-xs">•</span>
-                      <button
-                        className="text-sm text-primary hover:underline"
-                        onClick={() => {/* TODO: use component flow */}}
-                        title="Use this component (coming soon)"
-                      >
-                        Use
-                      </button>
-                    </div>
-                    {c.path && (
-                      <div className="mt-3 text-xs text-muted-foreground">{c.path}</div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+                  </section>
+                );
+              })}
+          </div>
         </main>
       </div>
     </div>
