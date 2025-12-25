@@ -14,7 +14,7 @@ import { showInfoToast } from '../../src/utils/toast-utils';
 import type { ComponentSchema } from '../types/schema';
 
 export const ContentEditPanel: React.FC = () => {
-  const { isEditing, selectedElement, selectElement, components } = useSpartiBuilder();
+  const { isEditing, selectedElement, selectElement, components, updateComponent } = useSpartiBuilder();
   const [saveSuccess, setSaveSuccess] = useState(false);
   const { components: dbComponents, status, error } = useDatabase();
   
@@ -59,8 +59,12 @@ export const ContentEditPanel: React.FC = () => {
           <ComponentEditor
             schema={selectedComponent}
             onChange={(updated) => {
-              // For now, keep changes local to the modal view (accordion UI)
-              showInfoToast("Draft changes applied in the visual editor (not saved yet).");
+              if (Number.isFinite(compIndex)) {
+                updateComponent(compIndex, updated);
+                showInfoToast("Preview updated");
+              } else {
+                showInfoToast("Cannot determine section index.");
+              }
             }}
           />
         </div>

@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import type { ComponentSchema, SchemaItem } from "../../../sparti-cms/types/schema";
 import FlowbiteSection from "@/libraries/flowbite/components/FlowbiteSection";
-import { SpartiBuilderProvider } from "../../../sparti-cms/components/SpartiBuilderProvider";
+import { SpartiBuilderProvider, useSpartiBuilder } from "../../../sparti-cms/components/SpartiBuilderProvider";
 import { ElementSelector } from "../../../sparti-cms/components/ElementSelector";
 import { EditingOverlay } from "../../../sparti-cms/components/EditingOverlay";
 import { ContentEditPanel } from "../../../sparti-cms/components/ContentEditPanel";
@@ -372,12 +372,15 @@ const FlowbiteDioraRenderer: React.FC<FlowbiteDioraRendererProps> = ({
     );
   }
 
-  return (
-    // Pass components to provider so ContentEditPanel can load accordion UI
-    <SpartiBuilderProvider components={components}>
+  // Inner visual content that consumes builder context components
+  const VisualContent: React.FC = () => {
+    const { components: ctxComponents } = useSpartiBuilder();
+    const list = Array.isArray(ctxComponents) && ctxComponents.length > 0 ? ctxComponents : components;
+
+    return (
       <ElementSelector>
         <main className="w-full">
-          {components.map((comp, idx) => {
+          {list.map((comp, idx) => {
             const t = normalizeType(comp.type || comp.name || comp.key);
 
             if (
@@ -387,8 +390,8 @@ const FlowbiteDioraRenderer: React.FC<FlowbiteDioraRendererProps> = ({
               t.includes("hero")
             ) {
               return (
-                <div data-sparti-component-index={idx} data-sparti-section={t}>
-                  <SectionHero key={comp.key || idx} items={comp.items || []} />
+                <div data-sparti-component-index={idx} data-sparti-section={t} key={`sec-${idx}`}>
+                  <SectionHero items={comp.items || []} />
                 </div>
               );
             }
@@ -398,50 +401,51 @@ const FlowbiteDioraRenderer: React.FC<FlowbiteDioraRendererProps> = ({
               t.includes("services")
             ) {
               return (
-                <div data-sparti-component-index={idx} data-sparti-section={t}>
-                  <SectionServices key={comp.key || idx} items={comp.items || []} />
+                <div data-sparti-component-index={idx} data-sparti-section={t} key={`sec-${idx}`}>
+                  <SectionServices items={comp.items || []} />
                 </div>
               );
             }
             if (t.includes("featuressection") || t.includes("features")) {
               return (
-                <div data-sparti-component-index={idx} data-sparti-section={t}>
-                  <SectionFeatures key={comp.key || idx} items={comp.items || []} />
+                <div data-sparti-component-index={idx} data-sparti-section={t} key={`sec-${idx}`}>
+                  <SectionFeatures items={comp.items || []} />
                 </div>
               );
             }
             if (t.includes("ingredientssection") || t.includes("ingredients")) {
               return (
-                <div data-sparti-component-index={idx} data-sparti-section={t}>
-                  <SectionIngredients
-                    key={comp.key || idx}
-                    items={comp.items || []}
-                  />
+                <div data-sparti-component-index={idx} data-sparti-section={t} key={`sec-${idx}`}>
+                  <SectionIngredients items={comp.items || []} />
                 </div>
               );
             }
             if (t.includes("teamsection") || t.includes("team")) {
               return (
-                <div data-sparti-component-index={idx} data-sparti-section={t}>
-                  <SectionTeam key={comp.key || idx} items={comp.items || []} />
+                <div data-sparti-component-index={idx} data-sparti-section={t} key={`sec-${idx}`}>
+                  <SectionTeam items={comp.items || []} />
                 </div>
               );
             }
             if (t.includes("aboutsection") || t.includes("about")) {
               return (
-                <div data-sparti-component-index={idx} data-sparti-section={t}>
-                  <SectionAbout key={comp.key || idx} items={comp.items || []} />
+                <div data-sparti-component-index={idx} data-sparti-section={t} key={`sec-${idx}`}>
+                  <SectionAbout items={comp.items || []} />
                 </div>
               );
             }
 
-            // Hide unmapped types
             return null;
           })}
         </main>
       </ElementSelector>
+    );
+  };
 
-      {/* Overlays and editor modal */}
+  return (
+    // Provider holds components; visual content reads from context
+    <SpartiBuilderProvider components={components}>
+      <VisualContent />
       <EditingOverlay />
       <ContentEditPanel />
       <EditorToggle />
