@@ -18,21 +18,13 @@ import { ComponentListItem } from './PageEditor/ComponentListItem';
 import { JSONEditorDialog } from './PageEditor/JSONEditorDialog';
 import { EmptyState, ComponentsErrorState, ComponentsEmptyState } from './PageEditor/EmptyStates';
 import { AIAssistantChat } from '../../../src/components/AIAssistantChat';
-import SectionContentList from '../../../src/components/SectionContentList';
+import SectionContentList, { ContentItem } from '../../../src/components/SectionContentList';
 import CodeViewerDialog from './PageEditor/CodeViewerDialog';
 
 // Contents Panel Component
 interface ContentsPanelProps {
   components: ComponentSchema[];
-  extractContentFromComponents: (components: ComponentSchema[]) => Array<{
-    type: 'heading' | 'paragraph' | 'list' | 'text' | 'image';
-    level?: number;
-    text: string;
-    componentType?: string;
-    componentId?: string;
-    imageUrl?: string;
-    alt?: string;
-  }>;
+  extractContentFromComponents: (components: ComponentSchema[]) => ContentItem[];
 }
 
 const ContentsPanel: React.FC<ContentsPanelProps> = ({ components, extractContentFromComponents }) => {
@@ -40,8 +32,7 @@ const ContentsPanel: React.FC<ContentsPanelProps> = ({ components, extractConten
 
   // Group content by componentId/componentType
   const groupedContent = React.useMemo(() => {
-    const groups: Record<string, typeof content> = {};
-    
+    const groups: Record<string, ContentItem[]> = {};
     content.forEach((item) => {
       const groupKey = item.componentId || item.componentType || 'unknown';
       if (!groups[groupKey]) {
@@ -49,7 +40,6 @@ const ContentsPanel: React.FC<ContentsPanelProps> = ({ components, extractConten
       }
       groups[groupKey].push(item);
     });
-    
     return groups;
   }, [content]);
 
@@ -58,7 +48,6 @@ const ContentsPanel: React.FC<ContentsPanelProps> = ({ components, extractConten
     const component = components.find(c => (c.key || '').includes(componentId) || componentId.includes(c.key || ''));
     if (component) {
       const type = component.type || '';
-      // Convert camelCase/PascalCase to readable format
       return type
         .replace(/([A-Z])/g, ' $1')
         .replace(/^./, str => str.toUpperCase())
@@ -79,84 +68,6 @@ const ContentsPanel: React.FC<ContentsPanelProps> = ({ components, extractConten
     );
   }
 
-  // Render content item with Word-like styling
-  const renderContentItem = (item: typeof content[0], index: number) => {
-    const key = `${item.componentId}-${index}`;
-    
-    switch (item.type) {
-      case 'heading': {
-        const HeadingTag = `h${item.level || 2}` as keyof JSX.IntrinsicElements;
-        const level = item.level || 2;
-        
-        // Word-like heading styles
-        const headingStyles = {
-          1: 'text-[2rem] leading-[1.2] mb-4 font-bold text-gray-900', // 32px, like Word H1
-          2: 'text-[1.5rem] leading-[1.3] mb-3 font-semibold text-gray-900', // 24px, like Word H2
-          3: 'text-[1.25rem] leading-[1.4] mb-2 font-semibold text-gray-800', // 20px, like Word H3
-          4: 'text-[1.125rem] leading-[1.4] mb-2 font-semibold text-gray-800', // 18px
-          5: 'text-base leading-[1.5] mb-1 font-semibold text-gray-700', // 16px
-          6: 'text-sm leading-[1.5] mb-1 font-semibold text-gray-700', // 14px
-        };
-        
-        return (
-          <HeadingTag
-            key={key}
-            className={headingStyles[level as keyof typeof headingStyles] || headingStyles[2]}
-          >
-            {item.text}
-          </HeadingTag>
-        );
-      }
-      case 'paragraph':
-        return (
-          <p
-            key={key}
-            className="text-[0.9375rem] leading-[1.6] mb-3 text-gray-700"
-            style={{ fontFamily: 'inherit' }}
-          >
-            {item.text}
-          </p>
-        );
-      case 'list':
-        return (
-          <li
-            key={key}
-            className="text-[0.9375rem] leading-[1.6] mb-2 ml-6 list-disc text-gray-700"
-          >
-            {item.text}
-          </li>
-        );
-      case 'image':
-        return (
-          <div 
-            key={key} 
-            className="mb-4 rounded-lg overflow-hidden border border-gray-200 bg-white shadow-sm"
-          >
-            <img
-              src={item.imageUrl || ''}
-              alt={item.alt || 'Image'}
-              className="w-full h-auto max-h-64 object-cover"
-            />
-            {item.alt && (
-              <div className="px-3 py-2 bg-gray-50 border-t border-gray-200">
-                <p className="text-xs text-gray-500 italic">{item.alt}</p>
-              </div>
-            )}
-          </div>
-        );
-      case 'text':
-      default:
-        return (
-          <div
-            key={key}
-            className="text-[0.9375rem] leading-[1.6] mb-2 text-gray-700"
-          >
-            {item.text}
-          </div>
-        );
-    }
-  };
-
   return (
     <div className="space-y-6">
       <div className="border-b pb-4">
@@ -166,12 +77,12 @@ const ContentsPanel: React.FC<ContentsPanelProps> = ({ components, extractConten
         </h2>
       </div>
 
-      {/* Grouped sections with grid layout */}
+      {/* Grouped sections */}
       <div className="space-y-6">
         {Object.entries(groupedContent).map(([groupKey, items]) => {
           const componentName = getComponentDisplayName(groupKey);
           const componentType = items[0]?.componentType || 'section';
-          
+
           return (
             <div
               key={groupKey}
@@ -188,31 +99,8 @@ const ContentsPanel: React.FC<ContentsPanelProps> = ({ components, extractConten
                 <span className="text-xs text-gray-400">{items.length} items</span>
               </div>
 
-              {/* Grid Layout for Content */}
-              <div 
-                className="grid gap-4"
-                style={{
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))'
-                }}
-              >
-                {items.map((item, index) => {
-                  // For images, make them span full width in their grid cell
-                  if (item.type === 'image') {
-                    return (
-                      <div key={`${item.componentId}-${index}`} className="col-span-full">
-                        {renderContentItem(item, index)}
-                      </div>
-                    );
-                  }
-                  
-                  // For other content, render normally in grid
-                  return (
-                    <div key={`${item.componentId}-${index}`} className="min-w-0">
-                      {renderContentItem(item, index)}
-                    </div>
-                  );
-                })}
-              </div>
+              {/* Unified content renderer */}
+              <SectionContentList items={items} />
             </div>
           );
         })}
