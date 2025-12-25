@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Button } from '../../../src/components/ui/button';
 import { ScrollArea } from '../../../src/components/ui/scroll-area';
 import { Separator } from '../../../src/components/ui/separator';
+import { Badge } from '../../../src/components/ui/badge';
 import { ArrowLeft, Save, Loader2, Settings, Code, FileText } from 'lucide-react';
 import { FileCode } from 'lucide-react';
 import { toast } from 'sonner';
@@ -37,6 +38,35 @@ interface ContentsPanelProps {
 const ContentsPanel: React.FC<ContentsPanelProps> = ({ components, extractContentFromComponents }) => {
   const content = extractContentFromComponents(components);
 
+  // Group content by componentId/componentType
+  const groupedContent = React.useMemo(() => {
+    const groups: Record<string, typeof content> = {};
+    
+    content.forEach((item) => {
+      const groupKey = item.componentId || item.componentType || 'unknown';
+      if (!groups[groupKey]) {
+        groups[groupKey] = [];
+      }
+      groups[groupKey].push(item);
+    });
+    
+    return groups;
+  }, [content]);
+
+  // Get component type name for display
+  const getComponentDisplayName = (componentId: string) => {
+    const component = components.find(c => (c.key || '').includes(componentId) || componentId.includes(c.key || ''));
+    if (component) {
+      const type = component.type || '';
+      // Convert camelCase/PascalCase to readable format
+      return type
+        .replace(/([A-Z])/g, ' $1')
+        .replace(/^./, str => str.toUpperCase())
+        .trim() || componentId;
+    }
+    return componentId.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+  };
+
   if (content.length === 0) {
     return (
       <div className="text-center py-8">
@@ -49,6 +79,84 @@ const ContentsPanel: React.FC<ContentsPanelProps> = ({ components, extractConten
     );
   }
 
+  // Render content item with Word-like styling
+  const renderContentItem = (item: typeof content[0], index: number) => {
+    const key = `${item.componentId}-${index}`;
+    
+    switch (item.type) {
+      case 'heading': {
+        const HeadingTag = `h${item.level || 2}` as keyof JSX.IntrinsicElements;
+        const level = item.level || 2;
+        
+        // Word-like heading styles
+        const headingStyles = {
+          1: 'text-[2rem] leading-[1.2] mb-4 font-bold text-gray-900', // 32px, like Word H1
+          2: 'text-[1.5rem] leading-[1.3] mb-3 font-semibold text-gray-900', // 24px, like Word H2
+          3: 'text-[1.25rem] leading-[1.4] mb-2 font-semibold text-gray-800', // 20px, like Word H3
+          4: 'text-[1.125rem] leading-[1.4] mb-2 font-semibold text-gray-800', // 18px
+          5: 'text-base leading-[1.5] mb-1 font-semibold text-gray-700', // 16px
+          6: 'text-sm leading-[1.5] mb-1 font-semibold text-gray-700', // 14px
+        };
+        
+        return (
+          <HeadingTag
+            key={key}
+            className={headingStyles[level as keyof typeof headingStyles] || headingStyles[2]}
+          >
+            {item.text}
+          </HeadingTag>
+        );
+      }
+      case 'paragraph':
+        return (
+          <p
+            key={key}
+            className="text-[0.9375rem] leading-[1.6] mb-3 text-gray-700"
+            style={{ fontFamily: 'inherit' }}
+          >
+            {item.text}
+          </p>
+        );
+      case 'list':
+        return (
+          <li
+            key={key}
+            className="text-[0.9375rem] leading-[1.6] mb-2 ml-6 list-disc text-gray-700"
+          >
+            {item.text}
+          </li>
+        );
+      case 'image':
+        return (
+          <div 
+            key={key} 
+            className="mb-4 rounded-lg overflow-hidden border border-gray-200 bg-white shadow-sm"
+          >
+            <img
+              src={item.imageUrl || ''}
+              alt={item.alt || 'Image'}
+              className="w-full h-auto max-h-64 object-cover"
+            />
+            {item.alt && (
+              <div className="px-3 py-2 bg-gray-50 border-t border-gray-200">
+                <p className="text-xs text-gray-500 italic">{item.alt}</p>
+              </div>
+            )}
+          </div>
+        );
+      case 'text':
+      default:
+        return (
+          <div
+            key={key}
+            className="text-[0.9375rem] leading-[1.6] mb-2 text-gray-700"
+          >
+            {item.text}
+          </div>
+        );
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="border-b pb-4">
@@ -58,96 +166,84 @@ const ContentsPanel: React.FC<ContentsPanelProps> = ({ components, extractConten
         </h2>
       </div>
 
-      <div className="prose prose-sm max-w-none space-y-3">
-        {content.map((item, index) => {
-          const key = `${item.componentId}-${index}`;
-          switch (item.type) {
-            case 'heading': {
-              const HeadingTag = `h${item.level || 2}` as keyof JSX.IntrinsicElements;
-              return (
-                <HeadingTag
-                  key={key}
-                  className={`font-bold text-foreground ${
-                    item.level === 1 ? 'text-3xl' :
-                    item.level === 2 ? 'text-2xl' :
-                    item.level === 3 ? 'text-xl' : 'text-lg'
-                  }`}
-                  title={`From ${item.componentType} (${item.componentId})`}
-                >
-                  {item.text}
-                </HeadingTag>
-              );
-            }
-            case 'paragraph':
-              return (
-                <p
-                  key={key}
-                  className="text-foreground leading-relaxed"
-                  title={`From ${item.componentType} (${item.componentId})`}
-                >
-                  {item.text}
-                </p>
-              );
-            case 'list':
-              return (
-                <li
-                  key={key}
-                  className="text-foreground ml-4 list-disc"
-                  title={`From ${item.componentType} (${item.componentId})`}
-                >
-                  {item.text}
-                </li>
-              );
-            case 'image':
-              return (
-                <div key={key} className="inline-block" title={`From ${item.componentType} (${item.componentId})`}>
-                  <img
-                    src={item.imageUrl || ''}
-                    alt={item.alt || 'Image'}
-                    className="w-40 h-24 object-cover rounded border"
-                  />
+      {/* Grouped sections with grid layout */}
+      <div className="space-y-6">
+        {Object.entries(groupedContent).map(([groupKey, items]) => {
+          const componentName = getComponentDisplayName(groupKey);
+          const componentType = items[0]?.componentType || 'section';
+          
+          return (
+            <div
+              key={groupKey}
+              className="bg-white border border-gray-200 rounded-lg p-5 shadow-sm"
+            >
+              {/* Section Header */}
+              <div className="flex items-center justify-between mb-4 pb-3 border-b border-gray-200">
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline" className="text-xs font-medium uppercase tracking-wide">
+                    {componentType}
+                  </Badge>
+                  <h3 className="text-sm font-semibold text-gray-600">{componentName}</h3>
                 </div>
-              );
-            case 'text':
-            default:
-              return (
-                <div
-                  key={key}
-                  className="text-foreground"
-                  title={`From ${item.componentType} (${item.componentId})`}
-                >
-                  {item.text}
-                </div>
-              );
-          }
+                <span className="text-xs text-gray-400">{items.length} items</span>
+              </div>
+
+              {/* Grid Layout for Content */}
+              <div 
+                className="grid gap-4"
+                style={{
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))'
+                }}
+              >
+                {items.map((item, index) => {
+                  // For images, make them span full width in their grid cell
+                  if (item.type === 'image') {
+                    return (
+                      <div key={`${item.componentId}-${index}`} className="col-span-full">
+                        {renderContentItem(item, index)}
+                      </div>
+                    );
+                  }
+                  
+                  // For other content, render normally in grid
+                  return (
+                    <div key={`${item.componentId}-${index}`} className="min-w-0">
+                      {renderContentItem(item, index)}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
         })}
       </div>
 
-      <div className="mt-8 p-4 bg-muted/30 rounded-lg border">
-        <h4 className="font-semibold mb-2 flex items-center">
+      {/* Statistics */}
+      <div className="mt-8 p-4 bg-gray-50 rounded-lg border border-gray-200">
+        <h4 className="font-semibold mb-3 flex items-center text-gray-800">
           <Settings className="h-4 w-4 mr-2" />
           Content Statistics
         </h4>
-        <div className="grid grid-cols-2 gap-4 text-sm">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 text-sm">
           <div>
-            <span className="text-muted-foreground">Total Items:</span>
-            <span className="ml-2 font-medium">{content.length}</span>
+            <span className="text-gray-600">Total Items:</span>
+            <span className="ml-2 font-medium text-gray-900">{content.length}</span>
           </div>
           <div>
-            <span className="text-muted-foreground">Headings:</span>
-            <span className="ml-2 font-medium">{content.filter(c => c.type === 'heading').length}</span>
+            <span className="text-gray-600">Headings:</span>
+            <span className="ml-2 font-medium text-gray-900">{content.filter(c => c.type === 'heading').length}</span>
           </div>
           <div>
-            <span className="text-muted-foreground">Paragraphs:</span>
-            <span className="ml-2 font-medium">{content.filter(c => c.type === 'paragraph').length}</span>
+            <span className="text-gray-600">Paragraphs:</span>
+            <span className="ml-2 font-medium text-gray-900">{content.filter(c => c.type === 'paragraph').length}</span>
           </div>
           <div>
-            <span className="text-muted-foreground">Images:</span>
-            <span className="ml-2 font-medium">{content.filter(c => c.type === 'image').length}</span>
+            <span className="text-gray-600">Images:</span>
+            <span className="ml-2 font-medium text-gray-900">{content.filter(c => c.type === 'image').length}</span>
           </div>
           <div>
-            <span className="text-muted-foreground">Components:</span>
-            <span className="ml-2 font-medium">{components.length}</span>
+            <span className="text-gray-600">Sections:</span>
+            <span className="ml-2 font-medium text-gray-900">{Object.keys(groupedContent).length}</span>
           </div>
         </div>
       </div>
