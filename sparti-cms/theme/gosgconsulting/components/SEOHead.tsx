@@ -13,9 +13,11 @@ interface SEOHeadProps {
 
 const SEOHead: React.FC<SEOHeadProps> = ({ meta, favicon }) => {
   React.useEffect(() => {
-    // Always remove any existing favicon links
-    const existingFavicons = document.querySelectorAll('link[rel="icon"], link[rel="shortcut icon"], link[rel="apple-touch-icon"]');
+    // Always remove any existing favicon links - favicons are completely disabled
+    const existingFavicons = document.querySelectorAll('link[rel="icon"], link[rel="shortcut icon"], link[rel="apple-touch-icon"], link[rel="mask-icon"]');
     existingFavicons.forEach(favicon => favicon.remove());
+    
+    // Ensure no favicon is added even if one is provided
     
     // Update document title
     if (meta.title) {

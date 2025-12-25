@@ -101,7 +101,7 @@ export const useSEO = (options: SEOOptions = {}) => {
   useEffect(() => {
     if (loading || !seoSettings) return;
 
-    const title = options.title || seoSettings.meta_title || seoSettings.site_name || 'GO SG';
+    const title = options.title || seoSettings.meta_title || seoSettings.site_name || 'Sparti CMS';
     const description = options.description || seoSettings.meta_description || seoSettings.site_description || '';
     const keywords = options.keywords || seoSettings.meta_keywords || '';
     const image = options.image || seoSettings.og_image || '';
@@ -155,13 +155,9 @@ export const useSEO = (options: SEOOptions = {}) => {
       updateMetaTag('meta[name="twitter:image"]', options.image || seoSettings.twitter_image || image);
     }
 
-    // Update favicon if available
-    if (seoSettings.site_favicon) {
-      const favicon = document.querySelector('link[rel="icon"]') as HTMLLinkElement;
-      if (favicon) {
-        favicon.href = seoSettings.site_favicon;
-      }
-    }
+    // Remove any favicon links - favicons are disabled
+    const existingFavicons = document.querySelectorAll('link[rel="icon"], link[rel="shortcut icon"], link[rel="apple-touch-icon"]');
+    existingFavicons.forEach(favicon => favicon.remove());
 
     console.log('[testing] SEO meta tags updated:', {
       title,
