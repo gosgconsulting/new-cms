@@ -373,7 +373,8 @@ const FlowbiteDioraRenderer: React.FC<FlowbiteDioraRendererProps> = ({
   }
 
   return (
-    <SpartiBuilderProvider>
+    // Pass components to provider so ContentEditPanel can load accordion UI
+    <SpartiBuilderProvider components={components}>
       <ElementSelector>
         <main className="w-full">
           {components.map((comp, idx) => {
@@ -386,7 +387,9 @@ const FlowbiteDioraRenderer: React.FC<FlowbiteDioraRendererProps> = ({
               t.includes("hero")
             ) {
               return (
-                <SectionHero key={comp.key || idx} items={comp.items || []} />
+                <div data-sparti-component-index={idx} data-sparti-section={t}>
+                  <SectionHero key={comp.key || idx} items={comp.items || []} />
+                </div>
               );
             }
             if (
@@ -395,30 +398,40 @@ const FlowbiteDioraRenderer: React.FC<FlowbiteDioraRendererProps> = ({
               t.includes("services")
             ) {
               return (
-                <SectionServices key={comp.key || idx} items={comp.items || []} />
+                <div data-sparti-component-index={idx} data-sparti-section={t}>
+                  <SectionServices key={comp.key || idx} items={comp.items || []} />
+                </div>
               );
             }
             if (t.includes("featuressection") || t.includes("features")) {
               return (
-                <SectionFeatures key={comp.key || idx} items={comp.items || []} />
+                <div data-sparti-component-index={idx} data-sparti-section={t}>
+                  <SectionFeatures key={comp.key || idx} items={comp.items || []} />
+                </div>
               );
             }
             if (t.includes("ingredientssection") || t.includes("ingredients")) {
               return (
-                <SectionIngredients
-                  key={comp.key || idx}
-                  items={comp.items || []}
-                />
+                <div data-sparti-component-index={idx} data-sparti-section={t}>
+                  <SectionIngredients
+                    key={comp.key || idx}
+                    items={comp.items || []}
+                  />
+                </div>
               );
             }
             if (t.includes("teamsection") || t.includes("team")) {
               return (
-                <SectionTeam key={comp.key || idx} items={comp.items || []} />
+                <div data-sparti-component-index={idx} data-sparti-section={t}>
+                  <SectionTeam key={comp.key || idx} items={comp.items || []} />
+                </div>
               );
             }
             if (t.includes("aboutsection") || t.includes("about")) {
               return (
-                <SectionAbout key={comp.key || idx} items={comp.items || []} />
+                <div data-sparti-component-index={idx} data-sparti-section={t}>
+                  <SectionAbout key={comp.key || idx} items={comp.items || []} />
+                </div>
               );
             }
 
@@ -428,6 +441,7 @@ const FlowbiteDioraRenderer: React.FC<FlowbiteDioraRendererProps> = ({
         </main>
       </ElementSelector>
 
+      {/* Overlays and editor modal */}
       <EditingOverlay />
       <ContentEditPanel />
       <EditorToggle />

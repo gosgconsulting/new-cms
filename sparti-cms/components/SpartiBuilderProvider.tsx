@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { EditingContext, SpartiElement, SpartiBuilderConfig } from '../types';
+import type { ComponentSchema } from '../types/schema';
 
 interface GOSGBuilderContextType extends EditingContext {
   config: SpartiBuilderConfig;
@@ -7,6 +8,8 @@ interface GOSGBuilderContextType extends EditingContext {
   exitEditMode: () => void;
   selectElement: (element: SpartiElement | null) => void;
   hoverElement: (element: SpartiElement | null) => void;
+  // ADDED: components in context
+  components?: ComponentSchema[];
 }
 
 const GOSGBuilderContext = createContext<GOSGBuilderContextType | null>(null);
@@ -14,11 +17,14 @@ const GOSGBuilderContext = createContext<GOSGBuilderContextType | null>(null);
 interface SpartiBuilderProviderProps {
   children: ReactNode;
   config?: SpartiBuilderConfig;
+  // ADDED: components prop
+  components?: ComponentSchema[];
 }
 
 export const SpartiBuilderProvider: React.FC<SpartiBuilderProviderProps> = ({
   children,
-  config = { enabled: true, toolbar: true, autoDetect: true }
+  config = { enabled: true, toolbar: true, autoDetect: true },
+  components
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [selectedElement, setSelectedElement] = useState<SpartiElement | null>(null);
@@ -53,6 +59,7 @@ export const SpartiBuilderProvider: React.FC<SpartiBuilderProviderProps> = ({
     exitEditMode,
     selectElement,
     hoverElement,
+    components,
   };
 
   return (

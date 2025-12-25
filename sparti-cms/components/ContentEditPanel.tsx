@@ -5,17 +5,18 @@ import { useSpartiBuilder } from './SpartiBuilderProvider';
 import { ElementType } from '../types';
 import useDatabase from '../hooks/useDatabase';
 import { componentRegistry } from '../registry';
-
-// Specialized editor components
 import { TextEditor } from './editors/TextEditor';
 import { ImageEditor } from './editors/ImageEditor';
 import { ButtonEditor } from './editors/ButtonEditor';
 import { ContainerEditor } from './editors/ContainerEditor';
+import ComponentEditor from './cms/ComponentEditor';
+import { showInfoToast } from '../../src/utils/toast-utils';
+import type { ComponentSchema } from '../types/schema';
 
 export const ContentEditPanel: React.FC = () => {
-  const { isEditing, selectedElement, selectElement } = useSpartiBuilder();
+  const { isEditing, selectedElement, selectElement, components } = useSpartiBuilder();
   const [saveSuccess, setSaveSuccess] = useState(false);
-  const { components, status, error } = useDatabase();
+  const { components: dbComponents, status, error } = useDatabase();
   
   // Derive loading state from useDatabase status
   const isSaving = status === 'loading';
@@ -24,6 +25,12 @@ export const ContentEditPanel: React.FC = () => {
 
   const { data } = selectedElement;
   const elementType = data.elementType;
+
+  const sectionEl = selectedElement.element.closest('[data-sparti-component-index]') as HTMLElement | null;
+  const compIdxAttr = sectionEl?.getAttribute('data-sparti-component-index') || '';
+  const compIndex = compIdxAttr ? parseInt(compIdxAttr, 10) : NaN;
+  const selectedComponent: ComponentSchema | null =
+    components && Number.isFinite(compIndex) ? components[compIndex] || null : null;
   
   // Determine if this element should be saved as a component
   const isComponent = ['header', 'footer', 'sidebar', 'navigation'].includes(data.tagName);
@@ -46,6 +53,20 @@ export const ContentEditPanel: React.FC = () => {
   const renderSpecializedEditor = () => {
     const commonProps = { selectedElement };
     
+    if (selectedComponent) {
+      return (
+        <div className="sparti-accordion-wrapper">
+          <ComponentEditor
+            schema={selectedComponent}
+            onChange={(updated) => {
+              // For now, keep changes local to the modal view (accordion UI)
+              showInfoToast("Draft changes applied in the visual editor (not saved yet).");
+            }}
+          />
+        </div>
+      );
+    }
+
     // Use ImageEditor for image elements
     if (elementType === 'image' || data.tagName === 'IMG') {
       return <ImageEditor {...commonProps} />;
@@ -54,9 +75,6 @@ export const ContentEditPanel: React.FC = () => {
     // Check if component is registered in registry and use appropriate editor
     const registeredComponent = componentRegistry.get(elementType);
     if (registeredComponent) {
-      console.log(`Using registered component: ${registeredComponent.name}`);
-      
-      // Use specific editor based on component definition
       switch (registeredComponent.editor) {
         case 'ImageEditor':
           return <ImageEditor {...commonProps} />;
@@ -92,14 +110,14 @@ export const ContentEditPanel: React.FC = () => {
       };
       
       // Check if component already exists
-      const existingComponent = await components.getByName(componentData.name) as any;
+      const existingComponent = await dbComponents.getByName(componentData.name) as any;
       
       if (existingComponent && existingComponent.id) {
         // Update existing component
-        await components.update(existingComponent.id, componentData);
+        await dbComponents.update(existingComponent.id, componentData);
       } else {
         // Create new component
-        await components.create({ ...componentData, tenantId: 'default' });
+        await dbComponents.create({ ...componentData, tenantId: 'default' });
       }
       
       setSaveSuccess(true);
@@ -120,11 +138,16 @@ export const ContentEditPanel: React.FC = () => {
       <div className="sparti-edit-panel">
         <div className="sparti-edit-panel-header">
           <div className="sparti-edit-header-content">
-            <IconComponent size={20} />
+            {(selectedComponent ? <Settings size={20} /> : (() => {
+              const IconComponent = getEditorIcon(elementType);
+              return <IconComponent size={20} />;
+            })())}
             <div>
-              <h3>{elementType.charAt(0).toUpperCase() + elementType.slice(1)} Editor</h3>
-              <p className="sparti-element-path">{data.tagName.toUpperCase()}</p>
-              {componentRegistry.has(elementType) && (
+              <h3>{selectedComponent ? 'Section Editor' : `${elementType.charAt(0).toUpperCase() + elementType.slice(1)} Editor`}</h3>
+              <p className="sparti-element-path">
+                {selectedComponent ? (selectedComponent.type || selectedComponent.name || 'Component') : data.tagName.toUpperCase()}
+              </p>
+              {componentRegistry.has(elementType) && !selectedComponent && (
                 <div className="sparti-registry-status">
                   ✓ Registered Component
                 </div>
