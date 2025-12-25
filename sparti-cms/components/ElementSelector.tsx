@@ -87,13 +87,12 @@ export const ElementSelector: React.FC<ElementSelectorProps> = ({ children }) =>
     };
   }, [isEditing, selectedElement]);
 
-  // Detect if any real preview sections exist (data-sparti-component-index rendered by a visual renderer)
+  // Detect if any visual sections were rendered; fallback when none are present
   useEffect(() => {
     const el = contentRef.current;
     if (!el) return;
     const check = () => {
-      const has = !!el.querySelector('[data-sparti-component-index]');
-      setHasRenderedSections(has);
+      setHasRenderedSections(!!el.querySelector('[data-sparti-component-index]'));
     };
     check();
     const observer = new MutationObserver(() => check());
@@ -101,7 +100,8 @@ export const ElementSelector: React.FC<ElementSelectorProps> = ({ children }) =>
     return () => observer.disconnect();
   }, []);
 
-  // Helpers to interpret JSON items
+  // Helpers to parse JSON schema
+  const normalizeType = (t?: string) => (t || '').toLowerCase();
   const getText = (items: any[], key: string) => {
     const it = (items || []).find(
       (i: any) => typeof i?.key === 'string' && i.key.toLowerCase() === key.toLowerCase() && typeof i?.content === 'string'
@@ -109,7 +109,9 @@ export const ElementSelector: React.FC<ElementSelectorProps> = ({ children }) =>
     return it?.content || '';
   };
   const getArray = (items: any[], key: string) => {
-    const it = (items || []).find((i: any) => typeof i?.key === 'string' && i.key.toLowerCase() === key.toLowerCase() && i?.type === 'array');
+    const it = (items || []).find(
+      (i: any) => typeof i?.key === 'string' && i.key.toLowerCase() === key.toLowerCase() && i?.type === 'array'
+    );
     return Array.isArray(it?.items) ? it.items : [];
   };
   const findImagesDeep = (items: any[]): { src: string; alt?: string; title?: string }[] => {
@@ -130,9 +132,8 @@ export const ElementSelector: React.FC<ElementSelectorProps> = ({ children }) =>
     (items || []).forEach(walk);
     return imgs;
   };
-  const normalizeType = (t?: string) => (t || '').toLowerCase();
 
-  // Flowbite-based fallback preview that matches common schema shapes
+  // Flowbite-based fallback preview
   const renderFlowbiteFallback = () => {
     if (!Array.isArray(components) || components.length === 0) return null;
     return (
@@ -142,7 +143,7 @@ export const ElementSelector: React.FC<ElementSelectorProps> = ({ children }) =>
           const items = Array.isArray(comp?.items) ? comp.items : [];
           const sectionLabel = comp?.type || comp?.name || comp?.key || `Section ${idx + 1}`;
 
-          // Hero-like
+          // HERO-style fallback
           if (t.includes('hero')) {
             const slides = getArray(items, 'slides');
             const welcomeText = getText(items, 'welcomeText') || getText(items, 'subtitle') || '';
@@ -181,7 +182,7 @@ export const ElementSelector: React.FC<ElementSelectorProps> = ({ children }) =>
             );
           }
 
-          // Services-like grids
+          // SERVICES grid
           if (t.includes('services')) {
             const services = getArray(items, 'services');
             const title = getText(items, 'title') || sectionLabel;
@@ -192,10 +193,11 @@ export const ElementSelector: React.FC<ElementSelectorProps> = ({ children }) =>
                 const images = findImagesDeep(colItems);
                 const img = images[0];
                 const btn = (colItems || []).find((i: any) => i?.type === 'button' && typeof i?.content === 'string');
-                const titleItem = (colItems || []).find((i: any) => typeof i?.title === 'string' || typeof i?.content === 'string');
+                const titleItem = (colItems || []).find(
+                  (i: any) => typeof i?.title === 'string' || typeof i?.content === 'string'
+                );
                 return { img, btn, title: titleItem?.title || titleItem?.content };
               });
-
             return (
               <FlowbiteSection key={`fb-services-${idx}`} title={title} subtitle={subtitle}>
                 <div
@@ -234,7 +236,7 @@ export const ElementSelector: React.FC<ElementSelectorProps> = ({ children }) =>
             );
           }
 
-          // Features-like grids
+          // FEATURES grid
           if (t.includes('features')) {
             const title = getText(items, 'title') || sectionLabel;
             const subtitle = getText(items, 'subtitle') || '';
@@ -278,12 +280,12 @@ export const ElementSelector: React.FC<ElementSelectorProps> = ({ children }) =>
             );
           }
 
-          // Team/Ingredients/About and unknowns -> generic FlowbiteSection with images/text
-          const images = findImagesDeep(items);
-          const textCandidates: string[] = [];
+          // Generic fallback
+          const imgs = findImagesDeep(items);
+          const texts: string[] = [];
           const walkText = (n: any) => {
             if (!n || typeof n !== 'object') return;
-            if (typeof n.content === 'string' && n.content.trim()) textCandidates.push(n.content.trim());
+            if (typeof n.content === 'string' && n.content.trim()) texts.push(n.content.trim());
             if (Array.isArray(n.items)) n.items.forEach(walkText);
             Object.values(n).forEach((v: any) => {
               if (v && typeof v === 'object') {
@@ -297,9 +299,9 @@ export const ElementSelector: React.FC<ElementSelectorProps> = ({ children }) =>
           return (
             <FlowbiteSection key={`fb-generic-${idx}`} title={sectionLabel}>
               <div data-sparti-component-index={idx} data-sparti-section={t} className="space-y-3">
-                {images.length > 0 ? (
+                {imgs.length > 0 ? (
                   <div className="grid gap-3 sm:grid-cols-2">
-                    {images.slice(0, 8).map((img, i) => (
+                    {imgs.slice(0, 8).map((img, i) => (
                       <div key={i} className="rounded-md overflow-hidden border bg-gray-50">
                         <img
                           src={img.src}
@@ -316,15 +318,15 @@ export const ElementSelector: React.FC<ElementSelectorProps> = ({ children }) =>
                     ))}
                   </div>
                 ) : null}
-                {textCandidates.length > 0 ? (
+                {texts.length > 0 ? (
                   <div className="space-y-2">
-                    {textCandidates.slice(0, 5).map((t, i) => (
+                    {texts.slice(0, 5).map((t, i) => (
                       <p key={i} className="text-sm text-gray-700">
                         {t}
                       </p>
                     ))}
                   </div>
-                ) : !images.length ? (
+                ) : !imgs.length ? (
                   <p className="text-xs text-gray-500">No textual or image content in this section.</p>
                 ) : null}
               </div>
@@ -338,7 +340,6 @@ export const ElementSelector: React.FC<ElementSelectorProps> = ({ children }) =>
   return (
     <div ref={contentRef} className="sparti-content">
       {children}
-      {/* Only render Flowbite-based fallback after we've checked for real sections and found none */}
       {hasRenderedSections === false ? renderFlowbiteFallback() : null}
     </div>
   );
