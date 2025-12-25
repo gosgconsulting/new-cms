@@ -19,6 +19,7 @@ import TenantPage from "./pages/TenantPage";
 import ErrorBoundary from "./components/ErrorBoundary";
 import EmbedPagesManager from "../sparti-cms/components/embed/EmbedPagesManager";
 import ThemeAdminRedirect from "./components/ThemeAdminRedirect";
+import ComponentsViewer from "./pages/ComponentsViewer";
 
 const queryClient = new QueryClient();
 
@@ -118,6 +119,7 @@ const App = () => {
             {/* Other routes */}
             <Route path="/auth" element={<Auth />} />
             <Route path="/database-viewer" element={<DatabaseViewer />} />
+            <Route path="/components-viewer" element={<ComponentsViewer />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           </AuthProvider>
