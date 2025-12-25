@@ -16,10 +16,38 @@ export const EditingOverlay: React.FC = () => {
     };
   };
 
-  // If modal/editor is open (selectedElement present), disable all overlays
-  if (!isEditing || selectedElement) return null;
+  const updateSelectedOverlay = () => {
+    if (!isEditing) {
+      setOverlayStyles({ display: 'none' });
+      return;
+    }
+    if (selectedElement?.element) {
+      const bounds = getViewportBounds(selectedElement.element);
+      setOverlayStyles({
+        position: 'fixed',
+        top: `${bounds.top}px`,
+        left: `${bounds.left}px`,
+        width: `${bounds.width}px`,
+        height: `${bounds.height}px`,
+        pointerEvents: 'none',
+        zIndex: 9998,
+        transform: 'translateZ(0)',
+      });
+    } else {
+      setOverlayStyles({ display: 'none' });
+    }
+  };
 
   const updateHoverOverlay = () => {
+    if (!isEditing) {
+      setHoverStyles({ display: 'none' });
+      return;
+    }
+    // Suppress hover overlay while a section is selected
+    if (selectedElement) {
+      setHoverStyles({ display: 'none' });
+      return;
+    }
     if (hoveredElement?.element) {
       const bounds = getViewportBounds(hoveredElement.element);
       setHoverStyles({
@@ -38,17 +66,20 @@ export const EditingOverlay: React.FC = () => {
   };
 
   useEffect(() => {
-    updateHoverOverlay();
-  }, [hoveredElement]);
+    updateSelectedOverlay();
+  }, [isEditing, selectedElement]);
 
   useEffect(() => {
-    if (!isEditing) return;
+    updateHoverOverlay();
+  }, [isEditing, hoveredElement, selectedElement]);
 
+  useEffect(() => {
     let rafId: number | null = null;
     const scheduleUpdate = () => {
       if (rafId !== null) return;
       rafId = requestAnimationFrame(() => {
         rafId = null;
+        updateSelectedOverlay();
         updateHoverOverlay();
       });
     };
@@ -63,15 +94,24 @@ export const EditingOverlay: React.FC = () => {
       window.removeEventListener('resize', scheduleUpdate as EventListener);
       if (rafId !== null) cancelAnimationFrame(rafId);
     };
-  }, [isEditing, hoveredElement]);
+  }, []); // attach once
 
-  // Only render hover overlay when not editing a selected section
+  // Render overlays only when in edit mode (hooks above still run consistently)
+  if (!isEditing) return null;
+
+  const selectedLabel =
+    selectedElement?.data?.attributes?.['data-sparti-section'] ||
+    selectedElement?.data?.tagName ||
+    '';
+
   return (
     <>
-      <div 
-        className="sparti-hover-overlay sparti-overlay sparti-ui" 
-        style={hoverStyles}
-      />
+      <div className="sparti-hover-overlay sparti-ui" style={hoverStyles} />
+      {selectedElement && (
+        <div className="sparti-selection-overlay sparti-ui" style={overlayStyles}>
+          <div className="sparti-element-label">{String(selectedLabel)}</div>
+        </div>
+      )}
     </>
   );
 };
