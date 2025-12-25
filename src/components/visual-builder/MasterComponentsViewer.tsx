@@ -18,93 +18,45 @@ type RegistryEntry = {
   [key: string]: any;
 };
 
+// ADDED: normalizeId helper to extract an ID from a Vite glob path like '.../features-section.json'
+const normalizeId = (path: string): string => {
+  const parts = path.split("/");
+  const file = parts[parts.length - 1] || "";
+  return file.replace(/\.json$/i, "");
+};
+
 type Tenant = {
   id: string;
   name: string;
   slug?: string;
 };
 
-const normalizeId = (path: string) => {
-  const parts = path.split("/");
-  const file = parts[parts.length - 1] || "";
-  return file.replace(/\.json$/i, "");
-};
+function normalizeComponentKey(id: string) {
+  const s = id.toLowerCase();
+  // Map registry ids to schema keys used per-tenant
+  if (s.includes("header")) return "header";
+  if (s.includes("footer")) return "footer";
+  if (s.includes("hero")) return "hero";
+  if (s.includes("services")) return "services";
+  if (s.includes("features")) return "features";
+  if (s.includes("ingredients")) return "ingredients";
+  if (s.includes("team")) return "team";
+  if (s.includes("about")) return "about";
+  return s;
+}
 
 const MasterComponentsViewer: React.FC<{ libraryId?: string }> = ({ libraryId }) => {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<RegistryEntry | null>(null);
 
-  // Tenants + selected tenant
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [tenantIndex, setTenantIndex] = useState<number>(0);
   const currentTenant = tenants[tenantIndex] || null;
 
-  // Loaded component schema for current tenant
   const [tenantComponent, setTenantComponent] = useState<any | null>(null);
   const [loadingTenantComp, setLoadingTenantComp] = useState(false);
-
-  // Dropdown state for tenant name
   const [tenantMenuOpen, setTenantMenuOpen] = useState(false);
-
-  // Load tenants once when modal opens
-  useEffect(() => {
-    if (!open) return;
-    let cancelled = false;
-
-    async function loadTenants() {
-      // Try known tenants list endpoint; fallback if needed
-      const res = await fetch("/api/tenants");
-      if (!res.ok) return;
-      const data = await res.json();
-      if (cancelled) return;
-
-      // Normalize to {id, name, slug}
-      const list: Tenant[] = Array.isArray(data)
-        ? data.map((t: any) => ({
-            id: String(t.id ?? t.tenantId ?? t.slug ?? t.name ?? Math.random()),
-            name: String(t.name ?? t.slug ?? t.id ?? "Tenant"),
-            slug: t.slug ?? t.name ?? t.id,
-          }))
-        : [];
-      setTenants(list);
-      setTenantIndex(0);
-    }
-
-    loadTenants();
-    return () => {
-      cancelled = true;
-    };
-  }, [open]);
-
-  // Load the selected component for the current tenant
-  useEffect(() => {
-    if (!open || !selected || !currentTenant) return;
-
-    let cancelled = false;
-    async function loadTenantComponent() {
-      setLoadingTenantComp(true);
-      setTenantComponent(null);
-      // We try a flexible endpoint that the backend can satisfy:
-      // GET /api/tenants/:tenantId/components/:componentId
-      const compId = selected.id;
-      const tenantId = currentTenant.id;
-
-      const res = await fetch(`/api/tenants/${encodeURIComponent(tenantId)}/components/${encodeURIComponent(compId)}`);
-      if (cancelled) return;
-      if (res.ok) {
-        const data = await res.json();
-        setTenantComponent(data?.schema ?? data?.component ?? data ?? null);
-      } else {
-        // If not found, keep null so we can show fallback
-        setTenantComponent(null);
-      }
-      setLoadingTenantComp(false);
-    }
-
-    loadTenantComponent();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, selected?.id, currentTenant?.id]);
 
   const items = useMemo<RegistryEntry[]>(() => {
     return Object.entries(modules).map(([path, mod]: [string, any]) => {
@@ -114,29 +66,20 @@ const MasterComponentsViewer: React.FC<{ libraryId?: string }> = ({ libraryId })
       const description =
         (json.description as string) ||
         (Array.isArray(json.items) ? `Fields: ${json.items.length}` : "");
-      return {
-        id,
-        title,
-        description,
-        ...json,
-      };
+      return { id, title, description, ...json };
     });
   }, []);
 
-  // Filter by selected design library first (currently Flowbite)
   const libraryFiltered = useMemo<RegistryEntry[]>(() => {
     if (!libraryId) return items;
-
     if (libraryId === "flowbite") {
-      const allow = ["hero", "services", "features", "ingredients", "team", "about"];
+      const allow = ["hero", "services", "features", "ingredients", "team", "about", "header", "footer"];
       return items.filter((it) => {
         const id = String(it.id || "").toLowerCase();
         const t = String(it.type || it.title || "").toLowerCase();
         return allow.some((k) => id.includes(k) || t.includes(k));
       });
     }
-
-    // Fallback: if library not recognized, show all
     return items;
   }, [items, libraryId]);
 
@@ -150,16 +93,107 @@ const MasterComponentsViewer: React.FC<{ libraryId?: string }> = ({ libraryId })
     });
   }, [libraryFiltered, query]);
 
+  // Load tenants via server route; default to first tenant so we never show "Select tenant"
+  useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+
+    async function loadTenants() {
+      // Prefer our server route; if it fails, fallback to public route if present
+      const urls = ["/api/tenants", "/api/public/tenants"];
+      let data: any[] = [];
+      for (const u of urls) {
+        try {
+          const res = await fetch(u);
+          if (res.ok) {
+            const json = await res.json();
+            if (Array.isArray(json)) {
+              data = json;
+              break;
+            } else if (Array.isArray(json?.data)) {
+              data = json.data;
+              break;
+            }
+          }
+        } catch {}
+      }
+
+      if (cancelled) return;
+
+      const list: Tenant[] = Array.isArray(data)
+        ? data.map((t: any) => ({
+            id: String(t.id ?? t.tenantId ?? t.slug ?? t.name ?? Math.random()),
+            name: String(t.name ?? t.slug ?? t.id ?? "Tenant"),
+            slug: t.slug ?? t.name ?? t.id,
+          }))
+        : [];
+
+      if (list.length > 0) {
+        setTenants(list);
+        setTenantIndex(0); // ensure first tenant (e.g., Diora or Moski) is selected
+      } else {
+        setTenants([]);
+        setTenantIndex(0);
+      }
+    }
+
+    loadTenants();
+    return () => {
+      cancelled = true;
+    };
+  }, [open]);
+
+  // Load component schema for current tenant
+  useEffect(() => {
+    if (!open || !selected || !currentTenant) return;
+
+    let cancelled = false;
+    async function loadTenantComponent() {
+      setLoadingTenantComp(true);
+      setTenantComponent(null);
+
+      const compId = selected.id;
+      const key = normalizeComponentKey(compId);
+      const tenantId = currentTenant.id;
+
+      // Try precise endpoint if available, then fall back to site_schemas-style route
+      const urls = [
+        `/api/tenants/${encodeURIComponent(tenantId)}/components/${encodeURIComponent(compId)}`,
+        `/api/tenants/${encodeURIComponent(tenantId)}/schemas/${encodeURIComponent(key)}`,
+        `/api/public/tenants/${encodeURIComponent(tenantId)}/schemas/${encodeURIComponent(key)}`
+      ];
+
+      let found: any = null;
+
+      for (const u of urls) {
+        try {
+          const res = await fetch(u);
+          if (cancelled) return;
+          if (res.ok) {
+            const data = await res.json();
+            // Accept schema under common keys
+            found = data?.schema ?? data?.component ?? data?.schema_value ?? data ?? null;
+            if (found) break;
+          }
+        } catch {}
+      }
+
+      // If header/footer exist per-tenant in site_schemas, prefer preview; sections may be missing until seeded.
+      setTenantComponent(found);
+      setLoadingTenantComp(false);
+    }
+
+    loadTenantComponent();
+  }, [open, selected?.id, currentTenant?.id]);
+
   const handlePrevTenant = () => {
     if (tenants.length === 0) return;
     setTenantIndex((i) => (i - 1 + tenants.length) % tenants.length);
   };
-
   const handleNextTenant = () => {
     if (tenants.length === 0) return;
     setTenantIndex((i) => (i + 1) % tenants.length);
   };
-
   const handleSelectTenant = (idx: number) => {
     setTenantIndex(idx);
     setTenantMenuOpen(false);
@@ -214,13 +248,11 @@ const MasterComponentsViewer: React.FC<{ libraryId?: string }> = ({ libraryId })
         )}
       </div>
 
-      {/* Modal for viewing component design (schema JSON) */}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-4xl">
           <DialogHeader>
             <DialogTitle className="flex items-center justify-between">
               <span>{selected?.title || selected?.id || "Component"}</span>
-              {/* Tenant switcher */}
               <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
@@ -244,7 +276,7 @@ const MasterComponentsViewer: React.FC<{ libraryId?: string }> = ({ libraryId })
                     aria-label="Select tenant"
                   >
                     <span className="mr-2 max-w-[160px] truncate">
-                      {currentTenant?.name || "Select tenant"}
+                      {currentTenant?.name || (tenants[0]?.name ?? "Select tenant")}
                     </span>
                     <ChevronDown className="h-4 w-4 opacity-70" />
                   </Button>
@@ -293,20 +325,25 @@ const MasterComponentsViewer: React.FC<{ libraryId?: string }> = ({ libraryId })
               <DialogDescription>{selected.description}</DialogDescription>
             ) : null}
           </DialogHeader>
+
           <div className="mt-2">
-            {selected ? (
-              <div className="rounded-md border bg-white p-3">
-                {loadingTenantComp ? (
-                  <div className="p-6 text-sm text-gray-500">Loading component from tenant...</div>
-                ) : tenantComponent ? (
-                  <FlowbiteComponentPreview schema={tenantComponent as any} />
-                ) : (
-                  <div className="p-6 text-sm text-gray-500">
-                    No saved design found for this component in the selected tenant. Showing nothing.
+            <div className="rounded-md border bg-white p-3">
+              {loadingTenantComp ? (
+                <div className="p-6 text-sm text-gray-500">Loading component from tenant...</div>
+              ) : tenantComponent ? (
+                <FlowbiteComponentPreview schema={tenantComponent as any} />
+              ) : (
+                <div className="space-y-3 p-6">
+                  <p className="text-sm text-gray-600">
+                    No saved design found for this component in the selected tenant.
+                  </p>
+                  <div className="rounded-md border bg-gray-50 p-3">
+                    {/* Fallback: show default registry preview to avoid blank modal */}
+                    <FlowbiteComponentPreview schema={selected as any} />
                   </div>
-                )}
-              </div>
-            ) : null}
+                </div>
+              )}
+            </div>
           </div>
         </DialogContent>
       </Dialog>
