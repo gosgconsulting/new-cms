@@ -20,8 +20,8 @@ export { default as ContactModal } from './ContactModal';
 export { default as Header } from './Header';
 export { default as Footer } from './Footer';
 export { default as AdminTopBar } from './AdminTopBar';
-export { default as MasterHeader } from './master/MasterHeader';
-export { default as MasterFooter } from './master/MasterFooter';
+export { default as FlowbiteHeader } from '@/libraries/flowbite/components/FlowbiteHeader';
+export { default as FlowbiteFooter } from '@/libraries/flowbite/components/FlowbiteFooter';
 
 // Section Components
 export { default as HeroSection } from './HeroSection';

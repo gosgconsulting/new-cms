@@ -1,90 +1,110 @@
-import React from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { SpartiCMSWrapper } from '../../sparti-cms';
 import FlowbiteExamples from '../components/FlowbiteExamples';
-import { useEffect, useState } from 'react';
 import { applyFlowbiteTheme, getAvailableFlowbiteThemes, initFlowbiteTheme } from '@/utils/flowbiteThemeManager';
 
 const ComponentsViewer: React.FC = () => {
-  const sections = [
-    { id: 'buttons', title: 'Buttons' },
-    { id: 'alerts', title: 'Alerts' },
-    { id: 'badges', title: 'Badges' },
-    { id: 'cards', title: 'Cards' },
-    { id: 'dropdowns', title: 'Dropdowns' },
-    { id: 'modal', title: 'Modal' },
-    { id: 'navbar', title: 'Navbar' },
-    { id: 'pagination', title: 'Pagination' },
-    { id: 'progress', title: 'Progress' },
-    { id: 'tabs', title: 'Tabs' },
-    { id: 'tooltips', title: 'Tooltips' },
-    { id: 'accordion', title: 'Accordion' },
-    { id: 'drawer', title: 'Drawer' },
-    { id: 'forms', title: 'Forms' },
-    { id: 'table', title: 'Table' },
+  // NEW: library dropdown and view switcher
+  const libraries = useMemo(() => [{ id: 'flowbite', name: 'Flowbite' }], []);
+  const [library, setLibrary] = useState<string>('flowbite');
+  const [mode, setMode] = useState<'library' | 'components'>('components');
+
+  // Flowbite registry (header, footer, slider)
+  const flowbiteComponents = [
+    { key: 'flowbite.header.v1', name: 'Header', path: '/libraries/flowbite/components/FlowbiteHeader' },
+    { key: 'flowbite.footer.v1', name: 'Footer', path: '/libraries/flowbite/components/FlowbiteFooter' },
+    { key: 'flowbite.slider.v1', name: 'Slider', path: '/libraries/flowbite/components/FlowbiteSlider' }
   ];
-  const themes = getAvailableFlowbiteThemes();
-  const [theme, setTheme] = useState<string>('default');
-  useEffect(() => {
-    initFlowbiteTheme('default');
-    // sync UI with stored selection
-    try {
-      const saved = localStorage.getItem('flowbite-theme');
-      if (saved) setTheme(saved);
-    } catch {}
-  }, []);
+
+  const activeComponents = library === 'flowbite' ? flowbiteComponents : [];
+
   return (
-    <SpartiCMSWrapper>
-      <div className="flex min-h-screen bg-background">
-        {/* Left Sidebar (anchors) */}
-        <aside className="w-64 bg-white border-r border-gray-200 sticky top-0 h-screen hidden md:flex md:flex-col">
-          <div className="p-4 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-800">Flowbite Library</h2>
-            <p className="text-xs text-gray-500 mt-1">Tailwind components</p>
-          </div>
-          <nav className="flex-1 overflow-auto p-3">
-            <h3 className="text-xs uppercase tracking-wider text-gray-500 font-semibold mb-2">Sections</h3>
-            <ul className="space-y-1">
-              {sections.map(s => (
-                <li key={s.id}>
-                  <a href={`#${s.id}`} className="block px-3 py-2 rounded-md text-sm text-gray-700 hover:bg-gray-100">
-                    {s.title}
-                  </a>
-                </li>
+    <div className="min-h-screen bg-background">
+      {/* Top controls */}
+      <div className="border-b bg-card">
+        <div className="container mx-auto px-4 py-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          {/* Library dropdown */}
+          <div className="flex items-center gap-3">
+            <label htmlFor="lib" className="text-sm text-muted-foreground">Library</label>
+            <select
+              id="lib"
+              value={library}
+              onChange={(e) => setLibrary(e.target.value)}
+              className="h-9 rounded-md border px-3 text-sm bg-background"
+            >
+              {libraries.map(l => (
+                <option key={l.id} value={l.id}>{l.name}</option>
               ))}
-            </ul>
-          </nav>
-          <div className="p-3 border-t border-gray-200 text-xs text-gray-400">
-            Flowbite examples
+            </select>
           </div>
-        </aside>
-        {/* Main Content */}
-        <main className="flex-1 overflow-auto">
-          <div className="p-6">
-            <div className="flex items-center justify-between mb-4 gap-4 flex-wrap">
-              <h1 className="text-2xl font-bold text-gray-900">Components Viewer (Flowbite)</h1>
-              <div className="flex items-center gap-2">
-                <label htmlFor="flowbite-theme" className="text-sm text-gray-600">Theme</label>
-                <select
-                  id="flowbite-theme"
-                  className="px-3 py-2 border border-gray-300 rounded-md text-sm bg-white"
-                  value={theme}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    setTheme(val);
-                    applyFlowbiteTheme(val as any);
-                  }}
-                >
-                  {themes.map(t => (
-                    <option key={t.id} value={t.id}>{t.label}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-            <FlowbiteExamples />
+
+          {/* Mode switcher */}
+          <div className="inline-flex rounded-md border bg-muted p-1">
+            <button
+              onClick={() => setMode('library')}
+              className={`px-3 py-1.5 text-sm rounded ${mode === 'library' ? 'bg-background shadow' : 'text-muted-foreground'}`}
+            >
+              Library
+            </button>
+            <button
+              onClick={() => setMode('components')}
+              className={`px-3 py-1.5 text-sm rounded ${mode === 'components' ? 'bg-background shadow' : 'text-muted-foreground'}`}
+            >
+              Components
+            </button>
           </div>
-        </main>
+        </div>
       </div>
-    </SpartiCMSWrapper>
+
+      {/* Content */}
+      <div className="container mx-auto px-4 py-6">
+        {mode === 'library' ? (
+          <div className="max-w-3xl space-y-4">
+            <h1 className="text-2xl font-semibold">Flowbite Library</h1>
+            <p className="text-muted-foreground">
+              A tenant-agnostic master component library built with Tailwind and Flowbite styles.
+              Use these components across all tenants for consistent, accessible UI.
+            </p>
+            <ul className="list-disc pl-5 text-sm text-muted-foreground">
+              <li>Header (flowbite.header.v1)</li>
+              <li>Footer (flowbite.footer.v1)</li>
+              <li>Slider (flowbite.slider.v1)</li>
+            </ul>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {activeComponents.map((c) => (
+              <div key={c.key} className="border rounded-lg p-4 bg-card">
+                <div className="text-xs text-muted-foreground">{c.key}</div>
+                <h3 className="font-semibold mt-1">{c.name}</h3>
+                <div className="mt-3 flex items-center gap-2">
+                  <a
+                    href="#!"
+                    className="text-sm text-primary hover:underline"
+                    onClick={(e) => e.preventDefault()}
+                    title="Preview (coming soon)"
+                  >
+                    Preview
+                  </a>
+                  <span className="text-muted-foreground text-xs">•</span>
+                  <a
+                    href="#!"
+                    className="text-sm text-primary hover:underline"
+                    onClick={(e) => e.preventDefault()}
+                    title="Use this component (coming soon)"
+                  >
+                    Use
+                  </a>
+                </div>
+                <div className="mt-3 text-xs text-muted-foreground">
+                  {c.path}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
   );
 };
 

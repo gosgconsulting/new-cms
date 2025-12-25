@@ -4,8 +4,8 @@ import { api } from '../../sparti-cms/utils/api';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import ErrorBoundary from '@/components/ErrorBoundary';
-import MasterHeader from '@/components/master/MasterHeader';
-import MasterFooter from '@/components/master/MasterFooter';
+import FlowbiteHeader from '@/libraries/flowbite/components/FlowbiteHeader';
+import FlowbiteFooter from '@/libraries/flowbite/components/FlowbiteFooter';
 
 interface Page {
   id: number;
@@ -145,8 +145,8 @@ const TenantPage: React.FC = () => {
   return (
     <ErrorBoundary>
       <div className="min-h-screen bg-background">
-        {/* Master header from JSON schema */}
-        <MasterHeader tenantId={tenant.id} />
+        {/* Flowbite master header */}
+        <FlowbiteHeader tenantId={tenant.id} />
 
         {/* Page content */}
         <main className="container mx-auto px-4 py-16">
@@ -163,8 +163,8 @@ const TenantPage: React.FC = () => {
           </div>
         </main>
 
-        {/* Master footer from JSON schema */}
-        <MasterFooter tenantId={tenant.id} />
+        {/* Flowbite master footer */}
+        <FlowbiteFooter tenantId={tenant.id} />
       </div>
     </ErrorBoundary>
   );
