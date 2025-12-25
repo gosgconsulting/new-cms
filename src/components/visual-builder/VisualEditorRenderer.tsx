@@ -3,16 +3,20 @@
 import React, { useMemo } from "react";
 import type { ComponentSchema } from "../../../sparti-cms/types/schema";
 
+// Static import fallback for Vite/ESM so registry is always available at runtime
+import { componentRegistry as gosgRegistry } from "../../../sparti-cms/theme/gosgconsulting/components/registry";
+
 // Try to import registry - will be null if import fails
 let componentRegistryModule: any = null;
 let registryImportError: Error | null = null;
 
 try {
-  // Use require for dynamic loading
+  // Use require for dynamic loading (may fail under ESM, so we also have static import above)
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
   componentRegistryModule = require("../../../sparti-cms/theme/gosgconsulting/components/registry");
 } catch (error) {
   registryImportError = error instanceof Error ? error : new Error(String(error));
-  console.error('[testing] Failed to import component registry:', error);
+  console.warn('[testing] Dynamic require for registry failed; using static import fallback.');
 }
 
 // Get component registry safely
@@ -21,22 +25,19 @@ function getComponentRegistry(): Record<string, React.ComponentType<any>> {
   if (typeof window === 'undefined') {
     return {};
   }
-  
-  // If import failed, return empty
-  if (registryImportError || !componentRegistryModule) {
-    return {};
+
+  // Use dynamic require result if available
+  if (!registryImportError && componentRegistryModule?.componentRegistry) {
+    return componentRegistryModule.componentRegistry;
   }
-  
-  // Get registry from module
-  const registry = componentRegistryModule.componentRegistry || {};
-  
-  // Validate registry
-  if (!registry || typeof registry !== 'object') {
-    console.warn('[testing] Component registry is invalid');
-    return {};
+
+  // Fallback to static import (always present with Vite)
+  if (gosgRegistry && typeof gosgRegistry === 'object') {
+    return gosgRegistry as unknown as Record<string, React.ComponentType<any>>;
   }
-  
-  return registry;
+
+  console.warn('[testing] Component registry is unavailable');
+  return {};
 }
 
 interface VisualEditorRendererProps {
@@ -405,4 +406,3 @@ class ErrorBoundary extends React.Component<
 }
 
 export default VisualEditorRenderer;
-

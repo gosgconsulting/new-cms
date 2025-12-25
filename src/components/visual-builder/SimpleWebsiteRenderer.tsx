@@ -41,6 +41,14 @@ const HeroSection = ({ items }: { items: SchemaItem[] }) => {
   const welcomeText = getText(items, "welcomeText");
   const logoItem = items.find((i) => i.key?.toLowerCase() === "logo" && i.type === "image") as any;
 
+  // Overlay controls (optional): overlay (boolean) and overlayColor (string)
+  const overlayItem = items.find((i) => i.key?.toLowerCase() === "overlay");
+  const overlayColorItem = items.find((i) => i.key?.toLowerCase() === "overlaycolor");
+  const overlayEnabled =
+    typeof overlayItem?.content === "boolean" ? overlayItem.content : true;
+  const overlayColor =
+    (typeof overlayColorItem?.content === "string" && overlayColorItem.content) || "rgba(0,0,0,0.3)";
+
   return (
     <section className="relative w-full min-h-[60vh] overflow-hidden">
       {heroImg?.src ? (
@@ -51,7 +59,12 @@ const HeroSection = ({ items }: { items: SchemaItem[] }) => {
             className="absolute inset-0 w-full h-full object-cover"
             onError={(e) => { (e.target as HTMLImageElement).src = "/placeholder.svg"; }}
           />
-          <div className="absolute inset-0 bg-black/30" />
+          {overlayEnabled ? (
+            <div
+              className="absolute inset-0"
+              style={{ background: overlayColor }}
+            />
+          ) : null}
         </>
       ) : null}
       <div className="relative z-10 h-full flex items-center justify-center text-center px-6">
