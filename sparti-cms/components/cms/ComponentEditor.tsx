@@ -320,8 +320,12 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
 
   // Helper function to check if an array item is an image/slide
   const isImageItem = (arrayProp: string, arrayItem: Record<string, unknown>) => {
-    return (arrayProp === 'slides' || arrayProp === 'images') && 
-           (arrayItem.url || arrayItem.src || arrayItem.image);
+    // Check if it has image properties (url, src, or image field)
+    const hasImageField = !!(arrayItem.url || arrayItem.src || arrayItem.image);
+    // Also check if the item has type "image" or key contains "image"
+    const isImageType = arrayItem.type === 'image' || 
+                       (typeof arrayItem.key === 'string' && arrayItem.key.toLowerCase().includes('image'));
+    return hasImageField || isImageType;
   };
 
   // Function to detect and add missing fields to items
@@ -518,15 +522,27 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
                     if (!currentArrayItem) return null;
 
                     return (
-                      <div className="p-4 bg-white">
+                      <div className="p-4 bg-white pb-6">
                         {isImageItem(arrayProp, currentArrayItem) ? (
                           (() => {
                             const imgUrl = (currentArrayItem as any).url || (currentArrayItem as any).src || (currentArrayItem as any).image || '';
                             const urlKey = (currentArrayItem as any).url !== undefined ? 'url' : ((currentArrayItem as any).src !== undefined ? 'src' : 'image');
-                            const hasTitle = 'title' in (currentArrayItem as any);
-                            const hasText = 'text' in (currentArrayItem as any);
-                            const hasContent = 'content' in (currentArrayItem as any);
-                            const textKey = hasTitle ? 'title' : (hasText ? 'text' : (hasContent ? 'content' : 'title'));
+                            // Get all fields that should be displayed
+                            const item = currentArrayItem as any;
+                            // Check if fields exist (even if empty string - they're still valid fields)
+                            const hasTitle = 'title' in item && item.title !== undefined;
+                            const hasText = 'text' in item && item.text !== undefined;
+                            const hasContent = 'content' in item && item.content !== undefined;
+                            // Prioritize: title > text > content > default to 'content' for image items
+                            const textKey = hasTitle ? 'title' : (hasText ? 'text' : (hasContent ? 'content' : 'content'));
+                            const hasLink = 'link' in item && item.link !== undefined;
+                            const hasAlt = 'alt' in item && item.alt !== undefined;
+                            
+                            // Ensure content field exists if item has type "image" and no text fields
+                            if (item.type === 'image' && !hasTitle && !hasText && !hasContent) {
+                              // Auto-add content field if missing
+                              updateArrayItem(index, arrayProp, currentTab, 'content', '');
+                            }
                             
                             return (
                               <div className="space-y-3">
@@ -546,22 +562,39 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
                                       placeholder="Enter image URL"
                                     />
                                   </div>
+                                  {/* Always show Text/Title/Content field - always visible for image items */}
                                   <div>
-                                    <Label className="text-sm font-medium mb-2 block">Text / Title</Label>
+                                    <Label className="text-sm font-medium mb-2 block">
+                                      {hasTitle ? 'Title' : (hasText ? 'Text' : (hasContent ? 'Content' : 'Content'))}
+                                    </Label>
                                     <input
                                       type="text"
-                                      value={(currentArrayItem as any)[textKey] || ''}
+                                      value={item[textKey] || ''}
                                       onChange={(e) => updateArrayItem(index, arrayProp, currentTab, textKey, e.target.value)}
                                       className="w-full p-2 rounded-md border"
                                       placeholder="Enter text or title"
                                     />
                                   </div>
-                                  {'alt' in (currentArrayItem as any) && (
+                                  {/* Show Link field if it exists */}
+                                  {hasLink && (
+                                    <div>
+                                      <Label className="text-sm font-medium mb-2 block">Link URL</Label>
+                                      <input
+                                        type="url"
+                                        value={item.link || ''}
+                                        onChange={(e) => updateArrayItem(index, arrayProp, currentTab, 'link', e.target.value)}
+                                        className="w-full p-2 rounded-md border"
+                                        placeholder="Enter link URL"
+                                      />
+                                    </div>
+                                  )}
+                                  {/* Show Alt Text field if it exists */}
+                                  {hasAlt && (
                                     <div>
                                       <Label className="text-sm font-medium mb-2 block">Alt Text</Label>
                                       <input
                                         type="text"
-                                        value={(currentArrayItem as any).alt || ''}
+                                        value={item.alt || ''}
                                         onChange={(e) => updateArrayItem(index, arrayProp, currentTab, 'alt', e.target.value)}
                                         className="w-full p-2 rounded-md border"
                                         placeholder="Describe the image"

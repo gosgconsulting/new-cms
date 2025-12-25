@@ -1,0 +1,37 @@
+{
+  "id": "flowbite-blog-grid",
+  "name": "Flowbite Blog Grid",
+  "type": "container",
+  "category": "content",
+  "description": "Displays blog posts in a responsive grid layout using Flowbite design system",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Section title",
+      "editable": true,
+      "required": false,
+      "default": ""
+    },
+    "subtitle": {
+      "type": "string",
+      "description": "Section subtitle",
+      "editable": true,
+      "required": false,
+      "default": ""
+    },
+    "posts": {
+      "type": "array",
+      "description": "Array of blog post objects",
+      "editable": true,
+      "required": false,
+      "default": []
+    }
+  },
+  "editor": "ContainerEditor",
+  "version": "1.0.0",
+  "tenant_scope": "global",
+  "tags": ["blog", "posts", "grid", "flowbite", "diora"],
+  "dependencies": ["flowbite-react"],
+  "design_system": "flowbite",
+  "last_updated": "2025-01-27T00:00:00Z"
+}

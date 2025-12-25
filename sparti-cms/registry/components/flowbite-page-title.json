@@ -1,0 +1,31 @@
+{
+  "id": "flowbite-page-title",
+  "name": "Flowbite Page Title",
+  "type": "container",
+  "category": "content",
+  "description": "Simple page title section with heading and optional subtitle using Flowbite design system",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Page title/heading",
+      "editable": true,
+      "required": true,
+      "default": ""
+    },
+    "subtitle": {
+      "type": "string",
+      "description": "Page subtitle",
+      "editable": true,
+      "required": false,
+      "default": ""
+    }
+  },
+  "editor": "ContainerEditor",
+  "version": "1.0.0",
+  "tenant_scope": "global",
+  "tags": ["title", "heading", "page", "flowbite", "diora"],
+  "dependencies": ["flowbite-react"],
+  "design_system": "flowbite",
+  "last_updated": "2025-01-27T00:00:00Z"
+}
+

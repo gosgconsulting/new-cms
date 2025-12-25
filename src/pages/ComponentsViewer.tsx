@@ -1,6 +1,8 @@
 import React, { useMemo, useState } from "react";
 import FlowbiteLibrary from "../components/visual-builder/FlowbiteLibrary";
 import ACATRLibrary from "../components/visual-builder/ACATRLibrary";
+import GOSGConsultingLibrary from "../components/visual-builder/GOSGConsultingLibrary";
+import SpartiLibrary from "../components/visual-builder/SpartiLibrary";
 import MasterComponentsViewer from "../components/visual-builder/MasterComponentsViewer";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "../components/ui/tabs";
@@ -11,10 +13,10 @@ const ComponentsViewer: React.FC = () => {
     () => [
       { id: "flowbite", label: "Flowbite", available: true },
       { id: "acatr", label: "ACATR", available: true },
+      { id: "gosgconsulting", label: "GO SG CONSULTING", available: true },
+      { id: "sparti", label: "Sparti", available: true },
       // Future libraries (enable once implemented):
-      // { id: "gosgconsulting", label: "GO SG CONSULTING", available: false },
       // { id: "landingpage", label: "Landing Page", available: false },
-      // { id: "sparti-seo-landing", label: "Sparti SEO Landing", available: false },
       // { id: "custom", label: "Custom", available: false },
     ],
     []
@@ -64,6 +66,10 @@ const ComponentsViewer: React.FC = () => {
             <FlowbiteLibrary />
           ) : libraryId === "acatr" ? (
             <ACATRLibrary />
+          ) : libraryId === "gosgconsulting" ? (
+            <GOSGConsultingLibrary />
+          ) : libraryId === "sparti" ? (
+            <SpartiLibrary />
           ) : (
             <div className="p-6 text-sm text-gray-500">
               This design library is not available yet.

@@ -349,8 +349,8 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack, currentTenantId
     return content;
   }, []);
 
-  // Handle save
-  const handleSave = useCallback(async () => {
+  // Handle save with optional version saving
+  const handleSave = useCallback(async (saveVersion = false, comment: string | null = null) => {
     if (!pageData) return;
 
     try {
@@ -375,6 +375,37 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack, currentTenantId
 
       if (!layoutResponse.ok) {
         throw new Error('Failed to update page layout');
+      }
+
+      // Save version if requested
+      if (saveVersion) {
+        try {
+          const versionResponse = await api.post(`/api/pages/${pageId}/versions`, {
+            pageData: {
+              page_name: pageData.page_name || '',
+              slug: pageData.slug || '',
+              meta_title: pageData.meta_title || '',
+              meta_description: pageData.meta_description || '',
+              seo_index: pageData.seo_index || false,
+              status: pageData.status || 'draft',
+              page_type: pageData.page_type || 'page',
+              campaign_source: pageData.campaign_source || null,
+              conversion_goal: pageData.conversion_goal || null,
+              legal_type: pageData.legal_type || null,
+              last_reviewed_date: pageData.last_reviewed_date || null,
+            },
+            layoutJson: { components },
+            comment: comment,
+            tenantId: currentTenantId
+          });
+
+          if (versionResponse.ok) {
+            console.log('[testing] Page version saved successfully');
+          }
+        } catch (versionError) {
+          console.error('[testing] Error saving page version (non-blocking):', versionError);
+          // Don't throw - version saving is optional
+        }
       }
 
       // refresh snapshot after successful save
@@ -443,9 +474,8 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack, currentTenantId
     }
 
     if (selectedComponentIndex !== null) {
-      // Per-section view without tabs: show editor, then a single preview (output if present, else original)
+      // Per-section view without tabs: show editor, then a single preview
       const selected = selectedComponent;
-      const proposedForSelected = proposedComponents?.find((c) => c.key === selected?.key) || null;
 
       const renderSectionContents = (comp: ComponentSchema | null) => {
         const items = comp ? extractContentFromComponents([comp]) : [];
@@ -465,47 +495,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack, currentTenantId
         );
       };
 
-      // NEW: Render the AI Output section with Apply button
-      const renderOutputContents = (comp: ComponentSchema | null) => {
-        const items = comp ? extractContentFromComponents([comp]) : [];
-        return (
-          <div className="space-y-4 mt-8 border-t pt-6">
-            <div className="border-b pb-2 flex items-center justify-between">
-              <div className="flex items-center">
-                <h3 className="text-lg font-semibold flex items-center">
-                  <FileText className="h-5 w-5 mr-2" />
-                  AI Output
-                </h3>
-              </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  size="sm"
-                  onClick={() => {
-                    if (selectedComponentIndex === null || !selected || !comp) return;
-                    const normalized = {
-                      ...comp,
-                      key: comp.key || selected.key,
-                      type: comp.type || selected.type,
-                    };
-                    updateComponent(selectedComponentIndex, normalized);
-                    setProposedComponents((prev) => {
-                      if (!prev) return prev;
-                      const key = normalized.key;
-                      const filtered = prev.filter((c) => c.key !== key);
-                      return filtered.length > 0 ? filtered : null;
-                    });
-                    toast.success('Output applied to this section');
-                  }}
-                >
-                  Apply Output
-                </Button>
-              </div>
-            </div>
-
-            <SectionContentList items={items} variant="output" />
-          </div>
-        );
-      };
+      // Note: AI Output section removed - outputs are now auto-applied and saved
 
       return (
         <div className="w-full">
@@ -521,9 +511,6 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack, currentTenantId
 
           {/* Single preview: always show the current component content */}
           {renderSectionContents(selected)}
-
-          {/* NEW: Show AI Output draft below the section contents with Apply button */}
-          {proposedForSelected ? renderOutputContents(proposedForSelected) : null}
         </div>
       );
     }
@@ -689,8 +676,9 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack, currentTenantId
               } : null}
               currentComponents={components}
               onUpdateComponents={setComponents}
-              onProposedComponents={(proposals) => {
+              onProposedComponents={async (proposals) => {
                 // Auto-apply proposals into components by key or by best-effort type match.
+                let updatedComponents: ComponentSchema[] = [];
                 setComponents((prev) => {
                   const next = [...prev]
                   const matchIndex = (proposal: any) => {
@@ -716,22 +704,55 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack, currentTenantId
                       next[idx] = incoming
                     }
                   })
+                  updatedComponents = next;
                   return next
                 })
-                // Also keep a snapshot of the latest proposals for page-level preview (if elsewhere needed)
-                setProposedComponents((prev) => {
-                  const list = Array.isArray(prev) ? [...prev] : []
-                  proposals.forEach((p: any) => {
-                    if (!p) return
-                    const key = p.key || (components.find((c) => (c.type || '').toLowerCase() === String(p.type || '').toLowerCase())?.key)
-                    if (!key) return
-                    const idx = list.findIndex((c) => c.key === key)
-                    const normalized = { ...p, key }
-                    if (idx >= 0) list[idx] = normalized
-                    else list.push(normalized)
-                  })
-                  return list
-                })
+                
+                // Clear proposed components since we're auto-applying
+                setProposedComponents(null);
+                
+                // Auto-save the version and update layout
+                if (pageData && updatedComponents.length > 0) {
+                  try {
+                    // Update layout in database
+                    const layoutResponse = await api.put(`/api/pages/${pageId}/layout`, {
+                      layout_json: { components: updatedComponents },
+                      tenantId: currentTenantId
+                    });
+
+                    if (layoutResponse.ok) {
+                      // Save as version
+                      try {
+                        await api.post(`/api/pages/${pageId}/versions`, {
+                          pageData: {
+                            page_name: pageData.page_name || '',
+                            slug: pageData.slug || '',
+                            meta_title: pageData.meta_title || '',
+                            meta_description: pageData.meta_description || '',
+                            seo_index: pageData.seo_index || false,
+                            status: pageData.status || 'draft',
+                            page_type: pageData.page_type || 'page',
+                            campaign_source: pageData.campaign_source || null,
+                            conversion_goal: pageData.conversion_goal || null,
+                            legal_type: pageData.legal_type || null,
+                            last_reviewed_date: pageData.last_reviewed_date || null,
+                          },
+                          layoutJson: { components: updatedComponents },
+                          comment: 'Auto-saved from AI assistant output',
+                          tenantId: currentTenantId
+                        });
+                        console.log('[testing] AI output auto-applied and saved as version');
+                        toast.success('AI output applied and saved');
+                      } catch (versionError) {
+                        console.error('[testing] Error saving version (non-blocking):', versionError);
+                        toast.success('AI output applied');
+                      }
+                    }
+                  } catch (error) {
+                    console.error('[testing] Error auto-saving AI output:', error);
+                    toast.success('AI output applied (save failed)');
+                  }
+                }
               }}
               onOpenJSONEditor={openJSONEditor}
               selectedComponentJSON={selectedComponentForAI || ({ __scope: 'page', schema: { components } } as any)}

@@ -64,6 +64,21 @@ import whatIsSeoComponent from './components/what-is-seo.json';
 import whatsIncludedSectionComponent from './components/whats-included-section.json';
 import whyChooseUsSectionComponent from './components/why-choose-us-section.json';
 
+// Import Flowbite blog components
+import flowbiteBlogHeroComponent from './components/flowbite-blog-hero.json';
+import flowbiteBlogGridComponent from './components/flowbite-blog-grid.json';
+import flowbiteBlogSidebarComponent from './components/flowbite-blog-sidebar.json';
+
+// Import Flowbite homepage components
+import flowbitePainPointSectionComponent from './components/flowbite-pain-point-section.json';
+import flowbiteSEOResultsSectionComponent from './components/flowbite-seo-results-section.json';
+import flowbiteWhatIsSEOSectionComponent from './components/flowbite-what-is-seo-section.json';
+import flowbiteTestimonialsSectionComponent from './components/flowbite-testimonials-section.json';
+import flowbiteFAQSectionComponent from './components/flowbite-faq-section.json';
+import flowbiteNewsletterComponent from './components/flowbite-newsletter.json';
+import flowbitePageTitleComponent from './components/flowbite-page-title.json';
+import flowbiteContentComponent from './components/flowbite-content.json';
+
 class ComponentRegistry {
   private static instance: ComponentRegistry;
   private components: Map<string, ComponentDefinition> = new Map();
@@ -153,6 +168,20 @@ class ComponentRegistry {
       whatIsSeoComponent as ComponentDefinition,
       whatsIncludedSectionComponent as ComponentDefinition,
       whyChooseUsSectionComponent as ComponentDefinition,
+      // Flowbite blog components
+      flowbiteBlogHeroComponent as ComponentDefinition,
+      flowbiteBlogGridComponent as ComponentDefinition,
+      flowbiteBlogSidebarComponent as ComponentDefinition,
+      // Flowbite homepage components
+      flowbitePainPointSectionComponent as ComponentDefinition,
+      flowbiteSEOResultsSectionComponent as ComponentDefinition,
+      flowbiteWhatIsSEOSectionComponent as ComponentDefinition,
+      flowbiteTestimonialsSectionComponent as ComponentDefinition,
+      flowbiteFAQSectionComponent as ComponentDefinition,
+      // Flowbite Moski components
+      flowbiteNewsletterComponent as ComponentDefinition,
+      flowbitePageTitleComponent as ComponentDefinition,
+      flowbiteContentComponent as ComponentDefinition,
     ];
 
     gosgComponents.forEach(component => {

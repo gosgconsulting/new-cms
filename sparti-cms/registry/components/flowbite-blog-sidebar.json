@@ -1,0 +1,37 @@
+{
+  "id": "flowbite-blog-sidebar",
+  "name": "Flowbite Blog Sidebar",
+  "type": "container",
+  "category": "navigation",
+  "description": "Sidebar with categories for blog filtering using Flowbite design system",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Sidebar title",
+      "editable": true,
+      "required": false,
+      "default": "Categories"
+    },
+    "categories": {
+      "type": "array",
+      "description": "Array of category names or objects",
+      "editable": true,
+      "required": false,
+      "default": ["All", "SEO Strategy", "Local SEO", "Technical SEO"]
+    },
+    "selectedCategory": {
+      "type": "string",
+      "description": "Currently selected category",
+      "editable": true,
+      "required": false,
+      "default": "all"
+    }
+  },
+  "editor": "ContainerEditor",
+  "version": "1.0.0",
+  "tenant_scope": "global",
+  "tags": ["blog", "sidebar", "categories", "filter", "flowbite", "diora"],
+  "dependencies": ["flowbite-react"],
+  "design_system": "flowbite",
+  "last_updated": "2025-01-27T00:00:00Z"
+}

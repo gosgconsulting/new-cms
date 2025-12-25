@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect, useMemo, useCallback } from 'react';
 import { EditingContext, SpartiElement, SpartiBuilderConfig } from '../types';
 import type { ComponentSchema } from '../types/schema';
 
@@ -47,8 +47,16 @@ export const SpartiBuilderProvider: React.FC<SpartiBuilderProviderProps> = ({
   const [hoveredElement, setHoveredElement] = useState<SpartiElement | null>(null);
   const [componentsState, setComponentsState] = useState<ComponentSchema[]>(components);
 
+  // Only update components state if the array reference or content actually changed
   useEffect(() => {
-    setComponentsState(components || []);
+    // Deep comparison to prevent unnecessary updates
+    const currentKeys = componentsState.map(c => c.key).join(',');
+    const newKeys = (components || []).map(c => c.key).join(',');
+    
+    if (currentKeys !== newKeys || componentsState.length !== (components || []).length) {
+      setComponentsState(components || []);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [components]);
 
   // NEW: keep body class synced with isEditing (since we start in edit mode)
@@ -77,35 +85,70 @@ export const SpartiBuilderProvider: React.FC<SpartiBuilderProviderProps> = ({
     document.body.classList.add('sparti-editing');
   };
 
-  const selectElement = (element: SpartiElement | null) => {
+  const selectElement = useCallback((element: SpartiElement | null) => {
     setSelectedElement(element);
-  };
+  }, []);
 
-  const hoverElement = (element: SpartiElement | null) => {
+  const hoverElement = useCallback((element: SpartiElement | null) => {
     setHoveredElement(element);
-  };
+  }, []);
 
-  const updateComponent = (index: number, updated: ComponentSchema) => {
+  const updateComponent = useCallback((index: number, updated: ComponentSchema) => {
     setComponentsState(prev => prev.map((c, i) => (i === index ? updated : c)));
-  };
+  }, []);
 
-  const contextValue: GOSGBuilderContextType = {
+  const enterEditModeCallback = useCallback(() => {
+    setIsEditing(true);
+    document.body.classList.add('sparti-editing');
+  }, []);
+
+  const exitEditModeCallback = useCallback(() => {
+    // NO-OP: do not allow leaving edit mode
+    // Optionally clear selections without toggling mode
+    setSelectedElement(null);
+    setHoveredElement(null);
+    // Keep body class since edit mode stays on
+    document.body.classList.add('sparti-editing');
+  }, []);
+
+  const setComponentsCallback = useCallback((next: ComponentSchema[]) => {
+    setComponentsState(next);
+  }, []);
+
+  // Memoize context value to prevent unnecessary re-renders
+  const contextValue: GOSGBuilderContextType = useMemo(() => ({
     config,
     isEditing,
     selectedElement,
     hoveredElement,
-    enterEditMode,
-    exitEditMode,
+    enterEditMode: enterEditModeCallback,
+    exitEditMode: exitEditModeCallback,
     selectElement,
     hoverElement,
     components: componentsState,
-    setComponents: setComponentsState,
+    setComponents: setComponentsCallback,
     updateComponent,
     pageId,
     slug,
     tenantId,
     themeId,
-  };
+  }), [
+    config,
+    isEditing,
+    selectedElement,
+    hoveredElement,
+    enterEditModeCallback,
+    exitEditModeCallback,
+    selectElement,
+    hoverElement,
+    componentsState,
+    setComponentsCallback,
+    updateComponent,
+    pageId,
+    slug,
+    tenantId,
+    themeId,
+  ]);
 
   return (
     <GOSGBuilderContext.Provider value={contextValue}>

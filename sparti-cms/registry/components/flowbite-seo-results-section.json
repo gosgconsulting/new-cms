@@ -1,0 +1,48 @@
+{
+  "id": "flowbite-seo-results-section",
+  "name": "Flowbite SEO Results Section",
+  "type": "container",
+  "category": "content",
+  "description": "Showcase of SEO results and case studies with slider using Flowbite design system",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Section title",
+      "editable": true,
+      "required": false,
+      "default": "Real SEO Results"
+    },
+    "subtitle": {
+      "type": "string",
+      "description": "Section subtitle",
+      "editable": true,
+      "required": false,
+      "default": "See how we've helped businesses like yours achieve remarkable growth through strategic SEO implementation."
+    },
+    "results": {
+      "type": "array",
+      "description": "Array of result/case study objects",
+      "editable": true,
+      "required": false,
+      "default": []
+    },
+    "button": {
+      "type": "object",
+      "description": "CTA button configuration",
+      "editable": true,
+      "required": false,
+      "default": {
+        "content": "Become Our Next Case Study",
+        "link": "#"
+      }
+    }
+  },
+  "editor": "ContainerEditor",
+  "version": "1.0.0",
+  "tenant_scope": "global",
+  "tags": ["seo", "results", "case-studies", "slider", "flowbite", "diora"],
+  "dependencies": ["flowbite-react"],
+  "design_system": "flowbite",
+  "last_updated": "2025-01-27T00:00:00Z"
+}
+

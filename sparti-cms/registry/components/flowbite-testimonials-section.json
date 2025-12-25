@@ -1,0 +1,38 @@
+{
+  "id": "flowbite-testimonials-section",
+  "name": "Flowbite Testimonials Section",
+  "type": "container",
+  "category": "content",
+  "description": "Displays customer testimonials in a grid layout using Flowbite design system",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Section title",
+      "editable": true,
+      "required": false,
+      "default": "What our clients say"
+    },
+    "subtitle": {
+      "type": "string",
+      "description": "Section subtitle",
+      "editable": true,
+      "required": false,
+      "default": "See what our customers have to say about our services and results."
+    },
+    "testimonials": {
+      "type": "array",
+      "description": "Array of testimonial objects with text, name, role, and image",
+      "editable": true,
+      "required": false,
+      "default": []
+    }
+  },
+  "editor": "ContainerEditor",
+  "version": "1.0.0",
+  "tenant_scope": "global",
+  "tags": ["testimonials", "reviews", "social-proof", "flowbite", "diora"],
+  "dependencies": ["flowbite-react"],
+  "design_system": "flowbite",
+  "last_updated": "2025-01-27T00:00:00Z"
+}
+

@@ -12,6 +12,7 @@ import {
   getPageWithLayout,
   updatePageData,
   updatePageLayout,
+  savePageVersion,
   getLayoutBySlug,
   upsertLayoutBySlug,
   getTerms,
@@ -474,6 +475,55 @@ router.put('/pages/:pageId/layout', authenticateUser, async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Failed to update page layout',
+      message: error.message
+    });
+  }
+});
+
+// Save page version
+router.post('/pages/:pageId/versions', authenticateUser, async (req, res) => {
+  try {
+    const { pageId } = req.params;
+    const { pageData, layoutJson, comment, tenantId } = req.body;
+    console.log(`[testing] API: Saving page version ${pageId} for tenant: ${tenantId}`);
+    
+    // Validate tenant access: user can only save versions for their own tenant unless they're a super admin
+    if (!req.user.is_super_admin && tenantId !== req.user.tenant_id) {
+      return res.status(403).json({
+        success: false,
+        error: 'Forbidden',
+        message: 'You can only save versions for your own tenant'
+      });
+    }
+    
+    if (!pageData || !layoutJson) {
+      return res.status(400).json({
+        success: false,
+        error: 'Bad Request',
+        message: 'pageData and layoutJson are required'
+      });
+    }
+    
+    const version = await savePageVersion(
+      parseInt(pageId),
+      tenantId,
+      pageData,
+      layoutJson,
+      req.user.id,
+      comment || null
+    );
+    
+    res.json({
+      success: true,
+      version: version,
+      message: 'Page version saved successfully'
+    });
+  } catch (error) {
+    console.error('[testing] API: Error saving page version:', error);
+    
+    res.status(500).json({
+      success: false,
+      error: 'Failed to save page version',
       message: error.message
     });
   }

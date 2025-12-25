@@ -26,7 +26,6 @@ import Blog from './Blog';
 import ContactFormDialog from './ContactFormDialog';
 import ContactModal from './ContactModal';
 import Content from './Content';
-import DynamicPageRenderer from './DynamicPageRenderer';
 import Footer from './Footer';
 import Header from './Header';
 import ModalContactForm from './ModalContactForm';
@@ -99,7 +98,6 @@ export const componentRegistry = {
   ContactFormDialog,
   ContactModal,
   Content,
-  DynamicPageRenderer,
   Footer,
   Header,
   ModalContactForm,

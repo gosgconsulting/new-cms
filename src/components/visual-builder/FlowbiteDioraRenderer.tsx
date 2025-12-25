@@ -3,11 +3,35 @@
 import React, { useState } from "react";
 import type { ComponentSchema, SchemaItem } from "../../../sparti-cms/types/schema";
 import FlowbiteSection from "@/libraries/flowbite/components/FlowbiteSection";
+import FlowbiteBlogHero from "@/libraries/flowbite/components/FlowbiteBlogHero";
+import FlowbiteBlogGrid from "@/libraries/flowbite/components/FlowbiteBlogGrid";
+import FlowbiteBlogSidebar from "@/libraries/flowbite/components/FlowbiteBlogSidebar";
+import FlowbiteShowcase from "@/libraries/flowbite/components/FlowbiteShowcase";
+import FlowbiteProductGrid from "@/libraries/flowbite/components/FlowbiteProductGrid";
+import FlowbiteSocialMedia from "@/libraries/flowbite/components/FlowbiteSocialMedia";
+import FlowbiteServicesGrid from "@/libraries/flowbite/components/FlowbiteServicesGrid";
+import FlowbiteReviews from "@/libraries/flowbite/components/FlowbiteReviews";
+import FlowbiteContentSection from "@/libraries/flowbite/components/FlowbiteContentSection";
+import FlowbitePainPointSection from "@/libraries/flowbite/components/FlowbitePainPointSection";
+import FlowbiteSEOResultsSection from "@/libraries/flowbite/components/FlowbiteSEOResultsSection";
+import FlowbiteWhatIsSEOSection from "@/libraries/flowbite/components/FlowbiteWhatIsSEOSection";
+import FlowbiteTestimonialsSection from "@/libraries/flowbite/components/FlowbiteTestimonialsSection";
+import FlowbiteFAQSection from "@/libraries/flowbite/components/FlowbiteFAQSection";
+import FlowbiteNewsletter from "@/libraries/flowbite/components/FlowbiteNewsletter";
+import FlowbitePageTitle from "@/libraries/flowbite/components/FlowbitePageTitle";
+import FlowbiteContent from "@/libraries/flowbite/components/FlowbiteContent";
+import FlowbiteHeroSection from "@/libraries/flowbite/components/FlowbiteHeroSection";
+import FlowbiteFeaturesSection from "@/libraries/flowbite/components/FlowbiteFeaturesSection";
+import FlowbiteProductSection from "@/libraries/flowbite/components/FlowbiteProductSection";
+import FlowbiteVideoSection from "@/libraries/flowbite/components/FlowbiteVideoSection";
+import FlowbiteWhatsIncludedSection from "@/libraries/flowbite/components/FlowbiteWhatsIncludedSection";
+import FlowbiteWhyChooseUsSection from "@/libraries/flowbite/components/FlowbiteWhyChooseUsSection";
+import FlowbiteCTASection from "@/libraries/flowbite/components/FlowbiteCTASection";
 import { SpartiBuilderProvider, useSpartiBuilder } from "../../../sparti-cms/components/SpartiBuilderProvider";
 import { ElementSelector } from "../../../sparti-cms/components/ElementSelector";
 import { EditingOverlay } from "../../../sparti-cms/components/EditingOverlay";
 import { ContentEditPanel } from "../../../sparti-cms/components/ContentEditPanel";
-import SectionList from "./SectionList";
+import FlowbiteSectionList from "./FlowbiteSectionList";
 import "../../../sparti-cms/components/sparti-builder.css";
 
 interface FlowbiteDioraRendererProps {
@@ -123,7 +147,7 @@ function SectionHero({ items }: { items: SchemaItem[] }) {
   const prev = () => setIndex((i) => (i - 1 + slides.length) % slides.length);
 
   return (
-    <section className="relative w-full min-h-[60vh] sm:min-h-[70vh] overflow-hidden rounded-lg">
+    <section className="relative w-full min-h-[60vh] sm:min-h-[70vh] overflow-hidden rounded-lg pb-20">
       {currentImg?.src ? (
         <>
           <img
@@ -209,9 +233,9 @@ function SectionHero({ items }: { items: SchemaItem[] }) {
 
       {/* Scroll Arrow */}
       {shouldShowScrollArrow ? (
-        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-10 animate-bounce">
-          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+        <div className="absolute bottom-12 left-1/2 transform -translate-x-1/2 z-10 animate-bounce">
+          <svg className="w-4 h-4 text-white/90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
           </svg>
         </div>
       ) : null}
@@ -590,6 +614,9 @@ const FlowbiteDioraRenderer: React.FC<FlowbiteDioraRendererProps> = ({
               t.includes("herosection") ||
               t === "herosection" ||
               t === "herosectionsimple" ||
+              t.includes("herocarousel") ||
+              t.includes("hero-carousel") ||
+              (t.includes("hero") && t.includes("carousel")) ||
               t.includes("hero")
             ) {
               return (
@@ -637,6 +664,304 @@ const FlowbiteDioraRenderer: React.FC<FlowbiteDioraRendererProps> = ({
                 </div>
               );
             }
+            if (
+              t.includes("bloghero") ||
+              t.includes("blog-hero") ||
+              (t.includes("blog") && t.includes("hero"))
+            ) {
+              return (
+                <div data-sparti-component-index={idx} data-sparti-section={t} key={`sec-${idx}`}>
+                  <FlowbiteBlogHero component={comp} />
+                </div>
+              );
+            }
+            if (
+              t.includes("bloggrid") ||
+              t.includes("blog-grid") ||
+              t.includes("blogposts") ||
+              (t.includes("blog") && (t.includes("grid") || t.includes("posts")))
+            ) {
+              return (
+                <div data-sparti-component-index={idx} data-sparti-section={t} key={`sec-${idx}`}>
+                  <FlowbiteBlogGrid component={comp} />
+                </div>
+              );
+            }
+            if (
+              t.includes("blogsidebar") ||
+              t.includes("blog-sidebar") ||
+              (t.includes("blog") && t.includes("sidebar"))
+            ) {
+              return (
+                <div data-sparti-component-index={idx} data-sparti-section={t} key={`sec-${idx}`}>
+                  <FlowbiteBlogSidebar component={comp} />
+                </div>
+              );
+            }
+            // Showcase / Category Showcase
+            if (
+              t.includes("showcase") ||
+              t.includes("categoryshowcase") ||
+              t.includes("category-showcase") ||
+              (t.includes("category") && t.includes("showcase"))
+            ) {
+              return (
+                <div data-sparti-component-index={idx} data-sparti-section={t} key={`sec-${idx}`}>
+                  <FlowbiteShowcase component={comp} />
+                </div>
+              );
+            }
+            // Product Grid
+            if (
+              t.includes("productgrid") ||
+              t.includes("product-grid") ||
+              t.includes("productgridshowcase") ||
+              (t.includes("product") && t.includes("grid"))
+            ) {
+              return (
+                <div data-sparti-component-index={idx} data-sparti-section={t} key={`sec-${idx}`}>
+                  <FlowbiteProductGrid component={comp} />
+                </div>
+              );
+            }
+            // Social Media / Instagram
+            if (
+              t.includes("socialmedia") ||
+              t.includes("social-media") ||
+              t.includes("instagram") ||
+              t.includes("instagramsection") ||
+              (t.includes("social") && t.includes("media"))
+            ) {
+              return (
+                <div data-sparti-component-index={idx} data-sparti-section={t} key={`sec-${idx}`}>
+                  <FlowbiteSocialMedia component={comp} />
+                </div>
+              );
+            }
+            // Services Grid
+            if (
+              t.includes("servicesgrid") ||
+              t.includes("services-grid") ||
+              (t.includes("services") && t.includes("grid"))
+            ) {
+              return (
+                <div data-sparti-component-index={idx} data-sparti-section={t} key={`sec-${idx}`}>
+                  <FlowbiteServicesGrid component={comp} />
+                </div>
+              );
+            }
+            // Reviews / Testimonials
+            if (
+              t.includes("reviews") ||
+              t.includes("reviewssection") ||
+              t.includes("testimonials") ||
+              (t.includes("review") && !t.includes("preview"))
+            ) {
+              return (
+                <div data-sparti-component-index={idx} data-sparti-section={t} key={`sec-${idx}`}>
+                  <FlowbiteReviews component={comp} />
+                </div>
+              );
+            }
+            // Content Section / Brand Story
+            if (
+              t.includes("contentsection") ||
+              t.includes("content-section") ||
+              t.includes("brandstory") ||
+              t.includes("brand-story") ||
+              (t.includes("content") && t.includes("section"))
+            ) {
+              return (
+                <div data-sparti-component-index={idx} data-sparti-section={t} key={`sec-${idx}`}>
+                  <FlowbiteContentSection component={comp} />
+                </div>
+              );
+            }
+            if (
+              t.includes("painpoint") ||
+              t.includes("pain-point") ||
+              (t.includes("pain") && t.includes("point"))
+            ) {
+              return (
+                <div data-sparti-component-index={idx} data-sparti-section={t} key={`sec-${idx}`}>
+                  <FlowbitePainPointSection component={comp} />
+                </div>
+              );
+            }
+            if (
+              t.includes("seoresults") ||
+              t.includes("seo-results") ||
+              (t.includes("seo") && t.includes("results"))
+            ) {
+              return (
+                <div data-sparti-component-index={idx} data-sparti-section={t} key={`sec-${idx}`}>
+                  <FlowbiteSEOResultsSection component={comp} />
+                </div>
+              );
+            }
+            if (
+              t.includes("whatisseo") ||
+              t.includes("what-is-seo") ||
+              (t.includes("what") && t.includes("seo"))
+            ) {
+              return (
+                <div data-sparti-component-index={idx} data-sparti-section={t} key={`sec-${idx}`}>
+                  <FlowbiteWhatIsSEOSection component={comp} />
+                </div>
+              );
+            }
+            if (
+              t.includes("testimonials") ||
+              t.includes("testimonial") ||
+              t.includes("reviews")
+            ) {
+              return (
+                <div data-sparti-component-index={idx} data-sparti-section={t} key={`sec-${idx}`}>
+                  <FlowbiteTestimonialsSection component={comp} />
+                </div>
+              );
+            }
+            if (
+              t.includes("faq") ||
+              t.includes("accordion") ||
+              t.includes("questions") ||
+              t === "accordion"
+            ) {
+              return (
+                <div data-sparti-component-index={idx} data-sparti-section={t} key={`sec-${idx}`}>
+                  <FlowbiteFAQSection component={comp} />
+                </div>
+              );
+            }
+            if (
+              t.includes("newsletter") ||
+              t === "newsletter"
+            ) {
+              return (
+                <div data-sparti-component-index={idx} data-sparti-section={t} key={`sec-${idx}`}>
+                  <FlowbiteNewsletter component={comp} />
+                </div>
+              );
+            }
+            if (
+              t.includes("pagetitle") ||
+              t.includes("page-title") ||
+              t === "pagetitle"
+            ) {
+              return (
+                <div data-sparti-component-index={idx} data-sparti-section={t} key={`sec-${idx}`}>
+                  <FlowbitePageTitle component={comp} />
+                </div>
+              );
+            }
+            if (
+              (t === "content" && !t.includes("section")) ||
+              (t.includes("content") && !t.includes("section") && !t.includes("image"))
+            ) {
+              return (
+                <div data-sparti-component-index={idx} data-sparti-section={t} key={`sec-${idx}`}>
+                  <FlowbiteContent component={comp} />
+                </div>
+              );
+            }
+            // Hero Section
+            if (
+              t.includes("herosection") ||
+              t.includes("hero-section") ||
+              (t.includes("hero") && !t.includes("blog"))
+            ) {
+              return (
+                <div data-sparti-component-index={idx} data-sparti-section={t} key={`sec-${idx}`}>
+                  <FlowbiteHeroSection component={comp} />
+                </div>
+              );
+            }
+            // Features Section
+            if (
+              t.includes("featuressection") ||
+              t.includes("features-section") ||
+              (t.includes("features") && t.includes("section"))
+            ) {
+              return (
+                <div data-sparti-component-index={idx} data-sparti-section={t} key={`sec-${idx}`}>
+                  <FlowbiteFeaturesSection component={comp} />
+                </div>
+              );
+            }
+            // Product Section
+            if (
+              t.includes("productsection") ||
+              t.includes("product-section") ||
+              (t.includes("product") && t.includes("section") && !t.includes("grid"))
+            ) {
+              return (
+                <div data-sparti-component-index={idx} data-sparti-section={t} key={`sec-${idx}`}>
+                  <FlowbiteProductSection component={comp} />
+                </div>
+              );
+            }
+            // Video Section
+            if (
+              t.includes("videosection") ||
+              t.includes("video-section") ||
+              (t.includes("video") && t.includes("section"))
+            ) {
+              return (
+                <div data-sparti-component-index={idx} data-sparti-section={t} key={`sec-${idx}`}>
+                  <FlowbiteVideoSection component={comp} />
+                </div>
+              );
+            }
+            // What's Included Section
+            if (
+              t.includes("whatsincludedsection") ||
+              t.includes("whats-included-section") ||
+              t.includes("whatsincluded") ||
+              (t.includes("whats") && t.includes("included"))
+            ) {
+              return (
+                <div data-sparti-component-index={idx} data-sparti-section={t} key={`sec-${idx}`}>
+                  <FlowbiteWhatsIncludedSection component={comp} />
+                </div>
+              );
+            }
+            // Why Choose Us Section
+            if (
+              t.includes("whychooseussection") ||
+              t.includes("why-choose-us-section") ||
+              t.includes("whychooseus") ||
+              (t.includes("why") && t.includes("choose"))
+            ) {
+              return (
+                <div data-sparti-component-index={idx} data-sparti-section={t} key={`sec-${idx}`}>
+                  <FlowbiteWhyChooseUsSection component={comp} />
+                </div>
+              );
+            }
+            // CTA Section
+            if (
+              t.includes("ctasection") ||
+              t.includes("cta-section") ||
+              (t.includes("cta") && t.includes("section"))
+            ) {
+              return (
+                <div data-sparti-component-index={idx} data-sparti-section={t} key={`sec-${idx}`}>
+                  <FlowbiteCTASection component={comp} />
+                </div>
+              );
+            }
+            // Testimonials Section (alternative to Reviews)
+            if (
+              t.includes("testimonialssection") ||
+              t.includes("testimonials-section") ||
+              (t.includes("testimonials") && t.includes("section"))
+            ) {
+              return (
+                <div data-sparti-component-index={idx} data-sparti-section={t} key={`sec-${idx}`}>
+                  <FlowbiteTestimonialsSection component={comp} />
+                </div>
+              );
+            }
 
             // Only render Diora template components - skip non-Diora components
             return null;
@@ -652,7 +977,7 @@ const FlowbiteDioraRenderer: React.FC<FlowbiteDioraRendererProps> = ({
     return (
       <div className="flex w-full h-full">
         {/* Left: Sections list (sticky) */}
-        <SectionList />
+        <FlowbiteSectionList />
 
         {/* Middle: preview (bigger when editor is hidden) */}
         <div className="flex-1 min-w-0 overflow-auto">
@@ -665,7 +990,7 @@ const FlowbiteDioraRenderer: React.FC<FlowbiteDioraRendererProps> = ({
         {/* Right: editor only when a section is selected */}
         {selectedElement ? (
           <div
-            className="sticky top-0 h-screen w-[420px] min-w-[420px] max-w-[420px] border-l bg-background overflow-y-auto sparti-editor-sticky"
+            className="sticky top-0 h-screen w-[420px] min-w-[420px] max-w-[420px] border-l bg-background flex flex-col sparti-editor-sticky"
             onWheel={(e) => {
               // Prevent scroll propagation to the center preview
               e.stopPropagation();

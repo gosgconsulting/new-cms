@@ -28,35 +28,65 @@ const router = express.Router();
 
 // Login endpoint
 router.post('/auth/login', async (req, res) => {
+  console.log('[testing] Login attempt started');
+  
   try {
-    const { dbInitialized, dbInitializationError } = getDatabaseState();
+    // Step 1: Check database initialization state
+    console.log('[testing] Step 1: Checking database initialization state...');
+    let dbState;
+    try {
+      dbState = getDatabaseState();
+      console.log('[testing] Database state:', {
+        initialized: dbState.dbInitialized,
+        hasError: !!dbState.dbInitializationError
+      });
+    } catch (stateError) {
+      console.error('[testing] Error getting database state:', stateError);
+      return res.status(500).json({
+        success: false,
+        error: 'Server configuration error',
+        message: 'Unable to check database state. Please check server logs.'
+      });
+    }
+    
+    const { dbInitialized, dbInitializationError } = dbState;
     
     // Check if database is ready
     if (!dbInitialized) {
+      console.error('[testing] Database not initialized');
       if (dbInitializationError) {
+        console.error('[testing] Database initialization error:', dbInitializationError.message);
         return res.status(503).json({
           success: false,
           error: 'Database initialization failed',
-          message: 'Please try again later'
+          message: `Database connection failed: ${dbInitializationError.message}. Check DATABASE_URL environment variable.`,
+          diagnostic: '/health/database'
         });
       }
       return res.status(503).json({
         success: false,
         error: 'Database is initializing',
-        message: 'Please try again in a moment'
+        message: 'Database is still connecting. Please try again in a moment.',
+        diagnostic: '/health/database'
       });
     }
+    console.log('[testing] Database is initialized');
 
+    // Step 2: Validate input
+    console.log('[testing] Step 2: Validating input...');
     const { email, password } = req.body;
     
     if (!email || !password) {
+      console.error('[testing] Missing email or password');
       return res.status(400).json({
         success: false,
         error: 'Email and password are required'
       });
     }
+    console.log('[testing] Input validated, email:', email);
 
-    // Check if users table exists
+    // Step 3: Check if users table exists
+    console.log('[testing] Step 3: Checking if users table exists...');
     try {
       const tableCheck = await query(`
         SELECT EXISTS (
@@ -66,30 +96,157 @@ router.post('/auth/login', async (req, res) => {
         );
       `);
       
-      if (!tableCheck.rows[0].exists) {
+      const tableExists = tableCheck.rows[0].exists;
+      console.log('[testing] Users table exists:', tableExists);
+      
+      if (!tableExists) {
         console.error('[testing] Users table does not exist');
         return res.status(503).json({
           success: false,
           error: 'Database not fully initialized',
-          message: 'Users table is missing. Please wait for database initialization to complete.'
+          message: 'Users table is missing. Run: npm run sequelize:migrate',
+          diagnostic: '/health/database'
         });
       }
     } catch (checkError) {
       console.error('[testing] Error checking users table existence:', checkError);
+      console.error('[testing] Check error details:', {
+        code: checkError?.code,
+        message: checkError?.message,
+        errno: checkError?.errno,
+        syscall: checkError?.syscall
+      });
+      
+      // Check if response was already sent
+      if (res.headersSent) {
+        console.error('[testing] Response already sent, cannot send error response');
+        return;
+      }
+      
+      // Provide specific error messages based on error type
+      if (checkError?.code === 'ECONNREFUSED' || checkError?.code === 'ETIMEDOUT' || checkError?.code === 'ECONNRESET') {
+        return res.status(503).json({
+          success: false,
+          error: 'Database connection failed',
+          message: 'Unable to connect to database. Check DATABASE_URL environment variable and ensure database server is running.',
+          diagnostic: '/health/database'
+        });
+      }
+      
       return res.status(503).json({
         success: false,
         error: 'Database error',
-        message: 'Unable to verify database state. Please try again later.'
+        message: `Unable to verify database state: ${checkError?.message || 'Unknown error'}. Check server logs for details.`,
+        diagnostic: '/health/database'
       });
     }
 
-    // Find user by email
-    const userResult = await query(
-      'SELECT id, first_name, last_name, email, password_hash, role, is_active, tenant_id, is_super_admin FROM users WHERE email = $1',
-      [email]
-    );
+    // Step 4: Test database connection before querying
+    console.log('[testing] Step 4: Testing database connection...');
+    try {
+      await query('SELECT 1');
+      console.log('[testing] Database connection test successful');
+    } catch (connectionTestError) {
+      console.error('[testing] Database connection test failed:', connectionTestError);
+      console.error('[testing] Connection test error details:', {
+        code: connectionTestError?.code,
+        message: connectionTestError?.message
+      });
+      
+      if (res.headersSent) {
+        console.error('[testing] Response already sent, cannot send error response');
+        return;
+      }
+      
+      if (connectionTestError?.code === 'ECONNREFUSED' || connectionTestError?.code === 'ETIMEDOUT' || connectionTestError?.code === 'ECONNRESET') {
+        return res.status(503).json({
+          success: false,
+          error: 'Database connection failed',
+          message: 'Unable to connect to database. Check DATABASE_URL environment variable and ensure database server is running.',
+          diagnostic: '/health/database',
+          errorCode: connectionTestError?.code
+        });
+      }
+      
+      return res.status(503).json({
+        success: false,
+        error: 'Database connection error',
+        message: `Database connection test failed: ${connectionTestError?.message || 'Unknown error'}`,
+        diagnostic: '/health/database',
+        errorCode: connectionTestError?.code
+      });
+    }
 
+    // Step 5: Find user by email
+    console.log('[testing] Step 5: Querying user by email...');
+    let userResult;
+    try {
+      userResult = await query(
+        'SELECT id, first_name, last_name, email, password_hash, role, is_active, tenant_id, is_super_admin FROM users WHERE email = $1',
+        [email]
+      );
+      console.log('[testing] User query completed, found', userResult.rows.length, 'user(s)');
+    } catch (queryError) {
+      console.error('[testing] Database query error during login:', queryError);
+      console.error('[testing] Query error details:', {
+        code: queryError?.code,
+        message: queryError?.message,
+        errno: queryError?.errno,
+        syscall: queryError?.syscall,
+        stack: queryError?.stack
+      });
+      
+      // Check if response was already sent
+      if (res.headersSent) {
+        console.error('[testing] Response already sent, cannot send error response');
+        return;
+      }
+      
+      // Handle specific database errors with actionable messages
+      if (queryError?.code === '42P01') {
+        return res.status(503).json({
+          success: false,
+          error: 'Database table missing',
+          message: 'Users table does not exist. Run: npm run sequelize:migrate',
+          diagnostic: '/health/database',
+          errorCode: queryError.code
+        });
+      }
+      
+      if (queryError?.code === 'ECONNREFUSED' || queryError?.code === 'ETIMEDOUT' || queryError?.code === 'ECONNRESET') {
+        return res.status(503).json({
+          success: false,
+          error: 'Database connection failed',
+          message: 'Unable to connect to database. Check DATABASE_URL environment variable and ensure database server is running.',
+          diagnostic: '/health/database',
+          errorCode: queryError.code
+        });
+      }
+      
+      // PostgreSQL error codes (42xxx)
+      if (queryError?.code && queryError.code.startsWith('42')) {
+        return res.status(500).json({
+          success: false,
+          error: 'Database query error',
+          message: `Database query failed (PostgreSQL error ${queryError.code}): ${queryError.message || 'Unknown error'}. Check server logs for details.`,
+          diagnostic: '/health/database',
+          errorCode: queryError.code
+        });
+      }
+      
+      return res.status(500).json({
+        success: false,
+        error: 'Database query failed',
+        message: `Unable to verify credentials: ${queryError?.message || 'Unknown error'}. Check server logs for details.`,
+        diagnostic: '/health/database',
+        errorCode: queryError?.code
+      });
+    }
+
+    // Step 6: Validate user exists
+    console.log('[testing] Step 6: Validating user...');
     if (userResult.rows.length === 0) {
+      console.log('[testing] No user found with email:', email);
       return res.status(401).json({
         success: false,
         error: 'Invalid credentials'
@@ -97,26 +254,61 @@ router.post('/auth/login', async (req, res) => {
     }
 
     const user = userResult.rows[0];
+    console.log('[testing] User found:', user.email, 'ID:', user.id);
 
     // Check if user is active
     if (!user.is_active) {
+      console.error('[testing] User account is not active:', user.email);
       return res.status(401).json({
         success: false,
         error: 'Account is not active'
       });
     }
 
-    // Verify password
-    const isValidPassword = await bcrypt.compare(password, user.password_hash);
+    // Check if password_hash exists
+    if (!user.password_hash) {
+      console.error('[testing] User has no password_hash:', user.email);
+      return res.status(401).json({
+        success: false,
+        error: 'Account configuration error. Please contact support.'
+      });
+    }
+
+    // Step 7: Verify password
+    console.log('[testing] Step 7: Verifying password...');
+    let isValidPassword = false;
+    try {
+      isValidPassword = await bcrypt.compare(password, user.password_hash);
+      console.log('[testing] Password verification result:', isValidPassword);
+    } catch (bcryptError) {
+      console.error('[testing] Bcrypt comparison error:', bcryptError);
+      console.error('[testing] Bcrypt error details:', {
+        message: bcryptError?.message,
+        stack: bcryptError?.stack
+      });
+      
+      if (res.headersSent) {
+        console.error('[testing] Response already sent, cannot send error response');
+        return;
+      }
+      
+      return res.status(500).json({
+        success: false,
+        error: 'Password verification failed',
+        message: 'An error occurred while verifying password. Please try again.'
+      });
+    }
     
     if (!isValidPassword) {
+      console.log('[testing] Invalid password for user:', user.email);
       return res.status(401).json({
         success: false,
         error: 'Invalid credentials'
       });
     }
 
-    // Create JWT token
+    // Step 8: Create JWT token
+    console.log('[testing] Step 8: Creating JWT token...');
     const userData = {
       id: user.id,
       first_name: user.first_name,
@@ -127,9 +319,52 @@ router.post('/auth/login', async (req, res) => {
       is_super_admin: user.is_super_admin
     };
     
-    const token = jwt.sign(userData, JWT_SECRET, { expiresIn: '24h' });
+    // Check if JWT_SECRET is available
+    if (!JWT_SECRET) {
+      console.error('[testing] JWT_SECRET is not set');
+      if (res.headersSent) {
+        console.error('[testing] Response already sent, cannot send error response');
+        return;
+      }
+      return res.status(500).json({
+        success: false,
+        error: 'Server configuration error',
+        message: 'JWT_SECRET environment variable is not set. Please check server configuration.'
+      });
+    }
+    
+    let token;
+    try {
+      token = jwt.sign(userData, JWT_SECRET, { expiresIn: '24h' });
+      console.log('[testing] JWT token created successfully');
+    } catch (jwtError) {
+      console.error('[testing] JWT signing error:', jwtError);
+      console.error('[testing] JWT error details:', {
+        message: jwtError?.message,
+        stack: jwtError?.stack
+      });
+      
+      if (res.headersSent) {
+        console.error('[testing] Response already sent, cannot send error response');
+        return;
+      }
+      
+      return res.status(500).json({
+        success: false,
+        error: 'Token generation failed',
+        message: 'An error occurred while generating authentication token. Please try again.'
+      });
+    }
 
-    // Return user data with token
+    // Step 9: Return user data with token
+    console.log('[testing] Step 9: Sending success response...');
+    // Check if response was already sent (shouldn't happen, but safety check)
+    if (res.headersSent) {
+      console.error('[testing] Response already sent, cannot send success response');
+      return;
+    }
+    
+    console.log('[testing] Login successful for user:', user.email);
     res.json({
       success: true,
       user: userData,
@@ -137,60 +372,82 @@ router.post('/auth/login', async (req, res) => {
     });
 
   } catch (error) {
+    console.error('[testing] ========== LOGIN ERROR ==========');
     console.error('[testing] Login error:', error);
-    console.error('[testing] Login error code:', error.code);
-    console.error('[testing] Login error message:', error.message);
-    console.error('[testing] Login error stack:', error.stack);
+    console.error('[testing] Login error code:', error?.code);
+    console.error('[testing] Login error message:', error?.message);
+    console.error('[testing] Login error name:', error?.name);
+    console.error('[testing] Login error errno:', error?.errno);
+    console.error('[testing] Login error syscall:', error?.syscall);
+    console.error('[testing] Login error stack:', error?.stack);
+    console.error('[testing] ===================================');
+    
+    // Ensure we always send a valid JSON response
+    if (res.headersSent) {
+      console.error('[testing] Response already sent, cannot send error response');
+      return;
+    }
     
     // Handle database connection errors
-    if (error.code === 'ECONNREFUSED' || error.code === 'ETIMEDOUT' || error.code === 'ENOTFOUND') {
+    if (error?.code === 'ECONNREFUSED' || error?.code === 'ETIMEDOUT' || error?.code === 'ENOTFOUND' || error?.code === 'ECONNRESET') {
       return res.status(503).json({
         success: false,
         error: 'Database connection failed',
-        message: 'Unable to connect to database. Please check database configuration.'
+        message: `Unable to connect to database (${error.code}). Check DATABASE_URL environment variable and ensure database server is running.`,
+        diagnostic: '/health/database',
+        errorCode: error.code
       });
     }
     
     // Handle database not ready errors
-    const { dbInitialized } = getDatabaseState();
-    if (error.code === '42P01' || error.message?.includes('does not exist')) {
-      if (!dbInitialized) {
+    let dbState;
+    try {
+      dbState = getDatabaseState();
+    } catch (stateError) {
+      console.error('[testing] Error getting database state in catch block:', stateError);
+    }
+    
+    if (error?.code === '42P01' || error?.message?.includes('does not exist')) {
+      if (dbState && !dbState.dbInitialized) {
         return res.status(503).json({
           success: false,
           error: 'Database is initializing',
-          message: 'Please try again in a moment'
+          message: 'Database is still connecting. Please try again in a moment.',
+          diagnostic: '/health/database'
         });
       }
       return res.status(503).json({
         success: false,
         error: 'Database table missing',
-        message: 'Required database tables are missing. Please run migrations.'
+        message: 'Required database tables are missing. Run: npm run sequelize:migrate',
+        diagnostic: '/health/database',
+        errorCode: error.code
       });
     }
     
-    // Handle query errors
-    if (error.code && error.code.startsWith('42')) {
+    // Handle PostgreSQL query errors (42xxx)
+    if (error?.code && error.code.startsWith('42')) {
       return res.status(500).json({
         success: false,
         error: 'Database query error',
-        message: 'An error occurred while querying the database. Please check server logs.'
+        message: `Database query failed (PostgreSQL error ${error.code}): ${error.message || 'Unknown error'}. Check server logs for details.`,
+        diagnostic: '/health/database',
+        errorCode: error.code
       });
     }
     
     // Generic error - but include more details in development
     const errorMessage = process.env.NODE_ENV === 'development' 
-      ? `Login failed: ${error.message || 'Unknown error'}`
+      ? `Login failed: ${error?.message || 'Unknown error'} (Code: ${error?.code || 'N/A'})`
       : 'Login failed. Please try again.';
     
-    // Ensure we always send a valid JSON response
-    if (!res.headersSent) {
-      res.status(500).json({
-        success: false,
-        error: errorMessage
-      });
-    } else {
-      console.error('[testing] Response already sent, cannot send error response');
-    }
+    res.status(500).json({
+      success: false,
+      error: errorMessage,
+      message: errorMessage,
+      diagnostic: '/health/database',
+      errorCode: error?.code
+    });
   }
 });
 
@@ -215,11 +472,30 @@ router.get('/auth/me', authenticateUser, async (req, res) => {
       });
     }
 
+    // Check if user is authenticated
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ 
+        success: false, 
+        error: 'Not authenticated' 
+      });
+    }
+
     const userId = req.user.id;
-    const userResult = await query(
-      'SELECT id, first_name, last_name, email, role, status, tenant_id, is_super_admin FROM users WHERE id = $1',
-      [userId]
-    );
+    
+    let userResult;
+    try {
+      userResult = await query(
+        'SELECT id, first_name, last_name, email, role, status, tenant_id, is_super_admin FROM users WHERE id = $1',
+        [userId]
+      );
+    } catch (queryError) {
+      console.error('[testing] Database query error in /auth/me:', queryError);
+      return res.status(500).json({
+        success: false,
+        error: 'Database query failed',
+        message: 'Unable to fetch user data. Please try again later.'
+      });
+    }
 
     if (userResult.rows.length === 0) {
       return res.status(404).json({ success: false, error: 'User not found' });
@@ -227,8 +503,9 @@ router.get('/auth/me', authenticateUser, async (req, res) => {
 
     const user = userResult.rows[0];
 
-    // Check if user is active
-    if (user.status !== 'active') {
+    // Check if user is active (check both status and is_active for compatibility)
+    const isActive = (user.status === 'active' || user.status === undefined) && (user.is_active !== false);
+    if (!isActive) {
       return res.status(401).json({ success: false, error: 'Account is not active' });
     }
 
@@ -547,7 +824,36 @@ router.post('/tenants', async (req, res) => {
     
     const newTenant = await createTenant({ name, theme_id });
     
-    res.status(201).json(newTenant);
+    // Include initialization summary in response if available
+    const response = {
+      ...newTenant,
+      message: 'Tenant created successfully'
+    };
+    
+    if (newTenant.initialization) {
+      const init = newTenant.initialization;
+      const totalInitialized = 
+        (init.settings?.inserted || 0) +
+        (init.sitemap?.inserted || 0) +
+        (init.robots?.inserted || 0) +
+        (init.blog?.categories?.inserted || 0) +
+        (init.blog?.tags?.inserted || 0);
+      
+      response.initialization = {
+        success: true,
+        summary: {
+          settings: init.settings?.inserted || 0,
+          sitemap: init.sitemap?.inserted || 0,
+          robots: init.robots?.inserted || 0,
+          categories: init.blog?.categories?.inserted || 0,
+          tags: init.blog?.tags?.inserted || 0,
+          total: totalInitialized
+        },
+        message: `Tenant initialized with ${totalInitialized} default records`
+      };
+    }
+    
+    res.status(201).json(response);
   } catch (error) {
     console.error('Error creating tenant:', error);
     res.status(500).json({ error: 'Failed to create tenant' });

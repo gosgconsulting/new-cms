@@ -75,7 +75,8 @@ export {
   toggleSEOIndex,
   getPageWithLayout,
   updatePageData,
-  updatePageLayout
+  updatePageLayout,
+  savePageVersion
 } from './modules/pages.js';
 
 // Content/Posts management

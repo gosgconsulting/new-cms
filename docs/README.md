@@ -89,6 +89,7 @@ This directory contains all project documentation organized by category.
 - [Local Development](local-development.md) - Local development workflow
 - [Database Audit Implementation Plan](development/database-audit-implementation-plan.md) - Database audit planning
 - [Component Migration Mapping](development/component-migration-mapping.md) - Component migration guide
+- [Flowbite Component Creation SOP](development/flowbite-component-creation-sop.md) - **Standard Operating Procedure for creating Flowbite design system components** ⭐
 - [Homepage Audit Restructure Plan](development/homepage-audit-restructure-plan.md) - Homepage restructuring
 - [Homepage Quick Reference](development/homepage-quick-reference.md) - Homepage component reference
 

@@ -53,7 +53,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
   // If image is provided, use image-based hero, otherwise use gradient
   if (finalImageSrc && !compact) {
     return (
-      <section className="relative min-h-screen flex items-center justify-center px-4 overflow-hidden">
+      <section className="relative min-h-screen flex items-center justify-center px-4 overflow-hidden pb-20">
         <img
           src={finalImageSrc}
           alt={finalImageAlt}
@@ -89,9 +89,9 @@ const HeroSection: React.FC<HeroSectionProps> = ({
           )}
         </div>
         {finalShowScrollArrow && (
-          <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
-            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+          <div className="absolute bottom-12 left-1/2 transform -translate-x-1/2 animate-bounce">
+            <svg className="w-4 h-4 text-white/90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
             </svg>
           </div>
         )}

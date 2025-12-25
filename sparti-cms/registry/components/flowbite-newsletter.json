@@ -1,0 +1,48 @@
+{
+  "id": "flowbite-newsletter",
+  "name": "Flowbite Newsletter",
+  "type": "container",
+  "category": "interactive",
+  "description": "Newsletter subscription form with title, subtitle, email input, and subscribe button using Flowbite design system",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Newsletter title",
+      "editable": true,
+      "required": false,
+      "default": "Subscribe to our Newsletter"
+    },
+    "subtitle": {
+      "type": "string",
+      "description": "Newsletter subtitle/description",
+      "editable": true,
+      "required": false,
+      "default": "Stay updated with our latest news and offers."
+    },
+    "placeholder": {
+      "type": "string",
+      "description": "Email input placeholder text",
+      "editable": true,
+      "required": false,
+      "default": "Enter your email"
+    },
+    "button": {
+      "type": "object",
+      "description": "Subscribe button configuration",
+      "editable": true,
+      "required": false,
+      "default": {
+        "content": "Subscribe",
+        "link": "#"
+      }
+    }
+  },
+  "editor": "ContainerEditor",
+  "version": "1.0.0",
+  "tenant_scope": "global",
+  "tags": ["newsletter", "subscription", "email", "form", "flowbite", "diora"],
+  "dependencies": ["flowbite-react"],
+  "design_system": "flowbite",
+  "last_updated": "2025-01-27T00:00:00Z"
+}
+

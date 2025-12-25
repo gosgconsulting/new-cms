@@ -1,0 +1,45 @@
+{
+  "id": "flowbite-blog-hero",
+  "name": "Flowbite Blog Hero",
+  "type": "container",
+  "category": "content",
+  "description": "Hero section for blog page with title, subtitle, and search functionality using Flowbite design system",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Hero title text",
+      "editable": true,
+      "required": false,
+      "default": "SEO Insights & Expert Tips"
+    },
+    "subtitle": {
+      "type": "string",
+      "description": "Hero subtitle/description text",
+      "editable": true,
+      "required": false,
+      "default": "Stay ahead of the curve with our latest SEO strategies, industry insights, and actionable tips to grow your online presence."
+    },
+    "searchPlaceholder": {
+      "type": "string",
+      "description": "Search input placeholder text",
+      "editable": true,
+      "required": false,
+      "default": "Search articles..."
+    },
+    "showSearch": {
+      "type": "boolean",
+      "description": "Show/hide search bar",
+      "editable": true,
+      "required": false,
+      "default": true
+    }
+  },
+  "editor": "ContainerEditor",
+  "version": "1.0.0",
+  "tenant_scope": "global",
+  "tags": ["blog", "hero", "search", "flowbite", "diora"],
+  "dependencies": ["flowbite-react"],
+  "design_system": "flowbite",
+  "last_updated": "2025-01-27T00:00:00Z"
+}
+

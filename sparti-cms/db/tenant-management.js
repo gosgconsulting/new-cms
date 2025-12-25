@@ -1,6 +1,7 @@
-import { query } from './index.js';
+import { query, getPool } from './index.js';
 import { v4 as uuidv4 } from 'uuid';
 import bcrypt from 'bcrypt';
+import { initializeTenantDefaults } from './tenant-initialization.js';
 
 /**
  * Get all tenants with full data (including database details and API keys)
@@ -153,17 +154,38 @@ export async function getTenantById(id) {
  * Create a new tenant
  */
 export async function createTenant(tenantData) {
+  const { name, theme_id } = tenantData;
+  const id = `tenant-${uuidv4().split('-')[0]}`;
+  
   try {
-    const { name, theme_id } = tenantData;
-    const id = `tenant-${uuidv4().split('-')[0]}`;
-    
+    // Insert tenant record
     const result = await query(`
       INSERT INTO tenants (id, name, theme_id)
       VALUES ($1, $2, $3)
       RETURNING id, name, created_at as "createdAt", updated_at, theme_id
     `, [id, name, theme_id || null]);
     
-    return result.rows[0];
+    const tenant = result.rows[0];
+    
+    // Initialize default data for the new tenant
+    console.log(`[testing] Initializing default data for tenant ${id}...`);
+    let initializationSummary = null;
+    
+    try {
+      initializationSummary = await initializeTenantDefaults(id);
+      console.log(`[testing] Tenant ${id} initialized successfully`);
+    } catch (initError) {
+      console.error(`[testing] Error initializing tenant defaults for ${id}:`, initError);
+      // Don't fail tenant creation if initialization fails, but log it
+      // The tenant can still be used, defaults can be initialized later
+    }
+    
+    // Attach initialization summary to tenant object
+    if (initializationSummary) {
+      tenant.initialization = initializationSummary;
+    }
+    
+    return tenant;
   } catch (error) {
     console.error('[testing] Error creating tenant:', error);
     throw error;

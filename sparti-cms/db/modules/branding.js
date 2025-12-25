@@ -6,6 +6,7 @@ import { Op } from 'sequelize';
 const { SiteSchema } = models;
 
 // Branding-specific functions
+// Includes master fallback (tenant_id IS NULL) for missing tenant-specific settings
 export async function getBrandingSettings(tenantId = 'tenant-gosg', themeId = null) {
   try {
     let queryText = `
@@ -13,35 +14,54 @@ export async function getBrandingSettings(tenantId = 'tenant-gosg', themeId = nu
       FROM site_settings
       WHERE setting_category IN ('branding', 'seo', 'localization') 
         AND is_public = true
-        AND tenant_id = $1
+        AND (tenant_id = $1 OR tenant_id IS NULL)
     `;
     const params = [tenantId];
     
     if (themeId) {
       queryText += ` AND (theme_id = $2 OR theme_id IS NULL)`;
       params.push(themeId);
-      queryText += ` ORDER BY theme_id DESC NULLS LAST, setting_category, setting_key`;
+      queryText += ` ORDER BY 
+                       CASE WHEN tenant_id = $1 THEN 0 ELSE 1 END,
+                       CASE WHEN theme_id = $2 THEN 0 ELSE 1 END,
+                       tenant_id DESC NULLS LAST,
+                       theme_id DESC NULLS LAST,
+                       setting_category, setting_key`;
     } else {
       queryText += ` AND theme_id IS NULL`;
-      queryText += ` ORDER BY setting_category, setting_key`;
+      queryText += ` ORDER BY 
+                       CASE WHEN tenant_id = $1 THEN 0 ELSE 1 END,
+                       tenant_id DESC NULLS LAST,
+                       setting_category, setting_key`;
     }
     
     const result = await query(queryText, params);
     
     // Convert to object format grouped by category
-    // Prefer theme-specific settings over tenant-only settings
+    // Prefer tenant-specific over master, theme-specific over tenant-only
     const settings = {
       branding: {},
       seo: {},
       localization: {}
     };
     
+    const seenKeys = new Set();
+    
     result.rows.forEach((row) => {
       const category = row.setting_category || 'branding';
       if (!settings[category]) settings[category] = {};
-      // Only set if not already set (theme-specific takes precedence)
-      if (!settings[category][row.setting_key] || row.theme_id) {
+      
+      const key = `${category}.${row.setting_key}`;
+      const isTenantSpecific = row.tenant_id === tenantId;
+      const isThemeSpecific = row.theme_id === themeId;
+      
+      // Use tenant-specific first, then master (tenant_id IS NULL)
+      // For theme-specific, prefer theme-specific over tenant-only
+      if (!seenKeys.has(key) || (isTenantSpecific && isThemeSpecific)) {
         settings[category][row.setting_key] = row.setting_value;
+        if (isTenantSpecific) {
+          seenKeys.add(key);
+        }
       }
     });
     
@@ -553,29 +573,38 @@ export async function getThemeStyles(tenantId = 'tenant-gosg', themeId = null) {
 }
 
 // Get all settings for a specific tenant + theme combination
+// Includes master fallback (tenant_id IS NULL) for missing tenant-specific settings
 export async function getThemeSettings(tenantId = 'tenant-gosg', themeId = null) {
   try {
     let queryText = `
       SELECT setting_key, setting_value, setting_type, setting_category, is_public, tenant_id, theme_id
       FROM site_settings
-      WHERE tenant_id = $1
+      WHERE (tenant_id = $1 OR tenant_id IS NULL)
     `;
     const params = [tenantId];
     
     if (themeId) {
-      // Get theme-specific settings, with fallback to tenant-only settings
+      // Get theme-specific settings, with fallback to tenant-only, then master
       queryText += ` AND (theme_id = $2 OR theme_id IS NULL)
-                     ORDER BY theme_id DESC NULLS LAST, setting_category, setting_key`;
+                     ORDER BY 
+                       CASE WHEN tenant_id = $1 THEN 0 ELSE 1 END,
+                       CASE WHEN theme_id = $2 THEN 0 ELSE 1 END,
+                       tenant_id DESC NULLS LAST,
+                       theme_id DESC NULLS LAST,
+                       setting_category, setting_key`;
       params.push(themeId);
     } else {
-      // Get only tenant-level settings (no theme)
+      // Get tenant-level settings with master fallback
       queryText += ` AND theme_id IS NULL
-                     ORDER BY setting_category, setting_key`;
+                     ORDER BY 
+                       CASE WHEN tenant_id = $1 THEN 0 ELSE 1 END,
+                       tenant_id DESC NULLS LAST,
+                       setting_category, setting_key`;
     }
     
     const result = await query(queryText, params);
     
-    // Group by category and merge (theme-specific overrides tenant-only)
+    // Group by category and merge (tenant-specific overrides master, theme-specific overrides tenant-only)
     const settings = {};
     const seenKeys = new Set();
     
@@ -583,11 +612,15 @@ export async function getThemeSettings(tenantId = 'tenant-gosg', themeId = null)
       const category = row.setting_category || 'general';
       if (!settings[category]) settings[category] = {};
       
-      // Only use theme-specific if we haven't seen this key with a theme_id already
       const key = `${category}.${row.setting_key}`;
-      if (!seenKeys.has(key) || row.theme_id) {
+      // Use tenant-specific first, then master (tenant_id IS NULL)
+      // For theme-specific, prefer theme-specific over tenant-only
+      const isTenantSpecific = row.tenant_id === tenantId;
+      const isThemeSpecific = row.theme_id === themeId;
+      
+      if (!seenKeys.has(key) || (isTenantSpecific && isThemeSpecific)) {
         settings[category][row.setting_key] = row.setting_value;
-        if (row.theme_id) {
+        if (isTenantSpecific) {
           seenKeys.add(key);
         }
       }
@@ -606,18 +639,27 @@ export async function getSiteSettingByKey(key, tenantId = 'tenant-gosg', themeId
     let queryText = `
       SELECT setting_key, setting_value, setting_type, setting_category, is_public, tenant_id, theme_id
       FROM site_settings
-      WHERE setting_key = $1 AND tenant_id = $2
+      WHERE setting_key = $1 
+        AND (tenant_id = $2 OR tenant_id IS NULL)
     `;
     const params = [key, tenantId];
     
     if (themeId) {
-      // Prefer theme-specific setting, fallback to tenant-only
+      // Prefer theme-specific setting, fallback to tenant-only, then master
       queryText += ` AND (theme_id = $3 OR theme_id IS NULL)
-                     ORDER BY theme_id DESC NULLS LAST
+                     ORDER BY 
+                       CASE WHEN tenant_id = $2 THEN 0 ELSE 1 END,
+                       CASE WHEN theme_id = $3 THEN 0 ELSE 1 END,
+                       tenant_id DESC NULLS LAST,
+                       theme_id DESC NULLS LAST
                      LIMIT 1`;
       params.push(themeId);
     } else {
+      // Prefer tenant-specific, fallback to master (tenant_id IS NULL)
       queryText += ` AND theme_id IS NULL
+                     ORDER BY 
+                       CASE WHEN tenant_id = $2 THEN 0 ELSE 1 END,
+                       tenant_id DESC NULLS LAST
                      LIMIT 1`;
     }
     

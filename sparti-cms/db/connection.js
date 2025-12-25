@@ -10,47 +10,108 @@ const getConnectionString = () => {
   } else if (process.env.DATABASE_URL) {
     console.log('[testing] Using DATABASE_URL for connection');
   } else {
-    console.log('[testing] Using default connection string');
+    console.error('[testing] WARNING: No DATABASE_URL or DATABASE_PUBLIC_URL found in environment variables!');
+    console.error('[testing] Connection will fail. Please set DATABASE_URL or DATABASE_PUBLIC_URL.');
+    throw new Error('DATABASE_URL or DATABASE_PUBLIC_URL environment variable is required');
   }
   
   // Extract host and port for logging (without exposing credentials)
   try {
     const url = new URL(connString.replace('postgresql://', 'http://'));
     console.log(`[testing] Connecting to database at ${url.hostname}:${url.port || 5432}`);
+    console.log(`[testing] Database name: ${url.pathname.replace('/', '') || 'default'}`);
   } catch (e) {
-    console.log('[testing] Could not parse connection string for logging');
+    console.error('[testing] Could not parse connection string for logging:', e.message);
+    console.error('[testing] Connection string format should be: postgresql://user:password@host:port/database');
   }
   
   return connString;
 };
+
+// Get connection info for diagnostics (without exposing credentials)
+export function getConnectionInfo() {
+  const connString = process.env.DATABASE_PUBLIC_URL || process.env.DATABASE_URL;
+  const info = {
+    hasConnectionString: !!connString,
+    source: process.env.DATABASE_PUBLIC_URL ? 'DATABASE_PUBLIC_URL' : 
+            (process.env.DATABASE_URL ? 'DATABASE_URL' : 'none'),
+    host: null,
+    port: null,
+    database: null,
+    user: null
+  };
+  
+  if (connString) {
+    try {
+      const url = new URL(connString.replace('postgresql://', 'http://'));
+      info.host = url.hostname;
+      info.port = url.port || 5432;
+      info.database = url.pathname.replace('/', '') || 'default';
+      info.user = url.username || 'unknown';
+    } catch (e) {
+      // Ignore parsing errors
+    }
+  }
+  
+  return info;
+}
 
 // Lazy initialization of pool to ensure dotenv is loaded first
 let pool = null;
 
 const getPool = () => {
   if (!pool) {
-    // Database configuration
-    const dbConfig = {
-      connectionString: getConnectionString(),
-      ssl: { rejectUnauthorized: false }, // Always use SSL with Railway
-      // Connection pool settings
-      max: 20, // Maximum number of clients in the pool
-      idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
-      connectionTimeoutMillis: 10000, // Return an error after 10 seconds if connection could not be established
-    };
-    
-    // Create connection pool
-    pool = new Pool(dbConfig);
-    
-    // Test connection
-    pool.on('connect', () => {
-      console.log('[testing] Connected to PostgreSQL database');
+    console.log('[testing] Initializing database connection pool...');
+    const connInfo = getConnectionInfo();
+    console.log('[testing] Connection info:', {
+      source: connInfo.source,
+      host: connInfo.host,
+      port: connInfo.port,
+      database: connInfo.database,
+      user: connInfo.user
     });
+    
+    try {
+      // Database configuration
+      const dbConfig = {
+        connectionString: getConnectionString(),
+        ssl: { rejectUnauthorized: false }, // Always use SSL with Railway
+        // Connection pool settings
+        max: 20, // Maximum number of clients in the pool
+        idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
+        connectionTimeoutMillis: 10000, // Return an error after 10 seconds if connection could not be established
+      };
+      
+      // Create connection pool
+      pool = new Pool(dbConfig);
+      
+      // Test connection
+      pool.on('connect', (client) => {
+        console.log('[testing] Connected to PostgreSQL database');
+        console.log('[testing] Connection pool active');
+      });
 
-    pool.on('error', (err) => {
-      console.error('[testing] PostgreSQL connection pool error:', err);
-      // Don't exit the process on pool errors - let individual queries handle errors
-    });
+      pool.on('error', (err) => {
+        console.error('[testing] PostgreSQL connection pool error:', err);
+        console.error('[testing] Pool error details:', {
+          code: err.code,
+          message: err.message,
+          errno: err.errno,
+          syscall: err.syscall
+        });
+        // Don't exit the process on pool errors - let individual queries handle errors
+      });
+      
+      console.log('[testing] Database connection pool created');
+    } catch (error) {
+      console.error('[testing] Failed to create database connection pool:', error);
+      console.error('[testing] Pool creation error details:', {
+        code: error.code,
+        message: error.message,
+        stack: error.stack
+      });
+      throw error;
+    }
   }
   return pool;
 };
@@ -199,3 +260,59 @@ const poolProxy = new Proxy({}, {
 
 // Export pool proxy as default for backward compatibility
 export default poolProxy;
+
+// Connection test function for diagnostics
+export async function testConnection() {
+  try {
+    console.log('[testing] Testing database connection...');
+    const poolInstance = getPool();
+    const client = await poolInstance.connect();
+    
+    try {
+      const result = await client.query('SELECT NOW() as current_time, version() as pg_version');
+      const connectionInfo = {
+        success: true,
+        connected: true,
+        currentTime: result.rows[0].current_time,
+        postgresVersion: result.rows[0].pg_version,
+        connectionInfo: getConnectionInfo()
+      };
+      console.log('[testing] Connection test successful');
+      return connectionInfo;
+    } finally {
+      client.release();
+    }
+  } catch (error) {
+    console.error('[testing] Connection test failed:', error);
+    return {
+      success: false,
+      connected: false,
+      error: {
+        code: error.code,
+        message: error.message,
+        errno: error.errno,
+        syscall: error.syscall
+      },
+      connectionInfo: getConnectionInfo()
+    };
+  }
+}
+
+// Get pool status for diagnostics
+export function getPoolStatus() {
+  if (!pool) {
+    return {
+      initialized: false,
+      totalCount: 0,
+      idleCount: 0,
+      waitingCount: 0
+    };
+  }
+  
+  return {
+    initialized: true,
+    totalCount: pool.totalCount || 0,
+    idleCount: pool.idleCount || 0,
+    waitingCount: pool.waitingCount || 0
+  };
+}

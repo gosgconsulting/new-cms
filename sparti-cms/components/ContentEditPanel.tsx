@@ -1,5 +1,5 @@
 // Enhanced Content Edit Panel with component registry integration
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Type, Image, Video, Link, MousePointer, Settings, X } from 'lucide-react';
 import { useSpartiBuilder } from './SpartiBuilderProvider';
 import { ElementType } from '../types';
@@ -44,16 +44,49 @@ export const ContentEditPanel: React.FC = () => {
   const [saveSuccess, setSaveSuccess] = useState(false);
   const { components: dbComponents, status, error } = useDatabase();
   const isSaving = status === 'loading';
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   // Always render as sidebar while in edit mode
   if (!isEditing) return null;
 
-  // Resolve selected component index
+  // Resolve selected component index (must be defined before useEffect)
   const sectionEl = selectedElement?.element?.closest?.('[data-sparti-component-index]') as HTMLElement | null;
   const compIdxAttr = sectionEl?.getAttribute('data-sparti-component-index') || '';
   const compIndex = compIdxAttr ? parseInt(compIdxAttr, 10) : NaN;
   const selectedComponent: ComponentSchema | null =
     components && Number.isFinite(compIndex) ? components[compIndex] || null : null;
+
+  // Use ResizeObserver to ensure scroll container adjusts when content height changes
+  useEffect(() => {
+    const scrollContainer = scrollContainerRef.current;
+    const contentElement = contentRef.current;
+    
+    if (!scrollContainer || !contentElement) return;
+
+    // Force scroll container to recalculate height when content changes
+    const resizeObserver = new ResizeObserver(() => {
+      // When content size changes (e.g., accordion expands), force scroll recalculation
+      requestAnimationFrame(() => {
+        if (scrollContainer) {
+          // Access scrollHeight to force browser to recalculate layout and update scrollbar
+          // This ensures the scroll container knows about the new content height
+          const scrollHeight = scrollContainer.scrollHeight;
+          const clientHeight = scrollContainer.clientHeight;
+          // Accessing these properties forces a reflow
+          void scrollHeight;
+          void clientHeight;
+        }
+      });
+    });
+
+    // Observe the content element for size changes (accordion expansion, etc.)
+    resizeObserver.observe(contentElement);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, [selectedComponent, components]);
 
   const elementType = selectedElement?.data?.elementType || 'container';
 
@@ -122,9 +155,14 @@ export const ContentEditPanel: React.FC = () => {
       </div>
 
       <div
+        ref={scrollContainerRef}
         id="sparti-editor-scroll"
-        className="sparti-edit-panel-content flex-1 overflow-y-auto"
-        style={{ minHeight: '100%', height: '100%' }}
+        className="sparti-edit-panel-content flex-1 overflow-y-auto pb-6"
+        style={{ 
+          scrollbarWidth: 'thin',
+          scrollbarColor: 'rgba(156, 163, 175, 0.5) transparent',
+          minHeight: 0 // Ensure flex child can shrink below content size
+        }}
         onWheel={(e) => {
           // Prevent scroll from bubbling to the page viewer
           e.stopPropagation();
@@ -183,7 +221,9 @@ export const ContentEditPanel: React.FC = () => {
             Processing your request...
           </div>
         )}
-        {renderSpecializedEditor()}
+        <div ref={contentRef}>
+          {renderSpecializedEditor()}
+        </div>
       </div>
     </div>
   );

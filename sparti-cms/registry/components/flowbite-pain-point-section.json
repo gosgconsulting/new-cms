@@ -1,0 +1,42 @@
+{
+  "id": "flowbite-pain-point-section",
+  "name": "Flowbite Pain Point Section",
+  "type": "container",
+  "category": "content",
+  "description": "Section highlighting customer pain points/problems using Flowbite design system",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Section title",
+      "editable": true,
+      "required": false,
+      "default": "You Invest... But Nothing Happens?"
+    },
+    "subtitle": {
+      "type": "string",
+      "description": "Section subtitle/badge text",
+      "editable": true,
+      "required": false,
+      "default": "You have a website but it's not generating clicks?"
+    },
+    "painPoints": {
+      "type": "array",
+      "description": "Array of pain point objects with icon and text",
+      "editable": true,
+      "required": false,
+      "default": [
+        { "icon": "X", "text": "Organic traffic stuck at 0" },
+        { "icon": "Click", "text": "No clicks, no leads, no sales" },
+        { "icon": "Chart", "text": "Competitors ranking above you" }
+      ]
+    }
+  },
+  "editor": "ContainerEditor",
+  "version": "1.0.0",
+  "tenant_scope": "global",
+  "tags": ["pain-points", "problems", "challenges", "flowbite", "diora"],
+  "dependencies": ["flowbite-react"],
+  "design_system": "flowbite",
+  "last_updated": "2025-01-27T00:00:00Z"
+}
+

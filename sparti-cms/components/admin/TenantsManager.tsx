@@ -220,6 +220,25 @@ const TenantsManager: React.FC = () => {
       
       const createdTenant = await response.json();
 
+      // Show initialization summary if available
+      if (createdTenant.initialization?.summary) {
+        const init = createdTenant.initialization.summary;
+        const totalInitialized = init.total || 0;
+        
+        toast({
+          title: "Success",
+          description: `Tenant created and initialized with ${totalInitialized} default records (${init.settings} settings, ${init.sitemap} sitemap entries, ${init.robots} robots rules, ${init.categories} categories, ${init.tags} tags)`,
+          variant: "default",
+          duration: 5000
+        });
+      } else {
+        toast({
+          title: "Success",
+          description: "Tenant created successfully",
+          variant: "default"
+        });
+      }
+
       // If a theme is selected (not 'custom'), import theme data
       if (newTenant.template && newTenant.template !== 'custom') {
         try {
@@ -249,12 +268,6 @@ const TenantsManager: React.FC = () => {
             variant: "default"
           });
         }
-      } else {
-        toast({
-          title: "Success",
-          description: "Tenant created successfully",
-          variant: "default"
-        });
       }
 
       // Add the new tenant to the list

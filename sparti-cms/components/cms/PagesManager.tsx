@@ -6,8 +6,7 @@ import { Edit, Eye, FileText, Rocket, Scale, Layout, Minus, Code, RefreshCw, His
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../src/components/ui/select';
 import ClassicRenderer from '../../../src/components/visual-builder/ClassicRenderer';
 import { toast } from '../../../src/hooks/use-toast';
-import HeaderSchemaEditor from './HeaderSchemaEditor';
-import FooterSchemaEditor from './FooterSchemaEditor';
+// Header and Footer are now managed as pages, not schema editors
 import { useAuth } from '../auth/AuthProvider';
 import { getDummyPages, isDevelopmentTenant } from '../admin/DevelopmentTenantData';
 import api from '../../utils/api';
@@ -622,27 +621,25 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
     );
   }
 
-  // Header and footer editors will be rendered within the tab content
-
-  // Filter and sort pages based on active tab (only for page types)
-  const filteredPages = ['page', 'landing', 'legal'].includes(activeTab) 
-    ? pages
-        .filter(page => {
-          const matches = page.page_type === activeTab;
-          if (!matches) {
-            console.log(`[testing] Frontend: Filtering out page "${page.page_name}" (page_type: ${page.page_type}, activeTab: ${activeTab})`);
-          }
-          return matches;
-        })
-        .sort((a, b) => {
-          // Homepage first
-          if (a.slug === '/' || a.slug === '/home') return -1;
-          if (b.slug === '/' || b.slug === '/home') return 1;
-          
-          // Then sort by created_at (newest first)
-          return new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime();
-        })
-    : [];
+  // Filter and sort pages based on active tab (includes header and footer)
+  const filteredPages = pages
+    .filter(page => {
+      const matches = page.page_type === activeTab;
+      if (!matches) {
+        console.log(`[testing] Frontend: Filtering out page "${page.page_name}" (page_type: ${page.page_type}, activeTab: ${activeTab})`);
+      }
+      return matches;
+    })
+    .sort((a, b) => {
+      // Homepage first (only for regular pages)
+      if (activeTab === 'page') {
+        if (a.slug === '/' || a.slug === '/home') return -1;
+        if (b.slug === '/' || b.slug === '/home') return 1;
+      }
+      
+      // Then sort by created_at (newest first)
+      return new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime();
+    });
   
   // Debug logging for filtering
   console.log(`[testing] Frontend: Total pages: ${pages.length}, Active tab: ${activeTab}, Filtered pages: ${filteredPages.length}`);
@@ -749,19 +746,6 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
         {/* Tab Content */}
         <div className="p-6">
           <div className="space-y-6">
-            {activeTab === 'header' ? (
-              <HeaderSchemaEditor 
-                onBack={() => setActiveTab('page')} 
-              />
-            ) : activeTab === 'footer' ? (
-              <FooterSchemaEditor 
-                onBack={() => setActiveTab('page')} 
-              />
-            ) : (
-              <>
-            <div>
-            </div>
-
             <div className="grid gap-4">
               {filteredPages.length === 0 ? (
                 <div className="text-center py-12 bg-gray-50 rounded-lg border border-dashed border-gray-300">
@@ -799,31 +783,22 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
                           <Edit className="h-4 w-4 mr-2" />
                           Edit
                         </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleViewPage(page.slug)}
-                        >
-                          <Eye className="h-4 w-4 mr-2" />
-                          View
-                        </Button>
+                        {page.page_type !== 'header' && page.page_type !== 'footer' && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleViewPage(page.slug)}
+                          >
+                            <Eye className="h-4 w-4 mr-2" />
+                            View
+                          </Button>
+                        )}
                       </div>
                     </div>
                   </Card>
                 ))
               )}
             </div>
-
-            {/* <div className="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-200">
-              <p className="text-sm text-blue-800">
-                <strong>Slug Editing:</strong> Click on any slug to edit it. Homepage slug cannot be changed. 
-                If you change the blog slug, remember to update blog post URLs in the frontend code.
-                <br />
-                <strong>SEO Index:</strong> Click on "Index" or "No Index" badges to toggle whether the page should be indexed by search engines.
-              </p>
-            </div> */}
-              </>
-            )}
           </div>
         </div>
       </div>

@@ -246,6 +246,7 @@ body.gosg-editing .sparti-content::before {
   flex: 1;
   overflow-y: auto;
   padding: 12px;
+  min-height: 0; /* Allow flex child to shrink below content size for proper scrolling */
 }
 
 /* Hover/selection overlays unaffected */
@@ -889,7 +890,6 @@ body.gosg-editing .sparti-btn:hover {
 /* Sticky editor sidebar: own scrolling, no propagation to center */
 .sparti-editor-sticky {
   height: 100vh;
-  overflow-y: auto;
   overscroll-behavior: contain; /* prevent scroll chaining */
   -webkit-overflow-scrolling: touch; /* smooth scrolling on iOS */
 }
@@ -897,6 +897,24 @@ body.gosg-editing .sparti-btn:hover {
 /* Ensure panel content can scroll independently as well */
 .sparti-edit-panel-content {
   overscroll-behavior: contain;
+}
+
+/* Custom minimalist scrollbar for editor panel */
+.sparti-edit-panel-content::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sparti-edit-panel-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sparti-edit-panel-content::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.4);
+  border-radius: 2px;
+}
+
+.sparti-edit-panel-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(156, 163, 175, 0.6);
 }
 
 /* Optional: left sections list already uses overflow; keep scroll local */

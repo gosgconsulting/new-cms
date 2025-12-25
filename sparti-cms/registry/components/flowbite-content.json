@@ -1,0 +1,31 @@
+{
+  "id": "flowbite-content",
+  "name": "Flowbite Content",
+  "type": "container",
+  "category": "content",
+  "description": "Rich text content section for displaying page content using Flowbite design system",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Content section title (optional)",
+      "editable": true,
+      "required": false,
+      "default": ""
+    },
+    "content": {
+      "type": "string",
+      "description": "Rich text content (HTML supported)",
+      "editable": true,
+      "required": false,
+      "default": ""
+    }
+  },
+  "editor": "ContainerEditor",
+  "version": "1.0.0",
+  "tenant_scope": "global",
+  "tags": ["content", "text", "rich-text", "html", "flowbite", "diora"],
+  "dependencies": ["flowbite-react"],
+  "design_system": "flowbite",
+  "last_updated": "2025-01-27T00:00:00Z"
+}
+

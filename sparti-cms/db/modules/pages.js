@@ -1114,3 +1114,61 @@ export async function updatePageLayout(pageId, layoutJson, tenantId, language = 
   }
 }
 
+/**
+ * Save a page version to the page_versions table
+ * @param {number} pageId - The page ID
+ * @param {string} tenantId - The tenant ID
+ * @param {object} pageData - The page data snapshot
+ * @param {object} layoutJson - The layout JSON with components
+ * @param {number} userId - Optional user ID who created this version
+ * @param {string} comment - Optional comment for this version
+ * @returns {Promise<object>} The saved version record
+ */
+export async function savePageVersion(pageId, tenantId, pageData, layoutJson, userId = null, comment = null) {
+  try {
+    // Get the next version number for this page
+    const versionResult = await query(`
+      SELECT COALESCE(MAX(version_number), 0) + 1 as next_version
+      FROM page_versions
+      WHERE page_id = $1 AND tenant_id = $2
+    `, [pageId, tenantId]);
+    
+    const nextVersion = parseInt(versionResult.rows[0]?.next_version || 1);
+    
+    // Insert the version
+    const result = await query(`
+      INSERT INTO page_versions (
+        page_id, tenant_id, version_number,
+        page_name, slug, meta_title, meta_description, seo_index, status, page_type,
+        campaign_source, conversion_goal, legal_type, last_reviewed_date,
+        layout_json, created_by, comment, created_at
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, NOW())
+      RETURNING *
+    `, [
+      pageId,
+      tenantId,
+      nextVersion,
+      pageData.page_name || '',
+      pageData.slug || '',
+      pageData.meta_title || null,
+      pageData.meta_description || null,
+      pageData.seo_index !== undefined ? pageData.seo_index : true,
+      pageData.status || 'draft',
+      pageData.page_type || 'page',
+      pageData.campaign_source || null,
+      pageData.conversion_goal || null,
+      pageData.legal_type || null,
+      pageData.last_reviewed_date || null,
+      JSON.stringify(layoutJson),
+      userId,
+      comment
+    ]);
+    
+    return result.rows[0];
+  } catch (error) {
+    console.error('[testing] Error saving page version:', error);
+    throw error;
+  }
+}
+
