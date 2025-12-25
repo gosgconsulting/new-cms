@@ -44,12 +44,45 @@ const sanitizeComponentsPlainText = (components: ComponentSchema[]) => {
 };
 
 export const ContentEditPanel: React.FC = () => {
-  const { isEditing, selectedElement, selectElement, components, updateComponent, pageId, slug, tenantId } = useSpartiBuilder();
+  const { isEditing, selectedElement, selectElement, components, updateComponent, pageId, slug, tenantId, exitEditMode } = useSpartiBuilder();
   const [saveSuccess, setSaveSuccess] = useState(false);
   const { components: dbComponents, status, error } = useDatabase();
   const [savingLayout, setSavingLayout] = useState(false);
   
   const isSaving = status === 'loading';
+
+  // ADDED: close editor when clicking anywhere outside the panel
+  React.useEffect(() => {
+    if (!isEditing || !selectedElement) return;
+
+    const handleOutsideMouseDown = (e: MouseEvent) => {
+      const target = e.target as HTMLElement | null;
+      const clickedInsidePanel = !!target?.closest('.sparti-edit-panel');
+      const clickedSpartiUI = !!target?.closest('.sparti-ui');
+
+      // If click is outside the panel and not on internal Sparti UI, close the editor
+      if (!clickedInsidePanel && !clickedSpartiUI) {
+        // Prevent the ElementSelector from selecting a new element underneath
+        e.stopPropagation();
+        selectElement(null);
+      }
+    };
+
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        selectElement(null);
+      }
+    };
+
+    // Use capture phase so we intercept before the ElementSelector
+    document.addEventListener('mousedown', handleOutsideMouseDown, true);
+    document.addEventListener('keydown', handleEscape, true);
+
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideMouseDown, true);
+      document.removeEventListener('keydown', handleEscape, true);
+    };
+  }, [isEditing, selectedElement, selectElement]);
 
   if (!isEditing || !selectedElement) return null;
 
