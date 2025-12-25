@@ -3,7 +3,7 @@ builder = "DOCKERFILE"
 dockerfilePath = "Dockerfile"
 
 [deploy]
-startCommand = "npm start"
+# startCommand is handled by Dockerfile CMD based on DEPLOY_THEME_SLUG
 healthcheckPath = "/health"
 healthcheckTimeout = 30
 healthcheckInterval = 5
