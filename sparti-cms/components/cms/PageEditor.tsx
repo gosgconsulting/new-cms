@@ -22,45 +22,47 @@ import { AIAssistantChat } from '../../../src/components/AIAssistantChat';
 import SectionContentList from '@/components/SectionContentList';
 import CodeViewerDialog from './PageEditor/CodeViewerDialog';
 
+// REMOVED: Inline ContentsPanel and VisualEditorRenderer usage
+
 // Visual Editor Panel Component - Shows full page preview
-interface ContentsPanelProps {
-  components: ComponentSchema[];
-  extractContentFromComponents: (components: ComponentSchema[]) => ContentItem[];
-  registry?: Record<string, React.ComponentType<any>>; // NEW
-}
+// interface ContentsPanelProps {
+//   components: ComponentSchema[];
+//   extractContentFromComponents: (components: ComponentSchema[]) => ContentItem[];
+//   registry?: Record<string, React.ComponentType<any>>; // NEW
+// }
 
-const ContentsPanel: React.FC<ContentsPanelProps> = ({ components, registry }) => {
-  if (!components || components.length === 0) {
-    return (
-      <div className="text-center py-8">
-        <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-        <h3 className="text-lg font-semibold mb-2">No Components Found</h3>
-        <p className="text-muted-foreground">
-          Add components to see the visual preview here.
-        </p>
-      </div>
-    );
-  }
+// const ContentsPanel: React.FC<ContentsPanelProps> = ({ components, registry }) => {
+//   if (!components || components.length === 0) {
+//     return (
+//       <div className="text-center py-8">
+//         <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+//         <h3 className="text-lg font-semibold mb-2">No Components Found</h3>
+//         <p className="text-muted-foreground">
+//           Add components to see the visual preview here.
+//         </p>
+//       </div>
+//     );
+//   }
 
-  return (
-    <div className="space-y-4">
-      <div className="border-b pb-4">
-        <h2 className="text-2xl font-bold flex items-center">
-          <FileText className="h-6 w-6 mr-2" />
-          Visual Editor
-        </h2>
-        <p className="text-sm text-muted-foreground mt-1">
-          Full page preview using actual component implementations from the theme registry.
-        </p>
-      </div>
+//   return (
+//     <div className="space-y-4">
+//       <div className="border-b pb-4">
+//         <h2 className="text-2xl font-bold flex items-center">
+//           <FileText className="h-6 w-6 mr-2" />
+//           Visual Editor
+//         </h2>
+//         <p className="text-sm text-muted-foreground mt-1">
+//           Full page preview using actual component implementations from the theme registry.
+//         </p>
+//       </div>
 
-      {/* Full visual editor with all components */}
-      <div className="w-full">
-        <VisualEditorRenderer components={components} registry={registry} />
-      </div>
-    </div>
-  );
-};
+//       {/* Full visual editor with all components */}
+//       <div className="w-full">
+//         <VisualEditorRenderer components={components} registry={registry} />
+//       </div>
+//     </div>
+//   );
+// };
 
 interface PageData {
   id: string;
