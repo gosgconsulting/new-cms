@@ -65,6 +65,8 @@ import {
   CheckCircle,
   Monitor
 } from 'lucide-react';
+import api from '../../sparti-cms/utils/api';
+import { resolveThemeRegistry } from '../components/visual-builder/resolveRegistry';
 
 // Component category types - using registry categories
 type CategoryType = 'All' | 'content' | 'media' | 'navigation' | 'form' | 'layout' | 'interactive';
@@ -493,6 +495,86 @@ const ComponentsViewerContent = () => {
   const [jsonViewComponent, setJsonViewComponent] = useState<ComponentDefinition | null>(null);
   const [jsonCopied, setJsonCopied] = useState<boolean>(false);
   const [previewComponent, setPreviewComponent] = useState<ComponentDefinition | null>(null);
+
+  // Database-driven preview state
+  const { user, loading: authLoading, currentTenantId } = useAuth();
+  const [dbPages, setDbPages] = useState<Array<{ id: string; page_name: string; slug: string; theme_id?: string }>>([]);
+  const [loadingPages, setLoadingPages] = useState<boolean>(false);
+  const [selectedDbPageId, setSelectedDbPageId] = useState<string>('');
+  const [dbPageLayout, setDbPageLayout] = useState<{ components: ComponentSchema[] } | null>(null);
+  const [dbPageThemeId, setDbPageThemeId] = useState<string | undefined>(undefined);
+  const [loadingLayout, setLoadingLayout] = useState<boolean>(false);
+
+  // Load tenant pages list for DB preview
+  useEffect(() => {
+    if (!currentTenantId) return;
+    let cancelled = false;
+    const loadPages = async () => {
+      setLoadingPages(true);
+      try {
+        const res = await api.get(`/api/pages?tenantId=${currentTenantId}`);
+        if (!res.ok) {
+          console.warn('[ComponentsViewer] Failed to fetch pages list');
+          return;
+        }
+        const data = await res.json();
+        if (cancelled) return;
+        const pagesArr = Array.isArray(data.pages) ? data.pages : (Array.isArray(data) ? data : []);
+        setDbPages(
+          pagesArr.map((p: any) => ({
+            id: String(p.id),
+            page_name: p.page_name || 'Untitled',
+            slug: p.slug,
+            theme_id: p.theme_id || undefined,
+          }))
+        );
+      } catch (e) {
+        console.warn('[ComponentsViewer] Error loading pages:', e);
+      } finally {
+        if (!cancelled) setLoadingPages(false);
+      }
+    };
+    loadPages();
+    return () => { cancelled = true; };
+  }, [currentTenantId]);
+
+  // Load selected page layout JSON
+  useEffect(() => {
+    if (!selectedDbPageId || !currentTenantId) return;
+    let cancelled = false;
+    const loadLayout = async () => {
+      setLoadingLayout(true);
+      try {
+        const res = await api.get(`/api/pages/${selectedDbPageId}?tenantId=${currentTenantId}`);
+        const data = await res.json();
+        if (cancelled) return;
+        if (data?.success && data?.page) {
+          // Prefer normalized layout json from API
+          let layout = data.page.layout || null;
+          // Optional normalization similar to PageEditor (keep preview faithful to DB)
+          try {
+            const mod = await import('../../sparti-cms/utils/convertTestimonialsToItems.js');
+            if (layout?.components) {
+              layout = mod.convertLayoutTestimonialsToItems(layout);
+            }
+          } catch {
+            // ignore if conversion helper not available
+          }
+          setDbPageLayout(layout);
+          setDbPageThemeId(data.page.theme_id || undefined);
+        } else {
+          setDbPageLayout(null);
+        }
+      } catch (e) {
+        console.warn('[ComponentsViewer] Error loading page layout:', e);
+        setDbPageLayout(null);
+      } finally {
+        if (!cancelled) setLoadingLayout(false);
+      }
+    };
+    loadLayout();
+    return () => { cancelled = true; };
+  }, [selectedDbPageId, currentTenantId]);
 
   // Filter components based on active category and search
   const filteredComponents = useMemo(() => {
@@ -1535,7 +1617,33 @@ const ComponentsViewerContent = () => {
         <div className="p-4 border-b border-gray-200">
           <h2 className="text-lg font-semibold text-gray-800">Library</h2>
         </div>
-        
+
+        {/* Database Preview selector */}
+        <div className="p-3 border-b border-gray-100">
+          <h3 className="text-xs uppercase tracking-wider text-gray-500 font-semibold mb-2">Database Preview</h3>
+          <div className="space-y-2">
+            <label className="text-xs text-gray-500">Tenant pages</label>
+            <select
+              className="w-full px-2 py-1.5 border border-gray-300 rounded-md text-sm"
+              value={selectedDbPageId}
+              onChange={(e) => setSelectedDbPageId(e.target.value)}
+              disabled={loadingPages || !dbPages.length}
+            >
+              <option value="">{loadingPages ? 'Loading pages...' : 'Select a page'}</option>
+              {dbPages.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.page_name} ({p.slug})
+                </option>
+              ))}
+            </select>
+            {selectedDbPageId && (
+              <p className="text-[11px] text-gray-500">
+                Theme: {dbPageThemeId || 'default'}
+              </p>
+            )}
+          </div>
+        </div>
+
         {/* Main Categories */}
         <div className="p-3 border-b border-gray-100">
           <h3 className="text-xs uppercase tracking-wider text-gray-500 font-semibold mb-2">Categories</h3>
@@ -1569,7 +1677,7 @@ const ComponentsViewerContent = () => {
             </ul>
           </nav>
         </div>
-        
+
         {/* Documentation Link */}
         <div className="p-3 mt-auto border-t border-gray-200">
           <a 
@@ -1585,6 +1693,48 @@ const ComponentsViewerContent = () => {
       {/* Main Content */}
       <div className="flex-1 overflow-auto bg-gray-50">
         <div className="p-6">
+          {/* Database-driven visual preview (no hard-coded copy) */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900">Database Preview</h2>
+                <p className="text-sm text-gray-500">
+                  Renders live content from the database using the active theme's components.
+                </p>
+              </div>
+              {loadingLayout && (
+                <div className="text-sm text-gray-500">Loading layout...</div>
+              )}
+            </div>
+            <div className="bg-white rounded-lg border border-gray-200 p-4">
+              {selectedDbPageId ? (
+                dbPageLayout?.components && dbPageLayout.components.length > 0 ? (
+                  <ErrorBoundary
+                    fallback={
+                      <div className="p-4 text-center text-gray-500">
+                        <p className="text-sm">Unable to render database preview.</p>
+                      </div>
+                    }
+                  >
+                    <VisualEditorRenderer
+                      components={dbPageLayout.components}
+                      registry={resolveThemeRegistry(dbPageThemeId)}
+                      compact={false}
+                    />
+                  </ErrorBoundary>
+                ) : (
+                  <div className="text-sm text-gray-500">
+                    {loadingLayout ? 'Loading content...' : 'This page has no components yet.'}
+                  </div>
+                )
+              ) : (
+                <div className="text-sm text-gray-500">
+                  Select a page from the sidebar to preview its live content.
+                </div>
+              )}
+            </div>
+          </div>
+
           <div className="flex justify-between items-center mb-6">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">
@@ -1602,7 +1752,7 @@ const ComponentsViewerContent = () => {
               </button>
             </div>
           </div>
-          
+
           {/* Filter and Sort */}
           <div className="flex justify-between items-center mb-4">
             <div className="flex gap-2">
@@ -1623,7 +1773,7 @@ const ComponentsViewerContent = () => {
               </select>
             </div>
           </div>
-          
+
           {/* Components Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredComponents.map((component) => {
@@ -1636,7 +1786,7 @@ const ComponentsViewerContent = () => {
                 interactive: { bg: 'bg-pink-50', text: 'text-pink-700', border: 'border-pink-200' },
               };
               const colors = categoryColors[component.category || 'content'] || categoryColors.content;
-              
+
               return (
                 <div 
                   key={component.id} 
@@ -1715,7 +1865,7 @@ const ComponentsViewerContent = () => {
               );
             })}
           </div>
-          
+
           {filteredComponents.length === 0 && (
             <div className="p-8 text-center bg-white rounded-lg shadow">
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 mb-4">
@@ -1782,13 +1932,13 @@ const ComponentsViewerContent = () => {
                 </button>
               </div>
             </div>
-            
+
             <div className="flex-1 overflow-auto p-6 bg-gray-50">
               <pre className="bg-white p-4 rounded-lg border border-gray-200 overflow-auto text-sm font-mono text-gray-800 whitespace-pre-wrap break-words">
                 {getFormattedJSON(jsonViewComponent)}
               </pre>
             </div>
-            
+
             <div className="flex justify-end space-x-3 p-6 border-t border-gray-200">
               <button
                 onClick={() => setJsonViewComponent(null)}
@@ -1822,7 +1972,7 @@ const ComponentsViewerContent = () => {
                 <X className="h-5 w-5" />
               </button>
             </div>
-            
+
             <div className="flex-1 overflow-auto p-6 bg-gray-50">
               <div className="bg-white rounded-lg border border-gray-200 p-6 min-h-[400px]">
                 <ErrorBoundary
@@ -1842,7 +1992,7 @@ const ComponentsViewerContent = () => {
                 </ErrorBoundary>
               </div>
             </div>
-            
+
             <div className="flex justify-between items-center p-6 border-t border-gray-200">
               <div className="text-sm text-gray-500">
                 <span className="font-medium">Category:</span> {previewComponent.category || 'N/A'}
@@ -1883,7 +2033,7 @@ const ComponentsViewerContent = () => {
                 <X className="h-5 w-5" />
               </button>
             </div>
-            
+
             <div className="flex-1 overflow-y-auto mb-6">
               <div className="space-y-4">
                 {selectedComponent.description && (
@@ -1892,7 +2042,7 @@ const ComponentsViewerContent = () => {
                     <p className="text-sm text-gray-600">{selectedComponent.description}</p>
                   </div>
                 )}
-                
+
                 <div>
                   <h4 className="text-sm font-medium text-gray-700 mb-2">Component Details</h4>
                   <div className="grid grid-cols-2 gap-4 text-sm">
@@ -1914,7 +2064,7 @@ const ComponentsViewerContent = () => {
                     </div>
                   </div>
                 </div>
-                
+
                 {selectedComponent.tags && selectedComponent.tags.length > 0 && (
                   <div>
                     <h4 className="text-sm font-medium text-gray-700 mb-2">Tags</h4>
@@ -1927,7 +2077,7 @@ const ComponentsViewerContent = () => {
                     </div>
                   </div>
                 )}
-                
+
                 {selectedComponent.properties && Object.keys(selectedComponent.properties).length > 0 && (
                   <div>
                     <h4 className="text-sm font-medium text-gray-700 mb-2">Properties</h4>
@@ -1960,7 +2110,7 @@ const ComponentsViewerContent = () => {
                 )}
               </div>
             </div>
-            
+
             <div className="flex justify-end space-x-3 pt-3 border-t border-gray-200">
               <button
                 onClick={() => setSelectedComponent(null)}
@@ -1977,7 +2127,7 @@ const ComponentsViewerContent = () => {
           </div>
         </div>
       )}
-      
+
       {/* Legacy Placeholder Editor Modal */}
       {selectedPlaceholder && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -2013,7 +2163,7 @@ const ComponentsViewerContent = () => {
                 <X className="h-5 w-5" />
               </button>
             </div>
-            
+
             {/* Component Tabs for Sections */}
             {selectedPlaceholder.category === 'Sections' && selectedPlaceholder.components && (
               <div className="border-b border-gray-200 mb-4">
@@ -2022,7 +2172,7 @@ const ComponentsViewerContent = () => {
                     const componentName = componentId.replace('component-', '').replace('field-', '');
                     const isField = componentId.startsWith('field-');
                     let icon;
-                    
+
                     if (componentId.includes('heading')) {
                       icon = <Heading1 className="h-4 w-4 mr-1" />;
                     } else if (componentId.includes('paragraph')) {
@@ -2034,14 +2184,14 @@ const ComponentsViewerContent = () => {
                     } else {
                       icon = isField ? <Type className="h-4 w-4 mr-1" /> : <Layout className="h-4 w-4 mr-1" />;
                     }
-                    
+
                     return (
                       <button
                         key={componentId}
                         onClick={() => setActiveTabIndex(index)}
                         className={`flex items-center px-4 py-2 border-b-2 whitespace-nowrap ${
-                          index === activeTabIndex 
-                            ? 'border-green-500 text-green-600 font-medium' 
+                          index === activeTabIndex
+                            ? 'border-green-500 text-green-600 font-medium'
                             : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                         }`}
                       >
@@ -2053,7 +2203,7 @@ const ComponentsViewerContent = () => {
                 </div>
               </div>
             )}
-            
+
             {/* Component Fields Header - No tabs */}
             {selectedPlaceholder.category === 'Components' && selectedPlaceholder.fields && (
               <div className="border-b border-gray-200 mb-4">
@@ -2064,7 +2214,7 @@ const ComponentsViewerContent = () => {
                 </div>
               </div>
             )}
-            
+
             {/* Editor content with overflow */}
             <div className="flex-1 overflow-y-auto mb-6">
               {selectedPlaceholder.category === 'Sections' && selectedPlaceholder.components ? (
@@ -2085,7 +2235,7 @@ const ComponentsViewerContent = () => {
                   {selectedPlaceholder.fields.map((fieldId, index) => {
                     const fieldName = fieldId.replace('field-', '').replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
                     let icon;
-                    
+
                     if (fieldId.includes('rich-text')) {
                       icon = <Type className="h-5 w-5 text-blue-600" />;
                     } else if (fieldId.includes('image')) {
@@ -2097,7 +2247,7 @@ const ComponentsViewerContent = () => {
                     } else {
                       icon = <Type className="h-5 w-5 text-blue-600" />;
                     }
-                    
+
                     return (
                       <div key={fieldId} className="bg-gray-50 p-4 rounded-md border border-gray-200">
                         <div className="flex items-center mb-3 pb-2 border-b border-gray-200">
@@ -2116,7 +2266,7 @@ const ComponentsViewerContent = () => {
                 </div>
               )}
             </div>
-            
+
             <div className="flex justify-end space-x-3 pt-3 border-t border-gray-200">
               <button
                 onClick={() => setSelectedPlaceholder(null)}
