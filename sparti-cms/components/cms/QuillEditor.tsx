@@ -1,76 +1,56 @@
-import React, { useMemo, useCallback } from 'react';
+import React, { useMemo, useCallback, memo } from 'react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
+import './QuillEditor.css';
 
 interface QuillEditorProps {
-  content: string; // Expect and emit plain text
+  content: string; // plain text in, plain text out
   onChange: (content: string) => void;
   placeholder?: string;
 }
-
-const escapeHtml = (str: string) => {
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')   // prevent tags like <p>
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-};
 
 const QuillEditor: React.FC<QuillEditorProps> = ({ 
   content, 
   onChange,
   placeholder = 'Enter text...'
 }) => {
-  // No toolbar; no formatting allowed
+  // Strip formatting on paste and disable toolbar to keep it fast and simple
   const modules = useMemo(() => ({
     toolbar: false,
     clipboard: {
-      matchVisual: false
-    }
+      matchVisual: false,
+      // Strip attributes/formatting from pasted content
+      matchers: [
+        [Node.ELEMENT_NODE, (_node: Node, delta: any) => {
+          if (!delta || !Array.isArray(delta.ops)) return delta;
+          delta.ops = delta.ops.map((op: any) => {
+            const insert = typeof op?.insert === 'string' ? op.insert : ' ';
+            return { insert }; // remove attributes and embeds
+          });
+          return delta;
+        }]
+      ]
+    },
+    history: { delay: 300, maxStack: 50, userOnly: true }
   }), []);
 
-  // Disable all formats to keep it truly plain text
+  // Disable all formats to avoid heavy DOM churn
   const formats: string[] = [];
 
-  // Render plain text safely inside quill without becoming HTML
-  const safeHtmlValue = useMemo(() => {
-    const text = content || '';
-    // render newlines visually as <br>, still not storing HTML in state
-    return escapeHtml(text).replace(/\n/g, '<br/>');
-  }, [content]);
-
+  // Emit plain text only (trim trailing newlines that Quill appends)
   const handleChange = useCallback((_html: string, _delta: any, _source: any, editor: any) => {
-    // getText returns a trailing newline; trim it
     const plain = (editor?.getText?.() || '').replace(/\n+$/, '');
     onChange(plain);
   }, [onChange]);
 
+  // NOTE:
+  // Use defaultValue (uncontrolled) instead of value to avoid controlled re-render loops,
+  // which can cause lag when mounting multiple editors inside accordions.
   return (
-    <div className="border border-gray-300 rounded-md bg-white overflow-hidden">
-      <style>{`
-        /* Hide any toolbar (defensive) */
-        .ql-toolbar { display: none !important; }
-        .ql-container {
-          min-height: 140px;
-          background: white;
-          font-size: 14px;
-          border: none !important;
-        }
-        .ql-editor {
-          min-height: 140px;
-          padding: 12px 15px;
-          line-height: 1.5;
-        }
-        .ql-container.ql-snow { border: none; }
-        .ql-editor.ql-blank::before {
-          color: #9ca3af;
-          font-style: normal;
-        }
-      `}</style>
+    <div className="sparti-quill-container">
       <ReactQuill
         theme="snow"
-        value={safeHtmlValue}
+        defaultValue={content || ''}  // plain text initial value
         onChange={handleChange}
         modules={modules}
         formats={formats}
@@ -80,4 +60,4 @@ const QuillEditor: React.FC<QuillEditorProps> = ({
   );
 };
 
-export default QuillEditor;
+export default memo(QuillEditor);
