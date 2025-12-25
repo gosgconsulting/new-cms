@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
-import { MessageCircle, Loader2, ChevronRight, X } from "lucide-react";
+import { MessageCircle, Loader2, ChevronRight, X, GripVertical } from "lucide-react";
 import { PromptBox } from "@/components/ui/chatgpt-prompt-input";
 import { cn } from "@/lib/utils";
 import api from "../../sparti-cms/utils/api";
@@ -1057,6 +1057,53 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
           <span className="hidden sm:inline">AI Assistant</span>
         </button>
       )}
+      {/* Closed state: show a responsive Sections panel on the right */}
+      {isClosed && (
+        <div className="fixed right-3 top-20 z-40 bg-card border shadow-lg rounded-lg w-72 sm:w-96 lg:w-[480px] overflow-hidden">
+          <div className="flex items-center justify-between px-4 py-3 border-b bg-background">
+            <div className="flex items-center gap-2">
+              <GripVertical className="h-4 w-4 text-primary" />
+              <h3 className="text-sm font-semibold">Sections</h3>
+            </div>
+            <button
+              onClick={() => setIsClosed(false)}
+              className="inline-flex h-8 w-8 items-center justify-center rounded-md hover:bg-muted"
+              aria-label="Open AI Assistant"
+              title="Open AI Assistant"
+            >
+              <MessageCircle className="h-4 w-4" />
+            </button>
+          </div>
+          <div className="p-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {(((currentComponents && currentComponents.length > 0)
+                ? currentComponents
+                : (pageContextData?.layout?.components || [])) as any[]).map((comp: any, idx: number) => {
+                const label =
+                  comp?.name ||
+                  comp?.type ||
+                  comp?.key ||
+                  `Section ${idx + 1}`;
+                return (
+                  <button
+                    key={comp?.key || `sec-${idx}`}
+                    onClick={() => {
+                      // expose selection to parent if provided
+                      if (onComponentSelected) onComponentSelected(comp);
+                      // keep assistant closed; user can reopen via sticky pill
+                    }}
+                    className="flex items-center gap-2 px-3 py-2 rounded-md border bg-muted/40 hover:bg-muted text-left"
+                    title={typeof comp === 'object' ? JSON.stringify({ type: comp.type, key: comp.key }, null, 0) : undefined}
+                  >
+                    <GripVertical className="h-3 w-3 text-muted-foreground" />
+                    <span className="text-xs font-medium truncate">{label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
       {/* Sidebar - Always visible */}
       <div className={cn("flex flex-col h-full bg-card border-l shadow-lg overflow-hidden", isCollapsed ? "w-12" : "w-full", isClosed ? "hidden" : "")}>
         {/* Always show content - no collapse functionality */}
@@ -1167,7 +1214,7 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
                  <div
                    key={message.id}
                    className={cn(
-                     "flex w/full",
+                     "flex w-full",
                      message.role === 'user' ? 'justify-end' : 'justify-start'
                    )}
                  >
