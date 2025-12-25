@@ -13,7 +13,6 @@ import Admin from "./pages/Admin";
 import Auth from "./pages/Auth";
 import ThemeAdmin from "./pages/ThemeAdmin";
 import DatabaseViewer from "./pages/DatabaseViewer";
-import ComponentsViewer from "./pages/ComponentsViewer";
 import PublicDashboard from "./pages/PublicDashboard";
 import TenantLandingPage from "./pages/TenantLandingPage";
 import TenantPage from "./pages/TenantPage";
@@ -119,7 +118,6 @@ const App = () => {
             {/* Other routes */}
             <Route path="/auth" element={<Auth />} />
             <Route path="/database-viewer" element={<DatabaseViewer />} />
-            <Route path="/components-viewer" element={<ComponentsViewer />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           </AuthProvider>

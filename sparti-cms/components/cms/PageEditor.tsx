@@ -19,8 +19,7 @@ import { ComponentListItem } from './PageEditor/ComponentListItem';
 import { JSONEditorDialog } from './PageEditor/JSONEditorDialog';
 import { EmptyState, ComponentsErrorState, ComponentsEmptyState } from './PageEditor/EmptyStates';
 import { AIAssistantChat } from '../../../src/components/AIAssistantChat';
-import SectionContentList, { ContentItem } from '@/components/SectionContentList';
-import VisualEditorRenderer from '../../../src/components/visual-builder/VisualEditorRenderer';
+import SectionContentList from '@/components/SectionContentList';
 import CodeViewerDialog from './PageEditor/CodeViewerDialog';
 
 // Visual Editor Panel Component - Shows full page preview

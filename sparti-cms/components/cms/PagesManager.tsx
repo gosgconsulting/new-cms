@@ -14,7 +14,6 @@ import { AIAssistantChat } from '../../../src/components/AIAssistantChat';
 import { VisualEditorJSONDialog } from './VisualEditorJSONDialog';
 import CodeViewerDialog from './PageEditor/CodeViewerDialog';
 import { isValidComponentsArray } from '../../utils/componentHelpers';
-import SimpleWebsiteRenderer from '../../../src/components/visual-builder/SimpleWebsiteRenderer';
 import { ComponentSchema } from '../../types/schema';
 
 interface PageItem {
@@ -473,7 +472,23 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
                   No components found in layout. Use JSON to add sections.
                 </div>
               ) : (
-                <SimpleWebsiteRenderer components={builderComponents} />
+                <div className="w-full space-y-0">
+                  {builderComponents.map((component, index) => (
+                    <div key={index} className="p-4 border-b">
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-lg font-semibold truncate">
+                            {(component as any).name || component.type || `Section ${index + 1}`}
+                          </h3>
+                          {(component as any).key ? (
+                            <p className="text-sm text-gray-600 truncate">Key: {(component as any).key}</p>
+                          ) : null}
+                        </div>
+                        {/* No per-section page actions here; actions above apply to the whole page */}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               )}
             </div>
           </div>
