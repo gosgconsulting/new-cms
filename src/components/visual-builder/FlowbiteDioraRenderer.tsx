@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import type { ComponentSchema, SchemaItem } from "../../../sparti-cms/types/schema";
+import FlowbiteSection from "@/libraries/flowbite/components/FlowbiteSection";
 
 interface FlowbiteDioraRendererProps {
   components: ComponentSchema[];
@@ -137,69 +138,56 @@ function SectionServices({ items }: { items: SchemaItem[] }) {
   if (cards.length === 0 && !title && !subtitle) return null;
 
   return (
-    <section className="w-full py-10 px-4 md:px-6">
-      <div className="mx-auto max-w-6xl">
-        {title ? (
-          <h2 className="text-center text-2xl md:text-3xl font-semibold">
-            {title}
-          </h2>
-        ) : null}
-        {subtitle ? (
-          <p className="mt-2 text-center text-sm md:text-base text-gray-500">
-            {subtitle}
-          </p>
-        ) : null}
-
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {cards.map((card, idx) => (
-            <div
-              key={idx}
-              className="w-full overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm"
-            >
-              <div className="aspect-[4/3] bg-gray-100">
-                <img
-                  src={card.img.src}
-                  alt={
-                    card.img.alt || card.img.title || `Service ${idx + 1}`
-                  }
-                  className="h-full w-full object-cover"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = "/placeholder.svg";
-                  }}
-                />
-              </div>
-              <div className="space-y-1 p-4">
-                <div className="flex items-center gap-2">
-                  {card.img?.title ? (
-                    <h3 className="text-base font-semibold">
-                      {card.img.title}
-                    </h3>
-                  ) : null}
-                  {card.img?.price ? (
-                    <span className="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-[11px] font-medium text-blue-700">
-                      {card.img.price}
-                    </span>
-                  ) : null}
-                </div>
-                {card.img?.alt ? (
-                  <p className="line-clamp-3 text-xs text-gray-500">
-                    {card.img.alt}
-                  </p>
-                ) : null}
-                {card.btn?.content ? (
-                  <a
-                    href={card.btn.link || "#"}
-                    className="mt-3 inline-block rounded-lg bg-blue-600 px-3 py-2 text-sm text-white hover:bg-blue-700"
-                  >
-                    {card.btn.content}
-                  </a>
-                ) : null}
-              </div>
+    <FlowbiteSection title={title || undefined} subtitle={subtitle || undefined}>
+      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {cards.map((card, idx) => (
+          <div
+            key={idx}
+            className="w-full overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm"
+          >
+            <div className="aspect-[4/3] bg-gray-100">
+              <img
+                src={card.img.src}
+                alt={
+                  card.img.alt || card.img.title || `Service ${idx + 1}`
+                }
+                className="h-full w-full object-cover"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = "/placeholder.svg";
+                }}
+              />
             </div>
-          ))}
-        </div>
+            <div className="space-y-1 p-4">
+              <div className="flex items-center gap-2">
+                {card.img?.title ? (
+                  <h3 className="text-base font-semibold">
+                    {card.img.title}
+                  </h3>
+                ) : null}
+                {card.img?.price ? (
+                  <span className="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-[11px] font-medium text-blue-700">
+                    {card.img.price}
+                  </span>
+                ) : null}
+              </div>
+              {card.img?.alt ? (
+                <p className="line-clamp-3 text-xs text-gray-500">
+                  {card.img.alt}
+                </p>
+              ) : null}
+              {card.btn?.content ? (
+                <a
+                  href={card.btn.link || "#"}
+                  className="mt-3 inline-block rounded-lg bg-blue-600 px-3 py-2 text-sm text-white hover:bg-blue-700"
+                >
+                  {card.btn.content}
+                </a>
+              ) : null}
+            </div>
+          </div>
+        ))}
       </div>
-    </section>
+    </FlowbiteSection>
   );
 }
 
@@ -211,48 +199,35 @@ function SectionFeatures({ items }: { items: SchemaItem[] }) {
   if (features.length === 0 && !title && !subtitle) return null;
 
   return (
-    <section className="w-full py-10 px-4 md:px-6">
-      <div className="mx-auto max-w-6xl">
-        {title ? (
-          <h2 className="text-center text-2xl md:text-3xl font-semibold">
-            {title}
-          </h2>
-        ) : null}
-        {subtitle ? (
-          <p className="mt-2 text-center text-sm md:text-base text-gray-500">
-            {subtitle}
-          </p>
-        ) : null}
-
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {features.map((f: any, idx: number) => (
-            <div
-              key={idx}
-              className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm"
-            >
-              <div className="aspect-[4/3] bg-gray-100">
-                <img
-                  src={f.src}
-                  alt={f.alt || f.title || `Feature ${idx + 1}`}
-                  className="h-full w-full object-cover"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = "/placeholder.svg";
-                  }}
-                />
-              </div>
-              <div className="space-y-1 p-4">
-                {f?.title ? (
-                  <h3 className="text-base font-semibold">{f.title}</h3>
-                ) : null}
-                {f?.description ? (
-                  <p className="text-sm text-gray-600">{f.description}</p>
-                ) : null}
-              </div>
+    <FlowbiteSection title={title || undefined} subtitle={subtitle || undefined}>
+      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {features.map((f: any, idx: number) => (
+          <div
+            key={idx}
+            className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm"
+          >
+            <div className="aspect-[4/3] bg-gray-100">
+              <img
+                src={f.src}
+                alt={f.alt || f.title || `Feature ${idx + 1}`}
+                className="h-full w-full object-cover"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = "/placeholder.svg";
+                }}
+              />
             </div>
-          ))}
-        </div>
+            <div className="space-y-1 p-4">
+              {f?.title ? (
+                <h3 className="text-base font-semibold">{f.title}</h3>
+              ) : null}
+              {f?.description ? (
+                <p className="text-sm text-gray-600">{f.description}</p>
+              ) : null}
+            </div>
+          </div>
+        ))}
       </div>
-    </section>
+    </FlowbiteSection>
   );
 }
 
@@ -266,48 +241,35 @@ function SectionIngredients({ items }: { items: SchemaItem[] }) {
   if (ingredients.length === 0 && !title && !subtitle) return null;
 
   return (
-    <section className="w-full py-10 px-4 md:px-6">
-      <div className="mx-auto max-w-6xl">
-        {title ? (
-          <h2 className="text-center text-2xl md:text-3xl font-semibold">
-            {title}
-          </h2>
-        ) : null}
-        {subtitle ? (
-          <p className="mt-2 text-center text-sm md:text-base text-gray-500">
-            {subtitle}
-          </p>
-        ) : null}
-
-        <div
-          className="mt-8 grid gap-4"
-          style={{ gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))" }}
-        >
-          {ingredients.map((ing: any, idx: number) => (
-            <div key={idx} className="rounded-lg border bg-white p-3">
-              <div className="aspect-square overflow-hidden rounded bg-gray-100">
-                {ing?.src ? (
-                  <img
-                    src={ing.src}
-                    alt={ing.name || `Ingredient ${idx + 1}`}
-                    className="h-full w-full object-cover"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = "/placeholder.svg";
-                    }}
-                  />
-                ) : null}
-              </div>
-              {ing?.name ? (
-                <h4 className="mt-2 text-sm font-semibold">{ing.name}</h4>
-              ) : null}
-              {ing?.benefit ? (
-                <p className="text-xs text-gray-600">{ing.benefit}</p>
+    <FlowbiteSection title={title || undefined} subtitle={subtitle || undefined}>
+      <div
+        className="mt-8 grid gap-4"
+        style={{ gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))" }}
+      >
+        {ingredients.map((ing: any, idx: number) => (
+          <div key={idx} className="rounded-lg border bg-white p-3">
+            <div className="aspect-square overflow-hidden rounded bg-gray-100">
+              {ing?.src ? (
+                <img
+                  src={ing.src}
+                  alt={ing.name || `Ingredient ${idx + 1}`}
+                  className="h-full w-full object-cover"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = "/placeholder.svg";
+                  }}
+                />
               ) : null}
             </div>
-          ))}
-        </div>
+            {ing?.name ? (
+              <h4 className="mt-2 text-sm font-semibold">{ing.name}</h4>
+            ) : null}
+            {ing?.benefit ? (
+              <p className="text-xs text-gray-600">{ing.benefit}</p>
+            ) : null}
+          </div>
+        ))}
       </div>
-    </section>
+    </FlowbiteSection>
   );
 }
 
@@ -321,53 +283,40 @@ function SectionTeam({ items }: { items: SchemaItem[] }) {
   if (team.length === 0 && !title && !subtitle) return null;
 
   return (
-    <section className="w-full py-10 px-4 md:px-6">
-      <div className="mx-auto max-w-6xl">
-        {title ? (
-          <h2 className="text-center text-2xl md:text-3xl font-semibold">
-            {title}
-          </h2>
-        ) : null}
-        {subtitle ? (
-          <p className="mt-2 text-center text-sm md:text-base text-gray-500">
-            {subtitle}
-          </p>
-        ) : null}
-
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {team.map((m: any, idx: number) => (
-            <div
-              key={idx}
-              className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm"
-            >
-              {m?.src ? (
-                <div className="aspect-[4/3] bg-gray-100">
-                  <img
-                    src={m.src}
-                    alt={m.name || `Member ${idx + 1}`}
-                    className="h-full w-full object-cover"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = "/placeholder.svg";
-                    }}
-                  />
-                </div>
-              ) : null}
-              <div className="space-y-1 p-4">
-                {m?.name ? (
-                  <h3 className="text-base font-semibold">{m.name}</h3>
-                ) : null}
-                {m?.role ? (
-                  <p className="text-xs text-gray-500">{m.role}</p>
-                ) : null}
-                {m?.description ? (
-                  <p className="text-sm text-gray-600">{m.description}</p>
-                ) : null}
+    <FlowbiteSection title={title || undefined} subtitle={subtitle || undefined}>
+      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {team.map((m: any, idx: number) => (
+          <div
+            key={idx}
+            className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm"
+          >
+            {m?.src ? (
+              <div className="aspect-[4/3] bg-gray-100">
+                <img
+                  src={m.src}
+                  alt={m.name || `Member ${idx + 1}`}
+                  className="h-full w-full object-cover"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = "/placeholder.svg";
+                  }}
+                />
               </div>
+            ) : null}
+            <div className="space-y-1 p-4">
+              {m?.name ? (
+                <h3 className="text-base font-semibold">{m.name}</h3>
+              ) : null}
+              {m?.role ? (
+                <p className="text-xs text-gray-500">{m.role}</p>
+              ) : null}
+              {m?.description ? (
+                <p className="text-sm text-gray-600">{m.description}</p>
+              ) : null}
             </div>
-          ))}
-        </div>
+          </div>
+        ))}
       </div>
-    </section>
+    </FlowbiteSection>
   );
 }
 
@@ -380,32 +329,29 @@ function SectionAbout({ items }: { items: SchemaItem[] }) {
 
   if (!title && !description && !imageItem?.src) return null;
 
-  // Image-right default
   return (
-    <section className="w-full py-10 px-4 md:px-6">
-      <div className="mx-auto grid max-w-6xl items-center gap-6 md:grid-cols-2">
-        <div className="space-y-3">
-          {title ? (
-            <h2 className="text-2xl md:text-3xl font-semibold">{title}</h2>
-          ) : null}
-          {description ? (
-            <p className="text-sm md:text-base text-gray-600">{description}</p>
-          ) : null}
-        </div>
-        {imageItem?.src ? (
-          <div className="overflow-hidden rounded-lg border bg-gray-100">
-            <img
-              src={imageItem.src}
-              alt={imageItem.alt || "About image"}
-              className="h-full w-full object-cover"
-              onError={(e) => {
-                (e.target as HTMLImageElement).src = "/placeholder.svg";
-              }}
-            />
-          </div>
+    <FlowbiteSection containerClassName="grid items-center gap-6 md:grid-cols-2">
+      <div className="space-y-3">
+        {title ? (
+          <h2 className="text-2xl md:text-3xl font-semibold">{title}</h2>
+        ) : null}
+        {description ? (
+          <p className="text-sm md:text-base text-gray-600">{description}</p>
         ) : null}
       </div>
-    </section>
+      {imageItem?.src ? (
+        <div className="overflow-hidden rounded-lg border bg-gray-100">
+          <img
+            src={imageItem.src}
+            alt={imageItem.alt || "About image"}
+            className="h-full w-full object-cover"
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = "/placeholder.svg";
+            }}
+          />
+        </div>
+      ) : null}
+    </FlowbiteSection>
   );
 }
 

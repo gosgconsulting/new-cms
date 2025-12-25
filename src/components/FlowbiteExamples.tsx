@@ -54,6 +54,14 @@ export const FLOWBITE_COMPONENTS: FlowbiteComponentDef[] = [
     path: "/src/libraries/flowbite/components/FlowbiteSlider.tsx",
   },
   {
+    key: "flowbite.section.v1",
+    name: "Section",
+    version: "1.0.0",
+    category: "content",
+    tags: ["layout", "section", "container"],
+    path: "/src/libraries/flowbite/components/FlowbiteSection.tsx",
+  },
+  {
     key: "flowbite.admin.dashboard-shell.v1",
     name: "Admin Dashboard Shell",
     version: "1.0.0",
