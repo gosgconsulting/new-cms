@@ -38,3 +38,4 @@ const SimpleListSection: React.FC<SimpleListSectionProps> = ({ items = [] }) => 
 };
 
 export default SimpleListSection;
+

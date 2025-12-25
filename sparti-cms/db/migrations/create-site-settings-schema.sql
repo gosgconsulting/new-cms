@@ -116,3 +116,4 @@ COMMENT ON COLUMN site_settings.is_public IS 'Whether setting is accessible via 
 COMMENT ON COLUMN site_settings.tenant_id IS 'Tenant identifier (allows multi-tenant support)';
 COMMENT ON COLUMN site_settings.theme_id IS 'Theme identifier (allows theme-specific settings, NULL for tenant-level)';
 
+

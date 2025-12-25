@@ -58,3 +58,4 @@ export default {
     console.log('[testing] Removed tenant_id columns from contacts and form_submissions tables');
   }
 };
+

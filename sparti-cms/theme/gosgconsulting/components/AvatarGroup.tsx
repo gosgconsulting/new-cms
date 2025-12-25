@@ -43,3 +43,4 @@ const AvatarGroup: React.FC<AvatarGroupProps> = ({ className = "", size = "md" }
 };
 
 export default AvatarGroup;
+

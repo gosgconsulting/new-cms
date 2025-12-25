@@ -121,3 +121,4 @@ To modify this theme:
 5. Run theme sync to update database registration
 
 The theme will be automatically available in the CMS admin interface for tenant selection.
+

@@ -130,3 +130,4 @@ const ComparisonSection: React.FC<ComparisonSectionProps> = ({ onGetStarted }) =
 };
 
 export default ComparisonSection;
+

@@ -162,3 +162,4 @@ your-theme-name/
 ---
 
 **Remember**: This template provides the minimum required structure. You can always add more complexity later, but starting with this foundation ensures your theme will work properly in the CMS system.
+

@@ -55,3 +55,4 @@ const SimplePricingSection: React.FC<SimplePricingSectionProps> = ({ items = [],
 };
 
 export default SimplePricingSection;
+

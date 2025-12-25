@@ -312,3 +312,4 @@ export default function AnimatedCaseStudies({ className = "" }: AnimatedCaseStud
     </div>
   );
 }
+

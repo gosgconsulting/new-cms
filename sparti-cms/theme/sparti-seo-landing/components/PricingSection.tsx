@@ -210,3 +210,4 @@ const PricingSection: React.FC<PricingSectionProps> = ({ onGetStarted }) => {
 };
 
 export default PricingSection;
+

@@ -76,3 +76,4 @@ requiredAssets.forEach(asset => {
 });
 
 export default { requiredAssets, allAssetsFound };
+

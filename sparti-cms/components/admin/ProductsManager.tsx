@@ -354,3 +354,4 @@ function ProductDialog({ product, onClose, currentTenantId }: ProductDialogProps
   );
 }
 
+

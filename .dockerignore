@@ -1,0 +1,43 @@
+# Dependencies (will be installed in container)
+node_modules
+npm-debug.log*
+
+# Build output (will be built in container)
+dist
+dist-ssr
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Git
+.git
+.gitignore
+
+# Editor files
+.vscode
+.idea
+*.swp
+*.swo
+
+# Documentation
+*.md
+docs/
+
+# Test files
+**/__tests__/
+**/*.test.js
+**/*.test.ts
+**/*.test.tsx
+
+# Temporary files
+*.tmp
+*.log
+.DS_Store
+
+# Other project folders that aren't needed
+gosgwebsite-main/
+sparti-app-lp-main/
+acatr-landing-page-revamp-main/
+

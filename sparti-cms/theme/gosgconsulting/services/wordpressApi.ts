@@ -183,3 +183,4 @@ export const getPostTags = (post: WordPressPost): Array<{ id: number; name: stri
   
   return post._embedded['wp:term'][1].filter(term => term.taxonomy === 'post_tag');
 };
+

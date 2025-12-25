@@ -42,3 +42,4 @@ const SimpleStatsSection: React.FC<SimpleStatsSectionProps> = ({ items = [] }) =
 };
 
 export default SimpleStatsSection;
+

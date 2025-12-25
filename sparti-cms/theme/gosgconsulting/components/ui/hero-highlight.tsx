@@ -108,3 +108,4 @@ export const Highlight = ({
     </motion.span>
   );
 };
+

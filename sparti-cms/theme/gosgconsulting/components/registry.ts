@@ -45,3 +45,4 @@ export const componentRegistry = {
 
 export type ComponentRegistryType = typeof componentRegistry;
 export type ComponentType = keyof ComponentRegistryType;
+

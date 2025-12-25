@@ -110,3 +110,4 @@ All required packages are already installed:
 - ✅ tailwindcss-animate (animations)
 
 The issue is not missing dependencies, but rather the pricing page component needs to be updated to match the original design.
+

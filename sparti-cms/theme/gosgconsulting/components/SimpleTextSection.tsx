@@ -32,3 +32,4 @@ const SimpleTextSection: React.FC<SimpleTextSectionProps> = ({ items = [] }) => 
 };
 
 export default SimpleTextSection;
+

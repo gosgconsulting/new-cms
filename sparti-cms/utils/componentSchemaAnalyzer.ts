@@ -162,3 +162,4 @@ export function getAvailableActions(component: ComponentSchema | any): {
   };
 }
 
+
