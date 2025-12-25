@@ -13,10 +13,9 @@ import api from '../../utils/api';
 import { AIAssistantChat } from '../../../src/components/AIAssistantChat';
 import { VisualEditorJSONDialog } from './VisualEditorJSONDialog';
 import CodeViewerDialog from './PageEditor/CodeViewerDialog';
-import ComponentPreview from '../../../src/components/visual-builder/ComponentPreview';
 import { isValidComponentsArray } from '../../utils/componentHelpers';
-import { ComponentSchema } from '../../types/schema';
 import SimpleWebsiteRenderer from '../../../src/components/visual-builder/SimpleWebsiteRenderer';
+import { ComponentSchema } from '../../types/schema';
 
 interface PageItem {
   id: string;
@@ -302,17 +301,19 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
     }
   };
 
-  // NEW: When custom theme and visual editor is open, load page layout for builder
+  // NEW: When visual editor is open, load page layout for builder (for all themes)
   useEffect(() => {
     const loadBuilderLayout = async () => {
-      if (!visualEditorPage || currentThemeId !== 'custom') return;
+      if (!visualEditorPage) return;
       if (!currentTenantId || !visualEditorPage.id) return;
 
       try {
         setBuilderLoading(true);
         setBuilderError(null);
 
-        const url = `/api/pages/${visualEditorPage.id}?tenantId=${currentTenantId}`;
+        // Include themeId when available and not 'custom'
+        const themeParam = currentThemeId && currentThemeId !== 'custom' ? `&themeId=${currentThemeId}` : '';
+        const url = `/api/pages/${visualEditorPage.id}?tenantId=${currentTenantId}${themeParam}`;
         const response = await api.get(url, {
           headers: { 'X-Tenant-Id': currentTenantId || '' }
         });
@@ -406,8 +407,6 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
       ? getThemePageUrl(visualEditorPage.slug)
       : visualEditorPage.slug;
 
-    const isCustomTheme = currentThemeId === 'custom';
-
     return (
       <div className="flex flex-col" style={{ height: 'calc(100vh - 120px)' }}>
         <div className="flex items-center justify-between p-4 border-b bg-white rounded-t-lg">
@@ -457,60 +456,37 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
           </div>
         </div>
 
-        {/* Visual Editor content */}
-        {!isCustomTheme ? (
-          // Theme mode: iframe + AI assistant
-          <div className="flex-1 relative bg-gray-100 rounded-b-lg overflow-hidden flex">
-            <div className="flex-1 relative" id="visual-editor-iframe-container">
-              <iframe
-                id="visual-editor-iframe"
-                src={pageUrl}
-                className="w-full h-full border-0"
-                title={`Visual Editor: ${visualEditorPage.pageName}`}
-                style={{ height: '100%' }}
-              />
+        {/* Unified website-style visual editor for all tenants/themes */}
+        <div className="flex-1 bg-background rounded-b-lg overflow-hidden flex">
+          <div className="flex-1 overflow-auto">
+            <div className="w-full space-y-0">
+              {builderLoading ? (
+                <div className="bg-white border rounded-lg p-8 m-6 text-center text-muted-foreground">
+                  Loading page layout...
+                </div>
+              ) : builderError ? (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4 m-6 text-sm text-red-700">
+                  {builderError}
+                </div>
+              ) : builderComponents.length === 0 ? (
+                <div className="bg-white border rounded-lg p-8 m-6 text-center text-muted-foreground">
+                  No components found in layout. Use JSON to add sections.
+                </div>
+              ) : (
+                <SimpleWebsiteRenderer components={builderComponents} />
+              )}
             </div>
-            <AIAssistantChat 
-              className="h-full" 
-              pageContext={visualEditorPage ? {
-                slug: visualEditorPage.slug,
-                pageName: visualEditorPage.pageName
-              } : null}
-            />
           </div>
-        ) : (
-          // Custom theme: website-style preview strictly from schema (no default header/footer)
-          <div className="flex-1 bg-background rounded-b-lg overflow-hidden flex">
-            <div className="flex-1 overflow-auto">
-              <div className="w-full space-y-0">
-                {builderLoading ? (
-                  <div className="bg-white border rounded-lg p-8 m-6 text-center text-muted-foreground">
-                    Loading page layout...
-                  </div>
-                ) : builderError ? (
-                  <div className="bg-red-50 border border-red-200 rounded-lg p-4 m-6 text-sm text-red-700">
-                    {builderError}
-                  </div>
-                ) : builderComponents.length === 0 ? (
-                  <div className="bg-white border rounded-lg p-8 m-6 text-center text-muted-foreground">
-                    No components found in layout. Use JSON to add sections.
-                  </div>
-                ) : (
-                  <SimpleWebsiteRenderer components={builderComponents} />
-                )}
-              </div>
-            </div>
 
-            {/* AI Assistant panel */}
-            <AIAssistantChat 
-              className="h-full" 
-              pageContext={visualEditorPage ? {
-                slug: visualEditorPage.slug,
-                pageName: visualEditorPage.pageName
-              } : null}
-            />
-          </div>
-        )}
+          {/* AI Assistant panel */}
+          <AIAssistantChat 
+            className="h-full" 
+            pageContext={visualEditorPage ? {
+              slug: visualEditorPage.slug,
+              pageName: visualEditorPage.pageName
+            } : null}
+          />
+        </div>
 
         <CodeViewerDialog
           open={showCodeViewer}
