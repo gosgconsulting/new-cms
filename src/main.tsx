@@ -2,7 +2,7 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
 import './index.css';
-import 'flowbite';
+import 'flowbite/dist/flowbite';
 import '../sparti-cms/styles/modal-sparti-fix.css';
 import '../sparti-cms/styles/rich-text-editor.css';
 import { initializeGlobalTheme } from '@/lib/utils-dashboard';

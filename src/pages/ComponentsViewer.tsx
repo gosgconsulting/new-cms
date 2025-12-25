@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
 import FlowbiteLibrary from "../components/visual-builder/FlowbiteLibrary";
+import ACATRLibrary from "../components/visual-builder/ACATRLibrary";
 import MasterComponentsViewer from "../components/visual-builder/MasterComponentsViewer";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "../components/ui/tabs";
@@ -9,6 +10,7 @@ const ComponentsViewer: React.FC = () => {
   const availableLibraries = useMemo(
     () => [
       { id: "flowbite", label: "Flowbite", available: true },
+      { id: "acatr", label: "ACATR", available: true },
       // Future libraries (enable once implemented):
       // { id: "gosgconsulting", label: "GO SG CONSULTING", available: false },
       // { id: "landingpage", label: "Landing Page", available: false },
@@ -60,6 +62,8 @@ const ComponentsViewer: React.FC = () => {
         {view === "libraries" ? (
           libraryId === "flowbite" ? (
             <FlowbiteLibrary />
+          ) : libraryId === "acatr" ? (
+            <ACATRLibrary />
           ) : (
             <div className="p-6 text-sm text-gray-500">
               This design library is not available yet.
