@@ -177,21 +177,23 @@ body.gosg-editing .sparti-content::before {
   }
 }
 
-/* Overlay Styles - High Priority */
+/* Hover overlay: tinted background + border */
 .sparti-hover-overlay {
   border: 2px solid rgba(155, 135, 245, 0.9);
   background: rgba(155, 135, 245, 0.08);
-  pointer-events: none !important;
-  z-index: 2147483640 !important;
 }
 
+/* Selection overlay: border only, no background tint */
 .sparti-selection-overlay {
   border: 2px solid rgba(155, 135, 245, 0.9);
   background: transparent;
-  pointer-events: none !important;
-  z-index: 2147483641 !important;
 }
 
+/* Modal backdrop and panel sit above overlays */
+.sparti-modal-backdrop { z-index: 9999; }
+.sparti-edit-panel { z-index: 10000; }
+
+/* Section label chip */
 .sparti-element-label {
   position: absolute;
   top: -24px;
@@ -244,14 +246,6 @@ body.gosg-editing .sparti-content::before {
   flex: 1;
   overflow-y: auto;
   padding: 12px;
-}
-
-/* Modal backdrop remains full-viewport */
-.sparti-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.3);
-  z-index: 9999;
 }
 
 /* Hover/selection overlays unaffected */

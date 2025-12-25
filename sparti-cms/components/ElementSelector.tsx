@@ -16,7 +16,6 @@ export const ElementSelector: React.FC<ElementSelectorProps> = ({ children }) =>
     return { element, data };
   };
 
-  // Helper: resolve to nearest section wrapper if present
   const resolveSectionRoot = (target: HTMLElement | null): HTMLElement | null => {
     if (!target) return null;
     const nearestEditable = UniversalElementDetector.findNearestEditableElement(target);
@@ -39,14 +38,16 @@ export const ElementSelector: React.FC<ElementSelectorProps> = ({ children }) =>
 
     const spartiElement = createSpartiElement(effectiveElement);
     selectElement(spartiElement);
-    // Clear any hover highlight once a section is selected
+
+    // Ensure any hover is removed immediately after selection
     hoverElement(null);
+    document.body.classList.add('sparti-editor-open');
   };
 
   const handleElementHover = (e: MouseEvent) => {
     if (!isEditing) return;
 
-    // If a section is already selected (editor open), disable hover feedback
+    // If a section is already selected (editor open), suppress hover entirely
     if (selectedElement) {
       hoverElement(null);
       return;
@@ -74,8 +75,11 @@ export const ElementSelector: React.FC<ElementSelectorProps> = ({ children }) =>
 
     const targetElement = contentRef.current || document.body;
 
+    // Always track clicks and mouseleave; only track mouseover when no selection
     targetElement.addEventListener('click', handleElementClick, true);
-    targetElement.addEventListener('mouseover', handleElementHover, true);
+    if (!selectedElement) {
+      targetElement.addEventListener('mouseover', handleElementHover, true);
+    }
     targetElement.addEventListener('mouseleave', handleElementLeave, true);
 
     document.body.classList.add('sparti-editing');
@@ -85,6 +89,7 @@ export const ElementSelector: React.FC<ElementSelectorProps> = ({ children }) =>
       targetElement.removeEventListener('mouseover', handleElementHover, true);
       targetElement.removeEventListener('mouseleave', handleElementLeave, true);
       document.body.classList.remove('sparti-editing');
+      document.body.classList.remove('sparti-editor-open');
     };
   }, [isEditing, selectedElement]);
 
