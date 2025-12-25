@@ -10,7 +10,6 @@ import FooterSchemaEditor from './FooterSchemaEditor';
 import { useAuth } from '../auth/AuthProvider';
 import { getDummyPages, isDevelopmentTenant } from '../admin/DevelopmentTenantData';
 import api from '../../utils/api';
-import { AIAssistantChat } from '../../../src/components/AIAssistantChat';
 import { VisualEditorJSONDialog } from './VisualEditorJSONDialog';
 import CodeViewerDialog from './PageEditor/CodeViewerDialog';
 import { isValidComponentsArray } from '../../utils/componentHelpers';
@@ -512,15 +511,6 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
               )}
             </div>
           </div>
-
-          {/* AI Assistant panel */}
-          <AIAssistantChat 
-            className="h-full" 
-            pageContext={visualEditorPage ? {
-              slug: visualEditorPage.slug,
-              pageName: visualEditorPage.pageName
-            } : null}
-          />
         </div>
 
         <CodeViewerDialog
