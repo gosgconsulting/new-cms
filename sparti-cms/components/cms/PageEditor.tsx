@@ -22,14 +22,17 @@ import { AIAssistantChat } from '../../../src/components/AIAssistantChat';
 import SectionContentList, { ContentItem } from '@/components/SectionContentList';
 import VisualEditorRenderer from '../../../src/components/visual-builder/VisualEditorRenderer';
 import CodeViewerDialog from './PageEditor/CodeViewerDialog';
+// NEW: resolve registry by theme
+import { resolveThemeRegistry } from '../../../src/components/visual-builder/resolveRegistry';
 
 // Visual Editor Panel Component - Shows full page preview
 interface ContentsPanelProps {
   components: ComponentSchema[];
   extractContentFromComponents: (components: ComponentSchema[]) => ContentItem[];
+  registry?: Record<string, React.ComponentType<any>>; // NEW
 }
 
-const ContentsPanel: React.FC<ContentsPanelProps> = ({ components }) => {
+const ContentsPanel: React.FC<ContentsPanelProps> = ({ components, registry }) => {
   if (!components || components.length === 0) {
     return (
       <div className="text-center py-8">
@@ -56,7 +59,7 @@ const ContentsPanel: React.FC<ContentsPanelProps> = ({ components }) => {
 
       {/* Full visual editor with all components */}
       <div className="w-full">
-        <VisualEditorRenderer components={components} />
+        <VisualEditorRenderer components={components} registry={registry} />
       </div>
     </div>
   );
@@ -132,6 +135,9 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack, currentTenantId
     selectedComponentIndex,
     setSelectedComponentIndex,
   });
+
+  // Memoize the active registry by currentThemeId (source of truth for visual components)
+  const activeRegistry = useMemo(() => resolveThemeRegistry(currentThemeId), [currentThemeId]);
 
   // Fetch page data
   useEffect(() => {
@@ -434,6 +440,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack, currentTenantId
           <ContentsPanel
             components={components}
             extractContentFromComponents={extractContentFromComponents}
+            registry={activeRegistry} // NEW: pass registry
           />
         </div>
       );
@@ -531,7 +538,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack, currentTenantId
             </div>
             {selected ? (
               <div className="border rounded-lg p-4 bg-background">
-                <VisualEditorRenderer components={[selected]} compact />
+                <VisualEditorRenderer components={[selected]} compact registry={activeRegistry} />
               </div>
             ) : null}
           </div>

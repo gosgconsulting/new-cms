@@ -43,6 +43,7 @@ function getComponentRegistry(): Record<string, React.ComponentType<any>> {
 interface VisualEditorRendererProps {
   components: ComponentSchema[];
   compact?: boolean;
+  registry?: Record<string, React.ComponentType<any>>; // NEW: inject theme-aware registry
 }
 
 /**
@@ -241,9 +242,12 @@ function transformProps(component: ComponentSchema, componentType: string): Reco
  * Renders components using the theme component registry
  * Supports both props-based and items-based (schema) components
  */
-const VisualEditorRenderer: React.FC<VisualEditorRendererProps> = ({ components, compact = false }) => {
+const VisualEditorRenderer: React.FC<VisualEditorRendererProps> = ({ components, compact = false, registry: injectedRegistry }) => {
   // Memoize registry to avoid re-computing
   const registry = useMemo(() => {
+    if (injectedRegistry && typeof injectedRegistry === 'object' && Object.keys(injectedRegistry).length > 0) {
+      return injectedRegistry;
+    }
     const reg = getComponentRegistry();
     if (typeof window !== 'undefined') {
       console.log('[testing] Component registry loaded with', Object.keys(reg).length, 'components');
@@ -252,7 +256,7 @@ const VisualEditorRenderer: React.FC<VisualEditorRendererProps> = ({ components,
       }
     }
     return reg;
-  }, []);
+  }, [injectedRegistry]);
 
   if (!components || components.length === 0) {
     return (
