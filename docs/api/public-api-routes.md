@@ -8,26 +8,48 @@ This document describes the public API endpoints available at `/api/v1/`. These 
 
 ## Authentication & Tenant Isolation
 
-All endpoints require authentication using a **Tenant API Key**. The API key identifies the tenant and automatically scopes all responses to that tenant's data, ensuring complete data isolation between tenants.
+All endpoints require authentication to identify the tenant and automatically scope all responses to that tenant's data, ensuring complete data isolation between tenants.
 
 ### Authentication Methods
 
+The API supports multiple authentication methods, listed in order of preference (most secure first):
+
+#### Method 1: Tenant API Key (Recommended - Most Secure)
+
 The API supports three methods for providing your API key (all methods are equivalent):
 
-#### Method 1: X-API-Key Header (Recommended)
+**Option A: X-API-Key Header**
 ```bash
 curl -H "X-API-Key: your-api-key-here" https://api.example.com/api/v1/pages
 ```
 
-#### Method 2: Authorization Bearer Token
+**Option B: Authorization Bearer Token**
 ```bash
 curl -H "Authorization: Bearer your-api-key-here" https://api.example.com/api/v1/pages
 ```
 
-#### Method 3: Case-Insensitive Header
+**Option C: Case-Insensitive Header**
 ```bash
 curl -H "x-api-key: your-api-key-here" https://api.example.com/api/v1/pages
 ```
+
+#### Method 2: Tenant ID Header (For Public Tenant Pages)
+
+For public tenant frontend pages, you can use the tenant ID directly:
+
+```bash
+curl -H "X-Tenant-Id: tenant-123" https://api.example.com/api/v1/pages
+```
+
+#### Method 3: Tenant ID Query Parameter (For Public Tenant Pages)
+
+Alternatively, you can pass the tenant ID as a query parameter:
+
+```bash
+curl "https://api.example.com/api/v1/pages?tenantId=tenant-123"
+```
+
+> **⚠️ Security Note**: Methods 2 and 3 (tenant ID header/query param) are less secure than API keys and should only be used for public tenant frontend pages. For external API consumers and production use, always use Method 1 (API keys).
 
 ### Getting Your API Key
 
@@ -131,7 +153,19 @@ Content-Type: application/json
 
 If authentication fails, you'll receive one of these error responses:
 
-#### Missing API Key
+#### Missing Authentication
+**Status Code**: `401 Unauthorized`
+```json
+{
+  "success": false,
+  "error": "API key or tenant ID is required",
+  "code": "MISSING_AUTH"
+}
+```
+
+This error occurs when neither an API key nor a tenant ID is provided.
+
+#### Missing API Key (Legacy)
 **Status Code**: `401 Unauthorized`
 ```json
 {
@@ -150,6 +184,18 @@ If authentication fails, you'll receive one of these error responses:
   "code": "INVALID_API_KEY"
 }
 ```
+
+#### Tenant Not Found
+**Status Code**: `404 Not Found`
+```json
+{
+  "success": false,
+  "error": "Tenant not found",
+  "code": "TENANT_NOT_FOUND"
+}
+```
+
+This error occurs when a tenant ID is provided but the tenant doesn't exist in the database.
 
 #### Authentication Error
 **Status Code**: `500 Internal Server Error`
@@ -179,6 +225,8 @@ If authentication fails, you'll receive one of these error responses:
 
 ### Example: Complete Authenticated Request
 
+#### Using API Key (Recommended)
+
 ```bash
 # Using curl with X-API-Key header
 curl -X GET \
@@ -193,7 +241,24 @@ curl -X GET \
   https://api.example.com/api/v1/pages?status=published&limit=10
 ```
 
+#### Using Tenant ID (For Public Tenant Pages)
+
+```bash
+# Using X-Tenant-Id header
+curl -X GET \
+  -H "X-Tenant-Id: tenant-123" \
+  -H "Content-Type: application/json" \
+  https://api.example.com/api/v1/pages?status=published&limit=10
+
+# Using tenantId query parameter
+curl -X GET \
+  -H "Content-Type: application/json" \
+  "https://api.example.com/api/v1/pages?tenantId=tenant-123&status=published&limit=10"
+```
+
 ### JavaScript/Node.js Example
+
+#### Using API Key
 
 ```javascript
 const apiKey = 'tenant_tenant-123_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6';
@@ -210,7 +275,33 @@ const response = await fetch(`${baseUrl}/pages?status=published&limit=10`, {
 const data = await response.json();
 ```
 
+#### Using Tenant ID (For Public Tenant Pages)
+
+```javascript
+const tenantId = 'tenant-123';
+const baseUrl = 'https://api.example.com/api/v1';
+
+// Using X-Tenant-Id header
+const response = await fetch(`${baseUrl}/pages?status=published&limit=10`, {
+  headers: {
+    'X-Tenant-Id': tenantId,
+    'Content-Type': 'application/json'
+  }
+});
+
+// Or using tenantId query parameter
+const response2 = await fetch(`${baseUrl}/pages?tenantId=${tenantId}&status=published&limit=10`, {
+  headers: {
+    'Content-Type': 'application/json'
+  }
+});
+
+const data = await response.json();
+```
+
 ### Python Example
+
+#### Using API Key
 
 ```python
 import requests
@@ -232,13 +323,44 @@ response = requests.get(
 data = response.json()
 ```
 
+#### Using Tenant ID (For Public Tenant Pages)
+
+```python
+import requests
+
+tenant_id = 'tenant-123'
+base_url = 'https://api.example.com/api/v1'
+
+# Using X-Tenant-Id header
+headers = {
+    'X-Tenant-Id': tenant_id,
+    'Content-Type': 'application/json'
+}
+
+response = requests.get(
+    f'{base_url}/pages',
+    params={'status': 'published', 'limit': 10},
+    headers=headers
+)
+
+# Or using tenantId query parameter
+response = requests.get(
+    f'{base_url}/pages',
+    params={'tenantId': tenant_id, 'status': 'published', 'limit': 10},
+    headers={'Content-Type': 'application/json'}
+)
+
+data = response.json()
+```
+
 ### Tenant Isolation
 
 Once authenticated, all API requests are automatically scoped to your tenant:
 - All data returned is specific to your tenant
 - You cannot access data from other tenants
-- The `tenant_id` is automatically extracted from your API key and included in all responses
-- No need to manually specify tenant ID in requests
+- The `tenant_id` is automatically extracted from your API key (or provided tenant ID) and included in all responses
+- No need to manually specify tenant ID in requests (when using API keys)
+- When using tenant ID authentication, the tenant ID must be provided in each request
 
 ## Response Format
 
@@ -702,7 +824,7 @@ GET /api/v1/settings/site_name
 
 ### Tenant Isolation
 
-All endpoints automatically filter results by `tenant_id` when available. The tenant ID is automatically extracted from your API key during authentication and used to ensure complete data isolation between tenants. You don't need to manually specify tenant ID in your requests.
+All endpoints automatically filter results by `tenant_id` when available. The tenant ID is automatically extracted from your API key (or provided via X-Tenant-Id header/tenantId query param) during authentication and used to ensure complete data isolation between tenants. When using API keys, you don't need to manually specify tenant ID in your requests. When using tenant ID authentication, the tenant ID must be provided in each request.
 
 ### Pagination
 

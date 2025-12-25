@@ -28,14 +28,30 @@ const getAccessKey = () => {
   return localStorage.getItem('sparti-access-key');
 };
 
+// Get tenant API key from localStorage
+// Supports both tenant-specific keys (sparti-tenant-api-key-{tenantId}) and global key (sparti-tenant-api-key)
+const getTenantApiKey = (tenantId?: string) => {
+  if (tenantId) {
+    // Try tenant-specific key first
+    const tenantSpecificKey = localStorage.getItem(`sparti-tenant-api-key-${tenantId}`);
+    if (tenantSpecificKey) {
+      return tenantSpecificKey;
+    }
+  }
+  // Fallback to global tenant API key
+  return localStorage.getItem('sparti-tenant-api-key');
+};
+
 // Get headers with authentication
-const getAuthHeaders = (additionalHeaders: Record<string, string> = {}) => {
+const getAuthHeaders = (additionalHeaders: Record<string, string> = {}, tenantId?: string) => {
   const token = getAuthToken();
   const accessKey = getAccessKey();
+  const tenantApiKey = getTenantApiKey(tenantId);
   const headers = {
     'Content-Type': 'application/json',
     ...(token && { 'Authorization': `Bearer ${token}` }),
     ...(accessKey && { 'X-Access-Key': accessKey }),
+    ...(tenantApiKey && { 'X-API-Key': tenantApiKey }),
     ...additionalHeaders,
   };
   console.log('[testing] API utility - Headers being sent:', headers);
@@ -46,45 +62,48 @@ export const api = {
   // Get the base URL
   getBaseUrl: () => API_BASE_URL,
   
+  // Get tenant API key (exported for external use)
+  getTenantApiKey: (tenantId?: string) => getTenantApiKey(tenantId),
+  
   // Make API calls with proper base URL and authentication
-  get: async (endpoint: string, options?: RequestInit) => {
+  get: async (endpoint: string, options?: RequestInit & { tenantId?: string }) => {
     const url = endpoint.startsWith('http') ? endpoint : `${API_BASE_URL}${endpoint}`;
-    const { headers: additionalHeaders, ...restOptions } = options || {};
+    const { headers: additionalHeaders, tenantId, ...restOptions } = options || {};
     return fetch(url, {
       method: 'GET',
-      headers: getAuthHeaders(additionalHeaders as Record<string, string>),
+      headers: getAuthHeaders(additionalHeaders as Record<string, string>, tenantId),
       ...restOptions,
     });
   },
   
-  post: async (endpoint: string, data?: any, options?: RequestInit) => {
+  post: async (endpoint: string, data?: any, options?: RequestInit & { tenantId?: string }) => {
     const url = endpoint.startsWith('http') ? endpoint : `${API_BASE_URL}${endpoint}`;
-    const { headers: additionalHeaders, ...restOptions } = options || {};
+    const { headers: additionalHeaders, tenantId, ...restOptions } = options || {};
     return fetch(url, {
       method: 'POST',
-      headers: getAuthHeaders(additionalHeaders as Record<string, string>),
+      headers: getAuthHeaders(additionalHeaders as Record<string, string>, tenantId),
       body: data ? JSON.stringify(data) : undefined,
       ...restOptions,
     });
   },
   
-  put: async (endpoint: string, data?: any, options?: RequestInit) => {
+  put: async (endpoint: string, data?: any, options?: RequestInit & { tenantId?: string }) => {
     const url = endpoint.startsWith('http') ? endpoint : `${API_BASE_URL}${endpoint}`;
-    const { headers: additionalHeaders, ...restOptions } = options || {};
+    const { headers: additionalHeaders, tenantId, ...restOptions } = options || {};
     return fetch(url, {
       method: 'PUT',
-      headers: getAuthHeaders(additionalHeaders as Record<string, string>),
+      headers: getAuthHeaders(additionalHeaders as Record<string, string>, tenantId),
       body: data ? JSON.stringify(data) : undefined,
       ...restOptions,
     });
   },
   
-  delete: async (endpoint: string, options?: RequestInit) => {
+  delete: async (endpoint: string, options?: RequestInit & { tenantId?: string }) => {
     const url = endpoint.startsWith('http') ? endpoint : `${API_BASE_URL}${endpoint}`;
-    const { headers: additionalHeaders, ...restOptions } = options || {};
+    const { headers: additionalHeaders, tenantId, ...restOptions } = options || {};
     return fetch(url, {
       method: 'DELETE',
-      headers: getAuthHeaders(additionalHeaders as Record<string, string>),
+      headers: getAuthHeaders(additionalHeaders as Record<string, string>, tenantId),
       ...restOptions,
     });
   },

@@ -59,7 +59,10 @@ const MasterFooter: React.FC<MasterFooterProps> = ({
 
   useEffect(() => {
     setLoading(true);
-    const params = language ? `?language=${encodeURIComponent(language)}` : "";
+    const queryParams = new URLSearchParams();
+    if (language) queryParams.append('language', language);
+    if (tenantId) queryParams.append('tenantId', tenantId);
+    const params = queryParams.toString() ? `?${queryParams.toString()}` : "";
     const controller = new AbortController();
     fetch(`/api/v1/footer${params}`, {
       headers: tenantId ? { "X-Tenant-Id": tenantId } : {},

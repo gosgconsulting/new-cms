@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useLayoutEffect } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useCallback } from 'react';
 import { Button } from '../../../src/components/ui/button';
 import { Card } from '../../../src/components/ui/card';
 import { Badge } from '../../../src/components/ui/badge';
@@ -293,6 +293,46 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
     }
   };
 
+  // Extract load function to be reusable - wrapped in useCallback to prevent dependency issues
+  const loadBuilderLayout = useCallback(async () => {
+    if (!visualEditorPage) return;
+    if (!currentTenantId || !visualEditorPage.id) return;
+
+    try {
+      setBuilderLoading(true);
+      setBuilderError(null);
+
+      // Include themeId when available and not 'custom'
+      const themeParam = currentThemeId && currentThemeId !== 'custom' ? `&themeId=${currentThemeId}` : '';
+      // Add cache-busting parameter to ensure fresh data after save
+      const cacheBuster = `&_t=${Date.now()}`;
+      const url = `/api/pages/${visualEditorPage.id}?tenantId=${currentTenantId}${themeParam}${cacheBuster}`;
+      const response = await api.get(url, {
+        headers: { 'X-Tenant-Id': currentTenantId || '' }
+      });
+
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(text || 'Failed to load page');
+      }
+
+      const data = await response.json();
+      const comps = data?.page?.layout?.components || [];
+      setBuilderComponents(isValidComponentsArray(comps) ? comps : []);
+
+      // If Diora-like homepage layout detected, ensure default Flowbite theme is applied for preview
+      const isHomepage = visualEditorPage?.slug === '/' || visualEditorPage?.slug === '/home';
+      if (isHomepage && isDioraHomepageLayout(isValidComponentsArray(comps) ? comps : [])) {
+        applyFlowbiteTheme('default');
+      }
+    } catch (err: any) {
+      setBuilderError(err?.message || 'Failed to load page layout');
+      setBuilderComponents([]);
+    } finally {
+      setBuilderLoading(false);
+    }
+  }, [visualEditorPage, currentTenantId, currentThemeId]);
+
   const handleSaveLayout = async () => {
     if (!Array.isArray(builderComponents) || builderComponents.length === 0) {
       toast({
@@ -317,13 +357,35 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
       const effectiveTenantId = currentTenantId || 'tenant-gosg';
       const targetPageId = visualEditorPage.id;
 
-      const res = await api.put(`/api/pages/${targetPageId}/layout`, {
-        layout_json: { components: builderComponents },
+      // Ensure layout_json has the correct structure: { components: [...] }
+      const layoutJson = { components: builderComponents };
+
+      // Include themeId when available and not 'custom' to ensure correct page is updated
+      const requestBody: any = {
+        layout_json: layoutJson,
         tenantId: effectiveTenantId
+      };
+      if (currentThemeId && currentThemeId !== 'custom') {
+        requestBody.themeId = currentThemeId;
+      }
+
+      console.log('[testing] Saving layout:', {
+        pageId: targetPageId,
+        tenantId: effectiveTenantId,
+        themeId: currentThemeId,
+        componentsCount: builderComponents.length
       });
+
+      const res = await api.put(`/api/pages/${targetPageId}/layout`, requestBody);
       const json = await res.json();
       
       if (json && json.success !== false) {
+        // Wait a bit for database to commit
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        // Reload the page layout from database to ensure UI reflects saved state
+        await loadBuilderLayout();
+        
         toast({
           title: 'Layout saved',
           description: 'Your page layout has been saved successfully.',
@@ -350,45 +412,8 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
 
   // NEW: When visual editor is open, load page layout for builder (for all themes)
   useEffect(() => {
-    const loadBuilderLayout = async () => {
-      if (!visualEditorPage) return;
-      if (!currentTenantId || !visualEditorPage.id) return;
-
-      try {
-        setBuilderLoading(true);
-        setBuilderError(null);
-
-        // Include themeId when available and not 'custom'
-        const themeParam = currentThemeId && currentThemeId !== 'custom' ? `&themeId=${currentThemeId}` : '';
-        const url = `/api/pages/${visualEditorPage.id}?tenantId=${currentTenantId}${themeParam}`;
-        const response = await api.get(url, {
-          headers: { 'X-Tenant-Id': currentTenantId || '' }
-        });
-
-        if (!response.ok) {
-          const text = await response.text();
-          throw new Error(text || 'Failed to load page');
-        }
-
-        const data = await response.json();
-        const comps = data?.page?.layout?.components || [];
-        setBuilderComponents(isValidComponentsArray(comps) ? comps : []);
-
-        // If Diora-like homepage layout detected, ensure default Flowbite theme is applied for preview
-        const isHomepage = visualEditorPage?.slug === '/' || visualEditorPage?.slug === '/home';
-        if (isHomepage && isDioraHomepageLayout(isValidComponentsArray(comps) ? comps : [])) {
-          applyFlowbiteTheme('default');
-        }
-      } catch (err: any) {
-        setBuilderError(err?.message || 'Failed to load page layout');
-        setBuilderComponents([]);
-      } finally {
-        setBuilderLoading(false);
-      }
-    };
-
     loadBuilderLayout();
-  }, [visualEditorPage, currentThemeId, currentTenantId]);
+  }, [loadBuilderLayout]);
 
   // Helper: determine if current layout matches Diora homepage structure
   const isDioraHomepageLayout = (components: ComponentSchema[]) => {

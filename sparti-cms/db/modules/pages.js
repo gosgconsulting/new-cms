@@ -729,16 +729,81 @@ export async function updatePageData(pageId, pageName, metaTitle, metaDescriptio
 }
 
 // Helper function to validate page exists
-async function ensurePageExists(pageId, tenantId) {
-  const pageCheck = await query(`
-    SELECT id FROM pages WHERE id = $1 AND tenant_id = $2
-  `, [pageId, tenantId]);
+async function ensurePageExists(pageId, tenantId, themeId = null) {
+  console.log('[testing] ========== ensurePageExists ==========');
+  console.log('[testing] Parameters:', {
+    pageId: pageId,
+    pageIdType: typeof pageId,
+    pageIdIsNumeric: /^\d+$/.test(String(pageId)),
+    tenantId: tenantId,
+    themeId: themeId
+  });
+
+  let pageCheck;
+  
+  if (themeId) {
+    console.log('[testing] Checking page with theme_id...');
+    // Check with theme_id when provided
+    pageCheck = await query(`
+      SELECT id FROM pages WHERE id::text = $1 AND tenant_id = $2 AND theme_id = $3
+    `, [pageId, tenantId, themeId]);
+    
+    console.log('[testing] Query result (text match):', {
+      rowsFound: pageCheck.rows.length,
+      foundPageIds: pageCheck.rows.map(r => r.id)
+    });
+    
+    // If not found and pageId is numeric, try as integer
+    if (pageCheck.rows.length === 0 && /^\d+$/.test(String(pageId))) {
+      console.log('[testing] Retrying with integer pageId...');
+      pageCheck = await query(`
+        SELECT id FROM pages WHERE id = $1 AND tenant_id = $2 AND theme_id = $3
+      `, [parseInt(pageId), tenantId, themeId]);
+      
+      console.log('[testing] Query result (integer match):', {
+        rowsFound: pageCheck.rows.length,
+        foundPageIds: pageCheck.rows.map(r => r.id)
+      });
+    }
+  } else {
+    console.log('[testing] Checking page without theme_id...');
+    // Check without theme_id (legacy behavior)
+    pageCheck = await query(`
+      SELECT id FROM pages WHERE id::text = $1 AND tenant_id = $2
+    `, [pageId, tenantId]);
+    
+    console.log('[testing] Query result (text match, no theme):', {
+      rowsFound: pageCheck.rows.length,
+      foundPageIds: pageCheck.rows.map(r => r.id)
+    });
+    
+    // If not found and pageId is numeric, try as integer
+    if (pageCheck.rows.length === 0 && /^\d+$/.test(String(pageId))) {
+      console.log('[testing] Retrying with integer pageId (no theme)...');
+      pageCheck = await query(`
+        SELECT id FROM pages WHERE id = $1 AND tenant_id = $2
+      `, [parseInt(pageId), tenantId]);
+      
+      console.log('[testing] Query result (integer match, no theme):', {
+        rowsFound: pageCheck.rows.length,
+        foundPageIds: pageCheck.rows.map(r => r.id)
+      });
+    }
+  }
   
   if (pageCheck.rows.length === 0) {
-    console.log(`Page ${pageId} not found for tenant ${tenantId}`);
+    console.error('[testing] Page not found:', {
+      pageId: pageId,
+      tenantId: tenantId,
+      themeId: themeId
+    });
     return false;
   }
   
+  console.log('[testing] Page exists:', {
+    pageId: pageCheck.rows[0].id,
+    found: true
+  });
   return true;
 }
 
@@ -823,6 +888,29 @@ async function ensureCompositeUniqueConstraintExists(language) {
 
 // Helper function to update existing layout
 async function updateExistingLayout(pageId, layoutJson, language) {
+  console.log('[testing] ========== updateExistingLayout ==========');
+  console.log('[testing] Parameters:', {
+    pageId: pageId,
+    pageIdType: typeof pageId,
+    language: language,
+    layoutJsonType: typeof layoutJson,
+    layoutJsonKeys: layoutJson ? Object.keys(layoutJson) : [],
+    componentsCount: layoutJson?.components ? (Array.isArray(layoutJson.components) ? layoutJson.components.length : 'not array') : 'no components'
+  });
+
+  // Normalize pageId to integer if it's numeric (database expects INTEGER)
+  let normalizedPageId = pageId;
+  if (typeof pageId === 'string' && /^\d+$/.test(pageId)) {
+    normalizedPageId = parseInt(pageId, 10);
+    console.log('[testing] Normalized pageId from string to integer:', normalizedPageId);
+  } else if (typeof pageId !== 'number') {
+    console.warn('[testing] pageId is not a number or numeric string:', pageId);
+  }
+
+  const jsonString = JSON.stringify(layoutJson);
+  console.log('[testing] JSON stringified length:', jsonString.length);
+  console.log('[testing] JSON stringified preview (first 200 chars):', jsonString.substring(0, 200));
+
   const updateResult = await query(`
     UPDATE page_layouts 
     SET 
@@ -830,17 +918,88 @@ async function updateExistingLayout(pageId, layoutJson, language) {
       version = version + 1,
       updated_at = NOW()
     WHERE page_id = $1 AND language = $3
-  `, [pageId, JSON.stringify(layoutJson), language]);
+  `, [normalizedPageId, jsonString, language]);
+  
+  console.log('[testing] UPDATE query result:', {
+    rowCount: updateResult.rowCount,
+    command: updateResult.command,
+    rowsAffected: updateResult.rowCount > 0 ? 'YES' : 'NO',
+    normalizedPageId: normalizedPageId
+  });
+  
+  if (updateResult.rowCount === 0) {
+    console.warn('[testing] UPDATE matched 0 rows - layout may not exist for this page_id and language');
+    // Try with original pageId format as fallback
+    if (normalizedPageId !== pageId) {
+      console.log('[testing] Retrying UPDATE with original pageId format...');
+      const retryResult = await query(`
+        UPDATE page_layouts 
+        SET 
+          layout_json = $2,
+          version = version + 1,
+          updated_at = NOW()
+        WHERE page_id::text = $1 AND language = $3
+      `, [String(pageId), jsonString, language]);
+      console.log('[testing] Retry UPDATE result:', {
+        rowCount: retryResult.rowCount,
+        rowsAffected: retryResult.rowCount > 0 ? 'YES' : 'NO'
+      });
+      return retryResult.rowCount > 0;
+    }
+  }
   
   return updateResult.rowCount > 0;
 }
 
 // Helper function to insert new layout
 async function insertNewLayout(pageId, layoutJson, language) {
-  await query(`
-    INSERT INTO page_layouts (page_id, language, layout_json, version, updated_at)
-    VALUES ($1, $2, $3, 1, NOW())
-  `, [pageId, language, JSON.stringify(layoutJson)]);
+  console.log('[testing] ========== insertNewLayout ==========');
+  console.log('[testing] Parameters:', {
+    pageId: pageId,
+    pageIdType: typeof pageId,
+    language: language,
+    layoutJsonType: typeof layoutJson,
+    layoutJsonKeys: layoutJson ? Object.keys(layoutJson) : [],
+    componentsCount: layoutJson?.components ? (Array.isArray(layoutJson.components) ? layoutJson.components.length : 'not array') : 'no components'
+  });
+
+  // Normalize pageId to integer if it's numeric (database expects INTEGER)
+  let normalizedPageId = pageId;
+  if (typeof pageId === 'string' && /^\d+$/.test(pageId)) {
+    normalizedPageId = parseInt(pageId, 10);
+    console.log('[testing] Normalized pageId from string to integer:', normalizedPageId);
+  } else if (typeof pageId !== 'number') {
+    console.warn('[testing] pageId is not a number or numeric string:', pageId);
+  }
+
+  const jsonString = JSON.stringify(layoutJson);
+  console.log('[testing] JSON stringified length:', jsonString.length);
+  console.log('[testing] JSON stringified preview (first 200 chars):', jsonString.substring(0, 200));
+
+  try {
+    const insertResult = await query(`
+      INSERT INTO page_layouts (page_id, language, layout_json, version, updated_at)
+      VALUES ($1, $2, $3, 1, NOW())
+      RETURNING id, page_id, language, version
+    `, [normalizedPageId, language, jsonString]);
+    
+    console.log('[testing] INSERT query result:', {
+      success: true,
+      insertedId: insertResult.rows[0]?.id,
+      pageId: insertResult.rows[0]?.page_id,
+      language: insertResult.rows[0]?.language,
+      version: insertResult.rows[0]?.version,
+      normalizedPageId: normalizedPageId
+    });
+  } catch (insertError) {
+    console.error('[testing] INSERT query failed:', {
+      error: insertError.message,
+      code: insertError.code,
+      constraint: insertError.constraint,
+      normalizedPageId: normalizedPageId
+    });
+    throw insertError;
+  }
 }
 
 // Helper function to extract translatable text from layout JSON
@@ -1050,66 +1209,177 @@ async function translateLayoutToAllLanguages(pageId, layoutJson, tenantId) {
 
 // Helper function to upsert page layout (update or insert)
 async function upsertPageLayout(pageId, layoutJson, language, tenantId = null) {
+  console.log('[testing] ========== upsertPageLayout ==========');
+  console.log('[testing] Parameters:', {
+    pageId: pageId,
+    pageIdType: typeof pageId,
+    language: language,
+    tenantId: tenantId,
+    layoutJsonType: typeof layoutJson,
+    componentsCount: layoutJson?.components ? (Array.isArray(layoutJson.components) ? layoutJson.components.length : 'not array') : 'no components'
+  });
+
+  // Normalize pageId to integer if it's numeric (database expects INTEGER)
+  let normalizedPageId = pageId;
+  if (typeof pageId === 'string' && /^\d+$/.test(pageId)) {
+    normalizedPageId = parseInt(pageId, 10);
+    console.log('[testing] Normalized pageId from string to integer:', normalizedPageId);
+  } else if (typeof pageId !== 'number') {
+    console.warn('[testing] pageId is not a number or numeric string:', pageId);
+  }
+
   let operationSuccessful = false;
   
   // Try to update existing layout first
-  const wasUpdated = await updateExistingLayout(pageId, layoutJson, language);
+  console.log('[testing] Step 1: Attempting to update existing layout...');
+  const wasUpdated = await updateExistingLayout(normalizedPageId, layoutJson, language);
   
   if (wasUpdated) {
+    console.log('[testing] Step 1: Update successful');
     operationSuccessful = true;
   } else {
+    console.log('[testing] Step 1: Update failed, checking if layout exists...');
     // If no rows were updated, check if layout exists
-    const existingCheck = await query(`
-      SELECT id FROM page_layouts WHERE page_id = $1 AND language = $2
-    `, [pageId, language]);
+    // Try both normalized and original pageId formats
+    let existingCheck = await query(`
+      SELECT id, page_id, language, version FROM page_layouts WHERE page_id = $1 AND language = $2
+    `, [normalizedPageId, language]);
+    
+    // If not found with normalized, try with original format
+    if (existingCheck.rows.length === 0 && normalizedPageId !== pageId) {
+      console.log('[testing] Step 2: Retrying existing check with original pageId format...');
+      existingCheck = await query(`
+        SELECT id, page_id, language, version FROM page_layouts WHERE page_id::text = $1 AND language = $2
+      `, [String(pageId), language]);
+    }
+    
+    console.log('[testing] Step 2: Existing layout check:', {
+      rowsFound: existingCheck.rows.length,
+      existingLayouts: existingCheck.rows.map(r => ({
+        id: r.id,
+        page_id: r.page_id,
+        language: r.language,
+        version: r.version
+      }))
+    });
     
     if (existingCheck.rows.length === 0) {
+      console.log('[testing] Step 2: No existing layout found, inserting new layout...');
       // Insert new layout
-      await insertNewLayout(pageId, layoutJson, language);
+      await insertNewLayout(normalizedPageId, layoutJson, language);
       operationSuccessful = true;
+      console.log('[testing] Step 2: Insert successful');
     } else {
-      // Layout exists but update didn't work, try update again
-      const wasUpdatedRetry = await updateExistingLayout(pageId, layoutJson, language);
+      console.log('[testing] Step 2: Layout exists but update failed, retrying update...');
+      // Layout exists but update didn't work, try update again with the actual page_id from DB
+      const actualPageId = existingCheck.rows[0].page_id;
+      console.log('[testing] Step 2: Using actual page_id from database:', actualPageId);
+      const wasUpdatedRetry = await updateExistingLayout(actualPageId, layoutJson, language);
       operationSuccessful = wasUpdatedRetry;
+      console.log('[testing] Step 2: Retry update result:', wasUpdatedRetry);
     }
   }
   
+  console.log('[testing] upsertPageLayout result:', {
+    operationSuccessful: operationSuccessful,
+    pageId: pageId,
+    normalizedPageId: normalizedPageId,
+    language: language
+  });
+  
   // After successful operation on default language, trigger translation to other languages
   if (operationSuccessful && language === 'default' && tenantId) {
+    console.log('[testing] Triggering translation to other languages...');
     // Call translation asynchronously (fire and forget) to avoid blocking
-    translateLayoutToAllLanguages(pageId, layoutJson, tenantId).catch(error => {
-      console.error(`[testing] Error in background translation for page ${pageId}:`, error);
+    translateLayoutToAllLanguages(normalizedPageId, layoutJson, tenantId).catch(error => {
+      console.error(`[testing] Error in background translation for page ${normalizedPageId}:`, error);
     });
   }
+  
+  return operationSuccessful;
 }
 
 // Update page layout
-export async function updatePageLayout(pageId, layoutJson, tenantId, language = 'default') {
+export async function updatePageLayout(pageId, layoutJson, tenantId, language = 'default', themeId = null) {
+  console.log('[testing] ========== updatePageLayout ==========');
+  console.log('[testing] Parameters:', {
+    pageId: pageId,
+    pageIdType: typeof pageId,
+    tenantId: tenantId,
+    language: language,
+    themeId: themeId,
+    layoutJsonType: typeof layoutJson,
+    componentsCount: layoutJson?.components ? (Array.isArray(layoutJson.components) ? layoutJson.components.length : 'not array') : 'no components'
+  });
+
   // Validate tenant id
   if (!tenantId) {
     const error = new Error('Tenant ID is required');
     error.code = 'VALIDATION_ERROR';
-    console.error('[testing] Error updating page layout: Tenant ID is required');
+    console.error('[testing] Validation failed: Tenant ID is required');
     throw error;
   }
     
-  // Validate page exists
-  const pageExists = await ensurePageExists(pageId, tenantId);
+  // Validate page exists (with theme_id if provided)
+  console.log('[testing] Step 1: Validating page exists...');
+  const pageExists = await ensurePageExists(pageId, tenantId, themeId);
   if (!pageExists) {
+    console.error('[testing] Step 1: Page validation failed - page does not exist');
     return false;
   }
+  console.log('[testing] Step 1: Page validation passed');
     
   try {
     // Ensure database schema is up to date (migration safety)
+    console.log('[testing] Step 2: Ensuring database schema is up to date...');
     await ensureLanguageColumnExists();
     await ensureCompositeUniqueConstraintExists(language);
+    console.log('[testing] Step 2: Database schema check complete');
     
     // Update or insert the layout (pass tenantId for translation support)
-    await upsertPageLayout(pageId, layoutJson, language, tenantId);
+    console.log('[testing] Step 3: Upserting page layout...');
+    const upsertResult = await upsertPageLayout(pageId, layoutJson, language, tenantId);
+    console.log('[testing] Step 3: Upsert result:', upsertResult);
     
+    if (!upsertResult) {
+      console.error('[testing] Step 3: Upsert failed');
+      return false;
+    }
+    
+    // Verify the save by querying the database
+    console.log('[testing] Step 4: Verifying save by querying database...');
+    const verifyQuery = await query(`
+      SELECT id, page_id, language, version, updated_at, 
+             jsonb_typeof(layout_json) as json_type,
+             jsonb_array_length(layout_json->'components') as components_count
+      FROM page_layouts 
+      WHERE page_id = $1 AND language = $2
+    `, [pageId, language]);
+    
+    if (verifyQuery.rows.length > 0) {
+      console.log('[testing] Step 4: Verification successful:', {
+        layoutId: verifyQuery.rows[0].id,
+        pageId: verifyQuery.rows[0].page_id,
+        language: verifyQuery.rows[0].language,
+        version: verifyQuery.rows[0].version,
+        updatedAt: verifyQuery.rows[0].updated_at,
+        jsonType: verifyQuery.rows[0].json_type,
+        componentsCount: verifyQuery.rows[0].components_count
+      });
+    } else {
+      console.error('[testing] Step 4: Verification failed - layout not found in database after save');
+    }
+    
+    console.log('[testing] ========== updatePageLayout completed successfully ==========');
     return true;
   } catch (error) {
-    console.error('Error updating page layout:', error);
+    console.error('[testing] ========== updatePageLayout error ==========');
+    console.error('[testing] Error details:', {
+      message: error.message,
+      code: error.code,
+      stack: error.stack,
+      name: error.name
+    });
     throw error;
   }
 }

@@ -49,6 +49,7 @@ export const VisualEditorJSONDialog: React.FC<VisualEditorJSONDialogProps> = ({
   const editorRef = useRef<HTMLDivElement>(null);
   const codeJarRef = useRef<CodeJar | null>(null);
   const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isMountedRef = useRef<boolean>(false);
 
   // Load connection info
   const loadConnectionInfo = async () => {
@@ -114,30 +115,42 @@ export const VisualEditorJSONDialog: React.FC<VisualEditorJSONDialogProps> = ({
     }
   };
 
+  // Track mount state
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
   // Load JSON and connection info when dialog opens
   useEffect(() => {
     if (open) {
+      isMountedRef.current = true;
       loadConnectionInfo();
       loadPageLayout();
     } else {
-      // Cleanup on close
-      if (codeJarRef.current) {
+      // Cleanup on close - ensure DOM node still exists before destroying
+      if (codeJarRef.current && editorRef.current && document.contains(editorRef.current)) {
         try {
           codeJarRef.current.destroy();
         } catch (error) {
-          // Ignore cleanup errors
-          console.warn('[testing] Error destroying CodeJar:', error);
+          // Ignore cleanup errors - DOM might already be removed
+          console.warn('[testing] Error destroying CodeJar (non-critical):', error);
         }
-        codeJarRef.current = null;
       }
+      codeJarRef.current = null;
+      
       if (retryTimeoutRef.current) {
         clearTimeout(retryTimeoutRef.current);
         retryTimeoutRef.current = null;
       }
-      // Reset state
-      setJsonString('');
-      setJsonError(null);
-      setLoading(false);
+      // Reset state only if component is still mounted
+      if (isMountedRef.current) {
+        setJsonString('');
+        setJsonError(null);
+        setLoading(false);
+      }
     }
   }, [open, pageSlug, tenantId, currentThemeId, currentTenantId]);
 
@@ -156,10 +169,15 @@ export const VisualEditorJSONDialog: React.FC<VisualEditorJSONDialogProps> = ({
       if (data.success && data.pageContext?.layout) {
         const layoutJson = JSON.stringify(data.pageContext.layout, null, JSON_EDITOR_CONFIG.TAB_SIZE);
         setJsonString(layoutJson);
-        // Update editor after setting JSON
+        // Update editor after setting JSON - only if component is still mounted
         setTimeout(() => {
+          if (!isMountedRef.current || !open) return;
           if (codeJarRef.current && editorRef.current && document.contains(editorRef.current)) {
-            codeJarRef.current.updateCode(layoutJson);
+            try {
+              codeJarRef.current.updateCode(layoutJson);
+            } catch (error) {
+              console.warn('[testing] Error updating CodeJar (non-critical):', error);
+            }
           } else if (editorRef.current && document.contains(editorRef.current)) {
             initializeCodeJar(editorRef.current);
           }
@@ -169,8 +187,13 @@ export const VisualEditorJSONDialog: React.FC<VisualEditorJSONDialogProps> = ({
         const emptyLayout = JSON.stringify({ components: [] }, null, JSON_EDITOR_CONFIG.TAB_SIZE);
         setJsonString(emptyLayout);
         setTimeout(() => {
+          if (!isMountedRef.current || !open) return;
           if (codeJarRef.current && editorRef.current && document.contains(editorRef.current)) {
-            codeJarRef.current.updateCode(emptyLayout);
+            try {
+              codeJarRef.current.updateCode(emptyLayout);
+            } catch (error) {
+              console.warn('[testing] Error updating CodeJar (non-critical):', error);
+            }
           } else if (editorRef.current && document.contains(editorRef.current)) {
             initializeCodeJar(editorRef.current);
           }
@@ -179,12 +202,17 @@ export const VisualEditorJSONDialog: React.FC<VisualEditorJSONDialogProps> = ({
     } catch (error) {
       console.error('[testing] Error loading page layout:', error);
       setJsonError('Failed to load page layout');
-      // Set empty layout on error
+      // Set empty layout on error - only if component is still mounted
       const emptyLayout = JSON.stringify({ components: [] }, null, JSON_EDITOR_CONFIG.TAB_SIZE);
       setJsonString(emptyLayout);
       setTimeout(() => {
+        if (!isMountedRef.current || !open) return;
         if (codeJarRef.current && editorRef.current && document.contains(editorRef.current)) {
-          codeJarRef.current.updateCode(emptyLayout);
+          try {
+            codeJarRef.current.updateCode(emptyLayout);
+          } catch (error) {
+            console.warn('[testing] Error updating CodeJar on error (non-critical):', error);
+          }
         } else if (editorRef.current && document.contains(editorRef.current)) {
           initializeCodeJar(editorRef.current);
         }
@@ -196,17 +224,21 @@ export const VisualEditorJSONDialog: React.FC<VisualEditorJSONDialogProps> = ({
 
   // Initialize CodeJar
   const initializeCodeJar = useCallback((element: HTMLDivElement) => {
-    // Clean up any existing instance first
+    // Clean up any existing instance first - only if element still exists in DOM
     if (codeJarRef.current) {
       try {
-        codeJarRef.current.destroy();
+        // Check if the editor element still exists in DOM before destroying
+        if (editorRef.current && document.contains(editorRef.current)) {
+          codeJarRef.current.destroy();
+        }
       } catch (error) {
-        // Ignore cleanup errors
+        // Ignore cleanup errors - DOM might already be removed
+        console.warn('[testing] Error destroying CodeJar during init (non-critical):', error);
       }
       codeJarRef.current = null;
     }
 
-    if (!element || !open || !document.contains(element)) {
+    if (!element || !open || !document.contains(element) || !isMountedRef.current) {
       return;
     }
 
@@ -249,7 +281,8 @@ export const VisualEditorJSONDialog: React.FC<VisualEditorJSONDialogProps> = ({
 
   // Callback ref to initialize when element mounts
   const setEditorRef = useCallback((element: HTMLDivElement | null) => {
-    if (element && open) {
+    if (element && open && isMountedRef.current) {
+      editorRef.current = element;
       // Clear any existing timeout
       if (retryTimeoutRef.current) {
         clearTimeout(retryTimeoutRef.current);
@@ -258,18 +291,22 @@ export const VisualEditorJSONDialog: React.FC<VisualEditorJSONDialogProps> = ({
       
       // Initialize after a short delay to ensure DOM is ready
       retryTimeoutRef.current = setTimeout(() => {
-        if (element && document.contains(element) && open) {
+        if (element && document.contains(element) && open && isMountedRef.current) {
           initializeCodeJar(element);
         }
       }, JSON_EDITOR_CONFIG.INIT_DELAY || 200);
     } else if (!element && codeJarRef.current) {
-      // Cleanup when element is removed
+      // Cleanup when element is removed - only if element still exists in DOM
       try {
-        codeJarRef.current.destroy();
+        if (editorRef.current && document.contains(editorRef.current)) {
+          codeJarRef.current.destroy();
+        }
       } catch (error) {
-        // Ignore cleanup errors
+        // Ignore cleanup errors - DOM might already be removed
+        console.warn('[testing] Error destroying CodeJar in setEditorRef (non-critical):', error);
       }
       codeJarRef.current = null;
+      editorRef.current = null;
     }
   }, [open, initializeCodeJar]);
 
@@ -292,10 +329,16 @@ export const VisualEditorJSONDialog: React.FC<VisualEditorJSONDialogProps> = ({
         throw new Error('Page not found');
       }
       
-      const response = await api.put(`/api/pages/${pageContextData.pageContext.pageId}/layout`, {
+      // Include themeId when available and not 'custom' to ensure correct page is updated
+      const saveLayoutBody: any = {
         layout_json: parsed,
         tenantId: effectiveTenantId,
-      });
+      };
+      if (currentThemeId && currentThemeId !== 'custom') {
+        saveLayoutBody.themeId = currentThemeId;
+      }
+      
+      const response = await api.put(`/api/pages/${pageContextData.pageContext.pageId}/layout`, saveLayoutBody);
       
       const data = await response.json();
       
@@ -361,9 +404,13 @@ export const VisualEditorJSONDialog: React.FC<VisualEditorJSONDialogProps> = ({
       if (data.success && data.schema) {
         const schemaJson = JSON.stringify(data.schema, null, JSON_EDITOR_CONFIG.TAB_SIZE);
         setJsonString(schemaJson);
-        // Apply the generated schema directly into the CodeJar editor
-        if (codeJarRef.current && editorRef.current && document.contains(editorRef.current)) {
-          codeJarRef.current.updateCode(schemaJson);
+        // Apply the generated schema directly into the CodeJar editor - only if component is still mounted
+        if (isMountedRef.current && codeJarRef.current && editorRef.current && document.contains(editorRef.current)) {
+          try {
+            codeJarRef.current.updateCode(schemaJson);
+          } catch (error) {
+            console.warn('[testing] Error updating CodeJar with schema (non-critical):', error);
+          }
         }
         console.log(`[testing] Schema generated successfully using ${selectedModel}`);
       } else {

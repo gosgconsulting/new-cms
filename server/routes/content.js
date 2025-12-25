@@ -433,38 +433,87 @@ router.put('/pages/:pageId', async (req, res) => {
 
 // Update page layout
 router.put('/pages/:pageId/layout', authenticateUser, async (req, res) => {
+  console.log('[testing] ========== API: PUT /pages/:pageId/layout ==========');
+  console.log('[testing] Request received:', {
+    pageId: req.params.pageId,
+    pageIdType: typeof req.params.pageId,
+    method: req.method,
+    url: req.url,
+    user: req.user ? {
+      id: req.user.id,
+      email: req.user.email,
+      tenant_id: req.user.tenant_id,
+      is_super_admin: req.user.is_super_admin
+    } : 'no user',
+    bodyKeys: Object.keys(req.body || {})
+  });
+
   try {
     const { pageId } = req.params;
-    const { layout_json, tenantId } = req.body;
-    console.log(`[testing] API: Updating page layout ${pageId} for tenant: ${tenantId}`);
+    const { layout_json, tenantId, themeId } = req.body;
+    
+    console.log('[testing] Step 1: Extracted parameters:', {
+      pageId: pageId,
+      pageIdType: typeof pageId,
+      tenantId: tenantId,
+      themeId: themeId,
+      hasLayoutJson: !!layout_json,
+      layoutJsonType: typeof layout_json,
+      layoutJsonKeys: layout_json ? Object.keys(layout_json) : [],
+      componentsCount: layout_json?.components ? (Array.isArray(layout_json.components) ? layout_json.components.length : 'not array') : 'no components'
+    });
     
     // Validate tenant access: user can only update their own tenant unless they're a super admin
+    console.log('[testing] Step 2: Validating tenant access...');
     if (!req.user.is_super_admin && tenantId !== req.user.tenant_id) {
+      console.error('[testing] Step 2: Tenant access denied:', {
+        userTenantId: req.user.tenant_id,
+        requestTenantId: tenantId,
+        isSuperAdmin: req.user.is_super_admin
+      });
       return res.status(403).json({
         success: false,
         error: 'Forbidden',
         message: 'You can only update layouts for your own tenant'
       });
     }
+    console.log('[testing] Step 2: Tenant access validated');
     
-    const success = await updatePageLayout(pageId, layout_json, tenantId);
+    console.log('[testing] Step 3: Calling updatePageLayout...');
+    const success = await updatePageLayout(pageId, layout_json, tenantId, 'default', themeId);
+    
+    console.log('[testing] Step 3: updatePageLayout result:', {
+      success: success,
+      pageId: pageId,
+      tenantId: tenantId,
+      themeId: themeId
+    });
     
     if (!success) {
+      console.error('[testing] Step 3: updatePageLayout returned false - page not found or update failed');
       return res.status(404).json({
         success: false,
         error: 'Page not found or layout update failed'
       });
     }
     
+    console.log('[testing] ========== API: Layout update successful ==========');
     res.json({
       success: true,
       message: 'Page layout updated successfully'
     });
   } catch (error) {
-    console.error('[testing] API: Error updating page layout:', error);
+    console.error('[testing] ========== API: Error updating page layout ==========');
+    console.error('[testing] Error details:', {
+      message: error.message,
+      code: error.code,
+      stack: error.stack,
+      name: error.name
+    });
     
     // Handle validation errors with 400 status
     if (error.code === 'VALIDATION_ERROR') {
+      console.error('[testing] Validation error detected');
       return res.status(400).json({
         success: false,
         error: 'Validation error',

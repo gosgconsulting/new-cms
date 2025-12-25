@@ -1,0 +1,564 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Homepage Page Schema",
+  "description": "JSON Schema for validating homepage page structure and content data for ACATR Landing Page Theme. Defines page metadata, sections array, and all section-specific data structures aligned with ACATR design system.",
+  "type": "object",
+  "required": ["page_name", "slug", "sections"],
+  "properties": {
+    "page_name": {
+      "type": "string",
+      "description": "Display name of the page",
+      "default": "Homepage",
+      "examples": ["Homepage"]
+    },
+    "slug": {
+      "type": "string",
+      "description": "URL slug for the page",
+      "pattern": "^/.*$",
+      "default": "/",
+      "examples": ["/", "/home"]
+    },
+    "meta_title": {
+      "type": "string",
+      "description": "SEO meta title for the page",
+      "default": "Singapore Business Setup In 24 Hours - ACRA Registered | Professional Business Services",
+      "examples": ["Singapore Business Setup In 24 Hours - ACRA Registered | Professional Business Services"],
+      "maxLength": 60
+    },
+    "meta_description": {
+      "type": "string",
+      "description": "SEO meta description for the page",
+      "default": "ACRA-registered filing agents providing complete Singapore company incorporation, professional accounting services, and 100% compliance guarantee. Start your business today with expert guidance.",
+      "examples": ["ACRA-registered filing agents providing complete Singapore company incorporation, professional accounting services, and 100% compliance guarantee. Start your business today with expert guidance."],
+      "maxLength": 160
+    },
+    "keywords": {
+      "type": "array",
+      "description": "SEO keywords array",
+      "items": {
+        "type": "string"
+      },
+      "default": [
+        "singapore company incorporation",
+        "acra registered",
+        "business setup",
+        "accounting services",
+        "corporate secretary",
+        "compliance guarantee"
+      ],
+      "minItems": 1
+    },
+    "seo_index": {
+      "type": "boolean",
+      "description": "Whether the page should be indexed by search engines",
+      "default": true
+    },
+    "status": {
+      "type": "string",
+      "description": "Page publication status",
+      "enum": ["published", "draft", "archived"],
+      "default": "published"
+    },
+    "page_type": {
+      "type": "string",
+      "description": "Type of page",
+      "enum": ["page", "blog_index", "blog_post", "legal"],
+      "default": "page"
+    },
+    "sections": {
+      "type": "array",
+      "description": "Array of page sections in display order",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "type"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique section identifier (used for navigation and styling)",
+            "pattern": "^[a-z][a-z0-9-]*$",
+            "examples": ["hero", "services", "testimonials", "faq", "cta", "contact"]
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name of the section",
+            "examples": ["Hero Section", "Services Section", "Testimonials Section", "FAQ Section", "Contact Section"]
+          },
+          "type": {
+            "type": "string",
+            "description": "Section type identifier",
+            "enum": ["hero", "services", "testimonials", "faq", "cta", "contact"],
+            "examples": ["hero", "services", "testimonials", "faq", "cta"]
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the section purpose and content"
+          },
+          "visible": {
+            "type": "boolean",
+            "description": "Whether the section is visible on the page",
+            "default": true
+          },
+          "order": {
+            "type": "integer",
+            "description": "Display order of the section (lower numbers appear first)",
+            "minimum": 0,
+            "default": 0
+          },
+          "data": {
+            "oneOf": [
+              {
+                "$ref": "#/definitions/heroSectionData"
+              },
+              {
+                "$ref": "#/definitions/servicesSectionData"
+              },
+              {
+                "$ref": "#/definitions/testimonialsSectionData"
+              },
+              {
+                "$ref": "#/definitions/faqSectionData"
+              },
+              {
+                "$ref": "#/definitions/ctaSectionData"
+              }
+            ],
+            "description": "Section-specific content data structure"
+          }
+        }
+      },
+      "default": [
+        {
+          "id": "hero",
+          "name": "Hero Section",
+          "type": "hero",
+          "description": "Main landing section with value proposition and CTA",
+          "visible": true,
+          "order": 0
+        },
+        {
+          "id": "services",
+          "name": "Services Section",
+          "type": "services",
+          "description": "Detailed showcase of business services with alternating layouts",
+          "visible": true,
+          "order": 1
+        },
+        {
+          "id": "testimonials",
+          "name": "Testimonials Section",
+          "type": "testimonials",
+          "description": "Customer reviews and success stories with ratings",
+          "visible": true,
+          "order": 2
+        },
+        {
+          "id": "faq",
+          "name": "FAQ Section",
+          "type": "faq",
+          "description": "Frequently asked questions with collapsible answers",
+          "visible": true,
+          "order": 3
+        },
+        {
+          "id": "cta",
+          "name": "Contact Section",
+          "type": "cta",
+          "description": "Call-to-action and contact form integration",
+          "visible": true,
+          "order": 4
+        }
+      ]
+    }
+  },
+  "definitions": {
+    "heroSectionData": {
+      "type": "object",
+      "description": "Hero section content data structure",
+      "required": ["title", "description"],
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "Hero section main title/headline",
+          "default": "Singapore Business Setup In 24 Hours - ACRA Registered",
+          "examples": ["Singapore Business Setup In 24 Hours - ACRA Registered"]
+        },
+        "description": {
+          "type": "string",
+          "description": "Hero section description/subtitle text",
+          "default": "ACRA-registered filing agents providing complete Singapore company incorporation, professional accounting services, and 100% compliance guarantee. Start your business today with expert guidance from day one.",
+          "examples": ["ACRA-registered filing agents providing complete Singapore company incorporation, professional accounting services, and 100% compliance guarantee. Start your business today with expert guidance from day one."]
+        },
+        "imageSrc": {
+          "type": "string",
+          "description": "Hero background or featured image URL/path",
+          "format": "uri",
+          "default": "/theme/landingpage/assets/hero-business.jpg",
+          "examples": ["/theme/landingpage/assets/hero-business.jpg"]
+        },
+        "imageAlt": {
+          "type": "string",
+          "description": "Alt text for hero image (accessibility)",
+          "default": "Professional business team collaboration",
+          "examples": ["Professional business team collaboration"]
+        },
+        "buttonText": {
+          "type": "string",
+          "description": "Primary CTA button text",
+          "default": "Start Your Business Journey Today",
+          "examples": ["Start Your Business Journey Today", "Get Started", "Contact Us"]
+        },
+        "buttonLink": {
+          "type": "string",
+          "description": "Primary CTA button link (section ID with # prefix or full URL)",
+          "default": "#contact",
+          "examples": ["#contact", "#cta", "https://example.com"]
+        },
+        "features": {
+          "type": "array",
+          "description": "List of key features/benefits displayed in hero section",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "Singapore Company Incorporation in 24 Hours",
+            "100% ACRA & IRAS Compliance Guaranteed",
+            "Professional Accounting & GST Filing"
+          ],
+          "minItems": 1,
+          "maxItems": 5
+        },
+        "backgroundType": {
+          "type": "string",
+          "description": "Background styling type",
+          "enum": ["gradient", "solid", "image"],
+          "default": "gradient"
+        },
+        "backgroundColor": {
+          "type": "string",
+          "description": "Background color (hex) - used when backgroundType is 'solid'",
+          "pattern": "^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$",
+          "default": "#ffffff"
+        },
+        "gradientStart": {
+          "type": "string",
+          "description": "Gradient start color (hex) - ACATR primary color",
+          "pattern": "^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$",
+          "default": "#8b5cf6"
+        },
+        "gradientEnd": {
+          "type": "string",
+          "description": "Gradient end color (hex) - ACATR hero gradient end (hsl(263 60% 45%) equivalent)",
+          "pattern": "^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$",
+          "default": "#6d28d9"
+        }
+      }
+    },
+    "servicesSectionData": {
+      "type": "object",
+      "description": "Services section content data structure",
+      "required": ["title", "items"],
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "Services section main title",
+          "default": "Complete Singapore Business Solutions with ACRA Guarantee",
+          "examples": ["Complete Singapore Business Solutions with ACRA Guarantee"]
+        },
+        "subtitle": {
+          "type": "string",
+          "description": "Services section subtitle/description",
+          "default": "ACRA-registered filing agents providing 24-hour company incorporation, professional accounting services, and guaranteed compliance for Singapore businesses.",
+          "examples": ["ACRA-registered filing agents providing 24-hour company incorporation, professional accounting services, and guaranteed compliance for Singapore businesses."]
+        },
+        "items": {
+          "type": "array",
+          "description": "Array of service items to display",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["title", "description"],
+            "properties": {
+              "title": {
+                "type": "string",
+                "description": "Service title/name",
+                "examples": ["Singapore Company Incorporation Services", "Annual Ongoing Services", "Additional Services & Support"]
+              },
+              "subtitle": {
+                "type": "string",
+                "description": "Service subtitle (often used for pricing or category)",
+                "examples": ["One-Time Fee: S$1,815 (S$1,115 for Locals)", "S$4,300/year (varies by transaction volume)", "Enhanced Business Operations"]
+              },
+              "description": {
+                "type": "string",
+                "description": "Detailed service description"
+              },
+              "image": {
+                "type": "string",
+                "description": "Service image URL/path",
+                "format": "uri",
+                "examples": ["/theme/landingpage/assets/incorporation-services.jpg"]
+              },
+              "features": {
+                "type": "array",
+                "description": "List of service features/benefits",
+                "items": {
+                  "type": "string"
+                },
+                "minItems": 1
+              },
+              "highlight": {
+                "type": "string",
+                "description": "Service highlight or badge text",
+                "examples": ["Fast-track option available with complete documentation", "Local director fee waived if client provides their own"]
+              }
+            }
+          },
+          "default": [
+            {
+              "title": "Singapore Company Incorporation Services",
+              "subtitle": "One-Time Fee: S$1,815 (S$1,115 for Locals)",
+              "description": "Professional incorporation services for Singapore Pte. Ltd. companies, providing comprehensive setup and ongoing compliance support for local and international entrepreneurs.",
+              "image": "/theme/landingpage/assets/incorporation-services.jpg",
+              "features": [
+                "Company registration with ACRA",
+                "Corporate secretary services included",
+                "Company constitution and statutory documents"
+              ],
+              "highlight": "Fast-track option available with complete documentation"
+            }
+          ]
+        }
+      }
+    },
+    "testimonialsSectionData": {
+      "type": "object",
+      "description": "Testimonials section content data structure",
+      "required": ["title", "items"],
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "Testimonials section main title",
+          "default": "Trusted by Businesses Worldwide",
+          "examples": ["Trusted by Businesses Worldwide"]
+        },
+        "subtitle": {
+          "type": "string",
+          "description": "Testimonials section subtitle/description",
+          "default": "Local and international businesses trust our ACRA-registered filing agents for 24-hour Singapore company incorporation, professional accounting services, and guaranteed compliance with zero penalties.",
+          "examples": ["Local and international businesses trust our ACRA-registered filing agents for 24-hour Singapore company incorporation, professional accounting services, and guaranteed compliance with zero penalties."]
+        },
+        "stats": {
+          "type": "array",
+          "description": "Success statistics displayed in testimonials section",
+          "items": {
+            "type": "object",
+            "required": ["label", "value"],
+            "properties": {
+              "label": {
+                "type": "string",
+                "description": "Statistic label",
+                "examples": ["Client Satisfaction", "Average Time Saved", "Compliance Success", "Business Growth"]
+              },
+              "value": {
+                "type": "string",
+                "description": "Statistic value",
+                "examples": ["98%", "15+ hrs/month", "99%", "250% avg"]
+              }
+            }
+          },
+          "default": [
+            { "label": "Client Satisfaction", "value": "98%" },
+            { "label": "Average Time Saved", "value": "15+ hrs/month" },
+            { "label": "Compliance Success", "value": "99%" },
+            { "label": "Business Growth", "value": "250% avg" }
+          ],
+          "minItems": 0,
+          "maxItems": 6
+        },
+        "items": {
+          "type": "array",
+          "description": "Array of testimonial items",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["name", "quote", "rating"],
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Testimonial author name",
+                "examples": ["Sarah Chen", "Marcus Rodriguez", "Lisa Thompson"]
+              },
+              "role": {
+                "type": "string",
+                "description": "Author role/title",
+                "examples": ["Tech Startup Founder", "International Entrepreneur", "Small Business Owner"]
+              },
+              "company": {
+                "type": "string",
+                "description": "Author company name",
+                "examples": ["InnovateTech Solutions", "Global Trade Partners", "Artisan Crafts Co."]
+              },
+              "location": {
+                "type": "string",
+                "description": "Client location/category",
+                "examples": ["Local Client", "International Client"]
+              },
+              "image": {
+                "type": "string",
+                "description": "Author image URL/path",
+                "format": "uri",
+                "default": "/theme/landingpage/assets/testimonial-1.jpg",
+                "examples": ["/theme/landingpage/assets/testimonial-1.jpg"]
+              },
+              "rating": {
+                "type": "integer",
+                "description": "Rating value (1-5 stars)",
+                "minimum": 1,
+                "maximum": 5,
+                "default": 5
+              },
+              "quote": {
+                "type": "string",
+                "description": "Testimonial quote text"
+              },
+              "results": {
+                "type": "string",
+                "description": "Key result or highlight from the testimonial",
+                "examples": ["Singapore company incorporated in 24 hours with 100% ACRA compliance", "International business setup with zero ACRA penalties and perfect compliance"]
+              }
+            }
+          },
+          "default": [
+            {
+              "name": "Sarah Chen",
+              "role": "Tech Startup Founder",
+              "company": "InnovateTech Solutions",
+              "location": "Local Client",
+              "image": "/theme/landingpage/assets/testimonial-1.jpg",
+              "rating": 5,
+              "quote": "ACATR's ACRA-registered filing agents completed our Singapore company incorporation in exactly 24 hours as promised.",
+              "results": "Singapore company incorporated in 24 hours with 100% ACRA compliance"
+            }
+          ]
+        }
+      }
+    },
+    "faqSectionData": {
+      "type": "object",
+      "description": "FAQ section content data structure",
+      "required": ["title", "items"],
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "FAQ section main title",
+          "default": "Frequently Asked Questions",
+          "examples": ["Frequently Asked Questions"]
+        },
+        "subtitle": {
+          "type": "string",
+          "description": "FAQ section subtitle/description",
+          "default": "Everything you need to know about our services, processes, and how we can help your business succeed.",
+          "examples": ["Everything you need to know about our services, processes, and how we can help your business succeed."]
+        },
+        "items": {
+          "type": "array",
+          "description": "Array of FAQ items (question/answer pairs)",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["question", "answer"],
+            "properties": {
+              "question": {
+                "type": "string",
+                "description": "FAQ question text",
+                "examples": ["How quickly can you incorporate my Singapore company?", "What are the costs involved in Singapore company incorporation?"]
+              },
+              "answer": {
+                "type": "string",
+                "description": "FAQ answer text (can include HTML for formatting)"
+              }
+            }
+          },
+          "default": [
+            {
+              "question": "How quickly can you incorporate my Singapore company?",
+              "answer": "Our ACRA-registered filing agents can complete your Singapore company incorporation in just 24 hours."
+            }
+          ]
+        }
+      }
+    },
+    "ctaSectionData": {
+      "type": "object",
+      "description": "Call-to-action/Contact section content data structure",
+      "required": ["title", "description"],
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "CTA section main title",
+          "default": "Results You Can Count On",
+          "examples": ["Results You Can Count On", "Ready to Get Started?", "Contact Us Today"]
+        },
+        "description": {
+          "type": "string",
+          "description": "CTA section description text",
+          "default": "Our clients consistently experience accelerated growth, improved compliance, and valuable time savings thanks to our all-encompassing support. By providing end-to-end solutions from incorporation to regulatory management, we enable businesses to operate seamlessly and confidently.",
+          "examples": ["Our clients consistently experience accelerated growth, improved compliance, and valuable time savings thanks to our all-encompassing support."]
+        },
+        "buttonText": {
+          "type": "string",
+          "description": "Primary CTA button text",
+          "default": "Start Your Business Journey Today",
+          "examples": ["Start Your Business Journey Today", "Get Started", "Contact Us"]
+        },
+        "buttonLink": {
+          "type": "string",
+          "description": "Primary CTA button link (section ID with # prefix or full URL)",
+          "default": "#contact",
+          "examples": ["#contact", "https://example.com"]
+        },
+        "contactMethods": {
+          "type": "array",
+          "description": "Array of contact method cards",
+          "items": {
+            "type": "object",
+            "required": ["title", "description"],
+            "properties": {
+              "title": {
+                "type": "string",
+                "description": "Contact method title",
+                "examples": ["Call Us Today", "Email Consultation", "Schedule Meeting", "Live Chat"]
+              },
+              "description": {
+                "type": "string",
+                "description": "Contact method description"
+              },
+              "action": {
+                "type": "string",
+                "description": "Action button text",
+                "examples": ["Call Now", "Send Email", "Book Now", "Start Chat"]
+              },
+              "highlight": {
+                "type": "string",
+                "description": "Highlight badge text",
+                "examples": ["Immediate Support", "Detailed Response", "Free Consultation", "Instant Connection"]
+              }
+            }
+          },
+          "default": [
+            {
+              "title": "Call Us Today",
+              "description": "Speak directly with our experts",
+              "action": "Call Now",
+              "highlight": "Immediate Support"
+            }
+          ],
+          "minItems": 0,
+          "maxItems": 4
+        }
+      }
+    }
+  }
+}
+

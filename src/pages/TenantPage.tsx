@@ -74,8 +74,15 @@ const TenantPage: React.FC = () => {
         // Ensure slug starts with /
         const normalizedSlug = pageSlug.startsWith('/') ? pageSlug : `/${pageSlug}`;
         
+        // Send X-Tenant-Id header for authentication (required by /api/v1/* endpoints)
         const pageResponse = await api.get(
-          `/api/v1/pages${normalizedSlug}?tenantId=${tenantInfo.id}`
+          `/api/v1/pages${normalizedSlug}?tenantId=${tenantInfo.id}`,
+          {
+            headers: {
+              'X-Tenant-Id': tenantInfo.id
+            },
+            tenantId: tenantInfo.id
+          }
         );
 
         if (!pageResponse.ok) {
