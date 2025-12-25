@@ -709,7 +709,7 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({ hideSidebar = false }) => {
 
         {/* Content Area */}
         <motion.div 
-          className="flex-1 p-6 overflow-auto"
+          className={`flex-1 overflow-auto ${isEditMode ? 'p-0' : 'p-6'}`}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.3, delay: 0.2 }}
