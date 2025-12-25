@@ -28,6 +28,7 @@ import FlowbiteWhatsIncludedSection from "@/libraries/flowbite/components/Flowbi
 import FlowbiteWhyChooseUsSection from "@/libraries/flowbite/components/FlowbiteWhyChooseUsSection";
 import FlowbiteCTASection from "@/libraries/flowbite/components/FlowbiteCTASection";
 import { SpartiBuilderProvider, useSpartiBuilder } from "../../../sparti-cms/components/SpartiBuilderProvider";
+import { ResizableDivider, useResizableDivider } from "./ResizableDivider";
 import { ElementSelector } from "../../../sparti-cms/components/ElementSelector";
 import { EditingOverlay } from "../../../sparti-cms/components/EditingOverlay";
 import { ContentEditPanel } from "../../../sparti-cms/components/ContentEditPanel";
@@ -973,6 +974,7 @@ const FlowbiteDioraRenderer: React.FC<FlowbiteDioraRendererProps> = ({
 
   const Layout: React.FC = () => {
     const { selectedElement } = useSpartiBuilder();
+    const { width, setWidth } = useResizableDivider(420, 300, 800, 'flowbite-editor-sidebar-width');
 
     return (
       <div className="flex w-full h-full">
@@ -989,15 +991,28 @@ const FlowbiteDioraRenderer: React.FC<FlowbiteDioraRendererProps> = ({
 
         {/* Right: editor only when a section is selected */}
         {selectedElement ? (
-          <div
-            className="sticky top-0 h-screen w-[420px] min-w-[420px] max-w-[420px] border-l bg-background flex flex-col sparti-editor-sticky"
-            onWheel={(e) => {
-              // Prevent scroll propagation to the center preview
-              e.stopPropagation();
-            }}
-          >
-            <ContentEditPanel />
-          </div>
+          <>
+            <ResizableDivider
+              width={width}
+              onWidthChange={setWidth}
+              minWidth={300}
+              maxWidth={800}
+            />
+            <div
+              className="sticky top-0 h-screen border-l bg-background flex flex-col sparti-editor-sticky"
+              style={{
+                width: `${width}px`,
+                minWidth: `${width}px`,
+                maxWidth: `${width}px`,
+              }}
+              onWheel={(e) => {
+                // Prevent scroll propagation to the center preview
+                e.stopPropagation();
+              }}
+            >
+              <ContentEditPanel />
+            </div>
+          </>
         ) : null}
       </div>
     );

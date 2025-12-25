@@ -1,60 +1,26 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { 
-  Type, 
-  Bold,
-  Italic,
-  Underline,
-  AlignLeft,
-  AlignCenter,
-  AlignRight,
-  Link,
-  Palette,
-  ChevronDown,
-  Heading1,
-  Heading2,
-  Heading3,
-  Pilcrow,
-  TextQuote,
-  Code,
-  X
-} from 'lucide-react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
+import { X } from 'lucide-react';
 import { CodeJar } from 'codejar';
 import Prism from 'prismjs';
 import 'prismjs/components/prism-markup';
 import 'prismjs/themes/prism.css';
 
-// Branding colors and typography options
-const BRANDING_COLORS = [
-  { name: 'Primary', value: '#6200ee', gradient: 'linear-gradient(45deg, #6200ee, #9500ff)' },
-  { name: 'Secondary', value: '#03dac6', gradient: 'linear-gradient(45deg, #03dac6, #00fff0)' },
-  { name: 'Accent', value: '#ff4081', gradient: 'linear-gradient(45deg, #ff4081, #ff79b0)' },
-  { name: 'Dark', value: '#121212', gradient: 'linear-gradient(45deg, #121212, #323232)' },
-  { name: 'Light', value: '#f5f5f5', gradient: 'linear-gradient(45deg, #f5f5f5, #ffffff)' },
-  { name: 'Warning', value: '#fb8c00', gradient: 'linear-gradient(45deg, #fb8c00, #ffbd45)' },
-  { name: 'Error', value: '#b00020', gradient: 'linear-gradient(45deg, #b00020, #e53935)' },
-  { name: 'Success', value: '#4caf50', gradient: 'linear-gradient(45deg, #4caf50, #80e27e)' },
-];
-
-// Text style options
-const TEXT_STYLES = [
-  { name: 'Paragraph', value: 'paragraph', component: Pilcrow, className: 'text-base' },
-  { name: 'Heading 1', value: 'h1', component: Heading1, className: 'text-4xl font-bold' },
-  { name: 'Heading 2', value: 'h2', component: Heading2, className: 'text-3xl font-bold' },
-  { name: 'Heading 3', value: 'h3', component: Heading3, className: 'text-2xl font-bold' },
-  { name: 'Heading 4', value: 'h4', component: Heading3, className: 'text-xl font-bold' },
-  { name: 'Heading 5', value: 'h5', component: Heading3, className: 'text-lg font-bold' },
-  { name: 'Heading 6', value: 'h6', component: Heading3, className: 'text-base font-bold' },
-  { name: 'Quote', value: 'quote', component: TextQuote, className: 'italic border-l-4 border-gray-400 pl-4' }
-];
-
-// Font size options
-const FONT_SIZES = [
-  { name: 'Small', value: '12px' },
-  { name: 'Normal', value: '16px' },
-  { name: 'Medium', value: '20px' },
-  { name: 'Large', value: '24px' },
-  { name: 'X-Large', value: '32px' },
-  { name: 'XX-Large', value: '48px' }
+// Quill toolbar configuration
+const QUILL_TOOLBAR_OPTIONS = [
+  [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+  [{ 'font': [] }],
+  [{ 'size': ['small', false, 'large', 'huge'] }],
+  ['bold', 'italic', 'underline', 'strike'],
+  [{ 'color': [] }, { 'background': [] }],
+  [{ 'script': 'sub'}, { 'script': 'super' }],
+  [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+  [{ 'indent': '-1'}, { 'indent': '+1' }],
+  [{ 'align': [] }],
+  ['link', 'image', 'video'],
+  ['blockquote', 'code-block'],
+  ['clean']
 ];
 
 interface TextEditorProps {
@@ -74,31 +40,20 @@ export const TextEditor: React.FC<TextEditorProps> = ({
   link = '',
   onLinkChange
 }) => {
-  const [showColorPicker, setShowColorPicker] = useState<boolean>(false);
-  const [showTextStylePicker, setShowTextStylePicker] = useState<boolean>(false);
-  const [showFontSizePicker, setShowFontSizePicker] = useState<boolean>(false);
-  const [showLinkInput, setShowLinkInput] = useState<boolean>(false);
-  const [linkUrl, setLinkUrl] = useState<string>(link);
-  const [selectedColor, setSelectedColor] = useState<string>('');
-  const [selectedTextStyle, setSelectedTextStyle] = useState<string>('paragraph');
-  const [selectedFontSize, setSelectedFontSize] = useState<string>('16px');
   const [showSourceModal, setShowSourceModal] = useState<boolean>(false);
   const [sourceContent, setSourceContent] = useState<string>(content);
+  const [editorContent, setEditorContent] = useState<string>(content);
   
-  const editorRef = useRef<HTMLDivElement>(null);
   const sourceEditorRef = useRef<HTMLDivElement>(null);
   const codeJarRef = useRef<CodeJar | null>(null);
-  const contentRef = useRef<string>(content);
-  const lastContentPropRef = useRef<string>(content);
+  const quillRef = useRef<ReactQuill>(null);
 
+  // Update editor content when prop changes
   useEffect(() => {
-    // Update the contentEditable div if prop changes
-    if (editorRef.current && content !== editorRef.current.innerHTML) {
-      editorRef.current.innerHTML = content;
+    if (content !== editorContent) {
+      setEditorContent(content);
+      setSourceContent(content);
     }
-    contentRef.current = content;
-    setSourceContent(content);
-    lastContentPropRef.current = content;
   }, [content]);
 
   useEffect(() => {

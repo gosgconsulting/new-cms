@@ -1,16 +1,14 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 
 interface ResizableDividerProps {
-  /** Initial width of the right panel in pixels */
-  initialWidth?: number;
+  /** Current width of the right panel in pixels */
+  width: number;
+  /** Callback when width changes */
+  onWidthChange: (width: number) => void;
   /** Minimum width of the right panel in pixels */
   minWidth?: number;
   /** Maximum width of the right panel in pixels */
   maxWidth?: number;
-  /** Callback when width changes */
-  onWidthChange?: (width: number) => void;
-  /** Storage key for persisting width in localStorage */
-  storageKey?: string;
 }
 
 /**
@@ -18,42 +16,39 @@ interface ResizableDividerProps {
  * Shows a hover indicator and cursor change when hovering over the divider
  */
 export const ResizableDivider: React.FC<ResizableDividerProps> = ({
-  initialWidth = 420,
+  width,
+  onWidthChange,
   minWidth = 300,
   maxWidth = 800,
-  onWidthChange,
-  storageKey = 'editor-sidebar-width',
 }) => {
-  const [width, setWidth] = useState<number>(() => {
-    // Try to load from localStorage first
-    if (storageKey && typeof window !== 'undefined') {
-      const saved = localStorage.getItem(storageKey);
-      if (saved) {
-        const parsed = parseInt(saved, 10);
-        if (!isNaN(parsed) && parsed >= minWidth && parsed <= maxWidth) {
-          return parsed;
-        }
-      }
-    }
-    return initialWidth;
-  });
-
   const [isDragging, setIsDragging] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
   const dividerRef = useRef<HTMLDivElement>(null);
   const startXRef = useRef<number>(0);
   const startWidthRef = useRef<number>(0);
+  const isDraggingRef = useRef<boolean>(false);
 
-  // Save to localStorage when width changes
-  useEffect(() => {
-    if (storageKey && typeof window !== 'undefined') {
-      localStorage.setItem(storageKey, width.toString());
-    }
-    onWidthChange?.(width);
-  }, [width, storageKey, onWidthChange]);
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    if (!isDraggingRef.current) return;
+    
+    const deltaX = startXRef.current - e.clientX; // Inverted because we're resizing from the right
+    const newWidth = Math.max(minWidth, Math.min(maxWidth, startWidthRef.current + deltaX));
+    
+    onWidthChange(newWidth);
+  }, [minWidth, maxWidth, onWidthChange]);
+
+  const handleMouseUp = useCallback(() => {
+    isDraggingRef.current = false;
+    setIsDragging(false);
+    document.removeEventListener('mousemove', handleMouseMove);
+    document.removeEventListener('mouseup', handleMouseUp);
+    document.body.style.userSelect = '';
+    document.body.style.cursor = '';
+  }, [handleMouseMove]);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
+    isDraggingRef.current = true;
     setIsDragging(true);
     startXRef.current = e.clientX;
     startWidthRef.current = width;
@@ -65,24 +60,7 @@ export const ResizableDivider: React.FC<ResizableDividerProps> = ({
     // Prevent text selection while dragging
     document.body.style.userSelect = 'none';
     document.body.style.cursor = 'col-resize';
-  }, [width]);
-
-  const handleMouseMove = useCallback((e: MouseEvent) => {
-    if (!isDragging) return;
-    
-    const deltaX = startXRef.current - e.clientX; // Inverted because we're resizing from the right
-    const newWidth = Math.max(minWidth, Math.min(maxWidth, startWidthRef.current + deltaX));
-    
-    setWidth(newWidth);
-  }, [isDragging, minWidth, maxWidth]);
-
-  const handleMouseUp = useCallback(() => {
-    setIsDragging(false);
-    document.removeEventListener('mousemove', handleMouseMove);
-    document.removeEventListener('mouseup', handleMouseUp);
-    document.body.style.userSelect = '';
-    document.body.style.cursor = '';
-  }, [handleMouseMove]);
+  }, [width, handleMouseMove, handleMouseUp]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -126,13 +104,13 @@ export const ResizableDivider: React.FC<ResizableDividerProps> = ({
 };
 
 /**
- * Hook to use resizable divider with state management
+ * Hook to use resizable divider with state management and localStorage persistence
  */
 export const useResizableDivider = (
   initialWidth: number = 420,
   minWidth: number = 300,
   maxWidth: number = 800,
-  storageKey?: string
+  storageKey: string = 'editor-sidebar-width'
 ) => {
   const [width, setWidth] = useState<number>(() => {
     if (storageKey && typeof window !== 'undefined') {
@@ -157,17 +135,6 @@ export const useResizableDivider = (
   return {
     width,
     setWidth: handleWidthChange,
-    ResizableDivider: (props?: Omit<ResizableDividerProps, 'width' | 'onWidthChange' | 'initialWidth' | 'minWidth' | 'maxWidth' | 'storageKey'>) => (
-      <ResizableDivider
-        initialWidth={initialWidth}
-        minWidth={minWidth}
-        maxWidth={maxWidth}
-        storageKey={storageKey}
-        width={width}
-        onWidthChange={handleWidthChange}
-        {...props}
-      />
-    ),
   };
 };
 

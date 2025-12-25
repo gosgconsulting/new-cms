@@ -5,6 +5,7 @@ import { Loader2 } from 'lucide-react';
 import ThemeSectionList from './ThemeSectionList';
 import { SpartiBuilderProvider, useSpartiBuilder } from '../../../sparti-cms/components/SpartiBuilderProvider';
 import { ContentEditPanel } from '../../../sparti-cms/components/ContentEditPanel';
+import { ResizableDivider, useResizableDivider } from './ResizableDivider';
 import type { ComponentSchema } from '../../../sparti-cms/types/schema';
 
 interface ThemeRendererProps {
@@ -109,6 +110,7 @@ const ThemeRenderer: React.FC<ThemeRendererProps> = ({
   // Layout component that uses builder context
   const ThemeLayout: React.FC = () => {
     const { selectedElement, components: ctxComponents } = useSpartiBuilder();
+    const { width, setWidth } = useResizableDivider(420, 300, 800, 'theme-editor-sidebar-width');
     // Use context components if available (for real-time updates), otherwise fall back to prop
     const componentsList = Array.isArray(ctxComponents) && ctxComponents.length > 0 ? ctxComponents : components;
 
@@ -131,15 +133,28 @@ const ThemeRenderer: React.FC<ThemeRendererProps> = ({
 
         {/* Right: editor only when a section is selected */}
         {selectedElement ? (
-          <div
-            className="sticky top-0 h-screen w-[420px] min-w-[420px] max-w-[420px] border-l bg-background flex flex-col sparti-editor-sticky"
-            onWheel={(e) => {
-              // Prevent scroll propagation to the center preview
-              e.stopPropagation();
-            }}
-          >
-            <ContentEditPanel />
-          </div>
+          <>
+            <ResizableDivider
+              width={width}
+              onWidthChange={setWidth}
+              minWidth={300}
+              maxWidth={800}
+            />
+            <div
+              className="sticky top-0 h-screen border-l bg-background flex flex-col sparti-editor-sticky"
+              style={{
+                width: `${width}px`,
+                minWidth: `${width}px`,
+                maxWidth: `${width}px`,
+              }}
+              onWheel={(e) => {
+                // Prevent scroll propagation to the center preview
+                e.stopPropagation();
+              }}
+            >
+              <ContentEditPanel />
+            </div>
+          </>
         ) : null}
       </div>
     );

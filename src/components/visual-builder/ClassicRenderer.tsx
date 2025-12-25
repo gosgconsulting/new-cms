@@ -8,6 +8,7 @@ import { EditingOverlay } from "../../../sparti-cms/components/EditingOverlay";
 import { ContentEditPanel } from "../../../sparti-cms/components/ContentEditPanel";
 import SectionList from "./SectionList";
 import GenericSectionPreview from "./GenericSectionPreview";
+import { ResizableDivider, useResizableDivider } from "./ResizableDivider";
 import "../../../sparti-cms/components/sparti-builder.css";
 
 interface ClassicRendererProps {
@@ -43,6 +44,8 @@ const ClassicVisualContent: React.FC<{ components: ComponentSchema[] }> = ({ com
 
 const ClassicLayout: React.FC<{ components: ComponentSchema[] }> = ({ components }) => {
   const { selectedElement } = useSpartiBuilder();
+  const { width, setWidth } = useResizableDivider(420, 300, 800, 'classic-editor-sidebar-width');
+  
   return (
     <div className="flex w-full h-full">
       {/* Left: Sections list */}
@@ -56,12 +59,25 @@ const ClassicLayout: React.FC<{ components: ComponentSchema[] }> = ({ components
       </div>
       {/* Right: Editor sidebar */}
       {selectedElement ? (
-        <div
-          className="sticky top-0 h-screen w-[420px] min-w-[420px] max-w-[420px] border-l bg-background overflow-y-auto sparti-editor-sticky"
-          onWheel={(e) => e.stopPropagation()}
-        >
-          <ContentEditPanel />
-        </div>
+        <>
+          <ResizableDivider
+            width={width}
+            onWidthChange={setWidth}
+            minWidth={300}
+            maxWidth={800}
+          />
+          <div
+            className="sticky top-0 h-screen border-l bg-background overflow-y-auto sparti-editor-sticky"
+            style={{
+              width: `${width}px`,
+              minWidth: `${width}px`,
+              maxWidth: `${width}px`,
+            }}
+            onWheel={(e) => e.stopPropagation()}
+          >
+            <ContentEditPanel />
+          </div>
+        </>
       ) : null}
     </div>
   );
