@@ -165,22 +165,58 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
         ? `/api/pages/all?tenantId=${currentTenantId}`
         : `/api/pages/all?tenantId=${currentTenantId}&themeId=${currentThemeId}`;
       
+      console.log('[testing] Frontend: ========== Loading Pages ==========');
+      console.log('[testing] Frontend: currentTenantId:', currentTenantId);
+      console.log('[testing] Frontend: currentThemeId:', currentThemeId);
+      console.log('[testing] Frontend: API URL:', url);
+      console.log('[testing] Frontend: Headers:', {
+        'X-Tenant-Id': currentTenantId || ''
+      });
+      
       const response = await api.get(url, {
         headers: {
           'X-Tenant-Id': currentTenantId || ''
         }
       });
       
+      console.log('[testing] Frontend: Response status:', response.status, response.statusText);
+      
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('[testing] Failed to load pages:', errorText);
+        console.error('[testing] Frontend: Failed to load pages:', errorText);
         throw new Error(`Failed to load pages: ${response.status} ${response.statusText}`);
       }
       
       const data = await response.json();
-      setPages(data.pages || []);
+      console.log('[testing] Frontend: Response data:', {
+        success: data.success,
+        total: data.total,
+        pagesCount: data.pages?.length || 0,
+        tenantId: data.tenantId,
+        themeId: data.themeId,
+        from_filesystem: data.from_filesystem
+      });
+      
+      const receivedPages = data.pages || [];
+      console.log('[testing] Frontend: Received pages:', receivedPages.length);
+      
+      if (receivedPages.length > 0) {
+        const pageTypes = receivedPages.map(p => p.page_type).filter((v, i, a) => a.indexOf(v) === i);
+        console.log('[testing] Frontend: Page types received:', pageTypes.join(', '));
+        console.log('[testing] Frontend: Sample page:', {
+          id: receivedPages[0].id,
+          page_name: receivedPages[0].page_name,
+          slug: receivedPages[0].slug,
+          page_type: receivedPages[0].page_type,
+          theme_id: receivedPages[0].theme_id
+        });
+      }
+      
+      setPages(receivedPages);
+      console.log('[testing] Frontend: Pages set in state:', receivedPages.length);
+      console.log('[testing] Frontend: ====================================');
     } catch (error) {
-      console.error('[testing] Error loading pages:', error);
+      console.error('[testing] Frontend: Error loading pages:', error);
       setError(error instanceof Error ? error.message : 'Failed to load pages');
     } finally {
       setLoading(false);
@@ -434,7 +470,13 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
   // Filter and sort pages based on active tab (only for page types)
   const filteredPages = ['page', 'landing', 'legal'].includes(activeTab) 
     ? pages
-        .filter(page => page.page_type === activeTab)
+        .filter(page => {
+          const matches = page.page_type === activeTab;
+          if (!matches) {
+            console.log(`[testing] Frontend: Filtering out page "${page.page_name}" (page_type: ${page.page_type}, activeTab: ${activeTab})`);
+          }
+          return matches;
+        })
         .sort((a, b) => {
           // Homepage first
           if (a.slug === '/' || a.slug === '/home') return -1;
@@ -444,6 +486,14 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
           return new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime();
         })
     : [];
+  
+  // Debug logging for filtering
+  console.log(`[testing] Frontend: Total pages: ${pages.length}, Active tab: ${activeTab}, Filtered pages: ${filteredPages.length}`);
+  if (pages.length > 0 && filteredPages.length === 0) {
+    const pageTypes = pages.map(p => p.page_type).filter((v, i, a) => a.indexOf(v) === i);
+    console.warn(`[testing] Frontend: No pages match activeTab "${activeTab}". Available page types: ${pageTypes.join(', ')}`);
+    console.warn(`[testing] Frontend: Consider showing all pages or adjusting filter logic`);
+  }
 
   // Show message when no tenant or theme is selected
   if (!currentTenantId || !currentThemeId) {

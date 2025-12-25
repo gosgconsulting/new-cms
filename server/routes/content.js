@@ -42,18 +42,100 @@ const router = express.Router();
 router.get('/pages/all', authenticateUser, async (req, res) => {
   try {
     const { themeId } = req.query;
-    console.log(`[testing] API: Fetching all pages with types for tenant: ${req.tenantId}, theme: ${themeId || 'custom'}`);
+    // Fix tenant ID detection - check multiple sources
+    const tenantId = req.tenantId || req.query.tenantId || req.headers['x-tenant-id'] || (req.user?.tenant_id);
     
-    // Filter pages by tenant and optionally by theme
-    const pages = await getAllPagesWithTypes(req.tenantId, themeId || null);
+    // Comprehensive debugging logs
+    console.log(`[testing] API: ========== /pages/all Request ==========`);
+    console.log(`[testing] API: req.tenantId: ${req.tenantId}`);
+    console.log(`[testing] API: req.query.tenantId: ${req.query.tenantId}`);
+    console.log(`[testing] API: req.headers['x-tenant-id']: ${req.headers['x-tenant-id']}`);
+    console.log(`[testing] API: req.user?.tenant_id: ${req.user?.tenant_id}`);
+    console.log(`[testing] API: Final tenantId: ${tenantId}`);
+    console.log(`[testing] API: themeId from query: ${themeId || 'custom'}`);
+    console.log(`[testing] API: User is_super_admin: ${req.user?.is_super_admin || false}`);
     
-    res.json({ 
-      success: true, 
-      pages: pages,
-      total: pages.length,
-      tenantId: req.tenantId,
-      themeId: themeId || 'custom'
+    // getAllPagesWithTypes already handles file system fallback for demo tenant
+    let pages = [];
+    let fromFilesystem = false;
+    
+    try {
+      pages = await getAllPagesWithTypes(tenantId, themeId || null);
+      console.log(`[testing] API: getAllPagesWithTypes returned ${pages.length} page(s)`);
+      
+      // Check if pages came from file system (they'll have from_filesystem flag)
+      if (pages.length > 0 && pages[0].from_filesystem) {
+        fromFilesystem = true;
+        console.log(`[testing] API: Pages came from file system`);
+      } else if (pages.length > 0) {
+        console.log(`[testing] API: Pages came from database`);
+      }
+      
+      // Log page types for debugging
+      if (pages.length > 0) {
+        const pageTypes = pages.map(p => p.page_type).filter((v, i, a) => a.indexOf(v) === i);
+        console.log(`[testing] API: Page types found: ${pageTypes.join(', ')}`);
+        console.log(`[testing] API: Sample page:`, {
+          id: pages[0].id,
+          page_name: pages[0].page_name,
+          slug: pages[0].slug,
+          page_type: pages[0].page_type,
+          theme_id: pages[0].theme_id,
+          tenant_id: pages[0].tenant_id,
+          from_filesystem: pages[0].from_filesystem
+        });
+      }
+    } catch (error) {
+      console.error('[testing] API: Error fetching pages:', error);
+      console.error('[testing] API: Error stack:', error.stack);
+      // getAllPagesWithTypes already handles demo tenant fallback, so if it throws,
+      // it means the fallback also failed or it's a non-demo tenant
+      throw error;
+    }
+    
+    // Validate and ensure pages have required fields
+    const validatedPages = (pages || []).map((page, index) => {
+      // Ensure required fields are present
+      if (!page.id) {
+        console.warn(`[testing] API: Page at index ${index} missing id, generating one`);
+        const slugId = (page.slug || '').replace(/^\/+|\/+$/g, '').replace(/\//g, '-') || 'page';
+        page.id = page.id || `page-${tenantId}-${slugId}-${index}`;
+      }
+      if (!page.page_name) {
+        console.warn(`[testing] API: Page at index ${index} missing page_name`);
+        page.page_name = page.page_name || 'Untitled Page';
+      }
+      if (!page.slug) {
+        console.warn(`[testing] API: Page at index ${index} missing slug`);
+        page.slug = page.slug || '/';
+      }
+      if (!page.page_type) {
+        console.warn(`[testing] API: Page at index ${index} missing page_type, defaulting to 'page'`);
+        page.page_type = page.page_type || 'page';
+      }
+      // Ensure tenant_id and theme_id are set
+      if (!page.tenant_id) {
+        page.tenant_id = tenantId;
+      }
+      if (themeId && themeId !== 'custom' && !page.theme_id) {
+        page.theme_id = themeId;
+      }
+      return page;
     });
+    
+    const response = { 
+      success: true, 
+      pages: validatedPages,
+      total: validatedPages.length,
+      tenantId: tenantId,
+      themeId: themeId || 'custom',
+      from_filesystem: fromFilesystem
+    };
+    
+    console.log(`[testing] API: Sending response with ${validatedPages.length} validated page(s)`);
+    console.log(`[testing] API: ==========================================`);
+    
+    res.json(response);
   } catch (error) {
     console.error('[testing] API: Error fetching pages:', error);
     res.status(500).json({ 

@@ -198,6 +198,8 @@ export async function deletePage(pageId, tenantId = 'tenant-gosg') {
 // Utility function to get all pages with their types
 export async function getAllPagesWithTypes(tenantId = 'tenant-gosg', themeId = null) {
   try {
+    console.log(`[testing] getAllPagesWithTypes: Called with tenantId=${tenantId}, themeId=${themeId || 'null'}`);
+    
     let queryText = `
       SELECT 
         id,
@@ -226,19 +228,268 @@ export async function getAllPagesWithTypes(tenantId = 'tenant-gosg', themeId = n
     if (themeId === 'custom' || themeId === null) {
       // For 'custom' theme, show pages where theme_id IS NULL
       queryText += ` AND (theme_id IS NULL OR theme_id = 'custom')`;
+      console.log(`[testing] getAllPagesWithTypes: Filtering for custom theme (theme_id IS NULL OR 'custom')`);
     } else if (themeId) {
       // For specific theme, show pages where theme_id matches
       queryText += ` AND theme_id = $2`;
       params.push(themeId);
+      console.log(`[testing] getAllPagesWithTypes: Filtering for theme_id = ${themeId}`);
     }
     
     queryText += ` ORDER BY page_type, created_at DESC`;
     
-    const result = await query(queryText, params);
+    console.log(`[testing] getAllPagesWithTypes: Executing query: ${queryText}`);
+    console.log(`[testing] getAllPagesWithTypes: Query params:`, params);
     
-    return result.rows;
+    const result = await query(queryText, params);
+    const dbPages = result.rows;
+    console.log(`[testing] getAllPagesWithTypes: Database returned ${dbPages.length} page(s)`);
+    
+    // Log theme_ids of returned pages for debugging
+    if (dbPages.length > 0) {
+      const themeIds = dbPages.map(p => p.theme_id).filter((v, i, a) => a.indexOf(v) === i);
+      console.log(`[testing] getAllPagesWithTypes: Theme IDs in database results: ${themeIds.join(', ')}`);
+    }
+    
+    // Special handling for demo tenant: if database returns empty or no matching pages, get pages from file systems
+    // Check if we have matching pages for the requested theme
+    const hasMatchingPages = dbPages.length > 0 && (
+      !themeId || 
+      themeId === 'custom' || 
+      dbPages.some(page => {
+        if (themeId === 'custom' || themeId === null) {
+          return !page.theme_id || page.theme_id === 'custom';
+        }
+        return page.theme_id === themeId;
+      })
+    );
+    
+    console.log(`[testing] getAllPagesWithTypes: tenantId === 'demo': ${tenantId === 'demo'}`);
+    console.log(`[testing] getAllPagesWithTypes: dbPages.length === 0: ${dbPages.length === 0}`);
+    console.log(`[testing] getAllPagesWithTypes: hasMatchingPages: ${hasMatchingPages}`);
+    
+    if (tenantId === 'demo' && (!hasMatchingPages || dbPages.length === 0)) {
+      console.log(`[testing] Demo tenant: No matching pages in database, fetching from file system (theme: ${themeId || 'all'})`);
+      
+      try {
+        // Import theme sync functions
+        const { getThemesFromFileSystem, getThemePagesFromFileSystem, syncDemoTenantPagesFromFileSystem } = await import('../../services/themeSync.js');
+        
+        const allThemePages = [];
+        
+        // If a specific theme is selected (not 'custom' or null), only get pages from that theme
+        if (themeId && themeId !== 'custom') {
+          console.log(`[testing] Demo tenant: Fetching pages for specific theme: ${themeId}`);
+          try {
+            const themePages = getThemePagesFromFileSystem(themeId);
+            console.log(`[testing] Demo tenant: getThemePagesFromFileSystem returned:`, themePages ? `${themePages.length} page(s)` : 'null/undefined');
+            
+            if (themePages && Array.isArray(themePages) && themePages.length > 0) {
+              // Validate and map pages
+              const validPages = themePages.filter(page => {
+                const isValid = page && page.page_name && page.slug;
+                if (!isValid) {
+                  console.warn(`[testing] Demo tenant: Skipping invalid page:`, page);
+                }
+                return isValid;
+              });
+              
+              const pagesWithThemeId = validPages.map(page => ({
+                ...page,
+                theme_id: themeId,
+                tenant_id: 'demo',
+                from_filesystem: true,
+                // Ensure required fields are present
+                id: page.id || `theme-${themeId}-${page.slug.replace(/^\/+|\/+$/g, '').replace(/\//g, '-') || 'homepage'}`,
+                page_type: page.page_type || 'page',
+                status: page.status || 'published'
+              }));
+              allThemePages.push(...pagesWithThemeId);
+              console.log(`[testing] Demo tenant: Found ${pagesWithThemeId.length} valid page(s) from theme ${themeId}`);
+              
+              // Optionally sync to database for future queries (non-blocking)
+              syncDemoTenantPagesFromFileSystem(themeId).catch(syncError => {
+                console.error(`[testing] Failed to sync pages to database (non-critical):`, syncError);
+              });
+            } else {
+              console.warn(`[testing] Demo tenant: No pages found in file system for theme ${themeId} (result: ${themePages ? 'empty array' : 'null/undefined'})`);
+            }
+          } catch (themeError) {
+            console.error(`[testing] Error getting pages for theme ${themeId}:`, themeError);
+            console.error(`[testing] Error stack:`, themeError.stack);
+          }
+        } else {
+          // If no specific theme or 'custom', get pages from all themes
+          console.log('[testing] Demo tenant: Fetching pages from all themes');
+          const themes = getThemesFromFileSystem();
+          console.log(`[testing] Demo tenant: Found ${themes.length} theme(s) in file system`);
+          
+          for (const theme of themes) {
+            try {
+              const themePages = getThemePagesFromFileSystem(theme.slug);
+              console.log(`[testing] Demo tenant: getThemePagesFromFileSystem for ${theme.slug} returned:`, themePages ? `${themePages.length} page(s)` : 'null/undefined');
+              
+              if (themePages && Array.isArray(themePages) && themePages.length > 0) {
+                // Validate and map pages
+                const validPages = themePages.filter(page => {
+                  const isValid = page && page.page_name && page.slug;
+                  if (!isValid) {
+                    console.warn(`[testing] Demo tenant: Skipping invalid page from theme ${theme.slug}:`, page);
+                  }
+                  return isValid;
+                });
+                
+                const pagesWithThemeId = validPages.map(page => ({
+                  ...page,
+                  theme_id: theme.slug,
+                  tenant_id: 'demo',
+                  from_filesystem: true,
+                  // Ensure required fields are present
+                  id: page.id || `theme-${theme.slug}-${page.slug.replace(/^\/+|\/+$/g, '').replace(/\//g, '-') || 'homepage'}`,
+                  page_type: page.page_type || 'page',
+                  status: page.status || 'published'
+                }));
+                allThemePages.push(...pagesWithThemeId);
+                console.log(`[testing] Demo tenant: Found ${pagesWithThemeId.length} valid page(s) from theme ${theme.slug}`);
+              } else {
+                console.log(`[testing] Demo tenant: No pages found in file system for theme ${theme.slug} (result: ${themePages ? 'empty array' : 'null/undefined'})`);
+              }
+            } catch (themeError) {
+              console.error(`[testing] Error getting pages for theme ${theme.slug}:`, themeError);
+              console.error(`[testing] Error stack:`, themeError.stack);
+              // Continue with other themes even if one fails
+            }
+          }
+          
+          // Optionally sync all themes to database for future queries (non-blocking)
+          if (allThemePages.length > 0) {
+            syncDemoTenantPagesFromFileSystem(null).catch(syncError => {
+              console.error(`[testing] Failed to sync pages to database (non-critical):`, syncError);
+            });
+          }
+        }
+        
+        console.log(`[testing] Demo tenant: Total ${allThemePages.length} page(s) from file system`);
+        if (allThemePages.length === 0) {
+          console.warn(`[testing] Demo tenant: No pages found in file system. Check if themes have pages.json files.`);
+        }
+        return allThemePages;
+      } catch (fsError) {
+        console.error('[testing] Error fetching pages from file system for demo tenant:', fsError);
+        // Return empty array if file system fallback also fails
+        return [];
+      }
+    }
+    
+    return dbPages;
   } catch (error) {
     console.error('[testing] Error fetching all pages with types:', error);
+    
+    // For demo tenant, try file system fallback even on database error
+    if (tenantId === 'demo') {
+      console.log(`[testing] Demo tenant: Database error, trying file system fallback (theme: ${themeId || 'all'})`);
+      try {
+        const { getThemesFromFileSystem, getThemePagesFromFileSystem, syncDemoTenantPagesFromFileSystem } = await import('../../services/themeSync.js');
+        const allThemePages = [];
+        
+        // If a specific theme is selected (not 'custom' or null), only get pages from that theme
+        if (themeId && themeId !== 'custom') {
+          console.log(`[testing] Demo tenant: Fetching pages for specific theme: ${themeId}`);
+          try {
+            const themePages = getThemePagesFromFileSystem(themeId);
+            console.log(`[testing] Demo tenant: getThemePagesFromFileSystem returned:`, themePages ? `${themePages.length} page(s)` : 'null/undefined');
+            
+            if (themePages && Array.isArray(themePages) && themePages.length > 0) {
+              // Validate and map pages
+              const validPages = themePages.filter(page => {
+                const isValid = page && page.page_name && page.slug;
+                if (!isValid) {
+                  console.warn(`[testing] Demo tenant: Skipping invalid page:`, page);
+                }
+                return isValid;
+              });
+              
+              const pagesWithThemeId = validPages.map(page => ({
+                ...page,
+                theme_id: themeId,
+                tenant_id: 'demo',
+                from_filesystem: true,
+                // Ensure required fields are present
+                id: page.id || `theme-${themeId}-${page.slug.replace(/^\/+|\/+$/g, '').replace(/\//g, '-') || 'homepage'}`,
+                page_type: page.page_type || 'page',
+                status: page.status || 'published'
+              }));
+              allThemePages.push(...pagesWithThemeId);
+              console.log(`[testing] Demo tenant: Found ${pagesWithThemeId.length} valid page(s) from theme ${themeId}`);
+              
+              // Optionally sync to database for future queries (non-blocking)
+              syncDemoTenantPagesFromFileSystem(themeId).catch(syncError => {
+                console.error(`[testing] Failed to sync pages to database (non-critical):`, syncError);
+              });
+            }
+          } catch (themeError) {
+            console.error(`[testing] Error getting pages for theme ${themeId}:`, themeError);
+            console.error(`[testing] Error stack:`, themeError.stack);
+          }
+        } else {
+          // If no specific theme or 'custom', get pages from all themes
+          console.log('[testing] Demo tenant: Fetching pages from all themes');
+          const themes = getThemesFromFileSystem();
+          console.log(`[testing] Demo tenant: Found ${themes.length} theme(s) in file system`);
+          
+          for (const theme of themes) {
+            try {
+              const themePages = getThemePagesFromFileSystem(theme.slug);
+              console.log(`[testing] Demo tenant: getThemePagesFromFileSystem for ${theme.slug} returned:`, themePages ? `${themePages.length} page(s)` : 'null/undefined');
+              
+              if (themePages && Array.isArray(themePages) && themePages.length > 0) {
+                // Validate and map pages
+                const validPages = themePages.filter(page => {
+                  const isValid = page && page.page_name && page.slug;
+                  if (!isValid) {
+                    console.warn(`[testing] Demo tenant: Skipping invalid page from theme ${theme.slug}:`, page);
+                  }
+                  return isValid;
+                });
+                
+                const pagesWithThemeId = validPages.map(page => ({
+                  ...page,
+                  theme_id: theme.slug,
+                  tenant_id: 'demo',
+                  from_filesystem: true,
+                  // Ensure required fields are present
+                  id: page.id || `theme-${theme.slug}-${page.slug.replace(/^\/+|\/+$/g, '').replace(/\//g, '-') || 'homepage'}`,
+                  page_type: page.page_type || 'page',
+                  status: page.status || 'published'
+                }));
+                allThemePages.push(...pagesWithThemeId);
+                console.log(`[testing] Demo tenant: Found ${pagesWithThemeId.length} valid page(s) from theme ${theme.slug}`);
+              }
+            } catch (themeError) {
+              console.error(`[testing] Error getting pages for theme ${theme.slug}:`, themeError);
+              console.error(`[testing] Error stack:`, themeError.stack);
+            }
+          }
+          
+          // Optionally sync all themes to database for future queries (non-blocking)
+          if (allThemePages.length > 0) {
+            syncDemoTenantPagesFromFileSystem(null).catch(syncError => {
+              console.error(`[testing] Failed to sync pages to database (non-critical):`, syncError);
+            });
+          }
+        }
+        
+        console.log(`[testing] Demo tenant: Fallback successful, returning ${allThemePages.length} page(s) from file system`);
+        if (allThemePages.length === 0) {
+          console.warn(`[testing] Demo tenant: No pages found in file system. Check if themes have pages.json files.`);
+        }
+        return allThemePages;
+      } catch (fsError) {
+        console.error('[testing] File system fallback also failed:', fsError);
+        throw error; // Re-throw original database error
+      }
+    }
+    
     throw error;
   }
 }

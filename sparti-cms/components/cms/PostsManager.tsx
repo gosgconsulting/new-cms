@@ -2,35 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { 
   Plus, 
   Search, 
-  Filter, 
-  Edit, 
-  Trash2, 
-  Eye, 
-  Calendar,
-  User,
-  Tag,
-  FileText,
-  Globe,
-  Clock
+  Trash2,
+  Pencil
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { toast } from "@/components/ui/use-toast";
 import NewPostEditor from './NewPostEditor';
 import { useAuth } from '../auth/AuthProvider';
@@ -54,6 +30,12 @@ interface Post {
     name: string;
     taxonomy: string;
   }>;
+  author?: {
+    id: number;
+    email: string;
+    first_name?: string;
+    last_name?: string;
+  };
 }
 
 const PostsManager: React.FC = () => {
@@ -61,15 +43,28 @@ const PostsManager: React.FC = () => {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [users, setUsers] = useState<Array<{id: number; email: string; first_name?: string; last_name?: string}>>([]);
   const [showNewPost, setShowNewPost] = useState(false);
   const [editingPost, setEditingPost] = useState<Post | null>(null);
 
   useEffect(() => {
     if (currentTenantId) {
       loadPosts();
+      loadUsers();
     }
   }, [currentTenantId, user]);
+
+  const loadUsers = async () => {
+    try {
+      const response = await fetch('/api/users');
+      if (response.ok) {
+        const data = await response.json();
+        setUsers(data);
+      }
+    } catch (error) {
+      console.error('[testing] Error loading users:', error);
+    }
+  };
 
   const loadPosts = async () => {
     if (!currentTenantId) return;
@@ -173,27 +168,45 @@ const PostsManager: React.FC = () => {
 
   const filteredPosts = posts.filter(post => {
     const matchesSearch = post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         post.content.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || post.status === statusFilter;
-    return matchesSearch && matchesStatus;
+                         post.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         post.terms?.some(term => term.name.toLowerCase().includes(searchTerm.toLowerCase()));
+    
+    // Also search by author name
+    const author = users.find(u => u.id === post.author_id);
+    if (author) {
+      const authorName = `${author.first_name || ''} ${author.last_name || ''}`.trim() || author.email;
+      if (authorName.toLowerCase().includes(searchTerm.toLowerCase())) {
+        return true;
+      }
+    }
+    
+    return matchesSearch;
   });
 
   const getStatusBadge = (status: string) => {
-    const variants: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
-      published: "default",
-      draft: "secondary",
-      private: "outline",
-      trash: "destructive"
+    const statusColors: Record<string, string> = {
+      published: "bg-green-100 text-green-800",
+      draft: "bg-yellow-100 text-yellow-800",
+      private: "bg-gray-100 text-gray-800",
+      trash: "bg-red-100 text-red-800"
     };
-    return <Badge variant={variants[status] || "outline"}>{status}</Badge>;
+    return (
+      <span className={`px-2 py-1 rounded text-xs font-medium ${statusColors[status] || statusColors.draft}`}>
+        {status}
+      </span>
+    );
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
+  const getAuthorName = (authorId: number) => {
+    const author = users.find(u => u.id === authorId);
+    if (author) {
+      return `${author.first_name || ''} ${author.last_name || ''}`.trim() || author.email;
+    }
+    return 'Unknown';
+  };
+
+  const getPostTags = (post: Post) => {
+    return post.terms?.filter(t => t.taxonomy === 'post_tag').map(t => t.name) || [];
   };
 
   // Show New Post Editor
@@ -235,65 +248,48 @@ const PostsManager: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-foreground">Posts</h2>
-          <p className="text-muted-foreground">
-            Manage your blog posts and articles
-          </p>
-        </div>
-        <Button onClick={() => setShowNewPost(true)} className="flex items-center gap-2">
+        <h2 className="text-2xl font-bold text-foreground">Posts</h2>
+        <Button onClick={() => setShowNewPost(true)} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700">
           <Plus className="h-4 w-4" />
           New Post
         </Button>
       </div>
 
-      {/* Filters */}
+      {/* Search Bar */}
       <div className="flex items-center gap-4">
-        <div className="flex-1">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-            <Input
-              placeholder="Search posts..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
+        <div className="flex-1 relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+          <Input
+            placeholder="Search by title, author, or tag"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
         </div>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder="Filter by status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value="published">Published</SelectItem>
-            <SelectItem value="draft">Draft</SelectItem>
-            <SelectItem value="private">Private</SelectItem>
-            <SelectItem value="trash">Trash</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="text-sm text-muted-foreground">
+          {filteredPosts.length} {filteredPosts.length === 1 ? 'post' : 'posts'}
+        </div>
       </div>
 
-      {/* Posts Table */}
-      <div className="bg-white rounded-lg border">
+      {/* Posts List */}
+      <div className="space-y-4">
         {loading ? (
           <div className="flex items-center justify-center p-8">
             <div className="text-muted-foreground">Loading posts...</div>
           </div>
         ) : filteredPosts.length === 0 ? (
           <div className="flex flex-col items-center justify-center p-8 text-center">
-            <FileText className="h-12 w-12 text-muted-foreground mb-4" />
             <h3 className="text-lg font-medium text-foreground mb-2">No posts found</h3>
             <p className="text-muted-foreground mb-4">
-              {searchTerm || statusFilter !== 'all' 
-                ? 'Try adjusting your search or filter criteria.'
+              {searchTerm 
+                ? 'Try adjusting your search criteria.'
                 : 'Get started by creating your first post.'
               }
             </p>
-            {(!searchTerm && statusFilter === 'all') && (
+            {!searchTerm && (
               <Button onClick={() => setShowNewPost(true)} className="flex items-center gap-2">
                 <Plus className="h-4 w-4" />
                 Create Your First Post
@@ -301,135 +297,46 @@ const PostsManager: React.FC = () => {
             )}
           </div>
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Title</TableHead>
-                <TableHead>Author</TableHead>
-                <TableHead>Categories</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Views</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredPosts.map((post) => (
-                <TableRow key={post.id}>
-                  <TableCell>
-                    <div>
-                      <div className="font-medium text-foreground">{post.title}</div>
-                      <div className="text-sm text-muted-foreground truncate max-w-xs">
-                        {post.excerpt || 'No excerpt'}
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <User className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">Author #{post.author_id}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-wrap gap-1">
-                      {post.terms?.filter(t => t.taxonomy === 'category').map(term => (
-                        <Badge key={term.id} variant="secondary" className="text-xs">
-                          {term.name}
-                        </Badge>
-                      ))}
-                    </div>
-                  </TableCell>
-                  <TableCell>
+          filteredPosts.map((post) => {
+            const tags = getPostTags(post);
+            const authorName = getAuthorName(post.author_id);
+            const tagText = tags.length > 0 ? ` - ${tags.join(', ')}` : '';
+            
+            return (
+              <div key={post.id} className="bg-white rounded-lg border p-4 flex items-center justify-between hover:shadow-md transition-shadow">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-2">
+                    <h3 className="font-semibold text-foreground">{post.title}</h3>
                     {getStatusBadge(post.status)}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">
-                        {post.published_at ? formatDate(post.published_at) : formatDate(post.created_at)}
-                      </span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Eye className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">{post.view_count}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setEditingPost(post)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDeletePost(post.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    by {authorName}{tagText}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setEditingPost(post)}
+                    className="flex items-center gap-2"
+                  >
+                    <Pencil className="h-4 w-4" />
+                    Edit
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleDeletePost(post.id)}
+                    className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    Delete
+                  </Button>
+                </div>
+              </div>
+            );
+          })
         )}
-      </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white p-4 rounded-lg border">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <FileText className="h-5 w-5 text-blue-600" />
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Total Posts</p>
-              <p className="text-2xl font-bold">{posts.length}</p>
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-white p-4 rounded-lg border">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-green-100 rounded-lg">
-              <Globe className="h-5 w-5 text-green-600" />
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Published</p>
-              <p className="text-2xl font-bold">{posts.filter(p => p.status === 'published').length}</p>
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-white p-4 rounded-lg border">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-yellow-100 rounded-lg">
-              <Clock className="h-5 w-5 text-yellow-600" />
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Drafts</p>
-              <p className="text-2xl font-bold">{posts.filter(p => p.status === 'draft').length}</p>
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-white p-4 rounded-lg border">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-purple-100 rounded-lg">
-              <Eye className="h-5 w-5 text-purple-600" />
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Total Views</p>
-              <p className="text-2xl font-bold">{posts.reduce((sum, p) => sum + p.view_count, 0)}</p>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );

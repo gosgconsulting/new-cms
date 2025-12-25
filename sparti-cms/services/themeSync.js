@@ -217,6 +217,7 @@ export function getThemePagesFromFileSystem(themeSlug) {
       conversion_goal: page.conversion_goal || null,
       legal_type: page.legal_type || null,
       version: page.version || null,
+      theme_id: themeSlug, // Include theme_id to identify which theme this page belongs to
       created_at: now,
       updated_at: now,
       from_filesystem: true // Flag to indicate this came from file system
@@ -923,6 +924,89 @@ export async function ensureDemoTenantHasThemePages(themeSlug, pages) {
   
   if (createdCount > 0) {
     console.log(`[testing] Created ${createdCount} page(s) for demo tenant with theme ${themeSlug}`);
+  }
+}
+
+/**
+ * Sync all theme pages from file system to database for demo tenant
+ * This ensures demo tenant has pages available even if database is empty
+ * @param {string|null} themeSlug - Optional theme slug to sync only one theme, or null to sync all themes
+ * @returns {Object} Result object with success status and counts
+ */
+export async function syncDemoTenantPagesFromFileSystem(themeSlug = null) {
+  const demoTenantId = 'demo';
+  
+  try {
+    // Check if demo tenant exists
+    const demoTenantCheck = await query(`
+      SELECT id FROM tenants WHERE id = $1
+    `, [demoTenantId]);
+    
+    if (demoTenantCheck.rows.length === 0) {
+      console.log(`[testing] Demo tenant does not exist, creating it...`);
+      // Create demo tenant if it doesn't exist
+      try {
+        await query(`
+          INSERT INTO tenants (id, name, domain, is_active, created_at, updated_at)
+          VALUES ($1, $2, $3, $4, NOW(), NOW())
+          ON CONFLICT (id) DO NOTHING
+        `, [demoTenantId, 'Demo Tenant', 'demo.sparti.ai', true]);
+        console.log(`[testing] Created demo tenant`);
+      } catch (tenantError) {
+        console.error(`[testing] Error creating demo tenant:`, tenantError);
+        return {
+          success: false,
+          error: 'Failed to create demo tenant',
+          message: tenantError.message
+        };
+      }
+    }
+    
+    let totalCreated = 0;
+    const themes = themeSlug ? [{ slug: themeSlug }] : getThemesFromFileSystem();
+    
+    console.log(`[testing] Syncing pages for demo tenant from ${themes.length} theme(s)`);
+    
+    for (const theme of themes) {
+      try {
+        const themePages = getThemePagesFromFileSystem(theme.slug);
+        
+        if (themePages.length === 0) {
+          console.log(`[testing] No pages found for theme ${theme.slug}`);
+          continue;
+        }
+        
+        // Use existing function to ensure pages exist
+        await ensureDemoTenantHasThemePages(theme.slug, themePages);
+        
+        // Count how many were actually created
+        const createdResult = await query(`
+          SELECT COUNT(*) as count
+          FROM pages
+          WHERE tenant_id = $1 AND theme_id = $2
+        `, [demoTenantId, theme.slug]);
+        
+        const count = parseInt(createdResult.rows[0].count, 10);
+        totalCreated += count;
+        console.log(`[testing] Synced ${count} page(s) for theme ${theme.slug}`);
+      } catch (themeError) {
+        console.error(`[testing] Error syncing pages for theme ${theme.slug}:`, themeError);
+      }
+    }
+    
+    return {
+      success: true,
+      totalCreated: totalCreated,
+      themesProcessed: themes.length,
+      message: `Synced ${totalCreated} page(s) for demo tenant from ${themes.length} theme(s)`
+    };
+  } catch (error) {
+    console.error('[testing] Error syncing demo tenant pages from file system:', error);
+    return {
+      success: false,
+      error: error.message,
+      message: 'Failed to sync demo tenant pages'
+    };
   }
 }
 
