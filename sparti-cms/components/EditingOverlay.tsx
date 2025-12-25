@@ -16,30 +16,10 @@ export const EditingOverlay: React.FC = () => {
     };
   };
 
-  const updateSelectedOverlay = () => {
-    if (selectedElement?.element) {
-      const bounds = getViewportBounds(selectedElement.element);
-      setOverlayStyles({
-        position: 'fixed',
-        top: `${bounds.top}px`,
-        left: `${bounds.left}px`,
-        width: `${bounds.width}px`,
-        height: `${bounds.height}px`,
-        pointerEvents: 'none',
-        zIndex: 9998, // Below modal/backdrop
-        transform: 'translateZ(0)',
-      });
-    } else {
-      setOverlayStyles({ display: 'none' });
-    }
-  };
+  // If modal/editor is open (selectedElement present), disable all overlays
+  if (!isEditing || selectedElement) return null;
 
   const updateHoverOverlay = () => {
-    // Hide hover overlay completely while a section editor is open
-    if (selectedElement) {
-      setHoverStyles({ display: 'none' });
-      return;
-    }
     if (hoveredElement?.element) {
       const bounds = getViewportBounds(hoveredElement.element);
       setHoverStyles({
@@ -49,7 +29,7 @@ export const EditingOverlay: React.FC = () => {
         width: `${bounds.width}px`,
         height: `${bounds.height}px`,
         pointerEvents: 'none',
-        zIndex: 9997, // Below selection overlay and modal
+        zIndex: 9997,
         transform: 'translateZ(0)',
       });
     } else {
@@ -58,12 +38,8 @@ export const EditingOverlay: React.FC = () => {
   };
 
   useEffect(() => {
-    updateSelectedOverlay();
-  }, [selectedElement]);
-
-  useEffect(() => {
     updateHoverOverlay();
-  }, [hoveredElement, selectedElement]);
+  }, [hoveredElement]);
 
   useEffect(() => {
     if (!isEditing) return;
@@ -73,7 +49,6 @@ export const EditingOverlay: React.FC = () => {
       if (rafId !== null) return;
       rafId = requestAnimationFrame(() => {
         rafId = null;
-        updateSelectedOverlay();
         updateHoverOverlay();
       });
     };
@@ -88,26 +63,15 @@ export const EditingOverlay: React.FC = () => {
       window.removeEventListener('resize', scheduleUpdate as EventListener);
       if (rafId !== null) cancelAnimationFrame(rafId);
     };
-  }, [isEditing, selectedElement, hoveredElement]);
+  }, [isEditing, hoveredElement]);
 
-  if (!isEditing) return null;
-
-  const selectedLabel =
-    selectedElement?.data?.attributes?.['data-sparti-section'] ||
-    selectedElement?.data?.tagName ||
-    '';
-
+  // Only render hover overlay when not editing a selected section
   return (
     <>
-      <div className="sparti-hover-overlay" style={hoverStyles} />
-      {/* Optional: show border-only selection overlay. If you prefer none, set display: 'none'. */}
-      {selectedElement && (
-        <div className="sparti-selection-overlay" style={overlayStyles}>
-          <div className="sparti-element-label">
-            {String(selectedLabel)}
-          </div>
-        </div>
-      )}
+      <div 
+        className="sparti-hover-overlay sparti-overlay sparti-ui" 
+        style={hoverStyles}
+      />
     </>
   );
 };

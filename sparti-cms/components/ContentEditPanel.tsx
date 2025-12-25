@@ -18,12 +18,11 @@ import { showSuccessToast, showErrorToast } from '../../src/utils/toast-utils';
 import api from '../utils/api';
 
 export const ContentEditPanel: React.FC = () => {
-  const { isEditing, selectedElement, selectElement, components, updateComponent, pageId, slug, tenantId } = useSpartiBuilder();
+  const { isEditing, selectedElement, selectElement, components, updateComponent, pageId, slug, tenantId, exitEditMode } = useSpartiBuilder();
   const [saveSuccess, setSaveSuccess] = useState(false);
   const { components: dbComponents, status, error } = useDatabase();
   const [savingLayout, setSavingLayout] = useState(false);
   
-  // Derive loading state from useDatabase status
   const isSaving = status === 'loading';
 
   if (!isEditing || !selectedElement) return null;
@@ -63,7 +62,6 @@ export const ContentEditPanel: React.FC = () => {
       const effectiveTenantId = tenantId || 'tenant-gosg';
       let targetPageId = pageId;
 
-      // If pageId not available, resolve via page-context using slug + tenant
       if (!targetPageId) {
         if (!slug) {
           showErrorToast('Cannot determine page context to save.');
@@ -81,7 +79,6 @@ export const ContentEditPanel: React.FC = () => {
         targetPageId = String(ctxData.pageContext.pageId);
       }
 
-      // PUT updated layout
       const res = await api.put(`/api/pages/${targetPageId}/layout`, {
         layout_json: { components },
         tenantId: effectiveTenantId
@@ -89,6 +86,9 @@ export const ContentEditPanel: React.FC = () => {
       const json = await res.json();
       if (json && json.success !== false) {
         showSuccessToast('Layout saved');
+        // Deactivate toolbar and close editor so no live-site HTML or labels can be captured/displayed
+        selectElement(null);
+        exitEditMode();
       } else {
         showErrorToast(json?.message || 'Failed to save layout');
       }
@@ -188,11 +188,14 @@ export const ContentEditPanel: React.FC = () => {
 
   return (
     <>
-      <div className="sparti-modal-backdrop" onClick={() => selectElement(null)}></div>
-      <div className="sparti-edit-panel">
+      <div className="sparti-modal-backdrop sparti-ui" onClick={() => selectElement(null)}></div>
+      <div className="sparti-edit-panel sparti-ui">
         <div className="sparti-edit-panel-header">
           <div className="sparti-edit-header-content">
-            <IconComponent size={20} />
+            {(() => {
+              const IconComponent = getEditorIcon(elementType);
+              return <IconComponent size={20} />;
+            })()}
             <div>
               <h3>{selectedComponent ? 'Section Editor' : `${elementType.charAt(0).toUpperCase() + elementType.slice(1)} Editor`}</h3>
               <p className="sparti-element-path">
@@ -216,17 +219,6 @@ export const ContentEditPanel: React.FC = () => {
               {savingLayout ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
               {savingLayout ? 'Saving...' : 'Save'}
             </button>
-            {isComponent && (
-              <button 
-                className={`sparti-btn sparti-btn-primary ${isSaving ? 'sparti-btn-loading' : ''}`}
-                onClick={saveToDatabase}
-                disabled={isSaving}
-                aria-label="Save to database"
-              >
-                <Save size={16} />
-                {isSaving ? 'Saving...' : 'Save'}
-              </button>
-            )}
             <button 
               className="sparti-btn sparti-btn-ghost sparti-close-btn" 
               onClick={() => selectElement(null)}
