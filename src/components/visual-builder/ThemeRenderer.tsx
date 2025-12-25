@@ -3,11 +3,20 @@ import { AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Loader2 } from 'lucide-react';
 import ThemeSectionList from './ThemeSectionList';
+import { SpartiBuilderProvider, useSpartiBuilder } from '../../../sparti-cms/components/SpartiBuilderProvider';
+import { ContentEditPanel } from '../../../sparti-cms/components/ContentEditPanel';
+import type { ComponentSchema } from '../../../sparti-cms/types/schema';
 
 interface ThemeRendererProps {
+  components: ComponentSchema[];
   themeId: string | null;
-  tenantId?: string;
-  pageSlug?: string;
+  pageContext?: {
+    pageId?: string;
+    slug?: string;
+    pageName?: string;
+    tenantId?: string;
+    themeId?: string;
+  };
 }
 
 // Dynamic theme imports - themes with hardcoded content
@@ -42,12 +51,12 @@ const themeConfig: Record<string, { name: string; component: React.LazyExoticCom
 /**
  * ThemeRenderer Component
  * Renders the actual theme component with hardcoded content
- * This shows the theme exactly as it appears when deployed
+ * Uses the same JSON schema components as other preview modes for sections
  */
 const ThemeRenderer: React.FC<ThemeRendererProps> = ({ 
-  themeId, 
-  tenantId,
-  pageSlug 
+  components,
+  themeId,
+  pageContext
 }) => {
   const effectiveThemeId = themeId || 'landingpage';
   
@@ -97,24 +106,57 @@ const ThemeRenderer: React.FC<ThemeRendererProps> = ({
 
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Render the theme component with appropriate props
-  return (
-    <div className="flex w-full h-full">
-      {/* Left: Sections list */}
-      <ThemeSectionList containerRef={containerRef} />
+  // Layout component that uses builder context
+  const ThemeLayout: React.FC = () => {
+    const { selectedElement, components: ctxComponents } = useSpartiBuilder();
+    // Use context components if available (for real-time updates), otherwise fall back to prop
+    const componentsList = Array.isArray(ctxComponents) && ctxComponents.length > 0 ? ctxComponents : components;
 
-      {/* Right: Theme content */}
-      <div className="flex-1 min-w-0 overflow-auto" ref={containerRef}>
-        <Suspense fallback={<LoadingFallback />}>
-          <div className="w-full">
-            <ThemeComponent 
-              tenantName={currentTheme.name} 
-              tenantSlug={effectiveThemeId}
-            />
+    return (
+      <div className="flex w-full h-full">
+        {/* Left: Sections list - uses JSON schema components */}
+        <ThemeSectionList components={componentsList} />
+
+        {/* Middle: Theme content */}
+        <div className="flex-1 min-w-0 overflow-auto" ref={containerRef}>
+          <Suspense fallback={<LoadingFallback />}>
+            <div className="w-full">
+              <ThemeComponent 
+                tenantName={currentTheme.name} 
+                tenantSlug={effectiveThemeId}
+              />
+            </div>
+          </Suspense>
+        </div>
+
+        {/* Right: editor only when a section is selected */}
+        {selectedElement ? (
+          <div
+            className="sticky top-0 h-screen w-[420px] min-w-[420px] max-w-[420px] border-l bg-background flex flex-col sparti-editor-sticky"
+            onWheel={(e) => {
+              // Prevent scroll propagation to the center preview
+              e.stopPropagation();
+            }}
+          >
+            <ContentEditPanel />
           </div>
-        </Suspense>
+        ) : null}
       </div>
-    </div>
+    );
+  };
+
+  // Render the theme component with builder provider using the same components as other previews
+  return (
+    <SpartiBuilderProvider
+      components={components}
+      pageId={pageContext?.pageId}
+      slug={pageContext?.slug}
+      tenantId={pageContext?.tenantId}
+      themeId={pageContext?.themeId || effectiveThemeId}
+      config={{ enabled: true, toolbar: false, autoDetect: true }}
+    >
+      <ThemeLayout />
+    </SpartiBuilderProvider>
   );
 };
 

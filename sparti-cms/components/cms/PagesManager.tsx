@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Button } from '../../../src/components/ui/button';
 import { Card } from '../../../src/components/ui/card';
 import { Badge } from '../../../src/components/ui/badge';
-import { Edit, Eye, FileText, Rocket, Scale, Layout, Minus, Code, RefreshCw, History, Save, Loader2 } from 'lucide-react';
+import { Edit, Eye, FileText, Rocket, Scale, Layout, Minus, Code, RefreshCw, History, Save, Loader2, Search } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../src/components/ui/select';
 import ClassicRenderer from '../../../src/components/visual-builder/ClassicRenderer';
 import ThemeRenderer from '../../../src/components/visual-builder/ThemeRenderer';
@@ -14,6 +14,8 @@ import { getDummyPages, isDevelopmentTenant } from '../admin/DevelopmentTenantDa
 import api from '../../utils/api';
 import { VisualEditorJSONDialog } from './VisualEditorJSONDialog';
 import CodeViewerDialog from './PageEditor/CodeViewerDialog';
+import SEODialog from './PageEditor/SEODialog';
+import SEOPage from './PageEditor/SEOPage';
 import { isValidComponentsArray } from '../../utils/componentHelpers';
 import FlowbiteDioraRenderer from '../../../src/components/visual-builder/FlowbiteDioraRenderer';
 import { applyFlowbiteTheme } from '../../../src/utils/flowbiteThemeManager';
@@ -130,8 +132,11 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [visualEditorPage, setVisualEditorPage] = useState<{ slug: string; pageName: string; id?: string } | null>(null);
+  const [seoPage, setSeoPage] = useState<{ slug: string; pageName: string; id: string } | null>(null);
   const [showJSONEditor, setShowJSONEditor] = useState(false);
   const [showCodeViewer, setShowCodeViewer] = useState(false);
+  const [showSEODialog, setShowSEODialog] = useState(false);
+  const [selectedPageForSEO, setSelectedPageForSEO] = useState<PageItem | null>(null);
   const [activeTab, setActiveTab] = useState<'page' | 'landing' | 'legal' | 'header' | 'footer'>('page');
   const [previewMode, setPreviewMode] = useState<'flowbite' | 'classic' | 'theme'>('flowbite');
   const [previewThemeId, setPreviewThemeId] = useState<string | null>(null); // Theme selected in preview
@@ -391,6 +396,22 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
     }
   };
 
+  const handleOpenSEO = (page: PageItem) => {
+    setSeoPage({
+      slug: page.slug,
+      pageName: page.page_name,
+      id: page.id
+    });
+    if (onEditModeChange) {
+      onEditModeChange(true);
+    }
+  };
+
+  const handleSEOSave = () => {
+    // Reload pages to reflect SEO changes
+    loadPages();
+  };
+
   // Extract load function to be reusable - wrapped in useCallback to prevent dependency issues
   const loadBuilderLayout = useCallback(async () => {
     if (!visualEditorPage) return;
@@ -647,11 +668,33 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
   // Use useLayoutEffect to ensure it runs synchronously before paint
   useLayoutEffect(() => {
     if (onEditModeChange) {
-      const isEditMode = visualEditorPage !== null;
-      console.log('[testing] useLayoutEffect - visualEditorPage:', visualEditorPage, 'isEditMode:', isEditMode);
+      const isEditMode = visualEditorPage !== null || seoPage !== null;
+      console.log('[testing] useLayoutEffect - visualEditorPage:', visualEditorPage, 'seoPage:', seoPage, 'isEditMode:', isEditMode);
       onEditModeChange(isEditMode);
     }
-  }, [visualEditorPage, onEditModeChange]);
+  }, [visualEditorPage, seoPage, onEditModeChange]);
+
+  // Show SEO page if a page is being edited for SEO
+  if (seoPage) {
+    return (
+      <div className="flex flex-col" style={{ height: 'calc(100vh - 120px)' }}>
+        <SEOPage
+          pageId={seoPage.id}
+          pageName={seoPage.pageName}
+          pageSlug={seoPage.slug}
+          tenantId={currentTenantId}
+          themeId={currentThemeId}
+          onBack={() => {
+            setSeoPage(null);
+            if (onEditModeChange) {
+              onEditModeChange(false);
+            }
+          }}
+          onSave={handleSEOSave}
+        />
+      </div>
+    );
+  }
 
   // Show visual editor if a page is being viewed (works for both tenant and theme modes, even without connection)
   if (visualEditorPage) {
@@ -779,9 +822,16 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
                   {previewMode === 'theme' ? (
                     (previewThemeId || currentThemeId) ? (
                       <ThemeRenderer
+                        components={builderComponents}
                         themeId={previewThemeId || currentThemeId}
                         tenantId={currentTenantId}
-                        pageSlug={visualEditorPage.slug}
+                        pageContext={{
+                          pageId: visualEditorPage.id,
+                          slug: visualEditorPage.slug,
+                          pageName: visualEditorPage.pageName,
+                          tenantId: currentTenantId,
+                          themeId: previewThemeId || currentThemeId
+                        }}
                       />
                     ) : (
                       <div className="bg-white border rounded-lg p-8 m-6 text-center text-muted-foreground">
@@ -833,6 +883,17 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
           currentThemeId={currentThemeId}
           currentTenantId={currentTenantId}
         />
+        {selectedPageForSEO && (
+          <SEODialog
+            open={showSEODialog}
+            onOpenChange={setShowSEODialog}
+            pageId={selectedPageForSEO.id}
+            pageName={selectedPageForSEO.page_name}
+            tenantId={currentTenantId}
+            themeId={currentThemeId}
+            onSave={handleSEOSave}
+          />
+        )}
       </div>
     );
   }
@@ -998,6 +1059,14 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
                         >
                           <Edit className="h-4 w-4 mr-2" />
                           Edit
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleOpenSEO(page)}
+                        >
+                          <Search className="h-4 w-4 mr-2" />
+                          SEO
                         </Button>
                         {page.page_type !== 'header' && page.page_type !== 'footer' && (
                           <Button

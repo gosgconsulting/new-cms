@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../..
 import { Input } from '../../../../src/components/ui/input';
 import { Label } from '../../../../src/components/ui/label';
 import { Textarea } from '../../../../src/components/ui/textarea';
+import { Switch } from '../../../../src/components/ui/switch';
 import { SEO_LIMITS } from '../../../utils/componentHelpers';
 
 interface PageData {
@@ -63,15 +64,13 @@ export const SEOForm: React.FC<SEOFormProps> = ({ pageData, onFieldChange }) => 
         </div>
         <div className="space-y-2">
           <Label htmlFor="seo-index">SEO Index</Label>
-          <div className="flex items-center space-x-2">
-            <input
-              type="checkbox"
+          <div className="flex items-center space-x-3">
+            <Switch
               id="seo-index"
               checked={pageData?.seo_index || false}
-              onChange={(e) => onFieldChange('seo_index', e.target.checked)}
-              className="rounded"
+              onCheckedChange={(checked) => onFieldChange('seo_index', checked)}
             />
-            <Label htmlFor="seo-index" className="text-sm">
+            <Label htmlFor="seo-index" className="text-sm cursor-pointer">
               Allow search engines to index this page
             </Label>
           </div>

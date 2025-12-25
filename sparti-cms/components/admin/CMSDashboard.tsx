@@ -27,7 +27,6 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../auth/AuthProvider';
 import { motion } from 'framer-motion';
-import gosgLogo from "@/assets/go-sg-logo-official.png";
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../utils/api';
 
@@ -427,12 +426,7 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({ hideSidebar = false }) => {
         {/* Header - Flowbite Style */}
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center gap-3">
-            <img 
-              src={gosgLogo} 
-              alt="GO SG Digital Marketing Agency" 
-              className="h-8 w-auto"
-            />
-            <h1 className="text-xl font-bold text-gray-900">Admin</h1>
+            <h1 className="text-xl font-bold text-gray-900">CMS</h1>
           </div>
         </div>
         
