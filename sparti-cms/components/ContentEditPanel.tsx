@@ -250,12 +250,7 @@ export const ContentEditPanel: React.FC = () => {
   return (
     <>
       <div className="sparti-modal-backdrop sparti-ui" onClick={() => selectElement(null)}></div>
-      <div
-        className="sparti-edit-panel sparti-ui"
-        role="dialog"
-        aria-modal="true"
-        aria-label="Section Editor"
-      >
+      <div className="sparti-edit-panel sparti-ui">
         <div className="sparti-edit-panel-header">
           <div className="sparti-edit-header-content">
             {(() => {
@@ -263,7 +258,7 @@ export const ContentEditPanel: React.FC = () => {
               return <IconComponent size={20} />;
             })()}
             <div>
-              <h3>Section Editor</h3>
+              <h3>{selectedComponent ? 'Section Editor' : `${elementType.charAt(0).toUpperCase() + elementType.slice(1)} Editor`}</h3>
               <p className="sparti-element-path">
                 {selectedComponent ? (selectedComponent.type || selectedComponent.name || 'Component') : data.tagName.toUpperCase()}
               </p>
@@ -289,7 +284,6 @@ export const ContentEditPanel: React.FC = () => {
               className="sparti-btn sparti-btn-ghost sparti-close-btn" 
               onClick={() => selectElement(null)}
               aria-label="Close editor"
-              title="Close"
             >
               <X size={18} />
             </button>

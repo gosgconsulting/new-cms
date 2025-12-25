@@ -193,69 +193,7 @@ body.gosg-editing .sparti-content::before {
 .sparti-modal-backdrop { z-index: 9999; }
 .sparti-edit-panel { z-index: 10000; }
 
-/* Centered modal for the Section Editor (replaces right sidebar) */
-.sparti-edit-panel {
-  position: fixed;
-  /* Center in viewport */
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  /* Sizing */
-  width: min(900px, 95vw);
-  max-height: 85vh;
-  /* Layout */
-  display: flex;
-  flex-direction: column;
-  /* Style */
-  background: #fff;
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.18);
-  /* Layering */
-  z-index: 10000;
-  pointer-events: auto;
-}
-
-/* Modal backdrop (kept the same) */
-.sparti-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  z-index: 9999;
-}
-
-/* Header and content remain consistent with new layout */
-.sparti-edit-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  background: #fafafa;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-}
-
-.sparti-edit-panel-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-/* Keep overlays below modal */
-.sparti-hover-overlay,
-.sparti-selection-overlay {
-  border: 2px solid rgba(155, 135, 245, 0.9);
-  background: rgba(155, 135, 245, 0.08);
-}
-
-.sparti-selection-overlay {
-  background: transparent;
-}
-
-/* Label chip */
+/* Section label chip */
 .sparti-element-label {
   position: absolute;
   top: -24px;
@@ -272,35 +210,29 @@ body.gosg-editing .sparti-content::before {
 /* Edit Panel Styles - Maximum Priority */
 .sparti-edit-panel {
   position: fixed;
-  /* Center in viewport */
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  /* Sizing */
-  width: min(900px, 95vw);
-  max-height: 85vh;
-  /* Layout */
+  right: 0;
+  top: 0;
+  height: 100vh;
+  background: #fff;
+  border-left: 1px solid rgba(0,0,0,0.08);
+  box-shadow: -6px 0 20px rgba(0,0,0,0.06);
+  z-index: 10000;
   display: flex;
   flex-direction: column;
-  /* Style */
-  background: #fff;
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.18);
-  /* Layering */
-  z-index: 10000;
-  pointer-events: auto;
+
+  /* Increased default width for desktop */
+  width: 480px;
+  max-width: 90vw; /* Keep responsive on smaller screens */
 }
 
-/* Modal backdrop (kept the same) */
-.sparti-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  z-index: 9999;
+/* Extra-large screens: give a bit more space */
+@media (min-width: 1400px) {
+  .sparti-edit-panel {
+    width: 560px;
+  }
 }
 
-/* Header and content remain consistent with new layout */
+/* Ensure header/content fit the new width */
 .sparti-edit-panel-header {
   display: flex;
   align-items: center;
@@ -308,3887 +240,648 @@ body.gosg-editing .sparti-content::before {
   padding: 12px 16px;
   border-bottom: 1px solid rgba(0,0,0,0.06);
   background: #fafafa;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
 }
 
 .sparti-edit-panel-content {
   flex: 1;
   overflow-y: auto;
   padding: 12px;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
 }
 
-/* Keep overlays below modal */
+/* Hover/selection overlays unaffected */
 .sparti-hover-overlay,
 .sparti-selection-overlay {
   border: 2px solid rgba(155, 135, 245, 0.9);
   background: rgba(155, 135, 245, 0.08);
 }
 
-.sparti-selection-overlay {
-  background: transparent;
+.sparti-edit-header-content {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0;
 }
 
-/* Edit Panel Styles - Maximum Priority */
-.sparti-edit-panel {
-  position: fixed;
-  /* Center in viewport */
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  /* Sizing */
-  width: min(900px, 95vw);
-  max-height: 85vh;
-  /* Layout */
+.sparti-edit-header-content h3 {
+  margin: 0 !important;
+  font-size: 1rem !important;
+  font-weight: 600 !important;
+  color: #111827 !important;
+  font-family: inherit !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  .sparti-edit-header-content h3 {
+    color: #f9fafb !important;
+  }
+}
+
+.sparti-element-path {
+  margin: 0 !important;
+  font-size: 0.75rem !important;
+  color: #6b7280 !important;
+  text-transform: uppercase;
+  font-family: inherit !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  .sparti-element-path {
+    color: #9ca3af !important;
+  }
+}
+
+.sparti-edit-panel-content {
+  padding: 1rem !important;
+  background: inherit;
+}
+
+.sparti-edit-section {
+  margin-bottom: 1.5rem !important;
+  background: inherit;
+}
+
+.sparti-edit-label {
+  display: flex !important;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem !important;
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+  color: #374151 !important;
+  font-family: inherit !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  .sparti-edit-label {
+    color: #d1d5db !important;
+  }
+}
+
+.sparti-edit-textarea {
+  width: 100% !important;
+  padding: 0.75rem !important;
+  border: 1px solid #d1d5db !important;
+  border-radius: 0.375rem !important;
+  background: #ffffff !important;
+  color: #111827 !important;
+  font-size: 0.875rem !important;
+  resize: vertical !important;
+  min-height: 80px !important;
+  font-family: inherit !important;
+  box-sizing: border-box !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  .sparti-edit-textarea {
+    background: #374151 !important;
+    color: #f9fafb !important;
+    border-color: #4b5563 !important;
+  }
+}
+
+.sparti-edit-textarea:focus,
+.sparti-edit-input:focus,
+.sparti-edit-select:focus {
+  outline: none !important;
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2) !important;
+}
+
+.sparti-edit-input,
+.sparti-edit-select {
+  width: 100% !important;
+  padding: 0.5rem !important;
+  border: 1px solid #d1d5db !important;
+  border-radius: 0.375rem !important;
+  background: #ffffff !important;
+  color: #111827 !important;
+  font-size: 0.875rem !important;
+  font-family: inherit !important;
+  box-sizing: border-box !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  .sparti-edit-input,
+  .sparti-edit-select {
+    background: #374151 !important;
+    color: #f9fafb !important;
+    border-color: #4b5563 !important;
+  }
+}
+
+.sparti-btn-sm {
+  padding: 0.375rem 0.75rem !important;
+  font-size: 0.8125rem !important;
+}
+
+/* URL Input with Button */
+.sparti-url-input {
+  display: flex !important;
+  gap: 0.5rem;
+}
+
+.sparti-url-input input {
+  flex: 1 !important;
+}
+
+/* Color Controls */
+.sparti-color-controls {
+  display: flex !important;
+  gap: 1rem;
+}
+
+.sparti-color-input {
+  flex: 1 !important;
   display: flex;
   flex-direction: column;
-  /* Style */
-  background: #fff;
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.18);
-  /* Layering */
-  z-index: 10000;
-  pointer-events: auto;
 }
 
-/* Modal backdrop (kept the same) */
-.sparti-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  z-index: 9999;
+.sparti-color-input label {
+  display: block !important;
+  margin-bottom: 0.25rem !important;
+  font-size: 0.75rem !important;
+  font-weight: 500 !important;
+  color: #6b7280 !important;
+  font-family: inherit !important;
 }
 
-/* Header and content remain consistent with new layout */
-.sparti-edit-panel-header {
+@media (prefers-color-scheme: dark) {
+  .sparti-color-input label {
+    color: #9ca3af !important;
+  }
+}
+
+.sparti-color-input input[type="color"] {
+  width: 100% !important;
+  height: 40px !important;
+  border: 1px solid #d1d5db !important;
+  border-radius: 0.375rem !important;
+  background: none !important;
+  cursor: pointer !important;
+  padding: 0 !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  .sparti-color-input input[type="color"] {
+    border-color: #4b5563 !important;
+  }
+}
+
+/* Checkbox Group */
+.sparti-checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.sparti-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.sparti-checkbox input[type="checkbox"] {
+  width: auto;
+}
+
+/* Typography Controls */
+.sparti-typography-controls,
+.sparti-layout-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.sparti-input-group {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Alignment Controls */
+.sparti-alignment-controls {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.sparti-alignment-controls .sparti-btn {
+  flex: 1;
+}
+
+.sparti-alignment-controls .sparti-btn.active {
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+}
+
+/* Link Styling */
+.sparti-link-styling {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.sparti-select-input {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Preview Sections */
+.sparti-image-preview,
+.sparti-video-preview,
+.sparti-link-preview {
+  padding: 0.75rem;
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.375rem;
+  background: hsl(var(--muted) / 0.3);
+  text-align: center;
+}
+
+/* Spacing Controls */
+.sparti-spacing-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* Appearance Controls */
+.sparti-appearance-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.sparti-border-controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  align-items: end;
+}
+
+.sparti-border-controls .sparti-color-input {
+  grid-column: span 2;
+}
+
+/* Preset Buttons */
+.sparti-preset-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.sparti-color-controls {
+  display: flex;
+  gap: 1rem;
+}
+
+.sparti-color-input {
+  flex: 1;
+}
+
+.sparti-color-input label {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: hsl(var(--muted-foreground));
+}
+
+.sparti-color-input input[type="color"] {
+  width: 100%;
+  height: 40px;
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.375rem;
+  background: none;
+  cursor: pointer;
+}
+
+.w-full {
+  width: 100%;
+}
+
+/* Responsive Design - Universal */
+@media (max-width: 768px) {
+  .sparti-edit-panel {
+    width: 100% !important;
+    height: 50vh !important;
+    top: auto !important;
+    bottom: 0 !important;
+    border-left: none !important;
+    border-top: 1px solid #e5e7eb !important;
+  }
+  
+  @media (prefers-color-scheme: dark) {
+    .sparti-edit-panel {
+      border-top-color: #374151 !important;
+    }
+  }
+  
+  .sparti-toolbar-content {
+    padding: 0.5rem 1rem !important;
+  }
+  
+  .sparti-toolbar-brand span {
+    display: none;
+  }
+  
+  .sparti-content {
+    padding-top: 60px !important;
+  }
+
+  /* Adjust overlay positioning for mobile */
+  body.gosg-editing .sparti-content::before {
+    top: 60px !important;
+    bottom: 50vh !important;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .sparti-toolbar {
+    border-bottom-width: 2px !important;
+  }
+  
+  .sparti-selection-overlay {
+    border-width: 3px !important;
+  }
+  
+  .sparti-hover-overlay {
+    border-width: 2px !important;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .sparti-builder-wrapper *,
+  .sparti-btn,
+  .sparti-content {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* Force styles for maximum compatibility */
+.sparti-ui-force {
+  position: fixed !important;
+  z-index: 2147483647 !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+}
+
+/* Prevent body scroll when editing on mobile */
+@media (max-width: 768px) {
+  body.gosg-editing {
+    overflow: hidden !important;
+  }
+  
+  body.gosg-editing .sparti-content {
+    overflow-y: auto !important;
+    height: calc(100vh - 60px) !important;
+  }
+}
+
+/* Universal compatibility fixes */
+.sparti-builder-wrapper {
+  /* Reset any inherited styles */
+  line-height: 1.5 !important;
+  color: inherit !important;
+  background: transparent !important;
+}
+
+/* Ensure dropdowns are not transparent and have high z-index */
+.sparti-edit-select,
+.sparti-dropdown-menu {
+  background: #ffffff !important;
+  z-index: 2147483645 !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  border: 1px solid #d1d5db !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  .sparti-edit-select,
+  .sparti-dropdown-menu {
+    background: #374151 !important;
+    border-color: #4b5563 !important;
+  }
+}
+
+/* Animation for smooth transitions with universal support */
+.sparti-builder-wrapper * {
+  transition: border 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease !important;
+}
+
+/* Universal editing cursor - works across all sites */
+body.gosg-editing * {
+  cursor: crosshair !important;
+}
+
+/* Reset cursor for UI elements */
+body.gosg-editing .sparti-toolbar *,
+body.gosg-editing .sparti-edit-panel *,
+body.gosg-editing .sparti-overlay *,
+body.gosg-editing .sparti-ui * {
+  cursor: default !important;
+}
+
+/* Ensure text remains selectable in edit mode */
+body.gosg-editing input,
+body.gosg-editing textarea,
+body.gosg-editing [contenteditable] {
+  cursor: text !important;
+}
+
+/* Button hover states remain interactive */
+body.gosg-editing button,
+body.gosg-editing .sparti-btn,
+body.gosg-editing a {
+  cursor: pointer !important;
+}
+
+body.gosg-editing .sparti-btn:hover {
+  cursor: pointer !important;
+}
+
+/* Container Editor Specific Styles */
+.sparti-tabs {
+  display: flex;
+  border-bottom: 2px solid #e5e7eb;
+  margin-bottom: 1rem;
+}
+
+.sparti-tab {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s ease;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.sparti-tab:hover {
+  background: #f9fafb;
+  color: #374151;
+}
+
+.sparti-tab-active {
+  color: #3b82f6 !important;
+  border-bottom-color: #3b82f6 !important;
+  background: #eff6ff !important;
+}
+
+.sparti-color-input-large {
+  width: 100%;
+  height: 50px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  cursor: pointer;
+  background: none;
+  padding: 0;
+}
+
+.sparti-upload-section {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.sparti-upload-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: #f3f4f6;
+  border: 1px dashed #d1d5db;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.875rem;
+  color: #374151;
+  width: 100%;
+  justify-content: center;
+}
+
+.sparti-upload-button:hover {
+  background: #e5e7eb;
+  border-color: #9ca3af;
+}
+
+.sparti-upload-input {
+  display: none;
+}
+
+/* Component Registry Status */
+.sparti-registry-status {
+  font-size: 0.75rem;
+  color: #059669;
+  margin-bottom: 0.5rem;
+  padding: 0.25rem 0.5rem;
+  background: #d1fae5;
+  border-radius: 4px;
+  border: 1px solid #a7f3d0;
+}
+
+/* Button Editor Specific Styles */
+.sparti-button-preview {
+  width: 100%;
+  max-width: 200px;
+  margin: 0 auto;
+  display: block;
+  transition: all 0.2s ease;
+}
+
+.sparti-button-preview:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.sparti-style-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  background: #fafafa;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
 }
 
-.sparti-edit-panel-content {
+.sparti-style-label {
+  font-size: 0.75rem;
+  color: #6b7280;
+  min-width: 80px;
+  margin: 0;
+}
+
+.sparti-color-input {
+  width: 40px;
+  height: 32px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  cursor: pointer;
+  background: none;
+  padding: 0;
+}
+
+.sparti-style-input {
   flex: 1;
-  overflow-y: auto;
-  padding: 12px;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
+  min-width: 60px;
 }
 
-/* Keep overlays below modal */
-.sparti-hover-overlay,
-.sparti-selection-overlay {
-  border: 2px solid rgba(155, 135, 245, 0.9);
-  background: rgba(155, 135, 245, 0.08);
+/* Link Dialog Styles */
+.sparti-link-dialog {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  padding: 16px;
+  z-index: 1000;
+  min-width: 300px;
+  margin-top: 4px;
 }
 
-.sparti-selection-overlay {
-  background: transparent;
+.sparti-link-dialog-content h4 {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
 }
 
-/* Edit Panel Styles - Maximum Priority */
-.sparti-edit-panel {
-  position: fixed;
-  /* Center in viewport */
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  /* Sizing */
-  width: min(900px, 95vw);
-  max-height: 85vh;
-  /* Layout */
-  display: flex;
-  flex-direction: column;
-  /* Style */
-  background: #fff;
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.18);
-  /* Layering */
-  z-index: 10000;
-  pointer-events: auto;
-}
-
-/* Modal backdrop (kept the same) */
-.sparti-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  z-index: 9999;
-}
-
-/* Header and content remain consistent with new layout */
-.sparti-edit-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  background: #fafafa;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-}
-
-.sparti-edit-panel-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-/* Keep overlays below modal */
-.sparti-hover-overlay,
-.sparti-selection-overlay {
-  border: 2px solid rgba(155, 135, 245, 0.9);
-  background: rgba(155, 135, 245, 0.08);
-}
-
-.sparti-selection-overlay {
-  background: transparent;
-}
-
-/* Edit Panel Styles - Maximum Priority */
-.sparti-edit-panel {
-  position: fixed;
-  /* Center in viewport */
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  /* Sizing */
-  width: min(900px, 95vw);
-  max-height: 85vh;
-  /* Layout */
-  display: flex;
-  flex-direction: column;
-  /* Style */
-  background: #fff;
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.18);
-  /* Layering */
-  z-index: 10000;
-  pointer-events: auto;
-}
-
-/* Modal backdrop (kept the same) */
-.sparti-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  z-index: 9999;
-}
-
-/* Header and content remain consistent with new layout */
-.sparti-edit-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  background: #fafafa;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-}
-
-.sparti-edit-panel-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-/* Keep overlays below modal */
-.sparti-hover-overlay,
-.sparti-selection-overlay {
-  border: 2px solid rgba(155, 135, 245, 0.9);
-  background: rgba(155, 135, 245, 0.08);
-}
-
-.sparti-selection-overlay {
-  background: transparent;
-}
-
-/* Edit Panel Styles - Maximum Priority */
-.sparti-edit-panel {
-  position: fixed;
-  /* Center in viewport */
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  /* Sizing */
-  width: min(900px, 95vw);
-  max-height: 85vh;
-  /* Layout */
-  display: flex;
-  flex-direction: column;
-  /* Style */
-  background: #fff;
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.18);
-  /* Layering */
-  z-index: 10000;
-  pointer-events: auto;
-}
-
-/* Modal backdrop (kept the same) */
-.sparti-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  z-index: 9999;
-}
-
-/* Header and content remain consistent with new layout */
-.sparti-edit-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  background: #fafafa;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-}
-
-.sparti-edit-panel-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-/* Keep overlays below modal */
-.sparti-hover-overlay,
-.sparti-selection-overlay {
-  border: 2px solid rgba(155, 135, 245, 0.9);
-  background: rgba(155, 135, 245, 0.08);
-}
-
-.sparti-selection-overlay {
-  background: transparent;
-}
-
-/* Edit Panel Styles - Maximum Priority */
-.sparti-edit-panel {
-  position: fixed;
-  /* Center in viewport */
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  /* Sizing */
-  width: min(900px, 95vw);
-  max-height: 85vh;
-  /* Layout */
-  display: flex;
-  flex-direction: column;
-  /* Style */
-  background: #fff;
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.18);
-  /* Layering */
-  z-index: 10000;
-  pointer-events: auto;
-}
-
-/* Modal backdrop (kept the same) */
-.sparti-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  z-index: 9999;
-}
-
-/* Header and content remain consistent with new layout */
-.sparti-edit-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  background: #fafafa;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-}
-
-.sparti-edit-panel-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-/* Keep overlays below modal */
-.sparti-hover-overlay,
-.sparti-selection-overlay {
-  border: 2px solid rgba(155, 135, 245, 0.9);
-  background: rgba(155, 135, 245, 0.08);
-}
-
-.sparti-selection-overlay {
-  background: transparent;
-}
-
-/* Edit Panel Styles - Maximum Priority */
-.sparti-edit-panel {
-  position: fixed;
-  /* Center in viewport */
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  /* Sizing */
-  width: min(900px, 95vw);
-  max-height: 85vh;
-  /* Layout */
-  display: flex;
-  flex-direction: column;
-  /* Style */
-  background: #fff;
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.18);
-  /* Layering */
-  z-index: 10000;
-  pointer-events: auto;
-}
-
-/* Modal backdrop (kept the same) */
-.sparti-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  z-index: 9999;
-}
-
-/* Header and content remain consistent with new layout */
-.sparti-edit-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  background: #fafafa;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-}
-
-.sparti-edit-panel-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-/* Keep overlays below modal */
-.sparti-hover-overlay,
-.sparti-selection-overlay {
-  border: 2px solid rgba(155, 135, 245, 0.9);
-  background: rgba(155, 135, 245, 0.08);
-}
-
-.sparti-selection-overlay {
-  background: transparent;
-}
-
-/* Edit Panel Styles - Maximum Priority */
-.sparti-edit-panel {
-  position: fixed;
-  /* Center in viewport */
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  /* Sizing */
-  width: min(900px, 95vw);
-  max-height: 85vh;
-  /* Layout */
-  display: flex;
-  flex-direction: column;
-  /* Style */
-  background: #fff;
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.18);
-  /* Layering */
-  z-index: 10000;
-  pointer-events: auto;
-}
-
-/* Modal backdrop (kept the same) */
-.sparti-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  z-index: 9999;
-}
-
-/* Header and content remain consistent with new layout */
-.sparti-edit-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  background: #fafafa;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-}
-
-.sparti-edit-panel-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-/* Keep overlays below modal */
-.sparti-hover-overlay,
-.sparti-selection-overlay {
-  border: 2px solid rgba(155, 135, 245, 0.9);
-  background: rgba(155, 135, 245, 0.08);
-}
-
-.sparti-selection-overlay {
-  background: transparent;
-}
-
-/* Edit Panel Styles - Maximum Priority */
-.sparti-edit-panel {
-  position: fixed;
-  /* Center in viewport */
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  /* Sizing */
-  width: min(900px, 95vw);
-  max-height: 85vh;
-  /* Layout */
-  display: flex;
-  flex-direction: column;
-  /* Style */
-  background: #fff;
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.18);
-  /* Layering */
-  z-index: 10000;
-  pointer-events: auto;
-}
-
-/* Modal backdrop (kept the same) */
-.sparti-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  z-index: 9999;
-}
-
-/* Header and content remain consistent with new layout */
-.sparti-edit-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  background: #fafafa;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-}
-
-.sparti-edit-panel-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-/* Keep overlays below modal */
-.sparti-hover-overlay,
-.sparti-selection-overlay {
-  border: 2px solid rgba(155, 135, 245, 0.9);
-  background: rgba(155, 135, 245, 0.08);
-}
-
-.sparti-selection-overlay {
-  background: transparent;
-}
-
-/* Edit Panel Styles - Maximum Priority */
-.sparti-edit-panel {
-  position: fixed;
-  /* Center in viewport */
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  /* Sizing */
-  width: min(900px, 95vw);
-  max-height: 85vh;
-  /* Layout */
-  display: flex;
-  flex-direction: column;
-  /* Style */
-  background: #fff;
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.18);
-  /* Layering */
-  z-index: 10000;
-  pointer-events: auto;
-}
-
-/* Modal backdrop (kept the same) */
-.sparti-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  z-index: 9999;
-}
-
-/* Header and content remain consistent with new layout */
-.sparti-edit-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  background: #fafafa;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-}
-
-.sparti-edit-panel-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-/* Keep overlays below modal */
-.sparti-hover-overlay,
-.sparti-selection-overlay {
-  border: 2px solid rgba(155, 135, 245, 0.9);
-  background: rgba(155, 135, 245, 0.08);
-}
-
-.sparti-selection-overlay {
-  background: transparent;
-}
-
-/* Edit Panel Styles - Maximum Priority */
-.sparti-edit-panel {
-  position: fixed;
-  /* Center in viewport */
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  /* Sizing */
-  width: min(900px, 95vw);
-  max-height: 85vh;
-  /* Layout */
-  display: flex;
-  flex-direction: column;
-  /* Style */
-  background: #fff;
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.18);
-  /* Layering */
-  z-index: 10000;
-  pointer-events: auto;
-}
-
-/* Modal backdrop (kept the same) */
-.sparti-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  z-index: 9999;
-}
-
-/* Header and content remain consistent with new layout */
-.sparti-edit-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  background: #fafafa;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-}
-
-.sparti-edit-panel-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-/* Keep overlays below modal */
-.sparti-hover-overlay,
-.sparti-selection-overlay {
-  border: 2px solid rgba(155, 135, 245, 0.9);
-  background: rgba(155, 135, 245, 0.08);
-}
-
-.sparti-selection-overlay {
-  background: transparent;
-}
-
-/* Edit Panel Styles - Maximum Priority */
-.sparti-edit-panel {
-  position: fixed;
-  /* Center in viewport */
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  /* Sizing */
-  width: min(900px, 95vw);
-  max-height: 85vh;
-  /* Layout */
-  display: flex;
-  flex-direction: column;
-  /* Style */
-  background: #fff;
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.18);
-  /* Layering */
-  z-index: 10000;
-  pointer-events: auto;
-}
-
-/* Modal backdrop (kept the same) */
-.sparti-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  z-index: 9999;
-}
-
-/* Header and content remain consistent with new layout */
-.sparti-edit-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  background: #fafafa;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-}
-
-.sparti-edit-panel-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-/* Keep overlays below modal */
-.sparti-hover-overlay,
-.sparti-selection-overlay {
-  border: 2px solid rgba(155, 135, 245, 0.9);
-  background: rgba(155, 135, 245, 0.08);
-}
-
-.sparti-selection-overlay {
-  background: transparent;
-}
-
-/* Edit Panel Styles - Maximum Priority */
-.sparti-edit-panel {
-  position: fixed;
-  /* Center in viewport */
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  /* Sizing */
-  width: min(900px, 95vw);
-  max-height: 85vh;
-  /* Layout */
-  display: flex;
-  flex-direction: column;
-  /* Style */
-  background: #fff;
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.18);
-  /* Layering */
-  z-index: 10000;
-  pointer-events: auto;
-}
-
-/* Modal backdrop (kept the same) */
-.sparti-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  z-index: 9999;
-}
-
-/* Header and content remain consistent with new layout */
-.sparti-edit-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  background: #fafafa;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-}
-
-.sparti-edit-panel-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-/* Keep overlays below modal */
-.sparti-hover-overlay,
-.sparti-selection-overlay {
-  border: 2px solid rgba(155, 135, 245, 0.9);
-  background: rgba(155, 135, 245, 0.08);
-}
-
-.sparti-selection-overlay {
-  background: transparent;
-}
-
-/* Edit Panel Styles - Maximum Priority */
-.sparti-edit-panel {
-  position: fixed;
-  /* Center in viewport */
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  /* Sizing */
-  width: min(900px, 95vw);
-  max-height: 85vh;
-  /* Layout */
-  display: flex;
-  flex-direction: column;
-  /* Style */
-  background: #fff;
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.18);
-  /* Layering */
-  z-index: 10000;
-  pointer-events: auto;
-}
-
-/* Modal backdrop (kept the same) */
-.sparti-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  z-index: 9999;
-}
-
-/* Header and content remain consistent with new layout */
-.sparti-edit-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  background: #fafafa;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-}
-
-.sparti-edit-panel-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-/* Keep overlays below modal */
-.sparti-hover-overlay,
-.sparti-selection-overlay {
-  border: 2px solid rgba(155, 135, 245, 0.9);
-  background: rgba(155, 135, 245, 0.08);
-}
-
-.sparti-selection-overlay {
-  background: transparent;
-}
-
-/* Edit Panel Styles - Maximum Priority */
-.sparti-edit-panel {
-  position: fixed;
-  /* Center in viewport */
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  /* Sizing */
-  width: min(900px, 95vw);
-  max-height: 85vh;
-  /* Layout */
-  display: flex;
-  flex-direction: column;
-  /* Style */
-  background: #fff;
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.18);
-  /* Layering */
-  z-index: 10000;
-  pointer-events: auto;
-}
-
-/* Modal backdrop (kept the same) */
-.sparti-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  z-index: 9999;
-}
-
-/* Header and content remain consistent with new layout */
-.sparti-edit-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  background: #fafafa;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-}
-
-.sparti-edit-panel-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-/* Keep overlays below modal */
-.sparti-hover-overlay,
-.sparti-selection-overlay {
-  border: 2px solid rgba(155, 135, 245, 0.9);
-  background: rgba(155, 135, 245, 0.08);
-}
-
-.sparti-selection-overlay {
-  background: transparent;
-}
-
-/* Edit Panel Styles - Maximum Priority */
-.sparti-edit-panel {
-  position: fixed;
-  /* Center in viewport */
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  /* Sizing */
-  width: min(900px, 95vw);
-  max-height: 85vh;
-  /* Layout */
-  display: flex;
-  flex-direction: column;
-  /* Style */
-  background: #fff;
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.18);
-  /* Layering */
-  z-index: 10000;
-  pointer-events: auto;
-}
-
-/* Modal backdrop (kept the same) */
-.sparti-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  z-index: 9999;
-}
-
-/* Header and content remain consistent with new layout */
-.sparti-edit-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  background: #fafafa;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-}
-
-.sparti-edit-panel-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-/* Keep overlays below modal */
-.sparti-hover-overlay,
-.sparti-selection-overlay {
-  border: 2px solid rgba(155, 135, 245, 0.9);
-  background: rgba(155, 135, 245, 0.08);
-}
-
-.sparti-selection-overlay {
-  background: transparent;
-}
-
-/* Edit Panel Styles - Maximum Priority */
-.sparti-edit-panel {
-  position: fixed;
-  /* Center in viewport */
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  /* Sizing */
-  width: min(900px, 95vw);
-  max-height: 85vh;
-  /* Layout */
-  display: flex;
-  flex-direction: column;
-  /* Style */
-  background: #fff;
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.18);
-  /* Layering */
-  z-index: 10000;
-  pointer-events: auto;
-}
-
-/* Modal backdrop (kept the same) */
-.sparti-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  z-index: 9999;
-}
-
-/* Header and content remain consistent with new layout */
-.sparti-edit-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  background: #fafafa;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-}
-
-.sparti-edit-panel-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-/* Keep overlays below modal */
-.sparti-hover-overlay,
-.sparti-selection-overlay {
-  border: 2px solid rgba(155, 135, 245, 0.9);
-  background: rgba(155, 135, 245, 0.08);
-}
-
-.sparti-selection-overlay {
-  background: transparent;
-}
-
-/* Edit Panel Styles - Maximum Priority */
-.sparti-edit-panel {
-  position: fixed;
-  /* Center in viewport */
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  /* Sizing */
-  width: min(900px, 95vw);
-  max-height: 85vh;
-  /* Layout */
-  display: flex;
-  flex-direction: column;
-  /* Style */
-  background: #fff;
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.18);
-  /* Layering */
-  z-index: 10000;
-  pointer-events: auto;
-}
-
-/* Modal backdrop (kept the same) */
-.sparti-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  z-index: 9999;
-}
-
-/* Header and content remain consistent with new layout */
-.sparti-edit-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  background: #fafafa;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-}
-
-.sparti-edit-panel-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-/* Keep overlays below modal */
-.sparti-hover-overlay,
-.sparti-selection-overlay {
-  border: 2px solid rgba(155, 135, 245, 0.9);
-  background: rgba(155, 135, 245, 0.08);
-}
-
-.sparti-selection-overlay {
-  background: transparent;
-}
-
-/* Edit Panel Styles - Maximum Priority */
-.sparti-edit-panel {
-  position: fixed;
-  /* Center in viewport */
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  /* Sizing */
-  width: min(900px, 95vw);
-  max-height: 85vh;
-  /* Layout */
-  display: flex;
-  flex-direction: column;
-  /* Style */
-  background: #fff;
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.18);
-  /* Layering */
-  z-index: 10000;
-  pointer-events: auto;
-}
-
-/* Modal backdrop (kept the same) */
-.sparti-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  z-index: 9999;
-}
-
-/* Header and content remain consistent with new layout */
-.sparti-edit-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  background: #fafafa;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-}
-
-.sparti-edit-panel-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-/* Keep overlays below modal */
-.sparti-hover-overlay,
-.sparti-selection-overlay {
-  border: 2px solid rgba(155, 135, 245, 0.9);
-  background: rgba(155, 135, 245, 0.08);
-}
-
-.sparti-selection-overlay {
-  background: transparent;
-}
-
-/* Edit Panel Styles - Maximum Priority */
-.sparti-edit-panel {
-  position: fixed;
-  /* Center in viewport */
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  /* Sizing */
-  width: min(900px, 95vw);
-  max-height: 85vh;
-  /* Layout */
-  display: flex;
-  flex-direction: column;
-  /* Style */
-  background: #fff;
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.18);
-  /* Layering */
-  z-index: 10000;
-  pointer-events: auto;
-}
-
-/* Modal backdrop (kept the same) */
-.sparti-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  z-index: 9999;
-}
-
-/* Header and content remain consistent with new layout */
-.sparti-edit-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  background: #fafafa;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-}
-
-.sparti-edit-panel-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-/* Keep overlays below modal */
-.sparti-hover-overlay,
-.sparti-selection-overlay {
-  border: 2px solid rgba(155, 135, 245, 0.9);
-  background: rgba(155, 135, 245, 0.08);
-}
-
-.sparti-selection-overlay {
-  background: transparent;
-}
-
-/* Edit Panel Styles - Maximum Priority */
-.sparti-edit-panel {
-  position: fixed;
-  /* Center in viewport */
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  /* Sizing */
-  width: min(900px, 95vw);
-  max-height: 85vh;
-  /* Layout */
-  display: flex;
-  flex-direction: column;
-  /* Style */
-  background: #fff;
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.18);
-  /* Layering */
-  z-index: 10000;
-  pointer-events: auto;
-}
-
-/* Modal backdrop (kept the same) */
-.sparti-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  z-index: 9999;
-}
-
-/* Header and content remain consistent with new layout */
-.sparti-edit-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  background: #fafafa;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-}
-
-.sparti-edit-panel-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-/* Keep overlays below modal */
-.sparti-hover-overlay,
-.sparti-selection-overlay {
-  border: 2px solid rgba(155, 135, 245, 0.9);
-  background: rgba(155, 135, 245, 0.08);
-}
-
-.sparti-selection-overlay {
-  background: transparent;
-}
-
-/* Edit Panel Styles - Maximum Priority */
-.sparti-edit-panel {
-  position: fixed;
-  /* Center in viewport */
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  /* Sizing */
-  width: min(900px, 95vw);
-  max-height: 85vh;
-  /* Layout */
-  display: flex;
-  flex-direction: column;
-  /* Style */
-  background: #fff;
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.18);
-  /* Layering */
-  z-index: 10000;
-  pointer-events: auto;
-}
-
-/* Modal backdrop (kept the same) */
-.sparti-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  z-index: 9999;
-}
-
-/* Header and content remain consistent with new layout */
-.sparti-edit-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  background: #fafafa;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-}
-
-.sparti-edit-panel-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-/* Keep overlays below modal */
-.sparti-hover-overlay,
-.sparti-selection-overlay {
-  border: 2px solid rgba(155, 135, 245, 0.9);
-  background: rgba(155, 135, 245, 0.08);
-}
-
-.sparti-selection-overlay {
-  background: transparent;
-}
-
-/* Edit Panel Styles - Maximum Priority */
-.sparti-edit-panel {
-  position: fixed;
-  /* Center in viewport */
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  /* Sizing */
-  width: min(900px, 95vw);
-  max-height: 85vh;
-  /* Layout */
-  display: flex;
-  flex-direction: column;
-  /* Style */
-  background: #fff;
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.18);
-  /* Layering */
-  z-index: 10000;
-  pointer-events: auto;
-}
-
-/* Modal backdrop (kept the same) */
-.sparti-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  z-index: 9999;
-}
-
-/* Header and content remain consistent with new layout */
-.sparti-edit-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  background: #fafafa;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-}
-
-.sparti-edit-panel-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-/* Keep overlays below modal */
-.sparti-hover-overlay,
-.sparti-selection-overlay {
-  border: 2px solid rgba(155, 135, 245, 0.9);
-  background: rgba(155, 135, 245, 0.08);
-}
-
-.sparti-selection-overlay {
-  background: transparent;
-}
-
-/* Edit Panel Styles - Maximum Priority */
-.sparti-edit-panel {
-  position: fixed;
-  /* Center in viewport */
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  /* Sizing */
-  width: min(900px, 95vw);
-  max-height: 85vh;
-  /* Layout */
-  display: flex;
-  flex-direction: column;
-  /* Style */
-  background: #fff;
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.18);
-  /* Layering */
-  z-index: 10000;
-  pointer-events: auto;
-}
-
-/* Modal backdrop (kept the same) */
-.sparti-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  z-index: 9999;
-}
-
-/* Header and content remain consistent with new layout */
-.sparti-edit-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  background: #fafafa;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-}
-
-.sparti-edit-panel-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-/* Keep overlays below modal */
-.sparti-hover-overlay,
-.sparti-selection-overlay {
-  border: 2px solid rgba(155, 135, 245, 0.9);
-  background: rgba(155, 135, 245, 0.08);
-}
-
-.sparti-selection-overlay {
-  background: transparent;
-}
-
-/* Edit Panel Styles - Maximum Priority */
-.sparti-edit-panel {
-  position: fixed;
-  /* Center in viewport */
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  /* Sizing */
-  width: min(900px, 95vw);
-  max-height: 85vh;
-  /* Layout */
-  display: flex;
-  flex-direction: column;
-  /* Style */
-  background: #fff;
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.18);
-  /* Layering */
-  z-index: 10000;
-  pointer-events: auto;
-}
-
-/* Modal backdrop (kept the same) */
-.sparti-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  z-index: 9999;
-}
-
-/* Header and content remain consistent with new layout */
-.sparti-edit-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  background: #fafafa;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-}
-
-.sparti-edit-panel-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-/* Keep overlays below modal */
-.sparti-hover-overlay,
-.sparti-selection-overlay {
-  border: 2px solid rgba(155, 135, 245, 0.9);
-  background: rgba(155, 135, 245, 0.08);
-}
-
-.sparti-selection-overlay {
-  background: transparent;
-}
-
-/* Edit Panel Styles - Maximum Priority */
-.sparti-edit-panel {
-  position: fixed;
-  /* Center in viewport */
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  /* Sizing */
-  width: min(900px, 95vw);
-  max-height: 85vh;
-  /* Layout */
-  display: flex;
-  flex-direction: column;
-  /* Style */
-  background: #fff;
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.18);
-  /* Layering */
-  z-index: 10000;
-  pointer-events: auto;
-}
-
-/* Modal backdrop (kept the same) */
-.sparti-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  z-index: 9999;
-}
-
-/* Header and content remain consistent with new layout */
-.sparti-edit-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  background: #fafafa;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-}
-
-.sparti-edit-panel-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-/* Keep overlays below modal */
-.sparti-hover-overlay,
-.sparti-selection-overlay {
-  border: 2px solid rgba(155, 135, 245, 0.9);
-  background: rgba(155, 135, 245, 0.08);
-}
-
-.sparti-selection-overlay {
-  background: transparent;
-}
-
-/* Edit Panel Styles - Maximum Priority */
-.sparti-edit-panel {
-  position: fixed;
-  /* Center in viewport */
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  /* Sizing */
-  width: min(900px, 95vw);
-  max-height: 85vh;
-  /* Layout */
-  display: flex;
-  flex-direction: column;
-  /* Style */
-  background: #fff;
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.18);
-  /* Layering */
-  z-index: 10000;
-  pointer-events: auto;
-}
-
-/* Modal backdrop (kept the same) */
-.sparti-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  z-index: 9999;
-}
-
-/* Header and content remain consistent with new layout */
-.sparti-edit-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  background: #fafafa;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-}
-
-.sparti-edit-panel-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-/* Keep overlays below modal */
-.sparti-hover-overlay,
-.sparti-selection-overlay {
-  border: 2px solid rgba(155, 135, 245, 0.9);
-  background: rgba(155, 135, 245, 0.08);
-}
-
-.sparti-selection-overlay {
-  background: transparent;
-}
-
-/* Edit Panel Styles - Maximum Priority */
-.sparti-edit-panel {
-  position: fixed;
-  /* Center in viewport */
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  /* Sizing */
-  width: min(900px, 95vw);
-  max-height: 85vh;
-  /* Layout */
-  display: flex;
-  flex-direction: column;
-  /* Style */
-  background: #fff;
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.18);
-  /* Layering */
-  z-index: 10000;
-  pointer-events: auto;
-}
-
-/* Modal backdrop (kept the same) */
-.sparti-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  z-index: 9999;
-}
-
-/* Header and content remain consistent with new layout */
-.sparti-edit-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  background: #fafafa;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-}
-
-.sparti-edit-panel-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-/* Keep overlays below modal */
-.sparti-hover-overlay,
-.sparti-selection-overlay {
-  border: 2px solid rgba(155, 135, 245, 0.9);
-  background: rgba(155, 135, 245, 0.08);
-}
-
-.sparti-selection-overlay {
-  background: transparent;
-}
-
-/* Edit Panel Styles - Maximum Priority */
-.sparti-edit-panel {
-  position: fixed;
-  /* Center in viewport */
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  /* Sizing */
-  width: min(900px, 95vw);
-  max-height: 85vh;
-  /* Layout */
-  display: flex;
-  flex-direction: column;
-  /* Style */
-  background: #fff;
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.18);
-  /* Layering */
-  z-index: 10000;
-  pointer-events: auto;
-}
-
-/* Modal backdrop (kept the same) */
-.sparti-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  z-index: 9999;
-}
-
-/* Header and content remain consistent with new layout */
-.sparti-edit-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  background: #fafafa;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-}
-
-.sparti-edit-panel-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-/* Keep overlays below modal */
-.sparti-hover-overlay,
-.sparti-selection-overlay {
-  border: 2px solid rgba(155, 135, 245, 0.9);
-  background: rgba(155, 135, 245, 0.08);
-}
-
-.sparti-selection-overlay {
-  background: transparent;
-}
-
-/* Edit Panel Styles - Maximum Priority */
-.sparti-edit-panel {
-  position: fixed;
-  /* Center in viewport */
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  /* Sizing */
-  width: min(900px, 95vw);
-  max-height: 85vh;
-  /* Layout */
-  display: flex;
-  flex-direction: column;
-  /* Style */
-  background: #fff;
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.18);
-  /* Layering */
-  z-index: 10000;
-  pointer-events: auto;
-}
-
-/* Modal backdrop (kept the same) */
-.sparti-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  z-index: 9999;
-}
-
-/* Header and content remain consistent with new layout */
-.sparti-edit-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  background: #fafafa;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-}
-
-.sparti-edit-panel-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-/* Keep overlays below modal */
-.sparti-hover-overlay,
-.sparti-selection-overlay {
-  border: 2px solid rgba(155, 135, 245, 0.9);
-  background: rgba(155, 135, 245, 0.08);
-}
-
-.sparti-selection-overlay {
-  background: transparent;
-}
-
-/* Edit Panel Styles - Maximum Priority */
-.sparti-edit-panel {
-  position: fixed;
-  /* Center in viewport */
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  /* Sizing */
-  width: min(900px, 95vw);
-  max-height: 85vh;
-  /* Layout */
-  display: flex;
-  flex-direction: column;
-  /* Style */
-  background: #fff;
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.18);
-  /* Layering */
-  z-index: 10000;
-  pointer-events: auto;
-}
-
-/* Modal backdrop (kept the same) */
-.sparti-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  z-index: 9999;
-}
-
-/* Header and content remain consistent with new layout */
-.sparti-edit-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  background: #fafafa;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-}
-
-.sparti-edit-panel-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-/* Keep overlays below modal */
-.sparti-hover-overlay,
-.sparti-selection-overlay {
-  border: 2px solid rgba(155, 135, 245, 0.9);
-  background: rgba(155, 135, 245, 0.08);
-}
-
-.sparti-selection-overlay {
-  background: transparent;
-}
-
-/* Edit Panel Styles - Maximum Priority */
-.sparti-edit-panel {
-  position: fixed;
-  /* Center in viewport */
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  /* Sizing */
-  width: min(900px, 95vw);
-  max-height: 85vh;
-  /* Layout */
-  display: flex;
-  flex-direction: column;
-  /* Style */
-  background: #fff;
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.18);
-  /* Layering */
-  z-index: 10000;
-  pointer-events: auto;
-}
-
-/* Modal backdrop (kept the same) */
-.sparti-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  z-index: 9999;
-}
-
-/* Header and content remain consistent with new layout */
-.sparti-edit-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  background: #fafafa;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-}
-
-.sparti-edit-panel-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-/* Keep overlays below modal */
-.sparti-hover-overlay,
-.sparti-selection-overlay {
-  border: 2px solid rgba(155, 135, 245, 0.9);
-  background: rgba(155, 135, 245, 0.08);
-}
-
-.sparti-selection-overlay {
-  background: transparent;
-}
-
-/* Edit Panel Styles - Maximum Priority */
-.sparti-edit-panel {
-  position: fixed;
-  /* Center in viewport */
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  /* Sizing */
-  width: min(900px, 95vw);
-  max-height: 85vh;
-  /* Layout */
-  display: flex;
-  flex-direction: column;
-  /* Style */
-  background: #fff;
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.18);
-  /* Layering */
-  z-index: 10000;
-  pointer-events: auto;
-}
-
-/* Modal backdrop (kept the same) */
-.sparti-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  z-index: 9999;
-}
-
-/* Header and content remain consistent with new layout */
-.sparti-edit-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  background: #fafafa;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-}
-
-.sparti-edit-panel-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-/* Keep overlays below modal */
-.sparti-hover-overlay,
-.sparti-selection-overlay {
-  border: 2px solid rgba(155, 135, 245, 0.9);
-  background: rgba(155, 135, 245, 0.08);
-}
-
-.sparti-selection-overlay {
-  background: transparent;
-}
-
-/* Edit Panel Styles - Maximum Priority */
-.sparti-edit-panel {
-  position: fixed;
-  /* Center in viewport */
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  /* Sizing */
-  width: min(900px, 95vw);
-  max-height: 85vh;
-  /* Layout */
-  display: flex;
-  flex-direction: column;
-  /* Style */
-  background: #fff;
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.18);
-  /* Layering */
-  z-index: 10000;
-  pointer-events: auto;
-}
-
-/* Modal backdrop (kept the same) */
-.sparti-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  z-index: 9999;
-}
-
-/* Header and content remain consistent with new layout */
-.sparti-edit-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  background: #fafafa;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-}
-
-.sparti-edit-panel-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-/* Keep overlays below modal */
-.sparti-hover-overlay,
-.sparti-selection-overlay {
-  border: 2px solid rgba(155, 135, 245, 0.9);
-  background: rgba(155, 135, 245, 0.08);
-}
-
-.sparti-selection-overlay {
-  background: transparent;
-}
-
-/* Edit Panel Styles - Maximum Priority */
-.sparti-edit-panel {
-  position: fixed;
-  /* Center in viewport */
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  /* Sizing */
-  width: min(900px, 95vw);
-  max-height: 85vh;
-  /* Layout */
-  display: flex;
-  flex-direction: column;
-  /* Style */
-  background: #fff;
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.18);
-  /* Layering */
-  z-index: 10000;
-  pointer-events: auto;
-}
-
-/* Modal backdrop (kept the same) */
-.sparti-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  z-index: 9999;
-}
-
-/* Header and content remain consistent with new layout */
-.sparti-edit-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  background: #fafafa;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-}
-
-.sparti-edit-panel-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-/* Keep overlays below modal */
-.sparti-hover-overlay,
-.sparti-selection-overlay {
-  border: 2px solid rgba(155, 135, 245, 0.9);
-  background: rgba(155, 135, 245, 0.08);
-}
-
-.sparti-selection-overlay {
-  background: transparent;
-}
-
-/* Edit Panel Styles - Maximum Priority */
-.sparti-edit-panel {
-  position: fixed;
-  /* Center in viewport */
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  /* Sizing */
-  width: min(900px, 95vw);
-  max-height: 85vh;
-  /* Layout */
-  display: flex;
-  flex-direction: column;
-  /* Style */
-  background: #fff;
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.18);
-  /* Layering */
-  z-index: 10000;
-  pointer-events: auto;
-}
-
-/* Modal backdrop (kept the same) */
-.sparti-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  z-index: 9999;
-}
-
-/* Header and content remain consistent with new layout */
-.sparti-edit-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  background: #fafafa;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-}
-
-.sparti-edit-panel-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-/* Keep overlays below modal */
-.sparti-hover-overlay,
-.sparti-selection-overlay {
-  border: 2px solid rgba(155, 135, 245, 0.9);
-  background: rgba(155, 135, 245, 0.08);
-}
-
-.sparti-selection-overlay {
-  background: transparent;
-}
-
-/* Edit Panel Styles - Maximum Priority */
-.sparti-edit-panel {
-  position: fixed;
-  /* Center in viewport */
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  /* Sizing */
-  width: min(900px, 95vw);
-  max-height: 85vh;
-  /* Layout */
-  display: flex;
-  flex-direction: column;
-  /* Style */
-  background: #fff;
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.18);
-  /* Layering */
-  z-index: 10000;
-  pointer-events: auto;
-}
-
-/* Modal backdrop (kept the same) */
-.sparti-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  z-index: 9999;
-}
-
-/* Header and content remain consistent with new layout */
-.sparti-edit-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  background: #fafafa;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-}
-
-.sparti-edit-panel-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-/* Keep overlays below modal */
-.sparti-hover-overlay,
-.sparti-selection-overlay {
-  border: 2px solid rgba(155, 135, 245, 0.9);
-  background: rgba(155, 135, 245, 0.08);
-}
-
-.sparti-selection-overlay {
-  background: transparent;
-}
-
-/* Edit Panel Styles - Maximum Priority */
-.sparti-edit-panel {
-  position: fixed;
-  /* Center in viewport */
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  /* Sizing */
-  width: min(900px, 95vw);
-  max-height: 85vh;
-  /* Layout */
-  display: flex;
-  flex-direction: column;
-  /* Style */
-  background: #fff;
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.18);
-  /* Layering */
-  z-index: 10000;
-  pointer-events: auto;
-}
-
-/* Modal backdrop (kept the same) */
-.sparti-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  z-index: 9999;
-}
-
-/* Header and content remain consistent with new layout */
-.sparti-edit-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  background: #fafafa;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-}
-
-.sparti-edit-panel-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-/* Keep overlays below modal */
-.sparti-hover-overlay,
-.sparti-selection-overlay {
-  border: 2px solid rgba(155, 135, 245, 0.9);
-  background: rgba(155, 135, 245, 0.08);
-}
-
-.sparti-selection-overlay {
-  background: transparent;
-}
-
-/* Edit Panel Styles - Maximum Priority */
-.sparti-edit-panel {
-  position: fixed;
-  /* Center in viewport */
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  /* Sizing */
-  width: min(900px, 95vw);
-  max-height: 85vh;
-  /* Layout */
-  display: flex;
-  flex-direction: column;
-  /* Style */
-  background: #fff;
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.18);
-  /* Layering */
-  z-index: 10000;
-  pointer-events: auto;
-}
-
-/* Modal backdrop (kept the same) */
-.sparti-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  z-index: 9999;
-}
-
-/* Header and content remain consistent with new layout */
-.sparti-edit-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  background: #fafafa;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-}
-
-.sparti-edit-panel-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-/* Keep overlays below modal */
-.sparti-hover-overlay,
-.sparti-selection-overlay {
-  border: 2px solid rgba(155, 135, 245, 0.9);
-  background: rgba(155, 135, 245, 0.08);
-}
-
-.sparti-selection-overlay {
-  background: transparent;
-}
-
-/* Edit Panel Styles - Maximum Priority */
-.sparti-edit-panel {
-  position: fixed;
-  /* Center in viewport */
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  /* Sizing */
-  width: min(900px, 95vw);
-  max-height: 85vh;
-  /* Layout */
-  display: flex;
-  flex-direction: column;
-  /* Style */
-  background: #fff;
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.18);
-  /* Layering */
-  z-index: 10000;
-  pointer-events: auto;
-}
-
-/* Modal backdrop (kept the same) */
-.sparti-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  z-index: 9999;
-}
-
-/* Header and content remain consistent with new layout */
-.sparti-edit-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  background: #fafafa;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-}
-
-.sparti-edit-panel-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-/* Keep overlays below modal */
-.sparti-hover-overlay,
-.sparti-selection-overlay {
-  border: 2px solid rgba(155, 135, 245, 0.9);
-  background: rgba(155, 135, 245, 0.08);
-}
-
-.sparti-selection-overlay {
-  background: transparent;
-}
-
-/* Edit Panel Styles - Maximum Priority */
-.sparti-edit-panel {
-  position: fixed;
-  /* Center in viewport */
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  /* Sizing */
-  width: min(900px, 95vw);
-  max-height: 85vh;
-  /* Layout */
-  display: flex;
-  flex-direction: column;
-  /* Style */
-  background: #fff;
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.18);
-  /* Layering */
-  z-index: 10000;
-  pointer-events: auto;
-}
-
-/* Modal backdrop (kept the same) */
-.sparti-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  z-index: 9999;
-}
-
-/* Header and content remain consistent with new layout */
-.sparti-edit-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  background: #fafafa;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-}
-
-.sparti-edit-panel-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-/* Keep overlays below modal */
-.sparti-hover-overlay,
-.sparti-selection-overlay {
-  border: 2px solid rgba(155, 135, 245, 0.9);
-  background: rgba(155, 135, 245, 0.08);
-}
-
-.sparti-selection-overlay {
-  background: transparent;
-}
-
-/* Edit Panel Styles - Maximum Priority */
-.sparti-edit-panel {
-  position: fixed;
-  /* Center in viewport */
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  /* Sizing */
-  width: min(900px, 95vw);
-  max-height: 85vh;
-  /* Layout */
-  display: flex;
-  flex-direction: column;
-  /* Style */
-  background: #fff;
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.18);
-  /* Layering */
-  z-index: 10000;
-  pointer-events: auto;
-}
-
-/* Modal backdrop (kept the same) */
-.sparti-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  z-index: 9999;
-}
-
-/* Header and content remain consistent with new layout */
-.sparti-edit-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  background: #fafafa;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-}
-
-.sparti-edit-panel-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-/* Keep overlays below modal */
-.sparti-hover-overlay,
-.sparti-selection-overlay {
-  border: 2px solid rgba(155, 135, 245, 0.9);
-  background: rgba(155, 135, 245, 0.08);
-}
-
-.sparti-selection-overlay {
-  background: transparent;
-}
-
-/* Edit Panel Styles - Maximum Priority */
-.sparti-edit-panel {
-  position: fixed;
-  /* Center in viewport */
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  /* Sizing */
-  width: min(900px, 95vw);
-  max-height: 85vh;
-  /* Layout */
-  display: flex;
-  flex-direction: column;
-  /* Style */
-  background: #fff;
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.18);
-  /* Layering */
-  z-index: 10000;
-  pointer-events: auto;
-}
-
-/* Modal backdrop (kept the same) */
-.sparti-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  z-index: 9999;
-}
-
-/* Header and content remain consistent with new layout */
-.sparti-edit-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  background: #fafafa;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-}
-
-.sparti-edit-panel-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-/* Keep overlays below modal */
-.sparti-hover-overlay,
-.sparti-selection-overlay {
-  border: 2px solid rgba(155, 135, 245, 0.9);
-  background: rgba(155, 135, 245, 0.08);
-}
-
-.sparti-selection-overlay {
-  background: transparent;
-}
-
-/* Edit Panel Styles - Maximum Priority */
-.sparti-edit-panel {
-  position: fixed;
-  /* Center in viewport */
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  /* Sizing */
-  width: min(900px, 95vw);
-  max-height: 85vh;
-  /* Layout */
-  display: flex;
-  flex-direction: column;
-  /* Style */
-  background: #fff;
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.18);
-  /* Layering */
-  z-index: 10000;
-  pointer-events: auto;
-}
-
-/* Modal backdrop (kept the same) */
-.sparti-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  z-index: 9999;
-}
-
-/* Header and content remain consistent with new layout */
-.sparti-edit-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  background: #fafafa;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-}
-
-.sparti-edit-panel-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-/* Keep overlays below modal */
-.sparti-hover-overlay,
-.sparti-selection-overlay {
-  border: 2px solid rgba(155, 135, 245, 0.9);
-  background: rgba(155, 135, 245, 0.08);
-}
-
-.sparti-selection-overlay {
-  background: transparent;
+.sparti-link-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  margin-bottom: 12px;
+  font-size: 14px;
 }
 
-/* Edit Panel Styles - Maximum Priority */
-.sparti-edit-panel {
-  position: fixed;
-  /* Center in viewport */
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  /* Sizing */
-  width: min(900px, 95vw);
-  max-height: 85vh;
-  /* Layout */
-  display: flex;
-  flex-direction: column;
-  /* Style */
-  background: #fff;
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.18);
-  /* Layering */
-  z-index: 10000;
-  pointer-events: auto;
-}
-
-/* Modal backdrop (kept the same) */
-.sparti-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  z-index: 9999;
-}
-
-/* Header and content remain consistent with new layout */
-.sparti-edit-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  background: #fafafa;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-}
-
-.sparti-edit-panel-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-/* Keep overlays below modal */
-.sparti-hover-overlay,
-.sparti-selection-overlay {
-  border: 2px solid rgba(155, 135, 245, 0.9);
-  background: rgba(155, 135, 245, 0.08);
-}
-
-.sparti-selection-overlay {
-  background: transparent;
-}
-
-/* Edit Panel Styles - Maximum Priority */
-.sparti-edit-panel {
-  position: fixed;
-  /* Center in viewport */
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  /* Sizing */
-  width: min(900px, 95vw);
-  max-height: 85vh;
-  /* Layout */
-  display: flex;
-  flex-direction: column;
-  /* Style */
-  background: #fff;
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.18);
-  /* Layering */
-  z-index: 10000;
-  pointer-events: auto;
-}
-
-/* Modal backdrop (kept the same) */
-.sparti-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  z-index: 9999;
-}
-
-/* Header and content remain consistent with new layout */
-.sparti-edit-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  background: #fafafa;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-}
-
-.sparti-edit-panel-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-/* Keep overlays below modal */
-.sparti-hover-overlay,
-.sparti-selection-overlay {
-  border: 2px solid rgba(155, 135, 245, 0.9);
-  background: rgba(155, 135, 245, 0.08);
-}
-
-.sparti-selection-overlay {
-  background: transparent;
-}
-
-/* Edit Panel Styles - Maximum Priority */
-.sparti-edit-panel {
-  position: fixed;
-  /* Center in viewport */
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  /* Sizing */
-  width: min(900px, 95vw);
-  max-height: 85vh;
-  /* Layout */
-  display: flex;
-  flex-direction: column;
-  /* Style */
-  background: #fff;
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.18);
-  /* Layering */
-  z-index: 10000;
-  pointer-events: auto;
-}
-
-/* Modal backdrop (kept the same) */
-.sparti-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  z-index: 9999;
-}
-
-/* Header and content remain consistent with new layout */
-.sparti-edit-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  background: #fafafa;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-}
-
-.sparti-edit-panel-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-/* Keep overlays below modal */
-.sparti-hover-overlay,
-.sparti-selection-overlay {
-  border: 2px solid rgba(155, 135, 245, 0.9);
-  background: rgba(155, 135, 245, 0.08);
-}
-
-.sparti-selection-overlay {
-  background: transparent;
-}
-
-/* Edit Panel Styles - Maximum Priority */
-.sparti-edit-panel {
-  position: fixed;
-  /* Center in viewport */
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  /* Sizing */
-  width: min(900px, 95vw);
-  max-height: 85vh;
-  /* Layout */
-  display: flex;
-  flex-direction: column;
-  /* Style */
-  background: #fff;
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.18);
-  /* Layering */
-  z-index: 10000;
-  pointer-events: auto;
-}
-
-/* Modal backdrop (kept the same) */
-.sparti-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  z-index: 9999;
-}
-
-/* Header and content remain consistent with new layout */
-.sparti-edit-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  background: #fafafa;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-}
-
-.sparti-edit-panel-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-/* Keep overlays below modal */
-.sparti-hover-overlay,
-.sparti-selection-overlay {
-  border: 2px solid rgba(155, 135, 245, 0.9);
-  background: rgba(155, 135, 245, 0.08);
-}
-
-.sparti-selection-overlay {
-  background: transparent;
-}
-
-/* Edit Panel Styles - Maximum Priority */
-.sparti-edit-panel {
-  position: fixed;
-  /* Center in viewport */
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  /* Sizing */
-  width: min(900px, 95vw);
-  max-height: 85vh;
-  /* Layout */
-  display: flex;
-  flex-direction: column;
-  /* Style */
-  background: #fff;
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.18);
-  /* Layering */
-  z-index: 10000;
-  pointer-events: auto;
-}
-
-/* Modal backdrop (kept the same) */
-.sparti-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  z-index: 9999;
-}
-
-/* Header and content remain consistent with new layout */
-.sparti-edit-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  background: #fafafa;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-}
-
-.sparti-edit-panel-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-/* Keep overlays below modal */
-.sparti-hover-overlay,
-.sparti-selection-overlay {
-  border: 2px solid rgba(155, 135, 245, 0.9);
-  background: rgba(155, 135, 245, 0.08);
-}
-
-.sparti-selection-overlay {
-  background: transparent;
-}
-
-/* Edit Panel Styles - Maximum Priority */
-.sparti-edit-panel {
-  position: fixed;
-  /* Center in viewport */
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  /* Sizing */
-  width: min(900px, 95vw);
-  max-height: 85vh;
-  /* Layout */
-  display: flex;
-  flex-direction: column;
-  /* Style */
-  background: #fff;
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.18);
-  /* Layering */
-  z-index: 10000;
-  pointer-events: auto;
-}
-
-/* Modal backdrop (kept the same) */
-.sparti-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  z-index: 9999;
-}
-
-/* Header and content remain consistent with new layout */
-.sparti-edit-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  background: #fafafa;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-}
-
-.sparti-edit-panel-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-/* Keep overlays below modal */
-.sparti-hover-overlay,
-.sparti-selection-overlay {
-  border: 2px solid rgba(155, 135, 245, 0.9);
-  background: rgba(155, 135, 245, 0.08);
-}
-
-.sparti-selection-overlay {
-  background: transparent;
-}
-
-/* Edit Panel Styles - Maximum Priority */
-.sparti-edit-panel {
-  position: fixed;
-  /* Center in viewport */
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  /* Sizing */
-  width: min(900px, 95vw);
-  max-height: 85vh;
-  /* Layout */
-  display: flex;
-  flex-direction: column;
-  /* Style */
-  background: #fff;
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.18);
-  /* Layering */
-  z-index: 10000;
-  pointer-events: auto;
-}
-
-/* Modal backdrop (kept the same) */
-.sparti-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  z-index: 9999;
-}
-
-/* Header and content remain consistent with new layout */
-.sparti-edit-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  background: #fafafa;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-}
-
-.sparti-edit-panel-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-/* Keep overlays below modal */
-.sparti-hover-overlay,
-.sparti-selection-overlay {
-  border: 2px solid rgba(155, 135, 245, 0.9);
-  background: rgba(155, 135, 245, 0.08);
-}
-
-.sparti-selection-overlay {
-  background: transparent;
-}
-
-/* Edit Panel Styles - Maximum Priority */
-.sparti-edit-panel {
-  position: fixed;
-  /* Center in viewport */
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  /* Sizing */
-  width: min(900px, 95vw);
-  max-height: 85vh;
-  /* Layout */
-  display: flex;
-  flex-direction: column;
-  /* Style */
-  background: #fff;
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.18);
-  /* Layering */
-  z-index: 10000;
-  pointer-events: auto;
-}
-
-/* Modal backdrop (kept the same) */
-.sparti-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  z-index: 9999;
-}
-
-/* Header and content remain consistent with new layout */
-.sparti-edit-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  background: #fafafa;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-}
-
-.sparti-edit-panel-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-/* Keep overlays below modal */
-.sparti-hover-overlay,
-.sparti-selection-overlay {
-  border: 2px solid rgba(155, 135, 245, 0.9);
-  background: rgba(155, 135, 245, 0.08);
-}
-
-.sparti-selection-overlay {
-  background: transparent;
-}
-
-/* Edit Panel Styles - Maximum Priority */
-.sparti-edit-panel {
-  position: fixed;
-  /* Center in viewport */
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  /* Sizing */
-  width: min(900px, 95vw);
-  max-height: 85vh;
-  /* Layout */
-  display: flex;
-  flex-direction: column;
-  /* Style */
-  background: #fff;
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.18);
-  /* Layering */
-  z-index: 10000;
-  pointer-events: auto;
-}
-
-/* Modal backdrop (kept the same) */
-.sparti-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  z-index: 9999;
-}
-
-/* Header and content remain consistent with new layout */
-.sparti-edit-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  background: #fafafa;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-}
-
-.sparti-edit-panel-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-/* Keep overlays below modal */
-.sparti-hover-overlay,
-.sparti-selection-overlay {
-  border: 2px solid rgba(155, 135, 245, 0.9);
-  background: rgba(155, 135, 245, 0.08);
-}
-
-.sparti-selection-overlay {
-  background: transparent;
-}
-
-/* Edit Panel Styles - Maximum Priority */
-.sparti-edit-panel {
-  position: fixed;
-  /* Center in viewport */
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  /* Sizing */
-  width: min(900px, 95vw);
-  max-height: 85vh;
-  /* Layout */
-  display: flex;
-  flex-direction: column;
-  /* Style */
-  background: #fff;
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.18);
-  /* Layering */
-  z-index: 10000;
-  pointer-events: auto;
-}
-
-/* Modal backdrop (kept the same) */
-.sparti-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  z-index: 9999;
-}
-
-/* Header and content remain consistent with new layout */
-.sparti-edit-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  background: #fafafa;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-}
-
-.sparti-edit-panel-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-/* Keep overlays below modal */
-.sparti-hover-overlay,
-.sparti-selection-overlay {
-  border: 2px solid rgba(155, 135, 245, 0.9);
-  background: rgba(155, 135, 245, 0.08);
-}
-
-.sparti-selection-overlay {
-  background: transparent;
-}
-
-/* Edit Panel Styles - Maximum Priority */
-.sparti-edit-panel {
-  position: fixed;
-  /* Center in viewport */
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  /* Sizing */
-  width: min(900px, 95vw);
-  max-height: 85vh;
-  /* Layout */
-  display: flex;
-  flex-direction: column;
-  /* Style */
-  background: #fff;
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.18);
-  /* Layering */
-  z-index: 10000;
-  pointer-events: auto;
-}
-
-/* Modal backdrop (kept the same) */
-.sparti-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  z-index: 9999;
-}
-
-/* Header and content remain consistent with new layout */
-.sparti-edit-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  background: #fafafa;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-}
-
-.sparti-edit-panel-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-/* Keep overlays below modal */
-.sparti-hover-overlay,
-.sparti-selection-overlay {
-  border: 2px solid rgba(155, 135, 245, 0.9);
-  background: rgba(155, 135, 245, 0.08);
-}
-
-.sparti-selection-overlay {
-  background: transparent;
-}
-
-/* Edit Panel Styles - Maximum Priority */
-.sparti-edit-panel {
-  position: fixed;
-  /* Center in viewport */
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  /* Sizing */
-  width: min(900px, 95vw);
-  max-height: 85vh;
-  /* Layout */
-  display: flex;
-  flex-direction: column;
-  /* Style */
-  background: #fff;
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.18);
-  /* Layering */
-  z-index: 10000;
-  pointer-events: auto;
-}
-
-/* Modal backdrop (kept the same) */
-.sparti-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  z-index: 9999;
-}
-
-/* Header and content remain consistent with new layout */
-.sparti-edit-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  background: #fafafa;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-}
-
-.sparti-edit-panel-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-/* Keep overlays below modal */
-.sparti-hover-overlay,
-.sparti-selection-overlay {
-  border: 2px solid rgba(155, 135, 245, 0.9);
-  background: rgba(155, 135, 245, 0.08);
-}
-
-.sparti-selection-overlay {
-  background: transparent;
-}
-
-/* Edit Panel Styles - Maximum Priority */
-.sparti-edit-panel {
-  position: fixed;
-  /* Center in viewport */
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  /* Sizing */
-  width: min(900px, 95vw);
-  max-height: 85vh;
-  /* Layout */
-  display: flex;
-  flex-direction: column;
-  /* Style */
-  background: #fff;
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.18);
-  /* Layering */
-  z-index: 10000;
-  pointer-events: auto;
-}
-
-/* Modal backdrop (kept the same) */
-.sparti-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  z-index: 9999;
-}
-
-/* Header and content remain consistent with new layout */
-.sparti-edit-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  background: #fafafa;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-}
-
-.sparti-edit-panel-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-/* Keep overlays below modal */
-.sparti-hover-overlay,
-.sparti-selection-overlay {
-  border: 2px solid rgba(155, 135, 245, 0.9);
-  background: rgba(155, 135, 245, 0.08);
-}
-
-.sparti-selection-overlay {
-  background: transparent;
-}
-
-/* Edit Panel Styles - Maximum Priority */
-.sparti-edit-panel {
-  position: fixed;
-  /* Center in viewport */
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  /* Sizing */
-  width: min(900px, 95vw);
-  max-height: 85vh;
-  /* Layout */
-  display: flex;
-  flex-direction: column;
-  /* Style */
-  background: #fff;
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.18);
-  /* Layering */
-  z-index: 10000;
-  pointer-events: auto;
-}
-
-/* Modal backdrop (kept the same) */
-.sparti-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  z-index: 9999;
-}
-
-/* Header and content remain consistent with new layout */
-.sparti-edit-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  background: #fafafa;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-}
-
-.sparti-edit-panel-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-/* Keep overlays below modal */
-.sparti-hover-overlay,
-.sparti-selection-overlay {
-  border: 2px solid rgba(155, 135, 245, 0.9);
-  background: rgba(155, 135, 245, 0.08);
+.sparti-link-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-.sparti-selection-overlay {
-  background: transparent;
-}
-
-/* Edit Panel Styles - Maximum Priority */
-.sparti-edit-panel {
-  position: fixed;
-  /* Center in viewport */
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  /* Sizing */
-  width: min(900px, 95vw);
-  max-height: 85vh;
-  /* Layout */
-  display: flex;
-  flex-direction: column;
-  /* Style */
-  background: #fff;
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.18);
-  /* Layering */
-  z-index: 10000;
-  pointer-events: auto;
-}
-
-/* Modal backdrop (kept the same) */
-.sparti-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  z-index: 9999;
-}
-
-/* Header and content remain consistent with new layout */
-.sparti-edit-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  background: #fafafa;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-}
-
-.sparti-edit-panel-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-/* Keep overlays below modal */
-.sparti-hover-overlay,
-.sparti-selection-overlay {
-  border: 2px solid rgba(155, 135, 245, 0.9);
-  background: rgba(155, 135, 245, 0.08);
-}
-
-.sparti-selection-overlay {
-  background: transparent;
-}
-
-/* Edit Panel Styles - Maximum Priority */
-.sparti-edit-panel {
-  position: fixed;
-  /* Center in viewport */
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  /* Sizing */
-  width: min(900px, 95vw);
-  max-height: 85vh;
-  /* Layout */
-  display: flex;
-  flex-direction: column;
-  /* Style */
-  background: #fff;
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.18);
-  /* Layering */
-  z-index: 10000;
-  pointer-events: auto;
-}
-
-/* Modal backdrop (kept the same) */
-.sparti-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  z-index: 9999;
-}
-
-/* Header and content remain consistent with new layout */
-.sparti-edit-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  background: #fafafa;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-}
-
-.sparti-edit-panel-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-/* Keep overlays below modal */
-.sparti-hover-overlay,
-.sparti-selection-overlay {
-  border: 2px solid rgba(155, 135, 245, 0.9);
-  background: rgba(155, 135, 245, 0.08);
-}
-
-.sparti-selection-overlay {
-  background: transparent;
-}
-
-/* Edit Panel Styles - Maximum Priority */
-.sparti-edit-panel {
-  position: fixed;
-  /* Center in viewport */
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  /* Sizing */
-  width: min(900px, 95vw);
-  max-height: 85vh;
-  /* Layout */
-  display: flex;
-  flex-direction: column;
-  /* Style */
-  background: #fff;
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.18);
-  /* Layering */
-  z-index: 10000;
-  pointer-events: auto;
-}
-
-/* Modal backdrop (kept the same) */
-.sparti-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  z-index: 9999;
-}
-
-/* Header and content remain consistent with new layout */
-.sparti-edit-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  background: #fafafa;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-}
-
-.sparti-edit-panel-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-/* Keep overlays below modal */
-.sparti-hover-overlay,
-.sparti-selection-overlay {
-  border: 2px solid rgba(155, 135, 245, 0.9);
-  background: rgba(155, 135, 245, 0.08);
-}
-
-.sparti-selection-overlay {
-  background: transparent;
-}
-
-/* Edit Panel Styles - Maximum Priority */
-.sparti-edit-panel {
-  position: fixed;
-  /* Center in viewport */
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  /* Sizing */
-  width: min(900px, 95vw);
-  max-height: 85vh;
-  /* Layout */
-  display: flex;
-  flex-direction: column;
-  /* Style */
-  background: #fff;
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.18);
-  /* Layering */
-  z-index: 10000;
-  pointer-events: auto;
-}
-
-/* Modal backdrop (kept the same) */
-.sparti-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  z-index: 9999;
-}
-
-/* Header and content remain consistent with new layout */
-.sparti-edit-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  background: #fafafa;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-}
-
-.sparti-edit-panel-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-/* Keep overlays below modal */
-.sparti-hover-overlay,
-.sparti-selection-overlay {
-  border: 2px solid rgba(155, 135, 245, 0.9);
-  background: rgba(155, 135, 245, 0.08);
-}
-
-.sparti-selection-overlay {
-  background: transparent;
-}
-
-/* Edit Panel Styles - Maximum Priority */
-.sparti-edit-panel {
-  position: fixed;
-  /* Center in viewport */
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  /* Sizing */
-  width: min(900px, 95vw);
-  max-height: 85vh;
-  /* Layout */
-  display: flex;
-  flex-direction: column;
-  /* Style */
-  background: #fff;
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.18);
-  /* Layering */
-  z-index: 10000;
-  pointer-events: auto;
-}
-
-/* Modal backdrop (kept the same) */
-.sparti-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  z-index: 9999;
-}
-
-/* Header and content remain consistent with new layout */
-.sparti-edit-panel-header {
+.sparti-link-actions {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  background: #fafafa;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
+  gap: 8px;
+  justify-content: flex-end;
 }
 
-.sparti-edit-panel-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
+.sparti-link-actions .sparti-btn {
+  font-size: 12px;
+  padding: 6px 12px;
 }
 
-/* Keep overlays below modal */
-.sparti-hover-overlay,
-.sparti-selection-overlay {
-  border: 2px solid rgba(155, 135, 245, 0.9);
-  background: rgba(155, 135, 245, 0.08);
+.sparti-link {
+  color: #3b82f6;
+  text-decoration: underline;
+  cursor: pointer;
 }
 
-.sparti-selection-overlay {
-  background: transparent;
+.sparti-link:hover {
+  color: #1d4ed8;
 }
-
-/* Edit Panel Styles - Maximum Priority */
-.sparti-edit-panel {
-  position: fixed;
-  /* Center in viewport */
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  /* Sizing */
-  width: min(900px, 95vw);
-  max-height: 85vh;
-  /* Layout */
-  display: flex;
-  flex-direction: column;
-  /* Style */
-  background: #fff;
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 12px;
