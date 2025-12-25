@@ -3,6 +3,8 @@ import { Button } from '../../../src/components/ui/button';
 import { Card } from '../../../src/components/ui/card';
 import { Badge } from '../../../src/components/ui/badge';
 import { Edit, Eye, FileText, Rocket, Scale, Layout, Minus, Code, RefreshCw } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../src/components/ui/select';
+import ClassicRenderer from '../../../src/components/visual-builder/ClassicRenderer';
 import { toast } from '../../../src/hooks/use-toast';
 import HeaderSchemaEditor from './HeaderSchemaEditor';
 import FooterSchemaEditor from './FooterSchemaEditor';
@@ -130,6 +132,7 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
   const [showJSONEditor, setShowJSONEditor] = useState(false);
   const [showCodeViewer, setShowCodeViewer] = useState(false);
   const [activeTab, setActiveTab] = useState<'page' | 'landing' | 'legal' | 'header' | 'footer'>('page');
+  const [previewMode, setPreviewMode] = useState<'flowbite' | 'classic'>('flowbite');
 
   // NEW: builder state for custom theme visual editor
   const [builderComponents, setBuilderComponents] = useState<ComponentSchema[]>([]);
@@ -440,7 +443,18 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
               <Minus className="h-4 w-4 mr-2" />
               Back
             </Button>
-            <h2 className="text-lg font-semibold">Visual Editor: {visualEditorPage.pageName}</h2>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-600">Preview:</span>
+              <Select value={previewMode} onValueChange={(v) => setPreviewMode(v as 'flowbite' | 'classic')}>
+                <SelectTrigger className="w-[160px]">
+                  <SelectValue placeholder="Select preview" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="flowbite">Flowbite</SelectItem>
+                  <SelectItem value="classic">Classic</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             <span className="text-sm text-muted-foreground">{pageUrl}</span>
           </div>
           <div className="flex items-center gap-2">
@@ -479,17 +493,30 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
                     </div>
                   ) : null}
 
-                  {/* Always mount the unified visual editor shell for all tenants/pages */}
-                  <FlowbiteDioraRenderer
-                    components={builderComponents}
-                    pageContext={{
-                      pageId: visualEditorPage.id,
-                      slug: visualEditorPage.slug,
-                      pageName: visualEditorPage.pageName,
-                      tenantId: currentTenantId,
-                      themeId: currentThemeId
-                    }}
-                  />
+                  {/* Render selected preview mode */}
+                  {previewMode === 'flowbite' ? (
+                    <FlowbiteDioraRenderer
+                      components={builderComponents}
+                      pageContext={{
+                        pageId: visualEditorPage.id,
+                        slug: visualEditorPage.slug,
+                        pageName: visualEditorPage.pageName,
+                        tenantId: currentTenantId,
+                        themeId: currentThemeId
+                      }}
+                    />
+                  ) : (
+                    <ClassicRenderer
+                      components={builderComponents}
+                      pageContext={{
+                        pageId: visualEditorPage.id,
+                        slug: visualEditorPage.slug,
+                        pageName: visualEditorPage.pageName,
+                        tenantId: currentTenantId,
+                        themeId: currentThemeId
+                      }}
+                    />
+                  )}
                 </>
               )}
             </div>
