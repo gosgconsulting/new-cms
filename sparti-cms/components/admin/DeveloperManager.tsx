@@ -3,10 +3,12 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
-import { Database, Plus, Puzzle, FileCode, Code, Globe, Monitor, FileText, Languages, Key } from 'lucide-react';
+import { Database, Plus, Puzzle, FileCode, Code, Globe, Monitor, FileText, Languages, Key, ShoppingCart } from 'lucide-react';
 import { PostgresIntegration, PostgresIntegrationListItem, Tenant } from './PostgresIntegration';
 import { ComponentsIntegration, ComponentsIntegrationListItem } from './ComponentsIntegration';
 import { AIAssistantIntegration, AIAssistantIntegrationListItem } from './AIAssistantIntegration';
+import { WooCommerceIntegration, WooCommerceIntegrationListItem } from './WooCommerceIntegration';
+import { WordPressIntegration, WordPressIntegrationListItem } from './WordPressIntegration';
 import { useAuth } from '../auth/AuthProvider';
 
 interface DeveloperManagerProps {
@@ -223,6 +225,104 @@ const IntegrationsTab: React.FC<IntegrationsTabProps> = ({ currentTenantId, curr
           {/* AI Assistant Integration */}
           <AIAssistantIntegration />
 
+          {/* WooCommerce Integration */}
+          {currentTenant ? (
+            <WooCommerceIntegration tenant={currentTenant} />
+          ) : currentTheme ? (
+            <WooCommerceIntegration 
+              tenant={{
+                id: currentTheme.id,
+                name: currentTheme.name,
+                createdAt: new Date().toISOString().split('T')[0],
+                isTheme: true,
+                themeId: currentTheme.themeId
+              } as Tenant & { isTheme?: boolean; themeId?: string }}
+            />
+          ) : (
+            <div className="border rounded-lg p-4 flex items-start justify-between opacity-60">
+              <div className="flex items-start gap-4">
+                <div className="p-2 bg-orange-500/10 rounded-lg">
+                  <ShoppingCart className="h-6 w-6 text-orange-400" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="font-semibold text-gray-700">WooCommerce</h3>
+                    <Badge variant="outline" className="bg-gray-100 text-gray-600 border-gray-300">
+                      Inactive
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-1">
+                    E-commerce platform integration for product management and orders
+                  </p>
+                  <div className="flex gap-4 text-xs text-muted-foreground">
+                    <span>Type: E-commerce</span>
+                    <span>Provider: WooCommerce</span>
+                  </div>
+                  <p className="text-xs text-amber-600 mt-2">
+                    {mode === 'theme' 
+                      ? 'Select a theme to activate WooCommerce integration.'
+                      : 'Select a tenant to activate WooCommerce integration.'}
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" disabled>
+                  <Key className="h-4 w-4 mr-1" />
+                  API
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* WordPress Integration */}
+          {currentTenant ? (
+            <WordPressIntegration tenant={currentTenant} />
+          ) : currentTheme ? (
+            <WordPressIntegration 
+              tenant={{
+                id: currentTheme.id,
+                name: currentTheme.name,
+                createdAt: new Date().toISOString().split('T')[0],
+                isTheme: true,
+                themeId: currentTheme.themeId
+              } as Tenant & { isTheme?: boolean; themeId?: string }}
+            />
+          ) : (
+            <div className="border rounded-lg p-4 flex items-start justify-between opacity-60">
+              <div className="flex items-start gap-4">
+                <div className="p-2 bg-blue-500/10 rounded-lg">
+                  <Globe className="h-6 w-6 text-blue-400" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="font-semibold text-gray-700">WordPress</h3>
+                    <Badge variant="outline" className="bg-gray-100 text-gray-600 border-gray-300">
+                      Inactive
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-1">
+                    WordPress REST API integration for blog content and headless CMS
+                  </p>
+                  <div className="flex gap-4 text-xs text-muted-foreground">
+                    <span>Type: CMS</span>
+                    <span>Provider: WordPress</span>
+                  </div>
+                  <p className="text-xs text-amber-600 mt-2">
+                    {mode === 'theme' 
+                      ? 'Select a theme to activate WordPress integration.'
+                      : 'Select a tenant to activate WordPress integration.'}
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" disabled>
+                  <Key className="h-4 w-4 mr-1" />
+                  API
+                </Button>
+              </div>
+            </div>
+          )}
+
           <Button variant="outline" className="w-full" size="lg" onClick={() => setShowAddIntegration(true)}>
             <Plus className="h-4 w-4 mr-2" />
             Add New Integration
@@ -249,6 +349,22 @@ const IntegrationsTab: React.FC<IntegrationsTabProps> = ({ currentTenantId, curr
               <ComponentsIntegrationListItem />
               <GoogleTranslationIntegrationListItem />
               <AIAssistantIntegrationListItem />
+              {currentTenant ? (
+                <>
+                  <WooCommerceIntegrationListItem tenant={currentTenant} />
+                  <WordPressIntegrationListItem tenant={currentTenant} />
+                </>
+              ) : currentTheme ? (
+                <>
+                  <li>• WooCommerce (Theme: {currentTheme.name})</li>
+                  <li>• WordPress (Theme: {currentTheme.name})</li>
+                </>
+              ) : (
+                <>
+                  <li>• WooCommerce ({mode === 'theme' ? 'No theme selected' : 'No tenant selected'})</li>
+                  <li>• WordPress ({mode === 'theme' ? 'No theme selected' : 'No tenant selected'})</li>
+                </>
+              )}
               <li>• Google APIs (Available in Integration Test)</li>
               <li>• OpenRouter AI (Available in Integration Test)</li>
             </ul>

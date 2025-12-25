@@ -227,7 +227,7 @@ const TenantsManager: React.FC = () => {
         
         toast({
           title: "Success",
-          description: `Tenant created and initialized with ${totalInitialized} default records (${init.settings} settings, ${init.sitemap} sitemap entries, ${init.robots} robots rules, ${init.categories} categories, ${init.tags} tags)`,
+          description: `Tenant created and initialized with ${totalInitialized} default records (${init.settings} settings, ${init.branding} branding settings, ${init.sitemap} sitemap entries, ${init.robots} robots rules, ${init.categories} categories, ${init.tags} tags)`,
           variant: "default",
           duration: 5000
         });

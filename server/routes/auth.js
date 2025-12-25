@@ -834,6 +834,7 @@ router.post('/tenants', async (req, res) => {
       const init = newTenant.initialization;
       const totalInitialized = 
         (init.settings?.inserted || 0) +
+        (init.branding?.inserted || 0) +
         (init.sitemap?.inserted || 0) +
         (init.robots?.inserted || 0) +
         (init.blog?.categories?.inserted || 0) +
@@ -843,6 +844,7 @@ router.post('/tenants', async (req, res) => {
         success: true,
         summary: {
           settings: init.settings?.inserted || 0,
+          branding: init.branding?.inserted || 0,
           sitemap: init.sitemap?.inserted || 0,
           robots: init.robots?.inserted || 0,
           categories: init.blog?.categories?.inserted || 0,

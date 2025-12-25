@@ -17,6 +17,7 @@ export async function initializeTenantDefaults(tenantId) {
   
   const summary = {
     settings: { inserted: 0, skipped: 0 },
+    branding: { inserted: 0, skipped: 0 },
     sitemap: { inserted: 0, skipped: 0 },
     robots: { inserted: 0, skipped: 0 },
     blog: { 
@@ -46,7 +47,73 @@ export async function initializeTenantDefaults(tenantId) {
     summary.settings.inserted = settingsResult.rowCount || 0;
     console.log(`[testing] Copied ${summary.settings.inserted} site_settings`);
 
-    // 2. Copy sitemap_entries from master to tenant
+    // 2. Initialize default branding settings for the tenant
+    console.log(`[testing] Initializing default branding settings for tenant ${tenantId}...`);
+    try {
+      // Get tenant name for default site_name
+      const tenantResult = await query(`
+        SELECT name FROM tenants WHERE id = $1
+      `, [tenantId]);
+      
+      const tenantName = tenantResult.rows[0]?.name || 'New Site';
+      
+      // Default branding settings
+      const defaultBrandingSettings = [
+        {
+          key: 'site_name',
+          value: tenantName,
+          type: 'text',
+          category: 'branding'
+        },
+        {
+          key: 'site_tagline',
+          value: '',
+          type: 'text',
+          category: 'branding'
+        },
+        {
+          key: 'site_description',
+          value: '',
+          type: 'textarea',
+          category: 'branding'
+        }
+      ];
+      
+      let brandingInserted = 0;
+      for (const setting of defaultBrandingSettings) {
+        // Check if setting already exists
+        const existing = await query(`
+          SELECT id FROM site_settings 
+          WHERE setting_key = $1 AND tenant_id = $2 AND theme_id IS NULL
+          LIMIT 1
+        `, [setting.key, tenantId]);
+        
+        if (existing.rows.length === 0) {
+          await query(`
+            INSERT INTO site_settings (
+              setting_key, setting_value, setting_type, setting_category,
+              is_public, tenant_id, theme_id, created_at, updated_at
+            )
+            VALUES ($1, $2, $3, $4, true, $5, NULL, NOW(), NOW())
+          `, [
+            setting.key,
+            setting.value,
+            setting.type,
+            setting.category,
+            tenantId
+          ]);
+          brandingInserted++;
+        }
+      }
+      
+      summary.branding.inserted = brandingInserted;
+      console.log(`[testing] Initialized ${summary.branding.inserted} branding settings`);
+    } catch (brandingError) {
+      console.error(`[testing] Error initializing branding settings:`, brandingError);
+      summary.errors.push(`Branding settings initialization: ${brandingError.message}`);
+    }
+
+    // 3. Copy sitemap_entries from master to tenant
     console.log(`[testing] Copying sitemap_entries for tenant ${tenantId}...`);
     // Check for existing entries first to avoid conflicts
     const existingSitemap = await query(`
@@ -94,7 +161,7 @@ export async function initializeTenantDefaults(tenantId) {
     summary.sitemap.inserted = sitemapResult.rowCount || 0;
     console.log(`[testing] Copied ${summary.sitemap.inserted} sitemap_entries`);
 
-    // 3. Copy robots_config from master to tenant
+    // 4. Copy robots_config from master to tenant
     // Note: robots_config doesn't have a unique constraint, so we check for duplicates manually
     console.log(`[testing] Copying robots_config for tenant ${tenantId}...`);
     const existingRobots = await query(`
@@ -140,7 +207,7 @@ export async function initializeTenantDefaults(tenantId) {
     summary.robots.inserted = robotsResult.rowCount || 0;
     console.log(`[testing] Copied ${summary.robots.inserted} robots_config rules`);
 
-    // 4. Copy categories from master to tenant
+    // 5. Copy categories from master to tenant
     console.log(`[testing] Copying categories for tenant ${tenantId}...`);
     const categoriesResult = await query(`
       INSERT INTO categories (
@@ -159,7 +226,7 @@ export async function initializeTenantDefaults(tenantId) {
     summary.blog.categories.inserted = categoriesResult.rowCount || 0;
     console.log(`[testing] Copied ${summary.blog.categories.inserted} categories`);
 
-    // 5. Copy tags from master to tenant
+    // 6. Copy tags from master to tenant
     console.log(`[testing] Copying tags for tenant ${tenantId}...`);
     const tagsResult = await query(`
       INSERT INTO tags (
@@ -178,7 +245,7 @@ export async function initializeTenantDefaults(tenantId) {
     summary.blog.tags.inserted = tagsResult.rowCount || 0;
     console.log(`[testing] Copied ${summary.blog.tags.inserted} tags`);
 
-    // 6. Create Header and Footer pages for the tenant
+    // 7. Create Header and Footer pages for the tenant
     console.log(`[testing] Creating Header and Footer pages for tenant ${tenantId}...`);
     const { createPage } = await import('./modules/pages.js');
     
@@ -236,7 +303,26 @@ export async function initializeTenantDefaults(tenantId) {
     console.log(`[testing] Tenant initialization complete for ${tenantId}`);
     console.log(`[testing] Summary:`, JSON.stringify(summary, null, 2));
 
-    return summary;
+    // Format summary for API response
+    const formattedSummary = {
+      total: (summary.settings.inserted || 0) + 
+             (summary.branding.inserted || 0) + 
+             (summary.sitemap.inserted || 0) + 
+             (summary.robots.inserted || 0) + 
+             (summary.blog.categories.inserted || 0) + 
+             (summary.blog.tags.inserted || 0),
+      settings: summary.settings.inserted || 0,
+      branding: summary.branding.inserted || 0,
+      sitemap: summary.sitemap.inserted || 0,
+      robots: summary.robots.inserted || 0,
+      categories: summary.blog.categories.inserted || 0,
+      tags: summary.blog.tags.inserted || 0
+    };
+
+    return {
+      ...summary,
+      summary: formattedSummary
+    };
   } catch (error) {
     console.error(`[testing] Error initializing tenant ${tenantId}:`, error);
     summary.errors.push(error.message);
@@ -280,8 +366,18 @@ export async function getTenantInitializationSummary(tenantId) {
       query(`SELECT COUNT(*) as count FROM tags WHERE tenant_id = $1`, [tenantId])
     ]);
 
+    const brandingCount = await query(`
+      SELECT COUNT(*) as count 
+      FROM site_settings 
+      WHERE tenant_id = $1 
+        AND setting_category = 'branding' 
+        AND setting_key IN ('site_name', 'site_tagline', 'site_description')
+        AND theme_id IS NULL
+    `, [tenantId]);
+
     return {
       settings: parseInt(settingsCount.rows[0]?.count || 0),
+      branding: parseInt(brandingCount.rows[0]?.count || 0),
       sitemap: parseInt(sitemapCount.rows[0]?.count || 0),
       robots: parseInt(robotsCount.rows[0]?.count || 0),
       categories: parseInt(categoriesCount.rows[0]?.count || 0),
