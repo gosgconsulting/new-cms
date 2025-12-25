@@ -22,8 +22,6 @@ import { AIAssistantChat } from '../../../src/components/AIAssistantChat';
 import SectionContentList, { ContentItem } from '@/components/SectionContentList';
 import VisualEditorRenderer from '../../../src/components/visual-builder/VisualEditorRenderer';
 import CodeViewerDialog from './PageEditor/CodeViewerDialog';
-// NEW: resolve registry by theme
-import { resolveThemeRegistry } from '../../../src/components/visual-builder/resolveRegistry';
 
 // Visual Editor Panel Component - Shows full page preview
 interface ContentsPanelProps {
@@ -135,9 +133,6 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack, currentTenantId
     selectedComponentIndex,
     setSelectedComponentIndex,
   });
-
-  // Memoize the active registry by currentThemeId (source of truth for visual components)
-  const activeRegistry = useMemo(() => resolveThemeRegistry(currentThemeId), [currentThemeId]);
 
   // Fetch page data
   useEffect(() => {
@@ -437,11 +432,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack, currentTenantId
             <SEOForm pageData={pageData} onFieldChange={updateField} />
           </div>
 
-          <ContentsPanel
-            components={components}
-            extractContentFromComponents={extractContentFromComponents}
-            registry={activeRegistry} // NEW: pass registry
-          />
+          {/* REMOVED: Inline full-page Visual Editor; use the dedicated Visual Editor instead */}
         </div>
       );
     }
@@ -525,23 +516,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack, currentTenantId
             onUpdate={updateComponent}
           />
 
-          {/* Visual Editor - Replaces static preview */}
-          <div className="space-y-4 mt-6">
-            <div className="border-b pb-2">
-              <h3 className="text-lg font-semibold flex items-center">
-                <FileText className="h-5 w-5 mr-2" />
-                Visual Editor
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                Live preview using actual component implementations from the theme registry.
-              </p>
-            </div>
-            {selected ? (
-              <div className="border rounded-lg p-4 bg-background">
-                <VisualEditorRenderer components={[selected]} compact registry={activeRegistry} />
-              </div>
-            ) : null}
-          </div>
+          {/* REMOVED: Inline per-section Visual Editor; use the dedicated Visual Editor instead */}
 
           {/* Single preview: always show the current component content */}
           {renderSectionContents(selected)}
