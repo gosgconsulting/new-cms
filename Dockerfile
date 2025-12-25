@@ -4,6 +4,17 @@ FROM node:20-alpine
 # Set working directory
 WORKDIR /app
 
+# Accept build arguments (Railway environment variables are available as build args)
+# These will also be available as environment variables at runtime
+ARG DEPLOY_THEME_SLUG
+ARG VITE_API_BASE_URL
+ARG RAILWAY_PUBLIC_DOMAIN
+
+# Set as environment variables so they're available at runtime too
+ENV DEPLOY_THEME_SLUG=${DEPLOY_THEME_SLUG}
+ENV VITE_API_BASE_URL=${VITE_API_BASE_URL}
+ENV RAILWAY_PUBLIC_DOMAIN=${RAILWAY_PUBLIC_DOMAIN}
+
 # Copy package files
 COPY package*.json ./
 
@@ -16,34 +27,35 @@ COPY . .
 # Build phase - check if building theme static export
 # If DEPLOY_THEME_SLUG is set, build static theme export
 # Otherwise, build the full CMS application
-# Note: Railway environment variables are available at build time as ENV vars
+# Note: Railway environment variables are available at build time as ARG/ENV vars
 # Railway automatically provides: RAILWAY_PUBLIC_DOMAIN, PORT, etc.
 
 # Build based on DEPLOY_THEME_SLUG
 # Auto-detect VITE_API_BASE_URL from Railway domain if not explicitly set
 # Railway provides RAILWAY_PUBLIC_DOMAIN automatically (e.g., "your-app.railway.app")
-RUN if [ -n "${DEPLOY_THEME_SLUG}" ]; then \
-      echo "Building standalone theme: Theme at / (no admin/CMS) for: ${DEPLOY_THEME_SLUG}" && \
+RUN echo "[testing] Build phase - Checking DEPLOY_THEME_SLUG: ${DEPLOY_THEME_SLUG}" && \
+    if [ -n "${DEPLOY_THEME_SLUG}" ] && [ "${DEPLOY_THEME_SLUG}" != "" ]; then \
+      echo "[testing] Building standalone theme: Theme at / (no admin/CMS) for: ${DEPLOY_THEME_SLUG}" && \
       if [ -z "${VITE_API_BASE_URL}" ] && [ -n "${RAILWAY_PUBLIC_DOMAIN}" ]; then \
         export VITE_API_BASE_URL="https://${RAILWAY_PUBLIC_DOMAIN}" && \
-        echo "Auto-detected VITE_API_BASE_URL from Railway domain: ${VITE_API_BASE_URL}"; \
+        echo "[testing] Auto-detected VITE_API_BASE_URL from Railway domain: ${VITE_API_BASE_URL}"; \
       elif [ -z "${VITE_API_BASE_URL}" ]; then \
         export VITE_API_BASE_URL="http://localhost:4173" && \
-        echo "WARNING: VITE_API_BASE_URL not set, using fallback: ${VITE_API_BASE_URL}"; \
+        echo "[testing] WARNING: VITE_API_BASE_URL not set, using fallback: ${VITE_API_BASE_URL}"; \
       else \
-        echo "Using provided VITE_API_BASE_URL: ${VITE_API_BASE_URL}"; \
+        echo "[testing] Using provided VITE_API_BASE_URL: ${VITE_API_BASE_URL}"; \
       fi && \
       DEPLOY_THEME_SLUG=${DEPLOY_THEME_SLUG} VITE_API_BASE_URL=${VITE_API_BASE_URL} npm run build:theme || exit 1; \
     else \
-      echo "Building full CMS application" && \
+      echo "[testing] Building full CMS application (DEPLOY_THEME_SLUG not set)" && \
       if [ -z "${VITE_API_BASE_URL}" ] && [ -n "${RAILWAY_PUBLIC_DOMAIN}" ]; then \
         export VITE_API_BASE_URL="https://${RAILWAY_PUBLIC_DOMAIN}" && \
-        echo "Auto-detected VITE_API_BASE_URL from Railway domain: ${VITE_API_BASE_URL}"; \
+        echo "[testing] Auto-detected VITE_API_BASE_URL from Railway domain: ${VITE_API_BASE_URL}"; \
       elif [ -z "${VITE_API_BASE_URL}" ]; then \
         export VITE_API_BASE_URL="http://localhost:4173" && \
-        echo "WARNING: VITE_API_BASE_URL not set, using fallback: ${VITE_API_BASE_URL}"; \
+        echo "[testing] WARNING: VITE_API_BASE_URL not set, using fallback: ${VITE_API_BASE_URL}"; \
       else \
-        echo "Using provided VITE_API_BASE_URL: ${VITE_API_BASE_URL}"; \
+        echo "[testing] Using provided VITE_API_BASE_URL: ${VITE_API_BASE_URL}"; \
       fi && \
       VITE_API_BASE_URL=${VITE_API_BASE_URL} npm run build || exit 1; \
     fi

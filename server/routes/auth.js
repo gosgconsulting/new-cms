@@ -138,6 +138,18 @@ router.post('/auth/login', async (req, res) => {
 
   } catch (error) {
     console.error('[testing] Login error:', error);
+    console.error('[testing] Login error code:', error.code);
+    console.error('[testing] Login error message:', error.message);
+    console.error('[testing] Login error stack:', error.stack);
+    
+    // Handle database connection errors
+    if (error.code === 'ECONNREFUSED' || error.code === 'ETIMEDOUT' || error.code === 'ENOTFOUND') {
+      return res.status(503).json({
+        success: false,
+        error: 'Database connection failed',
+        message: 'Unable to connect to database. Please check database configuration.'
+      });
+    }
     
     // Handle database not ready errors
     const { dbInitialized } = getDatabaseState();
@@ -149,12 +161,36 @@ router.post('/auth/login', async (req, res) => {
           message: 'Please try again in a moment'
         });
       }
+      return res.status(503).json({
+        success: false,
+        error: 'Database table missing',
+        message: 'Required database tables are missing. Please run migrations.'
+      });
     }
     
-    res.status(500).json({
-      success: false,
-      error: 'Login failed. Please try again.'
-    });
+    // Handle query errors
+    if (error.code && error.code.startsWith('42')) {
+      return res.status(500).json({
+        success: false,
+        error: 'Database query error',
+        message: 'An error occurred while querying the database. Please check server logs.'
+      });
+    }
+    
+    // Generic error - but include more details in development
+    const errorMessage = process.env.NODE_ENV === 'development' 
+      ? `Login failed: ${error.message || 'Unknown error'}`
+      : 'Login failed. Please try again.';
+    
+    // Ensure we always send a valid JSON response
+    if (!res.headersSent) {
+      res.status(500).json({
+        success: false,
+        error: errorMessage
+      });
+    } else {
+      console.error('[testing] Response already sent, cannot send error response');
+    }
   }
 });
 

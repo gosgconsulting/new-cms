@@ -178,16 +178,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         
         return { success: true };
       } else {
+        // Return the specific error message from the server, or fallback to generic message
+        const errorMessage = data.message || data.error || 'Invalid credentials';
+        console.error('[testing] Login failed:', errorMessage);
         return { 
           success: false, 
-          error: data.error || 'Invalid credentials' 
+          error: errorMessage
         };
       }
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('[testing] Login error:', error);
+      // Check if it's a network error
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        return { 
+          success: false, 
+          error: 'Unable to connect to server. Please check your connection and try again.' 
+        };
+      }
       return { 
         success: false, 
-        error: 'Login failed. Please try again.' 
+        error: error instanceof Error ? error.message : 'Login failed. Please try again.' 
       };
     }
   }, []);
