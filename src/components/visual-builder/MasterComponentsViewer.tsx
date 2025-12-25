@@ -25,7 +25,7 @@ const normalizeId = (path: string) => {
   return file.replace(/\.json$/i, "");
 };
 
-const MasterComponentsViewer: React.FC = () => {
+const MasterComponentsViewer: React.FC<{ libraryId?: string }> = ({ libraryId }) => {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<RegistryEntry | null>(null);
@@ -47,14 +47,32 @@ const MasterComponentsViewer: React.FC = () => {
     });
   }, []);
 
+  // Filter by selected design library first (currently Flowbite)
+  const libraryFiltered = useMemo<RegistryEntry[]>(() => {
+    if (!libraryId) return items;
+
+    if (libraryId === "flowbite") {
+      const allow = ["hero", "services", "features", "ingredients", "team", "about"];
+      return items.filter((it) => {
+        const id = String(it.id || "").toLowerCase();
+        const t = String(it.type || it.title || "").toLowerCase();
+        return allow.some((k) => id.includes(k) || t.includes(k));
+      });
+    }
+
+    // Fallback: if library not recognized, show all
+    return items;
+  }, [items, libraryId]);
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return items;
-    return items.filter((it) => {
+    const base = libraryFiltered;
+    if (!q) return base;
+    return base.filter((it) => {
       const hay = `${it.id} ${it.title || ""} ${it.description || ""}`.toLowerCase();
       return hay.includes(q);
     });
-  }, [items, query]);
+  }, [libraryFiltered, query]);
 
   return (
     <div className="w-full p-6 space-y-4">

@@ -66,7 +66,7 @@ const ComponentsViewer: React.FC = () => {
             </div>
           )
         ) : (
-          <MasterComponentsViewer />
+          <MasterComponentsViewer libraryId={libraryId} />
         )}
       </div>
     </div>
