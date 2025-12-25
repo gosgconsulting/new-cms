@@ -2,7 +2,7 @@ import React, { useState, useEffect, useLayoutEffect } from 'react';
 import { Button } from '../../../src/components/ui/button';
 import { Card } from '../../../src/components/ui/card';
 import { Badge } from '../../../src/components/ui/badge';
-import { Edit, Eye, FileText, Rocket, Scale, Layout, Minus, Code, RefreshCw } from 'lucide-react';
+import { Edit, Eye, FileText, Rocket, Scale, Layout, Minus, Code, RefreshCw, History, Save, Loader2 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../src/components/ui/select';
 import ClassicRenderer from '../../../src/components/visual-builder/ClassicRenderer';
 import { toast } from '../../../src/hooks/use-toast';
@@ -138,6 +138,7 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
   const [builderComponents, setBuilderComponents] = useState<ComponentSchema[]>([]);
   const [builderLoading, setBuilderLoading] = useState(false);
   const [builderError, setBuilderError] = useState<string | null>(null);
+  const [savingLayout, setSavingLayout] = useState(false);
 
   const tabs = [
     { id: 'page' as const, label: 'Pages', icon: FileText },
@@ -290,6 +291,61 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
     });
     if (onEditModeChange) {
       onEditModeChange(true);
+    }
+  };
+
+  const handleSaveLayout = async () => {
+    if (!Array.isArray(builderComponents) || builderComponents.length === 0) {
+      toast({
+        title: 'No changes to save',
+        description: 'There are no components to save.',
+        variant: 'default',
+      });
+      return;
+    }
+
+    if (!visualEditorPage?.id) {
+      toast({
+        title: 'Cannot save',
+        description: 'Page context is missing.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      setSavingLayout(true);
+      const effectiveTenantId = currentTenantId || 'tenant-gosg';
+      const targetPageId = visualEditorPage.id;
+
+      const res = await api.put(`/api/pages/${targetPageId}/layout`, {
+        layout_json: { components: builderComponents },
+        tenantId: effectiveTenantId
+      });
+      const json = await res.json();
+      
+      if (json && json.success !== false) {
+        toast({
+          title: 'Layout saved',
+          description: 'Your page layout has been saved successfully.',
+          variant: 'default',
+        });
+      } else {
+        toast({
+          title: 'Failed to save',
+          description: json?.message || 'Failed to save layout',
+          variant: 'destructive',
+        });
+      }
+    } catch (e: any) {
+      toast({
+        title: 'Error',
+        description: e?.message || 'Failed to save layout',
+        variant: 'destructive',
+      });
+      console.error('[visual-editor] Save layout error:', e);
+    } finally {
+      setSavingLayout(false);
     }
   };
 
@@ -469,11 +525,34 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
             <Button
               variant="outline"
               size="sm"
-              onClick={() => window.open(pageUrl, '_blank')}
+              onClick={() => {
+                // Versions functionality to be defined later
+                console.log('[testing] Versions button clicked');
+              }}
             >
-              <Eye className="h-4 w-4 mr-2" />
-              Open in New Tab
+              <History className="h-4 w-4 mr-2" />
+              Versions
             </Button>
+            {visualEditorPage && (
+              <Button
+                size="sm"
+                onClick={handleSaveLayout}
+                disabled={savingLayout || builderLoading}
+                className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {savingLayout ? (
+                  <>
+                    <Loader2 size={16} className="animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save size={16} />
+                    Save
+                  </>
+                )}
+              </Button>
+            )}
           </div>
         </div>
 

@@ -1,6 +1,6 @@
 // Enhanced Content Edit Panel with component registry integration
 import React, { useState } from 'react';
-import { Type, Image, Video, Link, MousePointer, Settings, X, Save } from 'lucide-react';
+import { Type, Image, Video, Link, MousePointer, Settings, X } from 'lucide-react';
 import { useSpartiBuilder } from './SpartiBuilderProvider';
 import { ElementType } from '../types';
 import useDatabase from '../hooks/useDatabase';
@@ -11,11 +11,7 @@ import { ImageEditor } from './editors/ImageEditor';
 import { ButtonEditor } from './editors/ButtonEditor';
 import { ContainerEditor } from './editors/ContainerEditor';
 import ComponentEditor from './cms/ComponentEditor';
-import { showInfoToast } from '../../src/utils/toast-utils';
 import type { ComponentSchema } from '../types/schema';
-import { Loader2 } from 'lucide-react';
-import { showSuccessToast, showErrorToast } from '../../src/utils/toast-utils';
-import api from '../utils/api';
 
 // Helper: strip tags from any string
 const stripTags = (s: any) => {
@@ -47,7 +43,6 @@ export const ContentEditPanel: React.FC = () => {
   const { isEditing, selectedElement, selectElement, components, updateComponent, pageId, slug, tenantId } = useSpartiBuilder();
   const [saveSuccess, setSaveSuccess] = useState(false);
   const { components: dbComponents, status, error } = useDatabase();
-  const [savingLayout, setSavingLayout] = useState(false);
   const isSaving = status === 'loading';
 
   // Always render as sidebar while in edit mode
@@ -77,49 +72,6 @@ export const ContentEditPanel: React.FC = () => {
     return icons[type] || Settings;
   };
 
-  const handleSaveLayout = async () => {
-    if (!Array.isArray(components)) return;
-    try {
-      setSavingLayout(true);
-      const effectiveTenantId = tenantId || 'tenant-gosg';
-      let targetPageId = pageId;
-
-      if (!targetPageId) {
-        if (!slug) {
-          showErrorToast('Cannot determine page context to save.');
-          setSavingLayout(false);
-          return;
-        }
-        const encodedSlug = encodeURIComponent(slug);
-        const ctxRes = await api.get(`/api/ai-assistant/page-context?slug=${encodedSlug}&tenantId=${effectiveTenantId}`);
-        const ctxData = await ctxRes.json();
-        if (!ctxData.success || !ctxData.pageContext?.pageId) {
-          showErrorToast('Page not found for saving.');
-          setSavingLayout(false);
-          return;
-        }
-        targetPageId = String(ctxData.pageContext.pageId);
-      }
-
-      const payloadComponents = components;
-      const res = await api.put(`/api/pages/${targetPageId}/layout`, {
-        layout_json: { components: payloadComponents },
-        tenantId: effectiveTenantId
-      });
-      const json = await res.json();
-      if (json && json.success !== false) {
-        showSuccessToast('Layout saved');
-      } else {
-        showErrorToast(json?.message || 'Failed to save layout');
-      }
-    } catch (e: any) {
-      showErrorToast(e?.message || 'Failed to save layout');
-      console.error('[visual-editor] Save layout error:', e);
-    } finally {
-      setSavingLayout(false);
-    }
-  };
-
   const renderSpecializedEditor = () => {
     if (selectedComponent) {
       return (
@@ -129,7 +81,6 @@ export const ContentEditPanel: React.FC = () => {
             onChange={(updated) => {
               if (Number.isFinite(compIndex)) {
                 updateComponent(compIndex, updated);
-                showInfoToast("Preview updated");
               }
             }}
           />
@@ -233,20 +184,6 @@ export const ContentEditPanel: React.FC = () => {
           </div>
         )}
         {renderSpecializedEditor()}
-      </div>
-
-      {/* Floating Save button at bottom-right of the sidebar */}
-      <div className="absolute bottom-4 right-4">
-        <button 
-          className={`sparti-btn sparti-btn-primary ${savingLayout ? 'sparti-btn-loading' : ''}`}
-          onClick={handleSaveLayout}
-          disabled={savingLayout}
-          aria-label="Save layout"
-          title="Save page layout to database"
-        >
-          {savingLayout ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-          {savingLayout ? 'Saving...' : 'Save'}
-        </button>
       </div>
     </div>
   );

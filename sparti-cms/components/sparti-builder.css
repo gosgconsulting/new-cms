@@ -67,7 +67,7 @@
 }
 
 .sparti-content {
-  padding-top: 80px !important; /* Account for fixed toolbar */
+  padding-top: 0 !important;
   transition: all 0.3s ease;
   /* Preserve existing styles */
   box-sizing: border-box;
@@ -585,7 +585,7 @@ body.gosg-editing .sparti-content::before {
   }
   
   .sparti-content {
-    padding-top: 60px !important;
+    padding-top: 0 !important;
   }
 
   /* Adjust overlay positioning for mobile */

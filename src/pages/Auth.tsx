@@ -276,11 +276,7 @@ const Auth: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-secondary/10 to-background flex items-center justify-center p-4">
-      {/* Background decorations */}
-      <div className="absolute top-0 right-1/4 w-96 h-96 bg-gradient-to-br from-brandPurple/5 to-transparent blur-3xl rotate-45 -z-10"></div>
-      <div className="absolute bottom-1/4 left-1/3 w-80 h-80 bg-gradient-to-tl from-brandTeal/5 to-transparent blur-3xl -rotate-45 -z-10"></div>
-      
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -289,7 +285,7 @@ const Auth: React.FC = () => {
       >
         {/* Header */}
         <div className="text-center mb-8">
-          <Link to="/" className="inline-flex items-center space-x-2 text-muted-foreground hover:text-foreground transition-colors mb-6">
+          <Link to="/" className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors mb-6">
             <ArrowLeft className="h-4 w-4" />
             <span>Back to Home</span>
           </Link>
@@ -302,10 +298,10 @@ const Auth: React.FC = () => {
             />
           </div>
           
-          <h1 className="text-3xl font-bold text-foreground mb-2">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
             {isSignUp ? 'Create Account' : 'Welcome Back'}
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-gray-600">
             {isSignUp 
               ? 'Sign up to get started with GO SG' 
               : 'Sign in to access your account'
@@ -313,28 +309,30 @@ const Auth: React.FC = () => {
           </p>
         </div>
 
-        {/* Auth Form */}
-        <div className="bg-white rounded-lg border border-border shadow-lg p-6">
-          {/* Message */}
+        {/* Auth Form - Flowbite Card Style */}
+        <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
+          {/* Message - Flowbite Alert Style */}
           <AnimatePresence>
             {message && (
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
-                className={`mb-4 p-3 rounded-lg border ${
+                className={`mb-4 p-4 rounded-lg border ${
                   message.type === 'success' 
                     ? 'bg-green-50 border-green-200 text-green-800' 
                     : 'bg-red-50 border-red-200 text-red-800'
                 }`}
               >
-                <div className="flex items-center space-x-2">
+                <div className="flex items-start gap-2">
                   {message.type === 'success' ? (
-                    <CheckCircle className="h-4 w-4" />
+                    <CheckCircle className="h-5 w-5 mt-0.5 flex-shrink-0" />
                   ) : (
-                    <AlertCircle className="h-4 w-4" />
+                    <AlertCircle className="h-5 w-5 mt-0.5 flex-shrink-0" />
                   )}
-                  <span className="text-sm font-medium">{message.text}</span>
+                  <div>
+                    <p className="text-sm font-medium">{message.text}</p>
+                  </div>
                 </div>
               </motion.div>
             )}
@@ -351,34 +349,34 @@ const Auth: React.FC = () => {
                   className="grid grid-cols-2 gap-4"
                 >
                   <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
                       First Name
                     </label>
                     <div className="relative">
-                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <User className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
                       <input
                         type="text"
                         name="first_name"
                         value={formData.first_name}
                         onChange={handleInputChange}
-                        className="w-full pl-10 pr-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-brandPurple focus:border-transparent"
+                        className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         placeholder="John"
                         required={isSignUp}
                       />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
                       Last Name
                     </label>
                     <div className="relative">
-                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <User className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
                       <input
                         type="text"
                         name="last_name"
                         value={formData.last_name}
                         onChange={handleInputChange}
-                        className="w-full pl-10 pr-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-brandPurple focus:border-transparent"
+                        className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         placeholder="Doe"
                         required={isSignUp}
                       />
@@ -388,38 +386,38 @@ const Auth: React.FC = () => {
               )}
             </AnimatePresence>
 
-            {/* Email field */}
+            {/* Email field - Flowbite Input Style */}
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Email Address
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Mail className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
                 <input
                   type="email"
                   name="email"
                   value={formData.email}
                   onChange={handleInputChange}
-                  className="w-full pl-10 pr-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-brandPurple focus:border-transparent"
+                  className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   placeholder="john@example.com"
                   required
                 />
               </div>
             </div>
 
-            {/* Password field */}
+            {/* Password field - Flowbite Input Style */}
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Lock className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   name="password"
                   value={formData.password}
                   onChange={handleInputChange}
-                  className="w-full pl-10 pr-10 py-2 border border-border rounded-lg focus:ring-2 focus:ring-brandPurple focus:border-transparent"
+                  className="w-full pl-9 pr-10 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   placeholder="••••••••"
                   required
                   minLength={8}
@@ -427,13 +425,13 @@ const Auth: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
               {isSignUp && (
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-xs text-gray-500 mt-1">
                   Must be at least 8 characters long
                 </p>
               )}
@@ -447,24 +445,24 @@ const Auth: React.FC = () => {
                   animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0 }}
                 >
-                  <label className="block text-sm font-medium text-foreground mb-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     Confirm Password
                   </label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Lock className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
                     <input
                       type={showConfirmPassword ? 'text' : 'password'}
                       name="confirm_password"
                       value={formData.confirm_password}
                       onChange={handleInputChange}
-                      className="w-full pl-10 pr-10 py-2 border border-border rounded-lg focus:ring-2 focus:ring-brandPurple focus:border-transparent"
+                      className="w-full pl-9 pr-10 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       placeholder="••••••••"
                       required={isSignUp}
                     />
                     <button
                       type="button"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
                     >
                       {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
@@ -473,11 +471,11 @@ const Auth: React.FC = () => {
               )}
             </AnimatePresence>
 
-            {/* Submit button */}
+            {/* Submit button - Flowbite Button Style */}
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-brandPurple text-white rounded-lg hover:bg-brandPurple/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {loading ? (
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
@@ -511,26 +509,31 @@ const Auth: React.FC = () => {
             </p>
           </div> */}
 
-          {/* Switch mode */}
+          {/* Switch mode - Flowbite Link Style */}
           <div className="mt-6 text-center">
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-gray-600">
               {isSignUp ? 'Already have an account?' : "Don't have an account?"}
               <button
                 onClick={switchMode}
-                className="ml-1 text-brandPurple hover:text-brandPurple/80 font-medium transition-colors"
+                className="ml-1 text-blue-600 hover:text-blue-700 hover:underline font-medium transition-colors"
               >
                 {isSignUp ? 'Sign In' : 'Sign Up'}
               </button>
             </p>
           </div>
 
-          {/* Admin note for sign up */}
+          {/* Admin note for sign up - Flowbite Alert Style */}
           {isSignUp && (
-            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-              <p className="text-xs text-blue-800">
-                <strong>Note:</strong> New accounts require admin approval before you can access the system. 
-                You will be notified once your account is approved.
-              </p>
+            <div className="mt-4 p-4 rounded-lg border border-blue-200 bg-blue-50">
+              <div className="flex items-start gap-2">
+                <Info className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="text-sm text-blue-800">
+                    <strong>Note:</strong> New accounts require admin approval before you can access the system. 
+                    You will be notified once your account is approved.
+                  </p>
+                </div>
+              </div>
             </div>
           )}
         </div>

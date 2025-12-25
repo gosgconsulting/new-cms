@@ -13,9 +13,14 @@ const normalizeLabel = (comp: ComponentSchema, idx: number) => {
   return raw;
 };
 
-const collectContent = (items: any[]): { texts: string[]; images: { src: string; alt?: string; title?: string }[] } => {
+const collectContent = (items: any[]): { 
+  texts: string[]; 
+  images: { src: string; alt?: string; title?: string }[]; 
+  buttons: { text: string; link?: string }[];
+} => {
   const texts: string[] = [];
   const images: { src: string; alt?: string; title?: string }[] = [];
+  const buttons: { text: string; link?: string }[] = [];
 
   const walk = (node: any) => {
     if (!node || typeof node !== "object") return;
@@ -24,8 +29,15 @@ const collectContent = (items: any[]): { texts: string[]; images: { src: string;
       images.push({ src: node.src, alt: node.alt, title: node.title });
     }
 
+    if (node.type === "button" && typeof node.content === "string" && node.content.trim()) {
+      buttons.push({ text: node.content.trim(), link: node.link });
+    }
+
     if (typeof node.content === "string" && node.content.trim()) {
-      texts.push(node.content.trim());
+      // Don't add button content to texts (already handled above)
+      if (node.type !== "button") {
+        texts.push(node.content.trim());
+      }
     }
 
     if (Array.isArray(node.items)) {
@@ -42,12 +54,12 @@ const collectContent = (items: any[]): { texts: string[]; images: { src: string;
 
   (Array.isArray(items) ? items : []).forEach(walk);
 
-  return { texts, images };
+  return { texts, images, buttons };
 };
 
 const GenericSectionPreview: React.FC<Props> = ({ index, schema }) => {
   const label = normalizeLabel(schema, index);
-  const { texts, images } = collectContent(schema.items || []);
+  const { texts, images, buttons } = collectContent(schema.items || []);
 
   return (
     <section
@@ -90,7 +102,23 @@ const GenericSectionPreview: React.FC<Props> = ({ index, schema }) => {
             </p>
           ))}
         </div>
-      ) : !images.length ? (
+      ) : null}
+
+      {buttons.length > 0 ? (
+        <div className="mt-3 flex flex-wrap gap-2">
+          {buttons.map((btn, i) => (
+            <a
+              key={i}
+              href={btn.link || "#"}
+              className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              {btn.text}
+            </a>
+          ))}
+        </div>
+      ) : null}
+
+      {!images.length && !texts.length && !buttons.length ? (
         <p className="text-xs text-gray-500">No textual or image content in this section.</p>
       ) : null}
     </section>

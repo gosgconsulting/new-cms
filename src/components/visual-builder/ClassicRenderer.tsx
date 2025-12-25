@@ -22,11 +22,15 @@ interface ClassicRendererProps {
 }
 
 const ClassicVisualContent: React.FC<{ components: ComponentSchema[] }> = ({ components }) => {
+  const { components: ctxComponents } = useSpartiBuilder();
+  // Use context components if available (for real-time updates), otherwise fall back to prop
+  const list = Array.isArray(ctxComponents) && ctxComponents.length > 0 ? ctxComponents : components;
+  
   return (
     <ElementSelector>
       <main className="w-full p-6">
-        {Array.isArray(components) && components.length > 0 ? (
-          components.map((comp, idx) => (
+        {Array.isArray(list) && list.length > 0 ? (
+          list.map((comp, idx) => (
             <GenericSectionPreview key={`classic-${idx}`} index={idx} schema={comp} />
           ))
         ) : (

@@ -1,5 +1,6 @@
 import express from 'express';
 import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
 import { query } from '../../sparti-cms/db/index.js';
 import { JWT_SECRET } from '../config/constants.js';
 import { authenticateUser } from '../middleware/auth.js';
@@ -106,7 +107,6 @@ router.post('/auth/login', async (req, res) => {
     }
 
     // Verify password
-    const bcrypt = await import('bcrypt');
     const isValidPassword = await bcrypt.compare(password, user.password_hash);
     
     if (!isValidPassword) {

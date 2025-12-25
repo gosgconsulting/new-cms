@@ -73,11 +73,13 @@ const MasterComponentsViewer: React.FC<{ libraryId?: string }> = ({ libraryId })
   const libraryFiltered = useMemo<RegistryEntry[]>(() => {
     if (!libraryId) return items;
     if (libraryId === "flowbite") {
-      const allow = ["hero", "services", "features", "ingredients", "team", "about", "header", "footer"];
+      // Only show Diora template components: Hero, Services, Features, Ingredients, Team, About
+      const dioraComponents = ["hero", "services", "features", "ingredients", "team", "about"];
       return items.filter((it) => {
         const id = String(it.id || "").toLowerCase();
         const t = String(it.type || it.title || "").toLowerCase();
-        return allow.some((k) => id.includes(k) || t.includes(k));
+        // Match only Diora template components
+        return dioraComponents.some((k) => id.includes(k) || t.includes(k));
       });
     }
     return items;

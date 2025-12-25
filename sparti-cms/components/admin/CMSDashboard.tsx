@@ -406,10 +406,10 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({ hideSidebar = false }) => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Sidebar - Fixed for desktop, hidden in edit mode */}
+    <div className="min-h-screen bg-gray-50">
+      {/* Sidebar - Flowbite Style */}
       <motion.div 
-        className="fixed left-0 top-0 w-64 h-screen bg-white/80 backdrop-blur-md shadow-md border-r border-border z-40"
+        className="fixed left-0 top-0 w-64 h-screen bg-white shadow-sm border-r border-gray-200 z-40"
         initial={{ x: -20, opacity: 0 }}
         animate={{ 
           x: (hideSidebar || isEditMode) ? -256 : 0, 
@@ -418,48 +418,48 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({ hideSidebar = false }) => {
         transition={{ duration: 0.3 }}
       >
       <div className="flex flex-col h-full">
-        {/* Header */}
-        <div className="p-6 border-b border-border">
-          <div className="flex items-center space-x-3">
+        {/* Header - Flowbite Style */}
+        <div className="p-6 border-b border-gray-200">
+          <div className="flex items-center gap-3">
             <img 
               src={gosgLogo} 
               alt="GO SG Digital Marketing Agency" 
               className="h-8 w-auto"
             />
-            <h1 className="text-xl font-bold text-foreground">Admin</h1>
+            <h1 className="text-xl font-bold text-gray-900">Admin</h1>
           </div>
         </div>
         
-        {/* Mode Switcher */}
-        <div className="p-4 border-b border-border">
-          <div className="flex items-center space-x-2 bg-secondary rounded-lg p-1">
+        {/* Mode Switcher - Flowbite Button Group Style */}
+        <div className="p-4 border-b border-gray-200">
+          <div className="inline-flex rounded-lg border border-gray-200 bg-gray-100 p-1">
             <button
               onClick={() => setMode('cms')}
-              className={`flex-1 flex items-center justify-center px-3 py-2 rounded-md transition-all ${
+              className={`inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-all ${
                 mode === 'cms'
-                  ? 'bg-background text-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
               }`}
             >
-              <LayoutDashboard className="h-4 w-4 mr-2" />
-              <span className="text-sm font-medium">CMS</span>
+              <LayoutDashboard className="h-4 w-4" />
+              <span>CMS</span>
             </button>
             <button
               onClick={() => setMode('shop')}
-              className={`flex-1 flex items-center justify-center px-3 py-2 rounded-md transition-all ${
+              className={`inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-all ${
                 mode === 'shop'
-                  ? 'bg-background text-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
               }`}
             >
-              <Store className="h-4 w-4 mr-2" />
-              <span className="text-sm font-medium">Shop</span>
+              <Store className="h-4 w-4" />
+              <span>Shop</span>
             </button>
           </div>
         </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 p-4">
+        {/* Navigation - Flowbite Sidebar Style */}
+        <nav className="flex-1 p-4 overflow-y-auto">
           <ul className="space-y-1">
             {navItems.slice(0, 2).map((item) => {
               const Icon = item.icon;
@@ -469,31 +469,31 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({ hideSidebar = false }) => {
                 <li key={item.id}>
                   <button
                     onClick={() => setActiveTab(item.id)}
-                    className={`w-full flex items-center px-3 py-2.5 text-left rounded-lg transition-all duration-200 ${
+                    className={`w-full flex items-center gap-3 px-3 py-2 text-left rounded-lg text-sm transition-all ${
                       isActive
-                        ? 'bg-secondary text-foreground font-medium shadow-sm'
-                        : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'
+                        ? 'bg-blue-50 text-blue-600 font-medium'
+                        : 'text-gray-700 hover:bg-gray-100'
                     }`}
                   >
-                    <Icon className={`mr-3 h-5 w-5 ${isActive ? 'text-brandPurple' : ''}`} />
+                    <Icon className="h-5 w-5" />
                     {item.label}
                   </button>
                 </li>
               );
             })}
             
-            {/* Users Submenu */}
+            {/* Users Submenu - Flowbite Style */}
             <li>
               <button
                 onClick={() => setUsersExpanded(!usersExpanded)}
-                className={`w-full flex items-center justify-between px-3 py-2.5 text-left rounded-lg transition-all duration-200 ${
+                className={`w-full flex items-center justify-between gap-3 px-3 py-2 text-left rounded-lg text-sm transition-all ${
                   usersItems.some(item => item.id === activeTab)
-                    ? 'bg-secondary text-foreground font-medium shadow-sm'
-                    : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'
+                    ? 'bg-blue-50 text-blue-600 font-medium'
+                    : 'text-gray-700 hover:bg-gray-100'
                 }`}
               >
-                <div className="flex items-center">
-                  <Users className={`mr-3 h-5 w-5 ${usersItems.some(item => item.id === activeTab) ? 'text-brandPurple' : ''}`} />
+                <div className="flex items-center gap-3">
+                  <Users className="h-5 w-5" />
                   Users
                 </div>
                 {usersExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
@@ -513,13 +513,13 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({ hideSidebar = false }) => {
                       <li key={item.id}>
                         <button
                           onClick={() => setActiveTab(item.id)}
-                          className={`w-full flex items-center px-3 py-2.5 text-left rounded-lg transition-all duration-200 ${
+                          className={`w-full flex items-center gap-3 px-3 py-2 text-left rounded-lg text-sm transition-all ${
                             isActive
-                              ? 'bg-secondary text-foreground font-medium shadow-sm'
-                              : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'
+                              ? 'bg-blue-50 text-blue-600 font-medium'
+                              : 'text-gray-700 hover:bg-gray-100'
                           }`}
                         >
-                          <Icon className={`mr-3 h-4 w-4 ${isActive ? 'text-brandTeal' : ''}`} />
+                          <Icon className="h-4 w-4" />
                           {item.label}
                         </button>
                       </li>
@@ -529,18 +529,18 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({ hideSidebar = false }) => {
               )}
             </li>
 
-            {/* CRM Submenu */}
+            {/* CRM Submenu - Flowbite Style */}
             <li>
               <button
                 onClick={() => setCrmExpanded(!crmExpanded)}
-                className={`w-full flex items-center justify-between px-3 py-2.5 text-left rounded-lg transition-all duration-200 ${
+                className={`w-full flex items-center justify-between gap-3 px-3 py-2 text-left rounded-lg text-sm transition-all ${
                   crmItems.some(item => item.id === activeTab)
-                    ? 'bg-secondary text-foreground font-medium shadow-sm'
-                    : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'
+                    ? 'bg-blue-50 text-blue-600 font-medium'
+                    : 'text-gray-700 hover:bg-gray-100'
                 }`}
               >
-                <div className="flex items-center">
-                  <Mail className={`mr-3 h-5 w-5 ${crmItems.some(item => item.id === activeTab) ? 'text-brandPurple' : ''}`} />
+                <div className="flex items-center gap-3">
+                  <Mail className="h-5 w-5" />
                   CRM
                 </div>
                 {crmExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
@@ -556,13 +556,13 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({ hideSidebar = false }) => {
                       <li key={item.id}>
                         <button
                           onClick={() => setActiveTab(item.id)}
-                          className={`w-full flex items-center px-3 py-2.5 text-left rounded-lg transition-all duration-200 ${
+                          className={`w-full flex items-center gap-3 px-3 py-2 text-left rounded-lg text-sm transition-all ${
                             isActive
-                              ? 'bg-secondary text-foreground font-medium shadow-sm'
-                              : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'
+                              ? 'bg-blue-50 text-blue-600 font-medium'
+                              : 'text-gray-700 hover:bg-gray-100'
                           }`}
                         >
-                          <Icon className={`mr-3 h-4 w-4 ${isActive ? 'text-brandTeal' : ''}`} />
+                          <Icon className="h-4 w-4" />
                           {item.label}
                         </button>
                       </li>
@@ -572,18 +572,18 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({ hideSidebar = false }) => {
               )}
             </li>
 
-            {/* SEO Submenu */}
+            {/* SEO Submenu - Flowbite Style */}
             <li>
               <button
                 onClick={() => setSeoExpanded(!seoExpanded)}
-                className={`w-full flex items-center justify-between px-3 py-2.5 text-left rounded-lg transition-all duration-200 ${
+                className={`w-full flex items-center justify-between gap-3 px-3 py-2 text-left rounded-lg text-sm transition-all ${
                   seoItems.some(item => item.id === activeTab)
-                    ? 'bg-secondary text-foreground font-medium shadow-sm'
-                    : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'
+                    ? 'bg-blue-50 text-blue-600 font-medium'
+                    : 'text-gray-700 hover:bg-gray-100'
                 }`}
               >
-                <div className="flex items-center">
-                  <Shield className={`mr-3 h-5 w-5 ${seoItems.some(item => item.id === activeTab) ? 'text-brandPurple' : ''}`} />
+                <div className="flex items-center gap-3">
+                  <Shield className="h-5 w-5" />
                   SEO
                 </div>
                 {seoExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
@@ -599,13 +599,13 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({ hideSidebar = false }) => {
                       <li key={item.id}>
                         <button
                           onClick={() => setActiveTab(item.id)}
-                          className={`w-full flex items-center px-3 py-2.5 text-left rounded-lg transition-all duration-200 ${
+                          className={`w-full flex items-center gap-3 px-3 py-2 text-left rounded-lg text-sm transition-all ${
                             isActive
-                              ? 'bg-secondary text-foreground font-medium shadow-sm'
-                              : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'
+                              ? 'bg-blue-50 text-blue-600 font-medium'
+                              : 'text-gray-700 hover:bg-gray-100'
                           }`}
                         >
-                          <Icon className={`mr-3 h-4 w-4 ${isActive ? 'text-brandTeal' : ''}`} />
+                          <Icon className="h-4 w-4" />
                           {item.label}
                         </button>
                       </li>
@@ -615,7 +615,7 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({ hideSidebar = false }) => {
               )}
             </li>
             
-            {/* Remaining navigation items */}
+            {/* Remaining navigation items - Flowbite Style */}
             {navItems.slice(2).map((item) => {
               const Icon = item.icon;
               const isActive = activeTab === item.id;
@@ -624,13 +624,13 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({ hideSidebar = false }) => {
                 <li key={item.id}>
                   <button
                     onClick={() => setActiveTab(item.id)}
-                    className={`w-full flex items-center px-3 py-2.5 text-left rounded-lg transition-all duration-200 ${
+                    className={`w-full flex items-center gap-3 px-3 py-2 text-left rounded-lg text-sm transition-all ${
                       isActive
-                        ? 'bg-secondary text-foreground font-medium shadow-sm'
-                        : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'
+                        ? 'bg-blue-50 text-blue-600 font-medium'
+                        : 'text-gray-700 hover:bg-gray-100'
                     }`}
                   >
-                    <Icon className={`mr-3 h-5 w-5 ${isActive ? 'text-brandPurple' : ''}`} />
+                    <Icon className="h-5 w-5" />
                     {item.label}
                   </button>
                 </li>
@@ -639,23 +639,23 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({ hideSidebar = false }) => {
           </ul>
         </nav>
         
-        {/* Footer with Tenant Switcher */}
-        <div className="p-4 border-t border-border space-y-2">
+        {/* Footer with Tenant Switcher - Flowbite Style */}
+        <div className="p-4 border-t border-gray-200 space-y-2">
           {/* Sign Out Button */}
           {user ? (
             <button
               onClick={() => signOut()}
-              className="w-full flex items-center px-3 py-2 text-left rounded-lg text-muted-foreground hover:bg-secondary/50 hover:text-foreground transition-all duration-200"
+              className="w-full flex items-center gap-3 px-3 py-2 text-left rounded-lg text-sm text-gray-700 hover:bg-gray-100 transition-all"
             >
-              <LogOut className="mr-3 h-5 w-5" />
+              <LogOut className="h-5 w-5" />
               Sign Out
             </button>
           ) : (
             <button
               onClick={() => navigate('/auth')}
-              className="w-full flex items-center px-3 py-2 text-left rounded-lg text-muted-foreground hover:bg-secondary/50 hover:text-foreground transition-all duration-200"
+              className="w-full flex items-center gap-3 px-3 py-2 text-left rounded-lg text-sm text-gray-700 hover:bg-gray-100 transition-all"
             >
-              <Users className="mr-3 h-5 w-5" />
+              <Users className="h-5 w-5" />
               Sign In
             </button>
           )}
@@ -671,27 +671,27 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({ hideSidebar = false }) => {
         }}
         transition={{ duration: 0.3 }}
       >
-        {/* Top Bar */}
+        {/* Top Bar - Flowbite Style */}
         <motion.div 
-          className="bg-white/80 backdrop-blur-md shadow-sm border-b border-border p-4"
+          className="bg-white shadow-sm border-b border-gray-200 p-4"
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.3, delay: 0.1 }}
         >
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <h1 className="text-2xl font-bold text-foreground">{getPageTitle()}</h1>
+            <div className="flex items-center gap-4">
+              <h1 className="text-2xl font-bold text-gray-900">{getPageTitle()}</h1>
               {user?.is_super_admin && tenant && (
-                <div className="px-2 py-1 rounded bg-secondary/50 text-xs font-medium flex items-center">
-                  <span>Tenant: {tenant.name}</span>
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-gray-100 text-xs font-medium">
+                  <span className="text-gray-700">Tenant: {tenant.name}</span>
                   {tenant.isDevelopment && (
-                    <span className="ml-2 px-1.5 py-0.5 text-xs bg-amber-100 text-amber-800 rounded">Dev</span>
+                    <span className="px-2 py-0.5 text-xs bg-amber-100 text-amber-700 rounded-full">Dev</span>
                   )}
                 </div>
               )}
             </div>
             
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center gap-4">
               <TenantSelector
                 currentTenantId={currentTenantId || ''}
                 onTenantChange={handleTenantChange}

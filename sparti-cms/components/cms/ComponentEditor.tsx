@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ComponentSchema, SchemaItem } from '../../types/schema';
 import { Button } from '../../../src/components/ui/button';
 import { Label } from '../../../src/components/ui/label';
@@ -45,6 +45,19 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
 }) => {
   const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set());
   const [activeArrayTab, setActiveArrayTab] = useState<Record<number, number>>({});
+  // Store original schema structure to preserve field structure when array is empty
+  const originalSchemaRef = useRef<ComponentSchema | null>(null);
+
+  // Store original schema structure on first mount and when schema key changes
+  useEffect(() => {
+    // Update original schema if it's not set, or if the schema key has changed (new component)
+    const currentSchemaKey = schema.key;
+    const originalSchemaKey = originalSchemaRef.current?.key;
+    
+    if (!originalSchemaRef.current || currentSchemaKey !== originalSchemaKey) {
+      originalSchemaRef.current = JSON.parse(JSON.stringify(schema));
+    }
+  }, [schema.key]);
 
   // Toggle item expansion
   const toggleItem = (index: number) => {
@@ -97,7 +110,6 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
     ...schema,
     items: schema.items || []
   };
-
 
   // No toggle functionality - items are always expanded
 
@@ -185,28 +197,58 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
     const item = updatedItems[itemIndex];
     const currentArray = (item as unknown as Record<string, unknown>)[arrayProp] as unknown[] || [];
     
-    // Create a default item based on existing items or common patterns
+    // Create a default item based on existing items or original schema structure
     let defaultItem: Record<string, unknown> = {};
     if (currentArray.length > 0) {
+      // Use existing item structure
       defaultItem = { ...(currentArray[0] as Record<string, unknown>) };
       // Clear values but keep structure
       Object.keys(defaultItem).forEach(key => {
         if (typeof defaultItem[key] === 'string') defaultItem[key] = '';
         else if (typeof defaultItem[key] === 'number') defaultItem[key] = 0;
         else if (typeof defaultItem[key] === 'boolean') defaultItem[key] = false;
+        else if (Array.isArray(defaultItem[key])) defaultItem[key] = [];
+        else if (typeof defaultItem[key] === 'object' && defaultItem[key] !== null) {
+          defaultItem[key] = {};
+        }
       });
     } else {
-      // Default structures for common array types
-      if (arrayProp === 'slides' || arrayProp === 'images') {
-        defaultItem = { url: '', alt: '', title: '' };
-      } else if (arrayProp === 'testimonials') {
-        defaultItem = { name: '', content: '', role: '', company: '' };
-      } else if (arrayProp === 'faqs') {
-        defaultItem = { question: '', answer: '' };
-      } else if (arrayProp === 'teamMembers') {
-        defaultItem = { name: '', role: '', image: '', bio: '' };
-      } else {
-        defaultItem = { title: '', content: '' };
+      // Array is empty - try to get structure from original schema
+      if (originalSchemaRef.current) {
+        const originalItems = originalSchemaRef.current.items || [];
+        const originalItem = originalItems[itemIndex];
+        if (originalItem) {
+          const originalArray = (originalItem as unknown as Record<string, unknown>)[arrayProp] as unknown[] || [];
+          if (originalArray.length > 0) {
+            // Use original schema structure
+            defaultItem = { ...(originalArray[0] as Record<string, unknown>) };
+            // Clear values but keep structure
+            Object.keys(defaultItem).forEach(key => {
+              if (typeof defaultItem[key] === 'string') defaultItem[key] = '';
+              else if (typeof defaultItem[key] === 'number') defaultItem[key] = 0;
+              else if (typeof defaultItem[key] === 'boolean') defaultItem[key] = false;
+              else if (Array.isArray(defaultItem[key])) defaultItem[key] = [];
+              else if (typeof defaultItem[key] === 'object' && defaultItem[key] !== null) {
+                defaultItem[key] = {};
+              }
+            });
+          }
+        }
+      }
+      
+      // Fallback to default structures if original schema doesn't have the structure
+      if (Object.keys(defaultItem).length === 0) {
+        if (arrayProp === 'slides' || arrayProp === 'images') {
+          defaultItem = { url: '', alt: '', title: '', text: '', image: '' };
+        } else if (arrayProp === 'testimonials') {
+          defaultItem = { name: '', content: '', role: '', company: '' };
+        } else if (arrayProp === 'faqs') {
+          defaultItem = { question: '', answer: '' };
+        } else if (arrayProp === 'teamMembers') {
+          defaultItem = { name: '', role: '', image: '', bio: '' };
+        } else {
+          defaultItem = { title: '', content: '' };
+        }
       }
     }
     
@@ -281,6 +323,52 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
     return (arrayProp === 'slides' || arrayProp === 'images') && 
            (arrayItem.url || arrayItem.src || arrayItem.image);
   };
+
+  // Function to detect and add missing fields to items
+  const detectAndFixMissingFields = (schemaToCheck: ComponentSchema): ComponentSchema => {
+    const updatedItems = [...(schemaToCheck.items || [])];
+    let hasChanges = false;
+
+    updatedItems.forEach((item, itemIndex) => {
+      if (hasArrayProperties(item)) {
+        const arrayItems = getArrayItems(item);
+        const arrayProp = getArrayPropertyName(item);
+        
+        const updatedArrayItems = arrayItems.map((arrayItem: any) => {
+          // Check if it's an image item
+          if (isImageItem(arrayProp, arrayItem)) {
+            const hasTitle = arrayItem.title !== undefined;
+            const hasText = arrayItem.text !== undefined;
+            const hasContent = arrayItem.content !== undefined;
+            
+            // If image item is missing text/title field, add it
+            if (!hasTitle && !hasText && !hasContent) {
+              hasChanges = true;
+              return { ...arrayItem, title: '' };
+            }
+          }
+          return arrayItem;
+        });
+        
+        if (hasChanges) {
+          const updatedItem = { ...item, [arrayProp]: updatedArrayItems };
+          updatedItems[itemIndex] = updatedItem;
+        }
+      }
+    });
+
+    return hasChanges ? { ...schemaToCheck, items: updatedItems } : schemaToCheck;
+  };
+
+  // Auto-fix missing fields on mount and when schema changes
+  useEffect(() => {
+    const fixedSchema = detectAndFixMissingFields(schema);
+    // Use JSON.stringify to properly compare objects
+    if (JSON.stringify(fixedSchema) !== JSON.stringify(schema) && onChange) {
+      onChange(fixedSchema);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [schema]);
 
   // Helper function to handle image upload
   const handleImageUpload = async (itemIndex: number, arrayProp: string, arrayItemIndex: number, file: File) => {
@@ -435,6 +523,11 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
                           (() => {
                             const imgUrl = (currentArrayItem as any).url || (currentArrayItem as any).src || (currentArrayItem as any).image || '';
                             const urlKey = (currentArrayItem as any).url !== undefined ? 'url' : ((currentArrayItem as any).src !== undefined ? 'src' : 'image');
+                            const hasTitle = 'title' in (currentArrayItem as any);
+                            const hasText = 'text' in (currentArrayItem as any);
+                            const hasContent = 'content' in (currentArrayItem as any);
+                            const textKey = hasTitle ? 'title' : (hasText ? 'text' : (hasContent ? 'content' : 'title'));
+                            
                             return (
                               <div className="space-y-3">
                                 <ImageThumbnail
@@ -451,6 +544,16 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
                                       onChange={(e) => updateArrayItem(index, arrayProp, currentTab, urlKey, e.target.value)}
                                       className="w-full p-2 rounded-md border"
                                       placeholder="Enter image URL"
+                                    />
+                                  </div>
+                                  <div>
+                                    <Label className="text-sm font-medium mb-2 block">Text / Title</Label>
+                                    <input
+                                      type="text"
+                                      value={(currentArrayItem as any)[textKey] || ''}
+                                      onChange={(e) => updateArrayItem(index, arrayProp, currentTab, textKey, e.target.value)}
+                                      className="w-full p-2 rounded-md border"
+                                      placeholder="Enter text or title"
                                     />
                                   </div>
                                   {'alt' in (currentArrayItem as any) && (
