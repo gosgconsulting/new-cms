@@ -46,18 +46,6 @@ export {
   getContactsWithMessages
 } from './modules/contacts.js';
 
-// Projects
-export {
-  createProject,
-  getProjects,
-  updateProject,
-  deleteProject,
-  createProjectStep,
-  getProjectSteps,
-  updateProjectStep,
-  deleteProjectStep
-} from './modules/projects.js';
-
 // Pages management
 export {
   initializeSEOPagesTables,

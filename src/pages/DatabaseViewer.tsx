@@ -106,8 +106,6 @@ const DatabaseViewer: React.FC = () => {
       // Mock data for development
       setTables([
         { table_name: 'users', row_count: 150, table_schema: 'public', table_type: 'BASE TABLE' },
-        { table_name: 'projects', row_count: 25, table_schema: 'public', table_type: 'BASE TABLE' },
-        { table_name: 'project_steps', row_count: 120, table_schema: 'public', table_type: 'BASE TABLE' },
         { table_name: 'settings', row_count: 1, table_schema: 'public', table_type: 'BASE TABLE' },
         { table_name: 'analytics_events', row_count: 2500, table_schema: 'public', table_type: 'BASE TABLE' },
       ]);

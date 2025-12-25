@@ -49,8 +49,8 @@ interface SitemapEntry {
   id: number;
   url: string;
   changefreq: 'always' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'never';
-  priority: number;
-  lastmod: string;
+  priority: number | string; // Can be number or string from database
+  lastmod: string | Date;
   sitemap_type: 'main' | 'images' | 'videos' | 'news';
   is_active: boolean;
   title?: string;
@@ -82,6 +82,7 @@ const SitemapManager: React.FC = () => {
 
   useEffect(() => {
     loadSitemapEntries();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [typeFilter]);
 
   const loadSitemapEntries = async () => {
@@ -138,6 +139,46 @@ const SitemapManager: React.FC = () => {
     }
   };
 
+  const handleDownload = async () => {
+    try {
+      // If we have a generated sitemap, use it; otherwise generate one
+      let sitemapXML = generatedSitemap;
+      
+      if (!sitemapXML) {
+        const response = await fetch('/api/sitemap/generate', {
+          method: 'POST',
+        });
+        
+        if (!response.ok) throw new Error('Failed to generate sitemap');
+        sitemapXML = await response.text();
+        setGeneratedSitemap(sitemapXML);
+      }
+      
+      // Create a blob and download it
+      const blob = new Blob([sitemapXML], { type: 'application/xml' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'sitemap.xml';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      toast({
+        title: "Success",
+        description: "Sitemap downloaded successfully.",
+      });
+    } catch (error) {
+      console.error('[testing] Error downloading sitemap:', error);
+      toast({
+        title: "Error",
+        description: "Failed to download sitemap. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -176,10 +217,17 @@ const SitemapManager: React.FC = () => {
 
   const handleEdit = (entry: SitemapEntry) => {
     setEditingEntry(entry);
+    // Convert priority to number if it's a string
+    const priorityNum = typeof entry.priority === 'string' 
+      ? parseFloat(entry.priority) 
+      : typeof entry.priority === 'number' 
+        ? entry.priority 
+        : 0.5;
+    
     setFormData({
       url: entry.url,
       changefreq: entry.changefreq,
-      priority: entry.priority,
+      priority: isNaN(priorityNum) ? 0.5 : priorityNum,
       sitemap_type: entry.sitemap_type,
       title: entry.title || '',
       description: entry.description || ''
@@ -259,21 +307,31 @@ const SitemapManager: React.FC = () => {
     );
   };
 
-  const getPriorityBadge = (priority: number) => {
+  const getPriorityBadge = (priority: number | string | null | undefined) => {
+    // Convert priority to number, handling string, decimal, or null values
+    const priorityNum = typeof priority === 'string' 
+      ? parseFloat(priority) 
+      : typeof priority === 'number' 
+        ? priority 
+        : 0;
+    
+    // Validate the number
+    const validPriority = isNaN(priorityNum) ? 0 : Math.max(0, Math.min(1, priorityNum));
+    
     let variant: "default" | "secondary" | "destructive" | "outline" = "secondary";
     let label = "Low";
     
-    if (priority >= 0.8) {
+    if (validPriority >= 0.8) {
       variant = "default";
       label = "High";
-    } else if (priority >= 0.5) {
+    } else if (validPriority >= 0.5) {
       variant = "outline";
       label = "Medium";
     }
     
     return (
       <Badge variant={variant}>
-        {priority.toFixed(1)} - {label}
+        {validPriority.toFixed(1)} - {label}
       </Badge>
     );
   };
@@ -284,8 +342,12 @@ const SitemapManager: React.FC = () => {
     entry.description?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+  const formatDate = (dateString: string | Date) => {
+    const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
+    if (isNaN(date.getTime())) {
+      return 'Invalid date';
+    }
+    return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
@@ -325,7 +387,7 @@ const SitemapManager: React.FC = () => {
               <RefreshCw className={`mr-2 h-4 w-4 ${generating ? 'animate-spin' : ''}`} />
               {generating ? 'Generating...' : 'Generate'}
             </Button>
-            <Button variant="outline">
+            <Button variant="outline" onClick={handleDownload}>
               <Download className="mr-2 h-4 w-4" />
               Download
             </Button>
@@ -464,7 +526,11 @@ const SitemapManager: React.FC = () => {
           <div className="mb-6 p-4 bg-gray-50 rounded-lg border">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-lg font-medium">Generated Sitemap XML</h3>
-              <Button variant="outline" size="sm">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => window.open('/sitemap.xml', '_blank')}
+              >
                 <ExternalLink className="mr-2 h-3 w-3" />
                 View Live
               </Button>
@@ -616,7 +682,10 @@ const SitemapManager: React.FC = () => {
               <div className="ml-3">
                 <p className="text-sm font-medium text-purple-600">High Priority</p>
                 <p className="text-2xl font-bold text-purple-900">
-                  {entries.filter(e => e.priority >= 0.8).length}
+                  {entries.filter(e => {
+                    const p = typeof e.priority === 'string' ? parseFloat(e.priority) : e.priority;
+                    return typeof p === 'number' && !isNaN(p) && p >= 0.8;
+                  }).length}
                 </p>
               </div>
             </div>

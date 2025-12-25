@@ -23,6 +23,7 @@ import {
   FolderTree,
   ShoppingCart,
   CreditCard,
+  Target,
 } from 'lucide-react';
 import { useAuth } from '../auth/AuthProvider';
 import { motion } from 'framer-motion';
@@ -48,6 +49,7 @@ import SitemapManager from '../seo/SitemapManager';
 // Import new components
 import DeveloperManager from './DeveloperManager';
 import ContactsManager from './ContactsManager';
+import LeadsManager from './LeadsManager';
 import MyAccountPage from './MyAccountPage';
 import UsersManager from './UsersManager';
 import TenantsManager from './TenantsManager';
@@ -331,6 +333,10 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({ hideSidebar = false }) => {
         return <ContactsManager 
           currentTenantId={currentTenantId || ''}
         />;
+      case 'leads':
+        return <LeadsManager 
+          currentTenantId={currentTenantId || ''}
+        />;
       case 'forms':
         return <FormsManager />;
       case 'my-account':
@@ -388,7 +394,7 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({ hideSidebar = false }) => {
 
   const crmItems = [
     { id: 'contacts', label: 'Contacts', icon: Users },
-    { id: 'forms', label: 'Forms', icon: FileInput },
+    { id: 'leads', label: 'Leads', icon: Target },
   ];
 
   const seoItems = [

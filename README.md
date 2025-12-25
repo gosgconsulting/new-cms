@@ -28,9 +28,8 @@ A modern digital marketing agency website built with React, TypeScript, and Tail
 - **Project Cards**: Visual project overview with status, priority, and progress
 - **Task Management**: Add, edit, and track project steps/tasks
 - **Progress Tracking**: Automatic completion percentage calculation
-- **Project Details**: Title, description, category, priority, dates
 - **Task Details**: Estimated hours, assigned person, due dates
-- **Status Management**: Active, completed, on-hold, cancelled projects
+- **Status Management**: Active, completed, on-hold, cancelled items
 - **Step Status**: Pending, in-progress, completed tasks
 
 ## 🛠️ Tech Stack
@@ -122,8 +121,6 @@ The application automatically creates the following tables:
 - **site_settings**: Stores branding and configuration settings
 - **form_submissions**: Stores contact form submissions
 - **contacts**: Stores contact information and lead data
-- **projects**: Stores development projects with metadata
-- **project_steps**: Stores individual tasks/steps for each project
 
 ### API Endpoints
 
@@ -143,16 +140,6 @@ The application automatically creates the following tables:
 - `POST /api/contacts` - Create new contact
 - `PUT /api/contacts/:id` - Update contact
 - `DELETE /api/contacts/:id` - Delete contact
-
-#### Project Management APIs
-- `GET /api/projects` - Get all projects
-- `POST /api/projects` - Create new project
-- `PUT /api/projects/:id` - Update project
-- `DELETE /api/projects/:id` - Delete project
-- `GET /api/projects/:projectId/steps` - Get project steps
-- `POST /api/projects/:projectId/steps` - Create project step
-- `PUT /api/project-steps/:id` - Update project step
-- `DELETE /api/project-steps/:id` - Delete project step
 
 ## 🔧 Development
 
@@ -253,15 +240,7 @@ Access the admin dashboard at `/admin` with the following features:
 - **Branding**: Site name, tagline, logo, favicon
 - **Style**: Colors, typography, themes
 - **SEO**: Sitemap, meta tags, robots.txt, Open Graph
-- **Developer**: Custom code, Google services, **Project Management**
-
-### Project Management Features
-- **Project Cards**: Visual overview with status badges and progress bars
-- **Create Projects**: Modal form with title, description, category, priority, dates
-- **Task Management**: Add, edit, complete, and delete project tasks
-- **Progress Tracking**: Automatic calculation based on completed tasks
-- **Status Management**: Track project and task statuses
-- **Time Tracking**: Estimated and actual hours for tasks
+- **Developer**: Custom code, Google services
 - **Assignment**: Assign tasks to team members
 - **Due Dates**: Set and track task deadlines
 

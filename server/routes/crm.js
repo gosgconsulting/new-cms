@@ -5,15 +5,7 @@ import {
   getContact,
   createContact,
   updateContact,
-  deleteContact,
-  getProjects,
-  createProject,
-  updateProject,
-  deleteProject,
-  getProjectSteps,
-  createProjectStep,
-  updateProjectStep,
-  deleteProjectStep
+  deleteContact
 } from '../../sparti-cms/db/index.js';
 
 const router = express.Router();
@@ -119,113 +111,6 @@ router.delete('/contacts/:id', authenticateUser, async (req, res) => {
   } catch (error) {
     console.error('[testing] API: Error deleting contact:', error);
     res.status(500).json({ error: 'Failed to delete contact' });
-  }
-});
-
-// ===== PROJECTS ROUTES =====
-
-// Get all projects
-router.get('/projects', async (req, res) => {
-  try {
-    console.log('[testing] API: Getting projects');
-    const projects = await getProjects();
-    res.json(projects);
-  } catch (error) {
-    console.error('[testing] API: Error getting projects:', error);
-    res.status(500).json({ error: 'Failed to get projects' });
-  }
-});
-
-// Create new project
-router.post('/projects', async (req, res) => {
-  try {
-    console.log('[testing] API: Creating project:', req.body);
-    const project = await createProject(req.body);
-    res.json({ success: true, project });
-  } catch (error) {
-    console.error('[testing] API: Error creating project:', error);
-    res.status(500).json({ error: 'Failed to create project' });
-  }
-});
-
-// Update project
-router.put('/projects/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    console.log('[testing] API: Updating project:', id, req.body);
-    const project = await updateProject(id, req.body);
-    res.json({ success: true, project });
-  } catch (error) {
-    console.error('[testing] API: Error updating project:', error);
-    res.status(500).json({ error: 'Failed to update project' });
-  }
-});
-
-// Delete project
-router.delete('/projects/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    console.log('[testing] API: Deleting project:', id);
-    await deleteProject(id);
-    res.json({ success: true, message: 'Project deleted successfully' });
-  } catch (error) {
-    console.error('[testing] API: Error deleting project:', error);
-    res.status(500).json({ error: 'Failed to delete project' });
-  }
-});
-
-// ===== PROJECT STEPS ROUTES =====
-
-// Get project steps
-router.get('/projects/:projectId/steps', async (req, res) => {
-  try {
-    const { projectId } = req.params;
-    console.log('[testing] API: Getting project steps for:', projectId);
-    const steps = await getProjectSteps(projectId);
-    res.json(steps);
-  } catch (error) {
-    console.error('[testing] API: Error getting project steps:', error);
-    res.status(500).json({ error: 'Failed to get project steps' });
-  }
-});
-
-// Create project step
-router.post('/projects/:projectId/steps', async (req, res) => {
-  try {
-    const { projectId } = req.params;
-    const stepData = { ...req.body, project_id: projectId };
-    console.log('[testing] API: Creating project step:', stepData);
-    const step = await createProjectStep(stepData);
-    res.json({ success: true, step });
-  } catch (error) {
-    console.error('[testing] API: Error creating project step:', error);
-    res.status(500).json({ error: 'Failed to create project step' });
-  }
-});
-
-// Update project step
-router.put('/project-steps/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    console.log('[testing] API: Updating project step:', id, req.body);
-    const step = await updateProjectStep(id, req.body);
-    res.json({ success: true, step });
-  } catch (error) {
-    console.error('[testing] API: Error updating project step:', error);
-    res.status(500).json({ error: 'Failed to update project step' });
-  }
-});
-
-// Delete project step
-router.delete('/project-steps/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    console.log('[testing] API: Deleting project step:', id);
-    await deleteProjectStep(id);
-    res.json({ success: true, message: 'Project step deleted successfully' });
-  } catch (error) {
-    console.error('[testing] API: Error deleting project step:', error);
-    res.status(500).json({ error: 'Failed to delete project step' });
   }
 });
 

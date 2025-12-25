@@ -43,40 +43,6 @@ const DatabaseTablesViewer: React.FC<DatabaseTablesViewerProps> = ({ onClose }) 
       ]
     },
     {
-      name: 'projects',
-      rowCount: 25,
-      icon: <FolderOpen className="h-5 w-5 text-green-500" />,
-      description: 'Project management and tracking data',
-      schema: [
-        { column: 'id', type: 'integer', nullable: false, key: true },
-        { column: 'title', type: 'character varying', nullable: false, key: false },
-        { column: 'description', type: 'text', nullable: true, key: false },
-        { column: 'status', type: 'character varying', nullable: false, key: false },
-        { column: 'created_at', type: 'timestamp', nullable: false, key: false }
-      ],
-      sampleData: [
-        { id: 1, title: 'GO SG Website', description: 'Main company website', status: 'active', created_at: '2024-01-10T09:00:00Z' },
-        { id: 2, title: 'SEO Campaign', description: 'Q1 SEO optimization', status: 'in_progress', created_at: '2024-01-12T11:30:00Z' }
-      ]
-    },
-    {
-      name: 'project_steps',
-      rowCount: 120,
-      icon: <TableIcon className="h-5 w-5 text-purple-500" />,
-      description: 'Individual project tasks and milestones',
-      schema: [
-        { column: 'id', type: 'integer', nullable: false, key: true },
-        { column: 'project_id', type: 'integer', nullable: false, key: false },
-        { column: 'title', type: 'character varying', nullable: false, key: false },
-        { column: 'status', type: 'character varying', nullable: false, key: false },
-        { column: 'completed_at', type: 'timestamp', nullable: true, key: false }
-      ],
-      sampleData: [
-        { id: 1, project_id: 1, title: 'Setup database', status: 'completed', completed_at: '2024-01-11T15:00:00Z' },
-        { id: 2, project_id: 1, title: 'Design homepage', status: 'in_progress', completed_at: null }
-      ]
-    },
-    {
       name: 'settings',
       rowCount: 1,
       icon: <Settings className="h-5 w-5 text-orange-500" />,
@@ -142,10 +108,6 @@ const DatabaseTablesViewer: React.FC<DatabaseTablesViewerProps> = ({ onClose }) 
         return <Users className="h-5 w-5 text-blue-500" />;
       case 'form_submissions':
         return <Mail className="h-5 w-5 text-pink-500" />;
-      case 'projects':
-        return <FolderOpen className="h-5 w-5 text-green-500" />;
-      case 'project_steps':
-        return <TableIcon className="h-5 w-5 text-purple-500" />;
       case 'site_settings':
         return <Settings className="h-5 w-5 text-orange-500" />;
       default:
@@ -159,10 +121,6 @@ const DatabaseTablesViewer: React.FC<DatabaseTablesViewerProps> = ({ onClose }) 
         return 'Contact information and lead data';
       case 'form_submissions':
         return 'Website form submissions and inquiries';
-      case 'projects':
-        return 'Project management and tracking data';
-      case 'project_steps':
-        return 'Individual project tasks and milestones';
       case 'site_settings':
         return 'Application configuration and settings';
       default:

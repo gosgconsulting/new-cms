@@ -59,44 +59,6 @@ class DatabaseService {
           ]
         },
         {
-          name: 'projects',
-          rowCount: 25,
-          schema: [
-            { column: 'id', type: 'integer', nullable: false, key: true },
-            { column: 'title', type: 'character varying', nullable: false, key: false },
-            { column: 'description', type: 'text', nullable: true, key: false },
-            { column: 'status', type: 'character varying', nullable: false, key: false },
-            { column: 'client_id', type: 'integer', nullable: true, key: false },
-            { column: 'created_at', type: 'timestamp', nullable: false, key: false },
-            { column: 'updated_at', type: 'timestamp', nullable: false, key: false }
-          ],
-          sampleData: [
-            { id: 1, title: 'GO SG Website Redesign', description: 'Complete website overhaul with new branding', status: 'active', client_id: 1, created_at: '2024-01-10T09:00:00Z' },
-            { id: 2, title: 'SEO Campaign Q1', description: 'Quarterly SEO optimization campaign', status: 'in_progress', client_id: 2, created_at: '2024-01-12T11:30:00Z' },
-            { id: 3, title: 'Social Media Strategy', description: 'Comprehensive social media planning', status: 'completed', client_id: 1, created_at: '2024-01-08T15:45:00Z' }
-          ]
-        },
-        {
-          name: 'project_steps',
-          rowCount: 120,
-          schema: [
-            { column: 'id', type: 'integer', nullable: false, key: true },
-            { column: 'project_id', type: 'integer', nullable: false, key: false },
-            { column: 'title', type: 'character varying', nullable: false, key: false },
-            { column: 'description', type: 'text', nullable: true, key: false },
-            { column: 'status', type: 'character varying', nullable: false, key: false },
-            { column: 'assigned_to', type: 'integer', nullable: true, key: false },
-            { column: 'due_date', type: 'date', nullable: true, key: false },
-            { column: 'completed_at', type: 'timestamp', nullable: true, key: false },
-            { column: 'created_at', type: 'timestamp', nullable: false, key: false }
-          ],
-          sampleData: [
-            { id: 1, project_id: 1, title: 'Database Setup', description: 'Configure PostgreSQL database', status: 'completed', assigned_to: 1, completed_at: '2024-01-11T15:00:00Z' },
-            { id: 2, project_id: 1, title: 'Homepage Design', description: 'Create new homepage layout', status: 'in_progress', assigned_to: 2, due_date: '2024-01-25', completed_at: null },
-            { id: 3, project_id: 2, title: 'Keyword Research', description: 'Identify target keywords', status: 'completed', assigned_to: 1, completed_at: '2024-01-13T10:30:00Z' }
-          ]
-        },
-        {
           name: 'site_settings',
           rowCount: 12,
           schema: [

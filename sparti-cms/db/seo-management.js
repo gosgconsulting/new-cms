@@ -345,7 +345,21 @@ export async function generateSitemapXML(tenantId = 'tenant-gosg') {
     for (const entry of entries) {
       sitemapXML += '  <url>\n';
       sitemapXML += `    <loc>${siteUrl}${entry.url}</loc>\n`;
-      sitemapXML += `    <lastmod>${entry.lastmod.toISOString().split('T')[0]}</lastmod>\n`;
+      
+      // Handle lastmod - it might be a Date object or a string
+      let lastmodDate;
+      if (entry.lastmod instanceof Date) {
+        lastmodDate = entry.lastmod.toISOString().split('T')[0];
+      } else if (typeof entry.lastmod === 'string') {
+        // Parse string date and format it
+        const date = new Date(entry.lastmod);
+        lastmodDate = date.toISOString().split('T')[0];
+      } else {
+        // Fallback to current date if lastmod is invalid
+        lastmodDate = new Date().toISOString().split('T')[0];
+      }
+      sitemapXML += `    <lastmod>${lastmodDate}</lastmod>\n`;
+      
       sitemapXML += `    <changefreq>${entry.changefreq}</changefreq>\n`;
       sitemapXML += `    <priority>${entry.priority}</priority>\n`;
       sitemapXML += '  </url>\n';
