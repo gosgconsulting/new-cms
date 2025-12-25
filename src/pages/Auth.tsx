@@ -490,25 +490,27 @@ const Auth: React.FC = () => {
           </form>
 
           {/* Quick Admin Access Button */}
-          {/* <div className="mt-6 border-t pt-6">
-            <button
-              onClick={handleCreateAdmin}
-              disabled={loading}
-              className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              {loading ? (
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-              ) : (
-                <>
-                  <Shield className="h-4 w-4" />
-                  <span>Create Admin Access</span>
-                </>
-              )}
-            </button>
-            <p className="text-xs text-center text-muted-foreground mt-2">
-              Creates a demo admin user with credentials: admin/admin
-            </p>
-          </div> */}
+          {import.meta.env.DEV && (
+            <div className="mt-6 border-t pt-6">
+              <button
+                onClick={handleCreateAdmin}
+                disabled={loading}
+                className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {loading ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                ) : (
+                  <>
+                    <Shield className="h-4 w-4" />
+                    <span>Create Admin Access</span>
+                  </>
+                )}
+              </button>
+              <p className="text-xs text-center text-muted-foreground mt-2">
+                Creates a local demo admin (super admin) and signs you in for development.
+              </p>
+            </div>
+          )}
 
           {/* Switch mode - Flowbite Link Style */}
           <div className="mt-6 text-center">

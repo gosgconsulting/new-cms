@@ -111,6 +111,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         hasSetTenantFromSignIn.current = true;
       }
 
+      // Development fallback: set a default tenant to improve DX
+      if (!tenantIdToSet && import.meta.env.DEV) {
+        tenantIdToSet = 'tenant-gosg';
+        try {
+          localStorage.setItem('sparti-current-tenant-id', tenantIdToSet);
+        } catch {}
+      }
+
       console.log('tenantIdToSet', tenantIdToSet);
       setCurrentTenantId(tenantIdToSet);
 
@@ -144,6 +152,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...(currentTenantId ? { 'X-Tenant-Id': currentTenantId } : {})
         },
         body: JSON.stringify({ email, password }),
       });
@@ -241,7 +250,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         error: error instanceof Error ? error.message : 'Login failed. Please try again.' 
       };
     }
-  }, []);
+  }, [currentTenantId]);
 
   const signInWithAccessKey = useCallback(async (accessKey: string): Promise<{ success: boolean; error?: string }> => {
     try {
