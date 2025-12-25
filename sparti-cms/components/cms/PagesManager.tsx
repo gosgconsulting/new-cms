@@ -502,7 +502,16 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
               ) : (
                 // Apply Flowbite preview only for Diora-like homepages
                 (visualEditorPage.slug === '/' || visualEditorPage.slug === '/home') && isDioraHomepageLayout(builderComponents) ? (
-                  <FlowbiteDioraRenderer components={builderComponents} />
+                  <FlowbiteDioraRenderer
+                    components={builderComponents}
+                    pageContext={{
+                      pageId: visualEditorPage.id,
+                      slug: visualEditorPage.slug,
+                      pageName: visualEditorPage.pageName,
+                      tenantId: currentTenantId,
+                      themeId: currentThemeId
+                    }}
+                  />
                 ) : (
                   <div className="bg-white border rounded-lg p-8 m-6 text-center text-gray-500">
                     Preview uses theme components for this page. Flowbite preview is available for Diora-like homepages only.

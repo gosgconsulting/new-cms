@@ -12,6 +12,11 @@ interface GOSGBuilderContextType extends EditingContext {
   components: ComponentSchema[];
   setComponents: (next: ComponentSchema[]) => void;
   updateComponent: (index: number, updated: ComponentSchema) => void;
+  // Page context for saving
+  pageId?: string;
+  slug?: string;
+  tenantId?: string;
+  themeId?: string;
 }
 
 const GOSGBuilderContext = createContext<GOSGBuilderContextType | null>(null);
@@ -20,19 +25,27 @@ interface SpartiBuilderProviderProps {
   children: ReactNode;
   config?: SpartiBuilderConfig;
   components?: ComponentSchema[];
+  // Page context (optional)
+  pageId?: string;
+  slug?: string;
+  tenantId?: string;
+  themeId?: string;
 }
 
 export const SpartiBuilderProvider: React.FC<SpartiBuilderProviderProps> = ({
   children,
   config = { enabled: true, toolbar: true, autoDetect: true },
-  components = []
+  components = [],
+  pageId,
+  slug,
+  tenantId,
+  themeId
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [selectedElement, setSelectedElement] = useState<SpartiElement | null>(null);
   const [hoveredElement, setHoveredElement] = useState<SpartiElement | null>(null);
   const [componentsState, setComponentsState] = useState<ComponentSchema[]>(components);
 
-  // Keep internal state in sync if parent changes initial components
   useEffect(() => {
     setComponentsState(components || []);
   }, [components]);
@@ -73,6 +86,10 @@ export const SpartiBuilderProvider: React.FC<SpartiBuilderProviderProps> = ({
     components: componentsState,
     setComponents: setComponentsState,
     updateComponent,
+    pageId,
+    slug,
+    tenantId,
+    themeId,
   };
 
   return (

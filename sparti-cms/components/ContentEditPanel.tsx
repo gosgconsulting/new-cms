@@ -5,6 +5,7 @@ import { useSpartiBuilder } from './SpartiBuilderProvider';
 import { ElementType } from '../types';
 import useDatabase from '../hooks/useDatabase';
 import { componentRegistry } from '../registry';
+
 import { TextEditor } from './editors/TextEditor';
 import { ImageEditor } from './editors/ImageEditor';
 import { ButtonEditor } from './editors/ButtonEditor';
@@ -12,11 +13,15 @@ import { ContainerEditor } from './editors/ContainerEditor';
 import ComponentEditor from './cms/ComponentEditor';
 import { showInfoToast } from '../../src/utils/toast-utils';
 import type { ComponentSchema } from '../types/schema';
+import { Loader2 } from 'lucide-react';
+import { showSuccessToast, showErrorToast } from '../../src/utils/toast-utils';
+import api from '../utils/api';
 
 export const ContentEditPanel: React.FC = () => {
-  const { isEditing, selectedElement, selectElement, components, updateComponent } = useSpartiBuilder();
+  const { isEditing, selectedElement, selectElement, components, updateComponent, pageId, slug, tenantId } = useSpartiBuilder();
   const [saveSuccess, setSaveSuccess] = useState(false);
   const { components: dbComponents, status, error } = useDatabase();
+  const [savingLayout, setSavingLayout] = useState(false);
   
   // Derive loading state from useDatabase status
   const isSaving = status === 'loading';
@@ -48,6 +53,51 @@ export const ContentEditPanel: React.FC = () => {
       unknown: Settings,
     };
     return icons[type] || Settings;
+  };
+
+  // Save current context components to DB layout
+  const handleSaveLayout = async () => {
+    if (!Array.isArray(components)) return;
+    try {
+      setSavingLayout(true);
+      const effectiveTenantId = tenantId || 'tenant-gosg';
+      let targetPageId = pageId;
+
+      // If pageId not available, resolve via page-context using slug + tenant
+      if (!targetPageId) {
+        if (!slug) {
+          showErrorToast('Cannot determine page context to save.');
+          setSavingLayout(false);
+          return;
+        }
+        const encodedSlug = encodeURIComponent(slug);
+        const ctxRes = await api.get(`/api/ai-assistant/page-context?slug=${encodedSlug}&tenantId=${effectiveTenantId}`);
+        const ctxData = await ctxRes.json();
+        if (!ctxData.success || !ctxData.pageContext?.pageId) {
+          showErrorToast('Page not found for saving.');
+          setSavingLayout(false);
+          return;
+        }
+        targetPageId = String(ctxData.pageContext.pageId);
+      }
+
+      // PUT updated layout
+      const res = await api.put(`/api/pages/${targetPageId}/layout`, {
+        layout_json: { components },
+        tenantId: effectiveTenantId
+      });
+      const json = await res.json();
+      if (json && json.success !== false) {
+        showSuccessToast('Layout saved');
+      } else {
+        showErrorToast(json?.message || 'Failed to save layout');
+      }
+    } catch (e: any) {
+      showErrorToast(e?.message || 'Failed to save layout');
+      console.error('[visual-editor] Save layout error:', e);
+    } finally {
+      setSavingLayout(false);
+    }
   };
 
   const renderSpecializedEditor = () => {
@@ -142,10 +192,7 @@ export const ContentEditPanel: React.FC = () => {
       <div className="sparti-edit-panel">
         <div className="sparti-edit-panel-header">
           <div className="sparti-edit-header-content">
-            {(selectedComponent ? <Settings size={20} /> : (() => {
-              const IconComponent = getEditorIcon(elementType);
-              return <IconComponent size={20} />;
-            })())}
+            <IconComponent size={20} />
             <div>
               <h3>{selectedComponent ? 'Section Editor' : `${elementType.charAt(0).toUpperCase() + elementType.slice(1)} Editor`}</h3>
               <p className="sparti-element-path">
@@ -159,6 +206,16 @@ export const ContentEditPanel: React.FC = () => {
             </div>
           </div>
           <div className="sparti-edit-panel-actions">
+            <button
+              className={`sparti-btn sparti-btn-primary ${savingLayout ? 'sparti-btn-loading' : ''}`}
+              onClick={handleSaveLayout}
+              disabled={savingLayout}
+              aria-label="Save layout"
+              title="Save page layout to database"
+            >
+              {savingLayout ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+              {savingLayout ? 'Saving...' : 'Save'}
+            </button>
             {isComponent && (
               <button 
                 className={`sparti-btn sparti-btn-primary ${isSaving ? 'sparti-btn-loading' : ''}`}

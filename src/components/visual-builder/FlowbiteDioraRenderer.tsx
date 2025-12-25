@@ -19,6 +19,13 @@ const RichText: React.FC<{ html?: string; className?: string; as?: keyof JSX.Int
 
 interface FlowbiteDioraRendererProps {
   components: ComponentSchema[];
+  pageContext?: {
+    pageId?: string;
+    slug?: string;
+    pageName?: string;
+    tenantId?: string;
+    themeId?: string;
+  };
 }
 
 const getText = (items: SchemaItem[], key: string) => {
@@ -390,6 +397,7 @@ function SectionAbout({ items }: { items: SchemaItem[] }) {
 
 const FlowbiteDioraRenderer: React.FC<FlowbiteDioraRendererProps> = ({
   components,
+  pageContext,
 }) => {
   if (!components || components.length === 0) {
     return (
@@ -399,7 +407,6 @@ const FlowbiteDioraRenderer: React.FC<FlowbiteDioraRendererProps> = ({
     );
   }
 
-  // Inner visual content that consumes builder context components
   const VisualContent: React.FC = () => {
     const { components: ctxComponents } = useSpartiBuilder();
     const list = Array.isArray(ctxComponents) && ctxComponents.length > 0 ? ctxComponents : components;
@@ -470,8 +477,13 @@ const FlowbiteDioraRenderer: React.FC<FlowbiteDioraRendererProps> = ({
   };
 
   return (
-    // Provider holds components; visual content reads from context
-    <SpartiBuilderProvider components={components}>
+    <SpartiBuilderProvider
+      components={components}
+      pageId={pageContext?.pageId}
+      slug={pageContext?.slug}
+      tenantId={pageContext?.tenantId}
+      themeId={pageContext?.themeId}
+    >
       <VisualContent />
       <EditingOverlay />
       <ContentEditPanel />
