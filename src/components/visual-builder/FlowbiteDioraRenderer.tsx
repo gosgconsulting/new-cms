@@ -9,6 +9,7 @@ import { EditingOverlay } from "../../../sparti-cms/components/EditingOverlay";
 import { ContentEditPanel } from "../../../sparti-cms/components/ContentEditPanel";
 import SectionList from "./SectionList";
 import "../../../sparti-cms/components/sparti-builder.css";
+import GenericSectionPreview from "./GenericSectionPreview";
 
 interface FlowbiteDioraRendererProps {
   components: ComponentSchema[];
@@ -433,7 +434,10 @@ const FlowbiteDioraRenderer: React.FC<FlowbiteDioraRendererProps> = ({
               );
             }
 
-            return null;
+            // Fallback: generic preview for unmatched component types
+            return (
+              <GenericSectionPreview key={`generic-${idx}`} index={idx} schema={comp} />
+            );
           })}
         </main>
       </ElementSelector>
