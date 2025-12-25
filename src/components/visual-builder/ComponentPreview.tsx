@@ -111,171 +111,206 @@ const ComponentPreview: React.FC<PreviewProps> = ({ component, compact = false }
   const images = collectImages(items);
   const arrayItems = collectArrayItems(items);
 
-  const sectionTitle = heading?.text || toTitle(component.name || component.type || component.key);
+  // Detect background image for hero-like sections (key hints or first image)
+  const backgroundImg =
+    images.find((img, idx) => {
+      const keyHints = ["background", "bg", "hero", "banner"];
+      const hasHint = keyHints.some((k) =>
+        (component?.key || "").toLowerCase().includes(k) ||
+        (component?.type || "").toLowerCase().includes(k)
+      );
+      return hasHint || idx === 0;
+    }) || images[0];
 
-  // Decide the layout:
+  // Decide the layout
   const isCarousel =
     items.some((i) => i.type === "carousel") || (images.length >= 4 && !arrayItems.length);
 
   const isCardsGrid =
     arrayItems.length > 0 ||
-    // Heuristic: services/testimonials/faq sections usually present arrays
     (component.type || "").toLowerCase().includes("services") ||
     (component.type || "").toLowerCase().includes("testimonials") ||
     (component.type || "").toLowerCase().includes("faq");
 
-  const showSimpleSection = !isCarousel && !isCardsGrid;
+  const showHero =
+    !isCarousel &&
+    !!backgroundImg?.url &&
+    !!heading?.text;
+
+  const showSimpleSection = !isCarousel && !isCardsGrid && !showHero;
 
   return (
-    <div className="space-y-3">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Badge variant="outline" className="text-xs">
-            {toTitle(component.type || "Section")}
-          </Badge>
-          <span className="text-sm font-semibold">{sectionTitle}</span>
+    <div className="w-full">
+      {/* HERO section: full-bleed background with overlay text */}
+      {showHero && (
+        <div
+          className="relative w-full min-h-[50vh] md:min-h-[60vh] lg:min-h-[70vh] overflow-hidden"
+          style={{ backgroundColor: "#000" }}
+        >
+          <img
+            src={backgroundImg!.url}
+            alt={backgroundImg!.alt || backgroundImg!.title || "Background"}
+            className="absolute inset-0 w-full h-full object-cover"
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = "/placeholder.svg";
+            }}
+          />
+          <div className="absolute inset-0 bg-black/30" />
+          <div className="relative z-10 h-full flex items-center justify-center text-center px-6">
+            <div className="max-w-4xl">
+              <h1 className="text-white font-semibold tracking-tight"
+                  style={{ fontSize: "clamp(2rem, 9vw, 6rem)", lineHeight: 1.1 }}>
+                {heading!.text}
+              </h1>
+              {description && (
+                <p className="mt-4 text-white/85 text-sm md:text-base max-w-2xl mx-auto">
+                  {description.replace(/<[^>]+>/g, "")}
+                </p>
+              )}
+            </div>
+          </div>
         </div>
-        {!compact && <span className="text-[11px] text-muted-foreground">Mock preview</span>}
-      </div>
+      )}
 
-      {/* Content */}
-      <Card className="border">
-        <CardContent className="p-4">
-          {/* Carousel */}
-          {isCarousel && (
-            <div className="relative">
-              <Carousel className="w-full">
-                <CarouselContent>
-                  {images.map((img, idx) => (
-                    <CarouselItem key={`${img.url}-${idx}`} className="md:basis-1/2 lg:basis-1/3">
-                      <div className="p-2">
-                        <div className="aspect-video rounded-lg overflow-hidden border bg-muted">
+      {/* Carousel: slides with optional overlay heading/desc per section */}
+      {isCarousel && (
+        <div className="relative w-full">
+          <Carousel className="w-full">
+            <CarouselContent>
+              {images.map((img, idx) => (
+                <CarouselItem key={`${img.url}-${idx}`} className="basis-full">
+                  <div className="relative w-full min-h-[50vh] md:min-h-[60vh] lg:min-h-[70vh] overflow-hidden">
+                    <img
+                      src={img.url}
+                      alt={img.alt || img.title || `Slide ${idx + 1}`}
+                      className="absolute inset-0 w-full h-full object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = "/placeholder.svg";
+                      }}
+                    />
+                    <div className="absolute inset-0 bg-black/25" />
+                    {(heading?.text || description) && (
+                      <div className="relative z-10 h-full flex items-center justify-center px-6 text-center">
+                        <div className="max-w-4xl">
+                          {heading?.text && (
+                            <h2 className="text-white font-semibold tracking-tight"
+                                style={{ fontSize: "clamp(1.75rem, 7vw, 4.5rem)", lineHeight: 1.1 }}>
+                              {heading.text}
+                            </h2>
+                          )}
+                          {description && (
+                            <p className="mt-3 text-white/85 text-sm md:text-base max-w-2xl mx-auto">
+                              {description.replace(/<[^>]+>/g, "")}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <CarouselPrevious />
+            <CarouselNext />
+          </Carousel>
+        </div>
+      )}
+
+      {/* Cards grid */}
+      {isCardsGrid && !isCarousel && !showHero && (
+        <div className="w-full py-8">
+          {description && (
+            <p className="text-center text-muted-foreground mb-6">
+              {description.replace(/<[^>]+>/g, "")}
+            </p>
+          )}
+          <div
+            className="grid gap-4 px-4 md:px-6"
+            style={{ gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))" }}
+          >
+            {(arrayItems.length ? arrayItems : items)
+              .slice(0, compact ? 3 : undefined)
+              .map((el: any, idx: number) => {
+                const title =
+                  el?.title ||
+                  el?.name ||
+                  el?.label ||
+                  items.find((i) => i.key === "title")?.content ||
+                  "";
+                const text =
+                  el?.description ||
+                  el?.content ||
+                  el?.text ||
+                  items.find((i) => i.key === "description")?.content ||
+                  "";
+                const img =
+                  (typeof el?.img === "string" && el.img) ||
+                  (typeof el?.src === "string" && el.src) ||
+                  (typeof el?.url === "string" && el.url) ||
+                  (typeof el?.image === "string" && el.image) ||
+                  "";
+
+                return (
+                  <Card key={idx} className="border bg-white">
+                    <CardContent className="p-3 space-y-2">
+                      {img && (
+                        <div className="aspect-video rounded-md overflow-hidden border bg-muted">
                           <img
-                            src={img.url}
-                            alt={img.alt || img.title || `Slide ${idx + 1}`}
+                            src={img}
+                            alt={title || `Card ${idx + 1}`}
                             className="w-full h-full object-cover"
                             onError={(e) => {
                               (e.target as HTMLImageElement).src = "/placeholder.svg";
                             }}
                           />
                         </div>
-                        {(img.title || img.alt) && (
-                          <div className="mt-2">
-                            <Label className="text-xs">{img.title || img.alt}</Label>
-                          </div>
-                        )}
-                      </div>
-                    </CarouselItem>
-                  ))}
-                </CarouselContent>
-                <CarouselPrevious />
-                <CarouselNext />
-              </Carousel>
-              {description && (
-                <p className="text-xs text-muted-foreground mt-3">{description}</p>
-              )}
-            </div>
-          )}
+                      )}
+                      {title && (
+                        <h4 className="text-sm font-semibold">{title}</h4>
+                      )}
+                      {text && (
+                        <p className="text-xs text-muted-foreground line-clamp-4">
+                          {text.replace(/<[^>]+>/g, "")}
+                        </p>
+                      )}
+                    </CardContent>
+                  </Card>
+                );
+              })}
+          </div>
+        </div>
+      )}
 
-          {/* Cards grid */}
-          {isCardsGrid && !isCarousel && (
-            <div className="space-y-3">
-              {description && (
-                <p className="text-sm text-muted-foreground">{description}</p>
-              )}
-
-              <div
-                className="grid gap-3"
-                style={{
-                  gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-                }}
-              >
-                {(arrayItems.length ? arrayItems : items)
-                  .slice(0, compact ? 3 : undefined)
-                  .map((el: any, idx: number) => {
-                    const title =
-                      el?.title ||
-                      el?.name ||
-                      el?.label ||
-                      items.find((i) => i.key === "title")?.content ||
-                      "";
-                    const text =
-                      el?.description ||
-                      el?.content ||
-                      el?.text ||
-                      items.find((i) => i.key === "description")?.content ||
-                      "";
-                    const img =
-                      (typeof el?.img === "string" && el.img) ||
-                      (typeof el?.src === "string" && el.src) ||
-                      (typeof el?.url === "string" && el.url) ||
-                      (typeof el?.image === "string" && el.image) ||
-                      "";
-
-                    return (
-                      <Card key={idx} className="border">
-                        <CardContent className="p-3 space-y-2">
-                          {img && (
-                            <div className="aspect-video rounded-md overflow-hidden border bg-muted">
-                              <img
-                                src={img}
-                                alt={title || `Card ${idx + 1}`}
-                                className="w-full h-full object-cover"
-                                onError={(e) => {
-                                  (e.target as HTMLImageElement).src = "/placeholder.svg";
-                                }}
-                              />
-                            </div>
-                          )}
-                          {title && (
-                            <h4 className="text-sm font-semibold">{title}</h4>
-                          )}
-                          {text && (
-                            <p className="text-xs text-muted-foreground line-clamp-4">
-                              {text.replace(/<[^>]+>/g, "")}
-                            </p>
-                          )}
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
+      {/* Simple section (text + optional single image) */}
+      {showSimpleSection && (
+        <div className="w-full py-10 px-6 md:px-8">
+          <div className="max-w-4xl mx-auto space-y-3 text-center">
+            {heading?.text && (
+              <h3 className="text-xl md:text-2xl font-semibold">{heading.text}</h3>
+            )}
+            {description && (
+              <p className="text-sm md:text-base text-muted-foreground">
+                {description.replace(/<[^>]+>/g, "")}
+              </p>
+            )}
+            {!description && !heading?.text && (
+              <p className="text-xs text-muted-foreground">No text content</p>
+            )}
+            {images[0]?.url && (
+              <div className="mt-4 aspect-video rounded-md overflow-hidden border bg-muted">
+                <img
+                  src={images[0].url}
+                  alt={images[0].alt || images[0].title || "Section image"}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = "/placeholder.svg";
+                  }}
+                />
               </div>
-            </div>
-          )}
-
-          {/* Simple section (heading + text + optional single image) */}
-          {showSimpleSection && (
-            <div className="space-y-2">
-              {heading?.text && (
-                <h3 className="text-base font-semibold">{heading.text}</h3>
-              )}
-              {description && (
-                <p className="text-sm text-muted-foreground">
-                  {description.replace(/<[^>]+>/g, "")}
-                </p>
-              )}
-              {!description && !heading?.text && (
-                <p className="text-xs text-muted-foreground">
-                  No text content found for this section
-                </p>
-              )}
-              {images[0]?.url && (
-                <div className="aspect-video rounded-md overflow-hidden border bg-muted">
-                  <img
-                    src={images[0].url}
-                    alt={images[0].alt || images[0].title || "Section image"}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = "/placeholder.svg";
-                    }}
-                  />
-                </div>
-              )}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

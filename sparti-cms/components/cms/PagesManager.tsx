@@ -458,7 +458,7 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
 
         {/* Visual Editor content */}
         {!isCustomTheme ? (
-          // Theme mode: show real page in iframe with AI assistant
+          // Theme mode: iframe + AI assistant
           <div className="flex-1 relative bg-gray-100 rounded-b-lg overflow-hidden flex">
             <div className="flex-1 relative" id="visual-editor-iframe-container">
               <iframe
@@ -478,49 +478,29 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
             />
           </div>
         ) : (
-          // Custom theme: visual builder mock website with component previews + AI assistant
-          <div className="flex-1 bg-gray-100 rounded-b-lg overflow-hidden flex">
+          // Custom theme: website-style preview strictly from schema (no default header/footer)
+          <div className="flex-1 bg-background rounded-b-lg overflow-hidden flex">
             <div className="flex-1 overflow-auto">
-              <div className="max-w-5xl mx-auto p-6 space-y-6">
-                {/* Site header mock */}
-                <div className="bg-white border rounded-lg p-4 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 bg-muted rounded" />
-                    <span className="text-sm font-medium">Your Site</span>
-                  </div>
-                  <div className="flex gap-3 text-sm text-muted-foreground">
-                    <span>Home</span>
-                    <span>Services</span>
-                    <span>About</span>
-                    <span>Contact</span>
-                  </div>
-                </div>
-
-                {/* Builder body */}
+              <div className="w-full space-y-0">
                 {builderLoading ? (
-                  <div className="bg-white border rounded-lg p-8 text-center text-muted-foreground">
+                  <div className="bg-white border rounded-lg p-8 m-6 text-center text-muted-foreground">
                     Loading page layout...
                   </div>
                 ) : builderError ? (
-                  <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-sm text-red-700">
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-4 m-6 text-sm text-red-700">
                     {builderError}
                   </div>
                 ) : builderComponents.length === 0 ? (
-                  <div className="bg-white border rounded-lg p-8 text-center text-muted-foreground">
+                  <div className="bg-white border rounded-lg p-8 m-6 text-center text-muted-foreground">
                     No components found in layout. Use JSON to add sections.
                   </div>
                 ) : (
                   builderComponents.map((comp, idx) => (
-                    <div key={comp.key || `${comp.type}-${idx}`} className="bg-transparent">
+                    <div key={comp.key || `${comp.type}-${idx}`} className="w-full">
                       <ComponentPreview component={comp} />
                     </div>
                   ))
                 )}
-
-                {/* Site footer mock */}
-                <div className="bg-white border rounded-lg p-4 text-xs text-muted-foreground text-center">
-                  © Visual Builder Preview
-                </div>
               </div>
             </div>
 
