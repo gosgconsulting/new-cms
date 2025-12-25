@@ -1,0 +1,56 @@
+# Railway Environment Variables - Copy & Paste Ready
+# ====================================================
+# Instructions:
+# 1. Go to Railway Dashboard → Your Service → Variables
+# 2. Copy each line below (without the # comments) and paste into Railway
+# 3. Replace the actual API keys with your real values
+# 4. Railway will auto-replace ${{}} placeholders from your PostgreSQL service
+
+# ====================================================
+# DATABASE (REQUIRED for CMS - Auto-filled by Railway)
+# ====================================================
+DATABASE_PUBLIC_URL="${{Postgres-33yU.DATABASE_PUBLIC_URL}}"
+DATABASE_URL="${{Postgres-33yU.DATABASE_URL}}"
+POSTGRES_DB="${{Postgres-33yU.POSTGRES_DB}}"
+POSTGRES_PASSWORD="${{Postgres-33yU.POSTGRES_PASSWORD}}"
+POSTGRES_USER="${{Postgres-33yU.POSTGRES_USER}}"
+
+# ====================================================
+# SERVER CONFIGURATION (REQUIRED)
+# ====================================================
+PORT="${{PORT}}"
+NODE_ENV="production"
+
+# ====================================================
+# FRONTEND API CONFIGURATION (REQUIRED)
+# ====================================================
+VITE_API_BASE_URL="https://cms.sparti.ai"
+
+# ====================================================
+# EMAIL CONFIGURATION (REQUIRED for contact forms)
+# ====================================================
+# Replace with your actual Resend API key from https://resend.com/api-keys
+RESEND_API_KEY="your-resend-api-key-here"
+SMTP_FROM_EMAIL="noreply@gosg.com"
+VITE_RESEND_API_KEY="your-resend-api-key-here"
+
+# ====================================================
+# AI ASSISTANT (Backend only - for CMS AI features)
+# ====================================================
+# Replace with your actual Anthropic API key from https://console.anthropic.com/
+ANTHROPIC_API_KEY="your-anthropic-api-key-here"
+
+# ====================================================
+# OPTIONAL: Additional API Keys
+# ====================================================
+# Replace with your actual Google Cloud Translation API key
+GOOGLE_CLOUD_TRANSLATION_API_KEY="your-google-cloud-translation-api-key-here"
+# Replace with your actual Perplexity API key from https://www.perplexity.ai/
+VITE_PERPLEXITY_API_KEY="your-perplexity-api-key-here"
+
+# ====================================================
+# OPTIONAL: Theme Static Deployment
+# ====================================================
+# Uncomment and set if you want to deploy a static theme only:
+# DEPLOY_THEME_SLUG="landingpage"
+

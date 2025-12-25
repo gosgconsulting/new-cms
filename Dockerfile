@@ -18,16 +18,23 @@ COPY . .
 # Otherwise, build the full CMS application
 # Note: Railway environment variables are available at build time
 ARG DEPLOY_THEME_SLUG
+ARG VITE_API_BASE_URL
 ENV DEPLOY_THEME_SLUG=${DEPLOY_THEME_SLUG}
+ENV VITE_API_BASE_URL=${VITE_API_BASE_URL}
 
 # Build based on DEPLOY_THEME_SLUG
 # Railway passes environment variables that are available during build
+# When DEPLOY_THEME_SLUG is set, build hybrid app (theme + admin)
+# Otherwise, build the full CMS application
+# VITE_API_BASE_URL must be available at build time for frontend API calls
 RUN if [ -n "${DEPLOY_THEME_SLUG}" ]; then \
-      echo "Building static theme export for: ${DEPLOY_THEME_SLUG}" && \
-      DEPLOY_THEME_SLUG=${DEPLOY_THEME_SLUG} npm run build:theme; \
+      echo "Building hybrid app: Theme at /, Admin at /admin for: ${DEPLOY_THEME_SLUG}" && \
+      echo "VITE_API_BASE_URL=${VITE_API_BASE_URL}" && \
+      DEPLOY_THEME_SLUG=${DEPLOY_THEME_SLUG} VITE_API_BASE_URL=${VITE_API_BASE_URL} npm run build:theme; \
     else \
       echo "Building full CMS application" && \
-      npm run build; \
+      echo "VITE_API_BASE_URL=${VITE_API_BASE_URL}" && \
+      VITE_API_BASE_URL=${VITE_API_BASE_URL} npm run build; \
     fi
 
 # Setup phase - expose port

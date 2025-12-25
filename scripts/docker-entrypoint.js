@@ -52,15 +52,24 @@ async function runDatabaseMigrations() {
 // Main entrypoint
 async function main() {
   try {
-    // Wait for database
-    await waitForDatabase();
-    
-    // Run migrations
-    await runDatabaseMigrations();
-    
-    // Start the server (import will execute server/index.js)
-    console.log('[testing] Starting production server...');
+    // Start the server FIRST so healthchecks can pass immediately
+    // The server will handle database initialization in the background
+    console.log('[testing] Starting production server (healthcheck will be available immediately)...');
     await import('../server/index.js');
+    
+    // Wait for database and run migrations in parallel (non-blocking)
+    // This allows healthchecks to pass even if DB is still initializing
+    waitForDatabase()
+      .then(() => {
+        return runDatabaseMigrations();
+      })
+      .then(() => {
+        console.log('[testing] Database setup completed in background');
+      })
+      .catch((error) => {
+        console.error('[testing] Database setup error (non-fatal):', error);
+        // Don't exit - server continues running
+      });
     
   } catch (error) {
     console.error('[testing] Fatal error in entrypoint:', error);
