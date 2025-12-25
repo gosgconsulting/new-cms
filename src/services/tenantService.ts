@@ -20,11 +20,27 @@ export type { ComponentSchema };
  * Tries multiple endpoints with fallback logic
  */
 export async function fetchTenants(): Promise<Tenant[]> {
-  const urls = ["/api/tenants", "/api/public/tenants"];
+  const urls = [
+    "/api/tenants",
+    "/api/v1/tenants", // public v1 routes protected by tenant API key middleware; keep as fallback
+    "/api/public/tenants" // legacy/custom public path as last resort
+  ];
+  
+  // Try to include Authorization header if we have a user token in localStorage
+  let headers: Record<string, string> | undefined;
+  try {
+    const raw = localStorage.getItem("sparti-user-session");
+    if (raw) {
+      const session = JSON.parse(raw);
+      if (session?.token) {
+        headers = { Authorization: `Bearer ${session.token}` };
+      }
+    }
+  } catch {}
   
   for (const url of urls) {
     try {
-      const res = await fetch(url);
+      const res = await fetch(url, { headers });
       if (res.ok) {
         const json = await res.json();
         let data: any[] = [];
@@ -33,6 +49,8 @@ export async function fetchTenants(): Promise<Tenant[]> {
           data = json;
         } else if (Array.isArray(json?.data)) {
           data = json.data;
+        } else if (Array.isArray(json?.tenants)) {
+          data = json.tenants;
         }
         
         if (data.length > 0) {
@@ -75,7 +93,7 @@ export async function fetchTenantComponent(
   if (componentKey) {
     urls.push(
       `/api/tenants/${encodeURIComponent(tenantId)}/schemas/${encodeURIComponent(componentKey)}`,
-      `/api/public/tenants/${encodeURIComponent(tenantId)}/schemas/${encodeURIComponent(componentKey)}`
+      `/api/public/tenants/${encodeURIComponent(tenantId)}/schemas/${encodeURIComponent(componentKey)}`,
     );
   }
 
@@ -99,4 +117,3 @@ export async function fetchTenantComponent(
 
   return null;
 }
-
