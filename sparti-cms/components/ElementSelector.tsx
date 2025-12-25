@@ -8,7 +8,7 @@ interface ElementSelectorProps {
 }
 
 export const ElementSelector: React.FC<ElementSelectorProps> = ({ children }) => {
-  const { isEditing, selectElement, hoverElement } = useSpartiBuilder();
+  const { isEditing, selectElement, hoverElement, selectedElement } = useSpartiBuilder();
   const contentRef = useRef<HTMLDivElement>(null);
 
   const createSpartiElement = (element: HTMLElement): SpartiElement => {
@@ -39,10 +39,18 @@ export const ElementSelector: React.FC<ElementSelectorProps> = ({ children }) =>
 
     const spartiElement = createSpartiElement(effectiveElement);
     selectElement(spartiElement);
+    // Clear any hover highlight once a section is selected
+    hoverElement(null);
   };
 
   const handleElementHover = (e: MouseEvent) => {
     if (!isEditing) return;
+
+    // If a section is already selected (editor open), disable hover feedback
+    if (selectedElement) {
+      hoverElement(null);
+      return;
+    }
 
     const target = e.target as HTMLElement;
     const effectiveElement = resolveSectionRoot(target);
@@ -78,7 +86,7 @@ export const ElementSelector: React.FC<ElementSelectorProps> = ({ children }) =>
       targetElement.removeEventListener('mouseleave', handleElementLeave, true);
       document.body.classList.remove('sparti-editing');
     };
-  }, [isEditing]);
+  }, [isEditing, selectedElement]);
 
   return (
     <div ref={contentRef} className="sparti-content">

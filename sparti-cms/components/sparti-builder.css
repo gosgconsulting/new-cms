@@ -179,17 +179,15 @@ body.gosg-editing .sparti-content::before {
 
 /* Overlay Styles - High Priority */
 .sparti-hover-overlay {
-  border: 2px dashed hsl(var(--brand-purple)) !important;
-  background: hsl(var(--brand-purple) / 0.1) !important;
-  box-shadow: 0 0 0 1px hsl(var(--brand-purple) / 0.2) !important;
+  border: 2px solid rgba(155, 135, 245, 0.9);
+  background: rgba(155, 135, 245, 0.08);
   pointer-events: none !important;
   z-index: 2147483640 !important;
 }
 
 .sparti-selection-overlay {
-  border: 2px solid hsl(var(--brand-purple)) !important;
-  background: hsl(var(--brand-purple) / 0.1) !important;
-  box-shadow: 0 0 0 1px hsl(var(--brand-purple) / 0.3), 0 0 0 3px hsl(var(--brand-purple) / 0.1) !important;
+  border: 2px solid rgba(155, 135, 245, 0.9);
+  background: transparent;
   pointer-events: none !important;
   z-index: 2147483641 !important;
 }
