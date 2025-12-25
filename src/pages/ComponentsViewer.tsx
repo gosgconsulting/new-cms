@@ -70,7 +70,7 @@ import {
 type CategoryType = 'All' | 'content' | 'media' | 'navigation' | 'form' | 'layout' | 'interactive';
 
 // Legacy placeholder types
-type PlaceholderType = 'heading' | 'paragraph' | 'icon-heading' | 'icon-text' | 'badge' | 'image' | 'gallery' | 'video' | 'carousel' | 'section' | 'icon' | 'input' | 'textarea' | 'boolean' | 'number';
+type PlaceholderType = 'heading' | 'paragraph' | 'icon-heading' | 'icon-text' | 'badge' | 'image' | 'gallery' | 'video' | 'carousel' | 'section' | 'icon' | 'input' | 'textarea' | 'boolean' | 'number' | 'button';
 type SubCategoryType = 'Text' | 'Media' | 'Layout' | 'UI' | 'Hero' | 'Feature' | 'CTA';
 type Placeholder = {
   id: string;
@@ -591,7 +591,7 @@ const ComponentsViewerContent = () => {
   // Convert ComponentDefinition to ComponentSchema for preview
   const convertToComponentSchema = (component: ComponentDefinition): ComponentSchema => {
     // Map component type - for container types, map to actual component name
-    let componentType = component.type;
+    let componentType: string = component.type as unknown as string;
     if (componentType === 'container') {
       componentType = mapComponentIdToType(component.id, component.name);
     }

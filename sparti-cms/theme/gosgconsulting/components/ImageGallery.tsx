@@ -20,8 +20,34 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({
   return (
     <section className="py-12 px-4">
       <div className="container mx-auto max-w-6xl">
-        {images && (
-          <img src={images} alt="images" className="w-full h-auto rounded-lg" />
+        {Array.isArray(images) && images.length > 0 && (
+          <div
+            className={layout === 'grid' ? 'grid' : 'flex flex-wrap'}
+            style={{
+              gap,
+              ...(layout === 'grid'
+                ? { gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }
+                : {}),
+            }}
+          >
+            {images.map((img: any, idx: number) => {
+              const src = img?.src || img?.url || '/placeholder.svg';
+              const alt = img?.alt || img?.title || `Image ${idx + 1}`;
+              return (
+                <div
+                  key={idx}
+                  className="relative overflow-hidden rounded-lg"
+                  style={{ aspectRatio }}
+                >
+                  <img
+                    src={src}
+                    alt={alt}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              );
+            })}
+          </div>
         )}
       </div>
     </section>

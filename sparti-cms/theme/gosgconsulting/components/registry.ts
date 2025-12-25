@@ -32,7 +32,7 @@ import Header from './Header';
 import ModalContactForm from './ModalContactForm';
 import Newsletter from './Newsletter';
 import Reviews from './Reviews';
-import SEOHead from './SEOHead';
+import { SEOHead } from './SEOHead';
 import Showcase from './Showcase';
 import StickyChat from './StickyChat';
 import WhatsAppButton from './WhatsAppButton';
@@ -141,4 +141,3 @@ export const componentRegistry = {
 
 export type ComponentRegistryType = typeof componentRegistry;
 export type ComponentType = keyof ComponentRegistryType;
-
