@@ -1,11 +1,11 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { Search, Eye } from "lucide-react";
-
-// Add shadcn/ui dialog and button
+import { Search } from "lucide-react";
+import { Eye } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../ui/dialog";
 import { Button } from "../ui/button";
+import FlowbiteComponentPreview from "./FlowbiteComponentPreview";
 
 // Eagerly load all registry component JSON definitions via Vite glob
 const modules = import.meta.glob("../../../sparti-cms/registry/components/*.json", { eager: true });
@@ -133,14 +133,11 @@ const MasterComponentsViewer: React.FC<{ libraryId?: string }> = ({ libraryId })
             ) : null}
           </DialogHeader>
           <div className="mt-2">
-            {selected?.id ? (
-              <div className="text-xs text-gray-500 mb-2">ID: {selected.id}</div>
+            {selected ? (
+              <div className="rounded-md border bg-white p-3">
+                <FlowbiteComponentPreview schema={selected as any} />
+              </div>
             ) : null}
-            <div className="rounded-md border bg-gray-50">
-              <pre className="max-h-[60vh] overflow-auto p-3 text-xs">
-                {selected ? JSON.stringify(selected, null, 2) : ""}
-              </pre>
-            </div>
           </div>
         </DialogContent>
       </Dialog>
