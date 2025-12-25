@@ -7,7 +7,6 @@ import { SpartiBuilderProvider, useSpartiBuilder } from "../../../sparti-cms/com
 import { ElementSelector } from "../../../sparti-cms/components/ElementSelector";
 import { EditingOverlay } from "../../../sparti-cms/components/EditingOverlay";
 import { ContentEditPanel } from "../../../sparti-cms/components/ContentEditPanel";
-import EditorToggle from "./EditorToggle";
 import "../../../sparti-cms/components/sparti-builder.css";
 
 interface FlowbiteDioraRendererProps {
@@ -459,7 +458,6 @@ const FlowbiteDioraRenderer: React.FC<FlowbiteDioraRendererProps> = ({
       <VisualContent />
       <EditingOverlay />
       <ContentEditPanel />
-      <EditorToggle />
     </SpartiBuilderProvider>
   );
 };

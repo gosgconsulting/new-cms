@@ -44,7 +44,7 @@ const sanitizeComponentsPlainText = (components: ComponentSchema[]) => {
 };
 
 export const ContentEditPanel: React.FC = () => {
-  const { isEditing, selectedElement, selectElement, components, updateComponent, pageId, slug, tenantId, exitEditMode } = useSpartiBuilder();
+  const { isEditing, selectedElement, selectElement, components, updateComponent, pageId, slug, tenantId } = useSpartiBuilder();
   const [saveSuccess, setSaveSuccess] = useState(false);
   const { components: dbComponents, status, error } = useDatabase();
   const [savingLayout, setSavingLayout] = useState(false);
@@ -115,9 +115,8 @@ export const ContentEditPanel: React.FC = () => {
       const json = await res.json();
       if (json && json.success !== false) {
         showSuccessToast('Layout saved');
-        // Exit edit mode and close
+        // Close the editor panel; DO NOT leave edit mode
         selectElement(null);
-        exitEditMode();
       } else {
         showErrorToast(json?.message || 'Failed to save layout');
       }

@@ -41,7 +41,8 @@ export const SpartiBuilderProvider: React.FC<SpartiBuilderProviderProps> = ({
   tenantId,
   themeId
 }) => {
-  const [isEditing, setIsEditing] = useState(false);
+  // CHANGED: start in edit mode
+  const [isEditing, setIsEditing] = useState(true);
   const [selectedElement, setSelectedElement] = useState<SpartiElement | null>(null);
   const [hoveredElement, setHoveredElement] = useState<SpartiElement | null>(null);
   const [componentsState, setComponentsState] = useState<ComponentSchema[]>(components);
@@ -50,16 +51,30 @@ export const SpartiBuilderProvider: React.FC<SpartiBuilderProviderProps> = ({
     setComponentsState(components || []);
   }, [components]);
 
+  // NEW: keep body class synced with isEditing (since we start in edit mode)
+  useEffect(() => {
+    if (isEditing) {
+      document.body.classList.add('sparti-editing');
+    } else {
+      document.body.classList.remove('sparti-editing');
+    }
+    return () => {
+      document.body.classList.remove('sparti-editing');
+    };
+  }, [isEditing]);
+
   const enterEditMode = () => {
     setIsEditing(true);
     document.body.classList.add('sparti-editing');
   };
 
   const exitEditMode = () => {
-    setIsEditing(false);
+    // NO-OP: do not allow leaving edit mode
+    // Optionally clear selections without toggling mode
     setSelectedElement(null);
     setHoveredElement(null);
-    document.body.classList.remove('sparti-editing');
+    // Keep body class since edit mode stays on
+    document.body.classList.add('sparti-editing');
   };
 
   const selectElement = (element: SpartiElement | null) => {
