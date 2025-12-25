@@ -11,6 +11,8 @@ import {
   DropdownMenuLabel,
 } from '../../../src/components/ui/dropdown-menu';
 import { api } from '../../utils/api';
+import { useEffect, useState } from 'react';
+import { applyFlowbiteTheme, getAvailableFlowbiteThemes } from '@/utils/flowbiteThemeManager';
 
 interface Theme {
   id: string;
@@ -64,6 +66,16 @@ export const ThemeSelector: React.FC<ThemeSelectorProps> = ({
   const themes = getThemes();
   const currentTheme = themes.find(t => t.id === currentThemeId);
 
+  // Flowbite style themes (UI-only)
+  const flowbiteThemes = getAvailableFlowbiteThemes();
+  const [activeFlowbiteTheme, setActiveFlowbiteTheme] = useState<string>('default');
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('flowbite-theme');
+      if (saved) setActiveFlowbiteTheme(saved);
+    } catch {}
+  }, []);
+
   if (!isSuperAdmin) {
     // For non-super-admins, just show their theme name
     return (
@@ -115,11 +127,28 @@ export const ThemeSelector: React.FC<ThemeSelectorProps> = ({
             )}
           </DropdownMenuItem>
         ))}
+        <DropdownMenuSeparator />
+        <DropdownMenuLabel>Flowbite Themes</DropdownMenuLabel>
+        {flowbiteThemes.map((ft) => (
+          <DropdownMenuItem
+            key={ft.id}
+            onClick={() => {
+              setActiveFlowbiteTheme(ft.id);
+              applyFlowbiteTheme(ft.id as any);
+            }}
+            className="flex items-center justify-between"
+          >
+            <div className="flex items-center">
+              <span className="text-sm">{ft.label}</span>
+            </div>
+            {activeFlowbiteTheme === ft.id && (
+              <Check className="h-4 w-4 text-brandTeal ml-2" />
+            )}
+          </DropdownMenuItem>
+        ))}
       </DropdownMenuContent>
     </DropdownMenu>
   );
 };
 
 export default ThemeSelector;
-
-
