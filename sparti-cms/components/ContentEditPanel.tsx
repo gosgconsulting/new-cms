@@ -170,7 +170,13 @@ export const ContentEditPanel: React.FC = () => {
         </div>
       </div>
 
-      <div className="sparti-edit-panel-content flex-1 overflow-y-auto">
+      <div
+        className="sparti-edit-panel-content flex-1 overflow-y-auto"
+        onWheel={(e) => {
+          // Prevent scroll from bubbling to the page viewer
+          e.stopPropagation();
+        }}
+      >
         {saveSuccess && (
           <div className="sparti-alert sparti-alert-success">
             Component saved successfully!
