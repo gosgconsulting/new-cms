@@ -8,7 +8,8 @@ export type FlowbiteCategory =
   | "marketing"
   | "forms"
   | "ecommerce"
-  | "utilities";
+  | "utilities"
+  | "admin";
 
 export type FlowbiteComponentDef = {
   key: string;          // render_key like flowbite.header.v1
@@ -52,6 +53,14 @@ export const FLOWBITE_COMPONENTS: FlowbiteComponentDef[] = [
     tags: ["carousel", "hero", "images"],
     path: "/src/libraries/flowbite/components/FlowbiteSlider.tsx",
   },
+  {
+    key: "flowbite.admin.dashboard-shell.v1",
+    name: "Admin Dashboard Shell",
+    version: "1.0.0",
+    category: "admin",
+    tags: ["layout", "admin", "sidebar"],
+    path: "/src/libraries/flowbite/components/FlowbiteAdminDashboardShell.tsx",
+  },
 ];
 
 export const FLOWBITE_CATEGORIES: { id: "all" | "recent" | FlowbiteCategory; label: string }[] = [
@@ -65,4 +74,5 @@ export const FLOWBITE_CATEGORIES: { id: "all" | "recent" | FlowbiteCategory; lab
   { id: "forms", label: "Forms" },
   { id: "ecommerce", label: "Ecommerce" },
   { id: "utilities", label: "Utilities" },
+  { id: "admin", label: "Admin" },
 ];
