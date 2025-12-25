@@ -218,6 +218,21 @@ const FlowbiteLibrary: React.FC = () => {
     } catch {}
   }, [styleId]);
 
+  const sections = [
+    { id: "buttons", title: "Buttons" },
+    { id: "inputs", title: "Form Inputs" },
+    { id: "cards", title: "Cards" },
+    { id: "notifications", title: "Notifications & Badges" },
+    { id: "tables", title: "Tables" },
+    { id: "accordion", title: "Accordion" },
+    { id: "icons", title: "Icons" },
+  ];
+
+  const handleScrollTo = (id: string) => {
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
   return (
     <div className="w-full">
       <div className="flex items-center justify-between px-6 py-4 border-b bg-white">
@@ -242,41 +257,60 @@ const FlowbiteLibrary: React.FC = () => {
         </div>
       </div>
 
-      <div className="p-6 space-y-10">
-        <FlowbiteSection title="Buttons">
-          <GroupHeader title="Buttons" description="Common button variants for primary actions and utility." />
-          <ButtonsShowcase />
-        </FlowbiteSection>
+      <div className="flex">
+        {/* Left: Sidebar */}
+        <aside className="hidden lg:block sticky top-0 h-[calc(100vh-64px)] w-64 min-w-64 max-w-64 border-r bg-white p-4 overflow-y-auto">
+          <div className="text-xs font-semibold text-gray-500 mb-2 uppercase">Design System</div>
+          <nav className="space-y-1">
+            {sections.map((s) => (
+              <button
+                key={s.id}
+                onClick={() => handleScrollTo(s.id)}
+                className="w-full text-left px-3 py-2 rounded-md hover:bg-gray-50 text-sm"
+              >
+                {s.title}
+              </button>
+            ))}
+          </nav>
+        </aside>
 
-        <FlowbiteSection title="Form Inputs">
-          <GroupHeader title="Form Inputs" description="Basic text inputs, selects, and textareas." />
-          <InputsShowcase />
-        </FlowbiteSection>
+        {/* Right: Content */}
+        <div className="flex-1 p-6 space-y-10">
+          <FlowbiteSection title="Buttons" id="buttons">
+            <GroupHeader title="Buttons" description="Common button variants for primary actions and utility." />
+            <ButtonsShowcase />
+          </FlowbiteSection>
 
-        <FlowbiteSection title="Cards">
-          <GroupHeader title="Cards" description="Informational blocks with media, title and actions." />
-          <CardsShowcase />
-        </FlowbiteSection>
+          <FlowbiteSection title="Form Inputs" id="inputs">
+            <GroupHeader title="Form Inputs" description="Basic text inputs, selects, and textareas." />
+            <InputsShowcase />
+          </FlowbiteSection>
 
-        <FlowbiteSection title="Notifications & Badges">
-          <GroupHeader title="Alerts and Status" description="Alert styles and status badges." />
-          <NotificationsShowcase />
-        </FlowbiteSection>
+          <FlowbiteSection title="Cards" id="cards">
+            <GroupHeader title="Cards" description="Informational blocks with media, title and actions." />
+            <CardsShowcase />
+          </FlowbiteSection>
 
-        <FlowbiteSection title="Tables">
-          <GroupHeader title="Tables" description="Lightweight table styled like Flowbite." />
-          <TablesShowcase />
-        </FlowbiteSection>
+          <FlowbiteSection title="Notifications & Badges" id="notifications">
+            <GroupHeader title="Alerts and Status" description="Alert styles and status badges." />
+            <NotificationsShowcase />
+          </FlowbiteSection>
 
-        <FlowbiteSection title="Accordion">
-          <GroupHeader title="Accordion" description="Disclosure/accordion using native details with styles." />
-          <AccordionShowcase />
-        </FlowbiteSection>
+          <FlowbiteSection title="Tables" id="tables">
+            <GroupHeader title="Tables" description="Lightweight table styled like Flowbite." />
+            <TablesShowcase />
+          </FlowbiteSection>
 
-        <FlowbiteSection title="Icons">
-          <GroupHeader title="Icons" description="Representative set of lucide-react icons for the system." />
-          <IconsShowcase />
-        </FlowbiteSection>
+          <FlowbiteSection title="Accordion" id="accordion">
+            <GroupHeader title="Accordion" description="Disclosure/accordion using native details with styles." />
+            <AccordionShowcase />
+          </FlowbiteSection>
+
+          <FlowbiteSection title="Icons" id="icons">
+            <GroupHeader title="Icons" description="Representative set of lucide-react icons for the system." />
+            <IconsShowcase />
+          </FlowbiteSection>
+        </div>
       </div>
     </div>
   );
