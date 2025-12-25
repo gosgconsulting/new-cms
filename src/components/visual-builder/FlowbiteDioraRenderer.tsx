@@ -7,6 +7,7 @@ import { SpartiBuilderProvider, useSpartiBuilder } from "../../../sparti-cms/com
 import { ElementSelector } from "../../../sparti-cms/components/ElementSelector";
 import { EditingOverlay } from "../../../sparti-cms/components/EditingOverlay";
 import { ContentEditPanel } from "../../../sparti-cms/components/ContentEditPanel";
+import SectionList from "./SectionList";
 import "../../../sparti-cms/components/sparti-builder.css";
 
 interface FlowbiteDioraRendererProps {
@@ -455,9 +456,23 @@ const FlowbiteDioraRenderer: React.FC<FlowbiteDioraRendererProps> = ({
       tenantId={pageContext?.tenantId}
       themeId={pageContext?.themeId}
     >
-      <VisualContent />
-      <EditingOverlay />
-      <ContentEditPanel />
+      <div className="flex w-full h-full">
+        {/* Left: Sections list */}
+        <SectionList />
+
+        {/* Middle: large preview area */}
+        <div className="flex-1 min-w-0 overflow-auto">
+          <div className="w-full h-full">
+            <VisualContent />
+            <EditingOverlay />
+          </div>
+        </div>
+
+        {/* Right: always-visible editor sidebar */}
+        <div className="w-[420px] min-w-[420px] max-w-[420px] border-l bg-background">
+          <ContentEditPanel />
+        </div>
+      </div>
     </SpartiBuilderProvider>
   );
 };

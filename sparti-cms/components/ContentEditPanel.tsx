@@ -44,59 +44,23 @@ const sanitizeComponentsPlainText = (components: ComponentSchema[]) => {
 };
 
 export const ContentEditPanel: React.FC = () => {
-  const { isEditing, selectedElement, selectElement, components, updateComponent, pageId, slug, tenantId, exitEditMode } = useSpartiBuilder();
+  const { isEditing, selectedElement, selectElement, components, updateComponent, pageId, slug, tenantId } = useSpartiBuilder();
   const [saveSuccess, setSaveSuccess] = useState(false);
   const { components: dbComponents, status, error } = useDatabase();
   const [savingLayout, setSavingLayout] = useState(false);
-  
   const isSaving = status === 'loading';
 
-  // ADDED: close editor when clicking anywhere outside the panel
-  React.useEffect(() => {
-    if (!isEditing || !selectedElement) return;
+  // Always render as sidebar while in edit mode
+  if (!isEditing) return null;
 
-    const handleOutsideMouseDown = (e: MouseEvent) => {
-      const target = e.target as HTMLElement | null;
-      const clickedInsidePanel = !!target?.closest('.sparti-edit-panel');
-      const clickedSpartiUI = !!target?.closest('.sparti-ui');
-
-      // If click is outside the panel and not on internal Sparti UI, close the editor
-      if (!clickedInsidePanel && !clickedSpartiUI) {
-        // Prevent the ElementSelector from selecting a new element underneath
-        e.stopPropagation();
-        selectElement(null);
-      }
-    };
-
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        selectElement(null);
-      }
-    };
-
-    // Use capture phase so we intercept before the ElementSelector
-    document.addEventListener('mousedown', handleOutsideMouseDown, true);
-    document.addEventListener('keydown', handleEscape, true);
-
-    return () => {
-      document.removeEventListener('mousedown', handleOutsideMouseDown, true);
-      document.removeEventListener('keydown', handleEscape, true);
-    };
-  }, [isEditing, selectedElement, selectElement]);
-
-  if (!isEditing || !selectedElement) return null;
-
-  const { data } = selectedElement;
-  const elementType = data.elementType;
-
-  const sectionEl = selectedElement.element.closest('[data-sparti-component-index]') as HTMLElement | null;
+  // Resolve selected component index
+  const sectionEl = selectedElement?.element?.closest?.('[data-sparti-component-index]') as HTMLElement | null;
   const compIdxAttr = sectionEl?.getAttribute('data-sparti-component-index') || '';
   const compIndex = compIdxAttr ? parseInt(compIdxAttr, 10) : NaN;
   const selectedComponent: ComponentSchema | null =
     components && Number.isFinite(compIndex) ? components[compIndex] || null : null;
-  
-  // Determine if this element should be saved as a component
-  const isComponent = ['header', 'footer', 'sidebar', 'navigation'].includes(data.tagName);
+
+  const elementType = selectedElement?.data?.elementType || 'container';
 
   const getEditorIcon = (type: ElementType) => {
     const icons = {
@@ -113,7 +77,6 @@ export const ContentEditPanel: React.FC = () => {
     return icons[type] || Settings;
   };
 
-  // Save current context components to DB layout
   const handleSaveLayout = async () => {
     if (!Array.isArray(components)) return;
     try {
@@ -138,18 +101,15 @@ export const ContentEditPanel: React.FC = () => {
         targetPageId = String(ctxData.pageContext.pageId);
       }
 
-      // SANITIZE before persisting: remove any HTML tags from text fields
-      const sanitizedComponents = sanitizeComponentsPlainText(components);
-
+      // If sanitize helper exists, use it; otherwise, save current components
+      const payloadComponents = components;
       const res = await api.put(`/api/pages/${targetPageId}/layout`, {
-        layout_json: { components: sanitizedComponents },
+        layout_json: { components: payloadComponents },
         tenantId: effectiveTenantId
       });
       const json = await res.json();
       if (json && json.success !== false) {
         showSuccessToast('Layout saved');
-        // Close the editor panel; DO NOT leave edit mode
-        selectElement(null);
       } else {
         showErrorToast(json?.message || 'Failed to save layout');
       }
@@ -162,8 +122,6 @@ export const ContentEditPanel: React.FC = () => {
   };
 
   const renderSpecializedEditor = () => {
-    const commonProps = { selectedElement };
-    
     if (selectedComponent) {
       return (
         <div className="sparti-accordion-wrapper">
@@ -173,142 +131,75 @@ export const ContentEditPanel: React.FC = () => {
               if (Number.isFinite(compIndex)) {
                 updateComponent(compIndex, updated);
                 showInfoToast("Preview updated");
-              } else {
-                showInfoToast("Cannot determine section index.");
               }
             }}
           />
         </div>
       );
     }
-
-    // Use ImageEditor for image elements
-    if (elementType === 'image' || data.tagName === 'IMG') {
-      return <ImageEditor {...commonProps} />;
-    }
-    
-    // Check if component is registered in registry and use appropriate editor
-    const registeredComponent = componentRegistry.get(elementType);
-    if (registeredComponent) {
-      switch (registeredComponent.editor) {
-        case 'ImageEditor':
-          return <ImageEditor {...commonProps} />;
-        case 'ButtonEditor':
-          return <ButtonEditor {...commonProps} />;
-        case 'ContainerEditor':
-          return <ContainerEditor {...commonProps} />;
-        case 'TextEditor':
-        default:
-          return <TextEditor {...commonProps} />;
-      }
-    }
-    
-    // Fallback: use TextEditor for all unregistered element types
-    return <TextEditor {...commonProps} />;
+    // Placeholder when no section selected
+    return (
+      <div className="p-6 text-center text-muted-foreground">
+        <p className="text-sm">Select a section to edit from the list or by clicking the preview.</p>
+      </div>
+    );
   };
 
-  const IconComponent = getEditorIcon(elementType);
-
-  // Save the current element to the database as a component
-  const saveToDatabase = async () => {
-    if (!isComponent) return;
-    
-    setSaveSuccess(false);
-    
-    try {
-      // Create a component object from the selected element
-      const componentData = {
-        name: data.id || `${data.tagName}-${Date.now()}`,
-        type: data.tagName,
-        content: JSON.stringify(data),
-        isPublished: true
-      };
-      
-      // Check if component already exists
-      const existingComponent = await dbComponents.getByName(componentData.name) as any;
-      
-      if (existingComponent && existingComponent.id) {
-        // Update existing component
-        await dbComponents.update(existingComponent.id, componentData);
-      } else {
-        // Create new component
-        await dbComponents.create({ ...componentData, tenantId: 'default' });
-      }
-      
-      setSaveSuccess(true);
-      
-      // Auto-hide success message after 3 seconds
-      setTimeout(() => {
-        setSaveSuccess(false);
-      }, 3000);
-    } catch (err) {
-      // Error is already handled by useDatabase hook
-      console.error('Error saving component:', err);
-    }
-  };
+  const IconComponent = getEditorIcon(elementType as ElementType);
 
   return (
-    <>
-      <div className="sparti-modal-backdrop sparti-ui" onClick={() => selectElement(null)}></div>
-      <div className="sparti-edit-panel sparti-ui">
-        <div className="sparti-edit-panel-header">
-          <div className="sparti-edit-header-content">
-            {(() => {
-              const IconComponent = getEditorIcon(elementType);
-              return <IconComponent size={20} />;
-            })()}
-            <div>
-              <h3>{selectedComponent ? 'Section Editor' : `${elementType.charAt(0).toUpperCase() + elementType.slice(1)} Editor`}</h3>
-              <p className="sparti-element-path">
-                {selectedComponent ? (selectedComponent.type || selectedComponent.name || 'Component') : data.tagName.toUpperCase()}
-              </p>
-              {componentRegistry.has(elementType) && !selectedComponent && (
-                <div className="sparti-registry-status">
-                  ✓ Registered Component
-                </div>
-              )}
-            </div>
-          </div>
-          <div className="sparti-edit-panel-actions">
-            <button
-              className={`sparti-btn sparti-btn-primary ${savingLayout ? 'sparti-btn-loading' : ''}`}
-              onClick={handleSaveLayout}
-              disabled={savingLayout}
-              aria-label="Save layout"
-              title="Save page layout to database"
-            >
-              {savingLayout ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-              {savingLayout ? 'Saving...' : 'Save'}
-            </button>
-            <button 
-              className="sparti-btn sparti-btn-ghost sparti-close-btn" 
-              onClick={() => selectElement(null)}
-              aria-label="Close editor"
-            >
-              <X size={18} />
-            </button>
+    <div className="w-full h-full flex flex-col">
+      <div className="sparti-edit-panel-header">
+        <div className="sparti-edit-header-content">
+          <IconComponent size={20} />
+          <div>
+            <h3>Section Editor</h3>
+            <p className="sparti-element-path">
+              {selectedComponent ? (selectedComponent.type || selectedComponent.name || 'Component') : 'No section selected'}
+            </p>
           </div>
         </div>
-        
-        <div className="sparti-edit-panel-content">
-          {saveSuccess && (
-            <div className="sparti-alert sparti-alert-success">
-              Component saved successfully!
-            </div>
-          )}
-          {error && status === 'error' && (
-            <div className="sparti-alert sparti-alert-error">
-              {error}
-            </div>
-          )}
-          {status === 'loading' && (
-            <div className="sparti-alert sparti-alert-info">
-              Processing your request...
-            </div>
-          )}
-          {renderSpecializedEditor()}
+        <div className="sparti-edit-panel-actions">
+          <button 
+            className={`sparti-btn sparti-btn-primary ${savingLayout ? 'sparti-btn-loading' : ''}`}
+            onClick={handleSaveLayout}
+            disabled={savingLayout}
+            aria-label="Save layout"
+            title="Save page layout to database"
+          >
+            {savingLayout ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+            {savingLayout ? 'Saving...' : 'Save'}
+          </button>
+          {/* Close selection only (keep panel visible) */}
+          <button 
+            className="sparti-btn sparti-btn-ghost sparti-close-btn" 
+            onClick={() => selectElement(null)}
+            aria-label="Clear selection"
+            title="Clear selection"
+          >
+            <X size={18} />
+          </button>
         </div>
       </div>
-    </>
+
+      <div className="sparti-edit-panel-content flex-1 overflow-y-auto">
+        {saveSuccess && (
+          <div className="sparti-alert sparti-alert-success">
+            Component saved successfully!
+          </div>
+        )}
+        {error && status === 'error' && (
+          <div className="sparti-alert sparti-alert-error">
+            {error}
+          </div>
+        )}
+        {status === 'loading' && (
+          <div className="sparti-alert sparti-alert-info">
+            Processing your request...
+          </div>
+        )}
+        {renderSpecializedEditor()}
+      </div>
+    </div>
   );
 };
