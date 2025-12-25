@@ -30,12 +30,19 @@ ENV VITE_API_BASE_URL=${VITE_API_BASE_URL}
 RUN if [ -n "${DEPLOY_THEME_SLUG}" ]; then \
       echo "Building hybrid app: Theme at /, Admin at /admin for: ${DEPLOY_THEME_SLUG}" && \
       echo "VITE_API_BASE_URL=${VITE_API_BASE_URL}" && \
-      DEPLOY_THEME_SLUG=${DEPLOY_THEME_SLUG} VITE_API_BASE_URL=${VITE_API_BASE_URL} npm run build:theme; \
+      DEPLOY_THEME_SLUG=${DEPLOY_THEME_SLUG} VITE_API_BASE_URL=${VITE_API_BASE_URL} npm run build:theme || exit 1; \
     else \
       echo "Building full CMS application" && \
       echo "VITE_API_BASE_URL=${VITE_API_BASE_URL}" && \
-      VITE_API_BASE_URL=${VITE_API_BASE_URL} npm run build; \
+      VITE_API_BASE_URL=${VITE_API_BASE_URL} npm run build || exit 1; \
     fi
+
+# Verify build output exists
+RUN if [ ! -d "dist" ] || [ -z "$(ls -A dist 2>/dev/null)" ]; then \
+      echo "ERROR: Build failed - dist directory is empty or missing" && \
+      exit 1; \
+    fi && \
+    echo "Build verification passed: dist directory exists with files"
 
 # Setup phase - expose port
 EXPOSE 4173
