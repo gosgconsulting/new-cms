@@ -3,7 +3,6 @@ import { ComponentSchema, SchemaItem } from '../../types/schema';
 import { Button } from '../../../src/components/ui/button';
 import { Label } from '../../../src/components/ui/label';
 import { ItemEditor } from './ItemEditors';
-import QuillEditor from './QuillEditor';
 import { 
   ChevronDown, 
   ChevronRight, 
@@ -30,6 +29,7 @@ import {
   X
 } from 'lucide-react';
 import ImageThumbnail from './ImageThumbnail';
+import { Textarea } from '../../../src/components/ui/textarea';
 
 interface ComponentEditorProps {
   schema: ComponentSchema;
@@ -559,11 +559,12 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
                                             />
                                           </div>
                                         ) : (
-                                          key === 'content' || key === 'description' || key === 'text' || (typeof value === 'string' && value.length > 100) ? (
-                                            <QuillEditor
-                                              content={value || ''}
-                                              onChange={(newValue) => updateArrayItem(index, arrayProp, currentTab, key, newValue)}
-                                              placeholder={`Enter ${key === 'content' ? 'text' : key === 'link' || key === 'href' ? 'URL' : key}`}
+                                          (key === 'content' || key === 'description' || key === 'text' || (typeof value === 'string' && value.length > 100)) ? (
+                                            <Textarea
+                                              value={value || ''}
+                                              onChange={(e) => updateArrayItem(index, arrayProp, currentTab, key, e.target.value)}
+                                              className="w-full border border-gray-300 rounded-md bg-white"
+                                              placeholder={`Enter ${key === 'content' ? 'text' : key}`}
                                             />
                                           ) : (
                                             <input

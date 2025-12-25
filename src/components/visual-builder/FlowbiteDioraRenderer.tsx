@@ -10,13 +10,6 @@ import { ContentEditPanel } from "../../../sparti-cms/components/ContentEditPane
 import EditorToggle from "./EditorToggle";
 import "../../../sparti-cms/components/sparti-builder.css";
 
-// Helper to render rich text safely
-const RichText: React.FC<{ html?: string; className?: string; as?: keyof JSX.IntrinsicElements }> = ({ html, className, as = "div" }) => {
-  if (!html) return null;
-  const Tag = as as any;
-  return <Tag className={className} dangerouslySetInnerHTML={{ __html: html }} />;
-};
-
 interface FlowbiteDioraRendererProps {
   components: ComponentSchema[];
   pageContext?: {
@@ -88,8 +81,7 @@ function SectionHero({ items }: { items: SchemaItem[] }) {
         <div className="max-w-3xl text-center">
           {welcomeText ? (
             <span className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-medium text-white mb-4">
-              {/* Render HTML so formatting shows */}
-              <RichText html={welcomeText} />
+              {welcomeText}
             </span>
           ) : null}
           {logo?.src ? (
@@ -158,16 +150,7 @@ function SectionServices({ items }: { items: SchemaItem[] }) {
   if (cards.length === 0 && !title && !subtitle) return null;
 
   return (
-    <FlowbiteSection
-      title={undefined}
-      subtitle={undefined}
-    >
-      {/* Render title/subtitle with HTML */}
-      <div className="text-center">
-        {title ? <RichText html={title} as="h2" className="text-xl font-semibold" /> : null}
-        {subtitle ? <RichText html={subtitle} as="p" className="text-sm text-gray-600" /> : null}
-      </div>
-
+    <FlowbiteSection title={title || undefined} subtitle={subtitle || undefined}>
       <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {cards.map((card, idx) => (
           <div
@@ -189,7 +172,9 @@ function SectionServices({ items }: { items: SchemaItem[] }) {
             <div className="space-y-1 p-4">
               <div className="flex items-center gap-2">
                 {card.img?.title ? (
-                  <RichText html={card.img.title} as="h3" className="text-base font-semibold" />
+                  <h3 className="text-base font-semibold">
+                    {card.img.title}
+                  </h3>
                 ) : null}
                 {card.img?.price ? (
                   <span className="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-[11px] font-medium text-blue-700">
@@ -198,15 +183,17 @@ function SectionServices({ items }: { items: SchemaItem[] }) {
                 ) : null}
               </div>
               {card.img?.alt ? (
-                <RichText html={card.img.alt} as="p" className="line-clamp-3 text-xs text-gray-500" />
+                <p className="line-clamp-3 text-xs text-gray-500">
+                  {card.img.alt}
+                </p>
               ) : null}
               {card.btn?.content ? (
                 <a
                   href={card.btn.link || "#"}
                   className="mt-3 inline-block rounded-lg bg-blue-600 px-3 py-2 text-sm text-white hover:bg-blue-700"
-                  // button content can be HTML too
-                  dangerouslySetInnerHTML={{ __html: card.btn.content }}
-                />
+                >
+                  {card.btn.content}
+                </a>
               ) : null}
             </div>
           </div>
@@ -224,12 +211,7 @@ function SectionFeatures({ items }: { items: SchemaItem[] }) {
   if (features.length === 0 && !title && !subtitle) return null;
 
   return (
-    <FlowbiteSection title={undefined} subtitle={undefined}>
-      <div className="text-center">
-        {title ? <RichText html={title} as="h2" className="text-xl font-semibold" /> : null}
-        {subtitle ? <RichText html={subtitle} as="p" className="text-sm text-gray-600" /> : null}
-      </div>
-
+    <FlowbiteSection title={title || undefined} subtitle={subtitle || undefined}>
       <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {features.map((f: any, idx: number) => (
           <div
@@ -248,10 +230,10 @@ function SectionFeatures({ items }: { items: SchemaItem[] }) {
             </div>
             <div className="space-y-1 p-4">
               {f?.title ? (
-                <RichText html={f.title} as="h3" className="text-base font-semibold" />
+                <h3 className="text-base font-semibold">{f.title}</h3>
               ) : null}
               {f?.description ? (
-                <RichText html={f.description} as="p" className="text-sm text-gray-600" />
+                <p className="text-sm text-gray-600">{f.description}</p>
               ) : null}
             </div>
           </div>
@@ -271,12 +253,7 @@ function SectionIngredients({ items }: { items: SchemaItem[] }) {
   if (ingredients.length === 0 && !title && !subtitle) return null;
 
   return (
-    <FlowbiteSection title={undefined} subtitle={undefined}>
-      <div className="text-center">
-        {title ? <RichText html={title} as="h2" className="text-xl font-semibold" /> : null}
-        {subtitle ? <RichText html={subtitle} as="p" className="text-sm text-gray-600" /> : null}
-      </div>
-
+    <FlowbiteSection title={title || undefined} subtitle={subtitle || undefined}>
       <div
         className="mt-8 grid gap-4"
         style={{ gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))" }}
@@ -296,10 +273,10 @@ function SectionIngredients({ items }: { items: SchemaItem[] }) {
               ) : null}
             </div>
             {ing?.name ? (
-              <RichText html={ing.name} as="h4" className="mt-2 text-sm font-semibold" />
+              <h4 className="mt-2 text-sm font-semibold">{ing.name}</h4>
             ) : null}
             {ing?.benefit ? (
-              <RichText html={ing.benefit} as="p" className="text-xs text-gray-600" />
+              <p className="text-xs text-gray-600">{ing.benefit}</p>
             ) : null}
           </div>
         ))}
@@ -318,12 +295,7 @@ function SectionTeam({ items }: { items: SchemaItem[] }) {
   if (team.length === 0 && !title && !subtitle) return null;
 
   return (
-    <FlowbiteSection title={undefined} subtitle={undefined}>
-      <div className="text-center">
-        {title ? <RichText html={title} as="h2" className="text-xl font-semibold" /> : null}
-        {subtitle ? <RichText html={subtitle} as="p" className="text-sm text-gray-600" /> : null}
-      </div>
-
+    <FlowbiteSection title={title || undefined} subtitle={subtitle || undefined}>
       <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {team.map((m: any, idx: number) => (
           <div
@@ -344,13 +316,13 @@ function SectionTeam({ items }: { items: SchemaItem[] }) {
             ) : null}
             <div className="space-y-1 p-4">
               {m?.name ? (
-                <RichText html={m.name} as="h3" className="text-base font-semibold" />
+                <h3 className="text-base font-semibold">{m.name}</h3>
               ) : null}
               {m?.role ? (
-                <RichText html={m.role} as="p" className="text-xs text-gray-500" />
+                <p className="text-xs text-gray-500">{m.role}</p>
               ) : null}
               {m?.description ? (
-                <RichText html={m.description} as="p" className="text-sm text-gray-600" />
+                <p className="text-sm text-gray-600">{m.description}</p>
               ) : null}
             </div>
           </div>
@@ -373,10 +345,10 @@ function SectionAbout({ items }: { items: SchemaItem[] }) {
     <FlowbiteSection containerClassName="grid items-center gap-6 md:grid-cols-2">
       <div className="space-y-3">
         {title ? (
-          <RichText html={title} as="h2" className="text-2xl md:text-3xl font-semibold" />
+          <h2 className="text-2xl md:text-3xl font-semibold">{title}</h2>
         ) : null}
         {description ? (
-          <RichText html={description} as="p" className="text-sm md:text-base text-gray-600" />
+          <p className="text-sm md:text-base text-gray-600">{description}</p>
         ) : null}
       </div>
       {imageItem?.src ? (
