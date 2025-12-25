@@ -1,7 +1,11 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { Search } from "lucide-react";
+import { Search, Eye } from "lucide-react";
+
+// Add shadcn/ui dialog and button
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../ui/dialog";
+import { Button } from "../ui/button";
 
 // Eagerly load all registry component JSON definitions via Vite glob
 const modules = import.meta.glob("../../../sparti-cms/registry/components/*.json", { eager: true });
@@ -23,6 +27,8 @@ const normalizeId = (path: string) => {
 
 const MasterComponentsViewer: React.FC = () => {
   const [query, setQuery] = useState("");
+  const [open, setOpen] = useState(false);
+  const [selected, setSelected] = useState<RegistryEntry | null>(null);
 
   const items = useMemo<RegistryEntry[]>(() => {
     return Object.entries(modules).map(([path, mod]: [string, any]) => {
@@ -72,20 +78,54 @@ const MasterComponentsViewer: React.FC = () => {
               {entry.description ? (
                 <p className="mt-1 text-xs text-gray-600">{entry.description}</p>
               ) : null}
-              <div className="mt-3">
+              <div className="mt-3 flex items-center justify-between">
                 <span className="inline-flex items-center rounded-md bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-700">
                   {entry.id}
                 </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8"
+                  onClick={() => {
+                    setSelected(entry);
+                    setOpen(true);
+                  }}
+                >
+                  <Eye className="mr-2 h-4 w-4" />
+                  View
+                </Button>
               </div>
             </div>
           </div>
         ))}
         {filtered.length === 0 && (
           <div className="col-span-full text-sm text-gray-500">
-            No components match “{query}”.
+            No components match "{query}".
           </div>
         )}
       </div>
+
+      {/* Modal for viewing component design (schema JSON) */}
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>{selected?.title || selected?.id || "Component"}</DialogTitle>
+            {selected?.description ? (
+              <DialogDescription>{selected.description}</DialogDescription>
+            ) : null}
+          </DialogHeader>
+          <div className="mt-2">
+            {selected?.id ? (
+              <div className="text-xs text-gray-500 mb-2">ID: {selected.id}</div>
+            ) : null}
+            <div className="rounded-md border bg-gray-50">
+              <pre className="max-h-[60vh] overflow-auto p-3 text-xs">
+                {selected ? JSON.stringify(selected, null, 2) : ""}
+              </pre>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
