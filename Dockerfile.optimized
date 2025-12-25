@@ -1,0 +1,88 @@
+# ============================================
+# Stage 1: Builder - Install dependencies and build
+# ============================================
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+# Copy package files first for better layer caching
+COPY package*.json ./
+
+# Install ALL dependencies (including dev) for building
+RUN npm ci
+
+# Copy application code
+COPY . .
+
+# Build arguments (Railway environment variables)
+ARG DEPLOY_THEME_SLUG
+ARG VITE_API_BASE_URL
+
+# Set build-time environment variables
+ENV DEPLOY_THEME_SLUG=${DEPLOY_THEME_SLUG}
+ENV VITE_API_BASE_URL=${VITE_API_BASE_URL}
+ENV NODE_ENV=production
+
+# Build based on DEPLOY_THEME_SLUG
+# VITE_API_BASE_URL must be available at build time for frontend API calls
+RUN if [ -n "${DEPLOY_THEME_SLUG}" ]; then \
+      echo "Building hybrid app: Theme at /, Admin at /admin for: ${DEPLOY_THEME_SLUG}" && \
+      echo "VITE_API_BASE_URL=${VITE_API_BASE_URL}" && \
+      DEPLOY_THEME_SLUG=${DEPLOY_THEME_SLUG} VITE_API_BASE_URL=${VITE_API_BASE_URL} npm run build:theme || exit 1; \
+    else \
+      echo "Building full CMS application" && \
+      echo "VITE_API_BASE_URL=${VITE_API_BASE_URL}" && \
+      VITE_API_BASE_URL=${VITE_API_BASE_URL} npm run build || exit 1; \
+    fi
+
+# Verify build output exists
+RUN if [ ! -d "dist" ] || [ -z "$(ls -A dist)" ]; then \
+      echo "ERROR: Build failed - dist directory is empty or missing" && \
+      exit 1; \
+    fi
+
+# ============================================
+# Stage 2: Runtime - Production image
+# ============================================
+FROM node:20-alpine AS runtime
+
+WORKDIR /app
+
+# Create non-root user for security
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001
+
+# Copy package files
+COPY package*.json ./
+
+# Install ONLY production dependencies
+RUN npm ci --only=production && \
+    npm cache clean --force
+
+# Copy built application from builder stage
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/server ./server
+COPY --from=builder /app/sparti-cms ./sparti-cms
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/scripts ./scripts
+COPY --from=builder /app/.sequelizerc ./.sequelizerc
+COPY --from=builder /app/server.js ./server.js
+
+# Make scripts executable and set ownership (must be done as root)
+RUN chmod +x scripts/docker-entrypoint.js && \
+    chmod +x scripts/docker-theme-start.sh && \
+    chown -R nodejs:nodejs /app
+
+# Switch to non-root user
+USER nodejs
+
+# Expose port
+EXPOSE 4173
+
+# Healthcheck (Railway also has healthcheck configured in railway.toml)
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:4173/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)}).on('error', () => process.exit(1))"
+
+# Start command
+CMD ["sh", "scripts/docker-theme-start.sh"]
+

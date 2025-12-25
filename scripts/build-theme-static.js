@@ -30,6 +30,15 @@ if (!themeSlug) {
   process.exit(1);
 }
 
+// Validate VITE_API_BASE_URL (warn if missing, but don't fail)
+const viteApiBaseUrl = process.env.VITE_API_BASE_URL;
+if (!viteApiBaseUrl) {
+  console.warn('[testing] WARNING: VITE_API_BASE_URL is not set');
+  console.warn('[testing] Frontend API calls may fail. Set VITE_API_BASE_URL in Railway variables.');
+} else {
+  console.log(`[testing] VITE_API_BASE_URL: ${viteApiBaseUrl}`);
+}
+
 console.log(`[testing] Building static export for theme: ${themeSlug}`);
 
 // Check if theme exists
@@ -196,8 +205,47 @@ console.log(`[testing] Build config:`, JSON.stringify({
   input: 'index.html'
 }, null, 2));
 
+// Cleanup function to ensure files are restored on failure
+function cleanupOnFailure() {
+  try {
+    // Restore original index.html if backup exists
+    if (fs.existsSync(backupIndexPath)) {
+      fs.copyFileSync(backupIndexPath, originalIndexPath);
+      fs.unlinkSync(backupIndexPath);
+      console.log(`[testing] Restored original index.html after failure`);
+    }
+    // Remove temporary entry point
+    if (fs.existsSync(standaloneEntryPath)) {
+      fs.unlinkSync(standaloneEntryPath);
+    }
+  } catch (error) {
+    console.warn(`[testing] Warning: Could not clean up temporary files:`, error);
+  }
+}
+
+// Verify build output exists and is valid
+function verifyBuildOutput() {
+  const distPath = path.join(__dirname, '..', 'dist');
+  if (!fs.existsSync(distPath)) {
+    throw new Error('Build failed: dist directory does not exist');
+  }
+  const distContents = fs.readdirSync(distPath);
+  if (distContents.length === 0) {
+    throw new Error('Build failed: dist directory is empty');
+  }
+  // Check for index.html
+  const indexPath = path.join(distPath, 'index.html');
+  if (!fs.existsSync(indexPath)) {
+    throw new Error('Build failed: index.html not found in dist');
+  }
+  console.log(`[testing] Build verification passed: ${distContents.length} files in dist/`);
+}
+
 build(buildConfig)
   .then(() => {
+    // Verify build output
+    verifyBuildOutput();
+    
     console.log(`[testing] ✅ Hybrid app build completed successfully!`);
     console.log(`[testing] Output directory: dist/`);
     console.log(`[testing] Theme: ${themeSlug}`);
@@ -220,6 +268,8 @@ build(buildConfig)
   })
   .catch((error) => {
     console.error(`[testing] Build failed:`, error);
+    // Cleanup on failure
+    cleanupOnFailure();
     process.exit(1);
   });
 

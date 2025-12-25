@@ -35,18 +35,34 @@ async function waitForDatabase(maxRetries = 30, retryDelay = 2000) {
   }
 }
 
-// Run migrations
-async function runDatabaseMigrations() {
-  try {
-    console.log('[testing] Starting database migrations...');
-    await runMigrations();
-    console.log('[testing] Database migrations completed successfully');
-  } catch (error) {
-    console.error('[testing] Error running migrations:', error);
-    // Don't exit - allow server to start even if migrations fail
-    // This allows the server to run and show errors in logs
-    console.error('[testing] Continuing with server start despite migration errors');
+// Run migrations with retry logic
+async function runDatabaseMigrations(maxRetries = 3, retryDelay = 5000) {
+  let attempt = 0;
+  
+  while (attempt < maxRetries) {
+    attempt++;
+    try {
+      console.log(`[testing] Starting database migrations... (attempt ${attempt}/${maxRetries})`);
+      await runMigrations();
+      console.log('[testing] Database migrations completed successfully');
+      return true;
+    } catch (error) {
+      console.error(`[testing] Error running migrations (attempt ${attempt}/${maxRetries}):`, error.message);
+      
+      if (attempt >= maxRetries) {
+        console.error('[testing] All migration attempts failed');
+        console.error('[testing] Continuing with server start - migrations can be run manually');
+        // Don't exit - allow server to start even if migrations fail
+        // This allows the server to run and show errors in logs
+        return false;
+      }
+      
+      console.log(`[testing] Retrying migrations in ${retryDelay}ms...`);
+      await new Promise(resolve => setTimeout(resolve, retryDelay));
+    }
   }
+  
+  return false;
 }
 
 // Main entrypoint
@@ -63,8 +79,12 @@ async function main() {
       .then(() => {
         return runDatabaseMigrations();
       })
-      .then(() => {
-        console.log('[testing] Database setup completed in background');
+      .then((success) => {
+        if (success) {
+          console.log('[testing] Database setup completed successfully in background');
+        } else {
+          console.warn('[testing] Database setup completed with warnings - check logs');
+        }
       })
       .catch((error) => {
         console.error('[testing] Database setup error (non-fatal):', error);

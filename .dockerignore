@@ -35,9 +35,33 @@ docs/
 *.tmp
 *.log
 .DS_Store
+*.backup
+index.html.backup
+src/theme-standalone.tsx
 
 # Other project folders that aren't needed
 gosgwebsite-main/
 sparti-app-lp-main/
 acatr-landing-page-revamp-main/
+
+# Build artifacts (will be built in container)
+dist-theme/
+*.map
+
+# Development files
+.vscode/
+.idea/
+*.swp
+*.swo
+*.sublime-*
+
+# CI/CD (not needed in image)
+.github/
+.gitlab-ci.yml
+.circleci/
+
+# Docker files (not needed in image)
+Dockerfile*
+docker-compose*.yml
+.dockerignore
 
