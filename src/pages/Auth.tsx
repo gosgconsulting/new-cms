@@ -88,7 +88,10 @@ const Auth: React.FC = () => {
         // If in theme context, verify user's tenant uses this theme
         if (isThemeAuth && themeSlug) {
           try {
-            const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4173';
+            // In development, use relative URLs to leverage Vite proxy
+            const API_BASE_URL = import.meta.env.DEV 
+              ? '' // Use relative URLs in development (Vite proxy handles /api)
+              : (import.meta.env.VITE_API_BASE_URL || 'http://localhost:4173');
             const response = await fetch(`${API_BASE_URL}/api/tenants/by-theme/${themeSlug}`, {
               headers: {
                 'Authorization': `Bearer ${localStorage.getItem('sparti-user-session') ? JSON.parse(localStorage.getItem('sparti-user-session') || '{}').token : ''}`,

@@ -37,7 +37,10 @@ export const useSEO = (options: SEOOptions = {}) => {
   useEffect(() => {
     const fetchSEOSettings = async () => {
       try {
-        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4173';
+        // In development, use relative URLs to leverage Vite proxy
+        const API_BASE_URL = import.meta.env.DEV 
+          ? '' // Use relative URLs in development (Vite proxy handles /api)
+          : (import.meta.env.VITE_API_BASE_URL || 'http://localhost:4173');
         const response = await fetch(`${API_BASE_URL}/api/seo`);
         
         if (!response.ok) {

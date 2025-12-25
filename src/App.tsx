@@ -31,6 +31,12 @@ const App = () => {
     console.warn('[testing] SEO initialization error:', seoError);
   }
 
+  // Check if we're in theme deployment mode (standalone theme build)
+  // When DEPLOY_THEME_SLUG is set, the build creates a standalone entry point (theme-standalone.tsx)
+  // that doesn't use this App.tsx. This check is only a safeguard in case App.tsx is somehow loaded.
+  // In normal CMS operation, this flag will be undefined/false, so the redirect to /admin will work.
+  const isThemeDeployment = typeof window !== 'undefined' && (window as any).__THEME_DEPLOYMENT__ === true;
+
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
@@ -40,8 +46,17 @@ const App = () => {
           <AuthProvider>
             <AdminTopBar />
             <Routes>
-            {/* Redirect root to admin */}
-            <Route path="/" element={<Navigate to="/admin" replace />} />
+            {/* Redirect root to admin - always redirect for CMS, theme deployments use separate entry point */}
+            <Route path="/" element={
+              isThemeDeployment ? (
+                <div style={{ padding: '2rem', textAlign: 'center' }}>
+                  <p>Theme deployment mode detected. This App.tsx should not be loaded.</p>
+                  <p>If you see this, the theme build may not be using the standalone entry point.</p>
+                </div>
+              ) : (
+                <Navigate to="/admin" replace />
+              )
+            } />
             
             {/* Admin routes */}
             <Route path="/admin/*" element={<Admin />} />

@@ -148,6 +148,11 @@ const standaloneHtmlContent = `<!doctype html>
     <title>${themeTitle}</title>
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="apple-touch-icon" href="/favicon.png" />
+    <script>
+      // Set flag to indicate theme deployment mode
+      window.__THEME_DEPLOYMENT__ = true;
+      window.__THEME_SLUG__ = '${themeSlug}';
+    </script>
   </head>
   <body>
     <div id="root"></div>

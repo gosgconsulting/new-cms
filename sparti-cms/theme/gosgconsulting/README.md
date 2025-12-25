@@ -1,6 +1,6 @@
 # GO SG Consulting Theme
 
-A full-stack digital growth solution theme with integrated blog functionality, migrated from the original gosgwebsite-main design.
+A full-stack digital growth solution theme with integrated blog functionality, migrated from the original gosgwebsite-main design (source folder removed after successful migration).
 
 ## Features
 
@@ -101,7 +101,7 @@ Custom classes:
 
 ## Migration Notes
 
-This theme was migrated from the original gosgwebsite-main website with the following changes:
+This theme was migrated from the original gosgwebsite-main website (source folder removed after migration) with the following changes:
 
 1. **Component Architecture**: Converted from page-based to component-based architecture
 2. **Asset Management**: Moved assets to theme-specific folder structure

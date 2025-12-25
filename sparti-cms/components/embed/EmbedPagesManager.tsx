@@ -28,7 +28,10 @@ export const EmbedPagesManager: React.FC = () => {
         setError(null);
 
         // Call the verify access key endpoint
-        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4173';
+        // In development, use relative URLs to leverage Vite proxy
+        const API_BASE_URL = import.meta.env.DEV 
+          ? '' // Use relative URLs in development (Vite proxy handles /api)
+          : (import.meta.env.VITE_API_BASE_URL || 'http://localhost:4173');
         const response = await fetch(`${API_BASE_URL}/api/auth/verify-access-key?access_key=${encodeURIComponent(accessKey)}`, {
           method: 'GET',
           headers: {

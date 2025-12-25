@@ -48,7 +48,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const initializeAuth = async () => {
       setLoading(true);
       let validatedUser: User | null = null;
-      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4173';
+      // In development, use relative URLs to leverage Vite proxy
+      const API_BASE_URL = import.meta.env.DEV 
+        ? '' // Use relative URLs in development (Vite proxy handles /api)
+        : (import.meta.env.VITE_API_BASE_URL || 'http://localhost:4173');
 
       // 1. Verify session with backend or use local data for demo
       const session = localStorage.getItem('sparti-user-session');
@@ -133,7 +136,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const signIn = useCallback(async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {
-      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4173';
+      // In development, use relative URLs to leverage Vite proxy
+      const API_BASE_URL = import.meta.env.DEV 
+        ? '' // Use relative URLs in development (Vite proxy handles /api)
+        : (import.meta.env.VITE_API_BASE_URL || 'http://localhost:4173');
       const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: 'POST',
         headers: {
@@ -188,7 +194,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const signInWithAccessKey = useCallback(async (accessKey: string): Promise<{ success: boolean; error?: string }> => {
     try {
-      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4173';
+      // In development, use relative URLs to leverage Vite proxy
+      const API_BASE_URL = import.meta.env.DEV 
+        ? '' // Use relative URLs in development (Vite proxy handles /api)
+        : (import.meta.env.VITE_API_BASE_URL || 'http://localhost:4173');
       const response = await fetch(`${API_BASE_URL}/api/auth/verify-access-key?access_key=${encodeURIComponent(accessKey)}`, {
         method: 'GET',
         headers: {

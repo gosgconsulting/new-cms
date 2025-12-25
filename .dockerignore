@@ -39,10 +39,11 @@ docs/
 index.html.backup
 src/theme-standalone.tsx
 
-# Other project folders that aren't needed
+# Other project folders that aren't needed (already deleted)
 gosgwebsite-main/
 sparti-app-lp-main/
 acatr-landing-page-revamp-main/
+sparti-cms-template-main/
 
 # Build artifacts (will be built in container)
 dist-theme/
