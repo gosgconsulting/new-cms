@@ -1,6 +1,6 @@
 import express from 'express';
 import { authenticateUser } from '../middleware/auth.js';
-import { syncThemesFromFileSystem, getAllThemes, getThemeBySlug, getThemesFromFileSystem, createTheme, syncThemePages, getDefaultLayoutForTheme } from '../../sparti-cms/services/themeSync.js';
+import { syncThemesFromFileSystem, getAllThemes, getThemeBySlug, getThemesFromFileSystem, createTheme, syncThemePages, getDefaultLayoutForTheme, readThemePages } from '../../sparti-cms/services/themeSync.js';
 import { query } from '../../sparti-cms/db/index.js';
 import { generateThemeApiKey } from '../../sparti-cms/db/tenant-management.js';
 
@@ -371,6 +371,17 @@ router.post('/sync', authenticateUser, async (req, res) => {
                 themeId: themeResult.id,
                 pages: pageSyncResult
               });
+            }
+            
+            // Ensure demo tenant has pages for this theme
+            try {
+              const { ensureDemoTenantHasThemePages } = await import('../../sparti-cms/services/themeSync.js');
+              const themePages = readThemePages(themeResult.slug);
+              if (themePages && themePages.length > 0) {
+                await ensureDemoTenantHasThemePages(themeResult.slug, themePages);
+              }
+            } catch (demoError) {
+              console.log(`[testing] Note: Could not ensure demo tenant pages for theme ${themeResult.slug}:`, demoError.message);
             }
           } catch (error) {
             console.error(`[testing] Error syncing pages for theme ${themeResult.slug}:`, error);

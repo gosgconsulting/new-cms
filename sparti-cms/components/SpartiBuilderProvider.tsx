@@ -26,14 +26,14 @@ export const SpartiBuilderProvider: React.FC<SpartiBuilderProviderProps> = ({
 
   const enterEditMode = () => {
     setIsEditing(true);
-    document.body.classList.add('gosg-editing');
+    document.body.classList.add('sparti-editing');
   };
 
   const exitEditMode = () => {
     setIsEditing(false);
     setSelectedElement(null);
     setHoveredElement(null);
-    document.body.classList.remove('gosg-editing');
+    document.body.classList.remove('sparti-editing');
   };
 
   const selectElement = (element: SpartiElement | null) => {

@@ -91,7 +91,7 @@ function readThemeConfig(slug) {
  * @param {string} slug - Theme slug (folder name)
  * @returns {Array|null} Array of page objects or null if file doesn't exist or is invalid
  */
-function readThemePages(slug) {
+export function readThemePages(slug) {
   try {
     const themesDir = path.join(__dirname, '../theme');
     const themePath = path.join(themesDir, slug);
@@ -821,6 +821,13 @@ export async function syncThemePages(themeSlug) {
       }
     }
     
+    // Also ensure demo tenant has pages for this theme
+    try {
+      await ensureDemoTenantHasThemePages(themeSlug, pages);
+    } catch (demoError) {
+      console.error(`[testing] Error ensuring demo tenant has pages for theme ${themeSlug}:`, demoError);
+    }
+    
     return {
       success: true,
       synced: syncedCount,
@@ -836,6 +843,166 @@ export async function syncThemePages(themeSlug) {
       error: error.message,
       message: `Failed to sync pages for theme ${themeSlug}`
     };
+  }
+}
+
+/**
+ * Ensure demo tenant has pages for a specific theme
+ * Creates pages for demo tenant if they don't exist
+ */
+export async function ensureDemoTenantHasThemePages(themeSlug, pages) {
+  const demoTenantId = 'demo';
+  
+  // Check if demo tenant exists
+  const demoTenantCheck = await query(`
+    SELECT id FROM tenants WHERE id = $1
+  `, [demoTenantId]);
+  
+  if (demoTenantCheck.rows.length === 0) {
+    console.log(`[testing] Demo tenant does not exist, skipping page creation`);
+    return;
+  }
+  
+  let createdCount = 0;
+  
+  for (const pageData of pages) {
+    try {
+      // Check if page exists for demo tenant + theme combination
+      const existingPage = await query(`
+        SELECT id, page_name, slug
+        FROM pages
+        WHERE slug = $1 AND theme_id = $2 AND tenant_id = $3
+        LIMIT 1
+      `, [pageData.slug, themeSlug, demoTenantId]);
+      
+      const now = new Date().toISOString();
+      
+      if (existingPage.rows.length === 0) {
+        // Page doesn't exist for demo tenant, create it
+        const insertResult = await query(`
+          INSERT INTO pages (page_name, slug, meta_title, meta_description, seo_index, status, page_type, theme_id, tenant_id, created_at, updated_at)
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+          RETURNING id
+        `, [
+          pageData.page_name,
+          pageData.slug,
+          pageData.meta_title || null,
+          pageData.meta_description || null,
+          pageData.seo_index !== undefined ? pageData.seo_index : true,
+          pageData.status || 'published',
+          pageData.page_type || 'page',
+          themeSlug,
+          demoTenantId,
+          now,
+          now
+        ]);
+        
+        const pageId = insertResult.rows[0].id;
+        
+        // Create default layout for demo tenant page
+        let defaultLayout;
+        if (pageData.slug === '/' || pageData.slug === '/home' || pageData.slug === '/index') {
+          defaultLayout = getDefaultLayoutForTheme(themeSlug);
+        } else {
+          defaultLayout = { components: [] };
+        }
+        
+        await query(`
+          INSERT INTO page_layouts (page_id, language, layout_json, version, updated_at)
+          VALUES ($1, 'default', $2, 1, NOW())
+          ON CONFLICT (page_id, language) DO NOTHING
+        `, [pageId, JSON.stringify(defaultLayout)]);
+        
+        createdCount++;
+        console.log(`[testing] Created page "${pageData.page_name}" (${pageData.slug}) for demo tenant with theme ${themeSlug}`);
+      }
+    } catch (error) {
+      console.error(`[testing] Error creating page ${pageData.slug} for demo tenant:`, error);
+    }
+  }
+  
+  if (createdCount > 0) {
+    console.log(`[testing] Created ${createdCount} page(s) for demo tenant with theme ${themeSlug}`);
+  }
+}
+
+/**
+ * Ensure demo tenant has pages for a specific theme
+ * Creates pages for demo tenant if they don't exist
+ */
+export async function ensureDemoTenantHasThemePages(themeSlug, pages) {
+  const demoTenantId = 'demo';
+  
+  // Check if demo tenant exists
+  const demoTenantCheck = await query(`
+    SELECT id FROM tenants WHERE id = $1
+  `, [demoTenantId]);
+  
+  if (demoTenantCheck.rows.length === 0) {
+    console.log(`[testing] Demo tenant does not exist, skipping page creation`);
+    return;
+  }
+  
+  let createdCount = 0;
+  
+  for (const pageData of pages) {
+    try {
+      // Check if page exists for demo tenant + theme combination
+      const existingPage = await query(`
+        SELECT id, page_name, slug
+        FROM pages
+        WHERE slug = $1 AND theme_id = $2 AND tenant_id = $3
+        LIMIT 1
+      `, [pageData.slug, themeSlug, demoTenantId]);
+      
+      const now = new Date().toISOString();
+      
+      if (existingPage.rows.length === 0) {
+        // Page doesn't exist for demo tenant, create it
+        const insertResult = await query(`
+          INSERT INTO pages (page_name, slug, meta_title, meta_description, seo_index, status, page_type, theme_id, tenant_id, created_at, updated_at)
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+          RETURNING id
+        `, [
+          pageData.page_name,
+          pageData.slug,
+          pageData.meta_title || null,
+          pageData.meta_description || null,
+          pageData.seo_index !== undefined ? pageData.seo_index : true,
+          pageData.status || 'published',
+          pageData.page_type || 'page',
+          themeSlug,
+          demoTenantId,
+          now,
+          now
+        ]);
+        
+        const pageId = insertResult.rows[0].id;
+        
+        // Create default layout for demo tenant page
+        let defaultLayout;
+        if (pageData.slug === '/' || pageData.slug === '/home' || pageData.slug === '/index') {
+          defaultLayout = getDefaultLayoutForTheme(themeSlug);
+        } else {
+          defaultLayout = { components: [] };
+        }
+        
+        await query(`
+          INSERT INTO page_layouts (page_id, language, layout_json, version, updated_at)
+          VALUES ($1, 'default', $2, 1, NOW())
+          ON CONFLICT (page_id, language) DO NOTHING
+        `, [pageId, JSON.stringify(defaultLayout)]);
+        
+        createdCount++;
+        console.log(`[testing] Created page "${pageData.page_name}" (${pageData.slug}) for demo tenant with theme ${themeSlug}`);
+      }
+    } catch (error) {
+      console.error(`[testing] Error creating page ${pageData.slug} for demo tenant:`, error);
+    }
+  }
+  
+  if (createdCount > 0) {
+    console.log(`[testing] Created ${createdCount} page(s) for demo tenant with theme ${themeSlug}`);
   }
 }
 

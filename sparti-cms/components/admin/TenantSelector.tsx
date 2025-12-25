@@ -40,10 +40,17 @@ export const TenantSelector: React.FC<TenantSelectorProps> = ({
         if (response.ok) {
           const data = await response.json();
           // Add isDevelopment flag based on tenant id
-          return data.map((t: any) => ({
+          const mappedTenants = data.map((t: any) => ({
             ...t,
             isDevelopment: t.id === 'tenant-dev' || !!t.isDevelopment,
           }));
+          
+          // Sort tenants: 'demo' always first, then others alphabetically
+          return mappedTenants.sort((a: Tenant, b: Tenant) => {
+            if (a.id === 'demo' || a.id === 'demo-tenant') return -1;
+            if (b.id === 'demo' || b.id === 'demo-tenant') return 1;
+            return a.name.localeCompare(b.name);
+          });
         } else {
           console.error(`Failed to fetch tenants`);
           return [];

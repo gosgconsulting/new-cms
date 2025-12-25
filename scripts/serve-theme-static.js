@@ -16,7 +16,7 @@ const __dirname = dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 4173;
 
-// Health check endpoint (required by Railway)
+// Health check endpoint (required by Railway) - must be first for fast response
 app.get('/health', (req, res) => {
   res.status(200).json({ 
     status: 'healthy', 
@@ -31,9 +31,12 @@ const distPath = join(__dirname, '..', 'dist');
 if (!existsSync(distPath)) {
   console.error('[testing] ERROR: dist directory does not exist!');
   console.error('[testing] Build may have failed. Check build logs.');
+  console.error('[testing] Current working directory:', process.cwd());
+  console.error('[testing] Looking for dist at:', distPath);
   process.exit(1);
 }
 
+console.log('[testing] Serving static files from:', distPath);
 app.use(express.static(distPath));
 
 // Handle all other routes by serving the React app (SPA routing)
@@ -50,12 +53,21 @@ app.get('*', (req, res) => {
   }
 });
 
-// Start server
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`[testing] Standalone theme server running on port ${PORT}`);
+// Start server immediately
+const server = app.listen(PORT, '0.0.0.0', () => {
+  console.log(`[testing] ✅ Standalone theme server running on port ${PORT}`);
   console.log(`[testing] Health check available at http://0.0.0.0:${PORT}/health`);
   console.log(`[testing] Theme available at http://0.0.0.0:${PORT}/`);
   console.log(`[testing] Serving static files from: ${distPath}`);
+});
+
+// Handle server errors
+server.on('error', (error) => {
+  console.error('[testing] ❌ Server error:', error);
+  if (error.code === 'EADDRINUSE') {
+    console.error(`[testing] Port ${PORT} is already in use`);
+  }
+  process.exit(1);
 });
 
 // Handle graceful shutdown

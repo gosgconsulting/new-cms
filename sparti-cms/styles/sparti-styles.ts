@@ -567,6 +567,75 @@ body.sparti-editing .sparti-content::before {
   width: 100%;
 }
 
+/* Alert Styles */
+.sparti-alert {
+  padding: 0.75rem 1rem !important;
+  border-radius: 0.375rem !important;
+  margin-bottom: 1rem !important;
+  font-size: 0.875rem !important;
+  font-family: inherit !important;
+}
+
+.sparti-alert-success {
+  background: #d1fae5 !important;
+  border: 1px solid #a7f3d0 !important;
+  color: #059669 !important;
+}
+
+.sparti-alert-error {
+  background: #fee2e2 !important;
+  border: 1px solid #fecaca !important;
+  color: #dc2626 !important;
+}
+
+.sparti-alert-info {
+  background: #dbeafe !important;
+  border: 1px solid #bfdbfe !important;
+  color: #2563eb !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  .sparti-alert-success {
+    background: #064e3b !important;
+    border-color: #047857 !important;
+    color: #6ee7b7 !important;
+  }
+  
+  .sparti-alert-error {
+    background: #7f1d1d !important;
+    border-color: #991b1b !important;
+    color: #fca5a5 !important;
+  }
+  
+  .sparti-alert-info {
+    background: #1e3a8a !important;
+    border-color: #1e40af !important;
+    color: #93c5fd !important;
+  }
+}
+
+/* Component Registry Status */
+.sparti-registry-status {
+  font-size: 0.75rem !important;
+  color: #059669 !important;
+  margin-top: 0.25rem !important;
+  padding: 0.25rem 0.5rem !important;
+  background: #d1fae5 !important;
+  border-radius: 4px !important;
+  border: 1px solid #a7f3d0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.25rem !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  .sparti-registry-status {
+    background: #064e3b !important;
+    border-color: #047857 !important;
+    color: #6ee7b7 !important;
+  }
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .sparti-edit-panel {

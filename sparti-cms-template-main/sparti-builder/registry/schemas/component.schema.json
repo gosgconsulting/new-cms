@@ -1,0 +1,104 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "title": "Sparti Component Definition",
+  "description": "Schema for Sparti component definitions",
+  "required": ["id", "name", "type", "category", "editor", "version"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the component",
+      "pattern": "^[a-z][a-z0-9-]*$"
+    },
+    "name": {
+      "type": "string",
+      "description": "Display name of the component",
+      "minLength": 1
+    },
+    "type": {
+      "type": "string",
+      "description": "Component type",
+      "enum": ["text", "image", "video", "button", "link", "input", "container", "media", "unknown"]
+    },
+    "category": {
+      "type": "string",
+      "description": "Component category for organization",
+      "enum": ["content", "media", "navigation", "form", "layout", "interactive"]
+    },
+    "description": {
+      "type": "string",
+      "description": "Description of the component"
+    },
+    "properties": {
+      "type": "object",
+      "description": "Component properties definition",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["string", "number", "boolean", "object", "array"]
+          },
+          "description": {
+            "type": "string"
+          },
+          "editable": {
+            "type": "boolean",
+            "default": true
+          },
+          "required": {
+            "type": "boolean",
+            "default": false
+          },
+          "default": {}
+        },
+        "required": ["type"]
+      }
+    },
+    "editor": {
+      "type": "string",
+      "description": "Editor component to use",
+      "enum": ["TextEditor", "ImageEditor", "VideoEditor", "ButtonEditor", "LinkEditor", "InputEditor", "ContainerEditor"]
+    },
+    "version": {
+      "type": "string",
+      "description": "Component version (semver)",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "tenant_scope": {
+      "type": "string",
+      "description": "Availability scope",
+      "enum": ["global", "tenant"],
+      "default": "tenant"
+    },
+    "tags": {
+      "type": "array",
+      "description": "Component tags for filtering",
+      "items": {
+        "type": "string"
+      }
+    },
+    "preview_url": {
+      "type": "string",
+      "description": "URL to component preview image",
+      "format": "uri"
+    },
+    "documentation_url": {
+      "type": "string",
+      "description": "URL to component documentation",
+      "format": "uri"
+    },
+    "dependencies": {
+      "type": "array",
+      "description": "Required dependencies",
+      "items": {
+        "type": "string"
+      }
+    },
+    "last_updated": {
+      "type": "string",
+      "description": "Last update timestamp",
+      "format": "date-time"
+    }
+  }
+}
