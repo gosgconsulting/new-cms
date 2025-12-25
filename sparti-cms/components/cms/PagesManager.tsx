@@ -2,9 +2,8 @@ import React, { useState, useEffect, useLayoutEffect } from 'react';
 import { Button } from '../../../src/components/ui/button';
 import { Card } from '../../../src/components/ui/card';
 import { Badge } from '../../../src/components/ui/badge';
-import { Edit, Eye, FileText, Rocket, Scale, Layout, Minus, Monitor, Code, FileCode, RefreshCw } from 'lucide-react';
+import { Edit, Eye, FileText, Rocket, Scale, Layout, Minus, Code, FileCode, RefreshCw } from 'lucide-react';
 import { toast } from '../../../src/hooks/use-toast';
-import PageEditor from './PageEditor';
 import HeaderSchemaEditor from './HeaderSchemaEditor';
 import FooterSchemaEditor from './FooterSchemaEditor';
 import { useAuth } from '../auth/AuthProvider';
@@ -127,7 +126,6 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
   const [pages, setPages] = useState<PageItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [editingPageId, setEditingPageId] = useState<string | null>(null);
   const [visualEditorPage, setVisualEditorPage] = useState<{ slug: string; pageName: string; id?: string } | null>(null);
   const [showJSONEditor, setShowJSONEditor] = useState(false);
   const [showCodeViewer, setShowCodeViewer] = useState(false);
@@ -258,15 +256,6 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
       console.error('Error toggling SEO index:', error);
       // You could add a toast notification here
     }
-  };
-
-  const handleEditPage = (pageId: string) => {
-    // Immediately notify parent component BEFORE setting state
-    if (onEditModeChange) {
-      console.log('[testing] Entering edit mode, notifying parent');
-      onEditModeChange(true);
-    }
-    setEditingPageId(pageId);
   };
 
   const handleViewPage = (slug: string) => {
@@ -422,11 +411,11 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
   // Use useLayoutEffect to ensure it runs synchronously before paint
   useLayoutEffect(() => {
     if (onEditModeChange) {
-      const isEditMode = editingPageId !== null || visualEditorPage !== null;
-      console.log('[testing] useLayoutEffect - editingPageId:', editingPageId, 'visualEditorPage:', visualEditorPage, 'isEditMode:', isEditMode);
+      const isEditMode = visualEditorPage !== null;
+      console.log('[testing] useLayoutEffect - visualEditorPage:', visualEditorPage, 'isEditMode:', isEditMode);
       onEditModeChange(isEditMode);
     }
-  }, [editingPageId, visualEditorPage, onEditModeChange]);
+  }, [visualEditorPage, onEditModeChange]);
 
   // Show visual editor if a page is being viewed (works for both tenant and theme modes, even without connection)
   if (visualEditorPage) {
@@ -533,23 +522,6 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
           currentTenantId={currentTenantId}
         />
       </div>
-    );
-  }
-
-  // Show editor if a page is being edited
-  if (editingPageId) {
-    return (
-      <PageEditor 
-        pageId={editingPageId} 
-        currentTenantId={currentTenantId}
-        currentThemeId={currentThemeId}
-        onBack={() => {
-          setEditingPageId(null);
-          if (onEditModeChange) {
-            onEditModeChange(false);
-          }
-        }} 
-      />
     );
   }
 
@@ -726,14 +698,6 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
                           size="sm"
                           onClick={() => handleVisualEditor(page)}
                           className="bg-brandPurple hover:bg-brandPurple/90"
-                        >
-                          <Monitor className="h-4 w-4 mr-2" />
-                          Visual Editor
-                        </Button>
-                        <Button
-                          variant="default"
-                          size="sm"
-                          onClick={() => handleEditPage(page.id)}
                         >
                           <Edit className="h-4 w-4 mr-2" />
                           Edit
