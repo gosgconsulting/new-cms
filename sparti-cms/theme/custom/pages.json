@@ -1,0 +1,19 @@
+{
+  "pages": [
+    {
+      "page_name": "Homepage",
+      "slug": "/",
+      "meta_title": "Custom Theme - Simple Hardcoded Website",
+      "meta_description": "A minimal, responsive theme with hardcoded sections to quickly preview content.",
+      "seo_index": true,
+      "status": "published",
+      "page_type": "page",
+      "keywords": ["custom", "theme", "hardcoded", "showcase"],
+      "sections": [
+        { "id": "hero", "name": "Hero Section", "description": "Main hero with heading and CTA" },
+        { "id": "features", "name": "Features Section", "description": "Grid of simple features" },
+        { "id": "cta", "name": "Call to Action", "description": "Final conversion section" }
+      ]
+    }
+  ]
+}

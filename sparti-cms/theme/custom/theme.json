@@ -1,0 +1,18 @@
+{
+  "name": "Custom",
+  "description": "A simple, hardcoded theme for showcasing components without database dependencies.",
+  "version": "1.0.0",
+  "author": "Sparti CMS",
+  "is_active": true,
+  "category": "showcase",
+  "tags": ["custom", "hardcoded", "showcase", "simple"],
+  "features": [
+    "Hardcoded content (no database needed)",
+    "Responsive layout",
+    "Clean header and footer",
+    "Hero, Features, CTA sections"
+  ],
+  "preview_image": "assets/preview.jpg",
+  "demo_url": "/theme/custom",
+  "documentation_url": "/docs/themes/custom"
+}
