@@ -19,6 +19,13 @@ RUN npm run build
 # Setup phase - expose port
 EXPOSE 4173
 
-# Start the production server
-CMD ["npm", "start"]
+# Make entrypoint script executable
+RUN chmod +x scripts/docker-entrypoint.js
+
+# Start the production server with migrations
+# The entrypoint script will:
+# 1. Wait for database to be available
+# 2. Run database migrations
+# 3. Start the server
+CMD ["node", "scripts/docker-entrypoint.js"]
 
