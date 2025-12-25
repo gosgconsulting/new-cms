@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate, useParams } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useParams, useLocation } from "react-router-dom";
 import AdminTopBar from "@/components/AdminTopBar";
 import { useSEO } from "@/hooks/useSEO";
 import { AuthProvider } from "../sparti-cms/components/auth/AuthProvider";
@@ -23,13 +23,25 @@ import ThemeAdminRedirect from "./components/ThemeAdminRedirect";
 
 const queryClient = new QueryClient();
 
-const App = () => {
-  // Initialize SEO management
-  const { loading: seoLoading, error: seoError } = useSEO();
+// Component to conditionally load SEO based on current route
+const ConditionalSEO = () => {
+  const location = useLocation();
+  
+  // Don't load SEO on auth/login pages
+  const isAuthPage = location.pathname === '/auth' || 
+                    (location.pathname.startsWith('/theme/') && location.pathname.endsWith('/auth'));
+  
+  // Initialize SEO management only if not on auth page
+  const { error: seoError } = useSEO({ skip: isAuthPage });
 
   if (seoError) {
-    console.warn('[testing] SEO initialization error:', seoError);
+    console.warn('[testing] SEO initialization error (non-blocking):', seoError);
   }
+  
+  return null;
+};
+
+const App = () => {
 
   // Check if we're in theme deployment mode (standalone theme build)
   // When DEPLOY_THEME_SLUG is set, the build creates a standalone entry point (theme-standalone.tsx)
@@ -44,6 +56,7 @@ const App = () => {
         <Sonner />
         <BrowserRouter>
           <AuthProvider>
+            <ConditionalSEO />
             <AdminTopBar />
             <Routes>
             {/* Redirect root to admin - always redirect for CMS, theme deployments use separate entry point */}

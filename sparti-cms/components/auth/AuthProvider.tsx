@@ -148,7 +148,41 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         body: JSON.stringify({ email, password }),
       });
 
-      const data = await response.json();
+      // Check if response is ok and has content
+      if (!response.ok) {
+        // Try to parse error response as JSON
+        let errorData;
+        try {
+          const text = await response.text();
+          errorData = text ? JSON.parse(text) : {};
+        } catch (parseError) {
+          // If parsing fails, use status text
+          errorData = { error: response.statusText || 'Login failed' };
+        }
+        
+        const errorMessage = errorData.message || errorData.error || `Login failed (${response.status})`;
+        console.error('[testing] Login failed:', errorMessage);
+        return { 
+          success: false, 
+          error: errorMessage
+        };
+      }
+
+      // Parse response as JSON
+      let data;
+      try {
+        const text = await response.text();
+        if (!text) {
+          throw new Error('Empty response from server');
+        }
+        data = JSON.parse(text);
+      } catch (parseError) {
+        console.error('[testing] Failed to parse login response:', parseError);
+        return { 
+          success: false, 
+          error: 'Invalid response from server. Please try again.' 
+        };
+      }
 
       if (data.success && data.user) {
         const userData: User = {
@@ -193,6 +227,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return { 
           success: false, 
           error: 'Unable to connect to server. Please check your connection and try again.' 
+        };
+      }
+      // Check if it's a JSON parse error
+      if (error instanceof SyntaxError && error.message.includes('JSON')) {
+        return { 
+          success: false, 
+          error: 'Invalid response from server. Please try again.' 
         };
       }
       return { 

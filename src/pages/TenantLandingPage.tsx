@@ -48,16 +48,6 @@ const TenantLandingPage: React.FC = () => {
   
   const ThemeComponent = currentTheme.component;
   const isKnownTheme = slug in themeConfig;
-  
-  // Loading component
-  const LoadingFallback = () => (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-        <p className="text-muted-foreground">Loading theme...</p>
-      </div>
-    </div>
-  );
 
   // Error component for unknown themes
   const ThemeNotFound = () => (
@@ -85,8 +75,9 @@ const TenantLandingPage: React.FC = () => {
     return <ThemeNotFound />;
   }
 
+  // Use null fallback - let each theme handle its own loading state
   return (
-    <Suspense fallback={<LoadingFallback />}>
+    <Suspense fallback={null}>
       <ThemeComponent 
         tenantName={currentTheme.name} 
         tenantSlug={slug} 

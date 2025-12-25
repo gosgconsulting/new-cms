@@ -26,6 +26,7 @@ interface SEOOptions {
   image?: string;
   type?: string;
   url?: string;
+  skip?: boolean; // Skip API call if true
 }
 
 export const useSEO = (options: SEOOptions = {}) => {
@@ -35,6 +36,26 @@ export const useSEO = (options: SEOOptions = {}) => {
 
   // Fetch SEO settings from API
   useEffect(() => {
+    // Skip API call if skip flag is set (e.g., on auth pages)
+    if (options.skip) {
+      setLoading(false);
+      // Use default settings when skipped
+      setSeoSettings({
+        site_name: 'GO SG',
+        site_tagline: 'Digital Marketing Agency',
+        meta_title: 'GO SG - Digital Marketing Agency',
+        meta_description: 'GO SG - We grow your revenue at the highest ROI through integrated digital marketing solutions.',
+        meta_keywords: 'SEO, digital marketing, Singapore, organic traffic, search rankings',
+        meta_author: 'GO SG',
+        og_title: 'GO SG - Digital Marketing Agency',
+        og_description: 'Integrated marketing solutions for SMEs and high-performing brands.',
+        og_type: 'website',
+        twitter_card: 'summary_large_image',
+        twitter_site: '@gosgconsulting'
+      });
+      return;
+    }
+
     const fetchSEOSettings = async () => {
       try {
         // In development, use relative URLs to leverage Vite proxy
@@ -74,7 +95,7 @@ export const useSEO = (options: SEOOptions = {}) => {
     };
 
     fetchSEOSettings();
-  }, []);
+  }, [options.skip]);
 
   // Update document meta tags
   useEffect(() => {
