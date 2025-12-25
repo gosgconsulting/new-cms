@@ -10,6 +10,13 @@ import { ContentEditPanel } from "../../../sparti-cms/components/ContentEditPane
 import EditorToggle from "./EditorToggle";
 import "../../../sparti-cms/components/sparti-builder.css";
 
+// Helper to render rich text safely
+const RichText: React.FC<{ html?: string; className?: string; as?: keyof JSX.IntrinsicElements }> = ({ html, className, as = "div" }) => {
+  if (!html) return null;
+  const Tag = as as any;
+  return <Tag className={className} dangerouslySetInnerHTML={{ __html: html }} />;
+};
+
 interface FlowbiteDioraRendererProps {
   components: ComponentSchema[];
 }
@@ -49,7 +56,6 @@ function SectionHero({ items }: { items: SchemaItem[] }) {
     (i) => i.key?.toLowerCase() === "logo" && i.type === "image"
   ) as any;
 
-  // If no slides array or empty, try fallback single image item
   const fallbackImg = (items.find((i) => i.type === "image") as any) || null;
   const hasSlides = slides.length > 0;
   const [index, setIndex] = useState(0);
@@ -75,7 +81,8 @@ function SectionHero({ items }: { items: SchemaItem[] }) {
         <div className="max-w-3xl text-center">
           {welcomeText ? (
             <span className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-medium text-white mb-4">
-              {welcomeText}
+              {/* Render HTML so formatting shows */}
+              <RichText html={welcomeText} />
             </span>
           ) : null}
           {logo?.src ? (
@@ -144,7 +151,16 @@ function SectionServices({ items }: { items: SchemaItem[] }) {
   if (cards.length === 0 && !title && !subtitle) return null;
 
   return (
-    <FlowbiteSection title={title || undefined} subtitle={subtitle || undefined}>
+    <FlowbiteSection
+      title={undefined}
+      subtitle={undefined}
+    >
+      {/* Render title/subtitle with HTML */}
+      <div className="text-center">
+        {title ? <RichText html={title} as="h2" className="text-xl font-semibold" /> : null}
+        {subtitle ? <RichText html={subtitle} as="p" className="text-sm text-gray-600" /> : null}
+      </div>
+
       <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {cards.map((card, idx) => (
           <div
@@ -166,9 +182,7 @@ function SectionServices({ items }: { items: SchemaItem[] }) {
             <div className="space-y-1 p-4">
               <div className="flex items-center gap-2">
                 {card.img?.title ? (
-                  <h3 className="text-base font-semibold">
-                    {card.img.title}
-                  </h3>
+                  <RichText html={card.img.title} as="h3" className="text-base font-semibold" />
                 ) : null}
                 {card.img?.price ? (
                   <span className="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-[11px] font-medium text-blue-700">
@@ -177,17 +191,15 @@ function SectionServices({ items }: { items: SchemaItem[] }) {
                 ) : null}
               </div>
               {card.img?.alt ? (
-                <p className="line-clamp-3 text-xs text-gray-500">
-                  {card.img.alt}
-                </p>
+                <RichText html={card.img.alt} as="p" className="line-clamp-3 text-xs text-gray-500" />
               ) : null}
               {card.btn?.content ? (
                 <a
                   href={card.btn.link || "#"}
                   className="mt-3 inline-block rounded-lg bg-blue-600 px-3 py-2 text-sm text-white hover:bg-blue-700"
-                >
-                  {card.btn.content}
-                </a>
+                  // button content can be HTML too
+                  dangerouslySetInnerHTML={{ __html: card.btn.content }}
+                />
               ) : null}
             </div>
           </div>
@@ -205,7 +217,12 @@ function SectionFeatures({ items }: { items: SchemaItem[] }) {
   if (features.length === 0 && !title && !subtitle) return null;
 
   return (
-    <FlowbiteSection title={title || undefined} subtitle={subtitle || undefined}>
+    <FlowbiteSection title={undefined} subtitle={undefined}>
+      <div className="text-center">
+        {title ? <RichText html={title} as="h2" className="text-xl font-semibold" /> : null}
+        {subtitle ? <RichText html={subtitle} as="p" className="text-sm text-gray-600" /> : null}
+      </div>
+
       <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {features.map((f: any, idx: number) => (
           <div
@@ -224,10 +241,10 @@ function SectionFeatures({ items }: { items: SchemaItem[] }) {
             </div>
             <div className="space-y-1 p-4">
               {f?.title ? (
-                <h3 className="text-base font-semibold">{f.title}</h3>
+                <RichText html={f.title} as="h3" className="text-base font-semibold" />
               ) : null}
               {f?.description ? (
-                <p className="text-sm text-gray-600">{f.description}</p>
+                <RichText html={f.description} as="p" className="text-sm text-gray-600" />
               ) : null}
             </div>
           </div>
@@ -247,7 +264,12 @@ function SectionIngredients({ items }: { items: SchemaItem[] }) {
   if (ingredients.length === 0 && !title && !subtitle) return null;
 
   return (
-    <FlowbiteSection title={title || undefined} subtitle={subtitle || undefined}>
+    <FlowbiteSection title={undefined} subtitle={undefined}>
+      <div className="text-center">
+        {title ? <RichText html={title} as="h2" className="text-xl font-semibold" /> : null}
+        {subtitle ? <RichText html={subtitle} as="p" className="text-sm text-gray-600" /> : null}
+      </div>
+
       <div
         className="mt-8 grid gap-4"
         style={{ gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))" }}
@@ -267,10 +289,10 @@ function SectionIngredients({ items }: { items: SchemaItem[] }) {
               ) : null}
             </div>
             {ing?.name ? (
-              <h4 className="mt-2 text-sm font-semibold">{ing.name}</h4>
+              <RichText html={ing.name} as="h4" className="mt-2 text-sm font-semibold" />
             ) : null}
             {ing?.benefit ? (
-              <p className="text-xs text-gray-600">{ing.benefit}</p>
+              <RichText html={ing.benefit} as="p" className="text-xs text-gray-600" />
             ) : null}
           </div>
         ))}
@@ -289,7 +311,12 @@ function SectionTeam({ items }: { items: SchemaItem[] }) {
   if (team.length === 0 && !title && !subtitle) return null;
 
   return (
-    <FlowbiteSection title={title || undefined} subtitle={subtitle || undefined}>
+    <FlowbiteSection title={undefined} subtitle={undefined}>
+      <div className="text-center">
+        {title ? <RichText html={title} as="h2" className="text-xl font-semibold" /> : null}
+        {subtitle ? <RichText html={subtitle} as="p" className="text-sm text-gray-600" /> : null}
+      </div>
+
       <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {team.map((m: any, idx: number) => (
           <div
@@ -310,13 +337,13 @@ function SectionTeam({ items }: { items: SchemaItem[] }) {
             ) : null}
             <div className="space-y-1 p-4">
               {m?.name ? (
-                <h3 className="text-base font-semibold">{m.name}</h3>
+                <RichText html={m.name} as="h3" className="text-base font-semibold" />
               ) : null}
               {m?.role ? (
-                <p className="text-xs text-gray-500">{m.role}</p>
+                <RichText html={m.role} as="p" className="text-xs text-gray-500" />
               ) : null}
               {m?.description ? (
-                <p className="text-sm text-gray-600">{m.description}</p>
+                <RichText html={m.description} as="p" className="text-sm text-gray-600" />
               ) : null}
             </div>
           </div>
@@ -339,10 +366,10 @@ function SectionAbout({ items }: { items: SchemaItem[] }) {
     <FlowbiteSection containerClassName="grid items-center gap-6 md:grid-cols-2">
       <div className="space-y-3">
         {title ? (
-          <h2 className="text-2xl md:text-3xl font-semibold">{title}</h2>
+          <RichText html={title} as="h2" className="text-2xl md:text-3xl font-semibold" />
         ) : null}
         {description ? (
-          <p className="text-sm md:text-base text-gray-600">{description}</p>
+          <RichText html={description} as="p" className="text-sm md:text-base text-gray-600" />
         ) : null}
       </div>
       {imageItem?.src ? (
