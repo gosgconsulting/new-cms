@@ -5,6 +5,7 @@ import { Separator } from '../../../src/components/ui/separator';
 import { Badge } from '../../../src/components/ui/badge';
 import { ArrowLeft, Save, Loader2, Settings, Code, FileText } from 'lucide-react';
 import { FileCode } from 'lucide-react';
+import { MessageCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '../auth/AuthProvider';
 import { ComponentSchema } from '../../types/schema';
@@ -109,6 +110,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack, currentTenantId
   const [originalComponents, setOriginalComponents] = useState<ComponentSchema[]>([]);
   const [showCodeViewer, setShowCodeViewer] = useState(false);
   const [pageFileHint, setPageFileHint] = useState<string | null>(null);
+  const [assistantClosed, setAssistantClosed] = useState(false); // NEW: track assistant visibility
 
   // JSON Editor hook
   const {
@@ -624,6 +626,18 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack, currentTenantId
 
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden relative">
+        {/* Reopen button when assistant is closed */}
+        {assistantClosed && (
+          <button
+            onClick={() => setAssistantClosed(false)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 z-50 bg-primary text-primary-foreground shadow-lg px-3 py-2 rounded-l-full flex items-center gap-2 hover:opacity-90"
+            aria-label="Open AI Assistant"
+            title="Open AI Assistant"
+          >
+            <MessageCircle className="h-4 w-4" />
+            <span className="hidden sm:inline">AI Assistant</span>
+          </button>
+        )}
         {/* Left Panel - Components List */}
         <div className="w-80 border-r bg-muted/20 flex flex-col">
 
@@ -681,65 +695,68 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack, currentTenantId
         </div>
 
         {/* Right Sidebar - Editor */}
-        <div className="w-[420px] min-w-[420px] max-w-[420px] flex-shrink-0 border-l bg-background">
-          <AIAssistantChat 
-            className="h-full w-full"
-            pageContext={pageData ? {
-              slug: pageData.slug,
-              pageName: pageData.page_name,
-              tenantId: currentTenantId || undefined
-            } : null}
-            currentComponents={components}
-            onUpdateComponents={setComponents}
-            onProposedComponents={(proposals) => {
-              // Auto-apply proposals into components by key or by best-effort type match.
-              setComponents((prev) => {
-                const next = [...prev]
-                const matchIndex = (proposal: any) => {
-                  if (proposal.key) {
-                    const idx = next.findIndex((c) => c.key === proposal.key)
-                    if (idx !== -1) return idx
+        {!assistantClosed && (
+          <div className="w-[420px] min-w-[420px] max-w-[420px] flex-shrink-0 border-l bg-background">
+            <AIAssistantChat 
+              className="h-full w-full"
+              pageContext={pageData ? {
+                slug: pageData.slug,
+                pageName: pageData.page_name,
+                tenantId: currentTenantId || undefined
+              } : null}
+              currentComponents={components}
+              onUpdateComponents={setComponents}
+              onProposedComponents={(proposals) => {
+                // Auto-apply proposals into components by key or by best-effort type match.
+                setComponents((prev) => {
+                  const next = [...prev]
+                  const matchIndex = (proposal: any) => {
+                    if (proposal.key) {
+                      const idx = next.findIndex((c) => c.key === proposal.key)
+                      if (idx !== -1) return idx
+                    }
+                    if (proposal.type) {
+                      const lower = String(proposal.type).toLowerCase()
+                      const byType = next.findIndex((c) => (c.type || '').toLowerCase() === lower)
+                      if (byType !== -1) return byType
+                      const byName = next.findIndex((c) => c.name && c.name.toLowerCase().includes(lower))
+                      if (byName !== -1) return byName
+                    }
+                    return -1
                   }
-                  if (proposal.type) {
-                    const lower = String(proposal.type).toLowerCase()
-                    const byType = next.findIndex((c) => (c.type || '').toLowerCase() === lower)
-                    if (byType !== -1) return byType
-                    const byName = next.findIndex((c) => c.name && c.name.toLowerCase().includes(lower))
-                    if (byName !== -1) return byName
-                  }
-                  return -1
-                }
-                proposals.forEach((p: any) => {
-                  if (!p) return
-                  const idx = matchIndex(p)
-                  if (idx !== -1) {
-                    // Preserve original key if missing
-                    const incoming = { ...p, key: p.key || next[idx].key, type: p.type || next[idx].type }
-                    next[idx] = incoming
-                  }
+                  proposals.forEach((p: any) => {
+                    if (!p) return
+                    const idx = matchIndex(p)
+                    if (idx !== -1) {
+                      // Preserve original key if missing
+                      const incoming = { ...p, key: p.key || next[idx].key, type: p.type || next[idx].type }
+                      next[idx] = incoming
+                    }
+                  })
+                  return next
                 })
-                return next
-              })
-              // Also keep a snapshot of the latest proposals for page-level preview (if elsewhere needed)
-              setProposedComponents((prev) => {
-                const list = Array.isArray(prev) ? [...prev] : []
-                proposals.forEach((p: any) => {
-                  if (!p) return
-                  const key = p.key || (components.find((c) => (c.type || '').toLowerCase() === String(p.type || '').toLowerCase())?.key)
-                  if (!key) return
-                  const idx = list.findIndex((c) => c.key === key)
-                  const normalized = { ...p, key }
-                  if (idx >= 0) list[idx] = normalized
-                  else list.push(normalized)
+                // Also keep a snapshot of the latest proposals for page-level preview (if elsewhere needed)
+                setProposedComponents((prev) => {
+                  const list = Array.isArray(prev) ? [...prev] : []
+                  proposals.forEach((p: any) => {
+                    if (!p) return
+                    const key = p.key || (components.find((c) => (c.type || '').toLowerCase() === String(p.type || '').toLowerCase())?.key)
+                    if (!key) return
+                    const idx = list.findIndex((c) => c.key === key)
+                    const normalized = { ...p, key }
+                    if (idx >= 0) list[idx] = normalized
+                    else list.push(normalized)
+                  })
+                  return list
                 })
-                return list
-              })
-            }}
-            onOpenJSONEditor={openJSONEditor}
-            selectedComponentJSON={selectedComponentForAI || ({ __scope: 'page', schema: { components } } as any)}
-            onComponentSelected={() => {}}
-          />
-        </div>
+              }}
+              onOpenJSONEditor={openJSONEditor}
+              selectedComponentJSON={selectedComponentForAI || ({ __scope: 'page', schema: { components } } as any)}
+              onComponentSelected={() => {}}
+              onClosedChange={(closed) => setAssistantClosed(closed)} // NEW: collapse to 2 columns
+            />
+          </div>
+        )}
       </div>
 
       {/* Code Viewer Dialog */}
