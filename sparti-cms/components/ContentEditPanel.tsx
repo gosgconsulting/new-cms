@@ -17,6 +17,32 @@ import { Loader2 } from 'lucide-react';
 import { showSuccessToast, showErrorToast } from '../../src/utils/toast-utils';
 import api from '../utils/api';
 
+// Helper: strip tags from any string
+const stripTags = (s: any) => {
+  if (typeof s !== 'string') return s;
+  return s.replace(/<[^>]*>/g, '');
+};
+
+// Deep sanitize: remove HTML from any textual fields
+const sanitizeComponentsPlainText = (components: ComponentSchema[]) => {
+  const sanitizeValue = (val: any) => {
+    if (typeof val === 'string') return stripTags(val);
+    if (Array.isArray(val)) return val.map(sanitizeValue);
+    if (val && typeof val === 'object') {
+      const out: Record<string, any> = {};
+      Object.entries(val).forEach(([k, v]) => {
+        // Preserve URLs/paths for common link/image fields
+        const isUrlField = ['src', 'href', 'link', 'url', 'image'].includes(k.toLowerCase());
+        out[k] = isUrlField ? v : sanitizeValue(v);
+      });
+      return out;
+    }
+    return val;
+  };
+
+  return components.map((comp) => sanitizeValue(comp));
+};
+
 export const ContentEditPanel: React.FC = () => {
   const { isEditing, selectedElement, selectElement, components, updateComponent, pageId, slug, tenantId, exitEditMode } = useSpartiBuilder();
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -79,14 +105,17 @@ export const ContentEditPanel: React.FC = () => {
         targetPageId = String(ctxData.pageContext.pageId);
       }
 
+      // SANITIZE before persisting: remove any HTML tags from text fields
+      const sanitizedComponents = sanitizeComponentsPlainText(components);
+
       const res = await api.put(`/api/pages/${targetPageId}/layout`, {
-        layout_json: { components },
+        layout_json: { components: sanitizedComponents },
         tenantId: effectiveTenantId
       });
       const json = await res.json();
       if (json && json.success !== false) {
         showSuccessToast('Layout saved');
-        // Deactivate toolbar and close editor so no live-site HTML or labels can be captured/displayed
+        // Exit edit mode and close
         selectElement(null);
         exitEditMode();
       } else {

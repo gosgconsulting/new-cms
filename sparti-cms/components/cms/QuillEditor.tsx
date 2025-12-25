@@ -4,28 +4,34 @@ import 'react-quill/dist/quill.snow.css';
 import './QuillEditor.css';
 
 interface QuillEditorProps {
-  content: string; // plain text in, plain text out
+  content: string; // plain text in/out
   onChange: (content: string) => void;
   placeholder?: string;
 }
+
+// Strip all HTML tags
+const stripTags = (str: string) => {
+  if (!str) return '';
+  return String(str).replace(/<[^>]*>/g, '');
+};
 
 const QuillEditor: React.FC<QuillEditorProps> = ({ 
   content, 
   onChange,
   placeholder = 'Enter text...'
 }) => {
-  // Strip formatting on paste and disable toolbar to keep it fast and simple
+  // Keep it fast and plain: no toolbar, strip formatting on paste
   const modules = useMemo(() => ({
     toolbar: false,
     clipboard: {
       matchVisual: false,
-      // Strip attributes/formatting from pasted content
       matchers: [
         [Node.ELEMENT_NODE, (_node: Node, delta: any) => {
           if (!delta || !Array.isArray(delta.ops)) return delta;
+          // Force every op to be plain text (remove attributes/embeds)
           delta.ops = delta.ops.map((op: any) => {
-            const insert = typeof op?.insert === 'string' ? op.insert : ' ';
-            return { insert }; // remove attributes and embeds
+            const insert = typeof op?.insert === 'string' ? stripTags(op.insert) : '\n';
+            return { insert };
           });
           return delta;
         }]
@@ -34,23 +40,29 @@ const QuillEditor: React.FC<QuillEditorProps> = ({
     history: { delay: 300, maxStack: 50, userOnly: true }
   }), []);
 
-  // Disable all formats to avoid heavy DOM churn
+  // No formats at all
   const formats: string[] = [];
 
-  // Emit plain text only (trim trailing newlines that Quill appends)
+  // Emit plain text only
   const handleChange = useCallback((_html: string, _delta: any, _source: any, editor: any) => {
-    const plain = (editor?.getText?.() || '').replace(/\n+$/, '');
+    const plain = stripTags(editor?.getText?.() || '').replace(/\n+$/, '');
     onChange(plain);
   }, [onChange]);
 
-  // NOTE:
-  // Use defaultValue (uncontrolled) instead of value to avoid controlled re-render loops,
-  // which can cause lag when mounting multiple editors inside accordions.
+  // IMPORTANT: uncontrolled defaultValue must be plain text (strip any legacy HTML)
+  const initialValue = stripTags(content || '');
+
   return (
     <div className="sparti-quill-container">
+      <style>{`
+        .ql-toolbar { display: none !important; }
+        .ql-container.ql-snow { border: 1px solid #e5e7eb; border-radius: 6px; }
+        .ql-editor { min-height: 140px; padding: 12px 15px; }
+        .ql-editor.ql-blank::before { color: #9ca3af; font-style: normal; }
+      `}</style>
       <ReactQuill
         theme="snow"
-        defaultValue={content || ''}  // plain text initial value
+        defaultValue={initialValue}   // plain text only
         onChange={handleChange}
         modules={modules}
         formats={formats}
