@@ -47,12 +47,6 @@ export const ElementSelector: React.FC<ElementSelectorProps> = ({ children }) =>
   const handleElementHover = (e: MouseEvent) => {
     if (!isEditing) return;
 
-    // If a section is already selected (editor open), suppress hover entirely
-    if (selectedElement) {
-      hoverElement(null);
-      return;
-    }
-
     const target = e.target as HTMLElement;
     const effectiveElement = resolveSectionRoot(target);
 
@@ -75,11 +69,9 @@ export const ElementSelector: React.FC<ElementSelectorProps> = ({ children }) =>
 
     const targetElement = contentRef.current || document.body;
 
-    // Always track clicks and mouseleave; only track mouseover when no selection
+    // Always track clicks and mouseleave; ALWAYS track mouseover (even when a section is selected)
     targetElement.addEventListener('click', handleElementClick, true);
-    if (!selectedElement) {
-      targetElement.addEventListener('mouseover', handleElementHover, true);
-    }
+    targetElement.addEventListener('mouseover', handleElementHover, true);
     targetElement.addEventListener('mouseleave', handleElementLeave, true);
 
     document.body.classList.add('sparti-editing');
