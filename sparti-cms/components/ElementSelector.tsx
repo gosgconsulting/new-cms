@@ -16,35 +16,43 @@ export const ElementSelector: React.FC<ElementSelectorProps> = ({ children }) =>
     return { element, data };
   };
 
+  // Helper: resolve to nearest section wrapper if present
+  const resolveSectionRoot = (target: HTMLElement | null): HTMLElement | null => {
+    if (!target) return null;
+    const nearestEditable = UniversalElementDetector.findNearestEditableElement(target);
+    if (!nearestEditable) return null;
+    const sectionRoot = nearestEditable.closest('[data-sparti-component-index]') as HTMLElement | null;
+    return sectionRoot || nearestEditable;
+  };
+
   const handleElementClick = (e: MouseEvent) => {
     if (!isEditing) return;
-    
     e.preventDefault();
     e.stopPropagation();
-    
+
     const target = e.target as HTMLElement;
-    const element = UniversalElementDetector.findNearestEditableElement(target);
-    
-    if (!element || !UniversalElementDetector.isEditableElement(element)) {
+    const effectiveElement = resolveSectionRoot(target);
+
+    if (!effectiveElement || !UniversalElementDetector.isEditableElement(effectiveElement)) {
       return;
     }
 
-    const spartiElement = createSpartiElement(element);
+    const spartiElement = createSpartiElement(effectiveElement);
     selectElement(spartiElement);
   };
 
   const handleElementHover = (e: MouseEvent) => {
     if (!isEditing) return;
-    
+
     const target = e.target as HTMLElement;
-    const element = UniversalElementDetector.findNearestEditableElement(target);
-    
-    if (!element || !UniversalElementDetector.isEditableElement(element)) {
+    const effectiveElement = resolveSectionRoot(target);
+
+    if (!effectiveElement || !UniversalElementDetector.isEditableElement(effectiveElement)) {
       hoverElement(null);
       return;
     }
 
-    const spartiElement = createSpartiElement(element);
+    const spartiElement = createSpartiElement(effectiveElement);
     hoverElement(spartiElement);
   };
 
@@ -56,15 +64,12 @@ export const ElementSelector: React.FC<ElementSelectorProps> = ({ children }) =>
   useEffect(() => {
     if (!isEditing) return;
 
-    // Use document instead of contentRef for universal compatibility
     const targetElement = contentRef.current || document.body;
-    
-    // Add event listeners with capture phase for better control
+
     targetElement.addEventListener('click', handleElementClick, true);
     targetElement.addEventListener('mouseover', handleElementHover, true);
     targetElement.addEventListener('mouseleave', handleElementLeave, true);
 
-    // Add class to body for global styling
     document.body.classList.add('sparti-editing');
 
     return () => {

@@ -10,7 +10,6 @@ export const EditingOverlay: React.FC = () => {
     const rect = element.getBoundingClientRect();
     const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
     const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
-    
     return {
       top: rect.top + scrollTop,
       left: rect.left + scrollLeft,
@@ -53,22 +52,19 @@ export const EditingOverlay: React.FC = () => {
 
   if (!isEditing) return null;
 
+  // Use section label if present
+  const selectedLabel =
+    selectedElement?.data?.attributes?.['data-sparti-section'] ||
+    selectedElement?.data?.tagName ||
+    '';
+
   return (
     <>
-      {/* Hover overlay */}
-      <div 
-        className="sparti-hover-overlay" 
-        style={hoverStyles}
-      />
-      
-      {/* Selection overlay */}
+      <div className="sparti-hover-overlay" style={hoverStyles} />
       {selectedElement && (
-        <div 
-          className="sparti-selection-overlay" 
-          style={overlayStyles}
-        >
+        <div className="sparti-selection-overlay" style={overlayStyles}>
           <div className="sparti-element-label">
-            {selectedElement.data.tagName}
+            {String(selectedLabel)}
           </div>
         </div>
       )}
