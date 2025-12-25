@@ -14,10 +14,34 @@ const SectionList: React.FC = () => {
   const { components, selectElement, isEditing } = useSpartiBuilder();
 
   const handleSelect = (idx: number) => {
-    const el = document.querySelector(`[data-sparti-component-index="${idx}"]`) as HTMLElement | null;
-    if (!el) return;
-    el.scrollIntoView({ behavior: "smooth", block: "center" });
-    selectElement({ element: el, data: { tagName: el.tagName.toLowerCase() } } as any);
+    const el = document.querySelector(
+      `[data-sparti-component-index="${idx}"]`
+    ) as HTMLElement | null;
+
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+      selectElement({ element: el, data: { tagName: el.tagName.toLowerCase() } } as any);
+      return;
+    }
+
+    // Fallback: if preview element doesn't exist, create a stub element with the right data attributes
+    const stub = document.createElement('div');
+    stub.setAttribute('data-sparti-component-index', String(idx));
+    const comp = Array.isArray(components) ? (components as any[])[idx] : null;
+    const label = comp ? labelFor(comp, idx) : `Section ${idx + 1}`;
+    stub.setAttribute('data-sparti-section', label.toLowerCase());
+
+    selectElement({
+      element: stub,
+      data: {
+        tagName: 'div',
+        elementType: 'container',
+        attributes: {
+          'data-sparti-component-index': String(idx),
+          'data-sparti-section': label.toLowerCase(),
+        },
+      },
+    } as any);
   };
 
   if (!isEditing) return null;
