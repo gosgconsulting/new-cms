@@ -466,7 +466,13 @@ const FlowbiteDioraRenderer: React.FC<FlowbiteDioraRendererProps> = ({
 
         {/* Right: editor only when a section is selected */}
         {selectedElement ? (
-          <div className="sticky top-0 h-screen w-[420px] min-w-[420px] max-w-[420px] border-l bg-background overflow-y-auto">
+          <div
+            className="sticky top-0 h-screen w-[420px] min-w-[420px] max-w-[420px] border-l bg-background overflow-y-auto sparti-editor-sticky"
+            onWheel={(e) => {
+              // Prevent scroll propagation to the center preview
+              e.stopPropagation();
+            }}
+          >
             <ContentEditPanel />
           </div>
         ) : null}

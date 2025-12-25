@@ -885,3 +885,21 @@ body.gosg-editing .sparti-btn:hover {
 .sparti-link:hover {
   color: #1d4ed8;
 }
+
+/* Sticky editor sidebar: own scrolling, no propagation to center */
+.sparti-editor-sticky {
+  height: 100vh;
+  overflow-y: auto;
+  overscroll-behavior: contain; /* prevent scroll chaining */
+  -webkit-overflow-scrolling: touch; /* smooth scrolling on iOS */
+}
+
+/* Ensure panel content can scroll independently as well */
+.sparti-edit-panel-content {
+  overscroll-behavior: contain;
+}
+
+/* Optional: left sections list already uses overflow; keep scroll local */
+.sparti-content {
+  overscroll-behavior: none;
+}
