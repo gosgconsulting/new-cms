@@ -234,12 +234,7 @@ const ContactsManager: React.FC<ContactsManagerProps> = ({ currentTenantId }) =>
         </h2>
         <p className="text-gray-600 mt-1">
           Manage your contact database and leads
-          {mode === 'theme' && currentThemeId && (
-            <span className="ml-2 text-sm text-purple-600 font-medium">
-              (Theme: {currentThemeId})
-            </span>
-          )}
-          {mode === 'tenants' && currentTenantId && (
+          {currentTenantId && (
             <span className="ml-2 text-sm text-blue-600 font-medium">
               (Tenant: {currentTenantId})
             </span>

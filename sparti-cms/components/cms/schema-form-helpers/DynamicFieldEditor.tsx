@@ -5,7 +5,7 @@ import { Label } from '../../../../src/components/ui/label';
 import { Textarea } from '../../../../src/components/ui/textarea';
 import { Button } from '../../../../src/components/ui/button';
 import { Badge } from '../../../../src/components/ui/badge';
-import { QuillEditor } from '../QuillEditor';
+import QuillEditor from '../QuillEditor';
 import {
   Select,
   SelectContent,

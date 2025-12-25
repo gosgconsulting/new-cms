@@ -404,6 +404,7 @@ const IntegrationsTab: React.FC<IntegrationsTabProps> = ({ currentTenantId, curr
   const [showAddIntegration, setShowAddIntegration] = useState(false);
   const [currentTenant, setCurrentTenant] = useState<Tenant | null>(null);
   const [currentTheme, setCurrentTheme] = useState<any | null>(null);
+  const mode = (currentThemeId && currentThemeId !== 'custom') ? 'theme' : 'tenants';
 
   // Fetch tenant and theme data
   useEffect(() => {
@@ -1002,4 +1003,3 @@ export const GoogleTranslationIntegrationListItem: React.FC = () => {
 };
 
 export default DeveloperManager;
-

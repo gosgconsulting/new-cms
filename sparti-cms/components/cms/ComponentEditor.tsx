@@ -3,7 +3,7 @@ import { ComponentSchema, SchemaItem } from '../../types/schema';
 import { Button } from '../../../src/components/ui/button';
 import { Label } from '../../../src/components/ui/label';
 import { ItemEditor } from './ItemEditors';
-import { QuillEditor } from './QuillEditor';
+import QuillEditor from './QuillEditor';
 import { 
   ChevronDown, 
   ChevronRight, 

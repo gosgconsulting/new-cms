@@ -240,16 +240,9 @@ const BrandingSettingsPage: React.FC<BrandingSettingsPageProps> = ({ currentTena
       console.log(`[testing] Starting to load branding settings for tenant: ${currentTenantId || 'default'}`);
       try {
         setIsLoading(true);
-        // Use the API utility with tenant ID
-        console.log(`[testing] Fetching branding settings with tenant ID: ${currentTenantId || 'default'}`);
-        // Build endpoint with theme context if in theme mode
         let endpoint = currentTenantId 
           ? `/api/branding?tenantId=${encodeURIComponent(currentTenantId)}`
           : '/api/branding';
-        
-        if (mode === 'theme' && currentThemeId) {
-          endpoint += `&themeId=${encodeURIComponent(currentThemeId)}`;
-        }
         
         console.log(`[testing] Making authenticated API call to: ${endpoint}`);
         const response = await api.get(endpoint);
@@ -330,7 +323,7 @@ const BrandingSettingsPage: React.FC<BrandingSettingsPageProps> = ({ currentTena
     };
 
     loadBrandingSettings();
-  }, [currentTenantId, mode, currentThemeId]);
+  }, [currentTenantId]);
   
   // Function to load language settings
   const loadLanguageSettings = async () => {
@@ -419,22 +412,13 @@ const BrandingSettingsPage: React.FC<BrandingSettingsPageProps> = ({ currentTena
         site_timezone: brandingData.timezone
       };
 
-      console.log(`[testing] Saving branding settings for tenant ${currentTenantId} (mode: ${mode}):`, settingsToSave);
+      console.log(`[testing] Saving branding settings for tenant ${currentTenantId}:`, settingsToSave);
       
-      // Use the API utility with tenant ID and theme context
-      // In theme mode, always use MASTER_TENANT_ID (demo)
       let endpoint = currentTenantId 
         ? `/api/branding?tenantId=${encodeURIComponent(currentTenantId)}`
         : '/api/branding';
       
-      if (mode === 'theme' && currentThemeId) {
-        endpoint += `&themeId=${encodeURIComponent(currentThemeId)}`;
-      }
-      
-      // Include themeId in request body for updateMultipleBrandingSettings
-      const requestBody = mode === 'theme' && currentThemeId
-        ? { ...settingsToSave, themeId: currentThemeId }
-        : settingsToSave;
+      const requestBody = settingsToSave;
       
       console.log(`[testing] Making authenticated API call to: ${endpoint}`, requestBody);
       const response = await api.post(endpoint, requestBody);
@@ -563,12 +547,7 @@ const BrandingSettingsPage: React.FC<BrandingSettingsPageProps> = ({ currentTena
         <h3 className="text-xl font-semibold text-foreground mb-2">Branding Settings</h3>
         <p className="text-muted-foreground">
           Customize your site's branding elements including name, tagline, logo, and favicon
-          {mode === 'theme' && currentThemeId && (
-            <span className="ml-2 text-sm text-purple-600 font-medium">
-              (Theme: {currentThemeId})
-            </span>
-          )}
-          {mode === 'tenants' && currentTenantId && (
+          {currentTenantId && (
             <span className="ml-2 text-sm text-blue-600 font-medium">
               (Tenant: {currentTenantId})
             </span>

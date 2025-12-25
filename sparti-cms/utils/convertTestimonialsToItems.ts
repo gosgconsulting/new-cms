@@ -154,17 +154,17 @@ export function convertTestimonialsComponentToItems(component: ComponentSchema):
  */
 export function convertLayoutTestimonialsToItems(layoutJson: { components?: ComponentSchema[] }): { components: ComponentSchema[] } {
   if (!layoutJson.components || !Array.isArray(layoutJson.components)) {
-    return layoutJson;
+    // Ensure we always return an object with components array
+    return { ...layoutJson, components: [] };
   }
 
   const convertedComponents = layoutJson.components.map(component => {
     // Check if this is a testimonials section
     if (component.type === 'testimonials-section' || 
-        component.id === 'testimonials-section' ||
+        component.key === 'testimonials-section' ||
         (component as any).key === 'testimonials-section') {
       return convertTestimonialsComponentToItems(component);
     }
-    
     return component;
   });
 
@@ -173,5 +173,3 @@ export function convertLayoutTestimonialsToItems(layoutJson: { components?: Comp
     components: convertedComponents
   };
 }
-
-

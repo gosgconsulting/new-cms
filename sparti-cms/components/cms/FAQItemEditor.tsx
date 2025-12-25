@@ -4,7 +4,7 @@ import { Button } from '../../../src/components/ui/button';
 import { X, HelpCircle } from 'lucide-react';
 import { SchemaItem } from '../../types/schema';
 import { FAQEditor as ContentFAQEditor } from '../content-editors';
-import { QuillEditor } from './QuillEditor';
+import QuillEditor from './QuillEditor';
 
 interface FAQItemEditorProps {
   item: SchemaItem;

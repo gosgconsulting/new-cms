@@ -435,7 +435,7 @@ const StylesSettingsPage: React.FC<StylesSettingsPageProps> = ({ currentTenantId
         try {
           // Add cache-busting parameter to prevent stale data
           const cacheBuster = Date.now();
-          const endpoint = `/api/settings/theme/${encodeURIComponent(currentThemeId)}/styles?tenantId=${encodeURIComponent(currentTenantId)}&_t=${cacheBuster}`;
+          const endpoint = `/api/settings/styles?tenantId=${encodeURIComponent(currentTenantId)}&_t=${cacheBuster}`;
           const reloadResponse = await api.get(endpoint);
           
           if (reloadResponse.ok) {

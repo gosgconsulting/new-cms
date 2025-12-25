@@ -104,8 +104,12 @@ export const VisualEditorJSONDialog: React.FC<VisualEditorJSONDialogProps> = ({
     } catch (error) {
       console.error('[testing] Error loading connection info:', error);
       setConnectionInfo({
-        type: mode === 'theme' ? 'theme' : 'tenant',
-        name: currentTenantId || 'Not connected'
+        type: (currentThemeId && currentThemeId !== 'custom')
+          ? 'theme'
+          : (currentTenantId ? 'tenant' : 'none'),
+        name: (currentThemeId && currentThemeId !== 'custom')
+          ? (currentThemeId)
+          : (currentTenantId || 'Not connected')
       });
     }
   };

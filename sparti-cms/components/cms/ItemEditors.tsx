@@ -11,7 +11,7 @@ import { Badge } from '../../../src/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../../src/components/ui/tabs';
 import { X, Plus, Image as ImageIcon, Link as LinkIcon, Type, MousePointer, Video, Grid, Layers, Mail, FolderOpen } from 'lucide-react';
 import { SchemaItem, SchemaItemType } from '../../types/schema';
-import { QuillEditor } from './QuillEditor';
+import QuillEditor from './QuillEditor';
 // Import the new content editor components
 import {
   VideoEditor as ContentVideoEditor,

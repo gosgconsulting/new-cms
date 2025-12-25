@@ -8,6 +8,22 @@ interface BrandingSettings {
   site_favicon?: string;
 }
 
+type Status = 'idle' | 'loading' | 'error';
+
+interface ComponentData {
+  name: string;
+  type: string;
+  content: string;
+  isPublished?: boolean;
+  tenantId?: string;
+}
+
+interface ComponentService {
+  getByName: (name: string) => Promise<any | null>;
+  update: (id: string | number, data: ComponentData) => Promise<void>;
+  create: (data: ComponentData) => Promise<void>;
+}
+
 interface DatabaseHook {
   // Branding methods
   getBranding: () => Promise<BrandingSettings>;
@@ -17,31 +33,31 @@ interface DatabaseHook {
   // Loading states
   loading: boolean;
   error: string | null;
+  status: Status;
+
+  // Components API used by ContentEditPanel
+  components: ComponentService;
 }
 
 const useDatabase = (): DatabaseHook => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const status: Status = loading ? 'loading' : (error ? 'error' : 'idle');
+
   // Branding methods using API calls
   const getBranding = async (): Promise<BrandingSettings> => {
     setLoading(true);
     setError(null);
-    
     try {
-      console.log('[testing] Fetching branding settings via API...');
       const response = await fetch('/api/branding');
-      
       if (!response.ok) {
         throw new Error(`API request failed: ${response.statusText}`);
       }
-      
       const settings = await response.json();
-      console.log('[testing] Branding settings fetched:', settings);
       return settings;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch branding settings';
-      console.error('[testing] Error fetching branding settings:', errorMessage);
       setError(errorMessage);
       throw err;
     } finally {
@@ -52,25 +68,17 @@ const useDatabase = (): DatabaseHook => {
   const updateBranding = async (key: string, value: string): Promise<void> => {
     setLoading(true);
     setError(null);
-    
     try {
-      console.log('[testing] Updating branding setting via API:', { key, value });
       const response = await fetch('/api/branding', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ [key]: value }),
       });
-      
       if (!response.ok) {
         throw new Error(`API request failed: ${response.statusText}`);
       }
-      
-      console.log('[testing] Branding setting updated successfully');
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to update branding setting';
-      console.error('[testing] Error updating branding setting:', errorMessage);
       setError(errorMessage);
       throw err;
     } finally {
@@ -81,30 +89,51 @@ const useDatabase = (): DatabaseHook => {
   const updateMultipleBranding = async (settings: Record<string, string>): Promise<void> => {
     setLoading(true);
     setError(null);
-    
     try {
-      console.log('[testing] Updating multiple branding settings via API:', settings);
       const response = await fetch('/api/branding', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(settings),
       });
-      
       if (!response.ok) {
         throw new Error(`API request failed: ${response.statusText}`);
       }
-      
-      console.log('[testing] Multiple branding settings updated successfully');
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to update branding settings';
-      console.error('[testing] Error updating multiple branding settings:', errorMessage);
       setError(errorMessage);
       throw err;
     } finally {
       setLoading(false);
     }
+  };
+
+  const components: ComponentService = {
+    getByName: async (name: string) => {
+      const res = await fetch(`/api/components?name=${encodeURIComponent(name)}`);
+      if (!res.ok) return null;
+      const data = await res.json();
+      return Array.isArray(data) ? (data[0] ?? null) : data;
+    },
+    update: async (id: string | number, data: ComponentData) => {
+      const res = await fetch(`/api/components/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) {
+        throw new Error(`Failed to update component: ${res.statusText}`);
+      }
+    },
+    create: async (data: ComponentData) => {
+      const res = await fetch(`/api/components`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) {
+        throw new Error(`Failed to create component: ${res.statusText}`);
+      }
+    },
   };
 
   return {
@@ -113,6 +142,8 @@ const useDatabase = (): DatabaseHook => {
     updateMultipleBranding,
     loading,
     error,
+    status,
+    components,
   };
 };
 

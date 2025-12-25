@@ -8,7 +8,7 @@ import { useAuth } from '../auth/AuthProvider';
 
 export const EmbedPagesManager: React.FC = () => {
   const [searchParams] = useSearchParams();
-  const { signInWithAccessKey, user, loading: authLoading } = useAuth();
+  const { signInWithAccessKey, user, loading: authLoading, currentTenantId } = useAuth();
   const [isVerifying, setIsVerifying] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -121,7 +121,10 @@ export const EmbedPagesManager: React.FC = () => {
         
         {/* PagesManager content */}
         <div className="p-4">
-          <PagesManager />
+          <PagesManager 
+            currentTenantId={(currentTenantId || user?.tenant_id || '')} 
+            currentThemeId={'custom'} 
+          />
         </div>
       </div>
     );
