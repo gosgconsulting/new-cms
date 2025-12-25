@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import type { ComponentSchema, SchemaItem } from "../../../../sparti-cms/types/schema";
 import FlowbiteSection from "./FlowbiteSection";
-import { Accordion } from "flowbite-react";
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "../../../components/ui/accordion";
 
 interface FlowbiteFAQSectionProps {
   component: ComponentSchema;
@@ -62,18 +62,18 @@ const FlowbiteFAQSection: React.FC<FlowbiteFAQSectionProps> = ({
         >
           {faqItems.length > 0 ? (
             <div className="max-w-4xl mx-auto">
-              <Accordion>
+              <Accordion type="single" collapsible>
                 {faqItems.map((item: any, index: number) => {
                   const question = item.question || item.title || "";
                   const answer = item.answer || item.content || item.description || "";
 
                   return (
-                    <Accordion.Panel key={index}>
-                      <Accordion.Title>{question}</Accordion.Title>
-                      <Accordion.Content>
+                    <AccordionItem key={index} value={`item-${index}`}>
+                      <AccordionTrigger>{question}</AccordionTrigger>
+                      <AccordionContent>
                         <p className="text-gray-600">{answer}</p>
-                      </Accordion.Content>
-                    </Accordion.Panel>
+                      </AccordionContent>
+                    </AccordionItem>
                   );
                 })}
               </Accordion>
@@ -88,4 +88,3 @@ const FlowbiteFAQSection: React.FC<FlowbiteFAQSectionProps> = ({
 };
 
 export default FlowbiteFAQSection;
-

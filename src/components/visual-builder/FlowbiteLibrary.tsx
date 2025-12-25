@@ -14,6 +14,7 @@ const dioraComponents: Array<{ id: string; name: string; description: string; sa
     name: "Hero Section",
     description: "Full-width hero section with image, title, description, button, and scroll arrow",
     sampleSchema: {
+      key: "hero-section",
       type: "HeroSection",
       items: [
         { key: "title", type: "heading", content: "Welcome to Our Brand", level: 1 },
@@ -29,6 +30,7 @@ const dioraComponents: Array<{ id: string; name: string; description: string; sa
     name: "Services Section",
     description: "Grid of service cards with images, titles, descriptions, and buttons",
     sampleSchema: {
+      key: "services-section",
       type: "ServicesSection",
       items: [
         { key: "title", type: "heading", content: "Our Services", level: 2 },
@@ -53,6 +55,7 @@ const dioraComponents: Array<{ id: string; name: string; description: string; sa
     name: "Features Section",
     description: "Feature cards showcasing key features with images and descriptions",
     sampleSchema: {
+      key: "features-section",
       type: "FeaturesSection",
       items: [
         { key: "title", type: "heading", content: "Key Features", level: 2 },
@@ -72,6 +75,7 @@ const dioraComponents: Array<{ id: string; name: string; description: string; sa
     name: "Ingredients Section",
     description: "Grid of ingredient items with images, names, and benefits",
     sampleSchema: {
+      key: "ingredients-section",
       type: "IngredientsSection",
       items: [
         { key: "title", type: "heading", content: "Ingredients", level: 2 },
@@ -90,6 +94,7 @@ const dioraComponents: Array<{ id: string; name: string; description: string; sa
     name: "Team Section",
     description: "Team member cards with photos, names, roles, and descriptions",
     sampleSchema: {
+      key: "team-section",
       type: "TeamSection",
       items: [
         { key: "title", type: "heading", content: "Our Team", level: 2 },
@@ -108,6 +113,7 @@ const dioraComponents: Array<{ id: string; name: string; description: string; sa
     name: "About Section",
     description: "About section with title, description, image, and optional button",
     sampleSchema: {
+      key: "about-section",
       type: "AboutSection",
       items: [
         { key: "title", type: "heading", content: "About Us", level: 2 },

@@ -55,34 +55,44 @@ const FlowbiteWhatIsSEOSection: React.FC<FlowbiteWhatIsSEOSectionProps> = ({
   // Icon mapping - returns SVG icon component
   const getIcon = (iconName: string) => {
     const icon = iconName?.toLowerCase();
-    const iconProps = { className: "w-7 h-7 text-primary", fill: "none", stroke: "currentColor", viewBox: "0 0 24 24" };
-    
+    const iconBase = { className: "w-7 h-7 text-primary", fill: "none", stroke: "currentColor", viewBox: "0 0 24 24" } as const;
+
+    const withProps = (d: string) =>
+      (props: React.SVGProps<SVGSVGElement>) => {
+        const merged = {
+          ...iconBase,
+          ...props,
+          className: [iconBase.className, props.className].filter(Boolean).join(" "),
+        };
+        return <svg {...merged}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={d} /></svg>;
+      };
+
     if (icon === "search") {
-      return () => <svg {...iconProps}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>;
+      return withProps("M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z");
     }
     if (icon === "document" || icon === "text") {
-      return () => <svg {...iconProps}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>;
+      return withProps("M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z");
     }
     if (icon === "code") {
-      return () => <svg {...iconProps}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>;
+      return withProps("M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4");
     }
     if (icon === "chart" || icon === "bar") {
-      return () => <svg {...iconProps}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>;
+      return withProps("M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z");
     }
     if (icon === "link") {
-      return () => <svg {...iconProps}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>;
+      return withProps("M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1");
     }
     if (icon === "users" || icon === "user") {
-      return () => <svg {...iconProps}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>;
+      return withProps("M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z");
     }
     if (icon === "trending" || icon === "up") {
-      return () => <svg {...iconProps}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>;
+      return withProps("M13 7h8m0 0v8m0-8l-8 8-4-4-6 6");
     }
     if (icon === "target") {
-      return () => <svg {...iconProps}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>;
+      return withProps("M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z");
     }
     // Default to search icon
-    return () => <svg {...iconProps}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>;
+    return withProps("M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z");
   };
 
   return (
@@ -132,4 +142,3 @@ const FlowbiteWhatIsSEOSection: React.FC<FlowbiteWhatIsSEOSectionProps> = ({
 };
 
 export default FlowbiteWhatIsSEOSection;
-

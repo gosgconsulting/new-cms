@@ -4,6 +4,7 @@ import React from "react";
 import type { ComponentSchema, SchemaItem } from "../../../../sparti-cms/types/schema";
 import FlowbiteSection from "./FlowbiteSection";
 import { Button } from "flowbite-react";
+import { Card } from "../../../components/ui/card";
 
 interface FlowbiteProductGridProps {
   component: ComponentSchema;
@@ -76,28 +77,29 @@ const FlowbiteProductGrid: React.FC<FlowbiteProductGridProps> = ({
               <Card
                 key={product.id || index}
                 className="overflow-hidden hover:shadow-lg transition-all duration-300 group"
-                href={productLink}
               >
-                <div className="aspect-square overflow-hidden bg-gray-100">
-                  <img
-                    src={productImage}
-                    alt={productTitle || `Product ${index + 1}`}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                </div>
-                <div className="p-4">
-                  {productTitle && (
-                    <h3 className="font-semibold text-lg mb-2 group-hover:text-primary transition-colors">
-                      {productTitle}
-                    </h3>
-                  )}
-                  {productDescription && (
-                    <p className="text-gray-600 text-sm mb-2 line-clamp-2">{productDescription}</p>
-                  )}
-                  {productPrice && (
-                    <p className="text-lg font-bold text-primary">{productPrice}</p>
-                  )}
-                </div>
+                <a href={productLink} className="block">
+                  <div className="aspect-square overflow-hidden bg-gray-100">
+                    <img
+                      src={productImage}
+                      alt={productTitle || `Product ${index + 1}`}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  </div>
+                  <div className="p-4">
+                    {productTitle && (
+                      <h3 className="font-semibold text-lg mb-2 group-hover:text-primary transition-colors">
+                        {productTitle}
+                      </h3>
+                    )}
+                    {productDescription && (
+                      <p className="text-gray-600 text-sm mb-2 line-clamp-2">{productDescription}</p>
+                    )}
+                    {productPrice && (
+                      <p className="text-lg font-bold text-primary">{productPrice}</p>
+                    )}
+                  </div>
+                </a>
               </Card>
             );
           })}
@@ -112,4 +114,3 @@ const FlowbiteProductGrid: React.FC<FlowbiteProductGridProps> = ({
 };
 
 export default FlowbiteProductGrid;
-

@@ -20,7 +20,8 @@ export type SchemaItemType =
   | 'ContactForm'
   | 'faq'
   | 'officeHours'
-  | 'contactInfo';
+  | 'contactInfo'
+  | 'embed'; // added to support embed type comparisons
 
 // Schema item interface
 export interface SchemaItem {
@@ -31,7 +32,7 @@ export interface SchemaItem {
   link?: string;                // For buttons/images
   level?: 1 | 2 | 3 | 4 | 5 | 6; // For headings
   value?: boolean | any;         // For boolean/other types
-  items?: SchemaItem[];         // For arrays
+  items?: SchemaItem[] | any[];  // allow flexible nested array shapes
   props?: Record<string, any>;  // For complex types like review/feature
   required?: boolean;           // For form fields
   alt?: string;                 // For images
@@ -60,10 +61,11 @@ export interface SchemaItem {
 
 // Component schema interface
 export interface ComponentSchema {
-  key: string;
-  name?: string;                // Display name for the component
-  type: string;                 // HeroSection, Showcase, ProductGrid, etc.
+  key?: string;                  // optional to support sample schemas
+  name?: string;                 // Display name for the component
+  type: string;                  // HeroSection, Showcase, ProductGrid, etc.
   items: SchemaItem[];
+  props?: Record<string, any>;   // optional props bag used by some components
 }
 
 // Page schema interface

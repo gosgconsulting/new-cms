@@ -24,10 +24,12 @@ const FlowbiteTestimonialsSection: React.FC<FlowbiteTestimonialsSectionProps> = 
   const items = component.items || [];
 
   // Helper functions
-  const getHeading = (key: string) => {
+  const getHeading = (key: string, level?: number) => {
     const item = items.find(
-      (i) => i.key?.toLowerCase() === key.toLowerCase() &&
-      i.type === "heading"
+      (i) =>
+        i.key?.toLowerCase() === key.toLowerCase() &&
+        i.type === "heading" &&
+        (level === undefined || (i as any).level === level)
     ) as any;
     return item?.content || "";
   };
@@ -133,4 +135,3 @@ const FlowbiteTestimonialsSection: React.FC<FlowbiteTestimonialsSectionProps> = 
 };
 
 export default FlowbiteTestimonialsSection;
-

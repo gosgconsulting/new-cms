@@ -11,7 +11,8 @@ import {
   AlertCircle,
   CheckCircle,
   ArrowLeft,
-  Shield
+  Shield,
+  Info
 } from 'lucide-react';
 import { Link, useNavigate, useLocation, useParams } from 'react-router-dom';
 import gosgLogo from "@/assets/go-sg-logo-official.png";

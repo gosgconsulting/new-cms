@@ -22,7 +22,7 @@ interface PageItem {
   page_name: string;
   slug: string;
   status: 'published' | 'draft' | 'archived';
-  page_type: 'page' | 'landing' | 'legal';
+  page_type: 'page' | 'landing' | 'legal' | 'header' | 'footer';
   meta_title?: string;
   meta_description?: string;
   seo_index?: boolean;
