@@ -3,7 +3,6 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { existsSync } from 'fs';
 import { app } from './config/app.js';
-import { corsMiddleware } from './middleware/cors.js';
 import { ensureUploadsDir } from './utils/uploads.js';
 import routes from './routes/index.js';
 
@@ -12,9 +11,6 @@ const __dirname = dirname(__filename);
 
 // Ensure uploads directory exists
 ensureUploadsDir();
-
-// CORS middleware (must be first)
-app.use(corsMiddleware);
 
 
 // Routes (includes access key authentication middleware)

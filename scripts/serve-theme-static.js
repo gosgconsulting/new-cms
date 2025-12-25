@@ -40,16 +40,21 @@ console.log('[testing] Serving static files from:', distPath);
 app.use(express.static(distPath));
 
 // Handle all other routes by serving the React app (SPA routing)
-app.get('*', (req, res) => {
-  const indexPath = join(distPath, 'index.html');
-  if (existsSync(indexPath)) {
-    res.sendFile(indexPath);
+// Use app.use() instead of app.get('*') for Express 5 compatibility
+app.use((req, res, next) => {
+  if (req.method === 'GET') {
+    const indexPath = join(distPath, 'index.html');
+    if (existsSync(indexPath)) {
+      res.sendFile(indexPath);
+    } else {
+      res.status(404).json({ 
+        status: 'error', 
+        message: 'index.html not found',
+        timestamp: new Date().toISOString() 
+      });
+    }
   } else {
-    res.status(404).json({ 
-      status: 'error', 
-      message: 'index.html not found',
-      timestamp: new Date().toISOString() 
-    });
+    next();
   }
 });
 

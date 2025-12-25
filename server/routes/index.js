@@ -26,6 +26,10 @@ const router = express.Router();
 
 // Apply access key authentication middleware to all API routes except verify-access-key and v1 routes
 router.use('/api', (req, res, next) => {
+  // Skip authentication for OPTIONS requests (handled by CORS middleware)
+  if (req.method === 'OPTIONS') {
+    return next();
+  }
   // Skip access key authentication for the verify-access-key endpoint
   // req.path includes the full path from the request
   if (req.path === '/api/auth/verify-access-key') {

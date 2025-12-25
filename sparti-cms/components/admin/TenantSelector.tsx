@@ -45,10 +45,22 @@ export const TenantSelector: React.FC<TenantSelectorProps> = ({
             isDevelopment: t.id === 'tenant-dev' || !!t.isDevelopment,
           }));
           
-          // Sort tenants: 'demo' always first, then others alphabetically
+          // Sort tenants: 'demo' always first (by ID or name), then others alphabetically
           return mappedTenants.sort((a: Tenant, b: Tenant) => {
-            if (a.id === 'demo' || a.id === 'demo-tenant') return -1;
-            if (b.id === 'demo' || b.id === 'demo-tenant') return 1;
+            const aIsDemo = a.id === 'demo' || 
+                           a.id === 'demo-tenant' || 
+                           a.name.toLowerCase() === 'demo' ||
+                           a.name.toLowerCase() === 'demo account';
+            const bIsDemo = b.id === 'demo' || 
+                           b.id === 'demo-tenant' || 
+                           b.name.toLowerCase() === 'demo' ||
+                           b.name.toLowerCase() === 'demo account';
+            
+            // If a is demo, it comes first
+            if (aIsDemo && !bIsDemo) return -1;
+            // If b is demo, it comes first
+            if (bIsDemo && !aIsDemo) return 1;
+            // If both are demo or neither is demo, sort alphabetically
             return a.name.localeCompare(b.name);
           });
         } else {
