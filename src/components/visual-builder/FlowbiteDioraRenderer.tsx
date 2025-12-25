@@ -371,14 +371,6 @@ const FlowbiteDioraRenderer: React.FC<FlowbiteDioraRendererProps> = ({
   components,
   pageContext,
 }) => {
-  if (!components || components.length === 0) {
-    return (
-      <div className="p-4 text-center text-sm text-gray-500">
-        No components to render
-      </div>
-    );
-  }
-
   const VisualContent: React.FC = () => {
     const { components: ctxComponents } = useSpartiBuilder();
     const list = Array.isArray(ctxComponents) && ctxComponents.length > 0 ? ctxComponents : components;

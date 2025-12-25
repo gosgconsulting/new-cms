@@ -491,17 +491,15 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
                 <div className="bg-white border rounded-lg p-8 m-6 text-center text-muted-foreground">
                   Loading page layout...
                 </div>
-              ) : builderError ? (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4 m-6 text-sm text-red-700">
-                  {builderError}
-                </div>
-              ) : builderComponents.length === 0 ? (
-                <div className="bg-white border rounded-lg p-8 m-6 text-center text-muted-foreground">
-                  No components found in layout. Use JSON to add sections.
-                </div>
               ) : (
-                // Apply Flowbite preview only for Diora-like homepages
-                (visualEditorPage.slug === '/' || visualEditorPage.slug === '/home') && isDioraHomepageLayout(builderComponents) ? (
+                <>
+                  {builderError ? (
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-4 m-6 text-sm text-red-700">
+                      {builderError}
+                    </div>
+                  ) : null}
+
+                  {/* Always mount the unified visual editor shell for all tenants/pages */}
                   <FlowbiteDioraRenderer
                     components={builderComponents}
                     pageContext={{
@@ -512,11 +510,7 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
                       themeId: currentThemeId
                     }}
                   />
-                ) : (
-                  <div className="bg-white border rounded-lg p-8 m-6 text-center text-gray-500">
-                    Preview uses theme components for this page. Flowbite preview is available for Diora-like homepages only.
-                  </div>
-                )
+                </>
               )}
             </div>
           </div>
