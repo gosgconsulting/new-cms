@@ -362,8 +362,6 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
       ? getThemePageUrl(visualEditorPage.slug)
       : visualEditorPage.slug;
 
-    const isCustomTheme = currentThemeId === 'custom';
-
     return (
       <div className="flex flex-col" style={{ height: 'calc(100vh - 120px)' }}>
         <div className="flex items-center justify-between p-4 border-b bg-white rounded-t-lg">
@@ -385,27 +383,23 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
             <span className="text-sm text-muted-foreground">{pageUrl}</span>
           </div>
           <div className="flex items-center gap-2">
-            {!isCustomTheme && (
-              <>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowCodeViewer(true)}
-                  title="View the page source code"
-                >
-                  <FileCode className="h-4 w-4 mr-2" />
-                  Code
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowJSONEditor(true)}
-                >
-                  <Code className="h-4 w-4 mr-2" />
-                  JSON
-                </Button>
-              </>
-            )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowCodeViewer(true)}
+              title="View the page source code"
+            >
+              <FileCode className="h-4 w-4 mr-2" />
+              Code
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowJSONEditor(true)}
+            >
+              <Code className="h-4 w-4 mr-2" />
+              JSON
+            </Button>
             <Button
               variant="outline"
               size="sm"
@@ -417,37 +411,26 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
           </div>
         </div>
 
-        {/* Content area */}
-        {!isCustomTheme ? (
-          <div className="flex-1 relative bg-gray-100 rounded-b-lg overflow-hidden flex">
-            <div className="flex-1 relative" id="visual-editor-iframe-container">
-              <iframe
-                id="visual-editor-iframe"
-                src={pageUrl}
-                className="w-full h-full border-0"
-                title={`Visual Editor: ${visualEditorPage.pageName}`}
-                style={{ height: '100%' }}
-              />
-            </div>
-            <AIAssistantChat 
-              className="h-full" 
-              pageContext={visualEditorPage ? {
-                slug: visualEditorPage.slug,
-                pageName: visualEditorPage.pageName
-              } : null}
+        {/* Unified Visual Editor layout for all themes */}
+        <div className="flex-1 relative bg-gray-100 rounded-b-lg overflow-hidden flex">
+          <div className="flex-1 relative" id="visual-editor-iframe-container">
+            <iframe
+              id="visual-editor-iframe"
+              src={pageUrl}
+              className="w-full h-full border-0"
+              title={`Visual Editor: ${visualEditorPage.pageName}`}
+              style={{ height: '100%' }}
             />
           </div>
-        ) : (
-          // Empty shell for custom theme for now
-          <div className="flex-1 bg-gray-100 rounded-b-lg overflow-hidden flex items-center justify-center">
-            <div className="text-center text-muted-foreground">
-              <p className="text-sm">Visual editor placeholder</p>
-              <p className="text-xs">Custom theme support coming soon.</p>
-            </div>
-          </div>
-        )}
+          <AIAssistantChat 
+            className="h-full" 
+            pageContext={visualEditorPage ? {
+              slug: visualEditorPage.slug,
+              pageName: visualEditorPage.pageName
+            } : null}
+          />
+        </div>
 
-        {/* Dialogs (only useful for non-custom theme; kept but buttons hidden above when custom) */}
         <CodeViewerDialog
           open={showCodeViewer}
           onOpenChange={setShowCodeViewer}
