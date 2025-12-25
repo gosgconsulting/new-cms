@@ -20,6 +20,21 @@ export type FlowbiteSliderProps = {
     keyboard?: boolean;
     aspectRatio?: "16/9" | "4/3" | "1/1" | "21/9";
     transition?: { type?: "slide" | "fade"; durationMs?: number };
+    overlay?: {
+      enabled?: boolean;
+      mode?: "solid" | "gradient";
+      color?: string;         // e.g. 'black'
+      opacity?: number;       // 0..1
+      className?: string;     // optional override, e.g. 'bg-black/30'
+      gradient?: {
+        from?: string;
+        to?: string;
+        direction?: "to-t" | "to-b" | "to-l" | "to-r" | "to-tr" | "to-tl" | "to-br" | "to-bl";
+      };
+      zIndex?: number;        // defaults under content, above image
+      pointerEventsNone?: boolean;
+      blur?: boolean;
+    };
   };
   ariaLabel?: string;
   className?: string;
@@ -49,7 +64,14 @@ const FlowbiteSlider: React.FC<FlowbiteSliderProps> = ({
     pauseOnHover = true,
     keyboard = true,
     aspectRatio = "16/9",
-    transition = { type: "slide", durationMs: 350 }
+    transition = { type: "slide", durationMs: 350 },
+    overlay = {
+      enabled: false,
+      mode: "solid",
+      color: "black",
+      opacity: 0.3,
+      pointerEventsNone: true,
+    }
   } = options || {};
 
   const duration = transition?.durationMs ?? 350;
@@ -143,8 +165,41 @@ const FlowbiteSlider: React.FC<FlowbiteSliderProps> = ({
                   (e.target as HTMLImageElement).src = "/placeholder.svg";
                 }}
               />
+              {/* Overlay layer (over image, under content) */}
+              {overlay?.enabled && (
+                <div
+                  className={[
+                    "absolute inset-0",
+                    overlay.pointerEventsNone !== false ? "pointer-events-none" : "",
+                    overlay.blur ? "backdrop-blur-sm" : "",
+                    overlay.className
+                      ? overlay.className
+                      : overlay.mode === "solid"
+                        ? "" // handled via inline style below
+                        : overlay.mode === "gradient"
+                          ? `bg-gradient-${overlay.gradient?.direction || "to-t"}`
+                          : ""
+                  ].join(" ")}
+                  style={
+                    overlay.className
+                      ? undefined
+                      : overlay.mode === "solid"
+                        ? {
+                            backgroundColor: overlay.color || "black",
+                            opacity: typeof overlay.opacity === "number" ? overlay.opacity : 0.3,
+                            zIndex: overlay.zIndex ?? 5
+                          }
+                        : {
+                            // gradient fallback if className not supplied
+                            backgroundImage: `linear-gradient(${(overlay.gradient?.direction || "to top").replace("to-", "to ")}, ${overlay.gradient?.from || "rgba(0,0,0,0.4)"} , ${overlay.gradient?.to || "rgba(0,0,0,0.0)"})`,
+                            zIndex: overlay.zIndex ?? 5
+                          }
+                  }
+                  aria-hidden="true"
+                />
+              )}
               {(s.caption || s.button) && (
-                <div className="absolute inset-0 flex items-end md:items-center justify-center bg-gradient-to-t from-black/40 via-transparent to-transparent p-4">
+                <div className="absolute inset-0 flex items-end md:items-center justify-center p-4 z-10">
                   <div className="max-w-2xl text-center text-white space-y-3">
                     {s.caption && (
                       <p className="text-base md:text-lg lg:text-xl drop-shadow">

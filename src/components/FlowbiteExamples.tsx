@@ -50,7 +50,7 @@ export const FLOWBITE_COMPONENTS: FlowbiteComponentDef[] = [
     name: "Slider",
     version: "1.0.0",
     category: "media",
-    tags: ["carousel", "hero", "images"],
+    tags: ["carousel", "hero", "images", "overlay", "a11y"],
     path: "/src/libraries/flowbite/components/FlowbiteSlider.tsx",
   },
   {
