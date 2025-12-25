@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
-import { MessageCircle, Loader2, ChevronRight, ChevronLeft } from "lucide-react";
+import { MessageCircle, Loader2, ChevronRight, X } from "lucide-react";
 import { PromptBox } from "@/components/ui/chatgpt-prompt-input";
 import { cn } from "@/lib/utils";
 import api from "../../sparti-cms/utils/api";
@@ -72,6 +72,8 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
 
   // NEW: collapse state
   const [isCollapsed, setIsCollapsed] = useState(false);
+  // NEW: closed state
+  const [isClosed, setIsClosed] = useState(false);
 
   // Remove JSON code blocks from assistant messages (keep friendly status line)
   const sanitizeAssistantMessage = (msg: string) => {
@@ -1043,8 +1045,20 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
 
   return (
     <div className={cn("relative flex h-full", className)}>
+      {/* Sticky reopen button when closed */}
+      {isClosed && (
+        <button
+          onClick={() => setIsClosed(false)}
+          className="fixed right-3 top-1/2 -translate-y-1/2 z-50 bg-primary text-primary-foreground shadow-lg px-3 py-2 rounded-l-full flex items-center gap-2 hover:opacity-90"
+          aria-label="Open AI Assistant"
+          title="Open AI Assistant"
+        >
+          <MessageCircle className="h-4 w-4" />
+          <span className="hidden sm:inline">AI Assistant</span>
+        </button>
+      )}
       {/* Sidebar - Always visible */}
-      <div className={cn("flex flex-col h-full bg-card border-l shadow-lg overflow-hidden", isCollapsed ? "w-12" : "w-full")}>
+      <div className={cn("flex flex-col h-full bg-card border-l shadow-lg overflow-hidden", isCollapsed ? "w-12" : "w-full", isClosed ? "hidden" : "")}>
         {/* Always show content - no collapse functionality */}
             {/* Header */}
             <div className={cn("flex items-center justify-between border-b flex-shrink-0 bg-background", isCollapsed ? "px-2 py-2" : "px-4 py-2")}>
@@ -1079,21 +1093,14 @@ export const AIAssistantChat: React.FC<AIAssistantChatProps & { onProposedCompon
                   </div>
                 )}
               </div>
-              {/* Minimize / Expand toggle */}
+              {/* Close button */}
               <button
-                onClick={() => setIsCollapsed((v) => !v)}
-                className={cn(
-                  "ml-2 inline-flex items-center justify-center h-8 w-8 rounded-md hover:bg-muted transition-colors",
-                  isCollapsed ? "mx-auto" : ""
-                )}
-                aria-label={isCollapsed ? "Expand editor" : "Minimize editor"}
-                title={isCollapsed ? "Expand editor" : "Minimize editor"}
+                onClick={() => setIsClosed(true)}
+                className="ml-2 inline-flex items-center justify-center h-8 w-8 rounded-md hover:bg-muted transition-colors"
+                aria-label="Close editor"
+                title="Close editor"
               >
-                {isCollapsed ? (
-                  <ChevronLeft className="h-4 w-4" />
-                ) : (
-                  <ChevronRight className="h-4 w-4" />
-                )}
+                <X className="h-4 w-4" />
               </button>
             </div>
 
