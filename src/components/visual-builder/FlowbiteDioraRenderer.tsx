@@ -448,6 +448,32 @@ const FlowbiteDioraRenderer: React.FC<FlowbiteDioraRendererProps> = ({
     );
   };
 
+  const Layout: React.FC = () => {
+    const { selectedElement } = useSpartiBuilder();
+
+    return (
+      <div className="flex w-full h-full">
+        {/* Left: Sections list (sticky) */}
+        <SectionList />
+
+        {/* Middle: preview (bigger when editor is hidden) */}
+        <div className="flex-1 min-w-0 overflow-auto">
+          <div className="w-full h-full">
+            <VisualContent />
+            <EditingOverlay />
+          </div>
+        </div>
+
+        {/* Right: editor only when a section is selected */}
+        {selectedElement ? (
+          <div className="sticky top-0 h-screen w-[420px] min-w-[420px] max-w-[420px] border-l bg-background overflow-y-auto">
+            <ContentEditPanel />
+          </div>
+        ) : null}
+      </div>
+    );
+  };
+
   return (
     <SpartiBuilderProvider
       components={components}
@@ -456,23 +482,7 @@ const FlowbiteDioraRenderer: React.FC<FlowbiteDioraRendererProps> = ({
       tenantId={pageContext?.tenantId}
       themeId={pageContext?.themeId}
     >
-      <div className="flex w-full h-full">
-        {/* Left: Sections list */}
-        <SectionList />
-
-        {/* Middle: large preview area */}
-        <div className="flex-1 min-w-0 overflow-auto">
-          <div className="w-full h-full">
-            <VisualContent />
-            <EditingOverlay />
-          </div>
-        </div>
-
-        {/* Right: always-visible editor sidebar (sticky) */}
-        <div className="sticky top-0 h-screen w-[420px] min-w-[420px] max-w-[420px] border-l bg-background overflow-y-auto">
-          <ContentEditPanel />
-        </div>
-      </div>
+      <Layout />
     </SpartiBuilderProvider>
   );
 };
