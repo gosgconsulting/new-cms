@@ -16,6 +16,7 @@ import CodeViewerDialog from './PageEditor/CodeViewerDialog';
 import ComponentPreview from '../../../src/components/visual-builder/ComponentPreview';
 import { isValidComponentsArray } from '../../utils/componentHelpers';
 import { ComponentSchema } from '../../types/schema';
+import SimpleWebsiteRenderer from '../../../src/components/visual-builder/SimpleWebsiteRenderer';
 
 interface PageItem {
   id: string;
@@ -495,11 +496,7 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
                     No components found in layout. Use JSON to add sections.
                   </div>
                 ) : (
-                  builderComponents.map((comp, idx) => (
-                    <div key={comp.key || `${comp.type}-${idx}`} className="w-full">
-                      <ComponentPreview component={comp} />
-                    </div>
-                  ))
+                  <SimpleWebsiteRenderer components={builderComponents} />
                 )}
               </div>
             </div>
