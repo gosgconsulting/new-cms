@@ -2,7 +2,7 @@ import React, { useState, useEffect, useLayoutEffect } from 'react';
 import { Button } from '../../../src/components/ui/button';
 import { Card } from '../../../src/components/ui/card';
 import { Badge } from '../../../src/components/ui/badge';
-import { Edit, Eye, FileText, Rocket, Scale, Layout, Minus, Code, FileCode, RefreshCw } from 'lucide-react';
+import { Edit, Eye, FileText, Rocket, Scale, Layout, Minus, Code, RefreshCw } from 'lucide-react';
 import { toast } from '../../../src/hooks/use-toast';
 import HeaderSchemaEditor from './HeaderSchemaEditor';
 import FooterSchemaEditor from './FooterSchemaEditor';
@@ -444,15 +444,6 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
             <span className="text-sm text-muted-foreground">{pageUrl}</span>
           </div>
           <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowCodeViewer(true)}
-              title="View the page source code"
-            >
-              <FileCode className="h-4 w-4 mr-2" />
-              Code
-            </Button>
             <Button
               variant="outline"
               size="sm"
