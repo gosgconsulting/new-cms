@@ -15,6 +15,7 @@ import { VisualEditorJSONDialog } from './VisualEditorJSONDialog';
 import CodeViewerDialog from './PageEditor/CodeViewerDialog';
 import { isValidComponentsArray } from '../../utils/componentHelpers';
 import FlowbiteDioraRenderer from '../../../src/components/visual-builder/FlowbiteDioraRenderer';
+import { applyFlowbiteTheme } from '../../../src/utils/flowbiteThemeManager';
 import { ComponentSchema } from '../../types/schema';
 
 interface PageItem {
@@ -326,6 +327,12 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
         const data = await response.json();
         const comps = data?.page?.layout?.components || [];
         setBuilderComponents(isValidComponentsArray(comps) ? comps : []);
+
+        // If Diora-like homepage layout detected, ensure default Flowbite theme is applied for preview
+        const isHomepage = visualEditorPage?.slug === '/' || visualEditorPage?.slug === '/home';
+        if (isHomepage && isDioraHomepageLayout(isValidComponentsArray(comps) ? comps : [])) {
+          applyFlowbiteTheme('default');
+        }
       } catch (err: any) {
         setBuilderError(err?.message || 'Failed to load page layout');
         setBuilderComponents([]);
@@ -336,6 +343,27 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
 
     loadBuilderLayout();
   }, [visualEditorPage, currentThemeId, currentTenantId]);
+
+  // Helper: determine if current layout matches Diora homepage structure
+  const isDioraHomepageLayout = (components: ComponentSchema[]) => {
+    if (!Array.isArray(components) || components.length === 0) return false;
+    const keys = new Set(
+      components
+        .map((c) => (c.type || c.name || c.key || '').toLowerCase())
+    );
+    // Must include these six sections (case-insensitive); allow variations like servicesSection vs servicessection
+    const required = [
+      'herosection',
+      'servicessection',
+      'featuressection',
+      'ingredientssection',
+      'teamsection',
+      'aboutsection',
+    ];
+    const has = (needle: string) =>
+      [...keys].some((k) => k.includes(needle));
+    return required.every((r) => has(r.replace('section', '')) || has(r));
+  };
 
   const handleMigrateLayouts = async () => {
     if (!currentThemeId) {
@@ -473,7 +501,14 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
                   No components found in layout. Use JSON to add sections.
                 </div>
               ) : (
-                <FlowbiteDioraRenderer components={builderComponents} />
+                // Apply Flowbite preview only for Diora-like homepages
+                (visualEditorPage.slug === '/' || visualEditorPage.slug === '/home') && isDioraHomepageLayout(builderComponents) ? (
+                  <FlowbiteDioraRenderer components={builderComponents} />
+                ) : (
+                  <div className="bg-white border rounded-lg p-8 m-6 text-center text-gray-500">
+                    Preview uses theme components for this page. Flowbite preview is available for Diora-like homepages only.
+                  </div>
+                )
               )}
             </div>
           </div>

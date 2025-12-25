@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import type { ComponentSchema, SchemaItem } from "../../../sparti-cms/types/schema";
 
 interface FlowbiteDioraRendererProps {
@@ -36,23 +36,28 @@ const normalizeType = (t?: string) => (t || "").toLowerCase();
 /* Sections */
 
 function SectionHero({ items }: { items: SchemaItem[] }) {
-  const slides = getArray(items, "slides");
-  const heroImg =
-    slides.length > 0
-      ? findImageItem(slides)
-      : (items.find((i) => i.type === "image") as any);
+  const slides = getArray(items, "slides").filter((s: any) => !!s?.src);
   const welcomeText = getText(items, "welcomeText");
   const logo = items.find(
     (i) => i.key?.toLowerCase() === "logo" && i.type === "image"
   ) as any;
 
-  if (!heroImg?.src) return null;
+  // If no slides array or empty, try fallback single image item
+  const fallbackImg = (items.find((i) => i.type === "image") as any) || null;
+  const hasSlides = slides.length > 0;
+  const [index, setIndex] = useState(0);
+
+  const currentImg = hasSlides ? slides[index] : fallbackImg;
+  if (!currentImg?.src) return null;
+
+  const next = () => setIndex((i) => (i + 1) % slides.length);
+  const prev = () => setIndex((i) => (i - 1 + slides.length) % slides.length);
 
   return (
     <section className="relative w-full min-h-[50vh] sm:min-h-[60vh] overflow-hidden rounded-lg">
       <img
-        src={heroImg.src}
-        alt={heroImg.alt || "Hero"}
+        src={currentImg.src}
+        alt={currentImg.alt || "Hero"}
         className="absolute inset-0 h-full w-full object-cover"
         onError={(e) => {
           (e.target as HTMLImageElement).src = "/placeholder.svg";
@@ -80,6 +85,35 @@ function SectionHero({ items }: { items: SchemaItem[] }) {
           ) : null}
         </div>
       </div>
+
+      {hasSlides && slides.length > 1 ? (
+        <div className="absolute inset-x-0 bottom-4 flex items-center justify-center gap-2 z-10">
+          <button
+            onClick={prev}
+            className="rounded-lg bg-white/80 px-3 py-1 text-sm hover:bg-white"
+            aria-label="Previous slide"
+          >
+            Prev
+          </button>
+          <div className="flex items-center gap-1">
+            {slides.map((_, i) => (
+              <span
+                key={i}
+                className={`h-2 w-2 rounded-full ${
+                  i === index ? "bg-white" : "bg-white/50"
+                }`}
+              />
+            ))}
+          </div>
+          <button
+            onClick={next}
+            className="rounded-lg bg-white/80 px-3 py-1 text-sm hover:bg-white"
+            aria-label="Next slide"
+          >
+            Next
+          </button>
+        </div>
+      ) : null}
     </section>
   );
 }
@@ -135,12 +169,18 @@ function SectionServices({ items }: { items: SchemaItem[] }) {
                 />
               </div>
               <div className="space-y-1 p-4">
-                {card.img?.title ? (
-                  <h3 className="text-base font-semibold">{card.img.title}</h3>
-                ) : null}
-                {card.img?.price ? (
-                  <p className="text-xs text-gray-500">{card.img.price}</p>
-                ) : null}
+                <div className="flex items-center gap-2">
+                  {card.img?.title ? (
+                    <h3 className="text-base font-semibold">
+                      {card.img.title}
+                    </h3>
+                  ) : null}
+                  {card.img?.price ? (
+                    <span className="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-[11px] font-medium text-blue-700">
+                      {card.img.price}
+                    </span>
+                  ) : null}
+                </div>
                 {card.img?.alt ? (
                   <p className="line-clamp-3 text-xs text-gray-500">
                     {card.img.alt}
@@ -340,6 +380,7 @@ function SectionAbout({ items }: { items: SchemaItem[] }) {
 
   if (!title && !description && !imageItem?.src) return null;
 
+  // Image-right default
   return (
     <section className="w-full py-10 px-4 md:px-6">
       <div className="mx-auto grid max-w-6xl items-center gap-6 md:grid-cols-2">
