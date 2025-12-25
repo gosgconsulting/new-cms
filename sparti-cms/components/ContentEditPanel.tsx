@@ -101,7 +101,6 @@ export const ContentEditPanel: React.FC = () => {
         targetPageId = String(ctxData.pageContext.pageId);
       }
 
-      // If sanitize helper exists, use it; otherwise, save current components
       const payloadComponents = components;
       const res = await api.put(`/api/pages/${targetPageId}/layout`, {
         layout_json: { components: payloadComponents },
@@ -145,32 +144,21 @@ export const ContentEditPanel: React.FC = () => {
     );
   };
 
-  const IconComponent = getEditorIcon(elementType as ElementType);
+  // Simplified header: just the section name (no icon, no "Section Editor" title)
+  const sectionLabel = selectedComponent
+    ? (selectedComponent.type || selectedComponent.name || selectedComponent.key || 'Component')
+    : 'Select a section';
 
   return (
-    <div className="w-full h-full flex flex-col">
+    <div className="relative w-full h-full flex flex-col">
       <div className="sparti-edit-panel-header">
         <div className="sparti-edit-header-content">
-          <IconComponent size={20} />
           <div>
-            <h3>Section Editor</h3>
-            <p className="sparti-element-path">
-              {selectedComponent ? (selectedComponent.type || selectedComponent.name || 'Component') : 'No section selected'}
-            </p>
+            <h3>{sectionLabel}</h3>
           </div>
         </div>
         <div className="sparti-edit-panel-actions">
-          <button 
-            className={`sparti-btn sparti-btn-primary ${savingLayout ? 'sparti-btn-loading' : ''}`}
-            onClick={handleSaveLayout}
-            disabled={savingLayout}
-            aria-label="Save layout"
-            title="Save page layout to database"
-          >
-            {savingLayout ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-            {savingLayout ? 'Saving...' : 'Save'}
-          </button>
-          {/* Close selection only (keep panel visible) */}
+          {/* Clear selection only (panel remains visible) */}
           <button 
             className="sparti-btn sparti-btn-ghost sparti-close-btn" 
             onClick={() => selectElement(null)}
@@ -199,6 +187,20 @@ export const ContentEditPanel: React.FC = () => {
           </div>
         )}
         {renderSpecializedEditor()}
+      </div>
+
+      {/* Floating Save button at bottom-right of the sidebar */}
+      <div className="absolute bottom-4 right-4">
+        <button 
+          className={`sparti-btn sparti-btn-primary ${savingLayout ? 'sparti-btn-loading' : ''}`}
+          onClick={handleSaveLayout}
+          disabled={savingLayout}
+          aria-label="Save layout"
+          title="Save page layout to database"
+        >
+          {savingLayout ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+          {savingLayout ? 'Saving...' : 'Save'}
+        </button>
       </div>
     </div>
   );
