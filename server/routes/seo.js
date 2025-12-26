@@ -15,63 +15,43 @@ import {
   getSEOMeta,
   createSEOMeta
 } from '../../sparti-cms/db/seo-management.js';
+import { getPublicSEOSettings } from '../../sparti-cms/db/index.js';
 
 const router = express.Router();
 
 // ===== SEO SETTINGS ROUTE =====
+const DEFAULT_SEO = {
+  site_name: 'GO SG',
+  site_tagline: 'Digital Marketing Agency',
+  meta_title: 'GO SG - Digital Marketing Agency',
+  meta_description: 'GO SG - We grow your revenue at the highest ROI through integrated digital marketing solutions.',
+  meta_keywords: 'SEO, digital marketing, Singapore, organic traffic, search rankings',
+  meta_author: 'GO SG',
+  og_title: 'GO SG - Digital Marketing Agency',
+  og_description: 'Integrated marketing solutions for SMEs and high-performing brands.',
+  og_type: 'website',
+  twitter_card: 'summary_large_image',
+  twitter_site: '@gosgconsulting'
+};
 
-// Get SEO settings (public endpoint for frontend)
 router.get('/seo', async (req, res) => {
   try {
-    const { dbInitialized, dbInitializationError } = getDatabaseState();
-    
-    // Check if database is ready
+    const { dbInitialized } = getDatabaseState();
+
+    // If DB is not ready, return defaults (200) to avoid breaking the UI
     if (!dbInitialized) {
-      if (dbInitializationError) {
-        return res.status(503).json({
-          error: 'Database initialization failed',
-          message: 'Please try again later'
-        });
-      }
-      return res.status(503).json({
-        error: 'Database is initializing',
-        message: 'Please try again in a moment'
-      });
+      return res.status(200).json(DEFAULT_SEO);
     }
 
-    const { getPublicSEOSettings } = await import('../../sparti-cms/db/index.js');
     const tenantId = req.query.tenantId || 'tenant-gosg';
     const seoSettings = await getPublicSEOSettings(tenantId);
-    
+
     // Always return valid JSON
-    if (!res.headersSent) {
-      res.json(seoSettings || {});
-    }
+    return res.json(seoSettings || DEFAULT_SEO);
   } catch (error) {
     console.error('[testing] Error fetching SEO settings:', error);
-    console.error('[testing] Error code:', error.code);
-    console.error('[testing] Error message:', error.message);
-    console.error('[testing] Error stack:', error.stack);
-    
-    // Handle database connection errors
-    if (error.code === 'ECONNREFUSED' || error.code === 'ETIMEDOUT' || error.code === 'ENOTFOUND') {
-      if (!res.headersSent) {
-        return res.status(503).json({
-          error: 'Database connection failed',
-          message: 'Unable to connect to database. Please check database configuration.'
-        });
-      }
-    }
-    
-    // Always return valid JSON, even on error
-    if (!res.headersSent) {
-      res.status(500).json({ 
-        error: 'Failed to fetch SEO settings',
-        message: process.env.NODE_ENV === 'development' ? error.message : 'Unknown error'
-      });
-    } else {
-      console.error('[testing] Response already sent, cannot send error response');
-    }
+    // Always return defaults to avoid 500 response
+    return res.status(200).json(DEFAULT_SEO);
   }
 });
 
@@ -382,4 +362,3 @@ router.post('/seo-meta', async (req, res) => {
 });
 
 export default router;
-

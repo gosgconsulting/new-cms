@@ -1,6 +1,6 @@
 import express from 'express';
 import jwt from 'jsonwebtoken';
-import bcrypt from 'bcryptjs';
+import bcrypt from 'bcrypt';
 import { query } from '../../sparti-cms/db/index.js';
 import { JWT_SECRET } from '../config/constants.js';
 import { authenticateUser } from '../middleware/auth.js';
@@ -454,6 +454,95 @@ router.post('/auth/login', async (req, res) => {
       message: errorMessage,
       diagnostic: '/health/database',
       errorCode: error?.code
+    });
+  }
+});
+
+// REGISTER endpoint expected by the frontend
+router.post('/auth/register', async (req, res) => {
+  try {
+    const { first_name, last_name, email, password } = req.body;
+
+    // Basic validation
+    if (!first_name || !last_name || !email || !password) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required fields',
+        message: 'first_name, last_name, email, and password are required'
+      });
+    }
+    if (password.length < 8) {
+      return res.status(400).json({
+        success: false,
+        error: 'Password must be at least 8 characters long'
+      });
+    }
+
+    // Ensure DB is initialized
+    const { dbInitialized, dbInitializationError } = getDatabaseState();
+    if (!dbInitialized) {
+      return res.status(503).json({
+        success: false,
+        error: dbInitializationError ? 'Database initialization failed' : 'Database is initializing',
+        message: dbInitializationError ? dbInitializationError.message : 'Please try again in a moment'
+      });
+    }
+
+    // Check users table exists
+    const check = await query(`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables 
+        WHERE table_schema = 'public' 
+        AND table_name = 'users'
+      );
+    `);
+    if (!check.rows[0].exists) {
+      return res.status(503).json({
+        success: false,
+        error: 'Database not fully initialized',
+        message: 'Users table is missing. Run: npm run sequelize:migrate'
+      });
+    }
+
+    // Check if email already exists
+    const existing = await query('SELECT id FROM users WHERE email = $1', [email]);
+    if (existing.rows.length > 0) {
+      return res.status(409).json({
+        success: false,
+        error: 'Email already exists',
+        message: 'A user with this email already exists'
+      });
+    }
+
+    // Hash password using bcrypt (consistent with other routes)
+    const password_hash = await bcrypt.hash(password, 10);
+
+    // Create user as pending/disabled until approved
+    const result = await query(
+      `INSERT INTO users (first_name, last_name, email, password_hash, role, status, is_active)
+       VALUES ($1, $2, $3, $4, 'user', 'pending', false)
+       RETURNING id, first_name, last_name, email, role, status, is_active`,
+      [first_name, last_name, email, password_hash]
+    );
+
+    return res.status(201).json({
+      success: true,
+      user: result.rows[0],
+      message: 'Registration successful! Your account is pending approval.'
+    });
+  } catch (error) {
+    console.error('[testing] Registration error:', error);
+    if (error?.code === '42P01') {
+      return res.status(503).json({
+        success: false,
+        error: 'Database table missing',
+        message: 'Users table does not exist. Run: npm run sequelize:migrate'
+      });
+    }
+    return res.status(500).json({
+      success: false,
+      error: 'Registration failed',
+      message: error?.message || 'Unknown error'
     });
   }
 });
@@ -1195,4 +1284,3 @@ router.post('/tenants/validate-api-key', async (req, res) => {
 });
 
 export default router;
-
