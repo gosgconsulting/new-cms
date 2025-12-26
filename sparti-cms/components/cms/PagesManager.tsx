@@ -875,7 +875,6 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
                       <ThemeRenderer
                         components={builderComponents}
                         themeId={previewThemeId || currentThemeId}
-                        tenantId={currentTenantId}
                         pageContext={{
                           pageId: visualEditorPage.id,
                           slug: visualEditorPage.slug,

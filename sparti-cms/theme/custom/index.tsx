@@ -40,7 +40,7 @@ const CustomTheme: React.FC<TenantLandingProps> = ({
       {/* Main content */}
       <main className="flex-1">
         <HeroSection
-          tenantName={tenantName}
+          title={tenantName}
           onButtonClick={handleContactClick}
         />
         <FeaturesSection />
