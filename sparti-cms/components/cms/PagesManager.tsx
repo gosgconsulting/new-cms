@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useLayoutEffect, useCallback } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useCallback, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '../../../src/components/ui/button';
 import { Card } from '../../../src/components/ui/card';
@@ -147,6 +147,32 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
   const [builderError, setBuilderError] = useState<string | null>(null);
   const [savingLayout, setSavingLayout] = useState(false);
 
+  // Fetch all tenants (reuse the same query used by TenantSelector)
+  const { data: tenants = [] } = useQuery<Array<{ id: string; name: string; theme_id?: string | null }>>({
+    queryKey: ['tenants'],
+    queryFn: async () => {
+      try {
+        const response = await api.get(`/api/tenants`);
+        if (response.ok) {
+          const data = await response.json();
+          return Array.isArray(data) ? data : [];
+        } else {
+          console.error('Failed to fetch tenants');
+          return [];
+        }
+      } catch (error) {
+        console.error('Error fetching tenants:', error);
+        return [];
+      }
+    },
+  });
+
+  // Get current tenant from the tenants list
+  const currentTenant = useMemo(() => {
+    if (!currentTenantId || !tenants.length) return null;
+    return tenants.find(t => t.id === currentTenantId) || null;
+  }, [currentTenantId, tenants]);
+
   // Fetch available themes for preview selector
   const { data: availableThemes = [] } = useQuery<Array<{ id: string; name: string; slug: string }>>({
     queryKey: ['themes'],
@@ -166,6 +192,27 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
       }
     },
   });
+
+  // Filter themes based on tenant's theme_id
+  const filteredThemes = useMemo(() => {
+    if (!currentTenant) {
+      // If no tenant data, show all themes (fallback behavior)
+      return availableThemes;
+    }
+
+    const tenantThemeId = currentTenant.theme_id;
+
+    // If tenant has 'custom' theme_id or null, only show 'custom'
+    if (!tenantThemeId || tenantThemeId === 'custom') {
+      return [];
+    }
+
+    // If tenant has a specific theme_id, only show that theme
+    return availableThemes.filter((theme) => {
+      const themeIdentifier = theme.slug || theme.id;
+      return themeIdentifier === tenantThemeId;
+    });
+  }, [availableThemes, currentTenant]);
 
   const tabs = [
     { id: 'page' as const, label: 'Pages', icon: FileText },
@@ -731,7 +778,7 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
                   <SelectItem value="theme">Theme</SelectItem>
                 </SelectContent>
               </Select>
-              {currentTenantId && availableThemes.length > 0 && (
+              {currentTenantId && (
                 <>
                   <span className="text-sm text-gray-600 ml-2">Theme:</span>
                   <Select 
@@ -746,8 +793,12 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
                       <SelectValue placeholder="Select theme" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="custom">Custom</SelectItem>
-                      {availableThemes.map((theme) => (
+                      {/* Always show 'custom' option if tenant has custom theme_id or null */}
+                      {(!currentTenant?.theme_id || currentTenant.theme_id === 'custom') && (
+                        <SelectItem value="custom">Custom</SelectItem>
+                      )}
+                      {/* Show filtered themes based on tenant's theme_id */}
+                      {filteredThemes.map((theme) => (
                         <SelectItem key={theme.slug || theme.id} value={theme.slug || theme.id}>
                           {theme.name || theme.slug}
                         </SelectItem>

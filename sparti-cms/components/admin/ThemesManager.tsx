@@ -478,9 +478,6 @@ const ThemesManager: React.FC = () => {
                   }`}>
                     {theme.is_active !== false ? 'Active' : 'Inactive'}
                   </span>
-                  <span className="text-xs px-2 py-1 rounded bg-blue-100 text-blue-800 border border-blue-200">
-                    Tenant: demo
-                  </span>
                   {theme.created_at && (
                     <span className="text-xs text-muted-foreground">
                       Created: {new Date(theme.created_at).toLocaleDateString()}
