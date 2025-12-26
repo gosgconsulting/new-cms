@@ -1,7 +1,15 @@
+import 'dotenv/config';
 import app from './app.js';
 import { PORT } from './config/constants.js';
 import { initializeDatabaseInBackground } from './utils/database.js';
 import { syncThemesFromFileSystem } from '../sparti-cms/services/themeSync.js';
+
+// Verify dotenv loaded correctly
+if (process.env.DATABASE_URL || process.env.DATABASE_PUBLIC_URL) {
+  console.log('[testing] dotenv loaded successfully - DATABASE_URL is set');
+} else {
+  console.log('[testing] WARNING: dotenv loaded but DATABASE_URL is not set');
+}
 
 // Keep the process alive
 process.on('SIGINT', () => {
