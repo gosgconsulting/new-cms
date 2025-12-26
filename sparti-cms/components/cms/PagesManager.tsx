@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useLayoutEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useCallback, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '../../../src/components/ui/button';
 import { Card } from '../../../src/components/ui/card';
@@ -143,35 +143,18 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
 
   // NEW: builder state for custom theme visual editor
   const [builderComponents, setBuilderComponents] = useState<ComponentSchema[]>([]);
+  // Use a ref to track the latest components for save operations
+  // This ensures we always have the most up-to-date value even if state hasn't updated yet
+  const builderComponentsRef = useRef<ComponentSchema[]>([]);
+  
+  // Keep ref in sync with state
+  useEffect(() => {
+    builderComponentsRef.current = builderComponents;
+  }, [builderComponents]);
+  
   const [builderLoading, setBuilderLoading] = useState(false);
   const [builderError, setBuilderError] = useState<string | null>(null);
   const [savingLayout, setSavingLayout] = useState(false);
-
-  // Fetch all tenants (reuse the same query used by TenantSelector)
-  const { data: tenants = [] } = useQuery<Array<{ id: string; name: string; theme_id?: string | null }>>({
-    queryKey: ['tenants'],
-    queryFn: async () => {
-      try {
-        const response = await api.get(`/api/tenants`);
-        if (response.ok) {
-          const data = await response.json();
-          return Array.isArray(data) ? data : [];
-        } else {
-          console.error('Failed to fetch tenants');
-          return [];
-        }
-      } catch (error) {
-        console.error('Error fetching tenants:', error);
-        return [];
-      }
-    },
-  });
-
-  // Get current tenant from the tenants list
-  const currentTenant = useMemo(() => {
-    if (!currentTenantId || !tenants.length) return null;
-    return tenants.find(t => t.id === currentTenantId) || null;
-  }, [currentTenantId, tenants]);
 
   // Fetch available themes for preview selector
   const { data: availableThemes = [] } = useQuery<Array<{ id: string; name: string; slug: string }>>({
@@ -192,27 +175,6 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
       }
     },
   });
-
-  // Filter themes based on tenant's theme_id
-  const filteredThemes = useMemo(() => {
-    if (!currentTenant) {
-      // If no tenant data, show all themes (fallback behavior)
-      return availableThemes;
-    }
-
-    const tenantThemeId = currentTenant.theme_id;
-
-    // If tenant has 'custom' theme_id or null, only show 'custom'
-    if (!tenantThemeId || tenantThemeId === 'custom') {
-      return [];
-    }
-
-    // If tenant has a specific theme_id, only show that theme
-    return availableThemes.filter((theme) => {
-      const themeIdentifier = theme.slug || theme.id;
-      return themeIdentifier === tenantThemeId;
-    });
-  }, [availableThemes, currentTenant]);
 
   const tabs = [
     { id: 'page' as const, label: 'Pages', icon: FileText },
@@ -526,12 +488,21 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
       }
 
       const data = await response.json();
+      console.log('[testing] Loaded layout data:', {
+        hasPage: !!data?.page,
+        hasLayout: !!data?.page?.layout,
+        hasComponents: !!data?.page?.layout?.components,
+        componentsCount: data?.page?.layout?.components?.length || 0
+      });
+      
       const comps = data?.page?.layout?.components || [];
-      setBuilderComponents(isValidComponentsArray(comps) ? comps : []);
+      const validComps = isValidComponentsArray(comps) ? comps : [];
+      console.log('[testing] Setting builder components:', validComps.length);
+      setBuilderComponents(validComps);
 
       // If Diora-like homepage layout detected, ensure default Flowbite theme is applied for preview
       const isHomepage = visualEditorPage?.slug === '/' || visualEditorPage?.slug === '/home';
-      if (isHomepage && isDioraHomepageLayout(isValidComponentsArray(comps) ? comps : [])) {
+      if (isHomepage && isDioraHomepageLayout(validComps)) {
         applyFlowbiteTheme('default');
       }
     } catch (err: any) {
@@ -564,12 +535,43 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
     }
 
     try {
+      // Force blur any active input elements to ensure all pending changes are synced
+      // This is important because inputs only call onChange on blur
+      const activeElement = document.activeElement;
+      if (activeElement && (activeElement instanceof HTMLInputElement || activeElement instanceof HTMLTextAreaElement)) {
+        console.log('[testing] Blurring active input before save:', activeElement.tagName);
+        activeElement.blur();
+        // Wait longer for blur handlers to complete and all state updates to propagate
+        // The blur will trigger onChange -> updateComponent -> onComponentsChange -> setBuilderComponents -> builderComponentsRef
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+      
+      // Give one more tick for React to process all state updates
+      await new Promise(resolve => setTimeout(resolve, 100));
+
       setSavingLayout(true);
       const effectiveTenantId = currentTenantId || 'tenant-gosg';
       const targetPageId = visualEditorPage.id;
 
+      // Use ref value to ensure we have the latest components after blur
+      // The ref is updated by useEffect whenever builderComponents changes
+      // Prefer ref value if it has components, otherwise fall back to state
+      const componentsToSave = (builderComponentsRef.current.length > 0 || builderComponents.length === 0) 
+        ? builderComponentsRef.current 
+        : builderComponents;
+      
+      if (!Array.isArray(componentsToSave) || componentsToSave.length === 0) {
+        toast({
+          title: 'No changes to save',
+          description: 'There are no components to save.',
+          variant: 'default',
+        });
+        setSavingLayout(false);
+        return;
+      }
+
       // Ensure layout_json has the correct structure: { components: [...] }
-      const layoutJson = { components: builderComponents };
+      const layoutJson = { components: componentsToSave };
 
       // Include themeId when available and not 'custom' to ensure correct page is updated
       const requestBody: any = {
@@ -584,17 +586,48 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
         pageId: targetPageId,
         tenantId: effectiveTenantId,
         themeId: currentThemeId,
-        componentsCount: builderComponents.length
+        componentsCount: componentsToSave.length,
+        usingRefValue: builderComponentsRef.current.length > 0,
+        requestBody: requestBody
       });
 
       const res = await api.put(`/api/pages/${targetPageId}/layout`, requestBody);
-      const json = await res.json();
       
-      if (json && json.success !== false) {
+      // Check if response is OK before parsing
+      if (!res.ok) {
+        const errorText = await res.text();
+        let errorMessage = 'Failed to save layout';
+        try {
+          const errorJson = JSON.parse(errorText);
+          errorMessage = errorJson.message || errorJson.error || errorMessage;
+        } catch {
+          errorMessage = errorText || errorMessage;
+        }
+        
+        console.error('[testing] Save failed - HTTP error:', {
+          status: res.status,
+          statusText: res.statusText,
+          error: errorMessage
+        });
+        
+        toast({
+          title: 'Failed to save',
+          description: errorMessage,
+          variant: 'destructive',
+        });
+        return;
+      }
+      
+      const json = await res.json();
+      console.log('[testing] Save response:', json);
+      
+      // Explicitly check for success === true
+      if (json && json.success === true) {
         // Wait a bit for database to commit
-        await new Promise(resolve => setTimeout(resolve, 300));
+        await new Promise(resolve => setTimeout(resolve, 500));
         
         // Reload the page layout from database to ensure UI reflects saved state
+        // Force reload by clearing any potential cache
         await loadBuilderLayout();
         
         toast({
@@ -603,9 +636,10 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
           variant: 'default',
         });
       } else {
+        console.error('[testing] Save failed - API returned failure:', json);
         toast({
           title: 'Failed to save',
-          description: json?.message || 'Failed to save layout',
+          description: json?.message || json?.error || 'Failed to save layout',
           variant: 'destructive',
         });
       }
@@ -778,7 +812,7 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
                   <SelectItem value="theme">Theme</SelectItem>
                 </SelectContent>
               </Select>
-              {currentTenantId && (
+              {currentTenantId && availableThemes.length > 0 && (
                 <>
                   <span className="text-sm text-gray-600 ml-2">Theme:</span>
                   <Select 
@@ -793,12 +827,8 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
                       <SelectValue placeholder="Select theme" />
                     </SelectTrigger>
                     <SelectContent>
-                      {/* Always show 'custom' option if tenant has custom theme_id or null */}
-                      {(!currentTenant?.theme_id || currentTenant.theme_id === 'custom') && (
-                        <SelectItem value="custom">Custom</SelectItem>
-                      )}
-                      {/* Show filtered themes based on tenant's theme_id */}
-                      {filteredThemes.map((theme) => (
+                      <SelectItem value="custom">Custom</SelectItem>
+                      {availableThemes.map((theme) => (
                         <SelectItem key={theme.slug || theme.id} value={theme.slug || theme.id}>
                           {theme.name || theme.slug}
                         </SelectItem>
@@ -882,6 +912,11 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
                           tenantId: currentTenantId,
                           themeId: previewThemeId || currentThemeId
                         }}
+                        onComponentsChange={(updatedComponents) => {
+                          console.log('[testing] Components updated in theme editor:', updatedComponents.length);
+                          setBuilderComponents(updatedComponents);
+                          builderComponentsRef.current = updatedComponents; // Update ref immediately
+                        }}
                       />
                     ) : (
                       <div className="bg-white border rounded-lg p-8 m-6 text-center text-muted-foreground">
@@ -898,6 +933,11 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
                         tenantId: currentTenantId,
                         themeId: previewThemeId || currentThemeId
                       }}
+                      onComponentsChange={(updatedComponents) => {
+                        console.log('[testing] Components updated in editor:', updatedComponents.length);
+                        setBuilderComponents(updatedComponents);
+                        builderComponentsRef.current = updatedComponents; // Update ref immediately
+                      }}
                     />
                   ) : (
                     <ClassicRenderer
@@ -908,6 +948,11 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
                         pageName: visualEditorPage.pageName,
                         tenantId: currentTenantId,
                         themeId: previewThemeId || currentThemeId
+                      }}
+                      onComponentsChange={(updatedComponents) => {
+                        console.log('[testing] Components updated in classic editor:', updatedComponents.length);
+                        setBuilderComponents(updatedComponents);
+                        builderComponentsRef.current = updatedComponents; // Update ref immediately
                       }}
                     />
                   )}

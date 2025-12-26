@@ -18,6 +18,7 @@ interface ThemeRendererProps {
     tenantId?: string;
     themeId?: string;
   };
+  onComponentsChange?: (components: ComponentSchema[]) => void;
 }
 
 // Dynamic theme imports - themes with hardcoded content
@@ -57,6 +58,7 @@ const themeConfig: Record<string, { name: string; component: React.LazyExoticCom
 const ThemeRenderer: React.FC<ThemeRendererProps> = ({ 
   components,
   themeId,
+  onComponentsChange,
   pageContext
 }) => {
   const effectiveThemeId = themeId || 'landingpage';
@@ -169,6 +171,7 @@ const ThemeRenderer: React.FC<ThemeRendererProps> = ({
       tenantId={pageContext?.tenantId}
       themeId={pageContext?.themeId || effectiveThemeId}
       config={{ enabled: true, toolbar: false, autoDetect: true }}
+      onComponentsChange={onComponentsChange}
     >
       <ThemeLayout />
     </SpartiBuilderProvider>

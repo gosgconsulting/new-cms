@@ -1,6 +1,6 @@
 // Specialized editors for each item type in the new schema structure
 
-import React from 'react';
+import React, { useMemo, useRef, useEffect, useCallback } from 'react';
 import { Input } from '../../../src/components/ui/input';
 import { Label } from '../../../src/components/ui/label';
 import { Textarea } from '../../../src/components/ui/textarea';
@@ -34,11 +34,28 @@ interface ItemEditorProps {
 
 // Heading item editor
 export const HeadingEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove, allowRemove = true }) => {
+  const contentInputRef = useRef<HTMLInputElement>(null);
+  const localContentRef = useRef(item.content || '');
+  const isContentFocusedRef = useRef(false);
+
+  // Initialize refs from item prop - but only if input is not focused
+  useEffect(() => {
+    if (!isContentFocusedRef.current) {
+      const newContent = item.content || '';
+      if (newContent !== localContentRef.current) {
+        localContentRef.current = newContent;
+        if (contentInputRef.current) {
+          const wasFocused = document.activeElement === contentInputRef.current;
+          if (!wasFocused) {
+            contentInputRef.current.value = newContent;
+          }
+        }
+      }
+    }
+  }, [item.content]);
+
   const updateValue = (value: string) => {
-    onChange({
-      ...item,
-      content: value
-    });
+    localContentRef.current = value;
   };
 
   const updateLevel = (level: string) => {
@@ -47,6 +64,8 @@ export const HeadingEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRem
       level: parseInt(level) as 1 | 2 | 3 | 4 | 5 | 6
     });
   };
+
+  const initialContent = item.content || '';
 
   return (
     <Card className="border-0 shadow-none">
@@ -83,8 +102,20 @@ export const HeadingEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRem
         <div>
           <Label className="text-xs">Heading Text</Label>
           <Input
-            value={item.content || ''}
+            ref={contentInputRef}
+            key={`heading-text-${item.key}`}
+            defaultValue={initialContent}
             onChange={(e) => updateValue(e.target.value)}
+            onFocus={() => { isContentFocusedRef.current = true; }}
+            onBlur={(e) => {
+              isContentFocusedRef.current = false;
+              const currentValue = e.target.value;
+              localContentRef.current = currentValue;
+              onChange({
+                ...item,
+                content: currentValue
+              });
+            }}
             placeholder="Enter heading text..."
             className="text-sm"
           />
@@ -131,9 +162,48 @@ export const TextEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove
 
 // Image item editor
 export const ImageEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove, allowRemove = true }) => {
-  const update = (field: keyof SchemaItem, value: string) => onChange({ ...item, [field]: value });
-  const url = item.src || '';
-  const alt = item.alt || '';
+  const srcInputRef = useRef<HTMLInputElement>(null);
+  const altInputRef = useRef<HTMLInputElement>(null);
+  const localSrcRef = useRef(item.src || '');
+  const localAltRef = useRef(item.alt || '');
+  const isSrcFocusedRef = useRef(false);
+  const isAltFocusedRef = useRef(false);
+
+  // Initialize refs from item prop - but only if input is not focused
+  useEffect(() => {
+    if (!isSrcFocusedRef.current) {
+      const newSrc = item.src || '';
+      if (newSrc !== localSrcRef.current) {
+        localSrcRef.current = newSrc;
+        if (srcInputRef.current) {
+          const wasFocused = document.activeElement === srcInputRef.current;
+          if (!wasFocused) {
+            srcInputRef.current.value = newSrc;
+          }
+        }
+      }
+    }
+    if (!isAltFocusedRef.current) {
+      const newAlt = item.alt || '';
+      if (newAlt !== localAltRef.current) {
+        localAltRef.current = newAlt;
+        if (altInputRef.current) {
+          const wasFocused = document.activeElement === altInputRef.current;
+          if (!wasFocused) {
+            altInputRef.current.value = newAlt;
+          }
+        }
+      }
+    }
+  }, [item.src, item.alt]);
+
+  const updateSrc = (value: string) => {
+    localSrcRef.current = value;
+  };
+
+  const updateAlt = (value: string) => {
+    localAltRef.current = value;
+  };
 
   const uploadFile = async (file: File) => {
     const formData = new FormData();
@@ -141,8 +211,15 @@ export const ImageEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemov
     const res = await fetch('/api/upload', { method: 'POST', body: formData });
     if (!res.ok) return;
     const result = await res.json();
-    if (result?.url) update('src', result.url);
+    if (result?.url) {
+      onChange({ ...item, src: result.url });
+    }
   };
+
+  const url = item.src || '';
+  const alt = item.alt || '';
+  const initialSrc = item.src || '';
+  const initialAlt = item.alt || '';
 
   return (
     <Card className="border-0 shadow-none">
@@ -161,8 +238,20 @@ export const ImageEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemov
         <div className="space-y-2">
           <Label className="text-xs">Image URL</Label>
           <Input
-            value={url}
-            onChange={(e) => update('src', e.target.value)}
+            ref={srcInputRef}
+            key={`image-src-${item.key}`}
+            defaultValue={initialSrc}
+            onChange={(e) => updateSrc(e.target.value)}
+            onFocus={() => { isSrcFocusedRef.current = true; }}
+            onBlur={(e) => {
+              isSrcFocusedRef.current = false;
+              const currentValue = e.target.value;
+              localSrcRef.current = currentValue;
+              onChange({
+                ...item,
+                src: currentValue
+              });
+            }}
             placeholder="https://example.com/image.jpg"
             className="text-sm"
           />
@@ -170,8 +259,20 @@ export const ImageEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemov
         <div className="space-y-2">
           <Label className="text-xs">Alt Text</Label>
           <Input
-            value={alt}
-            onChange={(e) => update('alt', e.target.value)}
+            ref={altInputRef}
+            key={`image-alt-${item.key}`}
+            defaultValue={initialAlt}
+            onChange={(e) => updateAlt(e.target.value)}
+            onFocus={() => { isAltFocusedRef.current = true; }}
+            onBlur={(e) => {
+              isAltFocusedRef.current = false;
+              const currentValue = e.target.value;
+              localAltRef.current = currentValue;
+              onChange({
+                ...item,
+                alt: currentValue
+              });
+            }}
             placeholder="Describe the image"
             className="text-sm"
           />
@@ -183,19 +284,51 @@ export const ImageEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemov
 
 // Link item editor
 export const LinkEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove, allowRemove = true }) => {
-  const updateValue = (value: string) => {
-    onChange({
-      ...item,
-      link: value
-    });
+  const linkInputRef = useRef<HTMLInputElement>(null);
+  const labelInputRef = useRef<HTMLInputElement>(null);
+  const localLinkRef = useRef(item.link || '');
+  const localLabelRef = useRef(item.label || '');
+  const isLinkFocusedRef = useRef(false);
+  const isLabelFocusedRef = useRef(false);
+
+  // Initialize refs from item prop - but only if input is not focused
+  useEffect(() => {
+    if (!isLinkFocusedRef.current) {
+      const newLink = item.link || '';
+      if (newLink !== localLinkRef.current) {
+        localLinkRef.current = newLink;
+        if (linkInputRef.current) {
+          const wasFocused = document.activeElement === linkInputRef.current;
+          if (!wasFocused) {
+            linkInputRef.current.value = newLink;
+          }
+        }
+      }
+    }
+    if (!isLabelFocusedRef.current) {
+      const newLabel = item.label || '';
+      if (newLabel !== localLabelRef.current) {
+        localLabelRef.current = newLabel;
+        if (labelInputRef.current) {
+          const wasFocused = document.activeElement === labelInputRef.current;
+          if (!wasFocused) {
+            labelInputRef.current.value = newLabel;
+          }
+        }
+      }
+    }
+  }, [item.link, item.label]);
+
+  const updateLink = (value: string) => {
+    localLinkRef.current = value;
   };
 
-  const updateLabel = (label: string) => {
-    onChange({
-      ...item,
-      label
-    });
+  const updateLabel = (value: string) => {
+    localLabelRef.current = value;
   };
+
+  const initialLink = item.link || '';
+  const initialLabel = item.label || '';
 
   return (
     <Card className="border-0 shadow-none">
@@ -216,8 +349,20 @@ export const LinkEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove
         <div>
           <Label className="text-xs">Link URL</Label>
           <Input
-            value={item.link || ''}
-            onChange={(e) => updateValue(e.target.value)}
+            ref={linkInputRef}
+            key={`link-url-${item.key}`}
+            defaultValue={initialLink}
+            onChange={(e) => updateLink(e.target.value)}
+            onFocus={() => { isLinkFocusedRef.current = true; }}
+            onBlur={(e) => {
+              isLinkFocusedRef.current = false;
+              const currentValue = e.target.value;
+              localLinkRef.current = currentValue;
+              onChange({
+                ...item,
+                link: currentValue
+              });
+            }}
             placeholder="/path/to/page"
             className="text-sm"
           />
@@ -225,8 +370,20 @@ export const LinkEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove
         <div>
           <Label className="text-xs">Link Label</Label>
           <Input
-            value={item.label || ''}
+            ref={labelInputRef}
+            key={`link-label-${item.key}`}
+            defaultValue={initialLabel}
             onChange={(e) => updateLabel(e.target.value)}
+            onFocus={() => { isLabelFocusedRef.current = true; }}
+            onBlur={(e) => {
+              isLabelFocusedRef.current = false;
+              const currentValue = e.target.value;
+              localLabelRef.current = currentValue;
+              onChange({
+                ...item,
+                label: currentValue
+              });
+            }}
             placeholder="Click here"
             className="text-sm"
           />
@@ -238,20 +395,75 @@ export const LinkEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove
 
 // Button item editor
 export const ButtonEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove, allowRemove = true }) => {
+  // Use refs to store input elements and values to prevent losing focus
+  const contentInputRef = useRef<HTMLInputElement>(null);
+  const linkInputRef = useRef<HTMLInputElement>(null);
+  const localContentRef = useRef(item.content ?? (item as any).buttonText ?? '');
+  const localLinkRef = useRef(item.link || '');
+  const onChangeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isContentFocusedRef = useRef(false);
+  const isLinkFocusedRef = useRef(false);
+  const isMountedRef = useRef(true);
+  
+  // Initialize refs from item prop - but only if input is not focused
+  // This prevents overwriting user input while they're typing
+  useEffect(() => {
+    // Only update if the input is not currently focused
+    if (!isContentFocusedRef.current) {
+      const newContent = item.content ?? (item as any).buttonText ?? '';
+      if (newContent !== localContentRef.current) {
+        localContentRef.current = newContent;
+        // Only update DOM if input exists and is not focused
+        if (contentInputRef.current) {
+          const wasFocused = document.activeElement === contentInputRef.current;
+          if (!wasFocused) {
+            contentInputRef.current.value = newContent;
+          }
+        }
+      }
+    }
+    if (!isLinkFocusedRef.current) {
+      const newLink = item.link || '';
+      if (newLink !== localLinkRef.current) {
+        localLinkRef.current = newLink;
+        // Only update DOM if input exists and is not focused
+        if (linkInputRef.current) {
+          const wasFocused = document.activeElement === linkInputRef.current;
+          if (!wasFocused) {
+            linkInputRef.current.value = newLink;
+          }
+        }
+      }
+    }
+  }, [item.content, (item as any).buttonText, item.link]);
+
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+      if (onChangeTimeoutRef.current) {
+        clearTimeout(onChangeTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // Only call onChange on blur, not during typing
+  // This prevents re-renders that could cause the input to lose focus
   const updateValue = (value: string) => {
-    onChange({
-      ...item,
-      content: value,
-      buttonText: value
-    });
+    localContentRef.current = value;
+    // Just update the ref - don't call onChange while typing
+    // onChange will be called on blur
   };
 
   const updateLink = (link: string) => {
-    onChange({
-      ...item,
-      link
-    });
+    localLinkRef.current = link;
+    // Just update the ref - don't call onChange while typing
+    // onChange will be called on blur
   };
+
+  // Use defaultValue for uncontrolled inputs to prevent React from resetting them
+  // Only use initial value, then let the ref control it
+  const initialContent = item.content ?? (item as any).buttonText ?? '';
+  const initialLink = item.link || '';
 
   return (
     <Card className="border-0 shadow-none">
@@ -272,8 +484,28 @@ export const ButtonEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemo
         <div>
           <Label className="text-xs">Button Text</Label>
           <Input
-            value={item.content ?? (item as any).buttonText ?? ''}
+            ref={contentInputRef}
+            key={`button-text-${item.key}`}
+            defaultValue={initialContent}
             onChange={(e) => updateValue(e.target.value)}
+            onFocus={() => { isContentFocusedRef.current = true; }}
+            onBlur={(e) => { 
+              isContentFocusedRef.current = false;
+              // Get the current value from the input element
+              const currentValue = e.target.value;
+              localContentRef.current = currentValue;
+              // Sync on blur to ensure latest value is saved
+              if (onChangeTimeoutRef.current) {
+                clearTimeout(onChangeTimeoutRef.current);
+                onChangeTimeoutRef.current = null;
+              }
+              // Call onChange immediately on blur
+              onChange({
+                ...item,
+                content: currentValue,
+                buttonText: currentValue
+              });
+            }}
             placeholder="Button text..."
             className="text-sm"
           />
@@ -281,8 +513,27 @@ export const ButtonEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemo
         <div>
           <Label className="text-xs">Link URL</Label>
           <Input
-            value={item.link || ''}
+            ref={linkInputRef}
+            key={`button-link-${item.key}`}
+            defaultValue={initialLink}
             onChange={(e) => updateLink(e.target.value)}
+            onFocus={() => { isLinkFocusedRef.current = true; }}
+            onBlur={(e) => { 
+              isLinkFocusedRef.current = false;
+              // Get the current value from the input element
+              const currentValue = e.target.value;
+              localLinkRef.current = currentValue;
+              // Sync on blur to ensure latest value is saved
+              if (onChangeTimeoutRef.current) {
+                clearTimeout(onChangeTimeoutRef.current);
+                onChangeTimeoutRef.current = null;
+              }
+              // Call onChange immediately on blur
+              onChange({
+                ...item,
+                link: currentValue
+              });
+            }}
             placeholder="/action-url"
             className="text-sm"
           />
@@ -377,6 +628,29 @@ export const ArrayEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemov
 // Tabs editor
 export const TabsEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove, allowRemove = true }) => {
   const tabs = item.tabs || [];
+  const labelInputRefs = useRef<Map<string, HTMLInputElement>>(new Map());
+  const localLabelRefs = useRef<Map<string, string>>(new Map());
+  const focusedLabelRefs = useRef<Map<string, boolean>>(new Map());
+  
+  // Initialize refs from tabs
+  useEffect(() => {
+    tabs.forEach(tab => {
+      if (!focusedLabelRefs.current.get(tab.id)) {
+        const currentLabel = tab.label || '';
+        const storedLabel = localLabelRefs.current.get(tab.id) || '';
+        if (currentLabel !== storedLabel) {
+          localLabelRefs.current.set(tab.id, currentLabel);
+          const inputRef = labelInputRefs.current.get(tab.id);
+          if (inputRef) {
+            const wasFocused = document.activeElement === inputRef;
+            if (!wasFocused) {
+              inputRef.value = currentLabel;
+            }
+          }
+        }
+      }
+    });
+  }, [tabs]);
   
   const addTab = () => {
     const newTab = {
@@ -400,6 +674,12 @@ export const TabsEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove
   };
   
   const removeTab = (index: number) => {
+    const tabToRemove = tabs[index];
+    if (tabToRemove) {
+      labelInputRefs.current.delete(tabToRemove.id);
+      localLabelRefs.current.delete(tabToRemove.id);
+      focusedLabelRefs.current.delete(tabToRemove.id);
+    }
     const updatedTabs = tabs.filter((_, i) => i !== index);
     onChange({
       ...item,
@@ -455,8 +735,27 @@ export const TabsEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove
               <TabsContent key={tab.id} value={tab.id} className="space-y-4">
                 <div className="flex items-center justify-between">
                   <Input
-                    value={tab.label}
-                    onChange={(e) => updateTab(tabIndex, { ...tab, label: e.target.value })}
+                    ref={(el) => {
+                      if (el) {
+                        labelInputRefs.current.set(tab.id, el);
+                      } else {
+                        labelInputRefs.current.delete(tab.id);
+                      }
+                    }}
+                    key={`tab-label-${tab.id}`}
+                    defaultValue={tab.label || ''}
+                    onChange={(e) => {
+                      localLabelRefs.current.set(tab.id, e.target.value);
+                    }}
+                    onFocus={() => {
+                      focusedLabelRefs.current.set(tab.id, true);
+                    }}
+                    onBlur={(e) => {
+                      focusedLabelRefs.current.set(tab.id, false);
+                      const currentValue = e.target.value;
+                      localLabelRefs.current.set(tab.id, currentValue);
+                      updateTab(tabIndex, { ...tab, label: currentValue });
+                    }}
                     className="max-w-xs"
                     placeholder="Tab label"
                   />
@@ -686,7 +985,8 @@ export const CarouselItemEditor: React.FC<ItemEditorProps> = ({ item, onChange, 
 };
 
 // Main item editor that routes to the appropriate editor
-export const ItemEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove, allowRemove = true }) => {
+// Memoize to prevent unnecessary re-renders when item reference changes but content is the same
+const ItemEditorComponent: React.FC<ItemEditorProps> = ({ item, onChange, onRemove, allowRemove = true }) => {
   switch (item.type) {
     case 'heading':
       return <HeadingEditor item={item} onChange={onChange} onRemove={onRemove} allowRemove={allowRemove} />;
@@ -750,14 +1050,72 @@ export const ItemEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove
   }
 };
 
+export const ItemEditor = React.memo(ItemEditorComponent, (prevProps, nextProps) => {
+  // Custom comparison: only re-render if item structure changed (key/type), NOT content
+  // This prevents re-renders when typing, allowing ButtonEditor's local state to work
+  // Content changes are handled by local state in the editor components themselves
+  // We only care about structural changes (key, type, nested items structure)
+  const prevItemKeys = (prevProps.item.items || []).map(i => i.key).join(',');
+  const nextItemKeys = (nextProps.item.items || []).map(i => i.key).join(',');
+  
+  return (
+    prevProps.item.key === nextProps.item.key &&
+    prevProps.item.type === nextProps.item.type &&
+    prevProps.allowRemove === nextProps.allowRemove &&
+    prevItemKeys === nextItemKeys
+    // Intentionally NOT comparing content - that's handled by local state in editors
+  );
+});
+
 // NEW V3 SCHEMA ITEM EDITORS
 
 
 // Input field editor for form inputs
 export const InputEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove, allowRemove = true }) => {
-  const updateItem = (field: keyof SchemaItem, value: any) => {
-    onChange({ ...item, [field]: value });
+  const keyInputRef = useRef<HTMLInputElement>(null);
+  const contentInputRef = useRef<HTMLInputElement>(null);
+  const localKeyRef = useRef(item.key);
+  const localContentRef = useRef(item.content || '');
+  const isKeyFocusedRef = useRef(false);
+  const isContentFocusedRef = useRef(false);
+
+  // Initialize refs from item prop - but only if input is not focused
+  useEffect(() => {
+    if (!isKeyFocusedRef.current) {
+      if (item.key !== localKeyRef.current) {
+        localKeyRef.current = item.key;
+        if (keyInputRef.current) {
+          const wasFocused = document.activeElement === keyInputRef.current;
+          if (!wasFocused) {
+            keyInputRef.current.value = item.key;
+          }
+        }
+      }
+    }
+    if (!isContentFocusedRef.current) {
+      const newContent = item.content || '';
+      if (newContent !== localContentRef.current) {
+        localContentRef.current = newContent;
+        if (contentInputRef.current) {
+          const wasFocused = document.activeElement === contentInputRef.current;
+          if (!wasFocused) {
+            contentInputRef.current.value = newContent;
+          }
+        }
+      }
+    }
+  }, [item.key, item.content]);
+
+  const updateKey = (value: string) => {
+    localKeyRef.current = value;
   };
+
+  const updateContent = (value: string) => {
+    localContentRef.current = value;
+  };
+
+  const initialKey = item.key;
+  const initialContent = item.content || '';
 
   return (
     <Card className="border-0 shadow-none">
@@ -776,16 +1134,34 @@ export const InputEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemov
         <div className="space-y-2">
           <Label>Field Key</Label>
           <Input
-            value={item.key}
-            onChange={(e) => updateItem('key', e.target.value)}
+            ref={keyInputRef}
+            key={`input-key-${item.key}`}
+            defaultValue={initialKey}
+            onChange={(e) => updateKey(e.target.value)}
+            onFocus={() => { isKeyFocusedRef.current = true; }}
+            onBlur={(e) => {
+              isKeyFocusedRef.current = false;
+              const currentValue = e.target.value;
+              localKeyRef.current = currentValue;
+              onChange({ ...item, key: currentValue });
+            }}
             placeholder="e.g., name, email"
           />
         </div>
         <div>
           <Label className="text-xs">Field Label</Label>
           <Input
-            value={item.content || ''}
-            onChange={(e) => updateItem('content', e.target.value)}
+            ref={contentInputRef}
+            key={`input-content-${item.key}`}
+            defaultValue={initialContent}
+            onChange={(e) => updateContent(e.target.value)}
+            onFocus={() => { isContentFocusedRef.current = true; }}
+            onBlur={(e) => {
+              isContentFocusedRef.current = false;
+              const currentValue = e.target.value;
+              localContentRef.current = currentValue;
+              onChange({ ...item, content: currentValue });
+            }}
             placeholder="Enter field label..."
             className="text-sm"
           />
@@ -795,7 +1171,7 @@ export const InputEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemov
             type="checkbox"
             id="required"
             checked={item.required || false}
-            onChange={(e) => updateItem('required', e.target.checked)}
+            onChange={(e) => onChange({ ...item, required: e.target.checked })}
             className="rounded"
           />
           <Label htmlFor="required" className="text-sm">Required field</Label>
@@ -807,9 +1183,50 @@ export const InputEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemov
 
 // Textarea field editor for form textareas
 export const TextareaEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove, allowRemove = true }) => {
-  const updateItem = (field: keyof SchemaItem, value: any) => {
-    onChange({ ...item, [field]: value });
+  const keyInputRef = useRef<HTMLInputElement>(null);
+  const contentInputRef = useRef<HTMLInputElement>(null);
+  const localKeyRef = useRef(item.key);
+  const localContentRef = useRef(item.content || '');
+  const isKeyFocusedRef = useRef(false);
+  const isContentFocusedRef = useRef(false);
+
+  // Initialize refs from item prop - but only if input is not focused
+  useEffect(() => {
+    if (!isKeyFocusedRef.current) {
+      if (item.key !== localKeyRef.current) {
+        localKeyRef.current = item.key;
+        if (keyInputRef.current) {
+          const wasFocused = document.activeElement === keyInputRef.current;
+          if (!wasFocused) {
+            keyInputRef.current.value = item.key;
+          }
+        }
+      }
+    }
+    if (!isContentFocusedRef.current) {
+      const newContent = item.content || '';
+      if (newContent !== localContentRef.current) {
+        localContentRef.current = newContent;
+        if (contentInputRef.current) {
+          const wasFocused = document.activeElement === contentInputRef.current;
+          if (!wasFocused) {
+            contentInputRef.current.value = newContent;
+          }
+        }
+      }
+    }
+  }, [item.key, item.content]);
+
+  const updateKey = (value: string) => {
+    localKeyRef.current = value;
   };
+
+  const updateContent = (value: string) => {
+    localContentRef.current = value;
+  };
+
+  const initialKey = item.key;
+  const initialContent = item.content || '';
 
   return (
     <Card className="border-0 shadow-none">
@@ -828,16 +1245,34 @@ export const TextareaEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRe
         <div className="space-y-2">
           <Label>Field Key</Label>
           <Input
-            value={item.key}
-            onChange={(e) => updateItem('key', e.target.value)}
+            ref={keyInputRef}
+            key={`textarea-key-${item.key}`}
+            defaultValue={initialKey}
+            onChange={(e) => updateKey(e.target.value)}
+            onFocus={() => { isKeyFocusedRef.current = true; }}
+            onBlur={(e) => {
+              isKeyFocusedRef.current = false;
+              const currentValue = e.target.value;
+              localKeyRef.current = currentValue;
+              onChange({ ...item, key: currentValue });
+            }}
             placeholder="e.g., message, description"
           />
         </div>
         <div>
           <Label className="text-xs">Field Label</Label>
           <Input
-            value={item.content || ''}
-            onChange={(e) => updateItem('content', e.target.value)}
+            ref={contentInputRef}
+            key={`textarea-content-${item.key}`}
+            defaultValue={initialContent}
+            onChange={(e) => updateContent(e.target.value)}
+            onFocus={() => { isContentFocusedRef.current = true; }}
+            onBlur={(e) => {
+              isContentFocusedRef.current = false;
+              const currentValue = e.target.value;
+              localContentRef.current = currentValue;
+              onChange({ ...item, content: currentValue });
+            }}
             placeholder="Enter field label..."
             className="text-sm"
           />
@@ -847,7 +1282,7 @@ export const TextareaEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRe
             type="checkbox"
             id="required"
             checked={item.required || false}
-            onChange={(e) => updateItem('required', e.target.checked)}
+            onChange={(e) => onChange({ ...item, required: e.target.checked })}
             className="rounded"
           />
           <Label htmlFor="required" className="text-sm">Required field</Label>
@@ -859,14 +1294,75 @@ export const TextareaEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRe
 
 // Review item editor
 export const ReviewEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove, allowRemove = true }) => {
-  const updateItem = (field: keyof SchemaItem, value: any) => {
-    onChange({ ...item, [field]: value });
+  const keyInputRef = useRef<HTMLInputElement>(null);
+  const nameInputRef = useRef<HTMLInputElement>(null);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+  const localKeyRef = useRef(item.key);
+  const localNameRef = useRef(item.props?.name || '');
+  const localAvatarRef = useRef(item.props?.avatar || '');
+  const isKeyFocusedRef = useRef(false);
+  const isNameFocusedRef = useRef(false);
+  const isAvatarFocusedRef = useRef(false);
+
+  // Initialize refs from item prop - but only if input is not focused
+  useEffect(() => {
+    if (!isKeyFocusedRef.current) {
+      if (item.key !== localKeyRef.current) {
+        localKeyRef.current = item.key;
+        if (keyInputRef.current) {
+          const wasFocused = document.activeElement === keyInputRef.current;
+          if (!wasFocused) {
+            keyInputRef.current.value = item.key;
+          }
+        }
+      }
+    }
+    if (!isNameFocusedRef.current) {
+      const newName = item.props?.name || '';
+      if (newName !== localNameRef.current) {
+        localNameRef.current = newName;
+        if (nameInputRef.current) {
+          const wasFocused = document.activeElement === nameInputRef.current;
+          if (!wasFocused) {
+            nameInputRef.current.value = newName;
+          }
+        }
+      }
+    }
+    if (!isAvatarFocusedRef.current) {
+      const newAvatar = item.props?.avatar || '';
+      if (newAvatar !== localAvatarRef.current) {
+        localAvatarRef.current = newAvatar;
+        if (avatarInputRef.current) {
+          const wasFocused = document.activeElement === avatarInputRef.current;
+          if (!wasFocused) {
+            avatarInputRef.current.value = newAvatar;
+          }
+        }
+      }
+    }
+  }, [item.key, item.props?.name, item.props?.avatar]);
+
+  const updateKey = (value: string) => {
+    localKeyRef.current = value;
+  };
+
+  const updateName = (value: string) => {
+    localNameRef.current = value;
+  };
+
+  const updateAvatar = (value: string) => {
+    localAvatarRef.current = value;
   };
 
   const updateProps = (propKey: string, value: any) => {
     const newProps = { ...(item.props || {}), [propKey]: value };
-    updateItem('props', newProps);
+    onChange({ ...item, props: newProps });
   };
+
+  const initialKey = item.key;
+  const initialName = item.props?.name || '';
+  const initialAvatar = item.props?.avatar || '';
 
   return (
     <Card className="border-0 shadow-none">
@@ -885,16 +1381,34 @@ export const ReviewEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemo
         <div className="space-y-2">
           <Label>Review Key</Label>
           <Input
-            value={item.key}
-            onChange={(e) => updateItem('key', e.target.value)}
+            ref={keyInputRef}
+            key={`review-key-${item.key}`}
+            defaultValue={initialKey}
+            onChange={(e) => updateKey(e.target.value)}
+            onFocus={() => { isKeyFocusedRef.current = true; }}
+            onBlur={(e) => {
+              isKeyFocusedRef.current = false;
+              const currentValue = e.target.value;
+              localKeyRef.current = currentValue;
+              onChange({ ...item, key: currentValue });
+            }}
             placeholder="e.g., review_1, customer_review"
           />
         </div>
         <div className="space-y-2">
           <Label>Reviewer Name</Label>
           <Input
-            value={item.props?.name || ''}
-            onChange={(e) => updateProps('name', e.target.value)}
+            ref={nameInputRef}
+            key={`review-name-${item.key}`}
+            defaultValue={initialName}
+            onChange={(e) => updateName(e.target.value)}
+            onFocus={() => { isNameFocusedRef.current = true; }}
+            onBlur={(e) => {
+              isNameFocusedRef.current = false;
+              const currentValue = e.target.value;
+              localNameRef.current = currentValue;
+              updateProps('name', currentValue);
+            }}
             placeholder="e.g., John Doe"
           />
         </div>
@@ -927,8 +1441,17 @@ export const ReviewEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemo
         <div className="space-y-2">
           <Label>Avatar URL</Label>
           <Input
-            value={item.props?.avatar || ''}
-            onChange={(e) => updateProps('avatar', e.target.value)}
+            ref={avatarInputRef}
+            key={`review-avatar-${item.key}`}
+            defaultValue={initialAvatar}
+            onChange={(e) => updateAvatar(e.target.value)}
+            onFocus={() => { isAvatarFocusedRef.current = true; }}
+            onBlur={(e) => {
+              isAvatarFocusedRef.current = false;
+              const currentValue = e.target.value;
+              localAvatarRef.current = currentValue;
+              updateProps('avatar', currentValue);
+            }}
             placeholder="e.g., /images/avatar.jpg"
           />
         </div>
@@ -939,14 +1462,75 @@ export const ReviewEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemo
 
 // Feature item editor
 export const FeatureEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove, allowRemove = true }) => {
-  const updateItem = (field: keyof SchemaItem, value: any) => {
-    onChange({ ...item, [field]: value });
+  const keyInputRef = useRef<HTMLInputElement>(null);
+  const iconInputRef = useRef<HTMLInputElement>(null);
+  const titleInputRef = useRef<HTMLInputElement>(null);
+  const localKeyRef = useRef(item.key);
+  const localIconRef = useRef(item.props?.icon || '');
+  const localTitleRef = useRef(item.props?.title || '');
+  const isKeyFocusedRef = useRef(false);
+  const isIconFocusedRef = useRef(false);
+  const isTitleFocusedRef = useRef(false);
+
+  // Initialize refs from item prop - but only if input is not focused
+  useEffect(() => {
+    if (!isKeyFocusedRef.current) {
+      if (item.key !== localKeyRef.current) {
+        localKeyRef.current = item.key;
+        if (keyInputRef.current) {
+          const wasFocused = document.activeElement === keyInputRef.current;
+          if (!wasFocused) {
+            keyInputRef.current.value = item.key;
+          }
+        }
+      }
+    }
+    if (!isIconFocusedRef.current) {
+      const newIcon = item.props?.icon || '';
+      if (newIcon !== localIconRef.current) {
+        localIconRef.current = newIcon;
+        if (iconInputRef.current) {
+          const wasFocused = document.activeElement === iconInputRef.current;
+          if (!wasFocused) {
+            iconInputRef.current.value = newIcon;
+          }
+        }
+      }
+    }
+    if (!isTitleFocusedRef.current) {
+      const newTitle = item.props?.title || '';
+      if (newTitle !== localTitleRef.current) {
+        localTitleRef.current = newTitle;
+        if (titleInputRef.current) {
+          const wasFocused = document.activeElement === titleInputRef.current;
+          if (!wasFocused) {
+            titleInputRef.current.value = newTitle;
+          }
+        }
+      }
+    }
+  }, [item.key, item.props?.icon, item.props?.title]);
+
+  const updateKey = (value: string) => {
+    localKeyRef.current = value;
+  };
+
+  const updateIcon = (value: string) => {
+    localIconRef.current = value;
+  };
+
+  const updateTitle = (value: string) => {
+    localTitleRef.current = value;
   };
 
   const updateProps = (propKey: string, value: any) => {
     const newProps = { ...(item.props || {}), [propKey]: value };
-    updateItem('props', newProps);
+    onChange({ ...item, props: newProps });
   };
+
+  const initialKey = item.key;
+  const initialIcon = item.props?.icon || '';
+  const initialTitle = item.props?.title || '';
 
   return (
     <Card className="border-0 shadow-none">
@@ -965,24 +1549,51 @@ export const FeatureEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRem
         <div className="space-y-2">
           <Label>Feature Key</Label>
           <Input
-            value={item.key}
-            onChange={(e) => updateItem('key', e.target.value)}
+            ref={keyInputRef}
+            key={`feature-key-${item.key}`}
+            defaultValue={initialKey}
+            onChange={(e) => updateKey(e.target.value)}
+            onFocus={() => { isKeyFocusedRef.current = true; }}
+            onBlur={(e) => {
+              isKeyFocusedRef.current = false;
+              const currentValue = e.target.value;
+              localKeyRef.current = currentValue;
+              onChange({ ...item, key: currentValue });
+            }}
             placeholder="e.g., feature_1, craftsmanship"
           />
         </div>
         <div className="space-y-2">
           <Label>Icon</Label>
           <Input
-            value={item.props?.icon || ''}
-            onChange={(e) => updateProps('icon', e.target.value)}
+            ref={iconInputRef}
+            key={`feature-icon-${item.key}`}
+            defaultValue={initialIcon}
+            onChange={(e) => updateIcon(e.target.value)}
+            onFocus={() => { isIconFocusedRef.current = true; }}
+            onBlur={(e) => {
+              isIconFocusedRef.current = false;
+              const currentValue = e.target.value;
+              localIconRef.current = currentValue;
+              updateProps('icon', currentValue);
+            }}
             placeholder="e.g., star, heart, award"
           />
         </div>
         <div>
           <Label className="text-xs">Feature Title</Label>
           <Input
-            value={item.props?.title || ''}
-            onChange={(e) => updateProps('title', e.target.value)}
+            ref={titleInputRef}
+            key={`feature-title-${item.key}`}
+            defaultValue={initialTitle}
+            onChange={(e) => updateTitle(e.target.value)}
+            onFocus={() => { isTitleFocusedRef.current = true; }}
+            onBlur={(e) => {
+              isTitleFocusedRef.current = false;
+              const currentValue = e.target.value;
+              localTitleRef.current = currentValue;
+              updateProps('title', currentValue);
+            }}
             placeholder="Enter feature title..."
             className="text-sm"
           />

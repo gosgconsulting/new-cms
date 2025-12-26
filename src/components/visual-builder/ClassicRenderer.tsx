@@ -20,6 +20,7 @@ interface ClassicRendererProps {
     tenantId?: string;
     themeId?: string;
   };
+  onComponentsChange?: (components: ComponentSchema[]) => void;
 }
 
 const ClassicVisualContent: React.FC<{ components: ComponentSchema[] }> = ({ components }) => {
@@ -83,7 +84,7 @@ const ClassicLayout: React.FC<{ components: ComponentSchema[] }> = ({ components
   );
 };
 
-const ClassicRenderer: React.FC<ClassicRendererProps> = ({ components, pageContext }) => {
+const ClassicRenderer: React.FC<ClassicRendererProps> = ({ components, pageContext, onComponentsChange }) => {
   return (
     <SpartiBuilderProvider
       components={components}
@@ -91,6 +92,7 @@ const ClassicRenderer: React.FC<ClassicRendererProps> = ({ components, pageConte
       slug={pageContext?.slug}
       tenantId={pageContext?.tenantId}
       themeId={pageContext?.themeId}
+      onComponentsChange={onComponentsChange}
     >
       <ClassicLayout components={components} />
     </SpartiBuilderProvider>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { ComponentSchema, SchemaItem } from '../../types/schema';
 import { Button } from '../../../src/components/ui/button';
 import { Label } from '../../../src/components/ui/label';
@@ -38,36 +38,106 @@ interface ComponentEditorProps {
 }
 
 
+// Global map to store expandedItems per component key (survives remounts)
+const expandedItemsMap = new Map<string, Set<number>>();
+const activeArrayTabMap = new Map<string, Record<number, number>>();
+const expandedKeysMap = new Map<string, Set<string>>();
+
 export const ComponentEditor: React.FC<ComponentEditorProps> = ({
   schema,
   onChange,
   className = ''
 }) => {
-  const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set());
-  const [activeArrayTab, setActiveArrayTab] = useState<Record<number, number>>({});
+  // Use a stable key based on schema.key to persist state across remounts
+  const componentKey = `component-${schema.key}`;
+  
+  // Initialize from global map or create new
+  const [expandedItems, setExpandedItems] = useState<Set<number>>(() => {
+    return expandedItemsMap.get(componentKey) || new Set();
+  });
+  const [activeArrayTab, setActiveArrayTab] = useState<Record<number, number>>(() => {
+    return activeArrayTabMap.get(componentKey) || {};
+  });
+  
   // Store original schema structure to preserve field structure when array is empty
   const originalSchemaRef = useRef<ComponentSchema | null>(null);
+  // Track the schema key to preserve expandedItems when only content changes
+  const schemaKeyRef = useRef<string>(schema.key);
+  // Track expanded items by key (not just index) to preserve across updates
+  const expandedKeysRef = useRef<Set<string>>(expandedKeysMap.get(componentKey) || new Set());
+  
+  // Initialize expandedKeysMap if needed
+  if (!expandedKeysMap.has(componentKey)) {
+    expandedKeysMap.set(componentKey, expandedKeysRef.current);
+  }
+
+  // Sync state to global map whenever it changes
+  useEffect(() => {
+    expandedItemsMap.set(componentKey, expandedItems);
+  }, [componentKey, expandedItems]);
+
+  useEffect(() => {
+    activeArrayTabMap.set(componentKey, activeArrayTab);
+  }, [componentKey, activeArrayTab]);
+
+  useEffect(() => {
+    expandedKeysMap.set(componentKey, expandedKeysRef.current);
+  }, [componentKey]);
+
+  // Track previous item keys to detect structure changes
+  const previousItemKeysRef = useRef<string>('');
 
   // Store original schema structure on first mount and when schema key changes
   useEffect(() => {
     // Update original schema if it's not set, or if the schema key has changed (new component)
     const currentSchemaKey = schema.key;
-    const originalSchemaKey = originalSchemaRef.current?.key;
     
-    if (!originalSchemaRef.current || currentSchemaKey !== originalSchemaKey) {
+    // If schema key changed, reset expanded items (new component selected)
+    if (currentSchemaKey !== schemaKeyRef.current) {
+      const newComponentKey = `component-${currentSchemaKey}`;
+      expandedItemsMap.set(newComponentKey, new Set());
+      activeArrayTabMap.set(newComponentKey, {});
+      expandedKeysMap.set(newComponentKey, new Set());
+      setExpandedItems(new Set());
+      setActiveArrayTab({});
+      expandedKeysRef.current = new Set();
+      schemaKeyRef.current = currentSchemaKey;
+      const currentItems = schema.items || [];
+      previousItemKeysRef.current = currentItems.map(item => item.key).join(',');
       originalSchemaRef.current = JSON.parse(JSON.stringify(schema));
     }
-  }, [schema.key]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [schema.key]); // Only depend on schema.key
+
+  // Initialize previousItemKeysRef on mount
+  useEffect(() => {
+    if (previousItemKeysRef.current === '') {
+      const currentItems = schema.items || [];
+      previousItemKeysRef.current = currentItems.map(item => item.key).join(',');
+    }
+  }, []);
 
   // Toggle item expansion
   const toggleItem = (index: number) => {
     const newExpanded = new Set(expandedItems);
+    const items = schema.items || [];
+    const item = items[index];
+    
     if (newExpanded.has(index)) {
       newExpanded.delete(index);
+      if (item?.key) {
+        expandedKeysRef.current.delete(item.key);
+      }
     } else {
       newExpanded.add(index);
+      if (item?.key) {
+        expandedKeysRef.current.add(item.key);
+      }
     }
+    // Update both state and global map (so it persists even if component remounts)
     setExpandedItems(newExpanded);
+    expandedItemsMap.set(componentKey, newExpanded);
+    expandedKeysMap.set(componentKey, expandedKeysRef.current);
   };
   
   // Function to get appropriate icon based on field key and type
@@ -105,48 +175,110 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
     return FileText;
   };
   
-  // Ensure schema has items property
-  const safeSchema = {
+  // Ensure schema has items property - memoize to prevent unnecessary re-renders
+  // Only recalculate when item keys change, not on every content update
+  // Calculate item keys string first (stable reference)
+  const itemKeysString = (schema.items || []).map(i => i.key).join(',');
+  const safeSchema = useMemo(() => ({
     ...schema,
     items: schema.items || []
-  };
+  }), [schema.key, itemKeysString, schema.items?.length]);
 
   // No toggle functionality - items are always expanded
 
   
-  const handleItemChange = (path: (string | number)[], updatedItem: SchemaItem) => {
-    const updatedItems = [...safeSchema.items];
-
-    let currentLevel: { items?: SchemaItem[] } | SchemaItem = { items: updatedItems };
-
-    for (let i = 0; i < path.length - 1; i++) {
-      const keyOrIndex = path[i];
-      if (typeof keyOrIndex === 'string') {
-        currentLevel = currentLevel.items?.find((item: SchemaItem) => item.key === keyOrIndex);
-      } else {
-        currentLevel = currentLevel.items?.[keyOrIndex];
-      }
-      if (!currentLevel) {
-        console.error('[ComponentEditor] Invalid path, could not find item at:', path.slice(0, i + 1));
+  const handleItemChange = useCallback((path: (string | number)[], updatedItem: SchemaItem) => {
+    console.log('[testing] handleItemChange called:', { path, updatedItem: { key: updatedItem.key, type: updatedItem.type, content: updatedItem.content } });
+    
+    // Deep clone the updated item to ensure it's a new object reference
+    const updatedItemClone = JSON.parse(JSON.stringify(updatedItem));
+    
+    // Handle simple case: direct item update (path is just [index])
+    if (path.length === 1) {
+      const index = path[0] as number;
+      if (index >= 0 && index < safeSchema.items.length) {
+        // Create new array with updated item at index
+        // Deep clone all items to ensure new references
+        const updatedItems = safeSchema.items.map((item, i) => 
+          i === index ? updatedItemClone : JSON.parse(JSON.stringify(item))
+        );
+        // Create completely new schema object
+        const updatedSchema: ComponentSchema = {
+          ...safeSchema,
+          items: updatedItems
+        };
+        console.log('[testing] Simple update - calling onChange with:', { 
+          itemsCount: updatedItems.length,
+          updatedItemIndex: index,
+          updatedItemKey: updatedItem.key,
+          updatedItemContent: updatedItem.content
+        });
+        onChange?.(updatedSchema);
         return;
       }
     }
 
-    const lastKeyOrIndex = path[path.length - 1];
-    if (typeof lastKeyOrIndex === 'string') {
-      const itemIndex = currentLevel.items?.findIndex((item: SchemaItem) => item.key === lastKeyOrIndex) ?? -1;
-      if (itemIndex !== -1 && currentLevel.items) {
-        currentLevel.items[itemIndex] = updatedItem;
+    // Handle nested case: traverse path and update, creating new arrays at each level
+    const updateNestedItem = (
+      items: SchemaItem[], 
+      pathIndex: number, 
+      updatedItemToUse: SchemaItem
+    ): SchemaItem[] => {
+      if (pathIndex >= path.length) {
+        return items;
       }
-    } else {
-      if (currentLevel.items) {
-        currentLevel.items[lastKeyOrIndex] = updatedItem;
-      }
-    }
 
-    const updatedSchema = { ...safeSchema, items: updatedItems };
+      const keyOrIndex = path[pathIndex];
+      const isLast = pathIndex === path.length - 1;
+
+      return items.map((item, idx) => {
+        // Check if this is the item we're looking for
+        const matches = typeof keyOrIndex === 'string' 
+          ? item.key === keyOrIndex 
+          : idx === keyOrIndex;
+
+        if (!matches) {
+          // Not this item, but might need to recurse if it has nested items
+          if (item.items && pathIndex < path.length - 1) {
+            return {
+              ...item,
+              items: updateNestedItem(item.items, pathIndex + 1, updatedItemToUse)
+            };
+          }
+          return item;
+        }
+
+        // This is the item we're looking for
+        if (isLast) {
+          // Last in path - replace with updated item
+          return updatedItemToUse;
+        } else {
+          // Not last - recurse into nested items
+          if (item.items) {
+            return {
+              ...item,
+              items: updateNestedItem(item.items, pathIndex + 1, updatedItemToUse)
+            };
+          }
+          return item;
+        }
+      });
+    };
+
+    // Use the already cloned item for nested updates
+    const updatedItems = updateNestedItem(safeSchema.items, 0, updatedItemClone);
+    // Create completely new schema object
+    const updatedSchema: ComponentSchema = {
+      ...safeSchema,
+      items: updatedItems
+    };
+    console.log('[testing] Nested update - calling onChange with:', { 
+      itemsCount: updatedItems.length,
+      path: path,
+      updatedItemKey: updatedItem.key
+    });
     onChange?.(updatedSchema);
-  };
+  }, [safeSchema, onChange]);
 
   // Helper function to check if an item has array properties
   const hasArrayProperties = (item: SchemaItem) => {
@@ -364,15 +496,22 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
     return hasChanges ? { ...schemaToCheck, items: updatedItems } : schemaToCheck;
   };
 
-  // Auto-fix missing fields on mount and when schema changes
+  // Auto-fix missing fields on mount and when schema key changes (not on every content update)
+  // This prevents the editor from closing when typing
   useEffect(() => {
+    // Only run auto-fix when schema key changes (new component) or on initial mount
+    // Don't run on every content update to avoid closing editors
     const fixedSchema = detectAndFixMissingFields(schema);
     // Use JSON.stringify to properly compare objects
-    if (JSON.stringify(fixedSchema) !== JSON.stringify(schema) && onChange) {
+    // Only call onChange if structure actually changed (not just content)
+    const currentStructure = JSON.stringify(fixedSchema.items?.map(i => ({ key: i.key, type: i.type })));
+    const originalStructure = JSON.stringify(schema.items?.map(i => ({ key: i.key, type: i.type })));
+    
+    if (currentStructure !== originalStructure && onChange) {
       onChange(fixedSchema);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [schema]);
+  }, [schema.key]); // Only depend on schema.key, not the entire schema
 
   // Helper function to handle image upload
   const handleImageUpload = async (itemIndex: number, arrayProp: string, arrayItemIndex: number, file: File) => {
@@ -414,7 +553,31 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
         <div key={`${item.key}-${index}`} className="overflow-hidden">
           <div 
             className="flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 cursor-pointer transition-colors"
-            onClick={() => toggleItem(index)}
+            onClick={(e) => {
+              // Only toggle if clicking on the header itself, not on child elements
+              // Check if the click target is the header div or its direct children (icon, text, badge, button)
+              const target = e.target as HTMLElement;
+              const currentTarget = e.currentTarget as HTMLElement;
+              
+              // Allow clicks on interactive elements (buttons, inputs, selects) to work normally
+              if (target.tagName === 'BUTTON' || 
+                  target.tagName === 'INPUT' || 
+                  target.tagName === 'SELECT' || 
+                  target.tagName === 'TEXTAREA' ||
+                  target.closest('button') ||
+                  target.closest('input') ||
+                  target.closest('select') ||
+                  target.closest('textarea') ||
+                  target.closest('[role="combobox"]') ||
+                  target.closest('[role="listbox"]')) {
+                return; // Don't toggle, let the element handle the click
+              }
+              
+              // Only toggle if clicking on the header area itself
+              if (target === currentTarget || target.parentElement === currentTarget) {
+                toggleItem(index);
+              }
+            }}
           >
             <div className="flex items-center gap-3">
               <GripVertical className="h-4 w-4 text-gray-400" />
@@ -441,7 +604,14 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
             </Button>
           </div>
           {expandedItems.has(index) && (
-            <div className="p-4 bg-white space-y-4">
+            <div 
+              className="p-4 bg-white space-y-4"
+              onClick={(e) => {
+                // Stop propagation to prevent parent onClick from firing
+                // This allows inputs, dropdowns, and buttons inside to work normally
+                e.stopPropagation();
+              }}
+            >
               {/* Unified tab-based editing */}
               <div className="space-y-4 pt-4">
                 {/* Tab-style interface */}
@@ -463,7 +633,10 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
                     <Button 
                       variant="outline" 
                       size="sm" 
-                      onClick={() => addArrayItem(index, arrayProp)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        addArrayItem(index, arrayProp);
+                      }}
                       className="flex items-center gap-1"
                     >
                       <Plus className="h-4 w-4" /> 
@@ -482,7 +655,10 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
                               ? 'border-blue-500 text-blue-600' 
                               : 'border-transparent text-gray-500 hover:text-gray-700'
                           }`}
-                          onClick={onClick}
+                          onClick={(e) => {
+                            e.stopPropagation(); // Prevent parent onClick from firing
+                            onClick();
+                          }}
                         >
                           {label}
                         </button>
@@ -508,7 +684,10 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
                             size="sm" 
                             variant="outline" 
                             className="mt-2" 
-                            onClick={() => addArrayItem(index, arrayProp)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              addArrayItem(index, arrayProp);
+                            }}
                           >
                             <Plus className="h-4 w-4 mr-1" />
                             Add First Item
@@ -522,7 +701,11 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
                     if (!currentArrayItem) return null;
 
                     return (
-                      <div className="p-4 bg-white pb-6">
+                      <div 
+                        className="p-4 bg-white pb-6"
+                        onClick={(e) => e.stopPropagation()}
+                        onMouseDown={(e) => e.stopPropagation()}
+                      >
                         {isImageItem(arrayProp, currentArrayItem) ? (
                           (() => {
                             const imgUrl = (currentArrayItem as any).url || (currentArrayItem as any).src || (currentArrayItem as any).image || '';
@@ -653,7 +836,10 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
                                     <Button
                                       variant="destructive"
                                       size="sm"
-                                      onClick={() => removeArrayItem(index, arrayProp, currentTab)}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        removeArrayItem(index, arrayProp, currentTab);
+                                      }}
                                     >
                                       <Trash2 className="h-4 w-4 mr-1" /> Remove
                                     </Button>
@@ -763,7 +949,28 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
               <div key={`${item.key}-${index}`} className="overflow-hidden">
                 <div 
                   className="flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 cursor-pointer transition-colors"
-                  onClick={() => toggleItem(index)}
+                  onClick={(e) => {
+                    // Only toggle if clicking on the header itself, not on child elements
+                    const target = e.target as HTMLElement;
+                    
+                    // Don't toggle if clicking on interactive elements or their children
+                    if (target.closest('button') || 
+                        target.closest('input') || 
+                        target.closest('select') || 
+                        target.closest('textarea') ||
+                        target.closest('[role="combobox"]') ||
+                        target.closest('[role="listbox"]') ||
+                        target.closest('[role="menu"]') ||
+                        target.closest('[role="menuitem"]') ||
+                        target.closest('a') ||
+                        target.closest('label')) {
+                      // Let the interactive element handle the click
+                      return;
+                    }
+                    
+                    // Only toggle if clicking directly on the header or its non-interactive children
+                    toggleItem(index);
+                  }}
                 >
                   <div className="flex items-center gap-3">
                     <GripVertical className="h-4 w-4 text-gray-400" />
@@ -787,8 +994,15 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
                   </Button>
                 </div>
                 {expandedItems.has(index) && (
-                  <div className="p-4 bg-white">
+                  <div 
+                    className="p-4 bg-white"
+                    onClick={(e) => {
+                      // Stop propagation to prevent parent onClick from firing
+                      e.stopPropagation();
+                    }}
+                  >
                     <ItemEditor 
+                      key={`item-editor-${item.key}-${index}`}
                       item={item} 
                       onChange={(updatedItem) => handleItemChange([index], updatedItem)} 
                       onRemove={() => {

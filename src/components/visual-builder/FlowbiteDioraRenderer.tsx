@@ -44,6 +44,7 @@ interface FlowbiteDioraRendererProps {
     tenantId?: string;
     themeId?: string;
   };
+  onComponentsChange?: (components: ComponentSchema[]) => void;
 }
 
 const getText = (items: SchemaItem[], key: string) => {
@@ -600,6 +601,7 @@ function SectionAbout({ items }: { items: SchemaItem[] }) {
 const FlowbiteDioraRenderer: React.FC<FlowbiteDioraRendererProps> = ({
   components,
   pageContext,
+  onComponentsChange,
 }) => {
   const VisualContent: React.FC = () => {
     const { components: ctxComponents } = useSpartiBuilder();
@@ -1025,6 +1027,7 @@ const FlowbiteDioraRenderer: React.FC<FlowbiteDioraRendererProps> = ({
       slug={pageContext?.slug}
       tenantId={pageContext?.tenantId}
       themeId={pageContext?.themeId}
+      onComponentsChange={onComponentsChange}
     >
       <Layout />
     </SpartiBuilderProvider>

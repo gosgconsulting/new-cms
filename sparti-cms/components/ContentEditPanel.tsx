@@ -110,6 +110,7 @@ export const ContentEditPanel: React.FC = () => {
       return (
         <div className="sparti-accordion-wrapper">
           <ComponentEditor
+            key={`component-editor-${selectedComponent.key}-${compIndex}`}
             schema={selectedComponent}
             onChange={(updated) => {
               if (Number.isFinite(compIndex)) {
