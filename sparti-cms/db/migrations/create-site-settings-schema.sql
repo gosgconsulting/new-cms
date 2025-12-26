@@ -63,9 +63,10 @@ BEGIN
   END IF;
 END $$;
 
--- Drop old unique constraint on setting_key if it exists (without tenant_id/theme_id)
+-- Drop old unique constraints/indexes that don't match our COALESCE approach
 DO $$ 
 BEGIN
+  -- Drop old constraint on setting_key only
   IF EXISTS (
     SELECT 1 FROM pg_constraint 
     WHERE conname = 'site_settings_setting_key_key'
@@ -73,21 +74,36 @@ BEGIN
     ALTER TABLE site_settings DROP CONSTRAINT site_settings_setting_key_key;
     RAISE NOTICE 'Dropped old unique constraint on setting_key';
   END IF;
-END $$;
-
--- Create unique constraint on (setting_key, tenant_id, theme_id) if it doesn't exist
-DO $$ 
-BEGIN
-  IF NOT EXISTS (
+  
+  -- Drop old constraint on (setting_key, tenant_id) only
+  IF EXISTS (
+    SELECT 1 FROM pg_constraint 
+    WHERE conname = 'site_settings_setting_key_tenant_id_key'
+  ) THEN
+    ALTER TABLE site_settings DROP CONSTRAINT site_settings_setting_key_tenant_id_key;
+    RAISE NOTICE 'Dropped old unique constraint on (setting_key, tenant_id)';
+  END IF;
+  
+  -- Drop standard UNIQUE constraint on (setting_key, tenant_id, theme_id) if it exists
+  IF EXISTS (
     SELECT 1 FROM pg_constraint 
     WHERE conname = 'site_settings_setting_key_tenant_id_theme_id_key'
   ) THEN
-    ALTER TABLE site_settings 
-    ADD CONSTRAINT site_settings_setting_key_tenant_id_theme_id_key 
-    UNIQUE (setting_key, tenant_id, theme_id);
-    RAISE NOTICE 'Created unique constraint on (setting_key, tenant_id, theme_id)';
+    ALTER TABLE site_settings DROP CONSTRAINT site_settings_setting_key_tenant_id_theme_id_key;
+    RAISE NOTICE 'Dropped standard UNIQUE constraint on (setting_key, tenant_id, theme_id)';
   END IF;
 END $$;
+
+-- Drop any existing COALESCE-based unique index if it exists (in case of re-run)
+DROP INDEX IF EXISTS site_settings_setting_key_tenant_theme_unique;
+
+-- Create unique index with COALESCE to handle NULL values properly
+-- This allows:
+--   - Master settings: tenant_id = NULL, theme_id = NULL (shared across all tenants)
+--   - Tenant settings: tenant_id = 'tenant-xxx', theme_id = NULL (tenant-specific)
+--   - Theme settings: tenant_id = 'tenant-xxx', theme_id = 'theme-xxx' (theme-specific)
+CREATE UNIQUE INDEX IF NOT EXISTS site_settings_setting_key_tenant_theme_unique 
+ON site_settings (setting_key, COALESCE(tenant_id, ''), COALESCE(theme_id, ''));
 
 -- Create index on tenant_id and theme_id for better query performance
 CREATE INDEX IF NOT EXISTS idx_site_settings_tenant_theme 
@@ -101,10 +117,9 @@ ON site_settings(theme_id);
 CREATE INDEX IF NOT EXISTS idx_site_settings_category 
 ON site_settings(setting_category);
 
--- Update existing records to have default tenant_id if null
-UPDATE site_settings 
-SET tenant_id = 'tenant-gosg' 
-WHERE tenant_id IS NULL;
+-- Note: We do NOT update NULL tenant_id values to a default
+-- NULL tenant_id represents master settings (shared across all tenants)
+-- This is intentional and should be preserved
 
 -- Add comment to table
 COMMENT ON TABLE site_settings IS 'Stores theme and tenant configuration settings, including theme styles (JSON)';

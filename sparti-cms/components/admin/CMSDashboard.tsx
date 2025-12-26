@@ -44,6 +44,7 @@ import TagsManager from '../cms/TagsManager';
 import RedirectsManager from '../seo/RedirectsManager';
 import RobotsManager from '../seo/RobotsManager';
 import SitemapManager from '../seo/SitemapManager';
+import SEOSettingsManager from '../seo/SEOSettingsManager';
 
 // Import new components
 import DeveloperManager from './DeveloperManager';
@@ -357,6 +358,8 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({ hideSidebar = false }) => {
         return <RobotsManager />;
       case 'sitemap':
         return <SitemapManager />;
+      case 'seo-settings':
+        return <SEOSettingsManager />;
       case 'tenants':
         return <TenantsManager />;
       case 'themes':
@@ -401,6 +404,7 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({ hideSidebar = false }) => {
     { id: 'redirects', label: 'Redirects', icon: ArrowRight },
     { id: 'robots', label: 'Robots.txt', icon: Shield },
     { id: 'sitemap', label: 'Sitemap', icon: Map },
+    { id: 'seo-settings', label: 'Settings', icon: SettingsIcon },
   ];
 
   const getPageTitle = () => {

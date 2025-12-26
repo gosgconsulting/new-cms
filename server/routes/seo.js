@@ -221,7 +221,8 @@ router.post('/robots-txt/update', async (req, res) => {
 router.get('/sitemap-entries', async (req, res) => {
   try {
     const type = req.query.type || null;
-    const tenantId = req.query.tenantId || req.user?.tenant_id || null;
+    // Priority: header > query > user
+    const tenantId = req.tenantId || req.query.tenantId || req.user?.tenant_id || null;
     const entries = await getSitemapEntries(type, tenantId);
     res.json(entries);
   } catch (error) {
@@ -233,7 +234,8 @@ router.get('/sitemap-entries', async (req, res) => {
 // Create sitemap entry
 router.post('/sitemap-entries', async (req, res) => {
   try {
-    const tenantId = req.query.tenantId || req.user?.tenant_id || req.body.tenantId || null;
+    // Priority: header > query > user > body
+    const tenantId = req.tenantId || req.query.tenantId || req.user?.tenant_id || req.body.tenantId || null;
     
     if (!tenantId) {
       return res.status(400).json({ error: 'Tenant ID is required to create sitemap entries' });
@@ -251,7 +253,8 @@ router.post('/sitemap-entries', async (req, res) => {
 router.put('/sitemap-entries/:id', async (req, res) => {
   try {
     const entryId = parseInt(req.params.id);
-    const tenantId = req.query.tenantId || req.user?.tenant_id || req.body.tenantId || null;
+    // Priority: header > query > user > body
+    const tenantId = req.tenantId || req.query.tenantId || req.user?.tenant_id || req.body.tenantId || null;
     
     if (!tenantId) {
       return res.status(400).json({ error: 'Tenant ID is required to update sitemap entries' });
@@ -300,7 +303,8 @@ router.put('/sitemap-entries/:id', async (req, res) => {
 router.delete('/sitemap-entries/:id', async (req, res) => {
   try {
     const entryId = parseInt(req.params.id);
-    const tenantId = req.query.tenantId || req.user?.tenant_id || null;
+    // Priority: header > query > user
+    const tenantId = req.tenantId || req.query.tenantId || req.user?.tenant_id || null;
     
     if (!tenantId) {
       return res.status(400).json({ error: 'Tenant ID is required to delete sitemap entries' });
@@ -333,7 +337,8 @@ router.delete('/sitemap-entries/:id', async (req, res) => {
 // Generate sitemap XML
 router.post('/sitemap/generate', async (req, res) => {
   try {
-    const tenantId = req.query.tenantId || req.user?.tenant_id || 'tenant-gosg';
+    // Priority: header > query > user > default
+    const tenantId = req.tenantId || req.query.tenantId || req.user?.tenant_id || 'tenant-gosg';
     const sitemapXML = await generateSitemapXML(tenantId);
     
     // Write to public/sitemap.xml

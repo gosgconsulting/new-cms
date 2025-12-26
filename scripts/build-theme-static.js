@@ -154,6 +154,8 @@ const standaloneHtmlContent = `<!doctype html>
     <title>${themeTitle}</title>
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="apple-touch-icon" href="/favicon.png" />
+    <!-- Allow indexing for theme deployments -->
+    <meta name="robots" content="index, follow" />
     <script>
       // Set flag to indicate theme deployment mode
       window.__THEME_DEPLOYMENT__ = true;

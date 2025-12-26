@@ -64,6 +64,52 @@ export async function initializeTenantDefaults(tenantId) {
         }
       ];
       
+      // Default SEO settings - tenant-specific overrides
+      const defaultSEOSettings = [
+        {
+          key: 'seo_index',
+          value: 'true',
+          type: 'text',
+          category: 'seo'
+        },
+        {
+          key: 'og_title',
+          value: '',
+          type: 'text',
+          category: 'seo'
+        },
+        {
+          key: 'og_description',
+          value: '',
+          type: 'textarea',
+          category: 'seo'
+        },
+        {
+          key: 'og_image',
+          value: '',
+          type: 'media',
+          category: 'seo'
+        },
+        {
+          key: 'og_type',
+          value: 'website',
+          type: 'text',
+          category: 'seo'
+        },
+        {
+          key: 'og_site_name',
+          value: '',
+          type: 'text',
+          category: 'seo'
+        },
+        {
+          key: 'og_url',
+          value: '',
+          type: 'text',
+          category: 'seo'
+        }
+      ];
+      
       let brandingInserted = 0;
       for (const setting of defaultBrandingSettings) {
         // Check if setting already exists
@@ -91,9 +137,37 @@ export async function initializeTenantDefaults(tenantId) {
         }
       }
       
+      // Initialize SEO settings
+      let seoInserted = 0;
+      for (const setting of defaultSEOSettings) {
+        // Check if setting already exists
+        const existing = await query(`
+          SELECT id FROM site_settings 
+          WHERE setting_key = $1 AND tenant_id = $2 AND theme_id IS NULL
+          LIMIT 1
+        `, [setting.key, tenantId]);
+        
+        if (existing.rows.length === 0) {
+          await query(`
+            INSERT INTO site_settings (
+              setting_key, setting_value, setting_type, setting_category,
+              is_public, tenant_id, theme_id, created_at, updated_at
+            )
+            VALUES ($1, $2, $3, $4, true, $5, NULL, NOW(), NOW())
+          `, [
+            setting.key,
+            setting.value,
+            setting.type,
+            setting.category,
+            tenantId
+          ]);
+          seoInserted++;
+        }
+      }
+      
       summary.branding.inserted = brandingInserted;
-      summary.settings.inserted = brandingInserted; // Branding settings are part of site_settings
-      console.log(`[testing] Initialized ${summary.branding.inserted} branding settings`);
+      summary.settings.inserted = brandingInserted + seoInserted; // Branding + SEO settings
+      console.log(`[testing] Initialized ${summary.branding.inserted} branding settings and ${seoInserted} SEO settings`);
     } catch (brandingError) {
       console.error(`[testing] Error initializing branding settings:`, brandingError);
       summary.errors.push(`Branding settings initialization: ${brandingError.message}`);

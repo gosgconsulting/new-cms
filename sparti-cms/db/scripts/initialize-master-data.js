@@ -139,6 +139,33 @@ async function initializeMasterSettings() {
       theme_id: null
     },
     {
+      setting_key: 'og_site_name',
+      setting_value: '',
+      setting_type: 'text',
+      setting_category: 'seo',
+      is_public: true,
+      tenant_id: null,
+      theme_id: null
+    },
+    {
+      setting_key: 'og_url',
+      setting_value: '',
+      setting_type: 'text',
+      setting_category: 'seo',
+      is_public: true,
+      tenant_id: null,
+      theme_id: null
+    },
+    {
+      setting_key: 'seo_index',
+      setting_value: 'true',
+      setting_type: 'text',
+      setting_category: 'seo',
+      is_public: true,
+      tenant_id: null,
+      theme_id: null
+    },
+    {
       setting_key: 'twitter_card',
       setting_value: 'summary_large_image',
       setting_type: 'text',

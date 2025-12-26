@@ -74,6 +74,7 @@ const SitemapManager: React.FC = () => {
   const [editingEntry, setEditingEntry] = useState<SitemapEntry | null>(null);
   const [generatedSitemap, setGeneratedSitemap] = useState('');
   const [showPreview, setShowPreview] = useState(false);
+  const [siteUrl, setSiteUrl] = useState<string>('');
   const [formData, setFormData] = useState({
     url: '',
     changefreq: 'weekly' as SitemapEntry['changefreq'],
@@ -86,9 +87,50 @@ const SitemapManager: React.FC = () => {
   useEffect(() => {
     if (currentTenantId) {
       loadSitemapEntries();
+      loadSiteUrl();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [typeFilter, currentTenantId]);
+
+  const loadSiteUrl = async () => {
+    if (!currentTenantId) return;
+    
+    try {
+      const response = await api.get(`/api/settings/site-settings/site_url?tenantId=${currentTenantId}`, {
+        tenantId: currentTenantId
+      });
+      
+      if (response.ok) {
+        const setting = await response.json();
+        if (setting.setting_value) {
+          setSiteUrl(setting.setting_value.replace(/\/$/, ''));
+          return;
+        }
+      }
+      
+      // Fallback to default
+      const defaultUrl = import.meta.env.VITE_API_BASE_URL || 
+                        import.meta.env.VITE_SITE_URL || 
+                        (window.location.origin.includes('localhost') ? 'https://cms.sparti.ai' : window.location.origin);
+      setSiteUrl(defaultUrl.replace(/\/$/, ''));
+    } catch (error) {
+      console.error('[testing] Error loading site URL:', error);
+      // Use window origin as fallback
+      setSiteUrl(window.location.origin.replace(/\/$/, ''));
+    }
+  };
+
+  const handleViewUrl = (url: string) => {
+    // If URL is already a full URL, use it directly
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      window.open(url, '_blank', 'noopener,noreferrer');
+      return;
+    }
+    
+    // Construct full URL using site URL
+    const fullUrl = `${siteUrl || window.location.origin}${url.startsWith('/') ? url : '/' + url}`;
+    window.open(fullUrl, '_blank', 'noopener,noreferrer');
+  };
 
   const loadSitemapEntries = async () => {
     if (!currentTenantId) {
@@ -676,7 +718,16 @@ const SitemapManager: React.FC = () => {
                         <Button 
                           variant="ghost" 
                           size="sm"
+                          onClick={() => handleViewUrl(entry.url)}
+                          title="View page"
+                        >
+                          <ExternalLink className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
                           onClick={() => handleEdit(entry)}
+                          title="Edit entry"
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
@@ -685,6 +736,7 @@ const SitemapManager: React.FC = () => {
                           size="sm"
                           onClick={() => handleDelete(entry.id)}
                           className="text-red-600 hover:text-red-700"
+                          title="Delete entry"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>

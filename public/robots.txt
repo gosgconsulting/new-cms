@@ -1,3 +1,10 @@
+# NOTE: This file is overridden by a dynamic server route at /robots.txt
+# The server route serves different content based on deployment type:
+# - CMS Admin: Disallows all indexing
+# - Theme Deployment: Allows indexing when DEPLOY_THEME_SLUG and CMS_TENANT are set
+#
+# This static file is only used as a fallback if the server route is not available.
+
 User-agent: Googlebot
 Allow: /
 

@@ -34,27 +34,30 @@ export default {
       console.log('[migration] Added theme_id column to site_settings table');
     }
 
-    // Remove old unique constraint on setting_key if it exists
+    // Remove old unique constraints that don't match our COALESCE approach
     try {
-      // Check for unique constraint on setting_key
-      const constraints = await queryInterface.sequelize.query(`
-        SELECT constraint_name 
-        FROM information_schema.table_constraints 
-        WHERE table_name = 'site_settings' 
-        AND constraint_type = 'UNIQUE'
-        AND constraint_name LIKE '%setting_key%'
+      // Drop old constraint on setting_key only
+      await queryInterface.sequelize.query(`
+        ALTER TABLE site_settings 
+        DROP CONSTRAINT IF EXISTS site_settings_setting_key_key
       `);
+      console.log('[migration] Attempted to drop old unique constraint on setting_key');
       
-      if (constraints[0].length > 0) {
-        // Drop the old unique constraint
-        await queryInterface.sequelize.query(`
-          ALTER TABLE site_settings 
-          DROP CONSTRAINT IF EXISTS site_settings_setting_key_key
-        `);
-        console.log('[migration] Removed old unique constraint on setting_key');
-      }
+      // Drop old constraint on (setting_key, tenant_id) only
+      await queryInterface.sequelize.query(`
+        ALTER TABLE site_settings 
+        DROP CONSTRAINT IF EXISTS site_settings_setting_key_tenant_id_key
+      `);
+      console.log('[migration] Attempted to drop old unique constraint on (setting_key, tenant_id)');
+      
+      // Drop standard UNIQUE constraint on (setting_key, tenant_id, theme_id) if it exists
+      await queryInterface.sequelize.query(`
+        ALTER TABLE site_settings 
+        DROP CONSTRAINT IF EXISTS site_settings_setting_key_tenant_id_theme_id_key
+      `);
+      console.log('[migration] Attempted to drop standard UNIQUE constraint on (setting_key, tenant_id, theme_id)');
     } catch (error) {
-      console.log('[migration] Could not remove old constraint (may not exist):', error.message);
+      console.log('[migration] Could not remove old constraints (may not exist):', error.message);
     }
 
     // Create new unique constraint on (setting_key, tenant_id, theme_id)

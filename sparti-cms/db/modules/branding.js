@@ -125,22 +125,69 @@ export async function updateBrandingSetting(key, value, tenantId = 'tenant-gosg'
     // This function creates/updates tenant-specific settings, not master
     // Master settings are shared and should not be updated via this function
     
-    const result = await query(`
-      INSERT INTO site_settings (setting_key, setting_value, setting_type, setting_category, updated_at, tenant_id)
-      VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP, $5)
-      ON CONFLICT (setting_key, COALESCE(tenant_id, ''), COALESCE(theme_id, '')) 
-      DO UPDATE SET 
-        setting_value = EXCLUDED.setting_value,
-        updated_at = CURRENT_TIMESTAMP
-      WHERE tenant_id = $5
-      RETURNING *
-    `, [
-      key, 
-      value, 
-      key.includes('logo') || key.includes('favicon') || key.includes('image') ? 'media' : 'text',
-      key.startsWith('site_') ? 'branding' : 'general',
-      tenantId
-    ]);
+    const settingType = key.includes('logo') || key.includes('favicon') || key.includes('image') ? 'media' : 'text';
+    const category = key.startsWith('site_') ? 'branding' : 'general';
+    
+    // Check if tenant-specific setting exists first (with theme_id = NULL for tenant-level settings)
+    const existing = await query(`
+      SELECT id FROM site_settings 
+      WHERE setting_key = $1 
+        AND tenant_id = $2
+        AND (theme_id IS NULL)
+      LIMIT 1
+    `, [key, tenantId]);
+    
+    let result;
+    if (existing.rows.length > 0) {
+      // Update existing tenant-specific setting
+      result = await query(`
+        UPDATE site_settings 
+        SET setting_value = $1,
+            setting_type = $2,
+            setting_category = $3,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = $4
+        RETURNING *
+      `, [value, settingType, category, existing.rows[0].id]);
+    } else {
+      // Insert new tenant-specific setting
+      // Note: We can't use ON CONFLICT with COALESCE-based unique index directly
+      // So we rely on the check above and handle any race condition errors
+      try {
+        result = await query(`
+          INSERT INTO site_settings (setting_key, setting_value, setting_type, setting_category, updated_at, tenant_id, theme_id)
+          VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP, $5, NULL)
+          RETURNING *
+        `, [key, value, settingType, category, tenantId]);
+      } catch (insertError) {
+        // If we get a unique constraint violation (race condition), try to update instead
+        if (insertError.code === '23505') {
+          const retryExisting = await query(`
+            SELECT id FROM site_settings 
+            WHERE setting_key = $1 
+              AND tenant_id = $2
+              AND (theme_id IS NULL)
+            LIMIT 1
+          `, [key, tenantId]);
+          
+          if (retryExisting.rows.length > 0) {
+            result = await query(`
+              UPDATE site_settings 
+              SET setting_value = $1,
+                  setting_type = $2,
+                  setting_category = $3,
+                  updated_at = CURRENT_TIMESTAMP
+              WHERE id = $4
+              RETURNING *
+            `, [value, settingType, category, retryExisting.rows[0].id]);
+          } else {
+            throw insertError;
+          }
+        } else {
+          throw insertError;
+        }
+      }
+    }
     
     if (result.rows.length === 0) {
       throw new Error('Failed to update branding setting. Ensure tenant_id is provided.');
@@ -575,19 +622,43 @@ export async function updateMultipleBrandingSettings(settings, tenantId = 'tenan
           WHERE id = $5
         `, [value, settingType, category, themeId, existing.rows[0].id]);
       } else {
-        // Insert new tenant-specific setting using ON CONFLICT for atomic operation
-        // The unique constraint is on (setting_key, tenant_id, theme_id)
-        await client.query(`
-          INSERT INTO site_settings (setting_key, setting_value, setting_type, setting_category, updated_at, tenant_id, theme_id)
-          VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP, $5, $6)
-          ON CONFLICT (setting_key, tenant_id, theme_id)
-          DO UPDATE SET 
-            setting_value = EXCLUDED.setting_value,
-            setting_type = EXCLUDED.setting_type,
-            setting_category = EXCLUDED.setting_category,
-            updated_at = CURRENT_TIMESTAMP
-          WHERE site_settings.tenant_id = $5
-        `, [key, value, settingType, category, tenantId, themeId]);
+        // Insert new tenant-specific setting
+        // Note: We can't use ON CONFLICT with COALESCE-based unique index directly
+        // So we rely on the check above and handle any race condition errors
+        try {
+          await client.query(`
+            INSERT INTO site_settings (setting_key, setting_value, setting_type, setting_category, updated_at, tenant_id, theme_id)
+            VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP, $5, $6)
+          `, [key, value, settingType, category, tenantId, themeId]);
+        } catch (insertError) {
+          // If we get a unique constraint violation (race condition), try to update instead
+          if (insertError.code === '23505') {
+            const retryExisting = await client.query(`
+              SELECT id FROM site_settings 
+              WHERE setting_key = $1 
+                AND (tenant_id = $2 OR (tenant_id IS NULL AND $2 IS NULL))
+                AND (theme_id = $3 OR (theme_id IS NULL AND $3 IS NULL))
+              LIMIT 1
+            `, [key, tenantId, themeId]);
+            
+            if (retryExisting.rows.length > 0) {
+              // Update the existing record
+              await client.query(`
+                UPDATE site_settings 
+                SET setting_value = $1,
+                    setting_type = $2,
+                    setting_category = $3,
+                    updated_at = CURRENT_TIMESTAMP,
+                    theme_id = $4
+                WHERE id = $5
+              `, [value, settingType, category, themeId, retryExisting.rows[0].id]);
+            } else {
+              throw insertError;
+            }
+          } else {
+            throw insertError;
+          }
+        }
       }
     }
     
@@ -783,11 +854,13 @@ export async function updateSiteSettingByKey(key, value, type = 'text', category
       return result.rows[0];
     } else {
       // Insert new tenant-specific setting (not a copy of master)
+      // Set is_public to true for SEO and branding settings
+      const isPublic = category === 'seo' || category === 'branding';
       const result = await query(`
-        INSERT INTO site_settings (setting_key, setting_value, setting_type, setting_category, updated_at, tenant_id, theme_id)
-        VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP, $5, $6)
+        INSERT INTO site_settings (setting_key, setting_value, setting_type, setting_category, is_public, updated_at, tenant_id, theme_id)
+        VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP, $6, $7)
         RETURNING *
-      `, [key, value, type, category, tenantId, themeId]);
+      `, [key, value, type, category, isPublic, tenantId, themeId]);
       return result.rows[0];
     }
   } catch (error) {

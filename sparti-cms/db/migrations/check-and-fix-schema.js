@@ -97,34 +97,38 @@ async function checkAndFixSchema() {
       }
     }
     
-    // Check and update unique constraint
-    const constraintExists = await query(`
+    // Check and update unique index (COALESCE-based)
+    const indexExists = await query(`
       SELECT EXISTS (
-        SELECT FROM pg_constraint 
-        WHERE conname = 'site_settings_setting_key_tenant_id_theme_id_key'
+        SELECT FROM pg_indexes 
+        WHERE indexname = 'site_settings_setting_key_tenant_theme_unique'
       )
     `);
     
-    if (!constraintExists.rows[0].exists) {
-      console.log('[schema-check] Creating unique constraint...');
-      // Drop old constraint if exists
+    if (!indexExists.rows[0].exists) {
+      console.log('[schema-check] Creating unique index with COALESCE...');
+      // Drop old constraints/indexes if they exist
       try {
         await query(`ALTER TABLE site_settings DROP CONSTRAINT IF EXISTS site_settings_setting_key_key`);
+        await query(`ALTER TABLE site_settings DROP CONSTRAINT IF EXISTS site_settings_setting_key_tenant_id_key`);
+        await query(`ALTER TABLE site_settings DROP CONSTRAINT IF EXISTS site_settings_setting_key_tenant_id_theme_id_key`);
+        await query(`DROP INDEX IF EXISTS site_settings_setting_key_tenant_theme_unique`);
       } catch (e) {
         // Ignore if doesn't exist
       }
       
       await query(`
-        ALTER TABLE site_settings 
-        ADD CONSTRAINT site_settings_setting_key_tenant_id_theme_id_key 
-        UNIQUE (setting_key, tenant_id, theme_id)
+        CREATE UNIQUE INDEX site_settings_setting_key_tenant_theme_unique 
+        ON site_settings (setting_key, COALESCE(tenant_id, ''), COALESCE(theme_id, ''))
       `);
-      console.log('[schema-check] ✓ Unique constraint created');
+      console.log('[schema-check] ✓ Unique index created');
     } else {
-      console.log('[schema-check] ✓ Unique constraint exists');
+      console.log('[schema-check] ✓ Unique index exists');
     }
     
-    // Update existing records
+    // Note: We do NOT update NULL tenant_id values
+    // NULL tenant_id represents master settings (shared across all tenants)
+    // This is intentional and should be preserved
     const nullTenantCount = await query(`
       SELECT COUNT(*) as count 
       FROM site_settings 
@@ -132,13 +136,7 @@ async function checkAndFixSchema() {
     `);
     
     if (parseInt(nullTenantCount.rows[0].count) > 0) {
-      console.log(`[schema-check] Updating ${nullTenantCount.rows[0].count} records with default tenant_id...`);
-      await query(`
-        UPDATE site_settings 
-        SET tenant_id = 'tenant-gosg' 
-        WHERE tenant_id IS NULL
-      `);
-      console.log('[schema-check] ✓ Records updated');
+      console.log(`[schema-check] Note: ${nullTenantCount.rows[0].count} master settings (tenant_id = NULL) found - these are preserved as shared settings`);
     }
     
     console.log('\n[schema-check] ✓ Schema check completed successfully!');

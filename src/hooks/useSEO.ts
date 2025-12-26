@@ -137,6 +137,22 @@ export const useSEO = (options: SEOOptions = {}) => {
     updateMetaTag('meta[name="keywords"]', keywords);
     updateMetaTag('meta[name="author"]', seoSettings.meta_author || '');
 
+    // Handle robots meta tag based on deployment type
+    // Check if this is a theme deployment (not CMS admin)
+    const isThemeDeployment = typeof window !== 'undefined' && 
+      ((window as any).__THEME_DEPLOYMENT__ === true || 
+       (window as any).__CMS_TENANT__ !== undefined);
+    
+    if (isThemeDeployment) {
+      // Allow indexing for theme deployments
+      updateMetaTag('meta[name="robots"]', 'index, follow');
+      console.log('[testing] Theme deployment detected - allowing search engine indexing');
+    } else {
+      // Prevent indexing for CMS admin interface
+      updateMetaTag('meta[name="robots"]', 'noindex, nofollow');
+      console.log('[testing] CMS admin interface detected - preventing search engine indexing');
+    }
+
     // Update Open Graph meta tags
     updateMetaTag('meta[property="og:title"]', options.title || seoSettings.og_title || title);
     updateMetaTag('meta[property="og:description"]', options.description || seoSettings.og_description || description);

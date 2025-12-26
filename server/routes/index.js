@@ -74,6 +74,36 @@ router.use('/api/media', mediaRoutes);
 router.use('/theme', themeAdminRoutes);
 router.use('/theme', themeRoutes);
 
+// Dynamic robots.txt route - serves different content based on deployment type
+router.get('/robots.txt', (req, res) => {
+  const deployThemeSlug = process.env.DEPLOY_THEME_SLUG;
+  const cmsTenant = process.env.CMS_TENANT;
+  
+  // Check if this is a theme deployment (both DEPLOY_THEME_SLUG and CMS_TENANT should be set)
+  const isThemeDeployment = deployThemeSlug && cmsTenant;
+  
+  res.setHeader('Content-Type', 'text/plain');
+  
+  if (isThemeDeployment) {
+    // Allow indexing for theme deployments
+    res.send(`User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: ${req.protocol}://${req.get('host')}/sitemap.xml
+`);
+    console.log('[testing] Serving robots.txt for theme deployment - allowing indexing');
+  } else {
+    // Prevent indexing for CMS admin interface
+    res.send(`User-agent: *
+Disallow: /
+
+# CMS Admin Interface - Not for public indexing
+`);
+    console.log('[testing] Serving robots.txt for CMS admin - preventing indexing');
+  }
+});
+
 // Server-rendered page route (mounted at root, not under /api)
 router.get('/r/:slug', async (req, res) => {
   try {
