@@ -87,8 +87,8 @@ export function extractPosts(data) {
         status: item['wp:status']?.['#text'] || item['wp:status'] || item.status || 'draft',
         postType: item['wp:post_type']?.['#text'] || item['wp:post_type'] || item.post_type || 'post',
         publishedAt: extractDate(item),
-        categories: extractCategories(item),
-        tags: extractTags(item),
+        categories: extractItemCategories(item),
+        tags: extractItemTags(item),
         featuredImage: extractFeaturedImage(item),
         meta: extractMeta(item)
       };
@@ -184,7 +184,7 @@ export function extractTags(data) {
  * @param {Object} item - Post item
  * @returns {Array<string>} Array of category names/slugs
  */
-function extractCategories(item) {
+function extractItemCategories(item) {
   const categories = [];
   
   if (item.category) {
@@ -204,7 +204,7 @@ function extractCategories(item) {
  * @param {Object} item - Post item
  * @returns {Array<string>} Array of tag names/slugs
  */
-function extractTags(item) {
+function extractItemTags(item) {
   const tags = [];
   
   if (item.category) {
@@ -378,4 +378,3 @@ function generateSlug(text) {
 function escapeRegex(str) {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
-
