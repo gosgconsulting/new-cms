@@ -423,6 +423,12 @@ router.put('/pages/:pageId', async (req, res) => {
     });
   } catch (error) {
     console.error('[testing] API: Error updating page:', error);
+    if (error.message && error.message.includes('master page')) {
+      return res.status(403).json({
+        success: false,
+        error: error.message
+      });
+    }
     res.status(500).json({
       success: false,
       error: 'Failed to update page',
@@ -934,25 +940,33 @@ router.put('/categories/:id', async (req, res) => {
     const { id } = req.params;
     const tenantId = req.tenantId || req.user?.tenant_id || req.body.tenantId;
     
-    // Build where clause
-    const whereClause = { id: parseInt(id) };
-    if (tenantId) {
-      whereClause[Op.or] = [
-        { tenant_id: tenantId },
-        { tenant_id: null }
-      ];
+    if (!tenantId) {
+      return res.status(400).json({ error: 'Tenant ID is required to update categories' });
     }
+    
+    // Build where clause - only allow updating tenant-specific categories
+    const whereClause = { 
+      id: parseInt(id),
+      tenant_id: tenantId // Only tenant-specific categories can be updated
+    };
     
     const category = await Category.findOne({ where: whereClause });
     if (!category) {
+      // Check if it's a master category
+      const masterCategory = await Category.findOne({ 
+        where: { id: parseInt(id), tenant_id: null } 
+      });
+      if (masterCategory) {
+        return res.status(403).json({ 
+          error: 'Cannot update master category. Master data (tenant_id = NULL) is shared across all tenants. Create a tenant-specific category instead.' 
+        });
+      }
       return res.status(404).json({ error: 'Category not found' });
     }
     
-    // Update category (preserve tenant_id unless explicitly changed by super admin)
+    // Update category (preserve tenant_id)
     const updateData = { ...req.body };
-    if (!req.user?.is_super_admin || !req.body.tenantId) {
-      delete updateData.tenant_id; // Don't allow tenant_id changes unless super admin
-    }
+    delete updateData.tenant_id; // Never allow tenant_id changes via update
     
     await category.update(updateData);
     res.json(category.toJSON());
@@ -971,18 +985,23 @@ router.delete('/categories/:id', async (req, res) => {
     const { id } = req.params;
     const tenantId = req.tenantId || req.user?.tenant_id || req.query.tenantId;
     
-    // Build where clause
+    // Build where clause - only allow deletion of tenant-specific categories
     const whereClause = { id: parseInt(id) };
     if (tenantId) {
-      whereClause[Op.or] = [
-        { tenant_id: tenantId },
-        { tenant_id: null }
-      ];
+      // Only allow deletion of tenant-specific categories, not master (tenant_id = NULL)
+      whereClause.tenant_id = tenantId;
+    } else {
+      return res.status(400).json({ error: 'Tenant ID is required to delete categories' });
     }
     
     const category = await Category.findOne({ where: whereClause });
     if (!category) {
-      return res.status(404).json({ error: 'Category not found' });
+      return res.status(404).json({ error: 'Category not found or is a master category (cannot delete master data)' });
+    }
+    
+    // Prevent deletion of master categories (tenant_id = NULL)
+    if (!category.tenant_id) {
+      return res.status(403).json({ error: 'Cannot delete master category. Master data (tenant_id = NULL) is shared across all tenants.' });
     }
     
     await category.destroy();
@@ -1082,25 +1101,33 @@ router.put('/tags/:id', async (req, res) => {
     const { id } = req.params;
     const tenantId = req.tenantId || req.user?.tenant_id || req.body.tenantId;
     
-    // Build where clause
-    const whereClause = { id: parseInt(id) };
-    if (tenantId) {
-      whereClause[Op.or] = [
-        { tenant_id: tenantId },
-        { tenant_id: null }
-      ];
+    if (!tenantId) {
+      return res.status(400).json({ error: 'Tenant ID is required to update tags' });
     }
+    
+    // Build where clause - only allow updating tenant-specific tags
+    const whereClause = { 
+      id: parseInt(id),
+      tenant_id: tenantId // Only tenant-specific tags can be updated
+    };
     
     const tag = await Tag.findOne({ where: whereClause });
     if (!tag) {
+      // Check if it's a master tag
+      const masterTag = await Tag.findOne({ 
+        where: { id: parseInt(id), tenant_id: null } 
+      });
+      if (masterTag) {
+        return res.status(403).json({ 
+          error: 'Cannot update master tag. Master data (tenant_id = NULL) is shared across all tenants. Create a tenant-specific tag instead.' 
+        });
+      }
       return res.status(404).json({ error: 'Tag not found' });
     }
     
-    // Update tag (preserve tenant_id unless explicitly changed by super admin)
+    // Update tag (preserve tenant_id)
     const updateData = { ...req.body };
-    if (!req.user?.is_super_admin || !req.body.tenantId) {
-      delete updateData.tenant_id; // Don't allow tenant_id changes unless super admin
-    }
+    delete updateData.tenant_id; // Never allow tenant_id changes via update
     
     await tag.update(updateData);
     res.json(tag.toJSON());
@@ -1119,18 +1146,23 @@ router.delete('/tags/:id', async (req, res) => {
     const { id } = req.params;
     const tenantId = req.tenantId || req.user?.tenant_id || req.query.tenantId;
     
-    // Build where clause
+    // Build where clause - only allow deletion of tenant-specific tags
     const whereClause = { id: parseInt(id) };
     if (tenantId) {
-      whereClause[Op.or] = [
-        { tenant_id: tenantId },
-        { tenant_id: null }
-      ];
+      // Only allow deletion of tenant-specific tags, not master (tenant_id = NULL)
+      whereClause.tenant_id = tenantId;
+    } else {
+      return res.status(400).json({ error: 'Tenant ID is required to delete tags' });
     }
     
     const tag = await Tag.findOne({ where: whereClause });
     if (!tag) {
-      return res.status(404).json({ error: 'Tag not found' });
+      return res.status(404).json({ error: 'Tag not found or is a master tag (cannot delete master data)' });
+    }
+    
+    // Prevent deletion of master tags (tenant_id = NULL)
+    if (!tag.tenant_id) {
+      return res.status(403).json({ error: 'Cannot delete master tag. Master data (tenant_id = NULL) is shared across all tenants.' });
     }
     
     await tag.destroy();

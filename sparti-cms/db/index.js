@@ -46,6 +46,21 @@ export {
   getContactsWithMessages
 } from './modules/contacts.js';
 
+// Media
+export {
+  getMediaFolders,
+  createMediaFolder,
+  updateMediaFolder,
+  deleteMediaFolder,
+  getMediaFiles,
+  getMediaFile,
+  createMediaFile,
+  updateMediaFile,
+  deleteMediaFile,
+  getTenantStorageName,
+  initializeTenantMediaFolders
+} from './modules/media.js';
+
 // Pages management
 export {
   initializeSEOPagesTables,

@@ -166,10 +166,28 @@ async function initializeMasterSettings() {
       theme_id: null
     },
     
-    // Localization settings
+    // Localization settings (empty by default - tenants set their own)
     {
       setting_key: 'site_language',
-      setting_value: 'en',
+      setting_value: '',
+      setting_type: 'text',
+      setting_category: 'localization',
+      is_public: true,
+      tenant_id: null,
+      theme_id: null
+    },
+    {
+      setting_key: 'country',
+      setting_value: '',
+      setting_type: 'text',
+      setting_category: 'localization',
+      is_public: true,
+      tenant_id: null,
+      theme_id: null
+    },
+    {
+      setting_key: 'location',
+      setting_value: '',
       setting_type: 'text',
       setting_category: 'localization',
       is_public: true,
@@ -178,7 +196,16 @@ async function initializeMasterSettings() {
     },
     {
       setting_key: 'site_country',
-      setting_value: 'US',
+      setting_value: '',
+      setting_type: 'text',
+      setting_category: 'localization',
+      is_public: true,
+      tenant_id: null,
+      theme_id: null
+    },
+    {
+      setting_key: 'timezone',
+      setting_value: '',
       setting_type: 'text',
       setting_category: 'localization',
       is_public: true,
@@ -187,7 +214,7 @@ async function initializeMasterSettings() {
     },
     {
       setting_key: 'site_timezone',
-      setting_value: 'UTC',
+      setting_value: '',
       setting_type: 'text',
       setting_category: 'localization',
       is_public: true,
@@ -195,10 +222,13 @@ async function initializeMasterSettings() {
       theme_id: null
     },
     
-    // Theme styles (default empty JSON)
+    // Theme styles (default empty JSON with structure for typography and colors)
     {
       setting_key: 'theme_styles',
-      setting_value: JSON.stringify({}),
+      setting_value: JSON.stringify({
+        typography: {},
+        colors: {}
+      }),
       setting_type: 'json',
       setting_category: 'theme',
       is_public: false,

@@ -86,11 +86,18 @@ export async function initializeSEOManagementTables() {
 
 // ===== REDIRECTS MANAGEMENT =====
 
-export async function createRedirect(redirectData) {
+export async function createRedirect(redirectData, tenantId = null) {
   try {
+    // Require tenant_id for tenant-specific redirects (master redirects should be created separately)
+    if (!tenantId && !redirectData.tenant_id) {
+      throw new Error('Tenant ID is required to create redirects. Master redirects (tenant_id = NULL) should be created via admin interface.');
+    }
+    
+    const finalTenantId = redirectData.tenant_id || tenantId;
+    
     const result = await query(`
-      INSERT INTO redirects (old_url, new_url, redirect_type, status, notes, created_by)
-      VALUES ($1, $2, $3, $4, $5, $6)
+      INSERT INTO redirects (old_url, new_url, redirect_type, status, notes, created_by, tenant_id)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
       RETURNING *
     `, [
       redirectData.old_url,
@@ -98,7 +105,8 @@ export async function createRedirect(redirectData) {
       redirectData.redirect_type || 301,
       redirectData.status || 'active',
       redirectData.notes || '',
-      redirectData.created_by || 'admin'
+      redirectData.created_by || 'admin',
+      finalTenantId
     ]);
     
     console.log('[testing] Redirect created:', result.rows[0].id);
@@ -109,11 +117,17 @@ export async function createRedirect(redirectData) {
   }
 }
 
-export async function getRedirects(filters = {}) {
+export async function getRedirects(filters = {}, tenantId = null) {
   try {
     let whereClause = 'WHERE 1=1';
     let params = [];
     let paramCount = 0;
+
+    // Include master data (tenant_id = NULL) and tenant-specific data
+    if (tenantId) {
+      whereClause += ` AND (tenant_id = $${++paramCount} OR tenant_id IS NULL)`;
+      params.push(tenantId);
+    }
 
     if (filters.status) {
       whereClause += ` AND status = $${++paramCount}`;
@@ -126,10 +140,17 @@ export async function getRedirects(filters = {}) {
       paramCount++;
     }
 
+    // Order by tenant-specific first, then master
+    if (tenantId) {
+      whereClause += ` ORDER BY CASE WHEN tenant_id = $${++paramCount} THEN 0 ELSE 1 END, hits DESC, created_at DESC`;
+      params.push(tenantId);
+    } else {
+      whereClause += ` ORDER BY hits DESC, created_at DESC`;
+    }
+
     const result = await query(`
       SELECT * FROM redirects
       ${whereClause}
-      ORDER BY hits DESC, created_at DESC
     `, params);
     
     return result.rows;
@@ -139,13 +160,31 @@ export async function getRedirects(filters = {}) {
   }
 }
 
-export async function updateRedirect(redirectId, redirectData) {
+export async function updateRedirect(redirectId, redirectData, tenantId = null) {
   try {
+    // Build where clause - only allow updating tenant-specific redirects
+    let whereClause = 'WHERE id = $1';
+    let params = [redirectId];
+    
+    if (tenantId) {
+      whereClause += ` AND tenant_id = $2`;
+      params.push(tenantId);
+    } else {
+      // If no tenantId provided, check if it's a master redirect and prevent update
+      const checkResult = await query(`SELECT tenant_id FROM redirects WHERE id = $1`, [redirectId]);
+      if (checkResult.rows.length === 0) {
+        throw new Error('Redirect not found');
+      }
+      if (!checkResult.rows[0].tenant_id) {
+        throw new Error('Cannot update master redirect. Master data (tenant_id = NULL) is shared across all tenants.');
+      }
+    }
+    
     const result = await query(`
       UPDATE redirects 
       SET old_url = $1, new_url = $2, redirect_type = $3, status = $4, 
           notes = $5, updated_at = NOW()
-      WHERE id = $6
+      ${whereClause}
       RETURNING *
     `, [
       redirectData.old_url,
@@ -153,8 +192,12 @@ export async function updateRedirect(redirectId, redirectData) {
       redirectData.redirect_type,
       redirectData.status,
       redirectData.notes,
-      redirectId
+      ...params
     ]);
+    
+    if (result.rows.length === 0) {
+      throw new Error('Redirect not found or is a master redirect (cannot update master data)');
+    }
     
     return result.rows[0];
   } catch (error) {
@@ -163,11 +206,33 @@ export async function updateRedirect(redirectId, redirectData) {
   }
 }
 
-export async function deleteRedirect(redirectId) {
+export async function deleteRedirect(redirectId, tenantId = null) {
   try {
+    // Build where clause - only allow deleting tenant-specific redirects
+    let whereClause = 'WHERE id = $1';
+    let params = [redirectId];
+    
+    if (tenantId) {
+      whereClause += ` AND tenant_id = $2`;
+      params.push(tenantId);
+    } else {
+      // If no tenantId provided, check if it's a master redirect and prevent deletion
+      const checkResult = await query(`SELECT tenant_id FROM redirects WHERE id = $1`, [redirectId]);
+      if (checkResult.rows.length === 0) {
+        throw new Error('Redirect not found');
+      }
+      if (!checkResult.rows[0].tenant_id) {
+        throw new Error('Cannot delete master redirect. Master data (tenant_id = NULL) is shared across all tenants.');
+      }
+    }
+    
     const result = await query(`
-      DELETE FROM redirects WHERE id = $1 RETURNING *
-    `, [redirectId]);
+      DELETE FROM redirects ${whereClause} RETURNING *
+    `, params);
+    
+    if (result.rows.length === 0) {
+      throw new Error('Redirect not found or is a master redirect (cannot delete master data)');
+    }
     
     return result.rows[0];
   } catch (error) {
@@ -176,13 +241,33 @@ export async function deleteRedirect(redirectId) {
   }
 }
 
-export async function trackRedirectHit(oldUrl) {
+export async function trackRedirectHit(oldUrl, tenantId = null) {
   try {
-    await query(`
-      UPDATE redirects 
-      SET hits = hits + 1, last_hit = NOW()
+    // Find the redirect - prefer tenant-specific, fallback to master
+    let findQuery = `
+      SELECT id, tenant_id FROM redirects 
       WHERE old_url = $1 AND status = 'active'
-    `, [oldUrl]);
+    `;
+    let params = [oldUrl];
+    
+    if (tenantId) {
+      findQuery += ` AND (tenant_id = $2 OR tenant_id IS NULL)`;
+      params.push(tenantId);
+      findQuery += ` ORDER BY CASE WHEN tenant_id = $2 THEN 0 ELSE 1 END LIMIT 1`;
+    } else {
+      findQuery += ` LIMIT 1`;
+    }
+    
+    const findResult = await query(findQuery, params);
+    
+    if (findResult.rows.length > 0) {
+      const redirectId = findResult.rows[0].id;
+      await query(`
+        UPDATE redirects 
+        SET hits = hits + 1, last_hit = NOW()
+        WHERE id = $1
+      `, [redirectId]);
+    }
   } catch (error) {
     console.error('[testing] Error tracking redirect hit:', error);
   }
@@ -190,13 +275,25 @@ export async function trackRedirectHit(oldUrl) {
 
 // ===== ROBOTS.TXT MANAGEMENT =====
 
-export async function getRobotsConfig() {
+export async function getRobotsConfig(tenantId = null) {
   try {
+    let whereClause = 'WHERE is_active = true';
+    let params = [];
+    let orderClause = 'ORDER BY user_agent, directive, path';
+    
+    // Include master data (tenant_id = NULL) and tenant-specific data
+    if (tenantId) {
+      whereClause += ` AND (tenant_id = $1 OR tenant_id IS NULL)`;
+      params.push(tenantId);
+      // Order by tenant-specific first, then master
+      orderClause = `ORDER BY CASE WHEN tenant_id = $1 THEN 0 ELSE 1 END, user_agent, directive, path`;
+    }
+    
     const result = await query(`
       SELECT * FROM robots_config
-      WHERE is_active = true
-      ORDER BY user_agent, directive, path
-    `);
+      ${whereClause}
+      ${orderClause}
+    `, params);
     
     return result.rows;
   } catch (error) {
@@ -205,21 +302,25 @@ export async function getRobotsConfig() {
   }
 }
 
-export async function updateRobotsConfig(rules) {
+export async function updateRobotsConfig(rules, tenantId = null) {
   try {
-    // Deactivate all existing rules
-    await query(`UPDATE robots_config SET is_active = false`);
-    
-    // Insert new rules
-    for (const rule of rules) {
-      await query(`
-        INSERT INTO robots_config (user_agent, directive, path, notes, is_active)
-        VALUES ($1, $2, $3, $4, true)
-        ON CONFLICT DO NOTHING
-      `, [rule.user_agent, rule.directive, rule.path, rule.notes || '']);
+    if (!tenantId) {
+      throw new Error('Tenant ID is required to update robots config. Master config (tenant_id = NULL) should be updated via admin interface.');
     }
     
-    console.log('[testing] Robots.txt configuration updated');
+    // Deactivate all existing tenant-specific rules (not master rules)
+    await query(`UPDATE robots_config SET is_active = false WHERE tenant_id = $1`, [tenantId]);
+    
+    // Insert new tenant-specific rules
+    for (const rule of rules) {
+      await query(`
+        INSERT INTO robots_config (user_agent, directive, path, notes, is_active, tenant_id)
+        VALUES ($1, $2, $3, $4, true, $5)
+        ON CONFLICT DO NOTHING
+      `, [rule.user_agent, rule.directive, rule.path, rule.notes || '', tenantId]);
+    }
+    
+    console.log('[testing] Robots.txt configuration updated for tenant:', tenantId);
     return true;
   } catch (error) {
     console.error('[testing] Error updating robots config:', error);
@@ -229,7 +330,7 @@ export async function updateRobotsConfig(rules) {
 
 export async function generateRobotsTxt(tenantId = 'tenant-gosg') {
   try {
-    const rules = await getRobotsConfig();
+    const rules = await getRobotsConfig(tenantId);
     
     let robotsTxt = '';
     let currentUserAgent = '';
@@ -266,20 +367,34 @@ export async function generateRobotsTxt(tenantId = 'tenant-gosg') {
 
 // ===== SITEMAP MANAGEMENT =====
 
-export async function getSitemapEntries(type = null) {
+export async function getSitemapEntries(type = null, tenantId = null) {
   try {
     let whereClause = 'WHERE is_active = true';
     let params = [];
+    let paramCount = 0;
+    
+    // Include master data (tenant_id = NULL) and tenant-specific data
+    if (tenantId) {
+      whereClause += ` AND (tenant_id = $${++paramCount} OR tenant_id IS NULL)`;
+      params.push(tenantId);
+    }
     
     if (type) {
-      whereClause += ' AND sitemap_type = $1';
-      params = [type];
+      whereClause += ` AND sitemap_type = $${++paramCount}`;
+      params.push(type);
+    }
+    
+    // Order by tenant-specific first, then master
+    if (tenantId) {
+      whereClause += ` ORDER BY CASE WHEN tenant_id = $${++paramCount} THEN 0 ELSE 1 END, priority DESC, lastmod DESC`;
+      params.push(tenantId);
+    } else {
+      whereClause += ` ORDER BY priority DESC, lastmod DESC`;
     }
     
     const result = await query(`
       SELECT * FROM sitemap_entries
       ${whereClause}
-      ORDER BY priority DESC, lastmod DESC
     `, params);
     
     return result.rows;
@@ -289,13 +404,20 @@ export async function getSitemapEntries(type = null) {
   }
 }
 
-export async function createSitemapEntry(entryData) {
+export async function createSitemapEntry(entryData, tenantId = null) {
   try {
+    // Require tenant_id for tenant-specific entries (master entries should be created separately)
+    if (!tenantId && !entryData.tenant_id) {
+      throw new Error('Tenant ID is required to create sitemap entries. Master entries (tenant_id = NULL) should be created via admin interface.');
+    }
+    
+    const finalTenantId = entryData.tenant_id || tenantId;
+    
     const result = await query(`
       INSERT INTO sitemap_entries 
-        (url, changefreq, priority, sitemap_type, title, description, object_id, object_type)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-      ON CONFLICT (url) DO UPDATE SET
+        (url, changefreq, priority, sitemap_type, title, description, object_id, object_type, tenant_id)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      ON CONFLICT (url, COALESCE(tenant_id, '')) DO UPDATE SET
         changefreq = EXCLUDED.changefreq,
         priority = EXCLUDED.priority,
         lastmod = NOW(),
@@ -309,7 +431,8 @@ export async function createSitemapEntry(entryData) {
       entryData.title || '',
       entryData.description || '',
       entryData.object_id || null,
-      entryData.object_type || null
+      entryData.object_type || null,
+      finalTenantId
     ]);
     
     return result.rows[0];
@@ -321,7 +444,7 @@ export async function createSitemapEntry(entryData) {
 
 export async function generateSitemapXML(tenantId = 'tenant-gosg') {
   try {
-    const entries = await getSitemapEntries();
+    const entries = await getSitemapEntries(null, tenantId);
     
     // Get site URL from settings
     let siteUrl = 'https://cms.sparti.ai'; // Default fallback

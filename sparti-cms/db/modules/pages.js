@@ -10,13 +10,17 @@ export async function initializeSEOPagesTables() {
     const { runMigrations } = await import('../sequelize/run-migrations.js');
     await runMigrations(['20241202000003-create-page-tables.js']);
 
-    // Seed a default homepage and layout if not present
-    const homePageRes = await query(`SELECT id FROM pages WHERE slug = '/'`);
+    // Create master Header and Footer pages (tenant_id = NULL)
+    const { createMasterHeaderFooterPages } = await import('../scripts/create-master-header-footer-pages.js');
+    await createMasterHeaderFooterPages();
+
+    // Seed a default homepage and layout if not present (tenant-specific)
+    const homePageRes = await query(`SELECT id FROM pages WHERE slug = '/' AND tenant_id = 'tenant-gosg'`);
     let homePageId = homePageRes.rows[0]?.id;
     if (!homePageId) {
       const created = await query(`
-        INSERT INTO pages (page_name, slug, meta_title, meta_description, seo_index, status)
-        VALUES ('Homepage', '/', 'GO SG - Professional SEO Services Singapore', 'Leading SEO agency in Singapore providing comprehensive digital marketing solutions to boost your online presence and drive organic traffic.', true, 'published')
+        INSERT INTO pages (page_name, slug, meta_title, meta_description, seo_index, status, tenant_id)
+        VALUES ('Homepage', '/', 'GO SG - Professional SEO Services Singapore', 'Leading SEO agency in Singapore providing comprehensive digital marketing solutions to boost your online presence and drive organic traffic.', true, 'published', 'tenant-gosg')
         RETURNING id
       `);
       homePageId = created.rows[0].id;
@@ -99,7 +103,8 @@ export async function createPage(pageData) {
 
 export async function getPages(pageType = null, tenantId = 'tenant-gosg') {
   try {
-    let whereClause = 'WHERE tenant_id = $1';
+    // Include master pages (tenant_id = NULL) and tenant-specific pages
+    let whereClause = 'WHERE (tenant_id = $1 OR tenant_id IS NULL)';
     let params = [tenantId];
     
     if (pageType) {
@@ -107,10 +112,14 @@ export async function getPages(pageType = null, tenantId = 'tenant-gosg') {
       params.push(pageType);
     }
     
+    // Order by tenant-specific first, then master
     const result = await query(`
       SELECT * FROM pages 
       ${whereClause}
-      ORDER BY page_type, created_at DESC
+      ORDER BY 
+        CASE WHEN tenant_id = $1 THEN 0 ELSE 1 END,
+        page_type, 
+        created_at DESC
     `, params);
     return result.rows;
   } catch (error) {
@@ -121,8 +130,13 @@ export async function getPages(pageType = null, tenantId = 'tenant-gosg') {
 
 export async function getPage(pageId, tenantId = 'tenant-gosg') {
   try {
+    // Include master pages (tenant_id = NULL) and tenant-specific pages
+    // Prefer tenant-specific over master
     const result = await query(`
-      SELECT * FROM pages WHERE id = $1 AND tenant_id = $2
+      SELECT * FROM pages 
+      WHERE id = $1 AND (tenant_id = $2 OR tenant_id IS NULL)
+      ORDER BY CASE WHEN tenant_id = $2 THEN 0 ELSE 1 END
+      LIMIT 1
     `, [pageId, tenantId]);
     return result.rows[0] || null;
   } catch (error) {
@@ -133,6 +147,15 @@ export async function getPage(pageId, tenantId = 'tenant-gosg') {
 
 export async function updatePage(pageId, pageData, tenantId = 'tenant-gosg') {
   try {
+    // Check if it's a master page and prevent update
+    const checkResult = await query(`SELECT tenant_id FROM pages WHERE id = $1`, [pageId]);
+    if (checkResult.rows.length === 0) {
+      throw new Error('Page not found');
+    }
+    if (!checkResult.rows[0].tenant_id) {
+      throw new Error('Cannot update master page. Master pages (tenant_id = NULL) are shared across all tenants.');
+    }
+    
     const {
       campaign_source,
       conversion_goal,
@@ -175,6 +198,10 @@ export async function updatePage(pageId, pageData, tenantId = 'tenant-gosg') {
       tenantId
     ]);
     
+    if (result.rows.length === 0) {
+      throw new Error('Page not found or is a master page (cannot update master pages)');
+    }
+    
     return result.rows[0];
   } catch (error) {
     console.error('Error updating page:', error);
@@ -184,7 +211,19 @@ export async function updatePage(pageId, pageData, tenantId = 'tenant-gosg') {
 
 export async function deletePage(pageId, tenantId = 'tenant-gosg') {
   try {
+    // Check if it's a master page and prevent deletion
+    const checkResult = await query(`SELECT tenant_id FROM pages WHERE id = $1`, [pageId]);
+    if (checkResult.rows.length === 0) {
+      throw new Error('Page not found');
+    }
+    if (!checkResult.rows[0].tenant_id) {
+      throw new Error('Cannot delete master page. Master pages (tenant_id = NULL) are shared across all tenants.');
+    }
+    
     const result = await query(`DELETE FROM pages WHERE id = $1 AND tenant_id = $2`, [pageId, tenantId]);
+    if (result.rowCount === 0) {
+      throw new Error('Page not found or is a master page (cannot delete master pages)');
+    }
     return result.rowCount > 0;
   } catch (error) {
     console.error('Error deleting page:', error);
@@ -200,6 +239,7 @@ export async function getAllPagesWithTypes(tenantId = 'tenant-gosg', themeId = n
   try {
     console.log(`[testing] getAllPagesWithTypes: Called with tenantId=${tenantId}, themeId=${themeId || 'null'}`);
     
+    // Include master pages (tenant_id = NULL) and tenant-specific pages
     let queryText = `
       SELECT 
         id,
@@ -211,6 +251,7 @@ export async function getAllPagesWithTypes(tenantId = 'tenant-gosg', themeId = n
         status,
         page_type,
         theme_id,
+        tenant_id,
         created_at,
         updated_at,
         campaign_source,
@@ -219,7 +260,7 @@ export async function getAllPagesWithTypes(tenantId = 'tenant-gosg', themeId = n
         last_reviewed_date,
         version
       FROM pages
-      WHERE tenant_id = $1
+      WHERE (tenant_id = $1 OR tenant_id IS NULL)
     `;
     
     const params = [tenantId];
@@ -236,7 +277,11 @@ export async function getAllPagesWithTypes(tenantId = 'tenant-gosg', themeId = n
       console.log(`[testing] getAllPagesWithTypes: Filtering for theme_id = ${themeId}`);
     }
     
-    queryText += ` ORDER BY page_type, created_at DESC`;
+    // Order by tenant-specific first, then master
+    queryText += ` ORDER BY 
+      CASE WHEN tenant_id = $1 THEN 0 ELSE 1 END,
+      page_type, 
+      created_at DESC`;
     
     console.log(`[testing] getAllPagesWithTypes: Executing query: ${queryText}`);
     console.log(`[testing] getAllPagesWithTypes: Query params:`, params);
@@ -664,7 +709,8 @@ export async function toggleSEOIndex(pageId, pageType, currentIndex, tenantId = 
 // Get page with layout data
 export async function getPageWithLayout(pageId, tenantId = 'tenant-gosg') {
   try {
-    // First, get the page data
+    // First, get the page data - include master pages (tenant_id = NULL)
+    // Prefer tenant-specific over master
     const pageResult = await query(`
       SELECT 
         id,
@@ -675,10 +721,13 @@ export async function getPageWithLayout(pageId, tenantId = 'tenant-gosg') {
         seo_index,
         status,
         page_type,
+        tenant_id,
         created_at,
         updated_at
       FROM pages
-      WHERE id = $1 AND tenant_id = $2
+      WHERE id = $1 AND (tenant_id = $2 OR tenant_id IS NULL)
+      ORDER BY CASE WHEN tenant_id = $2 THEN 0 ELSE 1 END
+      LIMIT 1
     `, [pageId, tenantId]);
     
     if (pageResult.rows.length === 0) {
@@ -710,6 +759,16 @@ export async function getPageWithLayout(pageId, tenantId = 'tenant-gosg') {
 // Update page data
 export async function updatePageData(pageId, pageName, metaTitle, metaDescription, seoIndex, tenantId = 'tenant-gosg') {
   try {
+    // Check if it's a master page and prevent update
+    const checkResult = await query(`SELECT tenant_id FROM pages WHERE id = $1`, [pageId]);
+    if (checkResult.rows.length === 0) {
+      console.log(`Page ${pageId} not found`);
+      return false;
+    }
+    if (!checkResult.rows[0].tenant_id) {
+      throw new Error('Cannot update master page. Master pages (tenant_id = NULL) are shared across all tenants.');
+    }
+    
     const result = await query(`
       UPDATE pages 
       SET page_name = $1, meta_title = $2, meta_description = $3, seo_index = $4, updated_at = NOW()

@@ -80,11 +80,12 @@ router.get('/seo', async (req, res) => {
 // Get all redirects
 router.get('/redirects', async (req, res) => {
   try {
+    const tenantId = req.query.tenantId || req.user?.tenant_id || null;
     const filters = {};
     if (req.query.status) filters.status = req.query.status;
     if (req.query.search) filters.search = req.query.search;
 
-    const redirects = await getRedirects(filters);
+    const redirects = await getRedirects(filters, tenantId);
     res.json(redirects);
   } catch (error) {
     console.error('[testing] Error fetching redirects:', error);
@@ -95,11 +96,16 @@ router.get('/redirects', async (req, res) => {
 // Create redirect
 router.post('/redirects', async (req, res) => {
   try {
-    const redirect = await createRedirect(req.body);
+    const tenantId = req.query.tenantId || req.user?.tenant_id || req.body.tenantId || null;
+    if (!tenantId) {
+      return res.status(400).json({ error: 'Tenant ID is required to create redirects' });
+    }
+    
+    const redirect = await createRedirect(req.body, tenantId);
     res.status(201).json(redirect);
   } catch (error) {
     console.error('[testing] Error creating redirect:', error);
-    res.status(500).json({ error: 'Failed to create redirect' });
+    res.status(500).json({ error: error.message || 'Failed to create redirect' });
   }
 });
 
@@ -107,16 +113,20 @@ router.post('/redirects', async (req, res) => {
 router.put('/redirects/:id', async (req, res) => {
   try {
     const redirectId = parseInt(req.params.id);
-    const redirect = await updateRedirect(redirectId, req.body);
+    const tenantId = req.query.tenantId || req.user?.tenant_id || req.body.tenantId || null;
     
-    if (!redirect) {
-      return res.status(404).json({ error: 'Redirect not found' });
+    if (!tenantId) {
+      return res.status(400).json({ error: 'Tenant ID is required to update redirects' });
     }
     
+    const redirect = await updateRedirect(redirectId, req.body, tenantId);
     res.json(redirect);
   } catch (error) {
     console.error('[testing] Error updating redirect:', error);
-    res.status(500).json({ error: 'Failed to update redirect' });
+    if (error.message && error.message.includes('master')) {
+      return res.status(403).json({ error: error.message });
+    }
+    res.status(500).json({ error: error.message || 'Failed to update redirect' });
   }
 });
 
@@ -124,16 +134,20 @@ router.put('/redirects/:id', async (req, res) => {
 router.delete('/redirects/:id', async (req, res) => {
   try {
     const redirectId = parseInt(req.params.id);
-    const redirect = await deleteRedirect(redirectId);
+    const tenantId = req.query.tenantId || req.user?.tenant_id || null;
     
-    if (!redirect) {
-      return res.status(404).json({ error: 'Redirect not found' });
+    if (!tenantId) {
+      return res.status(400).json({ error: 'Tenant ID is required to delete redirects' });
     }
     
+    const redirect = await deleteRedirect(redirectId, tenantId);
     res.json({ message: 'Redirect deleted successfully' });
   } catch (error) {
     console.error('[testing] Error deleting redirect:', error);
-    res.status(500).json({ error: 'Failed to delete redirect' });
+    if (error.message && error.message.includes('master')) {
+      return res.status(403).json({ error: error.message });
+    }
+    res.status(500).json({ error: error.message || 'Failed to delete redirect' });
   }
 });
 
@@ -142,7 +156,8 @@ router.delete('/redirects/:id', async (req, res) => {
 // Get robots config
 router.get('/robots-config', async (req, res) => {
   try {
-    const config = await getRobotsConfig();
+    const tenantId = req.query.tenantId || req.user?.tenant_id || null;
+    const config = await getRobotsConfig(tenantId);
     res.json(config);
   } catch (error) {
     console.error('[testing] Error fetching robots config:', error);
@@ -153,11 +168,17 @@ router.get('/robots-config', async (req, res) => {
 // Update robots config
 router.put('/robots-config', async (req, res) => {
   try {
-    await updateRobotsConfig(req.body.rules);
+    const tenantId = req.query.tenantId || req.user?.tenant_id || req.body.tenantId || null;
+    
+    if (!tenantId) {
+      return res.status(400).json({ error: 'Tenant ID is required to update robots config' });
+    }
+    
+    await updateRobotsConfig(req.body.rules, tenantId);
     res.json({ message: 'Robots config updated successfully' });
   } catch (error) {
     console.error('[testing] Error updating robots config:', error);
-    res.status(500).json({ error: 'Failed to update robots config' });
+    res.status(500).json({ error: error.message || 'Failed to update robots config' });
   }
 });
 
@@ -200,7 +221,8 @@ router.post('/robots-txt/update', async (req, res) => {
 router.get('/sitemap-entries', async (req, res) => {
   try {
     const type = req.query.type || null;
-    const entries = await getSitemapEntries(type);
+    const tenantId = req.query.tenantId || req.user?.tenant_id || null;
+    const entries = await getSitemapEntries(type, tenantId);
     res.json(entries);
   } catch (error) {
     console.error('[testing] Error fetching sitemap entries:', error);
@@ -211,11 +233,17 @@ router.get('/sitemap-entries', async (req, res) => {
 // Create sitemap entry
 router.post('/sitemap-entries', async (req, res) => {
   try {
-    const entry = await createSitemapEntry(req.body);
+    const tenantId = req.query.tenantId || req.user?.tenant_id || req.body.tenantId || null;
+    
+    if (!tenantId) {
+      return res.status(400).json({ error: 'Tenant ID is required to create sitemap entries' });
+    }
+    
+    const entry = await createSitemapEntry(req.body, tenantId);
     res.status(201).json(entry);
   } catch (error) {
     console.error('[testing] Error creating sitemap entry:', error);
-    res.status(500).json({ error: 'Failed to create sitemap entry' });
+    res.status(500).json({ error: error.message || 'Failed to create sitemap entry' });
   }
 });
 
@@ -223,11 +251,28 @@ router.post('/sitemap-entries', async (req, res) => {
 router.put('/sitemap-entries/:id', async (req, res) => {
   try {
     const entryId = parseInt(req.params.id);
+    const tenantId = req.query.tenantId || req.user?.tenant_id || req.body.tenantId || null;
+    
+    if (!tenantId) {
+      return res.status(400).json({ error: 'Tenant ID is required to update sitemap entries' });
+    }
+    
+    // Check if it's a master entry and prevent update
+    const checkResult = await query(`SELECT tenant_id FROM sitemap_entries WHERE id = $1`, [entryId]);
+    if (checkResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Sitemap entry not found' });
+    }
+    if (!checkResult.rows[0].tenant_id) {
+      return res.status(403).json({ 
+        error: 'Cannot update master sitemap entry. Master data (tenant_id = NULL) is shared across all tenants.' 
+      });
+    }
+    
     const result = await query(`
       UPDATE sitemap_entries 
       SET url = $1, changefreq = $2, priority = $3, sitemap_type = $4, 
           title = $5, description = $6, lastmod = NOW(), updated_at = NOW()
-      WHERE id = $7
+      WHERE id = $7 AND tenant_id = $8
       RETURNING *
     `, [
       req.body.url,
@@ -236,11 +281,12 @@ router.put('/sitemap-entries/:id', async (req, res) => {
       req.body.sitemap_type,
       req.body.title,
       req.body.description,
-      entryId
+      entryId,
+      tenantId
     ]);
     
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Sitemap entry not found' });
+      return res.status(404).json({ error: 'Sitemap entry not found or is a master entry' });
     }
     
     res.json(result.rows[0]);
@@ -254,10 +300,27 @@ router.put('/sitemap-entries/:id', async (req, res) => {
 router.delete('/sitemap-entries/:id', async (req, res) => {
   try {
     const entryId = parseInt(req.params.id);
-    const result = await query('DELETE FROM sitemap_entries WHERE id = $1 RETURNING id', [entryId]);
+    const tenantId = req.query.tenantId || req.user?.tenant_id || null;
+    
+    if (!tenantId) {
+      return res.status(400).json({ error: 'Tenant ID is required to delete sitemap entries' });
+    }
+    
+    // Check if it's a master entry and prevent deletion
+    const checkResult = await query(`SELECT tenant_id FROM sitemap_entries WHERE id = $1`, [entryId]);
+    if (checkResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Sitemap entry not found' });
+    }
+    if (!checkResult.rows[0].tenant_id) {
+      return res.status(403).json({ 
+        error: 'Cannot delete master sitemap entry. Master data (tenant_id = NULL) is shared across all tenants.' 
+      });
+    }
+    
+    const result = await query('DELETE FROM sitemap_entries WHERE id = $1 AND tenant_id = $2 RETURNING id', [entryId, tenantId]);
     
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Sitemap entry not found' });
+      return res.status(404).json({ error: 'Sitemap entry not found or is a master entry' });
     }
     
     res.json({ message: 'Sitemap entry deleted successfully' });

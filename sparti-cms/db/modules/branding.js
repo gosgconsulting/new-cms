@@ -12,8 +12,8 @@ export async function getBrandingSettings(tenantId = 'tenant-gosg', themeId = nu
     let queryText = `
       SELECT setting_key, setting_value, setting_type, setting_category, is_public, tenant_id, theme_id
       FROM site_settings
-      WHERE setting_category IN ('branding', 'seo', 'localization') 
-        AND is_public = true
+      WHERE setting_category IN ('branding', 'seo', 'localization', 'theme') 
+        AND (is_public = true OR setting_category = 'theme')
         AND (tenant_id = $1 OR tenant_id IS NULL)
     `;
     const params = [tenantId];
@@ -42,7 +42,8 @@ export async function getBrandingSettings(tenantId = 'tenant-gosg', themeId = nu
     const settings = {
       branding: {},
       seo: {},
-      localization: {}
+      localization: {},
+      theme: {}
     };
     
     const seenKeys = new Set();
@@ -74,19 +75,31 @@ export async function getBrandingSettings(tenantId = 'tenant-gosg', themeId = nu
 
 export async function getPublicSEOSettings(tenantId = 'tenant-gosg') {
   try {
+    // Include master settings (tenant_id = NULL) and tenant-specific settings
+    // Prefer tenant-specific over master
     const result = await query(`
-      SELECT setting_key, setting_value, setting_type
+      SELECT setting_key, setting_value, setting_type, tenant_id
       FROM site_settings
       WHERE is_public = true 
-        AND (setting_category = 'seo' OR setting_key IN ('site_name', 'site_tagline', 'site_description', 'site_logo', 'site_favicon'))
-        AND tenant_id = $1
-      ORDER BY setting_key
+        AND (setting_category = 'seo' OR setting_key IN ('site_name', 'site_tagline', 'site_description', 'site_logo', 'site_favicon', 'country', 'timezone', 'language', 'theme_styles'))
+        AND (tenant_id = $1 OR tenant_id IS NULL)
+      ORDER BY 
+        CASE WHEN tenant_id = $1 THEN 0 ELSE 1 END,
+        setting_key
     `, [tenantId]);
     
     // Convert to flat object format for easy access
+    // Prefer tenant-specific over master
     const settings = {};
+    const seenKeys = new Set();
+    
     result.rows.forEach((row) => {
-      settings[row.setting_key] = row.setting_value;
+      if (!seenKeys.has(row.setting_key) || row.tenant_id === tenantId) {
+        settings[row.setting_key] = row.setting_value;
+        if (row.tenant_id === tenantId) {
+          seenKeys.add(row.setting_key);
+        }
+      }
     });
     
     return settings;
@@ -98,20 +111,40 @@ export async function getPublicSEOSettings(tenantId = 'tenant-gosg') {
 
 export async function updateBrandingSetting(key, value, tenantId = 'tenant-gosg') {
   try {
+    if (!tenantId) {
+      throw new Error('Tenant ID is required to update branding settings. Master settings (tenant_id = NULL) should be updated via admin interface.');
+    }
+    
+    // Check if a master setting exists and prevent updating it
+    const masterCheck = await query(`
+      SELECT id FROM site_settings 
+      WHERE setting_key = $1 AND tenant_id IS NULL
+      LIMIT 1
+    `, [key]);
+    
+    // This function creates/updates tenant-specific settings, not master
+    // Master settings are shared and should not be updated via this function
+    
     const result = await query(`
-      INSERT INTO site_settings (setting_key, setting_value, setting_type, updated_at, tenant_id)
-      VALUES ($1, $2, $3, CURRENT_TIMESTAMP, $4)
-      ON CONFLICT (setting_key, tenant_id) 
+      INSERT INTO site_settings (setting_key, setting_value, setting_type, setting_category, updated_at, tenant_id)
+      VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP, $5)
+      ON CONFLICT (setting_key, COALESCE(tenant_id, ''), COALESCE(theme_id, '')) 
       DO UPDATE SET 
         setting_value = EXCLUDED.setting_value,
         updated_at = CURRENT_TIMESTAMP
+      WHERE tenant_id = $5
       RETURNING *
     `, [
       key, 
       value, 
       key.includes('logo') || key.includes('favicon') || key.includes('image') ? 'media' : 'text',
+      key.startsWith('site_') ? 'branding' : 'general',
       tenantId
     ]);
+    
+    if (result.rows.length === 0) {
+      throw new Error('Failed to update branding setting. Ensure tenant_id is provided.');
+    }
     
     return result.rows[0];
   } catch (error) {
@@ -491,6 +524,10 @@ export async function updateSiteSchema(schemaKey, schemaValue, tenantId, languag
 }
 
 export async function updateMultipleBrandingSettings(settings, tenantId = 'tenant-gosg', themeId = null) {
+  if (!tenantId) {
+    throw new Error('Tenant ID is required to update settings. Master settings (tenant_id = NULL) should be updated via admin interface.');
+  }
+  
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
@@ -499,17 +536,23 @@ export async function updateMultipleBrandingSettings(settings, tenantId = 'tenan
       const settingType = key.includes('logo') || key.includes('favicon') || key.includes('image') ? 'media' : 
                          key.includes('description') ? 'textarea' : 'text';
       const category = key.startsWith('site_') ? 'branding' : 
-                      ['country', 'timezone', 'language'].includes(key) ? 'localization' : 'general';
+                      ['country', 'timezone', 'language'].includes(key) ? 'localization' : 
+                      key === 'theme_styles' ? 'theme' : 'general';
       
-      // Check if setting exists
+      // Check if tenant-specific setting exists
       const existing = await client.query(`
-        SELECT id FROM site_settings 
+        SELECT id, tenant_id FROM site_settings 
         WHERE setting_key = $1 AND tenant_id = $2 AND (theme_id = $3 OR (theme_id IS NULL AND $3 IS NULL))
         LIMIT 1
       `, [key, tenantId, themeId]);
       
       if (existing.rows.length > 0) {
-        // Update existing
+        // Check if it's a master setting (shouldn't happen, but protect anyway)
+        if (!existing.rows[0].tenant_id) {
+          throw new Error(`Cannot update master setting '${key}'. Master settings (tenant_id = NULL) are shared across all tenants.`);
+        }
+        
+        // Update existing tenant-specific setting
         await client.query(`
           UPDATE site_settings 
           SET setting_value = $1,
@@ -520,7 +563,7 @@ export async function updateMultipleBrandingSettings(settings, tenantId = 'tenan
           WHERE id = $5
         `, [value, settingType, category, themeId, existing.rows[0].id]);
       } else {
-        // Insert new
+        // Insert new tenant-specific setting (not a copy of master)
         await client.query(`
           INSERT INTO site_settings (setting_key, setting_value, setting_type, setting_category, updated_at, tenant_id, theme_id)
           VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP, $5, $6)
@@ -541,8 +584,15 @@ export async function updateMultipleBrandingSettings(settings, tenantId = 'tenan
 
 export async function getsitesettingsbytenant(tenantId) {
   try {
+    // Include master settings (tenant_id = NULL) and tenant-specific settings
+    // Prefer tenant-specific over master
     const result = await query(`
-      SELECT * FROM site_settings WHERE tenant_id = $1
+      SELECT * FROM site_settings 
+      WHERE (tenant_id = $1 OR tenant_id IS NULL)
+      ORDER BY 
+        CASE WHEN tenant_id = $1 THEN 0 ELSE 1 END,
+        setting_category, 
+        setting_key
     `, [tenantId]);
     return result.rows;
   } catch (error) {
@@ -674,15 +724,24 @@ export async function getSiteSettingByKey(key, tenantId = 'tenant-gosg', themeId
 
 export async function updateSiteSettingByKey(key, value, type = 'text', category = 'general', tenantId = 'tenant-gosg', themeId = null) {
   try {
-    // First, try to find existing setting
+    if (!tenantId) {
+      throw new Error('Tenant ID is required to update settings. Master settings (tenant_id = NULL) should be updated via admin interface.');
+    }
+    
+    // First, try to find existing tenant-specific setting
     const existing = await query(`
-      SELECT id FROM site_settings 
+      SELECT id, tenant_id FROM site_settings 
       WHERE setting_key = $1 AND tenant_id = $2 AND (theme_id = $3 OR (theme_id IS NULL AND $3 IS NULL))
       LIMIT 1
     `, [key, tenantId, themeId]);
     
     if (existing.rows.length > 0) {
-      // Update existing
+      // Check if it's a master setting (shouldn't happen, but protect anyway)
+      if (!existing.rows[0].tenant_id) {
+        throw new Error('Cannot update master setting. Master settings (tenant_id = NULL) are shared across all tenants.');
+      }
+      
+      // Update existing tenant-specific setting
       const result = await query(`
         UPDATE site_settings 
         SET setting_value = $1,
@@ -695,7 +754,7 @@ export async function updateSiteSettingByKey(key, value, type = 'text', category
       `, [value, type, category, themeId, existing.rows[0].id]);
       return result.rows[0];
     } else {
-      // Insert new
+      // Insert new tenant-specific setting (not a copy of master)
       const result = await query(`
         INSERT INTO site_settings (setting_key, setting_value, setting_type, setting_category, updated_at, tenant_id, theme_id)
         VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP, $5, $6)

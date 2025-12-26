@@ -38,6 +38,11 @@ router.post('/branding', authenticateUser, async (req, res) => {
     const tenantId = req.query.tenantId || req.user?.tenant_id || 'tenant-gosg';
     // Get theme ID from query parameter or request body (optional for backward compatibility)
     const themeId = req.query.themeId || req.body.themeId || null;
+    
+    if (!tenantId) {
+      return res.status(400).json({ error: 'Tenant ID is required to update branding settings' });
+    }
+    
     console.log(`[testing] API: Updating branding settings for tenant: ${tenantId}, theme: ${themeId}`, req.body);
     await updateMultipleBrandingSettings(req.body, tenantId, themeId);
     // Smart invalidation: settings can affect many pages; clear all for now
@@ -45,7 +50,10 @@ router.post('/branding', authenticateUser, async (req, res) => {
     res.json({ success: true, message: 'Branding settings updated successfully' });
   } catch (error) {
     console.error('[testing] API: Error updating branding settings:', error);
-    res.status(500).json({ error: 'Failed to update branding settings' });
+    if (error.message && (error.message.includes('master') || error.message.includes('Tenant ID is required'))) {
+      return res.status(403).json({ error: error.message });
+    }
+    res.status(500).json({ error: error.message || 'Failed to update branding settings' });
   }
 });
 
@@ -197,6 +205,10 @@ router.put('/site-settings/:key', async (req, res) => {
     // Get theme ID from body or query parameter (optional for backward compatibility)
     const theme_id = themeId || req.query.themeId || null;
     
+    if (!tenantId) {
+      return res.status(400).json({ error: 'Tenant ID is required to update settings' });
+    }
+    
     console.log(`[testing] API: Updating site setting for key: ${key}, tenant: ${tenantId}, theme: ${theme_id}`, req.body);
     
     const result = await updateSiteSettingByKey(
@@ -211,7 +223,10 @@ router.put('/site-settings/:key', async (req, res) => {
     res.json(result);
   } catch (error) {
     console.error(`[testing] API: Error updating site setting for key ${req.params.key}:`, error);
-    res.status(500).json({ error: 'Failed to update site setting' });
+    if (error.message && (error.message.includes('master') || error.message.includes('Tenant ID is required'))) {
+      return res.status(403).json({ error: error.message });
+    }
+    res.status(500).json({ error: error.message || 'Failed to update site setting' });
   }
 });
 

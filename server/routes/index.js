@@ -21,6 +21,7 @@ import themesApiRoutes from './themes.js';
 import tenantsApiRoutes from './tenants-api.js';
 import aiAssistantRoutes from './ai-assistant.js';
 import shopRoutes from './shop.js';
+import mediaRoutes from './media.js';
 
 const router = express.Router();
 
@@ -66,6 +67,7 @@ router.use('/api', systemRoutes);
 router.use('/api', usersRoutes);
 router.use('/api', aiAssistantRoutes);
 router.use('/api/shop', shopRoutes);
+router.use('/api/media', mediaRoutes);
 
 // Theme routes (mounted before other routes to catch /theme/* paths)
 // Theme admin/auth routes (must come before general theme routes)
