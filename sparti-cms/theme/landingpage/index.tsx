@@ -12,6 +12,7 @@ import { ContactFormDialog } from './components/ContactFormDialog';
 interface TenantLandingProps {
   tenantName?: string;
   tenantSlug?: string;
+  tenantId?: string;
 }
 
 /**
@@ -20,8 +21,16 @@ interface TenantLandingProps {
  */
 const TenantLanding: React.FC<TenantLandingProps> = ({ 
   tenantName = 'ACATR Business Services', 
-  tenantSlug = 'landingpage' 
+  tenantSlug = 'landingpage',
+  tenantId
 }) => {
+  // Get tenant ID from props or environment
+  const effectiveTenantId = tenantId || (typeof window !== 'undefined' && (window as any).__CMS_TENANT__) || null;
+  
+  // Log tenant ID for debugging
+  if (effectiveTenantId) {
+    console.log('[testing] Theme using tenant ID:', effectiveTenantId);
+  }
   const [isContactDialogOpen, setIsContactDialogOpen] = useState(false);
 
   const handleContactClick = () => {

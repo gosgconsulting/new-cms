@@ -392,6 +392,7 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({ hideSidebar = false }) => {
   ];
 
   const crmItems = [
+    { id: 'forms', label: 'Forms', icon: FileInput },
     { id: 'contacts', label: 'Contacts', icon: Users },
     { id: 'leads', label: 'Leads', icon: Target },
   ];

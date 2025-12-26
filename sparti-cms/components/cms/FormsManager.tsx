@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../auth/AuthProvider';
+import { api } from '../../utils/api';
 import { 
   FileText, 
   Plus, 
@@ -34,6 +35,9 @@ interface FormField {
   validation_rules?: Record<string, unknown>;
   options?: string[];
   sort_order: number;
+  // Database linking
+  links_to_table?: 'contacts' | 'messages' | null;
+  links_to_field?: string; // e.g., 'full_name', 'email', 'phone', 'message'
 }
 
 interface Form {
@@ -91,9 +95,12 @@ const FormsManager: React.FC = () => {
 
   // Field type options for form builder
   const fieldTypes = [
+    { value: 'full_name', label: 'Full Name (Linked to Contacts)', linksTo: 'contacts' },
     { value: 'text', label: 'Text Input' },
-    { value: 'email', label: 'Email' },
-    { value: 'tel', label: 'Phone' },
+    { value: 'email', label: 'Email Input' },
+    { value: 'phone', label: 'Phone Input' },
+    { value: 'message', label: 'Message (Linked to Messages)', linksTo: 'messages' },
+    { value: 'button', label: 'Button' },
     { value: 'textarea', label: 'Textarea' },
     { value: 'select', label: 'Select Dropdown' },
     { value: 'checkbox', label: 'Checkbox' },
@@ -120,11 +127,16 @@ const FormsManager: React.FC = () => {
       setIsLoading(true);
       setError(null);
       
-      const response = await fetch('/api/forms', {
-        headers: {
-          'X-Tenant-Id': currentTenantId || ''
-        }
+      if (!currentTenantId) {
+        setError('Tenant ID is required');
+        setIsLoading(false);
+        return;
+      }
+      
+      const response = await api.get(`/api/forms?tenantId=${encodeURIComponent(currentTenantId)}`, {
+        tenantId: currentTenantId
       });
+      
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -145,7 +157,10 @@ const FormsManager: React.FC = () => {
 
   const loadEmailSettings = async (formId: number) => {
     try {
-      const response = await fetch(`/api/forms/${formId}/email-settings`);
+      if (!currentTenantId) return;
+      const response = await api.get(`/api/forms/${formId}/email-settings`, {
+        tenantId: currentTenantId
+      });
       if (!response.ok) {
         if (response.status === 404) {
           setEmailSettings(null);
@@ -164,7 +179,10 @@ const FormsManager: React.FC = () => {
 
   const loadSubmissions = async (formId: number) => {
     try {
-      const response = await fetch(`/api/forms/${formId}/submissions`);
+      if (!currentTenantId) return;
+      const response = await api.get(`/api/forms/${formId}/submissions`, {
+        tenantId: currentTenantId
+      });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -183,18 +201,15 @@ const FormsManager: React.FC = () => {
       
       if (editingForm) {
         // Update existing form
-        const response = await fetch(`/api/forms/${editingForm.id}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            name: formData.name,
-            description: formData.description,
-            fields: formData.fields || [],
-            settings: formData.settings || {},
-            is_active: formData.is_active ?? true
-          }),
+        const response = await api.put(`/api/forms/${editingForm.id}`, {
+          name: formData.name,
+          description: formData.description,
+          fields: formData.fields || [],
+          settings: formData.settings || {},
+          is_active: formData.is_active ?? true,
+          tenantId: currentTenantId
+        }, {
+          tenantId: currentTenantId
         });
 
         if (!response.ok) {
@@ -204,19 +219,15 @@ const FormsManager: React.FC = () => {
         setSuccess('Form updated successfully!');
       } else {
         // Create new form
-        const response = await fetch('/api/forms', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Tenant-Id': currentTenantId || ''
-          },
-          body: JSON.stringify({
-            name: formData.name,
-            description: formData.description,
-            fields: formData.fields || [],
-            settings: formData.settings || {},
-            is_active: formData.is_active ?? true
-          }),
+        const response = await api.post('/api/forms', {
+          name: formData.name,
+          description: formData.description,
+          fields: formData.fields || [],
+          settings: formData.settings || {},
+          is_active: formData.is_active ?? true,
+          tenantId: currentTenantId
+        }, {
+          tenantId: currentTenantId
         });
 
         if (!response.ok) {
@@ -240,22 +251,18 @@ const FormsManager: React.FC = () => {
     try {
       setError(null);
       
-      const response = await fetch(`/api/forms/${settings.form_id}/email-settings`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          notification_enabled: settings.notification_enabled,
-          notification_emails: settings.notification_emails,
-          notification_subject: settings.notification_subject,
-          notification_template: settings.notification_template,
-          auto_reply_enabled: settings.auto_reply_enabled,
-          auto_reply_subject: settings.auto_reply_subject,
-          auto_reply_template: settings.auto_reply_template,
-          from_email: settings.from_email,
-          from_name: settings.from_name
-        }),
+      const response = await api.put(`/api/forms/${settings.form_id}/email-settings`, {
+        notification_enabled: settings.notification_enabled,
+        notification_emails: settings.notification_emails,
+        notification_subject: settings.notification_subject,
+        notification_template: settings.notification_template,
+        auto_reply_enabled: settings.auto_reply_enabled,
+        auto_reply_subject: settings.auto_reply_subject,
+        auto_reply_template: settings.auto_reply_template,
+        from_email: settings.from_email,
+        from_name: settings.from_name
+      }, {
+        tenantId: currentTenantId
       });
 
       if (!response.ok) {
@@ -447,7 +454,7 @@ const FormModal: React.FC<{
   form: Form | null;
   onSave: (form: Partial<Form>) => void;
   onClose: () => void;
-  fieldTypes: Array<{ value: string; label: string }>;
+  fieldTypes: Array<{ value: string; label: string; linksTo?: string }>;
 }> = ({ form, onSave, onClose, fieldTypes }) => {
   const [formData, setFormData] = useState<Partial<Form>>({
     name: form?.name || '',
@@ -464,7 +471,9 @@ const FormModal: React.FC<{
       field_label: '',
       placeholder: '',
       is_required: false,
-      sort_order: (formData.fields?.length || 0) + 1
+      sort_order: (formData.fields?.length || 0) + 1,
+      links_to_table: null,
+      links_to_field: undefined
     };
     
     setFormData({
@@ -570,7 +579,43 @@ const FormModal: React.FC<{
                       <label className="block text-sm font-medium text-foreground mb-1">Field Type</label>
                       <select
                         value={field.field_type}
-                        onChange={(e) => updateField(index, { field_type: e.target.value })}
+                        onChange={(e) => {
+                          const newType = e.target.value;
+                          const selectedType = fieldTypes.find(t => t.value === newType);
+                          const updates: Partial<FormField> = { field_type: newType };
+                          
+                          // Auto-set database linking based on field type
+                          if (newType === 'full_name') {
+                            updates.links_to_table = 'contacts';
+                            updates.links_to_field = 'full_name';
+                            updates.field_name = 'full_name';
+                            updates.field_label = updates.field_label || 'Full Name';
+                          } else if (newType === 'email') {
+                            updates.links_to_table = 'contacts';
+                            updates.links_to_field = 'email';
+                            updates.field_name = 'email';
+                            updates.field_label = updates.field_label || 'Email Address';
+                          } else if (newType === 'phone') {
+                            updates.links_to_table = 'contacts';
+                            updates.links_to_field = 'phone';
+                            updates.field_name = 'phone';
+                            updates.field_label = updates.field_label || 'Phone Number';
+                          } else if (newType === 'message') {
+                            updates.links_to_table = 'messages';
+                            updates.links_to_field = 'message';
+                            updates.field_name = 'message';
+                            updates.field_label = updates.field_label || 'Message';
+                          } else if (newType === 'button') {
+                            updates.links_to_table = null;
+                            updates.links_to_field = undefined;
+                            updates.is_required = false; // Buttons are never required
+                          } else {
+                            updates.links_to_table = null;
+                            updates.links_to_field = undefined;
+                          }
+                          
+                          updateField(index, updates);
+                        }}
                         className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-brandPurple text-sm"
                       >
                         {fieldTypes.map((type) => (
@@ -579,6 +624,15 @@ const FormModal: React.FC<{
                           </option>
                         ))}
                       </select>
+                      {field.field_type === 'full_name' && (
+                        <p className="text-xs text-muted-foreground mt-1">Linked to Contacts table</p>
+                      )}
+                      {field.field_type === 'message' && (
+                        <p className="text-xs text-muted-foreground mt-1">Linked to Messages table</p>
+                      )}
+                      {(field.field_type === 'email' || field.field_type === 'phone') && (
+                        <p className="text-xs text-muted-foreground mt-1">Will be saved to Contacts table</p>
+                      )}
                     </div>
 
                     <div>
@@ -600,9 +654,19 @@ const FormModal: React.FC<{
                         onChange={(e) => updateField(index, { placeholder: e.target.value })}
                         className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-brandPurple text-sm"
                         placeholder="Placeholder text"
+                        disabled={field.field_type === 'button'}
                       />
                     </div>
                   </div>
+
+                  {/* Button-specific settings */}
+                  {field.field_type === 'button' && (
+                    <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                      <p className="text-xs text-blue-700">
+                        Button fields are used for form submission. They don't require a name or placeholder.
+                      </p>
+                    </div>
+                  )}
 
                   <div className="flex items-center justify-between mt-4">
                     <div className="flex items-center">
@@ -612,9 +676,10 @@ const FormModal: React.FC<{
                         checked={field.is_required}
                         onChange={(e) => updateField(index, { is_required: e.target.checked })}
                         className="mr-2"
+                        disabled={field.field_type === 'button'}
                       />
                       <label htmlFor={`required-${index}`} className="text-sm font-medium text-foreground">
-                        Required
+                        Required {field.field_type === 'button' && '(N/A for buttons)'}
                       </label>
                     </div>
 

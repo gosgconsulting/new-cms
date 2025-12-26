@@ -18,8 +18,8 @@ const router = express.Router();
 // Get branding settings
 router.get('/branding', authenticateUser, async (req, res) => {
   try {
-    // Get tenant ID from query parameter, user context, or default to tenant-gosg
-    const tenantId = req.query.tenantId || req.user?.tenant_id || 'tenant-gosg';
+    // Get tenant ID from req.tenantId (set by auth middleware), query parameter, user context, or default
+    const tenantId = req.tenantId || req.query.tenantId || req.user?.tenant_id || 'tenant-gosg';
     // Get theme ID from query parameter (optional for backward compatibility)
     const themeId = req.query.themeId || null;
     console.log(`[testing] API: Getting branding settings for tenant: ${tenantId}, theme: ${themeId}`);
@@ -34,8 +34,8 @@ router.get('/branding', authenticateUser, async (req, res) => {
 // Update branding settings
 router.post('/branding', authenticateUser, async (req, res) => {
   try {
-    // Get tenant ID from query parameter, user context, or default to tenant-gosg
-    const tenantId = req.query.tenantId || req.user?.tenant_id || 'tenant-gosg';
+    // Get tenant ID from req.tenantId (set by auth middleware), query parameter, user context, or default
+    const tenantId = req.tenantId || req.query.tenantId || req.user?.tenant_id || 'tenant-gosg';
     // Get theme ID from query parameter or request body (optional for backward compatibility)
     const themeId = req.query.themeId || req.body.themeId || null;
     
@@ -97,8 +97,8 @@ router.post('/language/add', authenticateUser, async (req, res) => {
       return res.status(400).json({ success: false, message: 'Language code is required' });
     }
     
-    // Get tenant ID from query parameter, user context, or default to tenant-gosg
-    const tenantId = req.query.tenantId || req.user?.tenant_id || 'tenant-gosg';
+    // Get tenant ID from req.tenantId (set by auth middleware), query parameter, user context, or default
+    const tenantId = req.tenantId || req.query.tenantId || req.user?.tenant_id || 'tenant-gosg';
     console.log(`[testing] API: Adding language ${languageCode} for tenant: ${tenantId}`);
     
     const result = await languageManagementService.addLanguage(languageCode, tenantId);
@@ -122,8 +122,8 @@ router.post('/language/remove', authenticateUser, async (req, res) => {
       return res.status(400).json({ success: false, message: 'Language code is required' });
     }
     
-    // Get tenant ID from query parameter, user context, or default to tenant-gosg
-    const tenantId = req.query.tenantId || req.user?.tenant_id || 'tenant-gosg';
+    // Get tenant ID from req.tenantId (set by auth middleware), query parameter, user context, or default
+    const tenantId = req.tenantId || req.query.tenantId || req.user?.tenant_id || 'tenant-gosg';
     console.log(`[testing] API: Removing language ${languageCode} for tenant: ${tenantId}`);
     
     const result = await languageManagementService.removeLanguage(languageCode, tenantId);
@@ -147,8 +147,8 @@ router.post('/language/set-default', authenticateUser, async (req, res) => {
       return res.status(400).json({ success: false, message: 'Language code is required' });
     }
     
-    // Get tenant ID from query parameter, user context, or default to tenant-gosg
-    const tenantId = req.query.tenantId || req.user?.tenant_id || 'tenant-gosg';
+    // Get tenant ID from req.tenantId (set by auth middleware), query parameter, user context, or default
+    const tenantId = req.tenantId || req.query.tenantId || req.user?.tenant_id || 'tenant-gosg';
     console.log(`[testing] API: Setting default language ${languageCode} for tenant: ${tenantId}`);
     
     const result = await languageManagementService.setDefaultLanguage(
@@ -174,8 +174,8 @@ router.post('/language/set-default', authenticateUser, async (req, res) => {
 router.get('/site-settings/:key', async (req, res) => {
   try {
     const { key } = req.params;
-    // Get tenant ID from query parameter, user context, or default to tenant-gosg
-    const tenantId = req.query.tenantId || req.user?.tenant_id || 'tenant-gosg';
+    // Get tenant ID from req.tenantId (set by auth middleware), query parameter, user context, or default
+    const tenantId = req.tenantId || req.query.tenantId || req.user?.tenant_id || 'tenant-gosg';
     // Get theme ID from query parameter (optional for backward compatibility)
     const themeId = req.query.themeId || null;
     console.log(`[testing] API: Getting site setting for key: ${key}, tenant: ${tenantId}, theme: ${themeId}`);
@@ -230,8 +230,8 @@ router.put('/site-settings/:key', async (req, res) => {
   try {
     const { key } = req.params;
     const { setting_value, setting_type, setting_category, themeId } = req.body;
-    // Get tenant ID from query parameter, user context, or default to tenant-gosg
-    const tenantId = req.query.tenantId || req.user?.tenant_id || 'tenant-gosg';
+    // Get tenant ID from req.tenantId (set by auth middleware), query parameter, user context, or default
+    const tenantId = req.tenantId || req.query.tenantId || req.user?.tenant_id || 'tenant-gosg';
     // Get theme ID from body or query parameter (optional for backward compatibility)
     const theme_id = themeId || req.query.themeId || null;
     

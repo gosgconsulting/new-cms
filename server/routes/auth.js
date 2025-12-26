@@ -18,6 +18,7 @@ import {
   deleteTenantApiKey,
   validateApiKey
 } from '../../sparti-cms/db/tenant-management.js';
+import { initializeTenantDefaults } from '../../sparti-cms/db/tenant-initialization.js';
 import { createPage } from '../../sparti-cms/db/modules/pages.js';
 import { updateSiteSchema } from '../../sparti-cms/db/modules/branding.js';
 import { getThemeBySlug } from '../../sparti-cms/services/themeSync.js';
@@ -986,6 +987,59 @@ router.post('/tenants/:id/import-theme', authenticateUser, async (req, res) => {
   } catch (error) {
     console.error('[testing] Error importing theme:', error);
     res.status(500).json({ error: 'Failed to import theme' });
+  }
+});
+
+// Sync tenant (ensure tenant exists and create missing default settings)
+router.post('/tenants/:id/sync', authenticateUser, async (req, res) => {
+  try {
+    const { id: tenantId } = req.params;
+    
+    // Verify tenant exists
+    const tenant = await getTenantById(tenantId);
+    if (!tenant) {
+      return res.status(404).json({ error: 'Tenant not found' });
+    }
+    
+    // Check if user has access to this tenant
+    if (!req.user.is_super_admin && req.user.tenant_id !== tenantId) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+    
+    // Initialize/sync tenant defaults (creates missing settings)
+    console.log(`[testing] Syncing tenant ${tenantId}...`);
+    const initializationSummary = await initializeTenantDefaults(tenantId);
+    
+    // Format response similar to tenant creation
+    const summary = initializationSummary.summary || {
+      total: (initializationSummary.settings?.inserted || 0) + 
+             (initializationSummary.branding?.inserted || 0),
+      settings: initializationSummary.settings?.inserted || 0,
+      branding: initializationSummary.branding?.inserted || 0,
+      sitemap: initializationSummary.sitemap?.inserted || 0,
+      robots: initializationSummary.robots?.inserted || 0,
+      categories: initializationSummary.blog?.categories?.inserted || 0,
+      tags: initializationSummary.blog?.tags?.inserted || 0
+    };
+    
+    res.json({
+      success: true,
+      message: 'Tenant synced successfully',
+      tenant_id: tenantId,
+      initialization: {
+        success: true,
+        summary: summary,
+        message: summary.total > 0 
+          ? `Created ${summary.total} missing field(s)` 
+          : 'Tenant is already up to date'
+      }
+    });
+  } catch (error) {
+    console.error('[testing] Error syncing tenant:', error);
+    res.status(500).json({ 
+      error: 'Failed to sync tenant',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    });
   }
 });
 

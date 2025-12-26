@@ -52,6 +52,8 @@ const getAuthHeaders = (additionalHeaders: Record<string, string> = {}, tenantId
     ...(token && { 'Authorization': `Bearer ${token}` }),
     ...(accessKey && { 'X-Access-Key': accessKey }),
     ...(tenantApiKey && { 'X-API-Key': tenantApiKey }),
+    // Automatically add X-Tenant-Id header if tenantId is provided
+    ...(tenantId && { 'X-Tenant-Id': tenantId }),
     ...additionalHeaders,
   };
   console.log('[testing] API utility - Headers being sent:', headers);

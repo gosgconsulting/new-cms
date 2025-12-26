@@ -106,7 +106,16 @@ router.get('/form-submissions/:formId', async (req, res) => {
 // Get all forms
 router.get('/forms', authenticateUser, async (req, res) => {
   try {
-    const result = await query('SELECT * FROM forms ORDER BY created_at DESC');
+    const tenantId = req.tenantId || req.user?.tenant_id || req.headers['x-tenant-id'] || req.query.tenantId;
+    
+    if (!tenantId) {
+      return res.status(400).json({ error: 'Tenant ID is required' });
+    }
+    
+    const result = await query(
+      'SELECT * FROM forms WHERE tenant_id = $1 ORDER BY created_at DESC',
+      [tenantId]
+    );
     res.json(result.rows);
   } catch (error) {
     console.error('[testing] Error fetching forms:', error);
@@ -133,12 +142,17 @@ router.get('/forms/:id', authenticateUser, async (req, res) => {
 router.post('/forms', authenticateUser, async (req, res) => {
   try {
     const { name, description, fields, settings, is_active } = req.body;
+    const tenantId = req.tenantId || req.user?.tenant_id || req.headers['x-tenant-id'] || req.body.tenantId;
+    
+    if (!tenantId) {
+      return res.status(400).json({ error: 'Tenant ID is required' });
+    }
     
     const result = await query(`
-      INSERT INTO forms (name, description, fields, settings, is_active)
-      VALUES ($1, $2, $3, $4, $5)
+      INSERT INTO forms (name, description, fields, settings, is_active, tenant_id)
+      VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING *
-    `, [name, description, JSON.stringify(fields || []), JSON.stringify(settings || {}), is_active ?? true]);
+    `, [name, description, JSON.stringify(fields || []), JSON.stringify(settings || {}), is_active ?? true, tenantId]);
     
     const newForm = result.rows[0];
     
@@ -169,16 +183,21 @@ router.post('/forms', authenticateUser, async (req, res) => {
 });
 
 // Update form
-router.put('/forms/:id', async (req, res) => {
+router.put('/forms/:id', authenticateUser, async (req, res) => {
   try {
     const { name, description, fields, settings, is_active } = req.body;
+    const tenantId = req.tenantId || req.user?.tenant_id || req.headers['x-tenant-id'] || req.body.tenantId;
+    
+    if (!tenantId) {
+      return res.status(400).json({ error: 'Tenant ID is required' });
+    }
     
     const result = await query(`
       UPDATE forms 
       SET name = $1, description = $2, fields = $3, settings = $4, is_active = $5, updated_at = NOW()
-      WHERE id = $6
+      WHERE id = $6 AND tenant_id = $7
       RETURNING *
-    `, [name, description, JSON.stringify(fields), JSON.stringify(settings), is_active, req.params.id]);
+    `, [name, description, JSON.stringify(fields), JSON.stringify(settings), is_active, req.params.id, tenantId]);
     
     if (result.rows.length > 0) {
       res.json(result.rows[0]);
@@ -192,9 +211,15 @@ router.put('/forms/:id', async (req, res) => {
 });
 
 // Delete form
-router.delete('/forms/:id', async (req, res) => {
+router.delete('/forms/:id', authenticateUser, async (req, res) => {
   try {
-    const result = await query('DELETE FROM forms WHERE id = $1 RETURNING *', [req.params.id]);
+    const tenantId = req.tenantId || req.user?.tenant_id || req.headers['x-tenant-id'] || req.query.tenantId;
+    
+    if (!tenantId) {
+      return res.status(400).json({ error: 'Tenant ID is required' });
+    }
+    
+    const result = await query('DELETE FROM forms WHERE id = $1 AND tenant_id = $2 RETURNING *', [req.params.id, tenantId]);
     
     if (result.rows.length > 0) {
       res.json({ success: true, message: 'Form deleted successfully' });

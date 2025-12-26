@@ -30,13 +30,25 @@ if (!themeSlug) {
   process.exit(1);
 }
 
-// Validate VITE_API_BASE_URL (warn if missing, but don't fail)
-const viteApiBaseUrl = process.env.VITE_API_BASE_URL;
-if (!viteApiBaseUrl) {
+// Auto-detect VITE_API_BASE_URL from Railway if not set
+let viteApiBaseUrl = process.env.VITE_API_BASE_URL;
+if (!viteApiBaseUrl && process.env.RAILWAY_PUBLIC_DOMAIN) {
+  viteApiBaseUrl = `https://${process.env.RAILWAY_PUBLIC_DOMAIN}`;
+  console.log(`[testing] Auto-detected VITE_API_BASE_URL from Railway: ${viteApiBaseUrl}`);
+} else if (!viteApiBaseUrl) {
   console.warn('[testing] WARNING: VITE_API_BASE_URL is not set');
   console.warn('[testing] Frontend API calls may fail. Set VITE_API_BASE_URL in Railway variables.');
 } else {
   console.log(`[testing] VITE_API_BASE_URL: ${viteApiBaseUrl}`);
+}
+
+// Get CMS_TENANT for tenant-specific deployment
+const cmsTenant = process.env.CMS_TENANT;
+if (cmsTenant) {
+  console.log(`[testing] CMS_TENANT: ${cmsTenant} - Theme will use this tenant ID`);
+} else {
+  console.warn('[testing] WARNING: CMS_TENANT is not set');
+  console.warn('[testing] Theme will need to determine tenant from URL or other means.');
 }
 
 console.log(`[testing] Building static export for theme: ${themeSlug}`);
@@ -90,7 +102,8 @@ const App = () => {
                 <Suspense fallback={null}>
                   <ThemeComponent 
                     tenantName={themeName} 
-                    tenantSlug="${themeSlug}" 
+                    tenantSlug="${themeSlug}"
+                    tenantId={typeof window !== 'undefined' ? window.__CMS_TENANT__ : null}
                   />
                 </Suspense>
               </ErrorBoundary>
@@ -145,6 +158,7 @@ const standaloneHtmlContent = `<!doctype html>
       // Set flag to indicate theme deployment mode
       window.__THEME_DEPLOYMENT__ = true;
       window.__THEME_SLUG__ = '${themeSlug}';
+      ${cmsTenant ? `window.__CMS_TENANT__ = '${cmsTenant}';` : ''}
     </script>
   </head>
   <body>

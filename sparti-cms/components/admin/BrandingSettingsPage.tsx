@@ -245,7 +245,10 @@ const BrandingSettingsPage: React.FC<BrandingSettingsPageProps> = ({ currentTena
           : '/api/branding';
         
         console.log(`[testing] Making authenticated API call to: ${endpoint}`);
-        const response = await api.get(endpoint);
+        // Pass tenantId in options so it's added to headers automatically
+        const response = await api.get(endpoint, {
+          tenantId: currentTenantId
+        });
         
         console.log(`[testing] API response status: ${response.status}`);
         if (response.ok) {
@@ -421,7 +424,10 @@ const BrandingSettingsPage: React.FC<BrandingSettingsPageProps> = ({ currentTena
       const requestBody = settingsToSave;
       
       console.log(`[testing] Making authenticated API call to: ${endpoint}`, requestBody);
-      const response = await api.post(endpoint, requestBody);
+      // Pass tenantId in options so it's added to headers automatically
+      const response = await api.post(endpoint, requestBody, {
+        tenantId: currentTenantId
+      });
       
       if (!response.ok) {
         const errorText = await response.text();

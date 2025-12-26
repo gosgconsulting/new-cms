@@ -1,0 +1,101 @@
+# Railway Environment Variables Template - Tenant Configuration
+# ====================================================
+# Instructions:
+# 1. Replace "YOUR_POSTGRES_SERVICE_NAME" with your actual Railway PostgreSQL service name
+#    (e.g., "Postgres-33yU" or whatever your service is named in Railway)
+# 2. Replace "tenant-gosg" with your actual tenant slug
+# 3. Replace "your-custom-domain.com" with your actual domain (or leave for auto-detection)
+# 4. Copy each line (without # comments) into Railway Dashboard → Your Service → Variables
+# 5. Railway will auto-replace ${{}} placeholders with actual values
+
+# ====================================================
+# TENANT CONFIGURATION (REQUIRED)
+# ====================================================
+CMS_TENANT="tenant-gosg"
+
+# ====================================================
+# DATABASE (REQUIRED - Auto-filled by Railway)
+# ====================================================
+# Replace "YOUR_POSTGRES_SERVICE_NAME" with your actual PostgreSQL service name from Railway
+# Example: If your service is named "Postgres-33yU", replace with "Postgres-33yU"
+DATABASE_PUBLIC_URL="${{YOUR_POSTGRES_SERVICE_NAME.DATABASE_PUBLIC_URL}}"
+DATABASE_URL="${{YOUR_POSTGRES_SERVICE_NAME.DATABASE_URL}}"
+POSTGRES_DB="${{YOUR_POSTGRES_SERVICE_NAME.POSTGRES_DB}}"
+POSTGRES_PASSWORD="${{YOUR_POSTGRES_SERVICE_NAME.POSTGRES_PASSWORD}}"
+POSTGRES_USER="${{YOUR_POSTGRES_SERVICE_NAME.POSTGRES_USER}}"
+
+# ====================================================
+# SERVER CONFIGURATION (Auto-filled by Railway)
+# ====================================================
+PORT="${{PORT}}"
+BACKEND_PORT="${{PORT}}"
+NODE_ENV="production"
+
+# ====================================================
+# BACKEND SERVER URL (Auto-detected from Railway)
+# ====================================================
+# Option 1: Auto-detect from Railway (recommended)
+# Railway automatically provides RAILWAY_PUBLIC_DOMAIN
+# The Dockerfile will auto-construct this, but you can also set it explicitly:
+VITE_BACKEND_SERVER_URL="https://${{RAILWAY_PUBLIC_DOMAIN}}"
+
+# Option 2: Use custom domain (uncomment and set if you have a custom domain)
+# VITE_BACKEND_SERVER_URL="https://your-custom-domain.com"
+
+# Option 3: Use VITE_USE_BACKEND_SERVER flag (if your app supports it)
+VITE_USE_BACKEND_SERVER="true"
+
+# Legacy API base URL (for compatibility)
+VITE_API_BASE_URL="https://${{RAILWAY_PUBLIC_DOMAIN}}"
+
+# ====================================================
+# EMAIL CONFIGURATION (REQUIRED for contact forms)
+# ====================================================
+# Replace with your actual Resend API key from https://resend.com/api-keys
+RESEND_API_KEY="your-resend-api-key-here"
+SMTP_HOST="smtp.resend.com"
+SMTP_PORT="465"
+SMTP_USER="resend"
+SMTP_FROM_EMAIL="noreply@gosg.com"
+VITE_RESEND_API_KEY="your-resend-api-key-here"
+
+# ====================================================
+# AI ASSISTANT (Backend only - for CMS AI features)
+# ====================================================
+# Replace with your actual Anthropic API key from https://console.anthropic.com/
+ANTHROPIC_API_KEY="your-anthropic-api-key-here"
+
+# ====================================================
+# OPTIONAL: Additional API Keys
+# ====================================================
+# Replace with your actual Google Cloud Translation API key
+GOOGLE_CLOUD_TRANSLATION_API_KEY="your-google-cloud-translation-api-key-here"
+# Replace with your actual Google API key
+GOOGLE_API_KEY="your-google-api-key-here"
+# Replace with your actual OpenRouter API key
+OPENROUTER_API_KEY="your-openrouter-api-key-here"
+# Replace with your actual Perplexity API key from https://www.perplexity.ai/
+VITE_PERPLEXITY_API_KEY="your-perplexity-api-key-here"
+
+# Frontend environment variables (VITE_ prefix required for browser access)
+VITE_GOOGLE_API_KEY="your-google-api-key-here"
+VITE_OPENROUTER_API_KEY="your-openrouter-api-key-here"
+VITE_SMTP_FROM_EMAIL="noreply@gosg.com"
+
+# ====================================================
+# RAILWAY DEPLOYMENT CONFIGURATION (Optional)
+# ====================================================
+RAILWAY_DEPLOYMENT_DRAINING_SECONDS="60"
+RAILWAY_HEALTHCHECK_TIMEOUT_SEC="120"
+SSL_CERT_DAYS="820"
+
+# ====================================================
+# NOTES:
+# ====================================================
+# - Railway automatically provides: PORT, RAILWAY_PUBLIC_DOMAIN
+# - Database variables are auto-populated from your PostgreSQL service
+# - Replace "YOUR_POSTGRES_SERVICE_NAME" with your actual service name
+# - Replace "tenant-gosg" with your actual tenant slug
+# - If using custom domain, set VITE_BACKEND_SERVER_URL to your custom domain
+# - All API keys should be stored securely in Railway (never commit to git)
+

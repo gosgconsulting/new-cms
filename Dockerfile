@@ -45,7 +45,7 @@ RUN echo "[testing] Build phase - Checking DEPLOY_THEME_SLUG: ${DEPLOY_THEME_SLU
       else \
         echo "[testing] Using provided VITE_API_BASE_URL: ${VITE_API_BASE_URL}"; \
       fi && \
-      DEPLOY_THEME_SLUG=${DEPLOY_THEME_SLUG} VITE_API_BASE_URL=${VITE_API_BASE_URL} npm run build:theme || exit 1; \
+      DEPLOY_THEME_SLUG=${DEPLOY_THEME_SLUG} CMS_TENANT=${CMS_TENANT} VITE_API_BASE_URL=${VITE_API_BASE_URL} npm run build:theme || exit 1; \
     else \
       echo "[testing] Building full CMS application (DEPLOY_THEME_SLUG not set)" && \
       if [ -z "${VITE_API_BASE_URL}" ] && [ -n "${RAILWAY_PUBLIC_DOMAIN}" ]; then \

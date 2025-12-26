@@ -10,7 +10,8 @@ import {
   AlertCircle,
   CheckCircle,
   Bug,
-  RefreshCw
+  RefreshCw,
+  Sync
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -49,6 +50,7 @@ const TenantsManager: React.FC = () => {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [syncingTenantId, setSyncingTenantId] = useState<string | null>(null);
   const [debugMode, setDebugMode] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const { toast } = useToast();
@@ -354,6 +356,53 @@ const TenantsManager: React.FC = () => {
     }
   };
 
+  // Sync tenant (ensure tenant exists and create missing default settings)
+  const handleSyncTenant = async (tenantId: string) => {
+    setSyncingTenantId(tenantId);
+    
+    try {
+      const response = await api.post(`/api/tenants/${tenantId}/sync`);
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to sync tenant');
+      }
+      
+      const syncResult = await response.json();
+      
+      // Show success message with details
+      const summary = syncResult.initialization?.summary || {};
+      const totalSynced = summary.total || 0;
+      
+      if (totalSynced > 0) {
+        toast({
+          title: "Sync Successful",
+          description: `Tenant synced successfully. Created ${totalSynced} missing field(s) (${summary.settings || 0} settings, ${summary.branding || 0} branding settings)`,
+          variant: "default",
+          duration: 5000
+        });
+      } else {
+        toast({
+          title: "Sync Complete",
+          description: "Tenant is already up to date. All required fields exist.",
+          variant: "default"
+        });
+      }
+      
+      // Refresh tenants list to get updated data
+      await fetchTenants();
+    } catch (error) {
+      console.error('Error syncing tenant:', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to sync tenant",
+        variant: "destructive"
+      });
+    } finally {
+      setSyncingTenantId(null);
+    }
+  };
+
   // Delete tenant
   const handleDeleteTenant = async () => {
     if (!selectedTenant) return;
@@ -530,6 +579,25 @@ const TenantsManager: React.FC = () => {
                       Delete
                     </Button>
                   </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="w-full"
+                    onClick={() => handleSyncTenant(tenant.id)}
+                    disabled={syncingTenantId === tenant.id}
+                  >
+                    {syncingTenantId === tenant.id ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Syncing...
+                      </>
+                    ) : (
+                      <>
+                        <Sync className="h-4 w-4 mr-2" />
+                        Sync
+                      </>
+                    )}
+                  </Button>
                 </div>
               </CardContent>
             </Card>

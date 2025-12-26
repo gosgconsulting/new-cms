@@ -2,7 +2,7 @@ import React, { useState, ChangeEvent, useEffect } from 'react';
 import { useCMSSettings } from '../../context/CMSSettingsContext';
 import { useAuth } from '../auth/AuthProvider';
 import { Upload, Trash2, Search, Grid, List, Image as ImageIcon, FileText, Film, Music, File, Folder, FolderPlus, X, RefreshCw, Eye, Edit3, Save } from 'lucide-react';
-import { scanAssetsDirectory } from '../../utils/media-scanner';
+import { api } from '../../utils/api';
 
 interface MediaItem {
   id: string;
@@ -290,74 +290,158 @@ const MediaManager: React.FC = () => {
   const [viewModalItem, setViewModalItem] = useState<MediaItem | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState<boolean>(false);
   
-  // Initial load of assets from src/assets directory
+  // Load media from database API (tenant-based)
   useEffect(() => {
-    // Always sync assets on initial load to ensure we have the latest files
-    syncAssetsDirectory();
+    if (currentTenantId) {
+      loadMediaFromDatabase();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [currentTenantId]);
 
-  // Function to sync media items with src/assets directory
-  const syncAssetsDirectory = async () => {
+  // Function to load media from database API
+  const loadMediaFromDatabase = async () => {
+    if (!currentTenantId) {
+      console.log('[testing] No tenant ID, skipping media load');
+      // Clear existing media for this tenant
+      mediaItems.forEach(item => removeMediaItem(item.id));
+      return;
+    }
+
     setIsSyncing(true);
     try {
-      const { mediaItems: scannedItems, mediaFolders: scannedFolders } = await scanAssetsDirectory();
-      
-      // Replace existing media items and folders with scanned ones
-      if (Array.isArray(scannedFolders)) {
-        scannedFolders.forEach(folder => {
-          // Only add folders that don't exist yet
-          if (!mediaFolders.find(f => f.id === folder.id)) {
-            addMediaFolder(folder);
-          }
-        });
+      // Load folders
+      const foldersResponse = await api.get(`/api/media/folders?tenantId=${encodeURIComponent(currentTenantId)}`, {
+        tenantId: currentTenantId
+      });
+
+      // Clear existing folders (except uncategorized) and reload from database
+      const foldersToRemove = mediaFolders.filter(f => f.id !== 'uncategorized');
+      foldersToRemove.forEach(f => removeMediaFolder(f.id));
+
+      if (foldersResponse.ok) {
+        const folders = await foldersResponse.json();
+        if (Array.isArray(folders)) {
+          folders.forEach(folder => {
+            const folderData = {
+              id: folder.id.toString(),
+              name: folder.name,
+              itemCount: 0 // Will be updated when we load files
+            };
+            addMediaFolder(folderData);
+          });
+        }
       }
-      
-      // Add new media items
-      if (Array.isArray(scannedItems)) {
-        scannedItems.forEach(item => {
-          // Check if item already exists by URL to avoid duplicates
-          if (!mediaItems.find(existingItem => existingItem.url === item.url)) {
-            addMediaItem(item);
-          }
+
+      // Clear existing media items first
+      mediaItems.forEach(item => removeMediaItem(item.id));
+
+      // Load media files
+      const filesResponse = await api.get(`/api/media/files?tenantId=${encodeURIComponent(currentTenantId)}&limit=1000`, {
+        tenantId: currentTenantId
+      });
+
+      if (filesResponse.ok) {
+        const result = await filesResponse.json();
+        const files = result.files || [];
+        
+        // Add database items
+        // Convert database format to MediaItem format
+        files.forEach((file: any) => {
+          const mediaItem: MediaItem = {
+            id: file.id.toString(),
+            name: file.filename || file.original_filename,
+            type: file.media_type || 'other',
+            url: file.url || file.relative_path,
+            size: file.file_size || 0,
+            dateUploaded: file.created_at ? new Date(file.created_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+            folderId: file.folder_id ? file.folder_id.toString() : null,
+            alt: file.alt_text || '',
+            title: file.title || '',
+            description: file.description || ''
+          };
+          addMediaItem(mediaItem);
         });
+      } else {
+        console.error('[testing] Error loading media files:', await filesResponse.text());
       }
     } catch (error) {
-      console.error('Error syncing assets directory:', error);
+      console.error('[testing] Error loading media from database:', error);
     } finally {
       setIsSyncing(false);
     }
   };
 
-  const handleFileUpload = (e: ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      setUploading(true);
-      setUploadProgress(0);
+  const handleFileUpload = async (e: ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0 || !currentTenantId) {
+      return;
+    }
+
+    setUploading(true);
+    setUploadProgress(0);
+
+    try {
+      const files = Array.from(e.target.files);
       
-      const interval = setInterval(() => {
-        setUploadProgress(prev => {
-          if (prev >= 100) {
-            clearInterval(interval);
-            setTimeout(() => {
-              const newItems: MediaItem[] = Array.from(e.target.files || []).map((file, index) => ({
-                id: `new-${Date.now()}-${index}`,
-                name: file.name,
-                type: getFileType(file.type),
-                size: file.size,
-                url: URL.createObjectURL(file),
-                dateUploaded: new Date().toISOString().split('T')[0],
-                folderId: selectedFolder || null
-              }));
-              
-              newItems.forEach(item => addMediaItem(item));
-              setUploading(false);
-              setUploadProgress(0);
-            }, 500);
-            return 100;
-          }
-          return prev + 10;
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const formData = new FormData();
+        formData.append('file', file);
+        if (selectedFolder) {
+          formData.append('folder_id', selectedFolder);
+        }
+        formData.append('tenantId', currentTenantId);
+
+        // Update progress
+        setUploadProgress(Math.round(((i + 1) / files.length) * 100));
+
+        // For FormData, we need to let the browser set Content-Type
+        const token = localStorage.getItem('sparti-user-session') ? JSON.parse(localStorage.getItem('sparti-user-session') || '{}').token : null;
+        const headers: Record<string, string> = {};
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+        // Don't set Content-Type - browser will set it with boundary for FormData
+        
+        const response = await fetch(`${api.getBaseUrl()}/api/media/upload?tenantId=${encodeURIComponent(currentTenantId)}`, {
+          method: 'POST',
+          headers: headers,
+          body: formData
         });
-      }, 300);
+
+        if (response.ok) {
+          const result = await response.json();
+          if (result.file) {
+            const mediaItem: MediaItem = {
+              id: result.file.id.toString(),
+              name: result.file.filename || result.file.original_filename,
+              type: result.file.media_type || getFileType(file.type),
+              url: result.file.url || result.url,
+              size: result.file.file_size || file.size,
+              dateUploaded: result.file.created_at ? new Date(result.file.created_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+              folderId: result.file.folder_id ? result.file.folder_id.toString() : null,
+              alt: result.file.alt_text || '',
+              title: result.file.title || '',
+              description: result.file.description || ''
+            };
+            addMediaItem(mediaItem);
+          }
+        } else {
+          const errorText = await response.text();
+          console.error('[testing] Error uploading file:', errorText);
+          throw new Error(`Failed to upload ${file.name}`);
+        }
+      }
+
+      setUploadProgress(100);
+      setTimeout(() => {
+        setUploading(false);
+        setUploadProgress(0);
+      }, 500);
+    } catch (error) {
+      console.error('[testing] Error uploading files:', error);
+      setUploading(false);
+      setUploadProgress(0);
+      alert('Failed to upload files. Please try again.');
     }
   };
   
@@ -394,34 +478,101 @@ const MediaManager: React.FC = () => {
     }
   };
   
-  const handleDeleteSelected = () => {
-    if (selectedItems.length > 0) {
-      selectedItems.forEach(id => removeMediaItem(id));
+  const handleDeleteSelected = async () => {
+    if (selectedItems.length === 0 || !currentTenantId) return;
+
+    try {
+      for (const id of selectedItems) {
+        const response = await api.delete(`/api/media/files/${id}?tenantId=${encodeURIComponent(currentTenantId)}`, {
+          tenantId: currentTenantId
+        });
+
+        if (response.ok) {
+          removeMediaItem(id);
+        } else {
+          console.error(`[testing] Error deleting file ${id}:`, await response.text());
+        }
+      }
       setSelectedItems([]);
+      // Reload media to refresh counts
+      await loadMediaFromDatabase();
+    } catch (error) {
+      console.error('[testing] Error deleting files:', error);
+      alert('Failed to delete some files. Please try again.');
     }
   };
   
-  const handleCreateFolder = () => {
-    if (newFolderName.trim()) {
-      addMediaFolder({
-        id: `folder-${Date.now()}`,
+  const handleCreateFolder = async () => {
+    if (!newFolderName.trim() || !currentTenantId) return;
+
+    try {
+      const slug = newFolderName.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+      const folderPath = `/${slug}`;
+
+      const response = await api.post(`/api/media/folders?tenantId=${encodeURIComponent(currentTenantId)}`, {
         name: newFolderName.trim(),
-        itemCount: 0
+        slug: slug,
+        folder_path: folderPath,
+        description: ''
+      }, {
+        tenantId: currentTenantId
       });
-      setNewFolderName('');
-      setShowNewFolderDialog(false);
+
+      if (response.ok) {
+        const folder = await response.json();
+        addMediaFolder({
+          id: folder.id.toString(),
+          name: folder.name,
+          itemCount: 0
+        });
+        setNewFolderName('');
+        setShowNewFolderDialog(false);
+      } else {
+        const errorText = await response.text();
+        console.error('[testing] Error creating folder:', errorText);
+        alert('Failed to create folder. Please try again.');
+      }
+    } catch (error) {
+      console.error('[testing] Error creating folder:', error);
+      alert('Failed to create folder. Please try again.');
     }
   };
   
-  const handleDeleteFolder = (folderId: string) => {
-    if (folderId === 'uncategorized') return;
-    
-    // Move items in this folder to uncategorized
-    mediaItems
-      .filter(item => item.folderId === folderId)
-      .forEach(item => updateMediaItemFolder(item.id, null));
-    
-    removeMediaFolder(folderId);
+  const handleDeleteFolder = async (folderId: string) => {
+    if (folderId === 'uncategorized' || !currentTenantId) return;
+
+    try {
+      const response = await api.delete(`/api/media/folders/${folderId}?tenantId=${encodeURIComponent(currentTenantId)}`, {
+        tenantId: currentTenantId
+      });
+
+      if (response.ok) {
+        // Move items in this folder to uncategorized (null folder_id)
+        const itemsInFolder = mediaItems.filter(item => item.folderId === folderId);
+        for (const item of itemsInFolder) {
+          try {
+            await api.put(`/api/media/files/${item.id}?tenantId=${encodeURIComponent(currentTenantId)}`, {
+              folder_id: null
+            }, {
+              tenantId: currentTenantId
+            });
+            updateMediaItemFolder(item.id, null);
+          } catch (error) {
+            console.error(`[testing] Error moving item ${item.id}:`, error);
+          }
+        }
+        removeMediaFolder(folderId);
+        // Reload media to refresh
+        await loadMediaFromDatabase();
+      } else {
+        const errorText = await response.text();
+        console.error('[testing] Error deleting folder:', errorText);
+        alert('Failed to delete folder. Please try again.');
+      }
+    } catch (error) {
+      console.error('[testing] Error deleting folder:', error);
+      alert('Failed to delete folder. Please try again.');
+    }
   };
 
   const handleViewMedia = (item: MediaItem) => {
@@ -434,8 +585,30 @@ const MediaManager: React.FC = () => {
     setViewModalItem(null);
   };
 
-  const handleSaveMedia = (id: string, updates: Partial<MediaItem>) => {
-    updateMediaItem(id, updates);
+  const handleSaveMedia = async (id: string, updates: Partial<MediaItem>) => {
+    if (!currentTenantId) return;
+
+    try {
+      const response = await api.put(`/api/media/files/${id}?tenantId=${encodeURIComponent(currentTenantId)}`, {
+        alt_text: updates.alt || '',
+        title: updates.title || '',
+        description: updates.description || '',
+        folder_id: updates.folderId ? parseInt(updates.folderId) : null
+      }, {
+        tenantId: currentTenantId
+      });
+
+      if (response.ok) {
+        updateMediaItem(id, updates);
+      } else {
+        const errorText = await response.text();
+        console.error('[testing] Error updating media:', errorText);
+        alert('Failed to update media. Please try again.');
+      }
+    } catch (error) {
+      console.error('[testing] Error updating media:', error);
+      alert('Failed to update media. Please try again.');
+    }
   };
   
   const getFileIcon = (type: MediaItem['type']) => {
@@ -569,8 +742,21 @@ const MediaManager: React.FC = () => {
       
       {/* Main Content */}
       <div className="flex-1 bg-white rounded-lg shadow-sm border p-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Media Manager</h2>
-        <p className="text-gray-600 mb-6">Upload, organize, and manage your media files from the src/assets directory.</p>
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Media Manager</h2>
+            <p className="text-gray-600">Upload, organize, and manage your tenant-based media files.</p>
+          </div>
+          <button
+            onClick={loadMediaFromDatabase}
+            disabled={isSyncing}
+            className="flex items-center px-3 py-2 text-sm bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Refresh Media"
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
+            Refresh
+          </button>
+        </div>
         
         {/* Upload and Actions Bar */}
         <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
