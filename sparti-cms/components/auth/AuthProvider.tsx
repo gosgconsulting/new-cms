@@ -160,16 +160,29 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Check if response is ok and has content
       if (!response.ok) {
         // Try to parse error response as JSON
-        let errorData;
+        let errorData: any = {};
+        let rawText = '';
         try {
-          const text = await response.text();
-          errorData = text ? JSON.parse(text) : {};
-        } catch (parseError) {
-          // If parsing fails, use status text
-          errorData = { error: response.statusText || 'Login failed' };
+          rawText = await response.text();
+          errorData = rawText ? JSON.parse(rawText) : {};
+        } catch {
+          // ignore JSON parse errors
         }
-        
-        const errorMessage = errorData.message || errorData.error || `Login failed (${response.status})`;
+
+        // Map common statuses to friendly messages
+        let errorMessage =
+          errorData.message ||
+          errorData.error ||
+          `Login failed (${response.status})`;
+
+        if (response.status === 401) {
+          errorMessage = 'Invalid email or password.';
+        } else if (response.status === 503) {
+          errorMessage = 'Database is unavailable. Please try again shortly.';
+        } else if (response.status >= 500) {
+          errorMessage = 'Server error. Please try again in a moment.';
+        }
+
         console.error('[testing] Login failed:', errorMessage);
         return { 
           success: false, 
