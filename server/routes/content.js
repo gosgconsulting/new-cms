@@ -28,8 +28,14 @@ import {
   deleteTag,
   bulkCreateTags,
   setPostCategories,
-  setPostTags
+  setPostTags,
+  findOrCreateCategory,
+  findOrCreateTag
 } from '../../sparti-cms/db/index.js';
+import { upload } from '../config/multer.js';
+import { readFileSync } from 'fs';
+import { parseWordPressXML, parseWordPressJSON, extractPosts, extractCategories, extractTags, extractImages, updateImageReferences } from '../../sparti-cms/services/wordpressImport.js';
+import { downloadImages } from '../../sparti-cms/services/imageDownloader.js';
 import { invalidateBySlug } from '../../sparti-cms/cache/index.js';
 import models, { sequelize } from '../../sparti-cms/db/sequelize/models/index.js';
 import { Op } from 'sequelize';
@@ -2050,6 +2056,253 @@ router.post('/pages/:pageId/validate-schema', async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Failed to validate schema',
+      message: error.message
+    });
+  }
+});
+
+// ===== WORDPRESS IMPORT ROUTE =====
+
+// Import WordPress blog posts from XML or JSON export
+router.post('/import/wordpress', authenticateUser, upload.single('file'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+
+    const tenantId = req.tenantId || req.user?.tenant_id || req.body.tenantId;
+    if (!tenantId) {
+      return res.status(400).json({ error: 'Tenant ID is required' });
+    }
+
+    // Read file content
+    const fileContent = readFileSync(req.file.path, 'utf8');
+    const fileExtension = req.file.originalname.toLowerCase().split('.').pop();
+
+    // Parse file based on extension
+    let parsedData;
+    try {
+      if (fileExtension === 'xml') {
+        parsedData = parseWordPressXML(fileContent);
+      } else if (fileExtension === 'json') {
+        parsedData = parseWordPressJSON(fileContent);
+      } else {
+        return res.status(400).json({ error: 'Unsupported file format. Please upload .xml or .json file' });
+      }
+    } catch (parseError) {
+      console.error('[testing] Error parsing WordPress file:', parseError);
+      return res.status(400).json({ error: `Failed to parse file: ${parseError.message}` });
+    }
+
+    // Initialize summary
+    const summary = {
+      postsCreated: 0,
+      postsUpdated: 0,
+      categoriesCreated: 0,
+      tagsCreated: 0,
+      imagesDownloaded: 0,
+      errors: []
+    };
+
+    // Extract and process categories
+    const categoriesData = extractCategories(parsedData);
+    const categoryMap = new Map(); // Map category name/slug to ID
+    
+    for (const catData of categoriesData) {
+      try {
+        const slug = catData.slug || catData.name.toLowerCase().replace(/\s+/g, '-');
+        const category = await findOrCreateCategory(slug, {
+          name: catData.name,
+          description: catData.description || ''
+        });
+        categoryMap.set(catData.name, category.id);
+        categoryMap.set(slug, category.id);
+        if (category.id && !categoryMap.has(category.id)) {
+          summary.categoriesCreated++;
+        }
+      } catch (error) {
+        console.error('[testing] Error processing category:', catData.name, error);
+        summary.errors.push(`Failed to process category "${catData.name}": ${error.message}`);
+      }
+    }
+
+    // Extract and process tags
+    const tagsData = extractTags(parsedData);
+    const tagMap = new Map(); // Map tag name/slug to ID
+    
+    for (const tagData of tagsData) {
+      try {
+        const slug = tagData.slug || tagData.name.toLowerCase().replace(/\s+/g, '-');
+        const tag = await findOrCreateTag(slug, {
+          name: tagData.name,
+          description: tagData.description || ''
+        });
+        tagMap.set(tagData.name, tag.id);
+        tagMap.set(slug, tag.id);
+        if (tag.id && !tagMap.has(tag.id)) {
+          summary.tagsCreated++;
+        }
+      } catch (error) {
+        console.error('[testing] Error processing tag:', tagData.name, error);
+        summary.errors.push(`Failed to process tag "${tagData.name}": ${error.message}`);
+      }
+    }
+
+    // Extract and process posts
+    const postsData = extractPosts(parsedData);
+    
+    // Helper function to get or create category/tag from post
+    const getOrCreateCategory = async (name) => {
+      if (!name) return null;
+      const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+      if (categoryMap.has(name) || categoryMap.has(slug)) {
+        return categoryMap.get(name) || categoryMap.get(slug);
+      }
+      try {
+        const category = await findOrCreateCategory(slug, { name, description: '' });
+        categoryMap.set(name, category.id);
+        categoryMap.set(slug, category.id);
+        summary.categoriesCreated++;
+        return category.id;
+      } catch (error) {
+        console.error('[testing] Error creating category from post:', name, error);
+        return null;
+      }
+    };
+
+    const getOrCreateTag = async (name) => {
+      if (!name) return null;
+      const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+      if (tagMap.has(name) || tagMap.has(slug)) {
+        return tagMap.get(name) || tagMap.get(slug);
+      }
+      try {
+        const tag = await findOrCreateTag(slug, { name, description: '' });
+        tagMap.set(name, tag.id);
+        tagMap.set(slug, tag.id);
+        summary.tagsCreated++;
+        return tag.id;
+      } catch (error) {
+        console.error('[testing] Error creating tag from post:', name, error);
+        return null;
+      }
+    };
+    
+    for (const postData of postsData) {
+      try {
+        // Check if post exists by slug
+        const existingPost = await Post.findOne({
+          where: {
+            slug: postData.slug,
+            tenant_id: tenantId
+          }
+        });
+
+        // Extract images from content
+        const imageUrls = extractImages(postData.content);
+        let updatedContent = postData.content;
+        let imagesDownloaded = 0;
+
+        // Download images if any
+        if (imageUrls.length > 0) {
+          try {
+            const { imageMap, errors: imageErrors } = await downloadImages(imageUrls, tenantId);
+            imagesDownloaded = Array.from(imageMap.values()).filter(url => url.startsWith('/uploads/')).length;
+            summary.imagesDownloaded += imagesDownloaded;
+            
+            // Update content with local image URLs
+            updatedContent = updateImageReferences(postData.content, imageMap);
+            
+            // Add image download errors to summary
+            imageErrors.forEach(err => summary.errors.push(err));
+          } catch (imageError) {
+            console.error('[testing] Error downloading images for post:', postData.title, imageError);
+            summary.errors.push(`Failed to download some images for post "${postData.title}"`);
+          }
+        }
+
+        // Prepare post data
+        const postPayload = {
+          title: postData.title,
+          slug: postData.slug,
+          content: updatedContent,
+          excerpt: postData.excerpt || '',
+          status: postData.status === 'publish' ? 'published' : (postData.status || 'draft'),
+          post_type: 'post',
+          author_id: req.user?.id || 1,
+          published_at: postData.publishedAt || null,
+          tenant_id: tenantId
+        };
+
+        let post;
+        if (existingPost) {
+          // Update existing post
+          await existingPost.update(postPayload);
+          post = existingPost;
+          summary.postsUpdated++;
+        } else {
+          // Create new post
+          post = await Post.create(postPayload);
+          summary.postsCreated++;
+        }
+
+        // Link categories - create if they don't exist
+        const categoryIds = [];
+        if (Array.isArray(postData.categories)) {
+          for (const catName of postData.categories) {
+            let catId = categoryMap.get(catName) || categoryMap.get(catName.toLowerCase().replace(/\s+/g, '-'));
+            if (!catId) {
+              catId = await getOrCreateCategory(catName);
+            }
+            if (catId && !categoryIds.includes(catId)) {
+              categoryIds.push(catId);
+            }
+          }
+        }
+        if (categoryIds.length > 0) {
+          await setPostCategories(post.id, categoryIds);
+        }
+
+        // Link tags - create if they don't exist
+        const tagIds = [];
+        if (Array.isArray(postData.tags)) {
+          for (const tagName of postData.tags) {
+            let tagId = tagMap.get(tagName) || tagMap.get(tagName.toLowerCase().replace(/\s+/g, '-'));
+            if (!tagId) {
+              tagId = await getOrCreateTag(tagName);
+            }
+            if (tagId && !tagIds.includes(tagId)) {
+              tagIds.push(tagId);
+            }
+          }
+        }
+        if (tagIds.length > 0) {
+          await setPostTags(post.id, tagIds);
+        }
+
+      } catch (error) {
+        console.error('[testing] Error processing post:', postData.title, error);
+        summary.errors.push(`Failed to process post "${postData.title}": ${error.message}`);
+      }
+    }
+
+    // Clean up uploaded file
+    try {
+      const { unlinkSync } = await import('fs');
+      unlinkSync(req.file.path);
+    } catch (cleanupError) {
+      console.error('[testing] Error cleaning up uploaded file:', cleanupError);
+    }
+
+    res.json({
+      success: true,
+      summary: summary
+    });
+
+  } catch (error) {
+    console.error('[testing] Error importing WordPress file:', error);
+    res.status(500).json({
+      error: 'Failed to import WordPress file',
       message: error.message
     });
   }

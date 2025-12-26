@@ -23,6 +23,9 @@ export async function initializeTenantDefaults(tenantId) {
     branding: { inserted: 0, skipped: 0 },
     sitemap: { inserted: 0, skipped: 0 },
     robots: { inserted: 0, skipped: 0 },
+    media: {
+      folders: { inserted: 0, skipped: 0 }
+    },
     blog: { 
       categories: { inserted: 0, skipped: 0 },
       tags: { inserted: 0, skipped: 0 }
@@ -31,147 +34,13 @@ export async function initializeTenantDefaults(tenantId) {
   };
 
   try {
-    // 1. Initialize default branding settings for the tenant only
+    // 1. Settings/Branding/SEO: Don't create tenant-specific overrides immediately
     // Master settings (tenant_id = NULL) are automatically accessible to all tenants
-    console.log(`[testing] Initializing default branding settings for tenant ${tenantId}...`);
-    try {
-      // Get tenant name for default site_name
-      const tenantResult = await query(`
-        SELECT name FROM tenants WHERE id = $1
-      `, [tenantId]);
-      
-      const tenantName = tenantResult.rows[0]?.name || 'New Site';
-      
-      // Default branding settings - only tenant-specific overrides
-      const defaultBrandingSettings = [
-        {
-          key: 'site_name',
-          value: tenantName,
-          type: 'text',
-          category: 'branding'
-        },
-        {
-          key: 'site_tagline',
-          value: '',
-          type: 'text',
-          category: 'branding'
-        },
-        {
-          key: 'site_description',
-          value: '',
-          type: 'textarea',
-          category: 'branding'
-        }
-      ];
-      
-      // Default SEO settings - tenant-specific overrides
-      const defaultSEOSettings = [
-        {
-          key: 'seo_index',
-          value: 'true',
-          type: 'text',
-          category: 'seo'
-        },
-        {
-          key: 'og_title',
-          value: '',
-          type: 'text',
-          category: 'seo'
-        },
-        {
-          key: 'og_description',
-          value: '',
-          type: 'textarea',
-          category: 'seo'
-        },
-        {
-          key: 'og_image',
-          value: '',
-          type: 'media',
-          category: 'seo'
-        },
-        {
-          key: 'og_type',
-          value: 'website',
-          type: 'text',
-          category: 'seo'
-        },
-        {
-          key: 'og_site_name',
-          value: '',
-          type: 'text',
-          category: 'seo'
-        },
-        {
-          key: 'og_url',
-          value: '',
-          type: 'text',
-          category: 'seo'
-        }
-      ];
-      
-      let brandingInserted = 0;
-      for (const setting of defaultBrandingSettings) {
-        // Check if setting already exists
-        const existing = await query(`
-          SELECT id FROM site_settings 
-          WHERE setting_key = $1 AND tenant_id = $2 AND theme_id IS NULL
-          LIMIT 1
-        `, [setting.key, tenantId]);
-        
-        if (existing.rows.length === 0) {
-          await query(`
-            INSERT INTO site_settings (
-              setting_key, setting_value, setting_type, setting_category,
-              is_public, tenant_id, theme_id, created_at, updated_at
-            )
-            VALUES ($1, $2, $3, $4, true, $5, NULL, NOW(), NOW())
-          `, [
-            setting.key,
-            setting.value,
-            setting.type,
-            setting.category,
-            tenantId
-          ]);
-          brandingInserted++;
-        }
-      }
-      
-      // Initialize SEO settings
-      let seoInserted = 0;
-      for (const setting of defaultSEOSettings) {
-        // Check if setting already exists
-        const existing = await query(`
-          SELECT id FROM site_settings 
-          WHERE setting_key = $1 AND tenant_id = $2 AND theme_id IS NULL
-          LIMIT 1
-        `, [setting.key, tenantId]);
-        
-        if (existing.rows.length === 0) {
-          await query(`
-            INSERT INTO site_settings (
-              setting_key, setting_value, setting_type, setting_category,
-              is_public, tenant_id, theme_id, created_at, updated_at
-            )
-            VALUES ($1, $2, $3, $4, true, $5, NULL, NOW(), NOW())
-          `, [
-            setting.key,
-            setting.value,
-            setting.type,
-            setting.category,
-            tenantId
-          ]);
-          seoInserted++;
-        }
-      }
-      
-      summary.branding.inserted = brandingInserted;
-      summary.settings.inserted = brandingInserted + seoInserted; // Branding + SEO settings
-      console.log(`[testing] Initialized ${summary.branding.inserted} branding settings and ${seoInserted} SEO settings`);
-    } catch (brandingError) {
-      console.error(`[testing] Error initializing branding settings:`, brandingError);
-      summary.errors.push(`Branding settings initialization: ${brandingError.message}`);
-    }
+    // Tenant-specific overrides will be created automatically when user modifies settings via updateBrandingSetting()
+    console.log(`[testing] Skipping Settings/Branding/SEO creation - tenants access master data (tenant_id = NULL)`);
+    console.log(`[testing] Tenant-specific overrides will be created automatically when settings are modified`);
+    summary.settings.inserted = 0;
+    summary.branding.inserted = 0;
 
     // 2. Sitemap entries: Copy master sitemap entries to tenant
     // Master entries (tenant_id = NULL) are copied to the tenant when it's created
@@ -248,15 +117,47 @@ export async function initializeTenantDefaults(tenantId) {
     // Tenants can create tenant-specific Header/Footer pages if they need custom ones
     console.log(`[testing] Skipping Header/Footer page creation - tenants access master pages (tenant_id = NULL)`);
 
-    // 8. Initialize empty media folders for the tenant
-    console.log(`[testing] Initializing media folders for tenant ${tenantId}...`);
+    // 8. Media folders: Copy master media folders to tenant
+    // Master folders (tenant_id = NULL) are copied to the tenant when it's created
+    // This ensures each tenant has its own folders that can be customized independently
+    console.log(`[testing] Copying master media folders to tenant ${tenantId}...`);
     try {
-      const { initializeTenantMediaFolders } = await import('./modules/media.js');
-      const folders = await initializeTenantMediaFolders(tenantId);
-      console.log(`[testing] Created ${folders.length} media folders for tenant ${tenantId}`);
+      const { createMediaFolder } = await import('./modules/media.js');
+      
+      // Get all master media folders (tenant_id IS NULL)
+      const masterFolders = await query(`
+        SELECT name, slug, description, folder_path
+        FROM media_folders
+        WHERE tenant_id IS NULL AND is_active = true
+      `);
+      
+      let mediaFoldersInserted = 0;
+      for (const folder of masterFolders.rows) {
+        // Check if folder already exists for this tenant
+        const existing = await query(`
+          SELECT id FROM media_folders 
+          WHERE slug = $1 AND tenant_id = $2
+          LIMIT 1
+        `, [folder.slug, tenantId]);
+        
+        if (existing.rows.length === 0) {
+          // Copy master folder to tenant
+          await createMediaFolder({
+            name: folder.name,
+            slug: folder.slug,
+            description: folder.description,
+            folder_path: folder.folder_path
+          }, tenantId);
+          mediaFoldersInserted++;
+        }
+      }
+      
+      summary.media.folders.inserted = mediaFoldersInserted;
+      console.log(`[testing] Copied ${summary.media.folders.inserted} media folders to tenant ${tenantId}`);
     } catch (mediaError) {
-      console.error(`[testing] Error initializing media folders:`, mediaError);
+      console.error(`[testing] Error copying media folders:`, mediaError);
       summary.errors.push(`Media folders initialization: ${mediaError.message}`);
+      summary.media.folders.inserted = 0;
     }
 
     // Optional: Copy posts from master (if any exist)
@@ -265,15 +166,16 @@ export async function initializeTenantDefaults(tenantId) {
     console.log(`[testing] Tenant initialization complete for ${tenantId}`);
     console.log(`[testing] Summary:`, JSON.stringify(summary, null, 2));
     console.log(`[testing] Note: Shared tables (Blog, Settings, SEO, Branding) use master data (tenant_id = NULL) accessible to all tenants`);
+    console.log(`[testing] Note: Settings/Branding/SEO access master data by default, tenant-specific overrides created when modified`);
 
     // Format summary for API response
     const formattedSummary = {
-      total: (summary.settings.inserted || 0) + 
-             (summary.branding.inserted || 0) +
-             (summary.sitemap.inserted || 0),
-      settings: summary.settings.inserted || 0,
-      branding: summary.branding.inserted || 0,
+      total: (summary.sitemap.inserted || 0) + 
+             (summary.media.folders.inserted || 0),
+      settings: 0, // Settings accessed from master, not copied
+      branding: 0, // Branding accessed from master, not copied
       sitemap: summary.sitemap.inserted || 0,
+      media_folders: summary.media.folders.inserted || 0,
       robots: 0, // No longer copying - tenants access master data
       categories: 0, // No longer copying - tenants access master data
       tags: 0 // No longer copying - tenants access master data
@@ -348,4 +250,5 @@ export async function getTenantInitializationSummary(tenantId) {
     throw error;
   }
 }
+
 

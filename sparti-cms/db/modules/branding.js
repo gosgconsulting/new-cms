@@ -594,24 +594,18 @@ export async function updateMultipleBrandingSettings(settings, tenantId = 'tenan
                       ['country', 'timezone', 'language'].includes(key) ? 'localization' : 
                       key === 'theme_styles' ? 'theme' : 'general';
       
-      // Check if tenant-specific setting exists - use proper NULL handling
+      // Check if tenant-specific setting exists (following Blog pattern - only check tenant-specific, not master)
+      // Master settings (tenant_id = NULL) are automatically accessible but not updated here
       const existing = await client.query(`
         SELECT id, tenant_id FROM site_settings 
         WHERE setting_key = $1 
-          AND (tenant_id = $2 OR (tenant_id IS NULL AND $2 IS NULL))
+          AND tenant_id = $2
           AND (theme_id = $3 OR (theme_id IS NULL AND $3 IS NULL))
         LIMIT 1
       `, [key, tenantId, themeId]);
       
       if (existing.rows.length > 0) {
-        // Check if it's a master setting (shouldn't happen, but protect anyway)
-        if (!existing.rows[0].tenant_id) {
-          await client.query('ROLLBACK');
-          transactionStarted = false;
-          throw new Error(`Cannot update master setting '${key}'. Master settings (tenant_id = NULL) are shared across all tenants.`);
-        }
-        
-        // Update existing tenant-specific setting
+        // Update existing tenant-specific setting (override of master)
         await client.query(`
           UPDATE site_settings 
           SET setting_value = $1,
@@ -622,21 +616,20 @@ export async function updateMultipleBrandingSettings(settings, tenantId = 'tenan
           WHERE id = $5
         `, [value, settingType, category, themeId, existing.rows[0].id]);
       } else {
-        // Insert new tenant-specific setting
-        // Note: We can't use ON CONFLICT with COALESCE-based unique index directly
-        // So we rely on the check above and handle any race condition errors
+        // Insert new tenant-specific setting (override of master, following Blog pattern)
+        // This creates a tenant-specific override that takes precedence over master data
         try {
           await client.query(`
-            INSERT INTO site_settings (setting_key, setting_value, setting_type, setting_category, updated_at, tenant_id, theme_id)
-            VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP, $5, $6)
-          `, [key, value, settingType, category, tenantId, themeId]);
+            INSERT INTO site_settings (setting_key, setting_value, setting_type, setting_category, is_public, updated_at, tenant_id, theme_id)
+            VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP, $6, $7)
+          `, [key, value, settingType, category, category === 'seo' || category === 'branding' || category === 'localization', tenantId, themeId]);
         } catch (insertError) {
           // If we get a unique constraint violation (race condition), try to update instead
           if (insertError.code === '23505') {
             const retryExisting = await client.query(`
               SELECT id FROM site_settings 
               WHERE setting_key = $1 
-                AND (tenant_id = $2 OR (tenant_id IS NULL AND $2 IS NULL))
+                AND tenant_id = $2
                 AND (theme_id = $3 OR (theme_id IS NULL AND $3 IS NULL))
               LIMIT 1
             `, [key, tenantId, themeId]);

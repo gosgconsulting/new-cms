@@ -82,13 +82,20 @@ const storage = multer.diskStorage({
 export const upload = multer({ 
   storage: storage,
   limits: { 
-    fileSize: 10 * 1024 * 1024 // 10MB limit (increased for media files)
+    fileSize: 50 * 1024 * 1024 // 50MB limit (for WordPress import files)
   },
   fileFilter: (req, file, cb) => {
-    // Allow more file types for media management
-    const allowedTypes = /jpeg|jpg|png|gif|svg|ico|webp|mp4|mov|avi|pdf|doc|docx|xls|xlsx|ppt|pptx|zip|rar/;
+    // Allow more file types for media management and imports
+    const allowedTypes = /jpeg|jpg|png|gif|svg|ico|webp|mp4|mov|avi|pdf|doc|docx|xls|xlsx|ppt|pptx|zip|rar|xml|json/;
     const ext = allowedTypes.test(file.originalname.split('.').pop().toLowerCase());
-    const mime = allowedTypes.test(file.mimetype) || file.mimetype.startsWith('image/') || file.mimetype.startsWith('video/') || file.mimetype.startsWith('application/');
+    const mime = allowedTypes.test(file.mimetype) || 
+                 file.mimetype.startsWith('image/') || 
+                 file.mimetype.startsWith('video/') || 
+                 file.mimetype.startsWith('application/') ||
+                 file.mimetype === 'text/xml' ||
+                 file.mimetype === 'application/xml' ||
+                 file.mimetype === 'application/json' ||
+                 file.mimetype === 'text/json';
     
     if (ext || mime) {
       cb(null, true);

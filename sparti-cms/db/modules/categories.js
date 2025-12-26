@@ -227,6 +227,39 @@ export async function getPostCategories(postId) {
 }
 
 /**
+ * Find or create a category by slug
+ * @param {string} slug - Category slug
+ * @param {Object} data - Category data
+ * @returns {Promise<Object>} Category object
+ */
+export async function findOrCreateCategory(slug, data) {
+  try {
+    // Try to find existing category by slug
+    const existing = await Category.findOne({ where: { slug } });
+    
+    if (existing) {
+      console.log('[testing] Found existing category:', slug);
+      return existing.toJSON();
+    }
+    
+    // Create new category
+    const category = await createCategory({
+      name: data.name || slug,
+      slug: slug,
+      description: data.description || '',
+      parent_id: data.parent_id || null,
+      meta_title: data.meta_title,
+      meta_description: data.meta_description
+    });
+    
+    return category;
+  } catch (error) {
+    console.error('[testing] Error in findOrCreateCategory:', error);
+    throw error;
+  }
+}
+
+/**
  * Set categories for a post (replaces existing)
  * @param {number} postId - Post ID
  * @param {Array<number>} categoryIds - Array of category IDs

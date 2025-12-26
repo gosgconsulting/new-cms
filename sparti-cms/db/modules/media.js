@@ -41,10 +41,13 @@ export async function getTenantStorageName(tenantId) {
 
 /**
  * Get all media folders for a tenant
+ * Includes master folders (tenant_id = NULL) and tenant-specific folders
+ * Tenant-specific folders take precedence over master folders
  */
 export async function getMediaFolders(tenantId, parentFolderId = null) {
   try {
-    let whereClause = 'WHERE tenant_id = $1';
+    // Support both tenant-specific and master folders (tenant_id = NULL)
+    let whereClause = 'WHERE (tenant_id = $1 OR tenant_id IS NULL)';
     let params = [tenantId];
 
     if (parentFolderId !== null) {
@@ -58,10 +61,24 @@ export async function getMediaFolders(tenantId, parentFolderId = null) {
       SELECT * FROM media_folders
       ${whereClause}
       AND is_active = true
-      ORDER BY name ASC
+      ORDER BY 
+        CASE WHEN tenant_id = $1 THEN 0 ELSE 1 END,
+        name ASC
     `, params);
 
-    return result.rows;
+    // Remove duplicates - if both master and tenant-specific folders exist with same slug,
+    // prefer tenant-specific (already ordered first)
+    const seenSlugs = new Set();
+    const uniqueFolders = [];
+    
+    for (const folder of result.rows) {
+      if (!seenSlugs.has(folder.slug)) {
+        seenSlugs.add(folder.slug);
+        uniqueFolders.push(folder);
+      }
+    }
+
+    return uniqueFolders;
   } catch (error) {
     console.error(`[testing] Error fetching media folders for tenant ${tenantId}:`, error);
     throw error;

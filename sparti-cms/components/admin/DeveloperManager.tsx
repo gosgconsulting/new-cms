@@ -9,6 +9,7 @@ import { ComponentsIntegration, ComponentsIntegrationListItem } from './Componen
 import { AIAssistantIntegration, AIAssistantIntegrationListItem } from './AIAssistantIntegration';
 import { WooCommerceIntegration, WooCommerceIntegrationListItem } from './WooCommerceIntegration';
 import { WordPressIntegration, WordPressIntegrationListItem } from './WordPressIntegration';
+import { WordPressImportIntegration, WordPressImportIntegrationListItem } from './WordPressImportIntegration';
 import { useAuth } from '../auth/AuthProvider';
 
 interface DeveloperManagerProps {
@@ -323,6 +324,49 @@ const IntegrationsTab: React.FC<IntegrationsTabProps> = ({ currentTenantId, curr
             </div>
           )}
 
+          {/* WordPress Import Integration */}
+          {currentTenant ? (
+            <WordPressImportIntegration tenant={currentTenant} />
+          ) : currentTheme ? (
+            <WordPressImportIntegration 
+              tenant={{
+                id: currentTheme.id,
+                name: currentTheme.name,
+                createdAt: new Date().toISOString().split('T')[0],
+                isTheme: true,
+                themeId: currentTheme.themeId
+              } as Tenant & { isTheme?: boolean; themeId?: string }}
+            />
+          ) : (
+            <div className="border rounded-lg p-4 flex items-start justify-between opacity-60">
+              <div className="flex items-start gap-4">
+                <div className="p-2 bg-purple-500/10 rounded-lg">
+                  <FileText className="h-6 w-6 text-purple-400" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="font-semibold text-gray-700">WordPress Import</h3>
+                    <Badge variant="outline" className="bg-gray-100 text-gray-600 border-gray-300">
+                      Inactive
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-1">
+                    Import WordPress blog posts from XML or JSON export files
+                  </p>
+                  <div className="flex gap-4 text-xs text-muted-foreground">
+                    <span>Type: Import Tool</span>
+                    <span>Format: XML (WXR) / JSON</span>
+                  </div>
+                  <p className="text-xs text-amber-600 mt-2">
+                    {mode === 'theme' 
+                      ? 'Select a theme to activate WordPress Import integration.'
+                      : 'Select a tenant to activate WordPress Import integration.'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           <Button variant="outline" className="w-full" size="lg" onClick={() => setShowAddIntegration(true)}>
             <Plus className="h-4 w-4 mr-2" />
             Add New Integration
@@ -353,16 +397,19 @@ const IntegrationsTab: React.FC<IntegrationsTabProps> = ({ currentTenantId, curr
                 <>
                   <WooCommerceIntegrationListItem tenant={currentTenant} />
                   <WordPressIntegrationListItem tenant={currentTenant} />
+                  <WordPressImportIntegrationListItem tenant={currentTenant} />
                 </>
               ) : currentTheme ? (
                 <>
                   <li>• WooCommerce (Theme: {currentTheme.name})</li>
                   <li>• WordPress (Theme: {currentTheme.name})</li>
+                  <li>• WordPress Import (Theme: {currentTheme.name})</li>
                 </>
               ) : (
                 <>
                   <li>• WooCommerce ({mode === 'theme' ? 'No theme selected' : 'No tenant selected'})</li>
                   <li>• WordPress ({mode === 'theme' ? 'No theme selected' : 'No tenant selected'})</li>
+                  <li>• WordPress Import ({mode === 'theme' ? 'No theme selected' : 'No tenant selected'})</li>
                 </>
               )}
               <li>• Google APIs (Available in Integration Test)</li>

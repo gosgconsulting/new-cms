@@ -435,6 +435,55 @@ async function initializeMasterBlog() {
 }
 
 /**
+ * Initialize master media folders
+ */
+async function initializeMasterMediaFolders() {
+  console.log('[testing] Initializing master media folders...');
+  
+  const defaultFolders = [
+    { name: 'Images', slug: 'images', description: 'Default folder for image files', folder_path: '/images' },
+    { name: 'Videos', slug: 'videos', description: 'Default folder for video files', folder_path: '/videos' },
+    { name: 'Documents', slug: 'documents', description: 'Default folder for document files', folder_path: '/documents' },
+    { name: 'Other', slug: 'other', description: 'Default folder for other file types', folder_path: '/other' }
+  ];
+
+  let inserted = 0;
+  let skipped = 0;
+
+  for (const folder of defaultFolders) {
+    try {
+      const result = await query(`
+        INSERT INTO media_folders (
+          name, slug, description, folder_path, tenant_id, is_active, created_at, updated_at
+        )
+        VALUES ($1, $2, $3, $4, NULL, true, NOW(), NOW())
+        ON CONFLICT (slug, COALESCE(tenant_id, '')) 
+        DO NOTHING
+        RETURNING id
+      `, [
+        folder.name,
+        folder.slug,
+        folder.description,
+        folder.folder_path
+      ]);
+
+      if (result.rows.length > 0) {
+        inserted++;
+        console.log(`[testing] Master media folder "${folder.name}" created`);
+      } else {
+        skipped++;
+        console.log(`[testing] Master media folder "${folder.name}" already exists`);
+      }
+    } catch (error) {
+      console.error(`[testing] Error creating master media folder ${folder.name}:`, error.message);
+    }
+  }
+
+  console.log(`[testing] Master media folders: ${inserted} inserted, ${skipped} already exist`);
+  return { inserted, skipped };
+}
+
+/**
  * Main function to initialize all master data
  */
 export async function initializeMasterData() {
@@ -446,6 +495,7 @@ export async function initializeMasterData() {
     settings: { inserted: 0, skipped: 0 },
     sitemap: { inserted: 0, skipped: 0 },
     robots: { inserted: 0, skipped: 0 },
+    media: { folders: { inserted: 0, skipped: 0 } },
     blog: { categories: { inserted: 0, skipped: 0 }, tags: { inserted: 0, skipped: 0 } }
   };
 
@@ -458,6 +508,9 @@ export async function initializeMasterData() {
 
     // Initialize robots config
     summary.robots = await initializeMasterRobots();
+
+    // Initialize media folders
+    summary.media.folders = await initializeMasterMediaFolders();
 
     // Initialize blog elements
     summary.blog = await initializeMasterBlog();

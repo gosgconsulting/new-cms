@@ -193,6 +193,38 @@ export async function getPostTags(postId) {
 }
 
 /**
+ * Find or create a tag by slug
+ * @param {string} slug - Tag slug
+ * @param {Object} data - Tag data
+ * @returns {Promise<Object>} Tag object
+ */
+export async function findOrCreateTag(slug, data) {
+  try {
+    // Try to find existing tag by slug
+    const existing = await Tag.findOne({ where: { slug } });
+    
+    if (existing) {
+      console.log('[testing] Found existing tag:', slug);
+      return existing.toJSON();
+    }
+    
+    // Create new tag
+    const tag = await createTag({
+      name: data.name || slug,
+      slug: slug,
+      description: data.description || '',
+      meta_title: data.meta_title,
+      meta_description: data.meta_description
+    });
+    
+    return tag;
+  } catch (error) {
+    console.error('[testing] Error in findOrCreateTag:', error);
+    throw error;
+  }
+}
+
+/**
  * Set tags for a post (replaces existing)
  * @param {number} postId - Post ID
  * @param {Array<number>} tagIds - Array of tag IDs

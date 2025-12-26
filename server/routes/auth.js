@@ -846,23 +846,19 @@ router.post('/tenants', async (req, res) => {
     
     if (newTenant.initialization) {
       const init = newTenant.initialization;
-      const totalInitialized = 
-        (init.settings?.inserted || 0) +
-        (init.branding?.inserted || 0) +
-        (init.sitemap?.inserted || 0) +
-        (init.robots?.inserted || 0) +
-        (init.blog?.categories?.inserted || 0) +
-        (init.blog?.tags?.inserted || 0);
+      const summary = init.summary || {};
+      const totalInitialized = summary.total || 0;
       
       response.initialization = {
         success: true,
         summary: {
-          settings: init.settings?.inserted || 0,
-          branding: init.branding?.inserted || 0,
-          sitemap: init.sitemap?.inserted || 0,
-          robots: init.robots?.inserted || 0,
-          categories: init.blog?.categories?.inserted || 0,
-          tags: init.blog?.tags?.inserted || 0,
+          settings: summary.settings || 0,
+          branding: summary.branding || 0,
+          sitemap: summary.sitemap || 0,
+          media_folders: summary.media_folders || 0,
+          robots: summary.robots || 0,
+          categories: summary.categories || 0,
+          tags: summary.tags || 0,
           total: totalInitialized
         },
         message: `Tenant initialized with ${totalInitialized} default records`
@@ -1023,16 +1019,16 @@ router.post('/tenants/:id/sync', authenticateUser, async (req, res) => {
     console.log(`[testing] Syncing tenant ${tenantId}...`);
     const initializationSummary = await initializeTenantDefaults(tenantId);
     
-    // Format response similar to tenant creation
+    // Use formatted summary from initialization
     const summary = initializationSummary.summary || {
-      total: (initializationSummary.settings?.inserted || 0) + 
-             (initializationSummary.branding?.inserted || 0),
-      settings: initializationSummary.settings?.inserted || 0,
-      branding: initializationSummary.branding?.inserted || 0,
+      total: 0,
+      settings: 0,
+      branding: 0,
       sitemap: initializationSummary.sitemap?.inserted || 0,
-      robots: initializationSummary.robots?.inserted || 0,
-      categories: initializationSummary.blog?.categories?.inserted || 0,
-      tags: initializationSummary.blog?.tags?.inserted || 0
+      media_folders: initializationSummary.media?.folders?.inserted || 0,
+      robots: 0,
+      categories: 0,
+      tags: 0
     };
     
     res.json({

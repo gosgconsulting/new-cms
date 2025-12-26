@@ -108,7 +108,8 @@ export {
   updateCategory,
   deleteCategory,
   getPostCategories,
-  setPostCategories
+  setPostCategories,
+  findOrCreateCategory
 } from './modules/categories.js';
 
 // Tags
@@ -120,6 +121,7 @@ export {
   deleteTag,
   getPostTags,
   setPostTags,
-  bulkCreateTags
+  bulkCreateTags,
+  findOrCreateTag
 } from './modules/tags.js';
 
