@@ -86,6 +86,14 @@ router.post('/auth/login', async (req, res) => {
     }
     console.log('[testing] Input validated, email:', email);
 
+    // Capture tenant from header or query for master DB tenant scoping
+    const requestedTenantId = req.headers['x-tenant-id'] || req.headers['X-Tenant-Id'] || req.query.tenantId || null;
+    if (requestedTenantId) {
+      console.log('[testing] Requested tenant for login:', requestedTenantId);
+    } else {
+      console.log('[testing] No tenantId provided in headers/query; login will be unscoped (super admins allowed, tenant users must match by email only)');
+    }
+
     // Step 3: Check if users table exists
     console.log('[testing] Step 3: Checking if users table exists...');
     try {
@@ -178,18 +186,31 @@ router.post('/auth/login', async (req, res) => {
       });
     }
 
-    // Step 5: Find user by email
+    // Step 5: Querying user by email (tenant-scoped if provided)
     console.log('[testing] Step 5: Querying user by email...');
     let userResult;
     try {
-      // Query user - handle NULL tenant_id for super admins
-      userResult = await query(
-        `SELECT id, first_name, last_name, email, password_hash, role, is_active, 
-         tenant_id, 
-         COALESCE(is_super_admin, false) as is_super_admin 
-         FROM users WHERE email = $1`,
-        [email]
-      );
+      if (requestedTenantId) {
+        // Restrict to requested tenant unless super admin
+        userResult = await query(
+          `SELECT id, first_name, last_name, email, password_hash, role, is_active, status,
+           tenant_id, COALESCE(is_super_admin, false) as is_super_admin
+           FROM users
+           WHERE email = $1 AND (tenant_id = $2 OR COALESCE(is_super_admin, false) = true)
+           LIMIT 1`,
+          [email, requestedTenantId]
+        );
+      } else {
+        // No tenant provided: allow super admins or any matching email (legacy behavior)
+        userResult = await query(
+          `SELECT id, first_name, last_name, email, password_hash, role, is_active, status,
+           tenant_id, COALESCE(is_super_admin, false) as is_super_admin
+           FROM users
+           WHERE email = $1
+           LIMIT 1`,
+          [email]
+        );
+      }
       console.log('[testing] User query completed, found', userResult.rows.length, 'user(s)');
     } catch (queryError) {
       console.error('[testing] Database query error during login:', queryError);
@@ -251,7 +272,15 @@ router.post('/auth/login', async (req, res) => {
     // Step 6: Validate user exists
     console.log('[testing] Step 6: Validating user...');
     if (userResult.rows.length === 0) {
-      console.log('[testing] No user found with email:', email);
+      console.log('[testing] No user found with email:', email, 'for tenant:', requestedTenantId || '(none)');
+      // If tenant was provided, return clearer message
+      if (requestedTenantId) {
+        return res.status(403).json({
+          success: false,
+          error: 'Access denied for tenant or invalid credentials',
+          message: 'This account is not associated with the selected tenant.'
+        });
+      }
       return res.status(401).json({
         success: false,
         error: 'Invalid credentials'
@@ -259,14 +288,21 @@ router.post('/auth/login', async (req, res) => {
     }
 
     const user = userResult.rows[0];
-    console.log('[testing] User found:', user.email, 'ID:', user.id);
+    console.log('[testing] User found:', user.email, 'ID:', user.id, 'tenant_id:', user.tenant_id, 'super_admin:', user.is_super_admin);
 
-    // Check if user is active
+    // Check if user is active and approved
     if (!user.is_active) {
       console.error('[testing] User account is not active:', user.email);
       return res.status(401).json({
         success: false,
         error: 'Account is not active'
+      });
+    }
+    if (user.status && user.status !== 'active') {
+      console.error('[testing] User account status not active (', user.status, '):', user.email);
+      return res.status(401).json({
+        success: false,
+        error: 'Account pending approval'
       });
     }
 
@@ -314,8 +350,8 @@ router.post('/auth/login', async (req, res) => {
 
     // Step 8: Create JWT token
     console.log('[testing] Step 8: Creating JWT token...');
-    // Ensure super admin accounts have tenant_id = NULL
-    const tenantId = user.is_super_admin ? null : user.tenant_id;
+    // For super admins, use requested tenantId if provided to set a default context; otherwise null
+    const tenantId = user.is_super_admin ? (requestedTenantId || null) : user.tenant_id;
     const userData = {
       id: user.id,
       first_name: user.first_name,
