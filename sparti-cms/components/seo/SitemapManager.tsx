@@ -44,6 +44,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { toast } from "@/components/ui/use-toast";
+import { useAuth } from "../auth/AuthProvider";
+import { api } from "../../utils/api";
 
 interface SitemapEntry {
   id: number;
@@ -62,6 +64,7 @@ interface SitemapEntry {
 }
 
 const SitemapManager: React.FC = () => {
+  const { currentTenantId } = useAuth();
   const [entries, setEntries] = useState<SitemapEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
@@ -81,17 +84,28 @@ const SitemapManager: React.FC = () => {
   });
 
   useEffect(() => {
-    loadSitemapEntries();
+    if (currentTenantId) {
+      loadSitemapEntries();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [typeFilter]);
+  }, [typeFilter, currentTenantId]);
 
   const loadSitemapEntries = async () => {
+    if (!currentTenantId) {
+      console.warn('[testing] No tenant ID available, skipping sitemap load');
+      return;
+    }
+    
     try {
       setLoading(true);
       const queryParams = new URLSearchParams();
       if (typeFilter !== 'all') queryParams.append('type', typeFilter);
+      queryParams.append('tenantId', currentTenantId);
 
-      const response = await fetch(`/api/sitemap-entries?${queryParams}`);
+      const response = await api.get(`/api/sitemap-entries?${queryParams}`, {
+        tenantId: currentTenantId
+      });
+      
       if (!response.ok) throw new Error('Failed to fetch sitemap entries');
       
       const data = await response.json();
@@ -109,10 +123,19 @@ const SitemapManager: React.FC = () => {
   };
 
   const generateSitemap = async () => {
+    if (!currentTenantId) {
+      toast({
+        title: "Error",
+        description: "No tenant selected. Please select a tenant first.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     try {
       setGenerating(true);
-      const response = await fetch('/api/sitemap/generate', {
-        method: 'POST',
+      const response = await api.post(`/api/sitemap/generate?tenantId=${currentTenantId}`, {}, {
+        tenantId: currentTenantId
       });
       
       if (!response.ok) throw new Error('Failed to generate sitemap');
@@ -140,13 +163,22 @@ const SitemapManager: React.FC = () => {
   };
 
   const handleDownload = async () => {
+    if (!currentTenantId) {
+      toast({
+        title: "Error",
+        description: "No tenant selected. Please select a tenant first.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     try {
       // If we have a generated sitemap, use it; otherwise generate one
       let sitemapXML = generatedSitemap;
       
       if (!sitemapXML) {
-        const response = await fetch('/api/sitemap/generate', {
-          method: 'POST',
+        const response = await api.post(`/api/sitemap/generate?tenantId=${currentTenantId}`, {}, {
+          tenantId: currentTenantId
         });
         
         if (!response.ok) throw new Error('Failed to generate sitemap');
@@ -182,17 +214,21 @@ const SitemapManager: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    try {
-      const url = editingEntry ? `/api/sitemap-entries/${editingEntry.id}` : '/api/sitemap-entries';
-      const method = editingEntry ? 'PUT' : 'POST';
-      
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
+    if (!currentTenantId) {
+      toast({
+        title: "Error",
+        description: "No tenant selected. Please select a tenant first.",
+        variant: "destructive",
       });
+      return;
+    }
+    
+    try {
+      const url = editingEntry ? `/api/sitemap-entries/${editingEntry.id}?tenantId=${currentTenantId}` : `/api/sitemap-entries?tenantId=${currentTenantId}`;
+      
+      const response = editingEntry 
+        ? await api.put(url, formData, { tenantId: currentTenantId })
+        : await api.post(url, formData, { tenantId: currentTenantId });
 
       if (!response.ok) throw new Error(`Failed to ${editingEntry ? 'update' : 'create'} sitemap entry`);
 
@@ -238,9 +274,18 @@ const SitemapManager: React.FC = () => {
   const handleDelete = async (entryId: number) => {
     if (!confirm('Are you sure you want to delete this sitemap entry?')) return;
 
+    if (!currentTenantId) {
+      toast({
+        title: "Error",
+        description: "No tenant selected. Please select a tenant first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
-      const response = await fetch(`/api/sitemap-entries/${entryId}`, {
-        method: 'DELETE',
+      const response = await api.delete(`/api/sitemap-entries/${entryId}?tenantId=${currentTenantId}`, {
+        tenantId: currentTenantId
       });
 
       if (!response.ok) throw new Error('Failed to delete sitemap entry');

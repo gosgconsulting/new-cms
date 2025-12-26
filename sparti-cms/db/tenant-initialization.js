@@ -99,11 +99,57 @@ export async function initializeTenantDefaults(tenantId) {
       summary.errors.push(`Branding settings initialization: ${brandingError.message}`);
     }
 
-    // 2. Sitemap entries: Don't copy master data
-    // Tenants will automatically access master sitemap_entries (tenant_id = NULL)
-    // They can add tenant-specific entries if needed
-    console.log(`[testing] Skipping sitemap_entries copy - tenants access master data (tenant_id = NULL)`);
-    summary.sitemap.inserted = 0;
+    // 2. Sitemap entries: Copy master sitemap entries to tenant
+    // Master entries (tenant_id = NULL) are copied to the tenant when it's created
+    // This ensures each tenant has its own sitemap that can be customized independently
+    console.log(`[testing] Copying master sitemap entries to tenant ${tenantId}...`);
+    try {
+      // Get all master sitemap entries (tenant_id IS NULL)
+      const masterEntries = await query(`
+        SELECT url, changefreq, priority, sitemap_type, title, description, object_id, object_type
+        FROM sitemap_entries
+        WHERE tenant_id IS NULL AND is_active = true
+      `);
+      
+      let sitemapInserted = 0;
+      for (const entry of masterEntries.rows) {
+        // Check if entry already exists for this tenant
+        const existing = await query(`
+          SELECT id FROM sitemap_entries 
+          WHERE url = $1 AND tenant_id = $2
+          LIMIT 1
+        `, [entry.url, tenantId]);
+        
+        if (existing.rows.length === 0) {
+          // Copy master entry to tenant
+          await query(`
+            INSERT INTO sitemap_entries (
+              url, changefreq, priority, sitemap_type, title, description,
+              object_id, object_type, tenant_id, is_active, lastmod, created_at, updated_at
+            )
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, true, NOW(), NOW(), NOW())
+          `, [
+            entry.url,
+            entry.changefreq,
+            entry.priority,
+            entry.sitemap_type,
+            entry.title || '',
+            entry.description || '',
+            entry.object_id,
+            entry.object_type,
+            tenantId
+          ]);
+          sitemapInserted++;
+        }
+      }
+      
+      summary.sitemap.inserted = sitemapInserted;
+      console.log(`[testing] Copied ${summary.sitemap.inserted} sitemap entries to tenant ${tenantId}`);
+    } catch (sitemapError) {
+      console.error(`[testing] Error copying sitemap entries:`, sitemapError);
+      summary.errors.push(`Sitemap entries initialization: ${sitemapError.message}`);
+      summary.sitemap.inserted = 0;
+    }
 
     // 3. Robots config: Don't copy master data
     // Tenants will automatically access master robots_config (tenant_id = NULL)
@@ -149,10 +195,11 @@ export async function initializeTenantDefaults(tenantId) {
     // Format summary for API response
     const formattedSummary = {
       total: (summary.settings.inserted || 0) + 
-             (summary.branding.inserted || 0),
+             (summary.branding.inserted || 0) +
+             (summary.sitemap.inserted || 0),
       settings: summary.settings.inserted || 0,
       branding: summary.branding.inserted || 0,
-      sitemap: 0, // No longer copying - tenants access master data
+      sitemap: summary.sitemap.inserted || 0,
       robots: 0, // No longer copying - tenants access master data
       categories: 0, // No longer copying - tenants access master data
       tags: 0 // No longer copying - tenants access master data

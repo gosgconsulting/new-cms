@@ -182,8 +182,12 @@ router.post('/auth/login', async (req, res) => {
     console.log('[testing] Step 5: Querying user by email...');
     let userResult;
     try {
+      // Query user - handle NULL tenant_id for super admins
       userResult = await query(
-        'SELECT id, first_name, last_name, email, password_hash, role, is_active, tenant_id, is_super_admin FROM users WHERE email = $1',
+        `SELECT id, first_name, last_name, email, password_hash, role, is_active, 
+         tenant_id, 
+         COALESCE(is_super_admin, false) as is_super_admin 
+         FROM users WHERE email = $1`,
         [email]
       );
       console.log('[testing] User query completed, found', userResult.rows.length, 'user(s)');
@@ -310,14 +314,16 @@ router.post('/auth/login', async (req, res) => {
 
     // Step 8: Create JWT token
     console.log('[testing] Step 8: Creating JWT token...');
+    // Ensure super admin accounts have tenant_id = NULL
+    const tenantId = user.is_super_admin ? null : user.tenant_id;
     const userData = {
       id: user.id,
       first_name: user.first_name,
       last_name: user.last_name,
       email: user.email,
       role: user.role,
-      tenant_id: user.tenant_id,
-      is_super_admin: user.is_super_admin
+      tenant_id: tenantId,
+      is_super_admin: user.is_super_admin || false
     };
     
     // Check if JWT_SECRET is available
@@ -485,8 +491,12 @@ router.get('/auth/me', authenticateUser, async (req, res) => {
     
     let userResult;
     try {
+      // Query user - handle NULL tenant_id for super admins
       userResult = await query(
-        'SELECT id, first_name, last_name, email, role, status, tenant_id, is_super_admin FROM users WHERE id = $1',
+        `SELECT id, first_name, last_name, email, role, status, 
+         tenant_id, 
+         COALESCE(is_super_admin, false) as is_super_admin 
+         FROM users WHERE id = $1`,
         [userId]
       );
     } catch (queryError) {
@@ -510,6 +520,9 @@ router.get('/auth/me', authenticateUser, async (req, res) => {
       return res.status(401).json({ success: false, error: 'Account is not active' });
     }
 
+    // Ensure super admin accounts have tenant_id = NULL
+    const tenantId = user.is_super_admin ? null : user.tenant_id;
+
     res.json({
       success: true,
       user: {
@@ -518,8 +531,8 @@ router.get('/auth/me', authenticateUser, async (req, res) => {
         last_name: user.last_name,
         email: user.email,
         role: user.role,
-        tenant_id: user.tenant_id,
-        is_super_admin: user.is_super_admin
+        tenant_id: tenantId,
+        is_super_admin: user.is_super_admin || false
       }
     });
 

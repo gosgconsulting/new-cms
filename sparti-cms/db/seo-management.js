@@ -373,10 +373,14 @@ export async function getSitemapEntries(type = null, tenantId = null) {
     let params = [];
     let paramCount = 0;
     
-    // Include master data (tenant_id = NULL) and tenant-specific data
+    // Only return tenant-specific entries when tenantId is provided
+    // Master entries (tenant_id = NULL) are not included for tenant-specific queries
     if (tenantId) {
-      whereClause += ` AND (tenant_id = $${++paramCount} OR tenant_id IS NULL)`;
+      whereClause += ` AND tenant_id = $${++paramCount}`;
       params.push(tenantId);
+    } else {
+      // If no tenantId, return only master entries (tenant_id IS NULL)
+      whereClause += ` AND tenant_id IS NULL`;
     }
     
     if (type) {
@@ -384,13 +388,7 @@ export async function getSitemapEntries(type = null, tenantId = null) {
       params.push(type);
     }
     
-    // Order by tenant-specific first, then master
-    if (tenantId) {
-      whereClause += ` ORDER BY CASE WHEN tenant_id = $${++paramCount} THEN 0 ELSE 1 END, priority DESC, lastmod DESC`;
-      params.push(tenantId);
-    } else {
-      whereClause += ` ORDER BY priority DESC, lastmod DESC`;
-    }
+    whereClause += ` ORDER BY priority DESC, lastmod DESC`;
     
     const result = await query(`
       SELECT * FROM sitemap_entries

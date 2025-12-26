@@ -43,7 +43,8 @@
     "test:form": "node scripts/tests/test-form-submission.js",
     "mcp:fix": "node scripts/setup/fix-database-viewer.js",
     "verify:tenant": "node scripts/verify-tenant-connection.js",
-    "setup:acatr": "node scripts/setup/ensure-tenant-acatr.js"
+    "setup:acatr": "node scripts/setup/ensure-tenant-acatr.js",
+    "fix:admin": "node scripts/fix-master-admin-accounts.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.71.2",

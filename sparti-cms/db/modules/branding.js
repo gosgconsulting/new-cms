@@ -529,28 +529,38 @@ export async function updateMultipleBrandingSettings(settings, tenantId = 'tenan
   }
   
   const client = await pool.connect();
+  let transactionStarted = false;
+  
   try {
     await client.query('BEGIN');
+    transactionStarted = true;
     
     for (const [key, value] of Object.entries(settings)) {
+      // Skip null/undefined values
+      if (value === null || value === undefined) {
+        continue;
+      }
+      
       const settingType = key.includes('logo') || key.includes('favicon') || key.includes('image') ? 'media' : 
                          key.includes('description') ? 'textarea' : 'text';
       const category = key.startsWith('site_') ? 'branding' : 
                       ['country', 'timezone', 'language'].includes(key) ? 'localization' : 
                       key === 'theme_styles' ? 'theme' : 'general';
       
-      // Check if tenant-specific setting exists
+      // Check if tenant-specific setting exists - use proper NULL handling
       const existing = await client.query(`
         SELECT id, tenant_id FROM site_settings 
         WHERE setting_key = $1 
-          AND COALESCE(tenant_id, '') = COALESCE($2, '')
-          AND COALESCE(theme_id, '') = COALESCE($3, '')
+          AND (tenant_id = $2 OR (tenant_id IS NULL AND $2 IS NULL))
+          AND (theme_id = $3 OR (theme_id IS NULL AND $3 IS NULL))
         LIMIT 1
       `, [key, tenantId, themeId]);
       
       if (existing.rows.length > 0) {
         // Check if it's a master setting (shouldn't happen, but protect anyway)
         if (!existing.rows[0].tenant_id) {
+          await client.query('ROLLBACK');
+          transactionStarted = false;
           throw new Error(`Cannot update master setting '${key}'. Master settings (tenant_id = NULL) are shared across all tenants.`);
         }
         
@@ -565,57 +575,35 @@ export async function updateMultipleBrandingSettings(settings, tenantId = 'tenan
           WHERE id = $5
         `, [value, settingType, category, themeId, existing.rows[0].id]);
       } else {
-        // Insert new tenant-specific setting
-        // Use a simple INSERT - if it fails due to unique constraint, we'll catch and update
-        try {
-          await client.query(`
-            INSERT INTO site_settings (setting_key, setting_value, setting_type, setting_category, updated_at, tenant_id, theme_id)
-            VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP, $5, $6)
-          `, [key, value, settingType, category, tenantId, themeId]);
-        } catch (insertError) {
-          // If unique constraint violation (23505), find and update the existing record
-          if (insertError.code === '23505') {
-            const existingRecord = await client.query(`
-              SELECT id, tenant_id FROM site_settings 
-              WHERE setting_key = $1 
-                AND COALESCE(tenant_id, '') = COALESCE($2, '')
-                AND COALESCE(theme_id, '') = COALESCE($3, '')
-              LIMIT 1
-            `, [key, tenantId, themeId]);
-            
-            if (existingRecord.rows.length > 0) {
-              // Check if it's a master setting
-              if (!existingRecord.rows[0].tenant_id) {
-                throw new Error(`Cannot update master setting '${key}'. Master settings (tenant_id = NULL) are shared across all tenants.`);
-              }
-              
-              await client.query(`
-                UPDATE site_settings 
-                SET setting_value = $1,
-                    setting_type = $2,
-                    setting_category = $3,
-                    updated_at = CURRENT_TIMESTAMP,
-                    theme_id = $4
-                WHERE id = $5
-              `, [value, settingType, category, themeId, existingRecord.rows[0].id]);
-            } else {
-              // Record not found but constraint violation - this shouldn't happen
-              console.error(`[testing] Unique constraint violation for ${key} but record not found`, insertError);
-              throw insertError;
-            }
-          } else {
-            // Re-throw if it's not a unique constraint error
-            throw insertError;
-          }
-        }
+        // Insert new tenant-specific setting using ON CONFLICT for atomic operation
+        // The unique constraint is on (setting_key, tenant_id, theme_id)
+        await client.query(`
+          INSERT INTO site_settings (setting_key, setting_value, setting_type, setting_category, updated_at, tenant_id, theme_id)
+          VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP, $5, $6)
+          ON CONFLICT (setting_key, tenant_id, theme_id)
+          DO UPDATE SET 
+            setting_value = EXCLUDED.setting_value,
+            setting_type = EXCLUDED.setting_type,
+            setting_category = EXCLUDED.setting_category,
+            updated_at = CURRENT_TIMESTAMP
+          WHERE site_settings.tenant_id = $5
+        `, [key, value, settingType, category, tenantId, themeId]);
       }
     }
     
     await client.query('COMMIT');
+    transactionStarted = false;
     return true;
   } catch (error) {
-    await client.query('ROLLBACK');
-    console.error(`Error updating multiple branding settings for tenant ${tenantId}, theme ${themeId}:`, error);
+    // Only rollback if transaction was started
+    if (transactionStarted) {
+      try {
+        await client.query('ROLLBACK');
+      } catch (rollbackError) {
+        console.error(`[testing] Error during rollback:`, rollbackError);
+      }
+    }
+    console.error(`[testing] Error updating multiple branding settings for tenant ${tenantId}, theme ${themeId}:`, error);
     throw error;
   } finally {
     client.release();

@@ -10,8 +10,7 @@ import {
   AlertCircle,
   CheckCircle,
   Bug,
-  RefreshCw,
-  Sync
+  RefreshCw
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -593,7 +592,7 @@ const TenantsManager: React.FC = () => {
                       </>
                     ) : (
                       <>
-                        <Sync className="h-4 w-4 mr-2" />
+                        <RefreshCw className="h-4 w-4 mr-2" />
                         Sync
                       </>
                     )}
