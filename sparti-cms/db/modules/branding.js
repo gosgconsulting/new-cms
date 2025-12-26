@@ -542,7 +542,9 @@ export async function updateMultipleBrandingSettings(settings, tenantId = 'tenan
       // Check if tenant-specific setting exists
       const existing = await client.query(`
         SELECT id, tenant_id FROM site_settings 
-        WHERE setting_key = $1 AND tenant_id = $2 AND (theme_id = $3 OR (theme_id IS NULL AND $3 IS NULL))
+        WHERE setting_key = $1 
+          AND COALESCE(tenant_id, '') = COALESCE($2, '')
+          AND COALESCE(theme_id, '') = COALESCE($3, '')
         LIMIT 1
       `, [key, tenantId, themeId]);
       
@@ -563,11 +565,49 @@ export async function updateMultipleBrandingSettings(settings, tenantId = 'tenan
           WHERE id = $5
         `, [value, settingType, category, themeId, existing.rows[0].id]);
       } else {
-        // Insert new tenant-specific setting (not a copy of master)
-        await client.query(`
-          INSERT INTO site_settings (setting_key, setting_value, setting_type, setting_category, updated_at, tenant_id, theme_id)
-          VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP, $5, $6)
-        `, [key, value, settingType, category, tenantId, themeId]);
+        // Insert new tenant-specific setting
+        // Use a simple INSERT - if it fails due to unique constraint, we'll catch and update
+        try {
+          await client.query(`
+            INSERT INTO site_settings (setting_key, setting_value, setting_type, setting_category, updated_at, tenant_id, theme_id)
+            VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP, $5, $6)
+          `, [key, value, settingType, category, tenantId, themeId]);
+        } catch (insertError) {
+          // If unique constraint violation (23505), find and update the existing record
+          if (insertError.code === '23505') {
+            const existingRecord = await client.query(`
+              SELECT id, tenant_id FROM site_settings 
+              WHERE setting_key = $1 
+                AND COALESCE(tenant_id, '') = COALESCE($2, '')
+                AND COALESCE(theme_id, '') = COALESCE($3, '')
+              LIMIT 1
+            `, [key, tenantId, themeId]);
+            
+            if (existingRecord.rows.length > 0) {
+              // Check if it's a master setting
+              if (!existingRecord.rows[0].tenant_id) {
+                throw new Error(`Cannot update master setting '${key}'. Master settings (tenant_id = NULL) are shared across all tenants.`);
+              }
+              
+              await client.query(`
+                UPDATE site_settings 
+                SET setting_value = $1,
+                    setting_type = $2,
+                    setting_category = $3,
+                    updated_at = CURRENT_TIMESTAMP,
+                    theme_id = $4
+                WHERE id = $5
+              `, [value, settingType, category, themeId, existingRecord.rows[0].id]);
+            } else {
+              // Record not found but constraint violation - this shouldn't happen
+              console.error(`[testing] Unique constraint violation for ${key} but record not found`, insertError);
+              throw insertError;
+            }
+          } else {
+            // Re-throw if it's not a unique constraint error
+            throw insertError;
+          }
+        }
       }
     }
     

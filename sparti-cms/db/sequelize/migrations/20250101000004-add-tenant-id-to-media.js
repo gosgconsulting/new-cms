@@ -10,10 +10,33 @@ export default {
     // Add tenant_id to media_folders table
     const mediaFoldersTable = await queryInterface.describeTable('media_folders').catch(() => null);
     if (mediaFoldersTable && !mediaFoldersTable.tenant_id) {
+      // First add column as nullable
       await queryInterface.addColumn('media_folders', 'tenant_id', {
         type: Sequelize.STRING(255),
+        allowNull: true, // Start as nullable
+        references: {
+          model: 'tenants',
+          key: 'id',
+        },
+        onDelete: 'CASCADE',
+      });
+
+      // Update existing records to use default tenant (first tenant or 'tenant-gosg')
+      const [tenants] = await queryInterface.sequelize.query(`
+        SELECT id FROM tenants ORDER BY id LIMIT 1
+      `);
+      const defaultTenantId = tenants.length > 0 ? tenants[0].id : 'tenant-gosg';
+      
+      await queryInterface.sequelize.query(`
+        UPDATE media_folders 
+        SET tenant_id = $1 
+        WHERE tenant_id IS NULL
+      `, { bind: [defaultTenantId] });
+
+      // Now make it NOT NULL
+      await queryInterface.changeColumn('media_folders', 'tenant_id', {
+        type: Sequelize.STRING(255),
         allowNull: false,
-        defaultValue: 'tenant-gosg', // Default for existing records
         references: {
           model: 'tenants',
           key: 'id',
@@ -48,10 +71,33 @@ export default {
     // Add tenant_id to media table
     const mediaTable = await queryInterface.describeTable('media').catch(() => null);
     if (mediaTable && !mediaTable.tenant_id) {
+      // First add column as nullable
       await queryInterface.addColumn('media', 'tenant_id', {
         type: Sequelize.STRING(255),
+        allowNull: true, // Start as nullable
+        references: {
+          model: 'tenants',
+          key: 'id',
+        },
+        onDelete: 'CASCADE',
+      });
+
+      // Update existing records to use default tenant (first tenant or 'tenant-gosg')
+      const [tenants] = await queryInterface.sequelize.query(`
+        SELECT id FROM tenants ORDER BY id LIMIT 1
+      `);
+      const defaultTenantId = tenants.length > 0 ? tenants[0].id : 'tenant-gosg';
+      
+      await queryInterface.sequelize.query(`
+        UPDATE media 
+        SET tenant_id = $1 
+        WHERE tenant_id IS NULL
+      `, { bind: [defaultTenantId] });
+
+      // Now make it NOT NULL
+      await queryInterface.changeColumn('media', 'tenant_id', {
+        type: Sequelize.STRING(255),
         allowNull: false,
-        defaultValue: 'tenant-gosg', // Default for existing records
         references: {
           model: 'tenants',
           key: 'id',

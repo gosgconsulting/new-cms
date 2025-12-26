@@ -44,16 +44,46 @@ router.post('/branding', authenticateUser, async (req, res) => {
     }
     
     console.log(`[testing] API: Updating branding settings for tenant: ${tenantId}, theme: ${themeId}`, req.body);
+    
+    // Verify tenant exists
+    const { query } = await import('../../sparti-cms/db/index.js');
+    const tenantCheck = await query(`
+      SELECT id FROM tenants WHERE id = $1
+    `, [tenantId]);
+    
+    if (tenantCheck.rows.length === 0) {
+      return res.status(404).json({ error: `Tenant '${tenantId}' not found` });
+    }
+    
     await updateMultipleBrandingSettings(req.body, tenantId, themeId);
     // Smart invalidation: settings can affect many pages; clear all for now
     try { invalidateAll(); } catch (e) { /* no-op */ }
     res.json({ success: true, message: 'Branding settings updated successfully' });
   } catch (error) {
     console.error('[testing] API: Error updating branding settings:', error);
+    console.error('[testing] Error details:', {
+      message: error.message,
+      code: error.code,
+      detail: error.detail,
+      constraint: error.constraint,
+      stack: error.stack
+    });
+    
     if (error.message && (error.message.includes('master') || error.message.includes('Tenant ID is required'))) {
       return res.status(403).json({ error: error.message });
     }
-    res.status(500).json({ error: error.message || 'Failed to update branding settings' });
+    
+    // Provide more detailed error message
+    let errorMessage = error.message || 'Failed to update branding settings';
+    if (error.code === '23505' || error.constraint) {
+      errorMessage = `Database constraint violation: ${error.detail || errorMessage}. This may indicate a duplicate setting.`;
+    }
+    
+    res.status(500).json({ 
+      error: errorMessage,
+      code: error.code,
+      constraint: error.constraint
+    });
   }
 });
 
