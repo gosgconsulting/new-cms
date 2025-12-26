@@ -276,6 +276,12 @@ const Auth: React.FC = () => {
     resetForm();
   };
 
+  // Helper: detect database connectivity/initialization issues based on error message
+  const isDatabaseIssue = (text?: string) => {
+    if (!text) return false;
+    return /database|db|connect|initializ|unable to connect/i.test(text);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <motion.div
@@ -338,6 +344,46 @@ const Auth: React.FC = () => {
               </motion.div>
             )}
           </AnimatePresence>
+
+          {/* EXTRA: Database connectivity hint */}
+          {message?.type === 'error' && isDatabaseIssue(message?.text) && (
+            <div className="mb-4 p-4 rounded-lg border bg-amber-50 border-amber-200 text-amber-900">
+              <div className="flex items-start gap-2">
+                <Info className="h-5 w-5 mt-0.5 flex-shrink-0 text-amber-700" />
+                <div>
+                  <p className="text-sm font-medium">We're having trouble connecting to the database.</p>
+                  <p className="text-sm mt-1">
+                    This is usually temporary. Please wait a moment and try again. You can also check the server status:
+                  </p>
+                  <div className="mt-2 flex items-center gap-2">
+                    <a
+                      href="/health/detailed"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center justify-center rounded-md bg-amber-600 px-3 py-1.5 text-white text-xs hover:bg-amber-700"
+                    >
+                      View server status
+                    </a>
+                    <a
+                      href="/health/database"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center justify-center rounded-md border border-amber-300 px-3 py-1.5 text-amber-900 text-xs hover:bg-amber-100"
+                    >
+                      Database diagnostics
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => window.location.reload()}
+                      className="inline-flex items-center justify-center rounded-md border border-amber-300 px-3 py-1.5 text-amber-900 text-xs hover:bg-amber-100"
+                    >
+                      Refresh
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           <form onSubmit={isSignUp ? handleSignUp : handleSignIn} className="space-y-4">
             {/* Name fields for sign up */}
