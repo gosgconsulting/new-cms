@@ -4,6 +4,8 @@ import { pool } from '../../sparti-cms/db/index.js';
 import { upload } from '../config/multer.js';
 import { RESEND_API_KEY, SMTP_FROM_EMAIL } from '../config/constants.js';
 import { invalidateAll, invalidateBySlug } from '../../sparti-cms/cache/index.js';
+import { fileURLToPath } from 'url';
+import { dirname, relative, join } from 'path';
 
 const router = express.Router();
 
@@ -141,10 +143,31 @@ router.post('/upload', upload.single('file'), (req, res) => {
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
     }
+
+    // Get the absolute path where the file was saved
+    const filePath = req.file.path;
+    
+    // Get the public directory path
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = dirname(__filename);
+    const publicDir = join(__dirname, '..', '..', 'public');
+    
+    // Calculate relative path from public directory
+    const relativePath = relative(publicDir, filePath);
+    
+    // Convert to URL path (use forward slashes, ensure it starts with /)
+    const fileUrl = '/' + relativePath.replace(/\\/g, '/');
+    
+    console.log('[testing] File uploaded:', {
+      savedTo: filePath,
+      publicDir: publicDir,
+      relativePath: relativePath,
+      url: fileUrl
+    });
     
     res.json({ 
       success: true, 
-      url: `/uploads/${req.file.filename}`,
+      url: fileUrl,
       filename: req.file.filename,
       originalName: req.file.originalname,
       size: req.file.size
