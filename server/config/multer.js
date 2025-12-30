@@ -79,6 +79,24 @@ const storage = multer.diskStorage({
   }
 });
 
+// Simple storage for basic uploads (saves directly to public/uploads/)
+const simpleStorage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const uploadsDir = join(__dirname, '..', '..', 'public', 'uploads');
+    if (!existsSync(uploadsDir)) {
+      mkdirSync(uploadsDir, { recursive: true });
+      console.log('[testing] Created uploads directory:', uploadsDir);
+    }
+    cb(null, uploadsDir);
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const ext = file.originalname.split('.').pop();
+    cb(null, file.fieldname + '-' + uniqueSuffix + '.' + ext);
+  }
+});
+
+// Tenant-based storage (for media management)
 export const upload = multer({ 
   storage: storage,
   limits: { 
@@ -101,6 +119,28 @@ export const upload = multer({
       cb(null, true);
     } else {
       cb(new Error('File type not allowed'));
+    }
+  }
+});
+
+// Simple upload for basic file uploads (saves directly to public/uploads/)
+export const simpleUpload = multer({
+  storage: simpleStorage,
+  limits: {
+    fileSize: 10 * 1024 * 1024 // 10MB limit for basic uploads
+  },
+  fileFilter: (req, file, cb) => {
+    // Allow common file types
+    const allowedTypes = /jpeg|jpg|png|gif|svg|ico|webp|pdf/;
+    const ext = allowedTypes.test(file.originalname.split('.').pop().toLowerCase());
+    const mime = allowedTypes.test(file.mimetype) || 
+                 file.mimetype.startsWith('image/') ||
+                 file.mimetype === 'application/pdf';
+    
+    if (ext || mime) {
+      cb(null, true);
+    } else {
+      cb(new Error('File type not allowed. Only images and PDFs are allowed.'));
     }
   }
 });

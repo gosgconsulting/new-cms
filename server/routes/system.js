@@ -1,11 +1,9 @@
 import express from 'express';
 import { query } from '../../sparti-cms/db/index.js';
 import { pool } from '../../sparti-cms/db/index.js';
-import { upload } from '../config/multer.js';
+import { simpleUpload } from '../config/multer.js';
 import { RESEND_API_KEY, SMTP_FROM_EMAIL } from '../config/constants.js';
 import { invalidateAll, invalidateBySlug } from '../../sparti-cms/cache/index.js';
-import { fileURLToPath } from 'url';
-import { dirname, relative, join } from 'path';
 
 const router = express.Router();
 
@@ -137,32 +135,20 @@ router.get('/database/tables/:tableName/data', async (req, res) => {
 
 // ===== FILE UPLOAD ROUTES =====
 
-// File upload endpoint
-router.post('/upload', upload.single('file'), (req, res) => {
+// File upload endpoint - simple upload to public/uploads/ (no tenant subdirectories)
+router.post('/upload', simpleUpload.single('file'), (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
     }
-
-    // Get the absolute path where the file was saved
-    const filePath = req.file.path;
     
-    // Get the public directory path
-    const __filename = fileURLToPath(import.meta.url);
-    const __dirname = dirname(__filename);
-    const publicDir = join(__dirname, '..', '..', 'public');
-    
-    // Calculate relative path from public directory
-    const relativePath = relative(publicDir, filePath);
-    
-    // Convert to URL path (use forward slashes, ensure it starts with /)
-    const fileUrl = '/' + relativePath.replace(/\\/g, '/');
+    // Simple URL format: /uploads/filename (matches old working format)
+    const fileUrl = `/uploads/${req.file.filename}`;
     
     console.log('[testing] File uploaded:', {
-      savedTo: filePath,
-      publicDir: publicDir,
-      relativePath: relativePath,
-      url: fileUrl
+      filename: req.file.filename,
+      url: fileUrl,
+      size: req.file.size
     });
     
     res.json({ 
