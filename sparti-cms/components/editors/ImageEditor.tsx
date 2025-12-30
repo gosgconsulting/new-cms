@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { SpartiElement } from '../../types';
-// Demo image editor without external storage
+import api from '../../utils/api';
 import { 
   Image as ImageIcon, 
   Upload, 
@@ -146,27 +146,56 @@ export const ImageEditor: React.FC<ImageEditorProps> = ({ selectedElement }) => 
     setIsLoading(true);
     
     try {
-      // Demo file upload simulation
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const imageUrl = e.target?.result as string;
-        setImageUrl(imageUrl);
-        handleImageChange(imageUrl, altText);
-        
-        // Store in localStorage for demo persistence
-        const demoImages = JSON.parse(localStorage.getItem('sparti-demo-images') || '[]');
-        demoImages.push({ url: imageUrl, name: file.name, alt: altText });
-        localStorage.setItem('sparti-demo-images', JSON.stringify(demoImages));
-      };
-      reader.readAsDataURL(file);
+      // Create FormData for upload
+      const formData = new FormData();
+      formData.append('file', file);
+
+      // Get auth token
+      const token = localStorage.getItem('sparti-user-session');
+      const authToken = token ? JSON.parse(token).token : null;
+
+      // Upload to server - using /api/upload endpoint
+      const response = await fetch(`${api.getBaseUrl()}/api/upload`, {
+        method: 'POST',
+        headers: {
+          ...(authToken && { 'Authorization': `Bearer ${authToken}` })
+          // Don't set Content-Type - let browser set it with boundary for FormData
+        },
+        body: formData
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        let errorMessage = 'Upload failed';
+        try {
+          const errorJson = JSON.parse(errorText);
+          errorMessage = errorJson.error || errorJson.message || errorMessage;
+        } catch {
+          errorMessage = errorText || errorMessage;
+        }
+        throw new Error(errorMessage);
+      }
+
+      const result = await response.json();
+      const imageUrl = result.url; // This will be /uploads/file-xxx.jpg
+      
+      // Update the image
+      setImageUrl(imageUrl);
+      handleImageChange(imageUrl, altText);
+      
+      console.log('[testing] Image uploaded successfully:', imageUrl);
       
       // Refresh media library
       await loadMediaLibrary();
     } catch (error) {
-      console.error('Upload failed:', error);
-      alert('Upload failed. Please try again.');
+      console.error('[testing] Upload failed:', error);
+      alert(`Upload failed: ${error instanceof Error ? error.message : 'Please try again.'}`);
     } finally {
       setIsLoading(false);
+      // Reset file input so the same file can be uploaded again if needed
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   };
 
@@ -177,11 +206,10 @@ export const ImageEditor: React.FC<ImageEditorProps> = ({ selectedElement }) => 
     }
   };
 
-  // Demo media library functionality 
+  // Media library functionality (placeholder for future implementation)
   const loadMediaLibrary = async () => {
-    // Load demo images from localStorage
-    const demoImages = JSON.parse(localStorage.getItem('sparti-demo-images') || '[]');
-    console.log('Demo media library:', demoImages);
+    // TODO: Load media library from server API
+    console.log('[testing] Media library loading - to be implemented');
   };
 
   // Load media library on component mount
