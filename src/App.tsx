@@ -20,6 +20,8 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import EmbedPagesManager from "../sparti-cms/components/embed/EmbedPagesManager";
 import ThemeAdminRedirect from "./components/ThemeAdminRedirect";
 import ComponentsViewer from "./pages/ComponentsViewer";
+import Kanban from "./pages/Kanban";
+import SuperAdminRoute from "../sparti-cms/components/auth/SuperAdminRoute";
 
 const queryClient = new QueryClient();
 
@@ -120,6 +122,13 @@ const App = () => {
             <Route path="/auth" element={<Auth />} />
             <Route path="/database-viewer" element={<DatabaseViewer />} />
             <Route path="/components-viewer" element={<ComponentsViewer />} />
+            <Route path="/kanban" element={
+              <ErrorBoundary>
+                <SuperAdminRoute>
+                  <Kanban />
+                </SuperAdminRoute>
+              </ErrorBoundary>
+            } />
             <Route path="*" element={<NotFound />} />
           </Routes>
           </AuthProvider>
