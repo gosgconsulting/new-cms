@@ -228,13 +228,6 @@ const KanbanPage: React.FC = () => {
                   {selectedTask ? selectedTask.title : 'Task Details'}
                 </DialogTitle>
               </DialogHeader>
-              <button
-                aria-label="Close"
-                className="inline-flex items-center justify-center rounded-md p-2 hover:bg-muted"
-                onClick={() => setOpen(false)}
-              >
-                <X className="size-5" />
-              </button>
             </div>
 
             <div className="flex-1 overflow-auto p-4">
