@@ -1,34 +1,110 @@
 import React from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { GripVertical } from 'lucide-react';
+import { Kanban, KanbanBoard, KanbanColumn, KanbanColumnContent, KanbanColumnHandle, KanbanItem, KanbanItemHandle, KanbanOverlay } from '@/components/ui/kanban';
+import { Badge } from '@/components/ui/badge-2';
+import { Button } from '@/components/ui/button-1';
 
-const Kanban: React.FC = () => {
-  const columns = ['To Do', 'In Progress', 'Done'];
+type Task = {
+  id: string;
+  title: string;
+  dueDate?: string;
+};
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="mx-auto max-w-6xl p-6">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold">Kanban Board</h1>
-          <p className="text-gray-600 mt-2">This board is empty and hardcoded for superadmin access.</p>
+const COLUMN_TITLES: Record<string, string> = {
+  backlog: 'Backlog',
+  inProgress: 'In Progress',
+  review: 'Review',
+  done: 'Done',
+};
+
+interface TaskCardProps extends Omit<React.ComponentProps<typeof KanbanItem>, 'value' | 'children'> {
+  task: Task;
+  asHandle?: boolean;
+}
+
+function TaskCard({ task, asHandle, ...props }: TaskCardProps) {
+  const cardContent = (
+    <div className="rounded-md border bg-card p-3 shadow-xs">
+      <div className="flex flex-col gap-2.5">
+        <div className="flex items-center justify-between gap-2">
+          <span className="line-clamp-1 font-medium text-sm">{task.title}</span>
         </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {columns.map((col) => (
-            <Card key={col} className="bg-white border">
-              <CardHeader>
-                <CardTitle className="text-lg">{col}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-6 text-center text-gray-500">
-                  No items
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+        <div className="flex items-center justify-between text-muted-foreground text-xs">
+          {task.dueDate && <time className="text-[10px] tabular-nums whitespace-nowrap">{task.dueDate}</time>}
         </div>
       </div>
     </div>
   );
+
+  return (
+    <KanbanItem value={task.id} {...props}>
+      {asHandle ? <KanbanItemHandle>{cardContent}</KanbanItemHandle> : cardContent}
+    </KanbanItem>
+  );
+}
+
+interface TaskColumnProps extends Omit<React.ComponentProps<typeof KanbanColumn>, 'children'> {
+  tasks: Task[];
+  isOverlay?: boolean;
+}
+
+function TaskColumn({ value, tasks, isOverlay, ...props }: TaskColumnProps) {
+  return (
+    <KanbanColumn value={value} {...props} className="rounded-md border bg-card p-2.5 shadow-xs">
+      <div className="flex items-center justify-between mb-2.5">
+        <div className="flex items-center gap-2.5">
+          <span className="font-semibold text-sm">{COLUMN_TITLES[value]}</span>
+          <Badge variant="secondary">{tasks.length}</Badge>
+        </div>
+        <KanbanColumnHandle asChild>
+          <Button variant="dim" size="sm" mode="icon" aria-label="Reorder column">
+            <GripVertical />
+          </Button>
+        </KanbanColumnHandle>
+      </div>
+      <KanbanColumnContent value={value} className="flex flex-col gap-2.5 p-0.5">
+        {tasks.map((task) => (
+          <TaskCard key={task.id} task={task} asHandle={!isOverlay} />
+        ))}
+      </KanbanColumnContent>
+    </KanbanColumn>
+  );
+}
+
+const KanbanPage: React.FC = () => {
+  const [columns, setColumns] = React.useState<Record<string, Task[]>>({
+    backlog: [
+      { id: '1', title: 'Authentication flow', dueDate: 'Jan 10, 2025' },
+      { id: '2', title: 'Create API endpoints', dueDate: 'Jan 15, 2025' },
+      { id: '3', title: 'Write documentation', dueDate: 'Jan 20, 2025' },
+    ],
+    inProgress: [
+      { id: '4', title: 'Design system updates', dueDate: 'Aug 25, 2025' },
+      { id: '5', title: 'Implement dark mode', dueDate: 'Aug 25, 2025' },
+    ],
+    review: [
+      { id: '6', title: 'Homepage refactor', dueDate: 'Sep 22, 2025' },
+    ],
+    done: [
+      { id: '7', title: 'Setup project', dueDate: 'Sep 25, 2025' },
+      { id: '8', title: 'Initial commit', dueDate: 'Sep 20, 2025' },
+    ],
+  });
+
+  return (
+    <div className="p-5">
+      <Kanban value={columns} onValueChange={setColumns} getItemValue={(item) => item.id}>
+        <KanbanBoard className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+          {Object.entries(columns).map(([columnValue, tasks]) => (
+            <TaskColumn key={columnValue} value={columnValue} tasks={tasks} />
+          ))}
+        </KanbanBoard>
+        <KanbanOverlay>
+          <div className="rounded-md bg-muted/60 size-full" />
+        </KanbanOverlay>
+      </Kanban>
+    </div>
+  );
 };
 
-export default Kanban;
+export default KanbanPage;
