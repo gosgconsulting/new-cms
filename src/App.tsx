@@ -122,7 +122,7 @@ const App = () => {
             <Route path="/auth" element={<Auth />} />
             <Route path="/database-viewer" element={<DatabaseViewer />} />
             <Route path="/components-viewer" element={<ComponentsViewer />} />
-            <Route path="/kanban" element={
+            <Route path="/dev" element={
               <ErrorBoundary>
                 <SuperAdminRoute>
                   <Kanban />
