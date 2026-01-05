@@ -21,6 +21,7 @@ import EmbedPagesManager from "../sparti-cms/components/embed/EmbedPagesManager"
 import ThemeAdminRedirect from "./components/ThemeAdminRedirect";
 import ComponentsViewer from "./pages/ComponentsViewer";
 import Kanban from "./pages/Kanban";
+import FeatureKanban from "./pages/FeatureKanban";
 import SuperAdminRoute from "../sparti-cms/components/auth/SuperAdminRoute";
 
 const queryClient = new QueryClient();
@@ -126,6 +127,13 @@ const App = () => {
               <ErrorBoundary>
                 <SuperAdminRoute>
                   <Kanban />
+                </SuperAdminRoute>
+              </ErrorBoundary>
+            } />
+            <Route path="/dev/:featureId" element={
+              <ErrorBoundary>
+                <SuperAdminRoute>
+                  <FeatureKanban />
                 </SuperAdminRoute>
               </ErrorBoundary>
             } />
