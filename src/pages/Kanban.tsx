@@ -5,11 +5,13 @@ import { Badge } from '@/components/ui/badge-2';
 import { Button } from '@/components/ui/button-1';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
+import api from '../../sparti-cms/utils/api';
 
 type Task = {
   id: string;
   title: string;
   dueDate?: string;
+  sourcePath?: string; // for docs items
 };
 
 const COLUMN_TITLES: Record<string, string> = {
@@ -83,8 +85,7 @@ function TaskColumn({ value, tasks, isOverlay, onOpenDetails, ...props }: TaskCo
 const KanbanPage: React.FC = () => {
   const [columns, setColumns] = React.useState<Record<string, Task[]>>({
     docs: [
-      { id: 'feat_docs', title: 'Documentation' },
-      { id: 'feat_api_reference', title: 'API Reference' },
+      { id: 'doc:database%3Aoverview', title: 'Database Overview', sourcePath: 'database:overview' },
     ],
     backlog: [
       { id: 'feat_products', title: 'Products' },
@@ -116,13 +117,50 @@ const KanbanPage: React.FC = () => {
     ],
   });
 
-  // NEW: modal state
   const [open, setOpen] = React.useState(false);
   const [selectedTask, setSelectedTask] = React.useState<Task | null>(null);
+  const [actionItems, setActionItems] = React.useState<Array<{
+    task: string;
+    description: string;
+    status: string;
+    filesTouched: string[];
+  }> | null>(null);
 
-  const handleOpenDetails = (task: Task) => {
+  // Load docs dynamically on mount
+  React.useEffect(() => {
+    (async () => {
+      const resp = await api.get('/api/docs/list');
+      if (!resp.ok) return;
+      const data = await resp.json();
+      if (data.success && Array.isArray(data.items)) {
+        const docsTasks: Task[] = data.items.map((it: any) => ({
+          id: it.id,
+          title: it.title,
+          sourcePath: it.path,
+        }));
+        setColumns((prev) => ({ ...prev, docs: docsTasks }));
+      }
+    })();
+  }, []);
+
+  const handleOpenDetails = async (task: Task) => {
     setSelectedTask(task);
     setOpen(true);
+
+    // If this is a doc item (id starts with 'doc:'), fetch actions
+    if (task.id.startsWith('doc:')) {
+      const pathPart = task.sourcePath ? task.sourcePath : task.id.slice(4);
+      const resp = await api.get(`/api/docs/actions?path=${encodeURIComponent(pathPart)}`);
+      if (resp.ok) {
+        const data = await resp.json();
+        if (data.success) {
+          setActionItems(data.actions);
+          return;
+        }
+      }
+    }
+    // Non-doc features: no action items yet
+    setActionItems(null);
   };
 
   return (
@@ -161,7 +199,28 @@ const KanbanPage: React.FC = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {selectedTask ? (
+                  {actionItems && actionItems.length > 0 ? (
+                    actionItems.map((item, idx) => (
+                      <TableRow key={idx}>
+                        <TableCell className="font-medium">{item.task}</TableCell>
+                        <TableCell className="text-muted-foreground">{item.description}</TableCell>
+                        <TableCell className="capitalize">{item.status.replace('-', ' ')}</TableCell>
+                        <TableCell>
+                          <div className="flex flex-wrap gap-1.5">
+                            {item.filesTouched && item.filesTouched.length > 0 ? (
+                              item.filesTouched.map((f, i) => (
+                                <span key={i} className="inline-flex items-center rounded-sm bg-muted px-2 py-0.5 text-xs font-mono">
+                                  {f}
+                                </span>
+                              ))
+                            ) : (
+                              <span className="text-xs text-muted-foreground">None</span>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : selectedTask ? (
                     <TableRow>
                       <TableCell colSpan={4} className="text-center text-muted-foreground">
                         No action items yet for this feature.
