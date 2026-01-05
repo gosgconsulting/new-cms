@@ -1,5 +1,5 @@
 import React from 'react';
-import { GripVertical, X } from 'lucide-react';
+import { GripVertical } from 'lucide-react';
 import { Kanban, KanbanBoard, KanbanColumn, KanbanColumnContent, KanbanColumnHandle, KanbanItem, KanbanItemHandle, KanbanOverlay } from '@/components/ui/kanban';
 import { Badge } from '@/components/ui/badge-2';
 import { Button } from '@/components/ui/button-1';
@@ -10,101 +10,6 @@ type Task = {
   id: string;
   title: string;
   dueDate?: string;
-};
-
-// NEW: Action item type and sample data for tasks
-type ActionItem = {
-  task: string;
-  description: string;
-  status: 'todo' | 'in-progress' | 'done';
-  filesTouched: string[];
-};
-
-const ACTION_ITEMS: Record<string, ActionItem[]> = {
-  d1: [
-    {
-      task: 'Outline sections',
-      description: 'Draft main chapters and sections for the handbook',
-      status: 'in-progress',
-      filesTouched: ['docs/development/development-workflow.md'],
-    },
-    {
-      task: 'Review structure',
-      description: 'Get feedback from team on outline',
-      status: 'todo',
-      filesTouched: [],
-    },
-  ],
-  d2: [
-    {
-      task: 'Index endpoints',
-      description: 'List public REST routes by category',
-      status: 'todo',
-      filesTouched: ['docs/api/public-api-routes.md'],
-    },
-  ],
-  '1': [
-    {
-      task: 'Login flow audit',
-      description: 'Verify /auth and ProtectedRoute behavior',
-      status: 'done',
-      filesTouched: ['src/pages/Auth.tsx', 'sparti-cms/components/auth/ProtectedRoute.tsx'],
-    },
-    {
-      task: 'Session token',
-      description: 'Persist token and validate on /api/auth/me',
-      status: 'in-progress',
-      filesTouched: ['sparti-cms/components/auth/AuthProvider.tsx', 'server/routes/auth.js'],
-    },
-  ],
-  '2': [
-    {
-      task: 'Users CRUD',
-      description: 'Implement basic users routes and validations',
-      status: 'in-progress',
-      filesTouched: ['server/routes/users.js'],
-    },
-  ],
-  '3': [
-    {
-      task: 'Docs initial scaffold',
-      description: 'Create Getting Started and Conventions',
-      status: 'todo',
-      filesTouched: ['docs/README.md'],
-    },
-  ],
-  '4': [
-    {
-      task: 'Tokens & colors',
-      description: 'Consolidate Tailwind theme across components',
-      status: 'in-progress',
-      filesTouched: ['tailwind.config.ts'],
-    },
-  ],
-  '5': [
-    {
-      task: 'Theme toggle audit',
-      description: 'Verify dark mode surfaces and tokens',
-      status: 'todo',
-      filesTouched: ['src/components/ThemeToggle.tsx'],
-    },
-  ],
-  '7': [
-    {
-      task: 'Project boot',
-      description: 'Initial Vite + React + TS setup',
-      status: 'done',
-      filesTouched: ['vite.config.ts', 'tsconfig.json'],
-    },
-  ],
-  '8': [
-    {
-      task: 'Repo init',
-      description: 'First commit and CI setup',
-      status: 'done',
-      filesTouched: ['.gitignore', 'README.md'],
-    },
-  ],
 };
 
 const COLUMN_TITLES: Record<string, string> = {
@@ -178,21 +83,36 @@ function TaskColumn({ value, tasks, isOverlay, onOpenDetails, ...props }: TaskCo
 const KanbanPage: React.FC = () => {
   const [columns, setColumns] = React.useState<Record<string, Task[]>>({
     docs: [
-      { id: 'd1', title: 'Developer handbook outline', dueDate: 'Jan 08, 2025' },
-      { id: 'd2', title: 'API reference index', dueDate: 'Jan 12, 2025' },
+      { id: 'feat_docs', title: 'Documentation' },
+      { id: 'feat_api_reference', title: 'API Reference' },
     ],
     backlog: [
-      { id: '1', title: 'Authentication flow', dueDate: 'Jan 10, 2025' },
-      { id: '2', title: 'Create API endpoints', dueDate: 'Jan 15, 2025' },
-      { id: '3', title: 'Write documentation', dueDate: 'Jan 20, 2025' },
+      { id: 'feat_products', title: 'Products' },
+      { id: 'feat_orders', title: 'Orders' },
+      { id: 'feat_product_variants', title: 'Product Variants' },
+      { id: 'feat_product_categories', title: 'Product Categories' },
+      { id: 'feat_redirects', title: 'Redirects' },
+      { id: 'feat_seo_meta', title: 'SEO Meta' },
+      { id: 'feat_analytics', title: 'Analytics' },
+      { id: 'feat_tenant_integrations', title: 'Tenant Integrations' },
+      { id: 'feat_integration_settings', title: 'Integration Settings' },
+      { id: 'feat_smtp_config', title: 'SMTP Config' },
+      { id: 'feat_ai_assistant', title: 'AI Assistant' },
+      { id: 'feat_resend', title: 'Resend' },
     ],
     inProgress: [
-      { id: '4', title: 'Design system updates', dueDate: 'Aug 25, 2025' },
-      { id: '5', title: 'Implement dark mode', dueDate: 'Aug 25, 2025' },
+      { id: 'feat_blog', title: 'Blog' },
+      { id: 'feat_forms', title: 'Forms' },
+      { id: 'feat_contacts', title: 'Contacts (CRM)' },
+      { id: 'feat_sitemap', title: 'Sitemap' },
+      { id: 'feat_security_logging', title: 'Security Logging' },
     ],
     done: [
-      { id: '7', title: 'Setup project', dueDate: 'Sep 25, 2025' },
-      { id: '8', title: 'Initial commit', dueDate: 'Sep 20, 2025' },
+      { id: 'feat_pages', title: 'Pages' },
+      { id: 'feat_media', title: 'Media Library' },
+      { id: 'feat_themes', title: 'Themes' },
+      { id: 'feat_site_settings', title: 'Site Settings' },
+      { id: 'feat_users', title: 'Users' },
     ],
   });
 
@@ -241,36 +161,16 @@ const KanbanPage: React.FC = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {(selectedTask && ACTION_ITEMS[selectedTask.id]) ? (
-                    ACTION_ITEMS[selectedTask.id].map((item, idx) => (
-                      <TableRow key={idx}>
-                        <TableCell className="font-medium">{item.task}</TableCell>
-                        <TableCell className="text-muted-foreground">{item.description}</TableCell>
-                        <TableCell className="capitalize">
-                          {item.status.replace('-', ' ')}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex flex-wrap gap-1.5">
-                            {item.filesTouched.length > 0 ? (
-                              item.filesTouched.map((f, i) => (
-                                <span
-                                  key={i}
-                                  className="inline-flex items-center rounded-sm bg-muted px-2 py-0.5 text-xs font-mono"
-                                >
-                                  {f}
-                                </span>
-                              ))
-                            ) : (
-                              <span className="text-xs text-muted-foreground">None</span>
-                            )}
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))
+                  {selectedTask ? (
+                    <TableRow>
+                      <TableCell colSpan={4} className="text-center text-muted-foreground">
+                        No action items yet for this feature.
+                      </TableCell>
+                    </TableRow>
                   ) : (
                     <TableRow>
                       <TableCell colSpan={4} className="text-center text-muted-foreground">
-                        No action items yet for this task.
+                        Select a feature to view details.
                       </TableCell>
                     </TableRow>
                   )}
