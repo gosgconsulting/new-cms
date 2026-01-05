@@ -432,11 +432,22 @@ router.post('/auth/login', async (req, res) => {
     }
     
     // Handle database connection errors
-    if (error?.code === 'ECONNREFUSED' || error?.code === 'ETIMEDOUT' || error?.code === 'ENOTFOUND' || error?.code === 'ECONNRESET') {
+    if (error?.code === 'ECONNREFUSED' || error?.code === 'ETIMEDOUT' || error?.code === 'ENOTFOUND' || error?.code === 'ECONNRESET' || error?.code === 'ENETUNREACH') {
       return res.status(503).json({
         success: false,
         error: 'Database connection failed',
-        message: `Unable to connect to database (${error.code}). Check DATABASE_URL environment variable and ensure database server is running.`,
+        message: `Unable to connect to database (${error.code}). Check DATABASE_URL environment variable and ensure database server is running. For localhost connections, ensure the database is accessible.`,
+        diagnostic: '/health/database',
+        errorCode: error.code
+      });
+    }
+    
+    // Handle SSL/TLS connection errors
+    if (error?.code === 'EPROTO' || error?.code === 'ETLS' || error?.message?.includes('SSL') || error?.message?.includes('TLS')) {
+      return res.status(503).json({
+        success: false,
+        error: 'Database SSL connection failed',
+        message: `SSL/TLS connection error: ${error.message}. For localhost connections, you may need to disable SSL by setting DATABASE_SSL=false in your .env file.`,
         diagnostic: '/health/database',
         errorCode: error.code
       });

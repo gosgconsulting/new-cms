@@ -17,9 +17,6 @@ type Task = {
 
 const COLUMN_TITLES: Record<string, string> = {
   docs: 'Docs',
-  backlog: 'Backlog',
-  inProgress: 'In Progress',
-  done: 'Done',
 };
 
 interface TaskCardProps extends Omit<React.ComponentProps<typeof KanbanItem>, 'value' | 'children'> {
@@ -112,38 +109,10 @@ function TaskColumn({ value, tasks, isOverlay, onOpenDetails, matchesLabels, ...
 }
 
 const KanbanPage: React.FC = () => {
-  // UPDATE: include labels on seeded features
+  // Only Docs column - all features organized as documentation
   const [columns, setColumns] = React.useState<Record<string, Task[]>>({
     docs: [
       { id: 'doc:database%3Aoverview', title: 'Database Overview', sourcePath: 'database:overview', labels: ['Docs', 'Database'] },
-    ],
-    backlog: [
-      { id: 'feat_products', title: 'Products', labels: ['E-shop', 'Catalog'] },
-      { id: 'feat_orders', title: 'Orders', labels: ['E-shop', 'Checkout'] },
-      { id: 'feat_product_variants', title: 'Product Variants', labels: ['E-shop', 'Catalog'] },
-      { id: 'feat_product_categories', title: 'Product Categories', labels: ['E-shop', 'Catalog'] },
-      { id: 'feat_redirects', title: 'Redirects', labels: ['SEO', 'Redirects'] },
-      { id: 'feat_seo_meta', title: 'SEO Meta', labels: ['SEO'] },
-      { id: 'feat_analytics', title: 'Analytics', labels: ['Analytics'] },
-      { id: 'feat_tenant_integrations', title: 'Tenant Integrations', labels: ['Integrations'] },
-      { id: 'feat_integration_settings', title: 'Integration Settings', labels: ['Integrations'] },
-      { id: 'feat_smtp_config', title: 'SMTP Config', labels: ['Integrations', 'Email'] },
-      { id: 'feat_ai_assistant', title: 'AI Assistant', labels: ['Integrations', 'AI'] },
-      { id: 'feat_resend', title: 'Resend', labels: ['Integrations', 'Email'] },
-    ],
-    inProgress: [
-      { id: 'feat_blog', title: 'Blog', labels: ['CMS', 'Blog', 'SEO'] },
-      { id: 'feat_forms', title: 'Forms', labels: ['CMS', 'Forms'] },
-      { id: 'feat_contacts', title: 'Contacts (CRM)', labels: ['CMS', 'CRM'] },
-      { id: 'feat_sitemap', title: 'Sitemap', labels: ['SEO'] },
-      { id: 'feat_security_logging', title: 'Security Logging', labels: ['Security'] },
-    ],
-    done: [
-      { id: 'feat_pages', title: 'Pages', labels: ['CMS', 'Pages', 'SEO'] },
-      { id: 'feat_media', title: 'Media Library', labels: ['CMS', 'Media'] },
-      { id: 'feat_themes', title: 'Themes', labels: ['CMS', 'Themes'] },
-      { id: 'feat_site_settings', title: 'Site Settings', labels: ['CMS', 'Settings'] },
-      { id: 'feat_users', title: 'Users', labels: ['Security', 'Auth'] },
     ],
   });
 
@@ -291,7 +260,7 @@ const KanbanPage: React.FC = () => {
       </div>
 
       <Kanban value={columns} onValueChange={setColumns} getItemValue={(item) => item.id}>
-        <KanbanBoard className="grid grid-cols-1 sm:grid-cols-4 gap-5">
+        <KanbanBoard className="grid grid-cols-1 gap-5">
           {Object.entries(columns).map(([columnValue, tasks]) => (
             <TaskColumn
               key={columnValue}

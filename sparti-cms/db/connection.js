@@ -72,10 +72,16 @@ const getPool = () => {
     });
     
     try {
+      // Determine if we should use SSL
+      // Use SSL for remote connections (Railway, cloud), but make it optional for localhost
+      const connString = getConnectionString();
+      const isLocalhost = connString.includes('localhost') || connString.includes('127.0.0.1') || connString.includes('::1');
+      const useSSL = !isLocalhost || process.env.DATABASE_SSL === 'true';
+      
       // Database configuration
       const dbConfig = {
-        connectionString: getConnectionString(),
-        ssl: { rejectUnauthorized: false }, // Always use SSL with Railway
+        connectionString: connString,
+        ...(useSSL ? { ssl: { rejectUnauthorized: false } } : {}), // Only use SSL for remote connections or if explicitly enabled
         // Connection pool settings
         max: 20, // Maximum number of clients in the pool
         idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
