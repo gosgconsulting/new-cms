@@ -120,7 +120,7 @@ const KanbanPage: React.FC = () => {
       { id: 'feat_shop', title: 'Shop', labels: ['Shop'] },
     ],
     inProgress: [
-      { id: 'task_crm-database', title: 'CRM Database', labels: ['CRM', 'Database'] },
+      { id: 'task_crm-database', title: 'CMS Database', labels: ['CMS', 'Database'] },
     ],
     qualityAssurance: [],
     done: [],

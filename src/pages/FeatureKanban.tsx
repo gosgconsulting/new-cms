@@ -135,7 +135,7 @@ const getFeatureInfo = (id: string | undefined): { title: string; labels: string
   
   // Extract labels from id
   const labels: string[] = [];
-  if (id.includes('crm')) labels.push('CRM');
+  if (id.includes('crm') || id.includes('cms')) labels.push('CMS');
   if (id.includes('database')) labels.push('Database');
   if (id.includes('task_')) labels.push('Task');
   
@@ -161,21 +161,76 @@ const FeatureKanban: React.FC = () => {
   const [briefContent, setBriefContent] = React.useState<string | null>(null);
   const [briefOpen, setBriefOpen] = React.useState(false);
 
-  const [docsIndex, setDocsIndex] = React.useState<Array<{ id: string; title: string; path: string }>>([]);
+  // Hardcoded action plan tasks for CMS Database
+  const CMS_DATABASE_ACTIONS: Task[] = [
+    {
+      id: 'action-tenant-theme-pages',
+      title: 'Tenant Creation with Theme - Copy Theme Pages',
+      sourcePath: 'docs/features/crm-database.md',
+      labels: ['Action'],
+    },
+    {
+      id: 'action-tenant-custom-theme',
+      title: 'Tenant Creation with Custom Theme - Ensure Empty Tables Exist',
+      sourcePath: 'docs/features/crm-database.md',
+      labels: ['Action'],
+    },
+    {
+      id: 'action-fix-site-settings',
+      title: 'Fix Site Settings Saving - Ensure tenant_id is Passed',
+      sourcePath: 'docs/features/crm-database.md',
+      labels: ['Action'],
+    },
+    {
+      id: 'action-initialize-modules',
+      title: 'Initialize All Module Tables for Tenant',
+      sourcePath: 'docs/features/crm-database.md',
+      labels: ['Action'],
+    },
+    {
+      id: 'action-db-connection',
+      title: 'Database Connection Verification',
+      sourcePath: 'docs/features/crm-database.md',
+      labels: ['Action'],
+    },
+    {
+      id: 'action-theme-pages-structure',
+      title: 'Theme Pages Table Structure',
+      sourcePath: 'docs/features/crm-database.md',
+      labels: ['Action'],
+    },
+    {
+      id: 'action-settings-isolation',
+      title: 'Settings Module - Tenant Isolation',
+      sourcePath: 'docs/features/crm-database.md',
+      labels: ['Action'],
+    },
+    {
+      id: 'action-testing',
+      title: 'Testing Tenant Database Operations',
+      sourcePath: 'docs/features/crm-database.md',
+      labels: ['Action'],
+    },
+  ];
 
-  // Load docs index on mount (for future use if needed)
+  // Initialize tasks for CMS Database feature
   React.useEffect(() => {
-    (async () => {
-      const resp = await api.get('/api/docs/list');
-      if (!resp.ok) return;
-      const data = await resp.json();
-      if (data.success && Array.isArray(data.items)) {
-        setDocsIndex(data.items.map((it: any) => ({ id: it.id, title: it.title, path: it.path })));
-      }
-    })();
-  }, []);
+    if (featureId === 'task_crm-database') {
+      const mainDocTask: Task = {
+        id: 'doc-cms-database',
+        title: 'CMS Database Action Plan',
+        sourcePath: 'docs/features/crm-database.md',
+        labels: ['Docs'],
+      };
 
-  // Docs column starts empty - users can manually add docs if needed
+      setFeatureColumns({
+        docs: [mainDocTask, ...CMS_DATABASE_ACTIONS],
+        backlog: [],
+        inProgress: [],
+        done: [],
+      });
+    }
+  }, [featureId]);
 
   // Parse doc content into sections based on H2 headings
   const parseDocSections = React.useCallback((content: string | null): Array<{ title: string; content: string }> => {
@@ -221,8 +276,18 @@ const FeatureKanban: React.FC = () => {
     setBriefSummary(null);
     setBriefContent(null);
 
-    if (task.id.startsWith('doc:')) {
-      const pathPart = task.sourcePath ? task.sourcePath : task.id.slice(4);
+    // Load document content for tasks with sourcePath or doc: prefix
+    if (task.sourcePath) {
+      const briefResp = await api.get(`/api/docs/brief?path=${encodeURIComponent(task.sourcePath)}`);
+      if (briefResp.ok) {
+        const briefData = await briefResp.json();
+        if (briefData.success) {
+          setBriefSummary(briefData.summary || null);
+          setBriefContent(briefData.content || null);
+        }
+      }
+    } else if (task.id.startsWith('doc:')) {
+      const pathPart = task.id.slice(4);
       const briefResp = await api.get(`/api/docs/brief?path=${encodeURIComponent(pathPart)}`);
       if (briefResp.ok) {
         const briefData = await briefResp.json();
@@ -305,7 +370,7 @@ const FeatureKanban: React.FC = () => {
 
             {/* Tabs-based content for docs */}
             <div className="flex-1 overflow-auto p-4">
-              {selectedTask?.id.startsWith('doc:') && briefContent ? (
+              {(selectedTask?.sourcePath || selectedTask?.id.startsWith('doc:')) && briefContent ? (
                 (() => {
                   const sections = parseDocSections(briefContent);
                   if (sections.length === 0) {
