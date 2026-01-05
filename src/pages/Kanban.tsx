@@ -166,6 +166,14 @@ const KanbanPage: React.FC = () => {
     filesTouched: string[];
   }> | null>(null);
 
+  // NEW: brief state and nested modal control
+  const [briefSummary, setBriefSummary] = React.useState<string | null>(null);
+  const [briefContent, setBriefContent] = React.useState<string | null>(null);
+  const [briefOpen, setBriefOpen] = React.useState(false);
+
+  // Keep docs index to match non-doc features with docs
+  const [docsIndex, setDocsIndex] = React.useState<Array<{ id: string; title: string; path: string }>>([]);
+
   // Load docs dynamically on mount
   React.useEffect(() => {
     (async () => {
@@ -180,6 +188,7 @@ const KanbanPage: React.FC = () => {
           labels: inferDocLabels(it.title, it.path),
         }));
         setColumns((prev) => ({ ...prev, docs: docsTasks }));
+        setDocsIndex(data.items.map((it: any) => ({ id: it.id, title: it.title, path: it.path })));
       }
     })();
   }, []);
@@ -187,19 +196,57 @@ const KanbanPage: React.FC = () => {
   const handleOpenDetails = async (task: Task) => {
     setSelectedTask(task);
     setOpen(true);
+    setBriefSummary(null);
+    setBriefContent(null);
+    setActionItems(null);
 
+    // Load brief for docs or attempt to match a doc for feature cards
     if (task.id.startsWith('doc:')) {
       const pathPart = task.sourcePath ? task.sourcePath : task.id.slice(4);
-      const resp = await api.get(`/api/docs/actions?path=${encodeURIComponent(pathPart)}`);
-      if (resp.ok) {
-        const data = await resp.json();
-        if (data.success) {
-          setActionItems(data.actions);
-          return;
+      const briefResp = await api.get(`/api/docs/brief?path=${encodeURIComponent(pathPart)}`);
+      if (briefResp.ok) {
+        const briefData = await briefResp.json();
+        if (briefData.success) {
+          setBriefSummary(briefData.summary || null);
+          setBriefContent(briefData.content || null);
         }
       }
+      const actionsResp = await api.get(`/api/docs/actions?path=${encodeURIComponent(pathPart)}`);
+      if (actionsResp.ok) {
+        const data = await actionsResp.json();
+        if (data.success) {
+          setActionItems(data.actions);
+        }
+      }
+      return;
     }
-    setActionItems(null);
+
+    // Non-doc feature: try to find a matching doc by title
+    const match =
+      docsIndex.find((d) => d.title.toLowerCase().includes((task.title || '').toLowerCase())) ||
+      null;
+
+    if (match) {
+      const briefResp = await api.get(`/api/docs/brief?path=${encodeURIComponent(match.path)}`);
+      if (briefResp.ok) {
+        const briefData = await briefResp.json();
+        if (briefData.success) {
+          setBriefSummary(briefData.summary || null);
+          setBriefContent(briefData.content || null);
+        }
+      }
+      const actionsResp = await api.get(`/api/docs/actions?path=${encodeURIComponent(match.path)}`);
+      if (actionsResp.ok) {
+        const data = await actionsResp.json();
+        if (data.success) {
+          setActionItems(data.actions);
+        }
+      }
+    } else {
+      // Graceful fallback if no doc found
+      setBriefSummary('No brief is available yet for this feature. Add documentation under the docs/ folder to populate this section.');
+      setBriefContent(null);
+    }
   };
 
   // NEW: label filter helper (OR logic) inside component scope
@@ -268,7 +315,6 @@ const KanbanPage: React.FC = () => {
                 <DialogTitle className="text-lg">
                   {selectedTask ? selectedTask.title : 'Task Details'}
                 </DialogTitle>
-                {/* NEW: show labels in modal header */}
                 {selectedTask?.labels && selectedTask.labels.length > 0 && (
                   <div className="flex flex-wrap gap-1.5">
                     {selectedTask.labels.map((l) => (
@@ -279,6 +325,28 @@ const KanbanPage: React.FC = () => {
                   </div>
                 )}
               </DialogHeader>
+
+              {/* NEW: View brief button */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setBriefOpen(true)}
+                disabled={!briefContent && !briefSummary}
+              >
+                View brief
+              </Button>
+            </div>
+
+            {/* NEW: Brief preview block above the table */}
+            <div className="px-4 py-3 border-b">
+              <div className="flex items-center justify-between">
+                <h2 className="text-sm font-semibold">Brief</h2>
+              </div>
+              <div className="mt-2 text-sm text-muted-foreground whitespace-pre-wrap">
+                {briefSummary
+                  ? briefSummary
+                  : 'No brief available yet. Add documentation in docs/ or link a doc to this feature.'}
+              </div>
             </div>
 
             <div className="flex-1 overflow-auto p-4">
@@ -329,6 +397,18 @@ const KanbanPage: React.FC = () => {
                 </TableBody>
               </Table>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* NEW: Nested modal to view full brief */}
+      <Dialog open={briefOpen} onOpenChange={setBriefOpen}>
+        <DialogContent className="max-w-3xl w-full">
+          <DialogHeader>
+            <DialogTitle>{selectedTask ? `${selectedTask.title} — Brief` : 'Brief'}</DialogTitle>
+          </DialogHeader>
+          <div className="mt-2 max-h-[60vh] overflow-auto text-sm whitespace-pre-wrap">
+            {briefContent || briefSummary || 'No brief available.'}
           </div>
         </DialogContent>
       </Dialog>

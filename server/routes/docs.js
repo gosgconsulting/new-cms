@@ -100,6 +100,21 @@ function extractActions(content, filePath) {
   return actions;
 }
 
+function extractSummary(content) {
+  const lines = content.split('\n');
+  const summaryLines = [];
+  // Skip initial empty or heading lines; capture first few non-empty paragraphs
+  for (let i = 0; i < lines.length; i++) {
+    const l = lines[i].trim();
+    if (!l) continue;
+    // Skip top-level heading lines for summary
+    if (l.startsWith('#')) continue;
+    summaryLines.push(lines[i]);
+    if (summaryLines.length >= 5) break; // limit preview
+  }
+  return summaryLines.join('\n').trim();
+}
+
 async function listDocs() {
   const items = [];
   for (const dir of DOC_DIRS) {
@@ -211,6 +226,57 @@ router.get('/api/docs/actions', async (req, res) => {
   } catch (error) {
     console.error('[docs] actions error:', error);
     res.status(500).json({ success: false, error: 'Failed to read document actions' });
+  }
+});
+
+// NEW: Return brief summary and full content for a given doc path or synthetic id
+router.get('/api/docs/brief', async (req, res) => {
+  try {
+    const rawPath = req.query.path;
+    if (!rawPath || typeof rawPath !== 'string') {
+      return res.status(400).json({ success: false, error: 'path is required' });
+    }
+    const decoded = decodeURIComponent(rawPath);
+
+    if (decoded === 'database:overview') {
+      // Build synthetic brief from known DB docs
+      const candidates = [
+        join(process.cwd(), 'docs', 'features', 'DATABASE.md'),
+        join(process.cwd(), 'sparti-cms', 'docs', 'database-rules.md'),
+        join(process.cwd(), 'docs', 'implementation', 'DATABASE_VIEWER_FIX.md'),
+        join(process.cwd(), 'docs', 'implementation', 'DATABASE_TABLES_SYNC_FIX.md'),
+        join(process.cwd(), 'docs', 'setup', 'POSTGRES_MCP_SETUP.md'),
+        join(process.cwd(), 'docs', 'setup', 'POSTGRES_MCP_SETUP_RAILWAY.md'),
+      ];
+      let combined = '';
+      for (const file of candidates) {
+        try {
+          const c = await fsp.readFile(file, 'utf-8');
+          combined += `\n\n# Source: ${relative(process.cwd(), file)}\n\n` + c;
+        } catch {
+          // ignore missing files
+        }
+      }
+      if (!combined) {
+        combined = 'Database overview is pending. Please add documentation under docs/features/DATABASE.md or sparti-cms/docs.';
+      }
+      const summary = extractSummary(combined);
+      return res.json({ success: true, title: 'Database Overview', summary, content: combined, filesTouched: ['database:overview'] });
+    }
+
+    // Read actual file content for real docs
+    const content = await fsp.readFile(decoded, 'utf-8');
+    const summary = extractSummary(content);
+    res.json({
+      success: true,
+      title: extractFirstHeading(content),
+      summary,
+      content,
+      filesTouched: [relative(process.cwd(), decoded)],
+    });
+  } catch (error) {
+    console.error('[docs] brief error:', error);
+    res.status(500).json({ success: false, error: 'Failed to read document brief' });
   }
 });
 
