@@ -11,9 +11,9 @@ type Task = {
 };
 
 const COLUMN_TITLES: Record<string, string> = {
+  docs: 'Docs',
   backlog: 'Backlog',
   inProgress: 'In Progress',
-  review: 'Review',
   done: 'Done',
 };
 
@@ -73,6 +73,10 @@ function TaskColumn({ value, tasks, isOverlay, ...props }: TaskColumnProps) {
 
 const KanbanPage: React.FC = () => {
   const [columns, setColumns] = React.useState<Record<string, Task[]>>({
+    docs: [
+      { id: 'd1', title: 'Developer handbook outline', dueDate: 'Jan 08, 2025' },
+      { id: 'd2', title: 'API reference index', dueDate: 'Jan 12, 2025' },
+    ],
     backlog: [
       { id: '1', title: 'Authentication flow', dueDate: 'Jan 10, 2025' },
       { id: '2', title: 'Create API endpoints', dueDate: 'Jan 15, 2025' },
@@ -81,9 +85,6 @@ const KanbanPage: React.FC = () => {
     inProgress: [
       { id: '4', title: 'Design system updates', dueDate: 'Aug 25, 2025' },
       { id: '5', title: 'Implement dark mode', dueDate: 'Aug 25, 2025' },
-    ],
-    review: [
-      { id: '6', title: 'Homepage refactor', dueDate: 'Sep 22, 2025' },
     ],
     done: [
       { id: '7', title: 'Setup project', dueDate: 'Sep 25, 2025' },
@@ -94,7 +95,7 @@ const KanbanPage: React.FC = () => {
   return (
     <div className="p-5">
       <Kanban value={columns} onValueChange={setColumns} getItemValue={(item) => item.id}>
-        <KanbanBoard className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+        <KanbanBoard className="grid grid-cols-1 sm:grid-cols-4 gap-5">
           {Object.entries(columns).map(([columnValue, tasks]) => (
             <TaskColumn key={columnValue} value={columnValue} tasks={tasks} />
           ))}

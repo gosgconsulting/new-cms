@@ -11,10 +11,10 @@ type DocTask = {
 };
 
 const COLUMN_TITLES: Record<string, string> = {
+  docs: 'Docs',
   backlog: 'Backlog',
-  writing: 'Writing',
-  review: 'Review',
-  published: 'Published',
+  inProgress: 'In Progress',
+  done: 'Done',
 };
 
 interface TaskCardProps extends Omit<React.ComponentProps<typeof KanbanItem>, 'value' | 'children'> {
@@ -73,19 +73,19 @@ function TaskColumn({ value, tasks, isOverlay, ...props }: TaskColumnProps) {
 
 const KanbanDocsPage: React.FC = () => {
   const [columns, setColumns] = React.useState<Record<string, DocTask[]>>({
-    backlog: [
+    docs: [
       { id: 'd1', title: 'Add onboarding docs', dueDate: 'Jan 12, 2025' },
       { id: 'd2', title: 'Write API usage overview', dueDate: 'Jan 17, 2025' },
       { id: 'd3', title: 'Docs structure audit', dueDate: 'Jan 21, 2025' },
     ],
-    writing: [
+    backlog: [
+      { id: 'd6', title: 'Deployment guide QA', dueDate: 'Jan 30, 2025' },
+    ],
+    inProgress: [
       { id: 'd4', title: 'CLI setup guide', dueDate: 'Jan 24, 2025' },
       { id: 'd5', title: 'Environment variables reference', dueDate: 'Jan 26, 2025' },
     ],
-    review: [
-      { id: 'd6', title: 'Deployment guide QA', dueDate: 'Jan 30, 2025' },
-    ],
-    published: [
+    done: [
       { id: 'd7', title: 'Authentication quickstart', dueDate: 'Dec 28, 2024' },
       { id: 'd8', title: 'Tailwind & shadcn setup', dueDate: 'Dec 20, 2024' },
     ],
@@ -98,7 +98,7 @@ const KanbanDocsPage: React.FC = () => {
         <p className="text-muted-foreground text-sm">Track documentation tasks. Drag to reorder or move between columns.</p>
       </div>
       <Kanban value={columns} onValueChange={setColumns} getItemValue={(item) => item.id}>
-        <KanbanBoard className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+        <KanbanBoard className="grid grid-cols-1 sm:grid-cols-4 gap-5">
           {Object.entries(columns).map(([columnValue, tasks]) => (
             <TaskColumn key={columnValue} value={columnValue} tasks={tasks} />
           ))}
