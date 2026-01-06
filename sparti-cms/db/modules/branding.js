@@ -1,41 +1,68 @@
-import { query } from '../connection.js';
-import pool from '../connection.js';
 import { translateText } from '../../services/googleTranslationService.js';
 import models, { sequelize } from '../sequelize/models/index.js';
-import { Op } from 'sequelize';
-const { SiteSchema } = models;
+import { Op, QueryTypes } from 'sequelize';
+const { SiteSchema, SiteSetting } = models;
 
 // Branding-specific functions
 // Includes master fallback (tenant_id IS NULL) for missing tenant-specific settings
 export async function getBrandingSettings(tenantId = 'tenant-gosg', themeId = null) {
   try {
-    let queryText = `
-      SELECT setting_key, setting_value, setting_type, setting_category, is_public, tenant_id, theme_id
-      FROM site_settings
-      WHERE setting_category IN ('branding', 'seo', 'localization', 'theme') 
-        AND (is_public = true OR setting_category = 'theme')
-        AND (tenant_id = $1 OR tenant_id IS NULL)
-    `;
-    const params = [tenantId];
+    const whereClause = {
+      [Op.and]: [
+        {
+          setting_category: {
+            [Op.in]: ['branding', 'seo', 'localization', 'theme']
+          }
+        },
+        {
+          [Op.or]: [
+            { is_public: true },
+            { setting_category: 'theme' }
+          ]
+        },
+        {
+          [Op.or]: [
+            { tenant_id: tenantId },
+            { tenant_id: null }
+          ]
+        }
+      ]
+    };
     
     if (themeId) {
-      queryText += ` AND (theme_id = $2 OR theme_id IS NULL)`;
-      params.push(themeId);
-      queryText += ` ORDER BY 
-                       CASE WHEN tenant_id = $1 THEN 0 ELSE 1 END,
-                       CASE WHEN theme_id = $2 THEN 0 ELSE 1 END,
-                       tenant_id DESC NULLS LAST,
-                       theme_id DESC NULLS LAST,
-                       setting_category, setting_key`;
+      whereClause[Op.and].push({
+        [Op.or]: [
+          { theme_id: themeId },
+          { theme_id: null }
+        ]
+      });
     } else {
-      queryText += ` AND theme_id IS NULL`;
-      queryText += ` ORDER BY 
-                       CASE WHEN tenant_id = $1 THEN 0 ELSE 1 END,
-                       tenant_id DESC NULLS LAST,
-                       setting_category, setting_key`;
+      whereClause[Op.and].push({
+        theme_id: null
+      });
     }
     
-    const result = await query(queryText, params);
+    const orderClause = themeId
+      ? [
+          [sequelize.literal(`CASE WHEN tenant_id = '${tenantId}' THEN 0 ELSE 1 END`), 'ASC'],
+          [sequelize.literal(`CASE WHEN theme_id = '${themeId}' THEN 0 ELSE 1 END`), 'ASC'],
+          sequelize.literal('tenant_id DESC NULLS LAST'),
+          sequelize.literal('theme_id DESC NULLS LAST'),
+          ['setting_category', 'ASC'],
+          ['setting_key', 'ASC']
+        ]
+      : [
+          [sequelize.literal(`CASE WHEN tenant_id = '${tenantId}' THEN 0 ELSE 1 END`), 'ASC'],
+          sequelize.literal('tenant_id DESC NULLS LAST'),
+          ['setting_category', 'ASC'],
+          ['setting_key', 'ASC']
+        ];
+    
+    const results = await SiteSetting.findAll({
+      where: whereClause,
+      order: orderClause,
+      attributes: ['setting_key', 'setting_value', 'setting_type', 'setting_category', 'is_public', 'tenant_id', 'theme_id']
+    });
     
     // Convert to object format grouped by category
     // Prefer tenant-specific over master, theme-specific over tenant-only
@@ -48,7 +75,7 @@ export async function getBrandingSettings(tenantId = 'tenant-gosg', themeId = nu
     
     const seenKeys = new Set();
     
-    result.rows.forEach((row) => {
+    results.forEach((row) => {
       const category = row.setting_category || 'branding';
       if (!settings[category]) settings[category] = {};
       
@@ -77,23 +104,31 @@ export async function getPublicSEOSettings(tenantId = 'tenant-gosg') {
   try {
     // Include master settings (tenant_id = NULL) and tenant-specific settings
     // Prefer tenant-specific over master
-    const result = await query(`
-      SELECT setting_key, setting_value, setting_type, tenant_id
-      FROM site_settings
-      WHERE is_public = true 
-        AND (setting_category = 'seo' OR setting_key IN ('site_name', 'site_tagline', 'site_description', 'site_logo', 'site_favicon', 'country', 'timezone', 'language', 'theme_styles'))
-        AND (tenant_id = $1 OR tenant_id IS NULL)
-      ORDER BY 
-        CASE WHEN tenant_id = $1 THEN 0 ELSE 1 END,
-        setting_key
-    `, [tenantId]);
+    const results = await SiteSetting.findAll({
+      where: {
+        is_public: true,
+        [Op.or]: [
+          { setting_category: 'seo' },
+          { setting_key: { [Op.in]: ['site_name', 'site_tagline', 'site_description', 'site_logo', 'site_favicon', 'country', 'timezone', 'language', 'theme_styles'] } }
+        ],
+        [Op.or]: [
+          { tenant_id: tenantId },
+          { tenant_id: null }
+        ]
+      },
+      order: [
+        [sequelize.literal(`CASE WHEN tenant_id = '${tenantId}' THEN 0 ELSE 1 END`), 'ASC'],
+        ['setting_key', 'ASC']
+      ],
+      attributes: ['setting_key', 'setting_value', 'setting_type', 'tenant_id']
+    });
     
     // Convert to flat object format for easy access
     // Prefer tenant-specific over master
     const settings = {};
     const seenKeys = new Set();
     
-    result.rows.forEach((row) => {
+    results.forEach((row) => {
       if (!seenKeys.has(row.setting_key) || row.tenant_id === tenantId) {
         settings[row.setting_key] = row.setting_value;
         if (row.tenant_id === tenantId) {
@@ -115,13 +150,6 @@ export async function updateBrandingSetting(key, value, tenantId = 'tenant-gosg'
       throw new Error('Tenant ID is required to update branding settings. Master settings (tenant_id = NULL) should be updated via admin interface.');
     }
     
-    // Check if a master setting exists and prevent updating it
-    const masterCheck = await query(`
-      SELECT id FROM site_settings 
-      WHERE setting_key = $1 AND tenant_id IS NULL
-      LIMIT 1
-    `, [key]);
-    
     // This function creates/updates tenant-specific settings, not master
     // Master settings are shared and should not be updated via this function
     
@@ -129,57 +157,53 @@ export async function updateBrandingSetting(key, value, tenantId = 'tenant-gosg'
     const category = key.startsWith('site_') ? 'branding' : 'general';
     
     // Check if tenant-specific setting exists first (with theme_id = NULL for tenant-level settings)
-    const existing = await query(`
-      SELECT id FROM site_settings 
-      WHERE setting_key = $1 
-        AND tenant_id = $2
-        AND (theme_id IS NULL)
-      LIMIT 1
-    `, [key, tenantId]);
+    const existing = await SiteSetting.findOne({
+      where: {
+        setting_key: key,
+        tenant_id: tenantId,
+        theme_id: null
+      }
+    });
     
     let result;
-    if (existing.rows.length > 0) {
+    if (existing) {
       // Update existing tenant-specific setting
-      result = await query(`
-        UPDATE site_settings 
-        SET setting_value = $1,
-            setting_type = $2,
-            setting_category = $3,
-            updated_at = CURRENT_TIMESTAMP
-        WHERE id = $4
-        RETURNING *
-      `, [value, settingType, category, existing.rows[0].id]);
+      await existing.update({
+        setting_value: value,
+        setting_type: settingType,
+        setting_category: category
+      });
+      result = existing;
     } else {
       // Insert new tenant-specific setting
-      // Note: We can't use ON CONFLICT with COALESCE-based unique index directly
-      // So we rely on the check above and handle any race condition errors
+      // Handle race condition by trying to create, then finding and updating if it already exists
       try {
-        result = await query(`
-          INSERT INTO site_settings (setting_key, setting_value, setting_type, setting_category, updated_at, tenant_id, theme_id)
-          VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP, $5, NULL)
-          RETURNING *
-        `, [key, value, settingType, category, tenantId]);
+        result = await SiteSetting.create({
+          setting_key: key,
+          setting_value: value,
+          setting_type: settingType,
+          setting_category: category,
+          tenant_id: tenantId,
+          theme_id: null
+        });
       } catch (insertError) {
-        // If we get a unique constraint violation (race condition), try to update instead
-        if (insertError.code === '23505') {
-          const retryExisting = await query(`
-            SELECT id FROM site_settings 
-            WHERE setting_key = $1 
-              AND tenant_id = $2
-              AND (theme_id IS NULL)
-            LIMIT 1
-          `, [key, tenantId]);
+        // If we get a unique constraint violation (race condition), try to find and update instead
+        if (insertError.name === 'SequelizeUniqueConstraintError' || insertError.code === '23505') {
+          const retryExisting = await SiteSetting.findOne({
+            where: {
+              setting_key: key,
+              tenant_id: tenantId,
+              theme_id: null
+            }
+          });
           
-          if (retryExisting.rows.length > 0) {
-            result = await query(`
-              UPDATE site_settings 
-              SET setting_value = $1,
-                  setting_type = $2,
-                  setting_category = $3,
-                  updated_at = CURRENT_TIMESTAMP
-              WHERE id = $4
-              RETURNING *
-            `, [value, settingType, category, retryExisting.rows[0].id]);
+          if (retryExisting) {
+            await retryExisting.update({
+              setting_value: value,
+              setting_type: settingType,
+              setting_category: category
+            });
+            result = retryExisting;
           } else {
             throw insertError;
           }
@@ -189,11 +213,11 @@ export async function updateBrandingSetting(key, value, tenantId = 'tenant-gosg'
       }
     }
     
-    if (result.rows.length === 0) {
+    if (!result) {
       throw new Error('Failed to update branding setting. Ensure tenant_id is provided.');
     }
     
-    return result.rows[0];
+    return result.toJSON();
   } catch (error) {
     console.error(`Error updating branding setting for tenant ${tenantId}:`, error);
     throw error;
@@ -268,19 +292,20 @@ function injectTranslatedTextIntoSchema(obj, translations, path = '') {
 
 // Helper function to get configured languages from site_settings
 async function getConfiguredLanguages(tenantId) {
-  const languagesResult = await query(`
-    SELECT setting_value 
-    FROM site_settings 
-    WHERE setting_key = 'site_content_languages' 
-    AND tenant_id = $1
-  `, [tenantId]);
+  const languagesResult = await SiteSetting.findOne({
+    where: {
+      setting_key: 'site_content_languages',
+      tenant_id: tenantId
+    },
+    attributes: ['setting_value']
+  });
   
-  if (languagesResult.rows.length === 0 || !languagesResult.rows[0].setting_value) {
+  if (!languagesResult || !languagesResult.setting_value) {
     return [];
   }
   
   // Parse the comma-separated language list
-  const rawValue = languagesResult.rows[0].setting_value;
+  const rawValue = languagesResult.setting_value;
   if (rawValue.includes(',')) {
     return rawValue.split(',').filter(lang => lang.trim() !== '');
   } else if (rawValue.trim() !== '') {
@@ -292,15 +317,16 @@ async function getConfiguredLanguages(tenantId) {
 
 // Helper function to get default language from site_settings
 async function getDefaultLanguage(tenantId) {
-  const defaultLanguageResult = await query(`
-    SELECT setting_value 
-    FROM site_settings 
-    WHERE setting_key = 'site_language' 
-    AND tenant_id = $1
-  `, [tenantId]);
+  const defaultLanguageResult = await SiteSetting.findOne({
+    where: {
+      setting_key: 'site_language',
+      tenant_id: tenantId
+    },
+    attributes: ['setting_value']
+  });
   
-  return defaultLanguageResult.rows.length > 0 ? 
-    defaultLanguageResult.rows[0].setting_value : 'default';
+  return defaultLanguageResult && defaultLanguageResult.setting_value ? 
+    defaultLanguageResult.setting_value : 'default';
 }
 
 // Helper function to get target languages (excluding default)
@@ -320,10 +346,17 @@ async function getTargetLanguages(tenantId) {
 // Helper function to ensure language column exists (migration safety)
 async function ensureSiteSchemaLanguageColumn() {
   try {
-    await query(`
-      ALTER TABLE site_schemas 
-      ADD COLUMN IF NOT EXISTS language VARCHAR(50) NOT NULL DEFAULT 'default'
-    `);
+    // Use Sequelize queryInterface for DDL operations
+    const queryInterface = sequelize.getQueryInterface();
+    const tableDescription = await queryInterface.describeTable('site_schemas');
+    
+    if (!tableDescription.language) {
+      await queryInterface.addColumn('site_schemas', 'language', {
+        type: sequelize.Sequelize.STRING(50),
+        allowNull: false,
+        defaultValue: 'default'
+      });
+    }
   } catch (error) {
     // Column already exists, ignore
     if (error.code !== '42701' && !error.message.includes('already exists')) {
@@ -335,38 +368,31 @@ async function ensureSiteSchemaLanguageColumn() {
 // Helper function to ensure composite unique constraint exists (migration safety)
 async function ensureSiteSchemaUniqueConstraint() {
   try {
-    const constraintCheck = await query(`
-      SELECT constraint_name 
-      FROM information_schema.table_constraints 
-      WHERE table_name = 'site_schemas' 
-      AND constraint_type = 'UNIQUE'
-      AND constraint_name = 'site_schemas_schema_key_tenant_id_language_unique'
-    `);
+    const queryInterface = sequelize.getQueryInterface();
     
-    if (constraintCheck.rows.length === 0) {
-      // Check if old constraint exists and drop it
-      const oldConstraintCheck = await query(`
-        SELECT constraint_name 
-        FROM information_schema.table_constraints 
-        WHERE table_name = 'site_schemas' 
-        AND constraint_type = 'UNIQUE'
-        AND constraint_name LIKE '%schema_key%'
-        AND constraint_name LIKE '%tenant_id%'
-        AND constraint_name NOT LIKE '%language%'
-      `);
+    // Check if constraint exists
+    const constraints = await queryInterface.showConstraint('site_schemas', 'site_schemas_schema_key_tenant_id_language_unique').catch(() => null);
+    
+    if (!constraints) {
+      // Check if old constraints exist and remove them
+      const allConstraints = await queryInterface.showConstraints('site_schemas');
+      const oldConstraints = allConstraints.filter(c => 
+        c.constraintType === 'UNIQUE' &&
+        c.constraintName.includes('schema_key') &&
+        c.constraintName.includes('tenant_id') &&
+        !c.constraintName.includes('language')
+      );
       
-      for (const constraint of oldConstraintCheck.rows) {
-        await query(`
-          ALTER TABLE site_schemas 
-          DROP CONSTRAINT IF EXISTS ${constraint.constraint_name}
-        `);
+      for (const constraint of oldConstraints) {
+        await queryInterface.removeConstraint('site_schemas', constraint.constraintName).catch(() => {});
       }
       
       // Add new composite unique constraint
-      await query(`
-        ALTER TABLE site_schemas 
-        ADD CONSTRAINT site_schemas_schema_key_tenant_id_language_unique UNIQUE (schema_key, tenant_id, language)
-      `);
+      await queryInterface.addConstraint('site_schemas', {
+        fields: ['schema_key', 'tenant_id', 'language'],
+        type: 'unique',
+        name: 'site_schemas_schema_key_tenant_id_language_unique'
+      });
       console.log('[testing] Added composite unique constraint for site_schemas');
     }
   } catch (error) {
@@ -376,23 +402,30 @@ async function ensureSiteSchemaUniqueConstraint() {
 
 // Helper function to update existing schema
 async function updateExistingSchema(schemaKey, schemaValue, language, tenantId) {
-  const updateResult = await query(`
-    UPDATE site_schemas 
-    SET 
-      schema_value = $2,
-      updated_at = NOW()
-    WHERE schema_key = $1 AND tenant_id = $3 AND language = $4
-  `, [schemaKey, JSON.stringify(schemaValue), tenantId, language]);
+  const updateResult = await SiteSchema.update(
+    {
+      schema_value: schemaValue
+    },
+    {
+      where: {
+        schema_key: schemaKey,
+        tenant_id: tenantId,
+        language: language
+      }
+    }
+  );
   
-  return updateResult.rowCount > 0;
+  return updateResult[0] > 0; // Sequelize returns [affectedRows]
 }
 
 // Helper function to insert new schema
 async function insertNewSchema(schemaKey, schemaValue, language, tenantId) {
-  await query(`
-    INSERT INTO site_schemas (schema_key, schema_value, language, tenant_id, updated_at)
-    VALUES ($1, $2, $3, $4, NOW())
-  `, [schemaKey, JSON.stringify(schemaValue), language, tenantId]);
+  await SiteSchema.create({
+    schema_key: schemaKey,
+    schema_value: schemaValue,
+    language: language,
+    tenant_id: tenantId
+  });
 }
 
 // Helper function to translate all text fields for a single language
@@ -487,26 +520,33 @@ async function translateSchemaToAllLanguages(schemaKey, schemaValue, tenantId) {
 async function upsertSiteSchema(schemaKey, schemaValue, language, tenantId) {
   let operationSuccessful = false;
   
-  // Try to update existing schema first
-  const wasUpdated = await updateExistingSchema(schemaKey, schemaValue, language, tenantId);
-  
-  if (wasUpdated) {
-    operationSuccessful = true;
-  } else {
-    // If no rows were updated, check if schema exists
-    const existingCheck = await query(`
-      SELECT id FROM site_schemas WHERE schema_key = $1 AND tenant_id = $2 AND language = $3
-    `, [schemaKey, tenantId, language]);
+  // Use Sequelize findOrCreate for atomic upsert
+  try {
+    const [schema, created] = await SiteSchema.findOrCreate({
+      where: {
+        schema_key: schemaKey,
+        tenant_id: tenantId,
+        language: language
+      },
+      defaults: {
+        schema_key: schemaKey,
+        schema_value: schemaValue,
+        language: language,
+        tenant_id: tenantId
+      }
+    });
     
-    if (existingCheck.rows.length === 0) {
-      // Insert new schema
-      await insertNewSchema(schemaKey, schemaValue, language, tenantId);
-      operationSuccessful = true;
-    } else {
-      // Schema exists but update didn't work, try update again
-      const wasUpdatedRetry = await updateExistingSchema(schemaKey, schemaValue, language, tenantId);
-      operationSuccessful = wasUpdatedRetry;
+    if (!created) {
+      // Update existing schema
+      await schema.update({
+        schema_value: schemaValue
+      });
     }
+    
+    operationSuccessful = true;
+  } catch (error) {
+    console.error(`[testing] Error upserting schema ${schemaKey}:`, error);
+    throw error;
   }
   
   // After successful operation on default language, trigger translation to other languages
@@ -575,102 +615,167 @@ export async function updateMultipleBrandingSettings(settings, tenantId = 'tenan
     throw new Error('Tenant ID is required to update settings. Master settings (tenant_id = NULL) should be updated via admin interface.');
   }
   
-  const client = await pool.connect();
-  let transactionStarted = false;
+  const transaction = await sequelize.transaction();
+  const errors = [];
+  let transactionAborted = false;
   
   try {
-    await client.query('BEGIN');
-    transactionStarted = true;
-    
     for (const [key, value] of Object.entries(settings)) {
       // Skip null/undefined values
       if (value === null || value === undefined) {
         continue;
       }
       
-      const settingType = key.includes('logo') || key.includes('favicon') || key.includes('image') ? 'media' : 
-                         key.includes('description') ? 'textarea' : 'text';
-      const category = key.startsWith('site_') ? 'branding' : 
-                      ['country', 'timezone', 'language'].includes(key) ? 'localization' : 
-                      key === 'theme_styles' ? 'theme' : 'general';
+      // If transaction is aborted, we can't continue
+      if (transactionAborted) {
+        errors.push({ key, error: 'Transaction aborted' });
+        continue;
+      }
       
-      // Check if tenant-specific setting exists (following Blog pattern - only check tenant-specific, not master)
-      // Master settings (tenant_id = NULL) are automatically accessible but not updated here
-      const existing = await client.query(`
-        SELECT id, tenant_id FROM site_settings 
-        WHERE setting_key = $1 
-          AND tenant_id = $2
-          AND (theme_id = $3 OR (theme_id IS NULL AND $3 IS NULL))
-        LIMIT 1
-      `, [key, tenantId, themeId]);
-      
-      if (existing.rows.length > 0) {
-        // Update existing tenant-specific setting (override of master)
-        await client.query(`
-          UPDATE site_settings 
-          SET setting_value = $1,
-              setting_type = $2,
-              setting_category = $3,
-              updated_at = CURRENT_TIMESTAMP,
-              theme_id = $4
-          WHERE id = $5
-        `, [value, settingType, category, themeId, existing.rows[0].id]);
-      } else {
-        // Insert new tenant-specific setting (override of master, following Blog pattern)
-        // This creates a tenant-specific override that takes precedence over master data
-        try {
-          await client.query(`
-            INSERT INTO site_settings (setting_key, setting_value, setting_type, setting_category, is_public, updated_at, tenant_id, theme_id)
-            VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP, $6, $7)
-          `, [key, value, settingType, category, category === 'seo' || category === 'branding' || category === 'localization', tenantId, themeId]);
-        } catch (insertError) {
-          // If we get a unique constraint violation (race condition), try to update instead
-          if (insertError.code === '23505') {
-            const retryExisting = await client.query(`
-              SELECT id FROM site_settings 
-              WHERE setting_key = $1 
-                AND tenant_id = $2
-                AND (theme_id = $3 OR (theme_id IS NULL AND $3 IS NULL))
-              LIMIT 1
-            `, [key, tenantId, themeId]);
-            
-            if (retryExisting.rows.length > 0) {
-              // Update the existing record
-              await client.query(`
-                UPDATE site_settings 
-                SET setting_value = $1,
-                    setting_type = $2,
-                    setting_category = $3,
-                    updated_at = CURRENT_TIMESTAMP,
-                    theme_id = $4
-                WHERE id = $5
-              `, [value, settingType, category, themeId, retryExisting.rows[0].id]);
+      try {
+        const settingType = key.includes('logo') || key.includes('favicon') || key.includes('image') ? 'media' : 
+                           key.includes('description') ? 'textarea' : 'text';
+        const category = key.startsWith('site_') ? 'branding' : 
+                        ['country', 'timezone', 'language'].includes(key) ? 'localization' : 
+                        key === 'theme_styles' ? 'theme' : 'general';
+        
+        const isPublic = category === 'seo' || category === 'branding' || category === 'localization';
+        
+        // Convert value to string if it's an object (e.g., theme_styles JSON)
+        const settingValue = typeof value === 'object' ? JSON.stringify(value) : String(value);
+        
+        // Normalize theme_id: use null instead of undefined
+        const normalizedThemeId = themeId || null;
+        
+        // Try to find existing setting first
+        let setting = await SiteSetting.findOne({
+          where: {
+            setting_key: key,
+            tenant_id: tenantId,
+            theme_id: normalizedThemeId
+          },
+          transaction
+        });
+        
+        if (setting) {
+          // Update existing setting
+          await setting.update({
+            setting_value: settingValue,
+            setting_type: settingType,
+            setting_category: category,
+            is_public: isPublic
+          }, { transaction });
+        } else {
+          // Try to create new setting
+          // If it fails with unique constraint, it means the record exists
+          // (possibly due to COALESCE-based unique index vs WHERE clause mismatch)
+          try {
+            setting = await SiteSetting.create({
+              setting_key: key,
+              setting_value: settingValue,
+              setting_type: settingType,
+              setting_category: category,
+              is_public: isPublic,
+              tenant_id: tenantId,
+              theme_id: normalizedThemeId
+            }, { transaction });
+          } catch (createError) {
+            // If unique constraint violation, the record exists but wasn't found
+            // This can happen due to COALESCE-based unique index
+            if (createError.name === 'SequelizeUniqueConstraintError' || createError.code === '23505' || createError.parent?.code === '23505') {
+              // Try to find it again using raw query to handle COALESCE properly
+              const found = await sequelize.query(`
+                SELECT * FROM site_settings 
+                WHERE setting_key = :key 
+                  AND COALESCE(tenant_id, '') = COALESCE(:tenantId, '')
+                  AND COALESCE(theme_id, '') = COALESCE(:themeId, '')
+                LIMIT 1
+              `, {
+                replacements: { key, tenantId, themeId: normalizedThemeId },
+                type: QueryTypes.SELECT,
+                transaction
+              });
+              
+              if (found && found.length > 0) {
+                // Found it, now update using Sequelize
+                setting = await SiteSetting.findByPk(found[0].id, { transaction });
+                if (setting) {
+                  await setting.update({
+                    setting_value: settingValue,
+                    setting_type: settingType,
+                    setting_category: category,
+                    is_public: isPublic
+                  }, { transaction });
+                } else {
+                  throw createError;
+                }
+              } else {
+                throw createError;
+              }
             } else {
-              throw insertError;
+              throw createError;
             }
-          } else {
-            throw insertError;
           }
         }
+      } catch (settingError) {
+        // Check if transaction is aborted
+        if (settingError.parent && settingError.parent.code === '25P02') {
+          transactionAborted = true;
+          errors.push({ key, error: 'Transaction aborted' });
+          console.error(`[testing] Transaction aborted while processing ${key}`);
+          break; // Exit loop, transaction is dead
+        }
+        
+        // Log detailed error information
+        console.error(`[testing] Error updating setting ${key}:`, {
+          name: settingError.name,
+          message: settingError.message,
+          code: settingError.code,
+          parentCode: settingError.parent?.code,
+          parentMessage: settingError.parent?.message,
+          constraint: settingError.constraint,
+          detail: settingError.detail
+        });
+        
+        errors.push({ 
+          key, 
+          error: settingError.message || settingError.toString(),
+          code: settingError.code || settingError.parent?.code,
+          detail: settingError.detail || settingError.parent?.detail
+        });
       }
     }
     
-    await client.query('COMMIT');
-    transactionStarted = false;
+    // If transaction was aborted or we have errors, rollback everything
+    if (transactionAborted || errors.length > 0) {
+      await transaction.rollback();
+      const errorMessage = transactionAborted 
+        ? 'Transaction was aborted due to an error'
+        : `Failed to update ${errors.length} setting(s): ${errors.map(e => `${e.key} (${e.code || e.error})`).join(', ')}`;
+      throw new Error(errorMessage);
+    }
+    
+    await transaction.commit();
     return true;
   } catch (error) {
-    // Only rollback if transaction was started
-    if (transactionStarted) {
+    // Only rollback if transaction hasn't been rolled back already
+    if (!transaction.finished && !transactionAborted) {
       try {
-        await client.query('ROLLBACK');
+        await transaction.rollback();
       } catch (rollbackError) {
         console.error(`[testing] Error during rollback:`, rollbackError);
       }
     }
     console.error(`[testing] Error updating multiple branding settings for tenant ${tenantId}, theme ${themeId}:`, error);
+    console.error(`[testing] Error name: ${error.name}, message: ${error.message}`);
+    if (error.parent) {
+      console.error(`[testing] Parent error: ${error.parent.message}`);
+      console.error(`[testing] Parent error code: ${error.parent.code}`);
+      if (error.parent.sql) {
+        console.error(`[testing] SQL: ${error.parent.sql}`);
+      }
+    }
     throw error;
-  } finally {
-    client.release();
   }
 }
 
@@ -678,15 +783,21 @@ export async function getsitesettingsbytenant(tenantId) {
   try {
     // Include master settings (tenant_id = NULL) and tenant-specific settings
     // Prefer tenant-specific over master
-    const result = await query(`
-      SELECT * FROM site_settings 
-      WHERE (tenant_id = $1 OR tenant_id IS NULL)
-      ORDER BY 
-        CASE WHEN tenant_id = $1 THEN 0 ELSE 1 END,
-        setting_category, 
-        setting_key
-    `, [tenantId]);
-    return result.rows;
+    const results = await SiteSetting.findAll({
+      where: {
+        [Op.or]: [
+          { tenant_id: tenantId },
+          { tenant_id: null }
+        ]
+      },
+      order: [
+        [sequelize.literal(`CASE WHEN tenant_id = '${tenantId}' THEN 0 ELSE 1 END`), 'ASC'],
+        ['setting_category', 'ASC'],
+        ['setting_key', 'ASC']
+      ]
+    });
+    
+    return results.map(row => row.toJSON());
   } catch (error) {
     console.error('Error fetching site settings by tenant:', error);
     throw error;
@@ -718,39 +829,59 @@ export async function getThemeStyles(tenantId = 'tenant-gosg', themeId = null) {
 // Includes master fallback (tenant_id IS NULL) for missing tenant-specific settings
 export async function getThemeSettings(tenantId = 'tenant-gosg', themeId = null) {
   try {
-    let queryText = `
-      SELECT setting_key, setting_value, setting_type, setting_category, is_public, tenant_id, theme_id
-      FROM site_settings
-      WHERE (tenant_id = $1 OR tenant_id IS NULL)
-    `;
-    const params = [tenantId];
+    const whereClause = {
+      [Op.and]: [
+        {
+          [Op.or]: [
+            { tenant_id: tenantId },
+            { tenant_id: null }
+          ]
+        }
+      ]
+    };
+    
+    let orderClause;
     
     if (themeId) {
       // Get theme-specific settings, with fallback to tenant-only, then master
-      queryText += ` AND (theme_id = $2 OR theme_id IS NULL)
-                     ORDER BY 
-                       CASE WHEN tenant_id = $1 THEN 0 ELSE 1 END,
-                       CASE WHEN theme_id = $2 THEN 0 ELSE 1 END,
-                       tenant_id DESC NULLS LAST,
-                       theme_id DESC NULLS LAST,
-                       setting_category, setting_key`;
-      params.push(themeId);
+      whereClause[Op.and].push({
+        [Op.or]: [
+          { theme_id: themeId },
+          { theme_id: null }
+        ]
+      });
+      orderClause = [
+        [sequelize.literal(`CASE WHEN tenant_id = '${tenantId}' THEN 0 ELSE 1 END`), 'ASC'],
+        [sequelize.literal(`CASE WHEN theme_id = '${themeId}' THEN 0 ELSE 1 END`), 'ASC'],
+        sequelize.literal('tenant_id DESC NULLS LAST'),
+        sequelize.literal('theme_id DESC NULLS LAST'),
+        ['setting_category', 'ASC'],
+        ['setting_key', 'ASC']
+      ];
     } else {
       // Get tenant-level settings with master fallback
-      queryText += ` AND theme_id IS NULL
-                     ORDER BY 
-                       CASE WHEN tenant_id = $1 THEN 0 ELSE 1 END,
-                       tenant_id DESC NULLS LAST,
-                       setting_category, setting_key`;
+      whereClause[Op.and].push({
+        theme_id: null
+      });
+      orderClause = [
+        [sequelize.literal(`CASE WHEN tenant_id = '${tenantId}' THEN 0 ELSE 1 END`), 'ASC'],
+        sequelize.literal('tenant_id DESC NULLS LAST'),
+        ['setting_category', 'ASC'],
+        ['setting_key', 'ASC']
+      ];
     }
     
-    const result = await query(queryText, params);
+    const results = await SiteSetting.findAll({
+      where: whereClause,
+      order: orderClause,
+      attributes: ['setting_key', 'setting_value', 'setting_type', 'setting_category', 'is_public', 'tenant_id', 'theme_id']
+    });
     
     // Group by category and merge (tenant-specific overrides master, theme-specific overrides tenant-only)
     const settings = {};
     const seenKeys = new Set();
     
-    result.rows.forEach((row) => {
+    results.forEach((row) => {
       const category = row.setting_category || 'general';
       if (!settings[category]) settings[category] = {};
       
@@ -778,36 +909,54 @@ export async function getThemeSettings(tenantId = 'tenant-gosg', themeId = null)
 // Site Settings functions
 export async function getSiteSettingByKey(key, tenantId = 'tenant-gosg', themeId = null) {
   try {
-    let queryText = `
-      SELECT setting_key, setting_value, setting_type, setting_category, is_public, tenant_id, theme_id
-      FROM site_settings
-      WHERE setting_key = $1 
-        AND (tenant_id = $2 OR tenant_id IS NULL)
-    `;
-    const params = [key, tenantId];
+    const whereClause = {
+      [Op.and]: [
+        {
+          setting_key: key
+        },
+        {
+          [Op.or]: [
+            { tenant_id: tenantId },
+            { tenant_id: null }
+          ]
+        }
+      ]
+    };
+    
+    let orderClause;
     
     if (themeId) {
       // Prefer theme-specific setting, fallback to tenant-only, then master
-      queryText += ` AND (theme_id = $3 OR theme_id IS NULL)
-                     ORDER BY 
-                       CASE WHEN tenant_id = $2 THEN 0 ELSE 1 END,
-                       CASE WHEN theme_id = $3 THEN 0 ELSE 1 END,
-                       tenant_id DESC NULLS LAST,
-                       theme_id DESC NULLS LAST
-                     LIMIT 1`;
-      params.push(themeId);
+      whereClause[Op.and].push({
+        [Op.or]: [
+          { theme_id: themeId },
+          { theme_id: null }
+        ]
+      });
+      orderClause = [
+        [sequelize.literal(`CASE WHEN tenant_id = '${tenantId}' THEN 0 ELSE 1 END`), 'ASC'],
+        [sequelize.literal(`CASE WHEN theme_id = '${themeId}' THEN 0 ELSE 1 END`), 'ASC'],
+        sequelize.literal('tenant_id DESC NULLS LAST'),
+        sequelize.literal('theme_id DESC NULLS LAST')
+      ];
     } else {
       // Prefer tenant-specific, fallback to master (tenant_id IS NULL)
-      queryText += ` AND theme_id IS NULL
-                     ORDER BY 
-                       CASE WHEN tenant_id = $2 THEN 0 ELSE 1 END,
-                       tenant_id DESC NULLS LAST
-                     LIMIT 1`;
+      whereClause[Op.and].push({
+        theme_id: null
+      });
+      orderClause = [
+        [sequelize.literal(`CASE WHEN tenant_id = '${tenantId}' THEN 0 ELSE 1 END`), 'ASC'],
+        sequelize.literal('tenant_id DESC NULLS LAST')
+      ];
     }
     
-    const result = await query(queryText, params);
+    const result = await SiteSetting.findOne({
+      where: whereClause,
+      order: orderClause,
+      attributes: ['setting_key', 'setting_value', 'setting_type', 'setting_category', 'is_public', 'tenant_id', 'theme_id']
+    });
     
-    return result.rows.length > 0 ? result.rows[0] : null;
+    return result ? result.toJSON() : null;
   } catch (error) {
     console.error(`Error fetching site setting for key ${key}, tenant ${tenantId}, theme ${themeId}:`, error);
     throw error;
@@ -820,42 +969,77 @@ export async function updateSiteSettingByKey(key, value, type = 'text', category
       throw new Error('Tenant ID is required to update settings. Master settings (tenant_id = NULL) should be updated via admin interface.');
     }
     
-    // First, try to find existing tenant-specific setting
-    const existing = await query(`
-      SELECT id, tenant_id FROM site_settings 
-      WHERE setting_key = $1 AND tenant_id = $2 AND (theme_id = $3 OR (theme_id IS NULL AND $3 IS NULL))
-      LIMIT 1
-    `, [key, tenantId, themeId]);
+    // Set is_public to true for SEO and branding settings
+    const isPublic = category === 'seo' || category === 'branding';
     
-    if (existing.rows.length > 0) {
+    // Find existing setting first
+    const existing = await SiteSetting.findOne({
+      where: {
+        setting_key: key,
+        tenant_id: tenantId,
+        theme_id: themeId || null
+      }
+    });
+    
+    let setting;
+    if (existing) {
       // Check if it's a master setting (shouldn't happen, but protect anyway)
-      if (!existing.rows[0].tenant_id) {
+      if (!existing.tenant_id) {
         throw new Error('Cannot update master setting. Master settings (tenant_id = NULL) are shared across all tenants.');
       }
       
       // Update existing tenant-specific setting
-      const result = await query(`
-        UPDATE site_settings 
-        SET setting_value = $1,
-            setting_type = $2,
-            setting_category = $3,
-            updated_at = CURRENT_TIMESTAMP,
-            theme_id = $4
-        WHERE id = $5
-        RETURNING *
-      `, [value, type, category, themeId, existing.rows[0].id]);
-      return result.rows[0];
+      await existing.update({
+        setting_value: value,
+        setting_type: type,
+        setting_category: category,
+        is_public: isPublic,
+        theme_id: themeId || null
+      });
+      setting = existing;
     } else {
-      // Insert new tenant-specific setting (not a copy of master)
-      // Set is_public to true for SEO and branding settings
-      const isPublic = category === 'seo' || category === 'branding';
-      const result = await query(`
-        INSERT INTO site_settings (setting_key, setting_value, setting_type, setting_category, is_public, updated_at, tenant_id, theme_id)
-        VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP, $6, $7)
-        RETURNING *
-      `, [key, value, type, category, isPublic, tenantId, themeId]);
-      return result.rows[0];
+      // Create new setting
+      try {
+        setting = await SiteSetting.create({
+          setting_key: key,
+          setting_value: value,
+          setting_type: type,
+          setting_category: category,
+          is_public: isPublic,
+          tenant_id: tenantId,
+          theme_id: themeId || null
+        });
+      } catch (createError) {
+        // Handle race condition: if another process created it between findOne and create
+        if (createError.name === 'SequelizeUniqueConstraintError' || createError.code === '23505') {
+          // Try to find and update again
+          const retryExisting = await SiteSetting.findOne({
+            where: {
+              setting_key: key,
+              tenant_id: tenantId,
+              theme_id: themeId || null
+            }
+          });
+          
+          if (retryExisting) {
+            await retryExisting.update({
+              setting_value: value,
+              setting_type: type,
+              setting_category: category,
+              is_public: isPublic,
+              theme_id: themeId || null
+            });
+            setting = retryExisting;
+          } else {
+            throw createError;
+          }
+        } else {
+          throw createError;
+        }
+      }
     }
+    
+    return setting.toJSON();
   } catch (error) {
     console.error(`Error updating site setting for key ${key}, tenant ${tenantId}, theme ${themeId}:`, error);
     throw error;
@@ -864,10 +1048,9 @@ export async function updateSiteSettingByKey(key, value, type = 'text', category
 
 // SEO-specific functions
 export async function updateSEOSettings(seoData) {
-  const client = await pool.connect();
+  const transaction = await sequelize.transaction();
+  
   try {
-    await client.query('BEGIN');
-    
     const seoSettings = {
       meta_title: seoData.meta_title,
       meta_description: seoData.meta_description,
@@ -887,25 +1070,69 @@ export async function updateSEOSettings(seoData) {
         const settingType = key.includes('image') ? 'media' : 
                            key.includes('description') ? 'textarea' : 'text';
         
-        await client.query(`
-          INSERT INTO site_settings (setting_key, setting_value, setting_type, setting_category, is_public, updated_at)
-          VALUES ($1, $2, $3, 'seo', true, CURRENT_TIMESTAMP)
-          ON CONFLICT (setting_key) 
-          DO UPDATE SET 
-            setting_value = EXCLUDED.setting_value,
-            updated_at = CURRENT_TIMESTAMP
-        `, [key, value, settingType]);
+        // Find existing master setting (tenant_id = NULL) first
+        const existing = await SiteSetting.findOne({
+          where: {
+            setting_key: key,
+            tenant_id: null,
+            theme_id: null
+          },
+          transaction
+        });
+        
+        if (existing) {
+          // Update existing setting
+          await existing.update({
+            setting_value: value,
+            setting_type: settingType
+          }, { transaction });
+        } else {
+          // Create new master setting
+          try {
+            await SiteSetting.create({
+              setting_key: key,
+              setting_value: value,
+              setting_type: settingType,
+              setting_category: 'seo',
+              is_public: true,
+              tenant_id: null,
+              theme_id: null
+            }, { transaction });
+          } catch (createError) {
+            // Handle race condition: if another process created it between findOne and create
+            if (createError.name === 'SequelizeUniqueConstraintError' || createError.code === '23505') {
+              // Try to find and update again
+              const retryExisting = await SiteSetting.findOne({
+                where: {
+                  setting_key: key,
+                  tenant_id: null,
+                  theme_id: null
+                },
+                transaction
+              });
+              
+              if (retryExisting) {
+                await retryExisting.update({
+                  setting_value: value,
+                  setting_type: settingType
+                }, { transaction });
+              } else {
+                throw createError;
+              }
+            } else {
+              throw createError;
+            }
+          }
+        }
       }
     }
     
-    await client.query('COMMIT');
+    await transaction.commit();
     return true;
   } catch (error) {
-    await client.query('ROLLBACK');
+    await transaction.rollback();
     console.error('Error updating SEO settings:', error);
     throw error;
-  } finally {
-    client.release();
   }
 }
 

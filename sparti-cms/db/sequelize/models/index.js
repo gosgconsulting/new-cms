@@ -9,6 +9,7 @@ import PostFactory from './Post.js';
 import PostCategoryFactory from './PostCategory.js';
 import PostTagFactory from './PostTag.js';
 import SiteSchemaFactory from './SiteSchema.js';
+import SiteSettingFactory from './SiteSetting.js';
 import UserFactory from './User.js';
 
 // Initialize models
@@ -18,6 +19,7 @@ const Post = PostFactory(sequelize);
 const PostCategory = PostCategoryFactory(sequelize);
 const PostTag = PostTagFactory(sequelize);
 const SiteSchema = SiteSchemaFactory(sequelize);
+const SiteSetting = SiteSettingFactory(sequelize);
 const User = UserFactory(sequelize);
 
 const models = {
@@ -27,6 +29,7 @@ const models = {
   PostCategory,
   PostTag,
   SiteSchema,
+  SiteSetting,
   User,
 };
 

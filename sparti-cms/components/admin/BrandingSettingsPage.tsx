@@ -410,9 +410,11 @@ const BrandingSettingsPage: React.FC<BrandingSettingsPageProps> = ({ currentTena
         site_description: brandingData.site_description,
         site_logo: brandingData.site_logo,
         site_favicon: brandingData.site_favicon,
-        site_country: brandingData.country,
-        site_language: brandingData.language,
-        site_timezone: brandingData.timezone
+        // Note: country, language, and timezone should NOT have 'site_' prefix
+        // as the backend expects them without the prefix for localization category
+        country: brandingData.country,
+        language: brandingData.language,
+        timezone: brandingData.timezone
       };
 
       console.log(`[testing] Saving branding settings for tenant ${currentTenantId}:`, settingsToSave);
