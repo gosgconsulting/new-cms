@@ -193,23 +193,10 @@ export const useThemeBranding = (
       })
       .then(result => {
         console.log('[useThemeBranding] Response data:', result);
-        
-        // Handle both response formats:
-        // 1. New format: direct settings object { branding: {...}, seo: {...}, ... }
-        // 2. Old format: wrapped in successResponse { success: true, data: {...} }
-        let brandingData;
-        if (result.success !== undefined) {
-          // Old format with successResponse wrapper
-          if (!result.success) {
-            throw new Error(result.error || 'Failed to fetch branding');
-          }
-          brandingData = result.data || {};
-        } else {
-          // New format: direct settings object (same as /api/branding)
-          brandingData = result.branding || {};
+        if (!result.success) {
+          throw new Error(result.error || 'Failed to fetch branding');
         }
-        
-        setBranding(brandingData);
+        setBranding(result.data || {});
       })
       .catch(err => {
         const errorMessage = err instanceof Error ? err.message : 'Failed to fetch branding';
