@@ -183,25 +183,41 @@ export const useThemeBranding = (
     fetch(apiUrl, {
       method: 'GET',
       headers: {
-        'Content-Type': 'application/json; charset=utf-8',
-        'Accept': 'application/json'
+        'Accept': 'application/json',
+        'Accept-Encoding': 'gzip, deflate, br'
       }
     })
-      .then(res => {
+      .then(async (res) => {
         console.log('[useThemeBranding] Response status:', res.status);
+        console.log('[useThemeBranding] Response headers:', Object.fromEntries(res.headers.entries()));
+        
         if (!res.ok) {
           // Try to get error message from response
-          return res.text().then(text => {
-            let errorData;
-            try {
-              errorData = JSON.parse(text);
-            } catch {
-              errorData = { error: text || `HTTP ${res.status}: ${res.statusText}` };
-            }
-            throw new Error(errorData.error || `Failed to fetch branding: ${res.statusText}`);
-          });
+          const text = await res.text();
+          let errorData;
+          try {
+            errorData = JSON.parse(text);
+          } catch {
+            errorData = { error: text || `HTTP ${res.status}: ${res.statusText}` };
+          }
+          throw new Error(errorData.error || `Failed to fetch branding: ${res.statusText}`);
         }
-        return res.json();
+        
+        // Read response as text first to handle any encoding issues
+        const text = await res.text();
+        console.log('[useThemeBranding] Response text (first 200 chars):', text.substring(0, 200));
+        
+        // Parse JSON from text
+        let result;
+        try {
+          result = JSON.parse(text);
+        } catch (parseError) {
+          console.error('[useThemeBranding] Failed to parse JSON:', parseError);
+          console.error('[useThemeBranding] Response text:', text);
+          throw new Error('Invalid JSON response from server');
+        }
+        
+        return result;
       })
       .then(result => {
         console.log('[useThemeBranding] Response data:', result);

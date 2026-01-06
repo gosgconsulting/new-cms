@@ -122,15 +122,19 @@ app.use('/api', async (req, res) => {
     }
     
     // Forward response headers (excluding ones that shouldn't be forwarded)
-    const headersToSkip = ['content-encoding', 'transfer-encoding', 'connection'];
+    // Important: Skip content-encoding since we've already decompressed the response
+    const headersToSkip = ['content-encoding', 'transfer-encoding', 'connection', 'content-length'];
     response.headers.forEach((value, key) => {
-      if (!headersToSkip.includes(key.toLowerCase())) {
+      const lowerKey = key.toLowerCase();
+      if (!headersToSkip.includes(lowerKey)) {
+        // Only forward safe headers
         res.setHeader(key, value);
       }
     });
     
-    // Send response
+    // Always set Content-Type for JSON responses
     if (typeof data === 'object') {
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
       res.status(response.status).json(data);
     } else {
       res.status(response.status).send(data);
