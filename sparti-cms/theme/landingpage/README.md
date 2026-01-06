@@ -41,8 +41,23 @@ The theme is designed to work with the CMS system and accepts the following prop
 interface TenantLandingProps {
   tenantName?: string;    // Default: 'ACATR Business Services'
   tenantSlug?: string;    // Default: 'landingpage'
+  tenantId?: string;     // Optional tenant ID for settings lookup
 }
 ```
+
+### Settings Integration
+
+The theme automatically fetches branding settings from the database via the public API:
+
+- **Site Name** (`site_name`) - Used in header and throughout the theme
+- **Site Tagline** (`site_tagline`) - Optional tagline text
+- **Site Description** (`site_description`) - Meta description for SEO
+- **Site Logo** (`site_logo`) - Logo image URL/path
+- **Site Favicon** (`site_favicon`) - Favicon image URL/path
+
+Settings are fetched from `/api/v1/theme/landingpage/branding` and fallback to default values if not available or if there's an error.
+
+The theme uses the `useThemeBranding` hook from `sparti-cms/hooks/useThemeSettings` to fetch settings.
 
 ## Customization
 

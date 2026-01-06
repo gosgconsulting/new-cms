@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './theme.css';
 import Header from './components/Header';
 import HeroSection from './components/HeroSection';
@@ -8,6 +8,8 @@ import FAQSection from './components/FAQSection';
 import CTASection from './components/CTASection';
 import Footer from './components/Footer';
 import { ContactFormDialog } from './components/ContactFormDialog';
+import { useThemeSettings, useThemeBranding } from '../../hooks/useThemeSettings';
+import { getSiteName, getLogoSrc, getFaviconSrc, applyFavicon } from './utils/settings';
 
 interface TenantLandingProps {
   tenantName?: string;
@@ -17,7 +19,7 @@ interface TenantLandingProps {
 
 /**
  * ACATR Professional Business Services Landing Page Theme
- * Hardcoded landing page - displays static content without database dependencies
+ * Fetches settings from database via API, with fallback to default values
  */
 const TenantLanding: React.FC<TenantLandingProps> = ({ 
   tenantName = 'ACATR Business Services', 
@@ -31,18 +33,47 @@ const TenantLanding: React.FC<TenantLandingProps> = ({
   if (effectiveTenantId) {
     console.log('[testing] Theme using tenant ID:', effectiveTenantId);
   }
+  
+  // Fetch branding settings from database
+  const { branding, loading: brandingLoading, error: brandingError } = useThemeBranding(tenantSlug, effectiveTenantId);
+  
   const [isContactDialogOpen, setIsContactDialogOpen] = useState(false);
 
   const handleContactClick = () => {
     setIsContactDialogOpen(true);
   };
 
-  // Hardcoded values - no database dependencies
-  const siteName = tenantName;
-  const siteTagline = '';
-  const siteDescription = '';
-  const logoSrc = '/theme/landingpage/assets/752d249c-df1b-46fb-b5e2-fb20a9bb88d8.png';
+  // Get settings from database with fallback to defaults using utility functions
+  const siteName = getSiteName(branding, tenantName);
+  const siteTagline = branding?.site_tagline || '';
+  const siteDescription = branding?.site_description || '';
+  const logoSrc = getLogoSrc(branding);
+  const faviconSrc = getFaviconSrc(branding);
   const heroImageSrc = '/theme/landingpage/assets/hero-business.jpg';
+  
+  // Apply favicon when branding loads
+  useEffect(() => {
+    if (faviconSrc && !brandingLoading) {
+      applyFavicon(faviconSrc);
+    }
+  }, [faviconSrc, brandingLoading]);
+  
+  // Show loading state if settings are being fetched
+  if (brandingLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+  
+  // Log any errors but continue with fallback values
+  if (brandingError) {
+    console.warn('[testing] Error loading branding settings, using defaults:', brandingError);
+  }
   
   // Service images
   const serviceImages = [
