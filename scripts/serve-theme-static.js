@@ -57,17 +57,30 @@ app.get('/health', (req, res) => {
 app.use('/api', async (req, res) => {
   try {
     // Build target URL with query string
+    // When using app.use('/api', ...), Express strips '/api' from req.path
+    // So we need to add it back, or use req.originalUrl which has the full path
     const queryString = Object.keys(req.query).length > 0 
       ? '?' + new URLSearchParams(req.query).toString() 
       : '';
-    const targetUrl = `${BACKEND_URL}${req.path}${queryString}`;
     
-    console.log(`[testing] Proxying ${req.method} ${req.path}${queryString} to ${targetUrl}`);
+    // Construct the full API path: /api + req.path + query string
+    // req.path will be like '/v1/theme/landingpage/branding' (without /api prefix)
+    const apiPath = `/api${req.path}${queryString}`;
+    const targetUrl = `${BACKEND_URL}${apiPath}`;
+    
+    console.log(`[testing] Proxying ${req.method} ${req.url} to ${targetUrl}`);
+    console.log(`[testing] Request query:`, req.query);
+    console.log(`[testing] Request headers:`, {
+      'x-tenant-id': req.headers['x-tenant-id'],
+      'x-api-key': req.headers['x-api-key'] ? '***' : undefined,
+      'content-type': req.headers['content-type']
+    });
     
     // Forward headers (excluding host and connection)
     const headers = { ...req.headers };
     delete headers.host;
     delete headers.connection;
+    delete headers['content-length']; // Let fetch set this
     
     // Make request to backend
     const fetchOptions = {
@@ -78,33 +91,60 @@ app.use('/api', async (req, res) => {
     // Add body for non-GET/HEAD requests
     if (req.method !== 'GET' && req.method !== 'HEAD' && req.body) {
       fetchOptions.body = JSON.stringify(req.body);
+      console.log(`[testing] Request body:`, req.body);
     }
     
+    console.log(`[testing] Making fetch request to: ${targetUrl}`);
     const response = await fetch(targetUrl, fetchOptions);
     
+    console.log(`[testing] Backend response status: ${response.status}`);
+    console.log(`[testing] Backend response headers:`, Object.fromEntries(response.headers.entries()));
+    
     // Get response data
-    const contentType = response.headers.get('content-type');
+    const contentType = response.headers.get('content-type') || '';
     let data;
     
-    if (contentType && contentType.includes('application/json')) {
-      data = await response.json();
+    // Read response as text first to see what we got
+    const responseText = await response.text();
+    console.log(`[testing] Backend response body (first 500 chars):`, responseText.substring(0, 500));
+    
+    if (contentType.includes('application/json')) {
+      try {
+        data = JSON.parse(responseText);
+        console.log(`[testing] Parsed JSON response:`, JSON.stringify(data).substring(0, 200));
+      } catch (parseError) {
+        console.error(`[testing] Failed to parse JSON response:`, parseError);
+        console.error(`[testing] Response text:`, responseText);
+        data = responseText;
+      }
     } else {
-      data = await response.text();
+      data = responseText;
     }
     
-    // Forward response headers
+    // Forward response headers (excluding ones that shouldn't be forwarded)
+    const headersToSkip = ['content-encoding', 'transfer-encoding', 'connection'];
     response.headers.forEach((value, key) => {
-      res.setHeader(key, value);
+      if (!headersToSkip.includes(key.toLowerCase())) {
+        res.setHeader(key, value);
+      }
     });
     
     // Send response
-    res.status(response.status).send(data);
+    if (typeof data === 'object') {
+      res.status(response.status).json(data);
+    } else {
+      res.status(response.status).send(data);
+    }
+    
+    console.log(`[testing] Proxy response sent: status ${response.status}, data type: ${typeof data}`);
   } catch (error) {
     console.error(`[testing] Error proxying API request:`, error);
+    console.error(`[testing] Error stack:`, error.stack);
     res.status(500).json({
       success: false,
       error: 'Failed to proxy API request',
-      message: error.message
+      message: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 });
