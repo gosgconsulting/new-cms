@@ -9,7 +9,7 @@
 import express from 'express';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
-import { existsSync } from 'fs';
+import { existsSync, readFileSync } from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -28,6 +28,14 @@ const BACKEND_URL = process.env.CMS_BACKEND_URL ||
 console.log(`[testing] Backend API URL: ${BACKEND_URL}`);
 if (!process.env.CMS_BACKEND_URL && !process.env.VITE_API_BASE_URL) {
   console.warn(`[testing] WARNING: Using default backend URL. Set CMS_BACKEND_URL or VITE_API_BASE_URL for production.`);
+}
+
+// Get CMS_TENANT from environment variable
+const CMS_TENANT = process.env.CMS_TENANT;
+if (CMS_TENANT) {
+  console.log(`[testing] CMS_TENANT: ${CMS_TENANT} - Will inject into HTML`);
+} else {
+  console.warn(`[testing] WARNING: CMS_TENANT is not set. Theme may not be able to determine tenant ID.`);
 }
 
 // Parse JSON bodies for API requests
@@ -120,7 +128,42 @@ app.use((req, res, next) => {
   if (req.method === 'GET') {
     const indexPath = join(distPath, 'index.html');
     if (existsSync(indexPath)) {
-      res.sendFile(indexPath);
+      // Read the HTML file
+      let htmlContent = readFileSync(indexPath, 'utf-8');
+      
+      // Inject/update CMS_TENANT at runtime if it's set
+      // Runtime value takes precedence over build-time value
+      if (CMS_TENANT) {
+        const scriptTag = `
+    <script>
+      // Inject CMS_TENANT from environment variable at runtime (runtime value takes precedence)
+      window.__CMS_TENANT__ = '${CMS_TENANT}';
+    </script>`;
+        
+        // Check if __CMS_TENANT__ already exists in the HTML
+        if (htmlContent.includes('window.__CMS_TENANT__')) {
+          // Replace existing assignment (handles both build-time and previous runtime injection)
+          htmlContent = htmlContent.replace(
+            /window\.__CMS_TENANT__\s*=\s*['"][^'"]*['"];?/g,
+            `window.__CMS_TENANT__ = '${CMS_TENANT}';`
+          );
+          console.log(`[testing] Updated existing __CMS_TENANT__ to '${CMS_TENANT}' in HTML`);
+        } else {
+          // Inject new script tag before </head> or <body>
+          if (htmlContent.includes('</head>')) {
+            htmlContent = htmlContent.replace('</head>', `${scriptTag}\n  </head>`);
+          } else if (htmlContent.includes('<body>')) {
+            htmlContent = htmlContent.replace('<body>', `${scriptTag}\n  <body>`);
+          } else {
+            // Last resort: inject at the beginning of the body
+            htmlContent = htmlContent.replace('<body>', `<body>${scriptTag}`);
+          }
+          console.log(`[testing] Injected __CMS_TENANT__ = '${CMS_TENANT}' into HTML`);
+        }
+      }
+      
+      res.setHeader('Content-Type', 'text/html');
+      res.send(htmlContent);
     } else {
       res.status(404).json({ 
         status: 'error', 
