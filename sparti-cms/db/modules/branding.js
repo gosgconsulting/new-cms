@@ -35,18 +35,18 @@ export async function getBrandingSettings(tenantId = 'tenant-gosg', themeId = nu
       ]
     };
     
-    if (themeId) {
-      whereClause[Op.and].push({
-        [Op.or]: [
-          { theme_id: themeId },
-          { theme_id: null }
-        ]
-      });
-    } else {
-      whereClause[Op.and].push({
-        theme_id: null
-      });
-    }
+    // if (themeId) {
+    //   whereClause[Op.and].push({
+    //     [Op.or]: [
+    //       { theme_id: themeId },
+    //       { theme_id: null }
+    //     ]
+    //   });
+    // } else {
+    //   whereClause[Op.and].push({
+    //     theme_id: null
+    //   });
+    // }
     
     const orderClause = themeId
       ? [
