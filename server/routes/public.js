@@ -551,7 +551,7 @@ router.get('/theme/:themeSlug/branding', async (req, res) => {
     
     // themeSlug can be used directly as themeId in getBrandingSettings
     // The function accepts either theme ID or theme slug
-    const settings = await getBrandingSettings(tenantId, themeSlug);
+    const settings = await getBrandingSettings(tenantId);
     
     console.log(`[testing] Branding settings retrieved:`, {
       brandingKeys: Object.keys(settings.branding || {}),
