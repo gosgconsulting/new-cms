@@ -35,6 +35,7 @@ const TenantLanding: React.FC<TenantLandingProps> = ({
   }
   
   // Fetch branding settings from database
+  // Pass tenantId (not tenantSlug) to the hook
   const { branding, loading: brandingLoading, error: brandingError } = useThemeBranding(tenantSlug, effectiveTenantId);
   
   const [isContactDialogOpen, setIsContactDialogOpen] = useState(false);

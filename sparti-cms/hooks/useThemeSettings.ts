@@ -146,7 +146,7 @@ export const useThemeSettings = (
  */
 export const useThemeBranding = (
   themeSlug: string,
-  tenantSlug?: string
+  tenantId?: string
 ): { branding: ThemeBrandingSettings | null; loading: boolean; error: string | null } => {
   const [branding, setBranding] = useState<ThemeBrandingSettings | null>(null);
   const [loading, setLoading] = useState(true);
@@ -162,27 +162,50 @@ export const useThemeBranding = (
     setLoading(true);
     setError(null);
 
-    const apiUrl = tenantSlug 
-      ? `/api/v1/theme/${themeSlug}/branding?tenantId=${encodeURIComponent(tenantSlug)}`
-      : `/api/v1/theme/${themeSlug}/branding`;
+    // Get tenant ID from parameter, window object, or use default
+    const effectiveTenantId = tenantId || 
+      (typeof window !== 'undefined' && (window as any).__CMS_TENANT__) || 
+      null;
+
+    // Build API URL with tenant ID in query params
+    const apiUrl = effectiveTenantId
+      ? `/api/v1/theme/${themeSlug}/branding?tenantId=${encodeURIComponent(effectiveTenantId)}`
+      : `/api/v1/theme/${themeSlug}/branding?tenantId=tenant-gosg`; // Default fallback
+
+    console.log('[useThemeBranding] Fetching branding from:', apiUrl);
 
     fetch(apiUrl)
       .then(res => {
-        if (!res.ok) throw new Error(`Failed to fetch branding: ${res.statusText}`);
+        console.log('[useThemeBranding] Response status:', res.status);
+        if (!res.ok) {
+          // Try to get error message from response
+          return res.text().then(text => {
+            let errorData;
+            try {
+              errorData = JSON.parse(text);
+            } catch {
+              errorData = { error: text || `HTTP ${res.status}: ${res.statusText}` };
+            }
+            throw new Error(errorData.error || `Failed to fetch branding: ${res.statusText}`);
+          });
+        }
         return res.json();
       })
       .then(result => {
-        if (!result.success) throw new Error(result.error || 'Failed to fetch branding');
+        console.log('[useThemeBranding] Response data:', result);
+        if (!result.success) {
+          throw new Error(result.error || 'Failed to fetch branding');
+        }
         setBranding(result.data || {});
       })
       .catch(err => {
         const errorMessage = err instanceof Error ? err.message : 'Failed to fetch branding';
-        console.error('[useThemeBranding] Error:', errorMessage);
+        console.error('[useThemeBranding] Error:', errorMessage, err);
         setError(errorMessage);
         setBranding(null);
       })
       .finally(() => setLoading(false));
-  }, [themeSlug, tenantSlug]);
+  }, [themeSlug, tenantId]);
 
   return { branding, loading, error };
 };

@@ -539,18 +539,32 @@ router.get('/theme/:themeSlug/settings', async (req, res) => {
 router.get('/theme/:themeSlug/branding', async (req, res) => {
   try {
     // Get tenant ID from middleware, query param, or default to tenant-gosg
-    const tenantId = req.tenantId || req.query.tenantId || req.query.tenantId || 'tenant-gosg';
+    const tenantId = req.tenantId || req.query.tenantId || 'tenant-gosg';
     const { themeSlug } = req.params;
     
     console.log(`[testing] Fetching branding for theme: ${themeSlug}, tenant: ${tenantId}`);
+    console.log(`[testing] Request headers:`, {
+      'x-tenant-id': req.headers['x-tenant-id'],
+      'x-api-key': req.headers['x-api-key'] ? '***' : undefined,
+      query: req.query
+    });
     
+    // themeSlug can be used directly as themeId in getBrandingSettings
+    // The function accepts either theme ID or theme slug
     const settings = await getBrandingSettings(tenantId, themeSlug);
     
-    console.log(`[testing] Branding settings retrieved:`, Object.keys(settings.branding || {}));
+    console.log(`[testing] Branding settings retrieved:`, {
+      brandingKeys: Object.keys(settings.branding || {}),
+      seoKeys: Object.keys(settings.seo || {}),
+      localizationKeys: Object.keys(settings.localization || {}),
+      themeKeys: Object.keys(settings.theme || {})
+    });
     
+    // Return branding settings in the expected format
     res.json(successResponse(settings.branding || {}, tenantId));
   } catch (error) {
     console.error('[testing] Error fetching theme branding:', error);
+    console.error('[testing] Error stack:', error.stack);
     res.status(500).json(errorResponse(error, 'FETCH_THEME_BRANDING_ERROR'));
   }
 });
