@@ -98,7 +98,13 @@ export const useThemeSettings = (
         ? `/api/v1/theme/${themeSlug}/settings?tenantId=${encodeURIComponent(tenantSlug)}`
         : `/api/v1/theme/${themeSlug}/settings`;
 
-      const response = await fetch(apiUrl);
+      const response = await fetch(apiUrl, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8',
+          'Accept': 'application/json'
+        }
+      });
 
       if (!response.ok) {
         throw new Error(`Failed to fetch theme settings: ${response.statusText}`);
@@ -174,7 +180,13 @@ export const useThemeBranding = (
 
     console.log('[useThemeBranding] Fetching branding from:', apiUrl);
 
-    fetch(apiUrl)
+    fetch(apiUrl, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json; charset=utf-8',
+        'Accept': 'application/json'
+      }
+    })
       .then(res => {
         console.log('[useThemeBranding] Response status:', res.status);
         if (!res.ok) {
@@ -235,7 +247,13 @@ export const useThemeStyles = (
       ? `/api/v1/theme/${themeSlug}/styles?tenantId=${encodeURIComponent(tenantSlug)}`
       : `/api/v1/theme/${themeSlug}/styles`;
 
-    fetch(apiUrl)
+    fetch(apiUrl, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json; charset=utf-8',
+        'Accept': 'application/json'
+      }
+    })
       .then(res => {
         if (!res.ok) throw new Error(`Failed to fetch styles: ${res.statusText}`);
         return res.json();
