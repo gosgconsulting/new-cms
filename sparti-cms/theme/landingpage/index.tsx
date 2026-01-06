@@ -54,7 +54,22 @@ const TenantLanding: React.FC<TenantLandingProps> = ({
   // Apply favicon when branding loads
   useEffect(() => {
     if (faviconSrc && !brandingLoading) {
+      // Apply favicon immediately
       applyFavicon(faviconSrc);
+      
+      // Also apply after a short delay to ensure it persists (in case useSEO runs after)
+      const timeoutId = setTimeout(() => {
+        applyFavicon(faviconSrc);
+      }, 300);
+      
+      return () => {
+        clearTimeout(timeoutId);
+        // Clean up observer if it exists
+        if ((window as any).__faviconObserver) {
+          (window as any).__faviconObserver.disconnect();
+          delete (window as any).__faviconObserver;
+        }
+      };
     }
   }, [faviconSrc, brandingLoading]);
   

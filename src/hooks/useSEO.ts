@@ -171,9 +171,17 @@ export const useSEO = (options: SEOOptions = {}) => {
       updateMetaTag('meta[name="twitter:image"]', options.image || seoSettings.twitter_image || image);
     }
 
-    // Remove any favicon links - favicons are disabled
-    const existingFavicons = document.querySelectorAll('link[rel="icon"], link[rel="shortcut icon"], link[rel="apple-touch-icon"]');
-    existingFavicons.forEach(favicon => favicon.remove());
+    // Only remove favicon links if we're NOT in theme deployment mode
+    // In theme deployment mode, themes should be able to set their own favicons
+    if (!isThemeDeployment) {
+      // Remove any favicon links - favicons are disabled for CMS admin interface
+      const existingFavicons = document.querySelectorAll('link[rel="icon"], link[rel="shortcut icon"], link[rel="apple-touch-icon"]');
+      existingFavicons.forEach(favicon => favicon.remove());
+    } else {
+      // In theme mode, allow themes to manage their own favicons
+      // Don't remove existing favicons set by themes
+      console.log('[testing] Theme deployment mode - allowing theme-managed favicons');
+    }
 
     console.log('[testing] SEO meta tags updated:', {
       title,
