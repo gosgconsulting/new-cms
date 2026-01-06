@@ -2,6 +2,7 @@
 /**
  * Static server for standalone theme deployment
  * Serves static files from dist/ directory and provides a /health endpoint
+ * Proxies API requests to the backend CMS
  * Used when DEPLOY_THEME_SLUG is set to deploy theme-only frontend
  */
 
@@ -16,14 +17,88 @@ const __dirname = dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 4173;
 
+// Get backend API URL from environment variables
+// Priority: CMS_BACKEND_URL > VITE_API_BASE_URL > default
+// Note: For standalone theme deployments, set CMS_BACKEND_URL or VITE_API_BASE_URL
+// to point to your main CMS backend (e.g., https://cms.sparti.ai)
+const BACKEND_URL = process.env.CMS_BACKEND_URL || 
+                    process.env.VITE_API_BASE_URL || 
+                    'https://cms.sparti.ai';
+
+console.log(`[testing] Backend API URL: ${BACKEND_URL}`);
+if (!process.env.CMS_BACKEND_URL && !process.env.VITE_API_BASE_URL) {
+  console.warn(`[testing] WARNING: Using default backend URL. Set CMS_BACKEND_URL or VITE_API_BASE_URL for production.`);
+}
+
+// Parse JSON bodies for API requests
+app.use(express.json());
+
 // Health check endpoint (required by Railway) - must be first for fast response
 app.get('/health', (req, res) => {
   res.status(200).json({ 
     status: 'healthy', 
     timestamp: new Date().toISOString(),
     port: PORT,
-    mode: 'standalone-theme'
+    mode: 'standalone-theme',
+    backend: BACKEND_URL
   });
+});
+
+// Proxy API requests to backend CMS
+// This allows the static theme to make API calls to the backend
+app.use('/api', async (req, res) => {
+  try {
+    // Build target URL with query string
+    const queryString = Object.keys(req.query).length > 0 
+      ? '?' + new URLSearchParams(req.query).toString() 
+      : '';
+    const targetUrl = `${BACKEND_URL}${req.path}${queryString}`;
+    
+    console.log(`[testing] Proxying ${req.method} ${req.path}${queryString} to ${targetUrl}`);
+    
+    // Forward headers (excluding host and connection)
+    const headers = { ...req.headers };
+    delete headers.host;
+    delete headers.connection;
+    
+    // Make request to backend
+    const fetchOptions = {
+      method: req.method,
+      headers: headers,
+    };
+    
+    // Add body for non-GET/HEAD requests
+    if (req.method !== 'GET' && req.method !== 'HEAD' && req.body) {
+      fetchOptions.body = JSON.stringify(req.body);
+    }
+    
+    const response = await fetch(targetUrl, fetchOptions);
+    
+    // Get response data
+    const contentType = response.headers.get('content-type');
+    let data;
+    
+    if (contentType && contentType.includes('application/json')) {
+      data = await response.json();
+    } else {
+      data = await response.text();
+    }
+    
+    // Forward response headers
+    response.headers.forEach((value, key) => {
+      res.setHeader(key, value);
+    });
+    
+    // Send response
+    res.status(response.status).send(data);
+  } catch (error) {
+    console.error(`[testing] Error proxying API request:`, error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to proxy API request',
+      message: error.message
+    });
+  }
 });
 
 // Serve static files from the dist directory
