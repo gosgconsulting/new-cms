@@ -560,8 +560,9 @@ router.get('/theme/:themeSlug/branding', async (req, res) => {
       themeKeys: Object.keys(settings.theme || {})
     });
     
-    // Return branding settings in the expected format
-    res.json(successResponse(settings.branding || {}, tenantId));
+    // Return the same format as /api/branding endpoint
+    // This returns the full settings object with branding, seo, localization, and theme categories
+    res.json(settings);
   } catch (error) {
     console.error('[testing] Error fetching theme branding:', error);
     console.error('[testing] Error stack:', error.stack);
