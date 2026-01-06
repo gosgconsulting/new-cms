@@ -7,6 +7,8 @@ const { SiteSchema, SiteSetting } = models;
 // Includes master fallback (tenant_id IS NULL) for missing tenant-specific settings
 export async function getBrandingSettings(tenantId = 'tenant-gosg', themeId = null) {
   try {
+    console.log(`[testing] getBrandingSettings called with tenantId: ${tenantId}, themeId: ${themeId}`);
+    
     const whereClause = {
       [Op.and]: [
         {
@@ -15,9 +17,13 @@ export async function getBrandingSettings(tenantId = 'tenant-gosg', themeId = nu
           }
         },
         {
+          // For public API, we want public settings OR theme settings OR branding/localization settings
+          // Branding and localization settings should be public by default
           [Op.or]: [
             { is_public: true },
-            { setting_category: 'theme' }
+            { setting_category: 'theme' },
+            { setting_category: 'branding' },
+            { setting_category: 'localization' }
           ]
         },
         {
@@ -64,6 +70,17 @@ export async function getBrandingSettings(tenantId = 'tenant-gosg', themeId = nu
       attributes: ['setting_key', 'setting_value', 'setting_type', 'setting_category', 'is_public', 'tenant_id', 'theme_id']
     });
     
+    console.log(`[testing] getBrandingSettings found ${results.length} settings for tenant ${tenantId}, theme ${themeId}`);
+    if (results.length > 0) {
+      console.log(`[testing] Sample settings:`, results.slice(0, 3).map(r => ({
+        key: r.setting_key,
+        category: r.setting_category,
+        is_public: r.is_public,
+        tenant_id: r.tenant_id,
+        theme_id: r.theme_id
+      })));
+    }
+    
     // Convert to object format grouped by category
     // Prefer tenant-specific over master, theme-specific over tenant-only
     const settings = {
@@ -91,6 +108,13 @@ export async function getBrandingSettings(tenantId = 'tenant-gosg', themeId = nu
           seenKeys.add(key);
         }
       }
+    });
+    
+    console.log(`[testing] getBrandingSettings returning:`, {
+      brandingKeys: Object.keys(settings.branding),
+      seoKeys: Object.keys(settings.seo),
+      localizationKeys: Object.keys(settings.localization),
+      themeKeys: Object.keys(settings.theme)
     });
     
     return settings;
