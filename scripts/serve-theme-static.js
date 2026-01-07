@@ -237,8 +237,9 @@ app.use(async (req, res, next) => {
       }
       
       // Fetch and inject branding settings directly from database
+      let brandingData = null;
       if (CMS_TENANT) {
-        const brandingData = await getBrandingSettingsDirect(CMS_TENANT, THEME_SLUG);
+        brandingData = await getBrandingSettingsDirect(CMS_TENANT, THEME_SLUG);
         if (brandingData && Object.keys(brandingData).length > 0) {
           // Escape the JSON string for safe injection into HTML
           const brandingJson = JSON.stringify(brandingData).replace(/</g, '\\u003c').replace(/>/g, '\\u003e');
@@ -247,6 +248,50 @@ app.use(async (req, res, next) => {
         } else {
           console.warn(`[testing] No branding data to inject (empty or null)`);
         }
+      }
+      
+      // Update favicon from branding if available
+      if (brandingData && brandingData.site_favicon) {
+        // Replace favicon links
+        htmlContent = htmlContent.replace(
+          /<link[^>]*rel=["'](icon|apple-touch-icon)["'][^>]*>/g,
+          (match) => {
+            if (match.includes('rel="icon"') || match.includes("rel='icon'")) {
+              return `<link rel="icon" type="image/png" href="${brandingData.site_favicon}" />`;
+            } else if (match.includes('rel="apple-touch-icon"') || match.includes("rel='apple-touch-icon'")) {
+              return `<link rel="apple-touch-icon" href="${brandingData.site_favicon}" />`;
+            }
+            return match;
+          }
+        );
+        // If no favicon links found, add them
+        if (!htmlContent.includes('rel="icon"') && !htmlContent.includes("rel='icon'")) {
+          const faviconTags = `    <link rel="icon" type="image/png" href="${brandingData.site_favicon}" />\n    <link rel="apple-touch-icon" href="${brandingData.site_favicon}" />\n`;
+          if (htmlContent.includes('</head>')) {
+            htmlContent = htmlContent.replace('</head>', `${faviconTags}  </head>`);
+          } else if (htmlContent.includes('<body>')) {
+            htmlContent = htmlContent.replace('<body>', `${faviconTags}  <body>`);
+          }
+        }
+        console.log(`[testing] Updated favicon from branding: ${brandingData.site_favicon}`);
+      }
+      
+      // Update title from branding if available
+      if (brandingData && brandingData.site_name) {
+        // Escape HTML entities for safety
+        const escapedTitle = brandingData.site_name
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+        
+        // Replace title tag
+        htmlContent = htmlContent.replace(
+          /<title[^>]*>.*?<\/title>/i,
+          `<title>${escapedTitle}</title>`
+        );
+        console.log(`[testing] Updated title from branding: ${escapedTitle}`);
       }
       
       // Inject script tag if we have content
