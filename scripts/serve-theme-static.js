@@ -120,6 +120,10 @@ app.use('/api', async (req, res) => {
     delete headers.connection;
     delete headers['content-length']; // Let fetch set this
     
+    // Set Accept-Encoding to avoid zstd compression (Node.js fetch doesn't support zstd)
+    // Request only encodings that Node.js can automatically decompress
+    headers['accept-encoding'] = 'gzip, deflate, br';
+    
     // Make request to backend
     const fetchOptions = {
       method: req.method,
@@ -145,33 +149,67 @@ app.use('/api', async (req, res) => {
     let data;
     
     // Check if response is compressed
-    if (contentEncoding && (contentEncoding.includes('gzip') || contentEncoding.includes('deflate') || contentEncoding.includes('br'))) {
-      console.log(`[testing] Response is compressed with ${contentEncoding}, will decompress automatically`);
-    }
-    
-    // For JSON responses, use .json() which handles decompression automatically
-    if (contentType.includes('application/json')) {
-      try {
-        // Use .json() directly - it handles decompression automatically
-        data = await response.json();
-        console.log(`[testing] Parsed JSON response (keys):`, typeof data === 'object' ? Object.keys(data) : 'not an object');
-      } catch (parseError) {
-        console.error(`[testing] Failed to parse JSON response:`, parseError);
-        // Fallback: try reading as text
+    if (contentEncoding) {
+      if (contentEncoding.includes('zstd')) {
+        console.warn(`[testing] Response is compressed with zstd (not supported by Node.js fetch), requesting uncompressed or gzip`);
+        // zstd is not supported by Node.js fetch - we need to handle this
+        // Try to read as text first, which might fail
         try {
           const responseText = await response.text();
-          console.error(`[testing] Response text (first 500 chars):`, responseText.substring(0, 500));
+          if (contentType.includes('application/json')) {
+            data = JSON.parse(responseText);
+          } else {
+            data = responseText;
+          }
+        } catch (error) {
+          console.error(`[testing] Failed to read zstd-compressed response:`, error.message);
+          // Return error response
+          res.status(502).json({
+            success: false,
+            error: 'Backend response uses unsupported compression (zstd)',
+            message: 'Please configure backend to use gzip, deflate, or br compression'
+          });
+          return;
+        }
+      } else if (contentEncoding.includes('gzip') || contentEncoding.includes('deflate') || contentEncoding.includes('br')) {
+        console.log(`[testing] Response is compressed with ${contentEncoding}, will decompress automatically`);
+        // For JSON responses, use .json() which handles decompression automatically for gzip/deflate/br
+        if (contentType.includes('application/json')) {
+          try {
+            data = await response.json();
+            console.log(`[testing] Parsed JSON response (keys):`, typeof data === 'object' ? Object.keys(data) : 'not an object');
+          } catch (parseError) {
+            console.error(`[testing] Failed to parse JSON response:`, parseError);
+            throw parseError;
+          }
+        } else {
+          data = await response.text();
+          console.log(`[testing] Backend response body (first 500 chars):`, data.substring(0, 500));
+        }
+      } else {
+        // Unknown compression - try to read as text
+        console.warn(`[testing] Unknown compression: ${contentEncoding}, attempting to read as text`);
+        const responseText = await response.text();
+        if (contentType.includes('application/json')) {
           data = JSON.parse(responseText);
-        } catch (textParseError) {
-          console.error(`[testing] Also failed to parse as text:`, textParseError);
-          throw parseError;
+        } else {
+          data = responseText;
         }
       }
     } else {
-      // For non-JSON, read as text
-      const responseText = await response.text();
-      console.log(`[testing] Backend response body (first 500 chars):`, responseText.substring(0, 500));
-      data = responseText;
+      // No compression - read normally
+      if (contentType.includes('application/json')) {
+        try {
+          data = await response.json();
+          console.log(`[testing] Parsed JSON response (keys):`, typeof data === 'object' ? Object.keys(data) : 'not an object');
+        } catch (parseError) {
+          console.error(`[testing] Failed to parse JSON response:`, parseError);
+          throw parseError;
+        }
+      } else {
+        data = await response.text();
+        console.log(`[testing] Backend response body (first 500 chars):`, data.substring(0, 500));
+      }
     }
     
     // Forward response headers (excluding ones that shouldn't be forwarded)
