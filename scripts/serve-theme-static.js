@@ -10,7 +10,7 @@ import express from 'express';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { existsSync, readFileSync } from 'fs';
-import { getBrandingSettings } from '../sparti-cms/db/modules/branding.js';
+// Don't import database function at top level - import lazily to avoid blocking server startup
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -44,6 +44,7 @@ const THEME_SLUG = process.env.DEPLOY_THEME_SLUG || 'landingpage';
 console.log(`[testing] Theme slug: ${THEME_SLUG}`);
 
 // Helper function to get branding settings directly from database
+// Uses lazy import to avoid blocking server startup
 async function getBrandingSettingsDirect(tenantId, themeSlug) {
   if (!tenantId) {
     console.warn(`[testing] No tenant ID provided, skipping branding fetch`);
@@ -52,6 +53,10 @@ async function getBrandingSettingsDirect(tenantId, themeSlug) {
   
   try {
     console.log(`[testing] Fetching branding settings from database for tenant: ${tenantId}, theme: ${themeSlug}`);
+    
+    // Lazy import - only load database module when needed
+    // This prevents database connection from blocking server startup
+    const { getBrandingSettings } = await import('../sparti-cms/db/modules/branding.js');
     
     // Call the shared function directly from the database module
     const settings = await getBrandingSettings(tenantId);
@@ -65,6 +70,7 @@ async function getBrandingSettingsDirect(tenantId, themeSlug) {
   } catch (error) {
     console.error(`[testing] Error fetching branding settings from database:`, error);
     console.error(`[testing] Error stack:`, error.stack);
+    // Don't throw - return null so server can still serve HTML without branding
     return null;
   }
 }
