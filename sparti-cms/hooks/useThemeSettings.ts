@@ -169,80 +169,122 @@ export const useThemeBranding = (
     setError(null);
 
     // First, check if branding settings are already injected in the HTML
-    if (typeof window !== 'undefined' && (window as any).__BRANDING_SETTINGS__) {
-      const injectedBranding = (window as any).__BRANDING_SETTINGS__;
-      console.log('[useThemeBranding] Using injected branding settings from HTML');
-      setBranding(injectedBranding);
-      setLoading(false);
+    // Use a small delay to ensure window object and injected scripts are available
+    const checkInjectedData = () => {
+      if (typeof window !== 'undefined') {
+        const injectedBranding = (window as any).__BRANDING_SETTINGS__;
+        console.log('[useThemeBranding] Checking for injected branding:', {
+          exists: !!injectedBranding,
+          type: typeof injectedBranding,
+          keys: injectedBranding && typeof injectedBranding === 'object' ? Object.keys(injectedBranding) : 'N/A'
+        });
+        
+        if (injectedBranding && typeof injectedBranding === 'object' && Object.keys(injectedBranding).length > 0) {
+          console.log('[useThemeBranding] ✅ Using injected branding settings from HTML:', Object.keys(injectedBranding));
+          setBranding(injectedBranding);
+          setLoading(false);
+          return true;
+        } else {
+          console.log('[useThemeBranding] ⚠️ Injected branding not found or empty, will fetch from API');
+        }
+      } else {
+        console.log('[useThemeBranding] ⚠️ Window object not available, will fetch from API');
+      }
+      return false;
+    };
+
+    // Check immediately
+    if (checkInjectedData()) {
       return;
     }
 
-    // If not injected, fetch from API
-    // Get tenant ID from parameter, window object, or use default
-    const effectiveTenantId = tenantId || 
-      (typeof window !== 'undefined' && (window as any).__CMS_TENANT__) || 
-      null;
-
-    // Build API URL with tenant ID in query params
-    const apiUrl = effectiveTenantId
-      ? `/api/v1/theme/${themeSlug}/branding?tenantId=${encodeURIComponent(effectiveTenantId)}`
-      : `/api/v1/theme/${themeSlug}/branding?tenantId=tenant-gosg`; // Default fallback
-
-    console.log('[useThemeBranding] Fetching branding from API:', apiUrl);
-
-    fetch(apiUrl, {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-        'Accept-Encoding': 'gzip, deflate, br'
+    // Also check after a small delay (in case script hasn't executed yet)
+    const timeoutId = setTimeout(() => {
+      if (checkInjectedData()) {
+        return;
       }
-    })
-      .then(async (res) => {
-        console.log('[useThemeBranding] Response status:', res.status);
-        console.log('[useThemeBranding] Response headers:', Object.fromEntries(res.headers.entries()));
-        
-        if (!res.ok) {
-          // Try to get error message from response
-          const text = await res.text();
-          let errorData;
-          try {
-            errorData = JSON.parse(text);
-          } catch {
-            errorData = { error: text || `HTTP ${res.status}: ${res.statusText}` };
+      // If still not found, proceed with API call
+      proceedWithApiCall();
+    }, 100);
+
+    const proceedWithApiCall = () => {
+      clearTimeout(timeoutId);
+
+      // Get tenant ID from parameter, window object, or use default
+      const effectiveTenantId = tenantId || 
+        (typeof window !== 'undefined' && (window as any).__CMS_TENANT__) || 
+        null;
+
+      // Build API URL with tenant ID in query params
+      const apiUrl = effectiveTenantId
+        ? `/api/v1/theme/${themeSlug}/branding?tenantId=${encodeURIComponent(effectiveTenantId)}`
+        : `/api/v1/theme/${themeSlug}/branding?tenantId=tenant-gosg`; // Default fallback
+
+      console.log('[useThemeBranding] Fetching branding from API:', apiUrl);
+
+      fetch(apiUrl, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json'
+          // Don't set Accept-Encoding - let the browser handle it automatically
+        }
+      })
+        .then(async (res) => {
+          console.log('[useThemeBranding] Response status:', res.status);
+          const contentType = res.headers.get('content-type') || '';
+          console.log('[useThemeBranding] Response content-type:', contentType);
+          
+          if (!res.ok) {
+            // Try to get error message from response
+            const text = await res.text();
+            let errorData;
+            try {
+              errorData = JSON.parse(text);
+            } catch {
+              errorData = { error: text || `HTTP ${res.status}: ${res.statusText}` };
+            }
+            throw new Error(errorData.error || `Failed to fetch branding: ${res.statusText}`);
           }
-          throw new Error(errorData.error || `Failed to fetch branding: ${res.statusText}`);
-        }
-        
-        // Read response as text first to handle any encoding issues
-        const text = await res.text();
-        console.log('[useThemeBranding] Response text (first 200 chars):', text.substring(0, 200));
-        
-        // Parse JSON from text
-        let result;
-        try {
-          result = JSON.parse(text);
-        } catch (parseError) {
-          console.error('[useThemeBranding] Failed to parse JSON:', parseError);
-          console.error('[useThemeBranding] Response text:', text);
-          throw new Error('Invalid JSON response from server');
-        }
-        
-        return result;
-      })
-      .then(result => {
-        console.log('[useThemeBranding] Response data:', result);
-        if (!result.success) {
-          throw new Error(result.error || 'Failed to fetch branding');
-        }
-        setBranding(result.data || {});
-      })
-      .catch(err => {
-        const errorMessage = err instanceof Error ? err.message : 'Failed to fetch branding';
-        console.error('[useThemeBranding] Error:', errorMessage, err);
-        setError(errorMessage);
-        setBranding(null);
-      })
-      .finally(() => setLoading(false));
+          
+          // Check if response is JSON
+          if (!contentType.includes('application/json')) {
+            const text = await res.text();
+            console.error('[useThemeBranding] Non-JSON response:', text.substring(0, 200));
+            throw new Error(`Expected JSON but received ${contentType}`);
+          }
+          
+          // Use .json() directly - it handles decompression automatically
+          const result = await res.json();
+          console.log('[useThemeBranding] Response data:', result);
+          
+          return result;
+        })
+        .then(result => {
+          // Handle response format: { success: true, data: {...} } or direct branding object
+          let brandingData;
+          if (result.success && result.data) {
+            brandingData = result.data;
+          } else if (result.branding) {
+            brandingData = result.branding;
+          } else {
+            brandingData = result;
+          }
+          
+          setBranding(brandingData || {});
+        })
+        .catch(err => {
+          const errorMessage = err instanceof Error ? err.message : 'Failed to fetch branding';
+          console.error('[useThemeBranding] Error:', errorMessage, err);
+          setError(errorMessage);
+          setBranding(null);
+        })
+        .finally(() => setLoading(false));
+    };
+
+    // If not found immediately, proceed with API call after delay
+    if (!checkInjectedData()) {
+      proceedWithApiCall();
+    }
   }, [themeSlug, tenantId]);
 
   return { branding, loading, error };

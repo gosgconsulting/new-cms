@@ -10,6 +10,7 @@ import express from 'express';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { existsSync, readFileSync } from 'fs';
+import { getBrandingSettings } from '../sparti-cms/db/modules/branding.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -42,59 +43,28 @@ if (CMS_TENANT) {
 const THEME_SLUG = process.env.DEPLOY_THEME_SLUG || 'landingpage';
 console.log(`[testing] Theme slug: ${THEME_SLUG}`);
 
-// Helper function to fetch branding settings from backend
-async function fetchBrandingSettings(tenantId, themeSlug) {
+// Helper function to get branding settings directly from database
+async function getBrandingSettingsDirect(tenantId, themeSlug) {
   if (!tenantId) {
     console.warn(`[testing] No tenant ID provided, skipping branding fetch`);
     return null;
   }
   
   try {
-    const apiUrl = `${BACKEND_URL}/api/v1/theme/${themeSlug}/branding?tenantId=${encodeURIComponent(tenantId)}`;
-    console.log(`[testing] Fetching branding settings from: ${apiUrl}`);
+    console.log(`[testing] Fetching branding settings from database for tenant: ${tenantId}, theme: ${themeSlug}`);
     
-    const response = await fetch(apiUrl, {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-        'Accept-Encoding': 'gzip, deflate, br'
-      }
-    });
+    // Call the shared function directly from the database module
+    const settings = await getBrandingSettings(tenantId);
     
-    if (!response.ok) {
-      console.error(`[testing] Failed to fetch branding: ${response.status} ${response.statusText}`);
-      return null;
-    }
+    // Extract branding data from the settings object
+    // getBrandingSettings returns: { branding: {...}, seo: {...}, localization: {...}, theme: {...} }
+    const brandingData = settings.branding || {};
     
-    const text = await response.text();
-    let data;
-    try {
-      data = JSON.parse(text);
-    } catch (parseError) {
-      console.error(`[testing] Failed to parse branding response:`, parseError);
-      return null;
-    }
-    
-    // Extract branding data from response
-    // Response format from /api/v1/theme/:themeSlug/branding: 
-    // { success: true, data: { site_name: "...", site_logo: "...", ... }, meta: {...} }
-    // The data field contains the branding object directly (not nested)
-    let brandingData = {};
-    if (data.success && data.data) {
-      // Response is wrapped in successResponse, extract data field
-      brandingData = data.data;
-    } else if (data.branding) {
-      // Direct branding object (fallback)
-      brandingData = data.branding;
-    } else {
-      // Use data as-is if it's already a branding object
-      brandingData = data;
-    }
-    
-    console.log(`[testing] Branding settings fetched:`, Object.keys(brandingData));
+    console.log(`[testing] Branding settings fetched from database:`, Object.keys(brandingData));
     return brandingData;
   } catch (error) {
-    console.error(`[testing] Error fetching branding settings:`, error);
+    console.error(`[testing] Error fetching branding settings from database:`, error);
+    console.error(`[testing] Error stack:`, error.stack);
     return null;
   }
 }
@@ -159,26 +129,41 @@ app.use('/api', async (req, res) => {
     const response = await fetch(targetUrl, fetchOptions);
     
     console.log(`[testing] Backend response status: ${response.status}`);
-    console.log(`[testing] Backend response headers:`, Object.fromEntries(response.headers.entries()));
+    const responseHeaders = Object.fromEntries(response.headers.entries());
+    console.log(`[testing] Backend response headers:`, responseHeaders);
     
     // Get response data
     const contentType = response.headers.get('content-type') || '';
+    const contentEncoding = response.headers.get('content-encoding') || '';
     let data;
     
-    // Read response as text first to see what we got
-    const responseText = await response.text();
-    console.log(`[testing] Backend response body (first 500 chars):`, responseText.substring(0, 500));
+    // Check if response is compressed
+    if (contentEncoding && (contentEncoding.includes('gzip') || contentEncoding.includes('deflate') || contentEncoding.includes('br'))) {
+      console.log(`[testing] Response is compressed with ${contentEncoding}, will decompress automatically`);
+    }
     
+    // For JSON responses, use .json() which handles decompression automatically
     if (contentType.includes('application/json')) {
       try {
-        data = JSON.parse(responseText);
-        console.log(`[testing] Parsed JSON response:`, JSON.stringify(data).substring(0, 200));
+        // Use .json() directly - it handles decompression automatically
+        data = await response.json();
+        console.log(`[testing] Parsed JSON response (keys):`, typeof data === 'object' ? Object.keys(data) : 'not an object');
       } catch (parseError) {
         console.error(`[testing] Failed to parse JSON response:`, parseError);
-        console.error(`[testing] Response text:`, responseText);
-        data = responseText;
+        // Fallback: try reading as text
+        try {
+          const responseText = await response.text();
+          console.error(`[testing] Response text (first 500 chars):`, responseText.substring(0, 500));
+          data = JSON.parse(responseText);
+        } catch (textParseError) {
+          console.error(`[testing] Also failed to parse as text:`, textParseError);
+          throw parseError;
+        }
       }
     } else {
+      // For non-JSON, read as text
+      const responseText = await response.text();
+      console.log(`[testing] Backend response body (first 500 chars):`, responseText.substring(0, 500));
       data = responseText;
     }
     
@@ -244,13 +229,16 @@ app.use(async (req, res, next) => {
         scriptContent += `      window.__CMS_TENANT__ = '${CMS_TENANT.replace(/'/g, "\\'")}';\n`;
       }
       
-      // Fetch and inject branding settings
+      // Fetch and inject branding settings directly from database
       if (CMS_TENANT) {
-        const brandingData = await fetchBrandingSettings(CMS_TENANT, THEME_SLUG);
-        if (brandingData) {
+        const brandingData = await getBrandingSettingsDirect(CMS_TENANT, THEME_SLUG);
+        if (brandingData && Object.keys(brandingData).length > 0) {
           // Escape the JSON string for safe injection into HTML
           const brandingJson = JSON.stringify(brandingData).replace(/</g, '\\u003c').replace(/>/g, '\\u003e');
           scriptContent += `      window.__BRANDING_SETTINGS__ = ${brandingJson};\n`;
+          console.log(`[testing] Injected branding settings into HTML:`, Object.keys(brandingData));
+        } else {
+          console.warn(`[testing] No branding data to inject (empty or null)`);
         }
       }
       
