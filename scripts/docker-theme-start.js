@@ -6,7 +6,8 @@
  */
 
 // Check environment variable - be explicit about checking for truthy values
-const deployThemeSlug = process.env.VITE_DEPLOY_THEME_SLUG;
+// Check DEPLOY_THEME_SLUG first (set by Dockerfile), then fall back to VITE_DEPLOY_THEME_SLUG
+const deployThemeSlug = process.env.DEPLOY_THEME_SLUG || process.env.VITE_DEPLOY_THEME_SLUG;
 const port = process.env.PORT || 4173;
 
 // Log all environment variables for debugging (but not sensitive ones)

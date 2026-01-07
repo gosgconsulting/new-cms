@@ -40,7 +40,8 @@ if (CMS_TENANT) {
 }
 
 // Get theme slug from environment variable
-const THEME_SLUG = process.env.VITE_DEPLOY_THEME_SLUG || 'landingpage';
+// Check DEPLOY_THEME_SLUG first (set by Dockerfile), then fall back to VITE_DEPLOY_THEME_SLUG
+const THEME_SLUG = process.env.DEPLOY_THEME_SLUG || process.env.VITE_DEPLOY_THEME_SLUG || 'landingpage';
 console.log(`[testing] Theme slug: ${THEME_SLUG}`);
 
 // Helper function to get branding settings directly from database
