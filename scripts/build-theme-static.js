@@ -16,7 +16,6 @@ import react from '@vitejs/plugin-react-swc';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
-import { themeDevPlugin } from '../vite-plugin-theme-dev.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -262,21 +261,10 @@ async function createStandaloneHtml() {
 const brandingData = await createStandaloneHtml();
 
 // Build configuration for theme-only build
-// Include themeDevPlugin to ensure branding is injected during build
-const buildPlugins = [react()];
-if (cmsTenant) {
-  // Add theme dev plugin to inject branding during build
-  buildPlugins.push(themeDevPlugin(themeSlug, cmsTenant));
-  // Set environment variables for the plugin
-  process.env.VITE_DEPLOY_THEME_SLUG = themeSlug;
-  process.env.CMS_TENANT = cmsTenant;
-  if (brandingData) {
-    process.env.BRANDING_SETTINGS_JSON = JSON.stringify(brandingData);
-  }
-}
-
+// Note: Branding is already injected directly into the HTML template above
+// We don't need the plugin here since we're doing direct injection
 const buildConfig = defineConfig({
-  plugins: buildPlugins,
+  plugins: [react()],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, '..', 'src'),
