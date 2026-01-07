@@ -3,10 +3,23 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 import dyadComponentTagger from '@dyad-sh/react-vite-component-tagger';
-
+import { themeDevPlugin } from './vite-plugin-theme-dev';
 
 // https://vitejs.dev/config/
-export default defineConfig(({ mode }) => ({
+export default defineConfig(({ mode }) => {
+  const plugins = [
+    dyadComponentTagger(), 
+    react(),
+    mode === 'development' && componentTagger(),
+  ].filter(Boolean);
+  
+  // Add theme dev plugin if in theme dev mode
+  if (process.env.VITE_DEV_THEME_SLUG || process.env.DEPLOY_THEME_SLUG || process.env.THEME_DEV_MODE) {
+    const themeSlug = process.env.VITE_DEV_THEME_SLUG || process.env.DEPLOY_THEME_SLUG || 'landingpage';
+    plugins.push(themeDevPlugin(themeSlug));
+  }
+  
+  return {
   server: {
     host: "::",
     port: 8080,
@@ -18,11 +31,7 @@ export default defineConfig(({ mode }) => ({
       }
     }
   },
-  plugins: [dyadComponentTagger(), 
-    react(),
-    mode === 'development' &&
-    componentTagger(),
-  ].filter(Boolean),
+  plugins,
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
@@ -41,4 +50,5 @@ export default defineConfig(({ mode }) => ({
       include: [/node_modules/],
     },
   },
-}));
+  };
+});
