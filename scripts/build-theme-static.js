@@ -16,6 +16,7 @@ import react from '@vitejs/plugin-react-swc';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
+import { themeDevPlugin } from '../vite-plugin-theme-dev.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -49,6 +50,41 @@ if (cmsTenant) {
 } else {
   console.warn('[testing] WARNING: CMS_TENANT is not set');
   console.warn('[testing] Theme will need to determine tenant from URL or other means.');
+}
+
+// Helper function to fetch branding during build
+async function fetchBrandingForBuild(themeSlug, tenantId) {
+  // Check for branding in environment variable first
+  if (process.env.BRANDING_SETTINGS_JSON) {
+    try {
+      const branding = JSON.parse(process.env.BRANDING_SETTINGS_JSON);
+      console.log(`[testing] Using branding from BRANDING_SETTINGS_JSON env var`);
+      return branding;
+    } catch (error) {
+      console.warn(`[testing] Failed to parse BRANDING_SETTINGS_JSON:`, error);
+    }
+  }
+
+  // Try to fetch from database if tenant ID is provided
+  if (tenantId) {
+    try {
+      console.log(`[testing] Fetching branding from database for tenant: ${tenantId}`);
+      const { getBrandingSettings } = await import('../sparti-cms/db/modules/branding.js');
+      const settings = await getBrandingSettings(tenantId);
+      const brandingData = settings.branding || {};
+      
+      if (brandingData && Object.keys(brandingData).length > 0) {
+        console.log(`[testing] Fetched branding from database:`, Object.keys(brandingData));
+        return brandingData;
+      } else {
+        console.warn(`[testing] No branding data found in database for tenant: ${tenantId}`);
+      }
+    } catch (error) {
+      console.warn(`[testing] Could not fetch branding from database (database may not be available):`, error.message);
+    }
+  }
+
+  return null;
 }
 
 console.log(`[testing] Building static export for theme: ${themeSlug}`);
@@ -145,22 +181,68 @@ if (fs.existsSync(originalIndexPath)) {
   console.log(`[testing] Backed up original index.html`);
 }
 
-// Create standalone HTML file that uses our theme-only entry point
-const standaloneHtmlContent = `<!doctype html>
+// Fetch branding data and create HTML (async wrapper)
+async function createStandaloneHtml() {
+  // Fetch branding data before creating HTML
+  let brandingData = null;
+  if (cmsTenant) {
+    brandingData = await fetchBrandingForBuild(themeSlug, cmsTenant);
+  }
+
+  // Build script content for injection
+  let scriptContent = `
+      // Set flag to indicate theme deployment mode
+      window.__THEME_DEPLOYMENT__ = true;
+      window.__THEME_SLUG__ = '${themeSlug}';`;
+  if (cmsTenant) {
+    scriptContent += `\n      window.__CMS_TENANT__ = '${cmsTenant.replace(/'/g, "\\'")}';`;
+  }
+  if (brandingData && Object.keys(brandingData).length > 0) {
+    // Escape JSON for safe injection into HTML
+    const brandingJson = JSON.stringify(brandingData)
+      .replace(/</g, '\\u003c')
+      .replace(/>/g, '\\u003e')
+      .replace(/\//g, '\\/');
+    scriptContent += `\n      window.__BRANDING_SETTINGS__ = ${brandingJson};`;
+    console.log(`[testing] Branding will be injected into HTML:`, Object.keys(brandingData));
+  }
+
+  // Get favicon from branding or use default
+  const faviconUrl = (brandingData && brandingData.site_favicon) 
+    ? brandingData.site_favicon 
+    : '/favicon.png';
+  
+  // Get title from branding or use theme title
+  // Escape HTML entities for safety
+  const getPageTitle = () => {
+    if (brandingData && brandingData.site_name) {
+      return brandingData.site_name
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+    return themeTitle;
+  };
+  const pageTitle = getPageTitle();
+  
+  if (brandingData && brandingData.site_favicon) {
+    console.log(`[testing] Using favicon from branding: ${faviconUrl}`);
+  }
+
+  // Create standalone HTML file that uses our theme-only entry point
+  const standaloneHtmlContent = `<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>${themeTitle}</title>
-    <link rel="icon" type="image/png" href="/favicon.png" />
-    <link rel="apple-touch-icon" href="/favicon.png" />
+    <title>${pageTitle}</title>
+    <link rel="icon" type="image/png" href="${faviconUrl}" />
+    <link rel="apple-touch-icon" href="${faviconUrl}" />
     <!-- Allow indexing for theme deployments -->
     <meta name="robots" content="index, follow" />
-    <script>
-      // Set flag to indicate theme deployment mode
-      window.__THEME_DEPLOYMENT__ = true;
-      window.__THEME_SLUG__ = '${themeSlug}';
-      ${cmsTenant ? `window.__CMS_TENANT__ = '${cmsTenant}';` : ''}
+    <script>${scriptContent}
     </script>
   </head>
   <body>
@@ -170,12 +252,31 @@ const standaloneHtmlContent = `<!doctype html>
 </html>
 `;
 
-fs.writeFileSync(originalIndexPath, standaloneHtmlContent);
-console.log(`[testing] Created standalone HTML with theme at /`);
+  fs.writeFileSync(originalIndexPath, standaloneHtmlContent);
+  console.log(`[testing] Created standalone HTML with theme at /`);
+  
+  return brandingData;
+}
+
+// Create HTML with branding
+const brandingData = await createStandaloneHtml();
 
 // Build configuration for theme-only build
+// Include themeDevPlugin to ensure branding is injected during build
+const buildPlugins = [react()];
+if (cmsTenant) {
+  // Add theme dev plugin to inject branding during build
+  buildPlugins.push(themeDevPlugin(themeSlug, cmsTenant));
+  // Set environment variables for the plugin
+  process.env.VITE_DEPLOY_THEME_SLUG = themeSlug;
+  process.env.CMS_TENANT = cmsTenant;
+  if (brandingData) {
+    process.env.BRANDING_SETTINGS_JSON = JSON.stringify(brandingData);
+  }
+}
+
 const buildConfig = defineConfig({
-  plugins: [react()],
+  plugins: buildPlugins,
   resolve: {
     alias: {
       "@": path.resolve(__dirname, '..', 'src'),
@@ -242,8 +343,10 @@ function verifyBuildOutput() {
   console.log(`[testing] Build verification passed: ${distContents.length} files in dist/`);
 }
 
-build(buildConfig)
-  .then(() => {
+// Build the theme
+(async () => {
+  try {
+    await build(buildConfig);
     // Verify build output
     verifyBuildOutput();
     
@@ -266,11 +369,11 @@ build(buildConfig)
     } catch (error) {
       console.warn(`[testing] Warning: Could not clean up temporary files:`, error);
     }
-  })
-  .catch((error) => {
+  } catch (error) {
     console.error(`[testing] Build failed:`, error);
     // Cleanup on failure
     cleanupOnFailure();
     process.exit(1);
-  });
+  }
+})();
 
