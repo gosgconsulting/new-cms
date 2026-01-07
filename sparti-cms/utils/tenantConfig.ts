@@ -9,7 +9,7 @@
  * Get the tenant ID from environment
  * Priority:
  * 1. window.__CMS_TENANT__ (injected at build time for theme deployments)
- * 2. import.meta.env.VITE_CMS_TENANT (Vite environment variable)
+ * 2. import.meta.env.CMS_TENANT (Vite environment variable)
  * 3. null (fallback)
  */
 export function getTenantId(): string | null {
@@ -19,8 +19,8 @@ export function getTenantId(): string | null {
   }
   
   // Check Vite environment variable
-  if (import.meta.env.VITE_CMS_TENANT) {
-    return import.meta.env.VITE_CMS_TENANT;
+  if (import.meta.env.CMS_TENANT) {
+    return import.meta.env.CMS_TENANT;
   }
   
   return null;

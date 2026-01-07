@@ -78,7 +78,7 @@ router.use('/theme', themeRoutes);
 
 // Dynamic robots.txt route - serves different content based on deployment type
 router.get('/robots.txt', (req, res) => {
-  const deployThemeSlug = process.env.DEPLOY_THEME_SLUG;
+  const deployThemeSlug = process.env.VITE_DEPLOY_THEME_SLUG;
   const cmsTenant = process.env.CMS_TENANT;
   
   // Check if this is a theme deployment (both DEPLOY_THEME_SLUG and CMS_TENANT should be set)

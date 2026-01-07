@@ -6,7 +6,7 @@
  */
 
 // Check environment variable - be explicit about checking for truthy values
-const deployThemeSlug = process.env.DEPLOY_THEME_SLUG;
+const deployThemeSlug = process.env.VITE_DEPLOY_THEME_SLUG;
 const port = process.env.PORT || 4173;
 
 // Log all environment variables for debugging (but not sensitive ones)

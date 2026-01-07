@@ -20,7 +20,7 @@ async function ensureTenantACATR() {
 
   const tenantId = 'tenant-acatr';
   const tenantName = 'ACATR';
-  const themeSlug = process.env.DEPLOY_THEME_SLUG || 'landingpage';
+  const themeSlug = process.env.VITE_DEPLOY_THEME_SLUG || 'landingpage';
 
   try {
     // Step 1: Check if tenant exists

@@ -21,7 +21,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Get theme slug from command line or environment variable
-const themeSlug = process.argv[2] || process.env.DEPLOY_THEME_SLUG;
+const themeSlug = process.argv[2] || process.env.VITE_DEPLOY_THEME_SLUG;
 
 if (!themeSlug) {
   console.error('Error: Theme slug is required');

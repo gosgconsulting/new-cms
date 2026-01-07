@@ -26,7 +26,7 @@ async function verifyTenantConnection() {
     // Step 1: Verify environment variables
     console.log('[1/5] Verifying environment variables...');
     const envVars = {
-      DEPLOY_THEME_SLUG: process.env.DEPLOY_THEME_SLUG,
+      DEPLOY_THEME_SLUG: process.env.VITE_DEPLOY_THEME_SLUG,
       CMS_TENANT: process.env.CMS_TENANT,
       DATABASE_PUBLIC_URL: process.env.DATABASE_PUBLIC_URL ? 'Set ✅' : 'Missing ❌',
       DATABASE_URL: process.env.DATABASE_URL ? 'Set ✅' : 'Missing ❌',
@@ -96,7 +96,7 @@ async function verifyTenantConnection() {
           tenantId,
           'ACATR',
           'acatr',
-          process.env.DEPLOY_THEME_SLUG || 'landingpage'
+          process.env.VITE_DEPLOY_THEME_SLUG || 'landingpage'
         ]);
 
         console.log(`  ✅ Tenant '${tenantId}' created successfully`);
@@ -113,13 +113,13 @@ async function verifyTenantConnection() {
         console.log(`  Created: ${tenant.created_at}\n`);
 
         // Update theme_id if DEPLOY_THEME_SLUG is set and different
-        if (process.env.DEPLOY_THEME_SLUG && tenant.theme_id !== process.env.DEPLOY_THEME_SLUG) {
-          console.log(`  Updating theme_id to '${process.env.DEPLOY_THEME_SLUG}'...`);
+        if (process.env.VITE_DEPLOY_THEME_SLUG && tenant.theme_id !== process.env.VITE_DEPLOY_THEME_SLUG) {
+          console.log(`  Updating theme_id to '${process.env.VITE_DEPLOY_THEME_SLUG}'...`);
           await query(`
             UPDATE tenants 
             SET theme_id = $1, updated_at = NOW()
             WHERE id = $2
-          `, [process.env.DEPLOY_THEME_SLUG, tenantId]);
+          `, [process.env.VITE_DEPLOY_THEME_SLUG, tenantId]);
           console.log(`  ✅ Theme updated\n`);
         }
       }
@@ -192,7 +192,7 @@ async function verifyTenantConnection() {
     console.log('========================================');
     console.log(`✅ Tenant: ${tenantId}`);
     console.log(`✅ Database: Connected`);
-    console.log(`✅ Theme: ${process.env.DEPLOY_THEME_SLUG || 'Not set'}`);
+    console.log(`✅ Theme: ${process.env.VITE_DEPLOY_THEME_SLUG || 'Not set'}`);
     console.log(`✅ Environment: ${process.env.NODE_ENV}`);
     console.log(`\n🎉 Tenant '${tenantId}' is ready for deployment!`);
 
