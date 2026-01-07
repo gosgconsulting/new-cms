@@ -38,6 +38,67 @@ if (CMS_TENANT) {
   console.warn(`[testing] WARNING: CMS_TENANT is not set. Theme may not be able to determine tenant ID.`);
 }
 
+// Get theme slug from environment variable
+const THEME_SLUG = process.env.DEPLOY_THEME_SLUG || 'landingpage';
+console.log(`[testing] Theme slug: ${THEME_SLUG}`);
+
+// Helper function to fetch branding settings from backend
+async function fetchBrandingSettings(tenantId, themeSlug) {
+  if (!tenantId) {
+    console.warn(`[testing] No tenant ID provided, skipping branding fetch`);
+    return null;
+  }
+  
+  try {
+    const apiUrl = `${BACKEND_URL}/api/v1/theme/${themeSlug}/branding?tenantId=${encodeURIComponent(tenantId)}`;
+    console.log(`[testing] Fetching branding settings from: ${apiUrl}`);
+    
+    const response = await fetch(apiUrl, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'Accept-Encoding': 'gzip, deflate, br'
+      }
+    });
+    
+    if (!response.ok) {
+      console.error(`[testing] Failed to fetch branding: ${response.status} ${response.statusText}`);
+      return null;
+    }
+    
+    const text = await response.text();
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch (parseError) {
+      console.error(`[testing] Failed to parse branding response:`, parseError);
+      return null;
+    }
+    
+    // Extract branding data from response
+    // Response format from /api/v1/theme/:themeSlug/branding: 
+    // { success: true, data: { site_name: "...", site_logo: "...", ... }, meta: {...} }
+    // The data field contains the branding object directly (not nested)
+    let brandingData = {};
+    if (data.success && data.data) {
+      // Response is wrapped in successResponse, extract data field
+      brandingData = data.data;
+    } else if (data.branding) {
+      // Direct branding object (fallback)
+      brandingData = data.branding;
+    } else {
+      // Use data as-is if it's already a branding object
+      brandingData = data;
+    }
+    
+    console.log(`[testing] Branding settings fetched:`, Object.keys(brandingData));
+    return brandingData;
+  } catch (error) {
+    console.error(`[testing] Error fetching branding settings:`, error);
+    return null;
+  }
+}
+
 // Parse JSON bodies for API requests
 app.use(express.json());
 
@@ -168,30 +229,62 @@ app.use(express.static(distPath));
 
 // Handle all other routes by serving the React app (SPA routing)
 // Use app.use() instead of app.get('*') for Express 5 compatibility
-app.use((req, res, next) => {
+app.use(async (req, res, next) => {
   if (req.method === 'GET') {
     const indexPath = join(distPath, 'index.html');
     if (existsSync(indexPath)) {
       // Read the HTML file
       let htmlContent = readFileSync(indexPath, 'utf-8');
       
-      // Inject/update CMS_TENANT at runtime if it's set
-      // Runtime value takes precedence over build-time value
+      // Build script tag with injected data
+      let scriptContent = '';
+      
+      // Inject CMS_TENANT
       if (CMS_TENANT) {
+        scriptContent += `      window.__CMS_TENANT__ = '${CMS_TENANT.replace(/'/g, "\\'")}';\n`;
+      }
+      
+      // Fetch and inject branding settings
+      if (CMS_TENANT) {
+        const brandingData = await fetchBrandingSettings(CMS_TENANT, THEME_SLUG);
+        if (brandingData) {
+          // Escape the JSON string for safe injection into HTML
+          const brandingJson = JSON.stringify(brandingData).replace(/</g, '\\u003c').replace(/>/g, '\\u003e');
+          scriptContent += `      window.__BRANDING_SETTINGS__ = ${brandingJson};\n`;
+        }
+      }
+      
+      // Inject script tag if we have content
+      if (scriptContent) {
         const scriptTag = `
     <script>
-      // Inject CMS_TENANT from environment variable at runtime (runtime value takes precedence)
-      window.__CMS_TENANT__ = '${CMS_TENANT}';
-    </script>`;
+      // Injected at runtime from environment variables and backend API
+${scriptContent}    </script>`;
         
-        // Check if __CMS_TENANT__ already exists in the HTML
-        if (htmlContent.includes('window.__CMS_TENANT__')) {
-          // Replace existing assignment (handles both build-time and previous runtime injection)
-          htmlContent = htmlContent.replace(
-            /window\.__CMS_TENANT__\s*=\s*['"][^'"]*['"];?/g,
-            `window.__CMS_TENANT__ = '${CMS_TENANT}';`
-          );
-          console.log(`[testing] Updated existing __CMS_TENANT__ to '${CMS_TENANT}' in HTML`);
+        // Check if injection script already exists
+        if (htmlContent.includes('window.__CMS_TENANT__') || htmlContent.includes('window.__BRANDING_SETTINGS__')) {
+          // Replace existing script block
+          const scriptRegex = /<script>\s*\/\/\s*Injected at runtime[\s\S]*?<\/script>/;
+          if (scriptRegex.test(htmlContent)) {
+            htmlContent = htmlContent.replace(scriptRegex, scriptTag.trim());
+            console.log(`[testing] Updated injected data in HTML`);
+          } else {
+            // Try to update individual variables
+            if (CMS_TENANT && htmlContent.includes('window.__CMS_TENANT__')) {
+              htmlContent = htmlContent.replace(
+                /window\.__CMS_TENANT__\s*=\s*['"][^'"]*['"];?/g,
+                `window.__CMS_TENANT__ = '${CMS_TENANT.replace(/'/g, "\\'")}';`
+              );
+            }
+            // Add branding if it doesn't exist
+            if (!htmlContent.includes('window.__BRANDING_SETTINGS__')) {
+              if (htmlContent.includes('</head>')) {
+                htmlContent = htmlContent.replace('</head>', `${scriptTag}\n  </head>`);
+              } else if (htmlContent.includes('<body>')) {
+                htmlContent = htmlContent.replace('<body>', `${scriptTag}\n  <body>`);
+              }
+            }
+          }
         } else {
           // Inject new script tag before </head> or <body>
           if (htmlContent.includes('</head>')) {
@@ -202,7 +295,7 @@ app.use((req, res, next) => {
             // Last resort: inject at the beginning of the body
             htmlContent = htmlContent.replace('<body>', `<body>${scriptTag}`);
           }
-          console.log(`[testing] Injected __CMS_TENANT__ = '${CMS_TENANT}' into HTML`);
+          console.log(`[testing] Injected runtime data into HTML`);
         }
       }
       

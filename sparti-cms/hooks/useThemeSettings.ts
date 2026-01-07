@@ -168,6 +168,16 @@ export const useThemeBranding = (
     setLoading(true);
     setError(null);
 
+    // First, check if branding settings are already injected in the HTML
+    if (typeof window !== 'undefined' && (window as any).__BRANDING_SETTINGS__) {
+      const injectedBranding = (window as any).__BRANDING_SETTINGS__;
+      console.log('[useThemeBranding] Using injected branding settings from HTML');
+      setBranding(injectedBranding);
+      setLoading(false);
+      return;
+    }
+
+    // If not injected, fetch from API
     // Get tenant ID from parameter, window object, or use default
     const effectiveTenantId = tenantId || 
       (typeof window !== 'undefined' && (window as any).__CMS_TENANT__) || 
@@ -178,7 +188,7 @@ export const useThemeBranding = (
       ? `/api/v1/theme/${themeSlug}/branding?tenantId=${encodeURIComponent(effectiveTenantId)}`
       : `/api/v1/theme/${themeSlug}/branding?tenantId=tenant-gosg`; // Default fallback
 
-    console.log('[useThemeBranding] Fetching branding from:', apiUrl);
+    console.log('[useThemeBranding] Fetching branding from API:', apiUrl);
 
     fetch(apiUrl, {
       method: 'GET',
