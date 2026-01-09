@@ -3,6 +3,7 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 import { Send } from "lucide-react";
+import { getTenantId } from "../../../utils/tenantConfig";
 
 type ModalContactFormProps = {
   className?: string;
@@ -15,22 +16,71 @@ const ModalContactForm: React.FC<ModalContactFormProps> = ({ className = "" }) =
   const [company, setCompany] = useState("");
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [errorMessage, setErrorMessage] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
+    
+    // Validate required fields
+    if (!name || !email || !message) {
+      setSubmitStatus('error');
+      setErrorMessage('Please fill in all required fields');
+      return;
+    }
 
-    // Simulate form submission
-    setTimeout(() => {
-      console.log("Form submitted:", { name, email, phone, company, message });
-      setIsSubmitting(false);
+    setIsSubmitting(true);
+    setSubmitStatus('idle');
+    setErrorMessage("");
+
+    try {
+      // Get current tenant ID
+      const tenantId = getTenantId();
+      
+      // Submit to backend API
+      const response = await fetch('/api/form-submissions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          form_id: 'contact-modal',
+          form_name: 'Contact Modal Form - GO SG Consulting',
+          name: name,
+          email: email,
+          phone: phone || null,
+          company: company || null,
+          message: message,
+          tenant_id: tenantId
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Failed to submit form' }));
+        throw new Error(errorData.error || 'Failed to submit form');
+      }
+
+      const result = await response.json();
+      
+      setSubmitStatus('success');
       // Reset form
       setName("");
       setEmail("");
       setPhone("");
       setCompany("");
       setMessage("");
-    }, 1000);
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => {
+        setSubmitStatus('idle');
+      }, 3000);
+      
+    } catch (error) {
+      setSubmitStatus('error');
+      setErrorMessage(error instanceof Error ? error.message : 'Failed to submit form. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -118,6 +168,21 @@ const ModalContactForm: React.FC<ModalContactFormProps> = ({ className = "" }) =
               className="focus-visible:ring-brandPurple focus-visible:border-brandPurple"
             />
           </div>
+
+          {/* Success/Error Messages */}
+          {submitStatus === 'success' && (
+            <div className="rounded-lg bg-green-50 border border-green-200 p-4 text-green-800 text-sm">
+              <p className="font-medium">Message sent successfully!</p>
+              <p className="text-green-600 mt-1">We'll get back to you soon.</p>
+            </div>
+          )}
+          
+          {submitStatus === 'error' && errorMessage && (
+            <div className="rounded-lg bg-red-50 border border-red-200 p-4 text-red-800 text-sm">
+              <p className="font-medium">Error sending message</p>
+              <p className="text-red-600 mt-1">{errorMessage}</p>
+            </div>
+          )}
 
           <div className="mt-4 sm:mt-2 flex justify-center">
             <Button
