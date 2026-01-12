@@ -368,11 +368,11 @@ app.use(async (req, res, next) => {
         }
       }
       
-      // Inject custom code into HTML
+      // Inject custom code into HTML using placeholders
+      let headInjections = '';
+      let bodyInjections = '';
+      
       if (customCodeData) {
-        let headInjections = '';
-        let bodyInjections = '';
-        
         // Google Search Console verification meta tag
         if (customCodeData.gscVerification && customCodeData.gscVerification.trim()) {
           const gscMeta = `    <meta name="google-site-verification" content="${customCodeData.gscVerification.replace(/"/g, '&quot;')}" />\n`;
@@ -431,28 +431,26 @@ app.use(async (req, res, next) => {
           bodyInjections += `    ${customCodeData.body.trim()}\n`;
           console.log(`[testing] Injecting custom body code`);
         }
-        
-        // Inject head code before </head>
+      }
+      
+      // Replace placeholders with actual code or remove them if empty
+      if (htmlContent.includes('<!-- CUSTOM_CODE_HEAD_PLACEHOLDER -->')) {
         if (headInjections) {
-          if (htmlContent.includes('</head>')) {
-            htmlContent = htmlContent.replace('</head>', `${headInjections}  </head>`);
-          } else if (htmlContent.includes('<body>')) {
-            htmlContent = htmlContent.replace('<body>', `${headInjections}  <body>`);
-          }
+          htmlContent = htmlContent.replace('<!-- CUSTOM_CODE_HEAD_PLACEHOLDER -->', headInjections.trim());
+          console.log(`[testing] Replaced head placeholder with custom code`);
+        } else {
+          htmlContent = htmlContent.replace('<!-- CUSTOM_CODE_HEAD_PLACEHOLDER -->\n', '').replace('<!-- CUSTOM_CODE_HEAD_PLACEHOLDER -->', '');
+          console.log(`[testing] Removed empty head placeholder`);
         }
-        
-        // Inject body code before </body>
+      }
+      
+      if (htmlContent.includes('<!-- CUSTOM_CODE_BODY_PLACEHOLDER -->')) {
         if (bodyInjections) {
-          if (htmlContent.includes('</body>')) {
-            htmlContent = htmlContent.replace('</body>', `${bodyInjections}  </body>`);
-          } else {
-            // If no </body> tag, append before closing </html> or at end
-            if (htmlContent.includes('</html>')) {
-              htmlContent = htmlContent.replace('</html>', `${bodyInjections}  </html>`);
-            } else {
-              htmlContent += bodyInjections;
-            }
-          }
+          htmlContent = htmlContent.replace('<!-- CUSTOM_CODE_BODY_PLACEHOLDER -->', bodyInjections.trim());
+          console.log(`[testing] Replaced body placeholder with custom code`);
+        } else {
+          htmlContent = htmlContent.replace('<!-- CUSTOM_CODE_BODY_PLACEHOLDER -->\n', '').replace('<!-- CUSTOM_CODE_BODY_PLACEHOLDER -->', '');
+          console.log(`[testing] Removed empty body placeholder`);
         }
       }
       

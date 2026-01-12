@@ -243,10 +243,12 @@ async function createStandaloneHtml() {
     <meta name="robots" content="index, follow" />
     <script>${scriptContent}
     </script>
+    <!-- CUSTOM_CODE_HEAD_PLACEHOLDER -->
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/theme-standalone.tsx"></script>
+    <!-- CUSTOM_CODE_BODY_PLACEHOLDER -->
   </body>
 </html>
 `;
