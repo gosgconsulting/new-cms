@@ -362,10 +362,26 @@ app.use(async (req, res, next) => {
       // Fetch and inject custom code settings
       let customCodeData = null;
       if (CMS_TENANT) {
-        customCodeData = await getCustomCodeSettingsDirect(CMS_TENANT);
-        if (customCodeData) {
-          console.log(`[testing] Custom code settings fetched:`, Object.keys(customCodeData));
+        console.log(`[testing] Fetching custom code for tenant: ${CMS_TENANT}`);
+        try {
+          customCodeData = await getCustomCodeSettingsDirect(CMS_TENANT);
+          if (customCodeData) {
+            console.log(`[testing] Custom code settings fetched:`, Object.keys(customCodeData));
+            console.log(`[testing] Custom code values:`, {
+              hasHead: !!(customCodeData.head && customCodeData.head.trim()),
+              hasBody: !!(customCodeData.body && customCodeData.body.trim()),
+              hasGtmId: !!(customCodeData.gtmId && customCodeData.gtmId.trim()),
+              hasGaId: !!(customCodeData.gaId && customCodeData.gaId.trim()),
+              hasGsc: !!(customCodeData.gscVerification && customCodeData.gscVerification.trim())
+            });
+          } else {
+            console.log(`[testing] No custom code data returned from database`);
+          }
+        } catch (error) {
+          console.error(`[testing] Error fetching custom code:`, error);
         }
+      } else {
+        console.log(`[testing] No CMS_TENANT set, skipping custom code fetch`);
       }
       
       // Inject custom code into HTML using placeholders
@@ -435,6 +451,10 @@ app.use(async (req, res, next) => {
       
       // Replace placeholders with actual code or remove them if empty
       // Always remove placeholders - replace with code if available, otherwise just remove
+      console.log(`[testing] Processing placeholders. Head injections length: ${headInjections.length}, Body injections length: ${bodyInjections.length}`);
+      console.log(`[testing] HTML contains head placeholder: ${htmlContent.includes('CUSTOM_CODE_HEAD_PLACEHOLDER')}`);
+      console.log(`[testing] HTML contains body placeholder: ${htmlContent.includes('CUSTOM_CODE_BODY_PLACEHOLDER')}`);
+      
       // Use a more flexible regex that matches the placeholder with any whitespace
       const headPlaceholderPattern = /<!--\s*CUSTOM_CODE_HEAD_PLACEHOLDER\s*-->/g;
       const bodyPlaceholderPattern = /<!--\s*CUSTOM_CODE_BODY_PLACEHOLDER\s*-->/g;
@@ -442,24 +462,32 @@ app.use(async (req, res, next) => {
       // Always process head placeholder - ensure it's removed even if no custom code
       if (htmlContent.includes('CUSTOM_CODE_HEAD_PLACEHOLDER')) {
         if (headInjections && headInjections.trim()) {
+          const beforeReplace = htmlContent.includes('CUSTOM_CODE_HEAD_PLACEHOLDER');
           htmlContent = htmlContent.replace(headPlaceholderPattern, headInjections.trim());
-          console.log(`[testing] Replaced head placeholder with custom code`);
+          const afterReplace = htmlContent.includes('CUSTOM_CODE_HEAD_PLACEHOLDER');
+          console.log(`[testing] Replaced head placeholder with custom code. Before: ${beforeReplace}, After: ${afterReplace}`);
         } else {
           // Remove the placeholder and any surrounding whitespace/newlines on the same line
+          const beforeReplace = htmlContent.includes('CUSTOM_CODE_HEAD_PLACEHOLDER');
           htmlContent = htmlContent.replace(/[\s]*<!--\s*CUSTOM_CODE_HEAD_PLACEHOLDER\s*-->[\s]*\n?/g, '');
-          console.log(`[testing] Removed empty head placeholder`);
+          const afterReplace = htmlContent.includes('CUSTOM_CODE_HEAD_PLACEHOLDER');
+          console.log(`[testing] Removed empty head placeholder. Before: ${beforeReplace}, After: ${afterReplace}`);
         }
       }
       
       // Always process body placeholder - ensure it's removed even if no custom code
       if (htmlContent.includes('CUSTOM_CODE_BODY_PLACEHOLDER')) {
         if (bodyInjections && bodyInjections.trim()) {
+          const beforeReplace = htmlContent.includes('CUSTOM_CODE_BODY_PLACEHOLDER');
           htmlContent = htmlContent.replace(bodyPlaceholderPattern, bodyInjections.trim());
-          console.log(`[testing] Replaced body placeholder with custom code`);
+          const afterReplace = htmlContent.includes('CUSTOM_CODE_BODY_PLACEHOLDER');
+          console.log(`[testing] Replaced body placeholder with custom code. Before: ${beforeReplace}, After: ${afterReplace}`);
         } else {
           // Remove the placeholder and any surrounding whitespace/newlines on the same line
+          const beforeReplace = htmlContent.includes('CUSTOM_CODE_BODY_PLACEHOLDER');
           htmlContent = htmlContent.replace(/[\s]*<!--\s*CUSTOM_CODE_BODY_PLACEHOLDER\s*-->[\s]*\n?/g, '');
-          console.log(`[testing] Removed empty body placeholder`);
+          const afterReplace = htmlContent.includes('CUSTOM_CODE_BODY_PLACEHOLDER');
+          console.log(`[testing] Removed empty body placeholder. Before: ${beforeReplace}, After: ${afterReplace}`);
         }
       }
       
