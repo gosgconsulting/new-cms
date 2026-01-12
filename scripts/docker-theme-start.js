@@ -5,6 +5,9 @@
  * Otherwise, start the full CMS server
  */
 
+// Load environment variables from .env file first
+import 'dotenv/config';
+
 // Check environment variable - be explicit about checking for truthy values
 // Check DEPLOY_THEME_SLUG first (set by Dockerfile), then fall back to VITE_DEPLOY_THEME_SLUG
 const deployThemeSlug = process.env.DEPLOY_THEME_SLUG || process.env.VITE_DEPLOY_THEME_SLUG;
@@ -15,6 +18,7 @@ console.log('[testing] ========================================');
 console.log('[testing] Docker Theme Start Script');
 console.log('[testing] ========================================');
 console.log('[testing] DEPLOY_THEME_SLUG:', deployThemeSlug || '(not set)');
+console.log('[testing] CMS_TENANT:', process.env.CMS_TENANT || '(not set)');
 console.log('[testing] process.env.DEPLOY_THEME_SLUG:', process.env.DEPLOY_THEME_SLUG || '(not set)');
 console.log('[testing] process.env.VITE_DEPLOY_THEME_SLUG:', process.env.VITE_DEPLOY_THEME_SLUG || '(not set)');
 console.log('[testing] PORT:', port);
