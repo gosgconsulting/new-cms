@@ -10,6 +10,10 @@ import express from 'express';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { existsSync, readFileSync } from 'fs';
+import {
+  isStaticFileRequest,
+  processHtmlWithInjections
+} from './utilities/html-processing.js';
 // Don't import database function at top level - import lazily to avoid blocking server startup
 
 const __filename = fileURLToPath(import.meta.url);
@@ -102,6 +106,7 @@ async function getCustomCodeSettingsDirect(tenantId) {
     return null;
   }
 }
+
 
 // Parse JSON bodies for API requests
 app.use(express.json());
@@ -285,278 +290,42 @@ console.log('[testing] Serving static files from:', distPath);
 
 // Handle HTML routes FIRST (before static middleware) to inject custom code
 // This ensures index.html is processed with branding and custom code before being served
-// Use app.use() instead of app.get('*') for Express 5 compatibility
 app.use(async (req, res, next) => {
   // Skip static assets - let static middleware handle them
-  // Check if the request is for a static file (has a file extension)
-  const staticFileExtensions = ['.js', '.css', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.ico', '.woff', '.woff2', '.ttf', '.eot', '.json', '.map'];
-  const hasExtension = staticFileExtensions.some(ext => req.path.toLowerCase().endsWith(ext));
+  if (req.method !== 'GET' || isStaticFileRequest(req)) {
+    return next();
+  }
   
-  if (req.method === 'GET' && !hasExtension) {
-    const indexPath = join(distPath, 'index.html');
-    if (existsSync(indexPath)) {
-      // Read the HTML file
-      let htmlContent = readFileSync(indexPath, 'utf-8');
-      
-      // Build script tag with injected data
-      let scriptContent = '';
-      
-      // Inject CMS_TENANT
-      if (CMS_TENANT) {
-        scriptContent += `      window.__CMS_TENANT__ = '${CMS_TENANT.replace(/'/g, "\\'")}';\n`;
-      }
-      
-      // Fetch and inject branding settings directly from database
-      let brandingData = null;
-      if (CMS_TENANT) {
-        brandingData = await getBrandingSettingsDirect(CMS_TENANT, THEME_SLUG);
-        if (brandingData && Object.keys(brandingData).length > 0) {
-          // Escape the JSON string for safe injection into HTML
-          const brandingJson = JSON.stringify(brandingData).replace(/</g, '\\u003c').replace(/>/g, '\\u003e');
-          scriptContent += `      window.__BRANDING_SETTINGS__ = ${brandingJson};\n`;
-          console.log(`[testing] Injected branding settings into HTML:`, Object.keys(brandingData));
-        } else {
-          console.warn(`[testing] No branding data to inject (empty or null)`);
-        }
-      }
-      
-      // Update favicon from branding if available
-      if (brandingData && brandingData.site_favicon) {
-        // Replace favicon links
-        htmlContent = htmlContent.replace(
-          /<link[^>]*rel=["'](icon|apple-touch-icon)["'][^>]*>/g,
-          (match) => {
-            if (match.includes('rel="icon"') || match.includes("rel='icon'")) {
-              return `<link rel="icon" type="image/png" href="${brandingData.site_favicon}" />`;
-            } else if (match.includes('rel="apple-touch-icon"') || match.includes("rel='apple-touch-icon'")) {
-              return `<link rel="apple-touch-icon" href="${brandingData.site_favicon}" />`;
-            }
-            return match;
-          }
-        );
-        // If no favicon links found, add them
-        if (!htmlContent.includes('rel="icon"') && !htmlContent.includes("rel='icon'")) {
-          const faviconTags = `    <link rel="icon" type="image/png" href="${brandingData.site_favicon}" />\n    <link rel="apple-touch-icon" href="${brandingData.site_favicon}" />\n`;
-          if (htmlContent.includes('</head>')) {
-            htmlContent = htmlContent.replace('</head>', `${faviconTags}  </head>`);
-          } else if (htmlContent.includes('<body>')) {
-            htmlContent = htmlContent.replace('<body>', `${faviconTags}  <body>`);
-          }
-        }
-        console.log(`[testing] Updated favicon from branding: ${brandingData.site_favicon}`);
-      }
-      
-      // Update title from branding if available
-      if (brandingData && brandingData.site_name) {
-        // Escape HTML entities for safety
-        const escapedTitle = brandingData.site_name
-          .replace(/&/g, '&amp;')
-          .replace(/</g, '&lt;')
-          .replace(/>/g, '&gt;')
-          .replace(/"/g, '&quot;')
-          .replace(/'/g, '&#39;');
-        
-        // Replace title tag
-        htmlContent = htmlContent.replace(
-          /<title[^>]*>.*?<\/title>/i,
-          `<title>${escapedTitle}</title>`
-        );
-        console.log(`[testing] Updated title from branding: ${escapedTitle}`);
-      }
-      
-      // Fetch and inject custom code settings
-      let customCodeData = null;
-      if (CMS_TENANT) {
-        console.log(`[testing] Fetching custom code for tenant: ${CMS_TENANT}`);
-        try {
-          customCodeData = await getCustomCodeSettingsDirect(CMS_TENANT);
-          if (customCodeData) {
-            console.log(`[testing] Custom code settings fetched:`, Object.keys(customCodeData));
-            console.log(`[testing] Custom code values:`, {
-              hasHead: !!(customCodeData.head && customCodeData.head.trim()),
-              hasBody: !!(customCodeData.body && customCodeData.body.trim()),
-              hasGtmId: !!(customCodeData.gtmId && customCodeData.gtmId.trim()),
-              hasGaId: !!(customCodeData.gaId && customCodeData.gaId.trim()),
-              hasGsc: !!(customCodeData.gscVerification && customCodeData.gscVerification.trim())
-            });
-          } else {
-            console.log(`[testing] No custom code data returned from database`);
-          }
-        } catch (error) {
-          console.error(`[testing] Error fetching custom code:`, error);
-        }
-      } else {
-        console.log(`[testing] No CMS_TENANT set, skipping custom code fetch`);
-      }
-      
-      // Inject custom code into HTML using placeholders
-      let headInjections = '';
-      let bodyInjections = '';
-      
-      if (customCodeData) {
-        // Google Search Console verification meta tag
-        if (customCodeData.gscVerification && customCodeData.gscVerification.trim()) {
-          const gscMeta = `    <meta name="google-site-verification" content="${customCodeData.gscVerification.replace(/"/g, '&quot;')}" />\n`;
-          headInjections += gscMeta;
-          console.log(`[testing] Injecting Google Search Console verification`);
-        }
-        
-        // Google Tag Manager script (in head)
-        if (customCodeData.gtmId && customCodeData.gtmId.trim()) {
-          const gtmId = customCodeData.gtmId.trim();
-          const gtmScript = `    <!-- Google Tag Manager -->
-    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-    })(window,document,'script','dataLayer','${gtmId.replace(/"/g, '&quot;')}');</script>
-    <!-- End Google Tag Manager -->\n`;
-          headInjections += gtmScript;
-          console.log(`[testing] Injecting Google Tag Manager: ${gtmId}`);
-        }
-        
-        // Google Analytics script (in head)
-        if (customCodeData.gaId && customCodeData.gaId.trim()) {
-          const gaId = customCodeData.gaId.trim();
-          const gaScript = `    <!-- Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=${gaId.replace(/"/g, '&quot;')}"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', '${gaId.replace(/"/g, '&quot;')}');
-    </script>
-    <!-- End Google Analytics -->\n`;
-          headInjections += gaScript;
-          console.log(`[testing] Injecting Google Analytics: ${gaId}`);
-        }
-        
-        // Custom head code
-        if (customCodeData.head && customCodeData.head.trim()) {
-          headInjections += `    ${customCodeData.head.trim()}\n`;
-          console.log(`[testing] Injecting custom head code`);
-        }
-        
-        // Google Tag Manager noscript (in body)
-        if (customCodeData.gtmId && customCodeData.gtmId.trim()) {
-          const gtmId = customCodeData.gtmId.trim();
-          const gtmNoscript = `    <!-- Google Tag Manager (noscript) -->
-    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=${gtmId.replace(/"/g, '&quot;')}"
-    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-    <!-- End Google Tag Manager (noscript) -->\n`;
-          bodyInjections += gtmNoscript;
-        }
-        
-        // Custom body code
-        if (customCodeData.body && customCodeData.body.trim()) {
-          bodyInjections += `    ${customCodeData.body.trim()}\n`;
-          console.log(`[testing] Injecting custom body code`);
-        }
-      }
-      
-      // Replace placeholders with actual code or remove them if empty
-      // Always remove placeholders - replace with code if available, otherwise just remove
-      console.log(`[testing] Processing placeholders. Head injections length: ${headInjections.length}, Body injections length: ${bodyInjections.length}`);
-      console.log(`[testing] HTML contains head placeholder: ${htmlContent.includes('CUSTOM_CODE_HEAD_PLACEHOLDER')}`);
-      console.log(`[testing] HTML contains body placeholder: ${htmlContent.includes('CUSTOM_CODE_BODY_PLACEHOLDER')}`);
-      
-      // Use a more flexible regex that matches the placeholder with any whitespace
-      const headPlaceholderPattern = /<!--\s*CUSTOM_CODE_HEAD_PLACEHOLDER\s*-->/g;
-      const bodyPlaceholderPattern = /<!--\s*CUSTOM_CODE_BODY_PLACEHOLDER\s*-->/g;
-      
-      // Always process head placeholder - ensure it's removed even if no custom code
-      if (htmlContent.includes('CUSTOM_CODE_HEAD_PLACEHOLDER')) {
-        if (headInjections && headInjections.trim()) {
-          const beforeReplace = htmlContent.includes('CUSTOM_CODE_HEAD_PLACEHOLDER');
-          // Replace placeholder with head code, preserving the code as-is (don't trim, keep formatting)
-          htmlContent = htmlContent.replace(headPlaceholderPattern, headInjections);
-          const afterReplace = htmlContent.includes('CUSTOM_CODE_HEAD_PLACEHOLDER');
-          console.log(`[testing] Replaced head placeholder with custom code. Before: ${beforeReplace}, After: ${afterReplace}`);
-          console.log(`[testing] Head code preview (first 200 chars): ${headInjections.substring(0, 200)}`);
-        } else {
-          // Remove the placeholder and any surrounding whitespace/newlines on the same line
-          const beforeReplace = htmlContent.includes('CUSTOM_CODE_HEAD_PLACEHOLDER');
-          htmlContent = htmlContent.replace(/[\s]*<!--\s*CUSTOM_CODE_HEAD_PLACEHOLDER\s*-->[\s]*\n?/g, '');
-          const afterReplace = htmlContent.includes('CUSTOM_CODE_HEAD_PLACEHOLDER');
-          console.log(`[testing] Removed empty head placeholder. Before: ${beforeReplace}, After: ${afterReplace}`);
-        }
-      }
-      
-      // Always process body placeholder - ensure it's removed even if no custom code
-      if (htmlContent.includes('CUSTOM_CODE_BODY_PLACEHOLDER')) {
-        if (bodyInjections && bodyInjections.trim()) {
-          const beforeReplace = htmlContent.includes('CUSTOM_CODE_BODY_PLACEHOLDER');
-          // Replace placeholder with body code, preserving the code as-is (don't trim, keep formatting)
-          htmlContent = htmlContent.replace(bodyPlaceholderPattern, bodyInjections);
-          const afterReplace = htmlContent.includes('CUSTOM_CODE_BODY_PLACEHOLDER');
-          console.log(`[testing] Replaced body placeholder with custom code. Before: ${beforeReplace}, After: ${afterReplace}`);
-          console.log(`[testing] Body code preview (first 200 chars): ${bodyInjections.substring(0, 200)}`);
-        } else {
-          // Remove the placeholder and any surrounding whitespace/newlines on the same line
-          const beforeReplace = htmlContent.includes('CUSTOM_CODE_BODY_PLACEHOLDER');
-          htmlContent = htmlContent.replace(/[\s]*<!--\s*CUSTOM_CODE_BODY_PLACEHOLDER\s*-->[\s]*\n?/g, '');
-          const afterReplace = htmlContent.includes('CUSTOM_CODE_BODY_PLACEHOLDER');
-          console.log(`[testing] Removed empty body placeholder. Before: ${beforeReplace}, After: ${afterReplace}`);
-        }
-      }
-      
-      // Inject script tag if we have content
-      if (scriptContent) {
-        const scriptTag = `
-    <script>
-      // Injected at runtime from environment variables and backend API
-${scriptContent}    </script>`;
-        
-        // Check if injection script already exists
-        if (htmlContent.includes('window.__CMS_TENANT__') || htmlContent.includes('window.__BRANDING_SETTINGS__')) {
-          // Replace existing script block
-          const scriptRegex = /<script>\s*\/\/\s*Injected at runtime[\s\S]*?<\/script>/;
-          if (scriptRegex.test(htmlContent)) {
-            htmlContent = htmlContent.replace(scriptRegex, scriptTag.trim());
-            console.log(`[testing] Updated injected data in HTML`);
-          } else {
-            // Try to update individual variables
-            if (CMS_TENANT && htmlContent.includes('window.__CMS_TENANT__')) {
-              htmlContent = htmlContent.replace(
-                /window\.__CMS_TENANT__\s*=\s*['"][^'"]*['"];?/g,
-                `window.__CMS_TENANT__ = '${CMS_TENANT.replace(/'/g, "\\'")}';`
-              );
-            }
-            // Add branding if it doesn't exist
-            if (!htmlContent.includes('window.__BRANDING_SETTINGS__')) {
-              if (htmlContent.includes('</head>')) {
-                htmlContent = htmlContent.replace('</head>', `${scriptTag}\n  </head>`);
-              } else if (htmlContent.includes('<body>')) {
-                htmlContent = htmlContent.replace('<body>', `${scriptTag}\n  <body>`);
-              }
-            }
-          }
-        } else {
-          // Inject new script tag before </head> or <body>
-          if (htmlContent.includes('</head>')) {
-            htmlContent = htmlContent.replace('</head>', `${scriptTag}\n  </head>`);
-          } else if (htmlContent.includes('<body>')) {
-            htmlContent = htmlContent.replace('<body>', `${scriptTag}\n  <body>`);
-          } else {
-            // Last resort: inject at the beginning of the body
-            htmlContent = htmlContent.replace('<body>', `<body>${scriptTag}`);
-          }
-          console.log(`[testing] Injected runtime data into HTML`);
-        }
-      }
-      
-      res.setHeader('Content-Type', 'text/html');
-      res.send(htmlContent);
-    } else {
-      res.status(404).json({ 
-        status: 'error', 
-        message: 'index.html not found',
-        timestamp: new Date().toISOString() 
-      });
-    }
-  } else {
-    // Not a GET request or not a route that needs HTML processing - continue to static middleware
-    next();
+  // Read index.html file
+  const indexPath = join(distPath, 'index.html');
+  if (!existsSync(indexPath)) {
+    return res.status(404).json({ 
+      status: 'error', 
+      message: 'index.html not found',
+      timestamp: new Date().toISOString() 
+    });
+  }
+  
+  try {
+    // Read and process HTML with all injections
+    let htmlContent = readFileSync(indexPath, 'utf-8');
+    htmlContent = await processHtmlWithInjections(
+      htmlContent,
+      CMS_TENANT,
+      THEME_SLUG,
+      getBrandingSettingsDirect,
+      getCustomCodeSettingsDirect
+    );
+    
+    // Send processed HTML
+    res.setHeader('Content-Type', 'text/html');
+    res.send(htmlContent);
+  } catch (error) {
+    console.error(`[testing] Error processing HTML:`, error);
+    // Fallback: send original HTML if processing fails
+    const htmlContent = readFileSync(indexPath, 'utf-8');
+    res.setHeader('Content-Type', 'text/html');
+    res.send(htmlContent);
   }
 });
 
