@@ -463,9 +463,11 @@ app.use(async (req, res, next) => {
       if (htmlContent.includes('CUSTOM_CODE_HEAD_PLACEHOLDER')) {
         if (headInjections && headInjections.trim()) {
           const beforeReplace = htmlContent.includes('CUSTOM_CODE_HEAD_PLACEHOLDER');
-          htmlContent = htmlContent.replace(headPlaceholderPattern, headInjections.trim());
+          // Replace placeholder with head code, preserving the code as-is (don't trim, keep formatting)
+          htmlContent = htmlContent.replace(headPlaceholderPattern, headInjections);
           const afterReplace = htmlContent.includes('CUSTOM_CODE_HEAD_PLACEHOLDER');
           console.log(`[testing] Replaced head placeholder with custom code. Before: ${beforeReplace}, After: ${afterReplace}`);
+          console.log(`[testing] Head code preview (first 200 chars): ${headInjections.substring(0, 200)}`);
         } else {
           // Remove the placeholder and any surrounding whitespace/newlines on the same line
           const beforeReplace = htmlContent.includes('CUSTOM_CODE_HEAD_PLACEHOLDER');
@@ -479,9 +481,11 @@ app.use(async (req, res, next) => {
       if (htmlContent.includes('CUSTOM_CODE_BODY_PLACEHOLDER')) {
         if (bodyInjections && bodyInjections.trim()) {
           const beforeReplace = htmlContent.includes('CUSTOM_CODE_BODY_PLACEHOLDER');
-          htmlContent = htmlContent.replace(bodyPlaceholderPattern, bodyInjections.trim());
+          // Replace placeholder with body code, preserving the code as-is (don't trim, keep formatting)
+          htmlContent = htmlContent.replace(bodyPlaceholderPattern, bodyInjections);
           const afterReplace = htmlContent.includes('CUSTOM_CODE_BODY_PLACEHOLDER');
           console.log(`[testing] Replaced body placeholder with custom code. Before: ${beforeReplace}, After: ${afterReplace}`);
+          console.log(`[testing] Body code preview (first 200 chars): ${bodyInjections.substring(0, 200)}`);
         } else {
           // Remove the placeholder and any surrounding whitespace/newlines on the same line
           const beforeReplace = htmlContent.includes('CUSTOM_CODE_BODY_PLACEHOLDER');
