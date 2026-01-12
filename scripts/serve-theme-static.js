@@ -434,22 +434,31 @@ app.use(async (req, res, next) => {
       }
       
       // Replace placeholders with actual code or remove them if empty
-      if (htmlContent.includes('<!-- CUSTOM_CODE_HEAD_PLACEHOLDER -->')) {
-        if (headInjections) {
-          htmlContent = htmlContent.replace('<!-- CUSTOM_CODE_HEAD_PLACEHOLDER -->', headInjections.trim());
+      // Always remove placeholders - replace with code if available, otherwise just remove
+      // Use a more flexible regex that matches the placeholder with any whitespace
+      const headPlaceholderPattern = /<!--\s*CUSTOM_CODE_HEAD_PLACEHOLDER\s*-->/g;
+      const bodyPlaceholderPattern = /<!--\s*CUSTOM_CODE_BODY_PLACEHOLDER\s*-->/g;
+      
+      // Always process head placeholder - ensure it's removed even if no custom code
+      if (htmlContent.includes('CUSTOM_CODE_HEAD_PLACEHOLDER')) {
+        if (headInjections && headInjections.trim()) {
+          htmlContent = htmlContent.replace(headPlaceholderPattern, headInjections.trim());
           console.log(`[testing] Replaced head placeholder with custom code`);
         } else {
-          htmlContent = htmlContent.replace('<!-- CUSTOM_CODE_HEAD_PLACEHOLDER -->\n', '').replace('<!-- CUSTOM_CODE_HEAD_PLACEHOLDER -->', '');
+          // Remove the placeholder and any surrounding whitespace/newlines on the same line
+          htmlContent = htmlContent.replace(/[\s]*<!--\s*CUSTOM_CODE_HEAD_PLACEHOLDER\s*-->[\s]*\n?/g, '');
           console.log(`[testing] Removed empty head placeholder`);
         }
       }
       
-      if (htmlContent.includes('<!-- CUSTOM_CODE_BODY_PLACEHOLDER -->')) {
-        if (bodyInjections) {
-          htmlContent = htmlContent.replace('<!-- CUSTOM_CODE_BODY_PLACEHOLDER -->', bodyInjections.trim());
+      // Always process body placeholder - ensure it's removed even if no custom code
+      if (htmlContent.includes('CUSTOM_CODE_BODY_PLACEHOLDER')) {
+        if (bodyInjections && bodyInjections.trim()) {
+          htmlContent = htmlContent.replace(bodyPlaceholderPattern, bodyInjections.trim());
           console.log(`[testing] Replaced body placeholder with custom code`);
         } else {
-          htmlContent = htmlContent.replace('<!-- CUSTOM_CODE_BODY_PLACEHOLDER -->\n', '').replace('<!-- CUSTOM_CODE_BODY_PLACEHOLDER -->', '');
+          // Remove the placeholder and any surrounding whitespace/newlines on the same line
+          htmlContent = htmlContent.replace(/[\s]*<!--\s*CUSTOM_CODE_BODY_PLACEHOLDER\s*-->[\s]*\n?/g, '');
           console.log(`[testing] Removed empty body placeholder`);
         }
       }
