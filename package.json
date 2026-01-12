@@ -17,6 +17,7 @@
     "preview": "vite preview",
     "start": "NODE_ENV=production node server.js",
     "prestart": "npm run sequelize:migrate:production",
+    "start:theme": "NODE_ENV=production node scripts/docker-theme-start.js",
     "deploy": "npm run build && npm start",
     "health": "curl -f http://localhost:4173/health || exit 1",
     "health:test": "node scripts/tests/test-health.js",
