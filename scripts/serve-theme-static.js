@@ -282,12 +282,17 @@ if (!existsSync(distPath)) {
 }
 
 console.log('[testing] Serving static files from:', distPath);
-app.use(express.static(distPath));
 
-// Handle all other routes by serving the React app (SPA routing)
+// Handle HTML routes FIRST (before static middleware) to inject custom code
+// This ensures index.html is processed with branding and custom code before being served
 // Use app.use() instead of app.get('*') for Express 5 compatibility
 app.use(async (req, res, next) => {
-  if (req.method === 'GET') {
+  // Skip static assets - let static middleware handle them
+  // Check if the request is for a static file (has a file extension)
+  const staticFileExtensions = ['.js', '.css', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.ico', '.woff', '.woff2', '.ttf', '.eot', '.json', '.map'];
+  const hasExtension = staticFileExtensions.some(ext => req.path.toLowerCase().endsWith(ext));
+  
+  if (req.method === 'GET' && !hasExtension) {
     const indexPath = join(distPath, 'index.html');
     if (existsSync(indexPath)) {
       // Read the HTML file
@@ -550,9 +555,14 @@ ${scriptContent}    </script>`;
       });
     }
   } else {
+    // Not a GET request or not a route that needs HTML processing - continue to static middleware
     next();
   }
 });
+
+// Serve static files AFTER HTML processing middleware
+// This allows static assets (JS, CSS, images) to be served normally
+app.use(express.static(distPath));
 
 // Start server immediately
 const server = app.listen(PORT, '0.0.0.0', () => {
