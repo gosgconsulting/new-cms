@@ -11,6 +11,7 @@ import { WooCommerceIntegration, WooCommerceIntegrationListItem } from './WooCom
 import { WordPressIntegration, WordPressIntegrationListItem } from './WordPressIntegration';
 import { WordPressImportIntegration, WordPressImportIntegrationListItem } from './WordPressImportIntegration';
 import { useAuth } from '../auth/AuthProvider';
+import AccessKeysManager from './AccessKeysManager';
 
 interface DeveloperManagerProps {
   currentTenantId: string;
@@ -22,7 +23,7 @@ const DeveloperManager: React.FC<DeveloperManagerProps> = ({ currentTenantId, cu
 
   const tabs = [
     { id: 'integrations', label: 'Integrations', icon: Puzzle },
-    { id: 'code', label: 'Code', icon: Code },
+    { id: 'access-keys', label: 'Access Keys', icon: Key },
     { id: 'rules', label: 'Rules', icon: FileCode },
   ];
 
@@ -30,8 +31,8 @@ const DeveloperManager: React.FC<DeveloperManagerProps> = ({ currentTenantId, cu
     switch (activeTab) {
       case 'integrations':
         return <IntegrationsTab currentTenantId={currentTenantId} currentThemeId={currentThemeId} />;
-      case 'code':
-        return <CodeTab />;
+      case 'access-keys':
+        return <AccessKeysManager />;
       case 'rules':
         return <RulesTab />;
       default:
@@ -427,7 +428,7 @@ const IntegrationsTab: React.FC<IntegrationsTabProps> = ({ currentTenantId, curr
   );
 };
 
-const CodeTab: React.FC = () => {
+export const CodeTab: React.FC = () => {
   const [customCode, setCustomCode] = React.useState({
     head: '',
     body: '',

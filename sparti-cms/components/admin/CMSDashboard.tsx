@@ -59,7 +59,7 @@ import BrandingSettingsPage from './BrandingSettingsPage';
 import StylesSettingsPage from './StylesSettingsPage';
 import TenantSelector from './TenantSelector';
 import ThemeSelector from './ThemeSelector';
-import AccessKeysManager from './AccessKeysManager';
+import { CodeTab } from './DeveloperManager';
 
 // Import shop components
 import ProductsManager from './ProductsManager';
@@ -151,8 +151,8 @@ const SettingsManager: React.FC<SettingsManagerProps> = ({ currentTenantId }) =>
         return <BrandingSettingsPage currentTenantId={currentTenantId} />;
       case 'styles':
         return <StylesSettingsPage currentTenantId={currentTenantId} />;
-      case 'access-keys':
-        return <AccessKeysManager />;
+      case 'code':
+        return <CodeTab />;
       default:
         return <BrandingSettingsPage currentTenantId={currentTenantId} />;
     }
@@ -187,12 +187,12 @@ const SettingsManager: React.FC<SettingsManagerProps> = ({ currentTenantId }) =>
               Styles
             </button>
             <button 
-              onClick={() => setActiveSettingsTab('access-keys')}
-              className={`px-4 py-2.5 text-sm font-medium transition-all ${activeSettingsTab === 'access-keys' 
+              onClick={() => setActiveSettingsTab('code')}
+              className={`px-4 py-2.5 text-sm font-medium transition-all ${activeSettingsTab === 'code' 
                 ? 'text-brandPurple border-b-2 border-brandPurple bg-brandPurple/5' 
                 : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'}`}
             >
-              Access Keys
+              Code
             </button>
           </div>
           
