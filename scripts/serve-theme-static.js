@@ -76,6 +76,33 @@ async function getBrandingSettingsDirect(tenantId, themeSlug) {
   }
 }
 
+// Helper function to get custom code settings directly from database
+// Uses lazy import to avoid blocking server startup
+async function getCustomCodeSettingsDirect(tenantId) {
+  if (!tenantId) {
+    console.warn(`[testing] No tenant ID provided, skipping custom code fetch`);
+    return null;
+  }
+  
+  try {
+    console.log(`[testing] Fetching custom code settings from database for tenant: ${tenantId}`);
+    
+    // Lazy import - only load database module when needed
+    const { getCustomCodeSettings } = await import('../sparti-cms/db/modules/branding.js');
+    
+    // Call the shared function directly from the database module
+    const customCodeData = await getCustomCodeSettings(tenantId);
+    
+    console.log(`[testing] Custom code settings fetched from database:`, Object.keys(customCodeData));
+    return customCodeData;
+  } catch (error) {
+    console.error(`[testing] Error fetching custom code settings from database:`, error);
+    console.error(`[testing] Error stack:`, error.stack);
+    // Don't throw - return null so server can still serve HTML without custom code
+    return null;
+  }
+}
+
 // Parse JSON bodies for API requests
 app.use(express.json());
 
@@ -330,6 +357,103 @@ app.use(async (req, res, next) => {
           `<title>${escapedTitle}</title>`
         );
         console.log(`[testing] Updated title from branding: ${escapedTitle}`);
+      }
+      
+      // Fetch and inject custom code settings
+      let customCodeData = null;
+      if (CMS_TENANT) {
+        customCodeData = await getCustomCodeSettingsDirect(CMS_TENANT);
+        if (customCodeData) {
+          console.log(`[testing] Custom code settings fetched:`, Object.keys(customCodeData));
+        }
+      }
+      
+      // Inject custom code into HTML
+      if (customCodeData) {
+        let headInjections = '';
+        let bodyInjections = '';
+        
+        // Google Search Console verification meta tag
+        if (customCodeData.gscVerification && customCodeData.gscVerification.trim()) {
+          const gscMeta = `    <meta name="google-site-verification" content="${customCodeData.gscVerification.replace(/"/g, '&quot;')}" />\n`;
+          headInjections += gscMeta;
+          console.log(`[testing] Injecting Google Search Console verification`);
+        }
+        
+        // Google Tag Manager script (in head)
+        if (customCodeData.gtmId && customCodeData.gtmId.trim()) {
+          const gtmId = customCodeData.gtmId.trim();
+          const gtmScript = `    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','${gtmId.replace(/"/g, '&quot;')}');</script>
+    <!-- End Google Tag Manager -->\n`;
+          headInjections += gtmScript;
+          console.log(`[testing] Injecting Google Tag Manager: ${gtmId}`);
+        }
+        
+        // Google Analytics script (in head)
+        if (customCodeData.gaId && customCodeData.gaId.trim()) {
+          const gaId = customCodeData.gaId.trim();
+          const gaScript = `    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=${gaId.replace(/"/g, '&quot;')}"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', '${gaId.replace(/"/g, '&quot;')}');
+    </script>
+    <!-- End Google Analytics -->\n`;
+          headInjections += gaScript;
+          console.log(`[testing] Injecting Google Analytics: ${gaId}`);
+        }
+        
+        // Custom head code
+        if (customCodeData.head && customCodeData.head.trim()) {
+          headInjections += `    ${customCodeData.head.trim()}\n`;
+          console.log(`[testing] Injecting custom head code`);
+        }
+        
+        // Google Tag Manager noscript (in body)
+        if (customCodeData.gtmId && customCodeData.gtmId.trim()) {
+          const gtmId = customCodeData.gtmId.trim();
+          const gtmNoscript = `    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=${gtmId.replace(/"/g, '&quot;')}"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->\n`;
+          bodyInjections += gtmNoscript;
+        }
+        
+        // Custom body code
+        if (customCodeData.body && customCodeData.body.trim()) {
+          bodyInjections += `    ${customCodeData.body.trim()}\n`;
+          console.log(`[testing] Injecting custom body code`);
+        }
+        
+        // Inject head code before </head>
+        if (headInjections) {
+          if (htmlContent.includes('</head>')) {
+            htmlContent = htmlContent.replace('</head>', `${headInjections}  </head>`);
+          } else if (htmlContent.includes('<body>')) {
+            htmlContent = htmlContent.replace('<body>', `${headInjections}  <body>`);
+          }
+        }
+        
+        // Inject body code before </body>
+        if (bodyInjections) {
+          if (htmlContent.includes('</body>')) {
+            htmlContent = htmlContent.replace('</body>', `${bodyInjections}  </body>`);
+          } else {
+            // If no </body> tag, append before closing </html> or at end
+            if (htmlContent.includes('</html>')) {
+              htmlContent = htmlContent.replace('</html>', `${bodyInjections}  </html>`);
+            } else {
+              htmlContent += bodyInjections;
+            }
+          }
+        }
       }
       
       // Inject script tag if we have content

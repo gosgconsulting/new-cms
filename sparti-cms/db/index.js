@@ -24,7 +24,9 @@ export {
   migrateLogoToDatabase,
   migrateFaviconToDatabase,
   getThemeSettings,
-  getThemeStyles
+  getThemeStyles,
+  getCustomCodeSettings,
+  updateCustomCodeSettings
 } from './modules/branding.js';
 
 // Forms

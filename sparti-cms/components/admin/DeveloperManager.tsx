@@ -12,6 +12,8 @@ import { WordPressIntegration, WordPressIntegrationListItem } from './WordPressI
 import { WordPressImportIntegration, WordPressImportIntegrationListItem } from './WordPressImportIntegration';
 import { useAuth } from '../auth/AuthProvider';
 import AccessKeysManager from './AccessKeysManager';
+import { toast } from '@/components/ui/use-toast';
+import api from '../../utils/api';
 
 interface DeveloperManagerProps {
   currentTenantId: string;
@@ -428,7 +430,11 @@ const IntegrationsTab: React.FC<IntegrationsTabProps> = ({ currentTenantId, curr
   );
 };
 
-export const CodeTab: React.FC = () => {
+interface CodeTabProps {
+  currentTenantId?: string;
+}
+
+export const CodeTab: React.FC<CodeTabProps> = ({ currentTenantId }) => {
   const [customCode, setCustomCode] = React.useState({
     head: '',
     body: '',
@@ -436,12 +442,103 @@ export const CodeTab: React.FC = () => {
     gaId: '',
     gscVerification: ''
   });
+  const [isLoading, setIsLoading] = React.useState(true);
+  const [isSaving, setIsSaving] = React.useState(false);
+
+  // Load custom code settings on mount
+  React.useEffect(() => {
+    loadCustomCode();
+  }, [currentTenantId]);
+
+  const loadCustomCode = async () => {
+    if (!currentTenantId) {
+      setIsLoading(false);
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const endpoint = `/api/custom-code?tenantId=${encodeURIComponent(currentTenantId)}`;
+      const response = await api.get(endpoint, {
+        tenantId: currentTenantId
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setCustomCode({
+          head: data.head || '',
+          body: data.body || '',
+          gtmId: data.gtmId || '',
+          gaId: data.gaId || '',
+          gscVerification: data.gscVerification || ''
+        });
+      } else {
+        console.warn('[testing] Failed to load custom code settings');
+      }
+    } catch (error) {
+      console.error('[testing] Error loading custom code settings:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleInputChange = (field: string, value: string) => {
     setCustomCode(prev => ({
       ...prev,
       [field]: value
     }));
+  };
+
+  const handleSave = async () => {
+    if (!currentTenantId) {
+      toast({
+        title: "Error",
+        description: "Tenant ID is required to save custom code settings.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const endpoint = `/api/custom-code?tenantId=${encodeURIComponent(currentTenantId)}`;
+      const requestBody = {
+        head: customCode.head,
+        body: customCode.body,
+        gtmId: customCode.gtmId,
+        gaId: customCode.gaId,
+        gscVerification: customCode.gscVerification
+      };
+
+      console.log(`[testing] Saving custom code settings for tenant ${currentTenantId}:`, requestBody);
+      
+      const response = await api.post(endpoint, requestBody, {
+        tenantId: currentTenantId
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`[testing] Error response from API: ${errorText}`);
+        throw new Error(`Failed to save custom code settings for tenant ${currentTenantId}`);
+      }
+
+      const result = await response.json();
+      console.log(`[testing] Custom code settings saved for tenant ${currentTenantId}:`, result);
+
+      toast({
+        title: "Success",
+        description: "Custom code settings saved successfully!",
+      });
+    } catch (error) {
+      console.error('[testing] Error saving custom code settings:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save custom code settings. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -618,10 +715,28 @@ export const CodeTab: React.FC = () => {
       
       {/* Save Button */}
       <div className="flex justify-end">
-        <Button className="bg-purple-600 hover:bg-purple-700">
-          Save Changes
+        <Button 
+          className="bg-purple-600 hover:bg-purple-700"
+          onClick={handleSave}
+          disabled={isSaving || isLoading || !currentTenantId}
+        >
+          {isSaving ? 'Saving...' : 'Save Changes'}
         </Button>
       </div>
+      
+      {isLoading && (
+        <div className="text-center py-4">
+          <p className="text-sm text-muted-foreground">Loading custom code settings...</p>
+        </div>
+      )}
+      
+      {!currentTenantId && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <p className="text-sm text-yellow-800">
+            Please select a tenant to manage custom code settings.
+          </p>
+        </div>
+      )}
     </div>
   );
 };

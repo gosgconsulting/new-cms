@@ -152,7 +152,7 @@ const SettingsManager: React.FC<SettingsManagerProps> = ({ currentTenantId }) =>
       case 'styles':
         return <StylesSettingsPage currentTenantId={currentTenantId} />;
       case 'code':
-        return <CodeTab />;
+        return <CodeTab currentTenantId={currentTenantId} />;
       default:
         return <BrandingSettingsPage currentTenantId={currentTenantId} />;
     }

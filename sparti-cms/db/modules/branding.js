@@ -1241,3 +1241,212 @@ export async function migrateFaviconToDatabase(faviconPath) {
   }
 }
 
+
+// Custom Code functions
+export async function getCustomCodeSettings(tenantId = 'tenant-gosg') {
+  try {
+    console.log(`[testing] getCustomCodeSettings called with tenantId: ${tenantId}`);
+    
+    const results = await SiteSetting.findAll({
+      where: {
+        setting_category: 'custom_code',
+        [Op.or]: [
+          { tenant_id: tenantId },
+          { tenant_id: null }
+        ]
+      },
+      order: [
+        [sequelize.literal(`CASE WHEN tenant_id = '${tenantId}' THEN 0 ELSE 1 END`), 'ASC'],
+        ['setting_key', 'ASC']
+      ],
+      attributes: ['setting_key', 'setting_value', 'setting_type', 'tenant_id']
+    });
+    
+    // Convert to object format
+    const settings = {
+      head: '',
+      body: '',
+      gtmId: '',
+      gaId: '',
+      gscVerification: ''
+    };
+    
+    const seenKeys = new Set();
+    
+    results.forEach((row) => {
+      const key = row.setting_key;
+      const isTenantSpecific = row.tenant_id === tenantId;
+      
+      // Map database keys to settings object keys
+      if (key === 'custom_code_head' && (!seenKeys.has('head') || isTenantSpecific)) {
+        settings.head = row.setting_value || '';
+        if (isTenantSpecific) seenKeys.add('head');
+      } else if (key === 'custom_code_body' && (!seenKeys.has('body') || isTenantSpecific)) {
+        settings.body = row.setting_value || '';
+        if (isTenantSpecific) seenKeys.add('body');
+      } else if (key === 'custom_code_gtm_id' && (!seenKeys.has('gtmId') || isTenantSpecific)) {
+        settings.gtmId = row.setting_value || '';
+        if (isTenantSpecific) seenKeys.add('gtmId');
+      } else if (key === 'custom_code_ga_id' && (!seenKeys.has('gaId') || isTenantSpecific)) {
+        settings.gaId = row.setting_value || '';
+        if (isTenantSpecific) seenKeys.add('gaId');
+      } else if (key === 'custom_code_gsc_verification' && (!seenKeys.has('gscVerification') || isTenantSpecific)) {
+        settings.gscVerification = row.setting_value || '';
+        if (isTenantSpecific) seenKeys.add('gscVerification');
+      }
+    });
+    
+    console.log(`[testing] getCustomCodeSettings returning settings for tenant ${tenantId}`);
+    return settings;
+  } catch (error) {
+    console.error(`Error fetching custom code settings for tenant ${tenantId}:`, error);
+    throw error;
+  }
+}
+
+export async function updateCustomCodeSettings(settings, tenantId = 'tenant-gosg') {
+  if (!tenantId) {
+    throw new Error('Tenant ID is required to update custom code settings');
+  }
+  
+  const transaction = await sequelize.transaction();
+  const errors = [];
+  let transactionAborted = false;
+  
+  try {
+    // Map settings object to database keys
+    const settingsMap = {
+      head: { key: 'custom_code_head', type: 'textarea' },
+      body: { key: 'custom_code_body', type: 'textarea' },
+      gtmId: { key: 'custom_code_gtm_id', type: 'text' },
+      gaId: { key: 'custom_code_ga_id', type: 'text' },
+      gscVerification: { key: 'custom_code_gsc_verification', type: 'text' }
+    };
+    
+    for (const [field, value] of Object.entries(settings)) {
+      // Skip if field is not in our map
+      if (!settingsMap[field]) {
+        continue;
+      }
+      
+      // If transaction is aborted, we can't continue
+      if (transactionAborted) {
+        errors.push({ key: field, error: 'Transaction aborted' });
+        continue;
+      }
+      
+      try {
+        const { key: settingKey, type: settingType } = settingsMap[field];
+        const settingValue = value !== null && value !== undefined ? String(value) : '';
+        
+        // Try to find existing setting first
+        let setting = await SiteSetting.findOne({
+          where: {
+            setting_key: settingKey,
+            tenant_id: tenantId,
+            theme_id: null
+          },
+          transaction
+        });
+        
+        if (setting) {
+          // Update existing setting
+          await setting.update({
+            setting_value: settingValue,
+            setting_type: settingType,
+            setting_category: 'custom_code',
+            is_public: false
+          }, { transaction });
+        } else {
+          // Try to create new setting
+          try {
+            setting = await SiteSetting.create({
+              setting_key: settingKey,
+              setting_value: settingValue,
+              setting_type: settingType,
+              setting_category: 'custom_code',
+              is_public: false,
+              tenant_id: tenantId,
+              theme_id: null
+            }, { transaction });
+          } catch (createError) {
+            // If unique constraint violation, try to find and update
+            if (createError.name === 'SequelizeUniqueConstraintError' || createError.code === '23505' || createError.parent?.code === '23505') {
+              const found = await sequelize.query(`
+                SELECT * FROM site_settings 
+                WHERE setting_key = :key 
+                  AND COALESCE(tenant_id, '') = COALESCE(:tenantId, '')
+                  AND COALESCE(theme_id, '') = ''
+                LIMIT 1
+              `, {
+                replacements: { key: settingKey, tenantId },
+                type: QueryTypes.SELECT,
+                transaction
+              });
+              
+              if (found && found.length > 0) {
+                setting = await SiteSetting.findByPk(found[0].id, { transaction });
+                if (setting) {
+                  await setting.update({
+                    setting_value: settingValue,
+                    setting_type: settingType,
+                    setting_category: 'custom_code',
+                    is_public: false
+                  }, { transaction });
+                } else {
+                  throw createError;
+                }
+              } else {
+                throw createError;
+              }
+            } else {
+              throw createError;
+            }
+          }
+        }
+      } catch (settingError) {
+        // Check if transaction is aborted
+        if (settingError.parent && settingError.parent.code === '25P02') {
+          transactionAborted = true;
+          errors.push({ key: field, error: 'Transaction aborted' });
+          console.error(`[testing] Transaction aborted while processing ${field}`);
+          break;
+        }
+        
+        console.error(`[testing] Error updating custom code setting ${field}:`, {
+          name: settingError.name,
+          message: settingError.message,
+          code: settingError.code
+        });
+        
+        errors.push({ 
+          key: field, 
+          error: settingError.message || settingError.toString()
+        });
+      }
+    }
+    
+    // If transaction was aborted or we have errors, rollback everything
+    if (transactionAborted || errors.length > 0) {
+      await transaction.rollback();
+      const errorMessage = transactionAborted 
+        ? 'Transaction was aborted due to an error'
+        : `Failed to update ${errors.length} custom code setting(s): ${errors.map(e => `${e.key} (${e.error})`).join(', ')}`;
+      throw new Error(errorMessage);
+    }
+    
+    await transaction.commit();
+    return true;
+  } catch (error) {
+    // Only rollback if transaction hasn't been rolled back already
+    if (!transaction.finished && !transactionAborted) {
+      try {
+        await transaction.rollback();
+      } catch (rollbackError) {
+        console.error(`[testing] Error during rollback:`, rollbackError);
+      }
+    }
+    console.error(`[testing] Error updating custom code settings for tenant ${tenantId}:`, error);
+    throw error;
+  }
+}
