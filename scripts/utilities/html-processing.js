@@ -226,10 +226,7 @@ export function processPlaceholders(htmlContent, headInjections, bodyInjections)
 export function injectScriptTag(htmlContent, scriptContent, cmsTenant) {
   if (!scriptContent) return htmlContent;
   
-  const scriptTag = `
-    <script>
-      // Injected at runtime from environment variables and backend API
-${scriptContent}    </script>`;
+  const scriptTag = `<script>${scriptContent}</script>`;
   
   // Check if injection script already exists
   if (htmlContent.includes('window.__CMS_TENANT__') || htmlContent.includes('window.__BRANDING_SETTINGS__')) {

@@ -190,7 +190,6 @@ async function createStandaloneHtml() {
 
   // Build script content for injection
   let scriptContent = `
-      // Set flag to indicate theme deployment mode
       window.__THEME_DEPLOYMENT__ = true;
       window.__THEME_SLUG__ = '${themeSlug}';`;
   if (cmsTenant) {
