@@ -1,11 +1,5 @@
 import React, { useState } from 'react';
-
-// Get tenant ID from the current theme context
-const getCurrentTenantId = () => {
-  // For theme mode, we'll use the theme slug as tenant identifier
-  // This could be enhanced to fetch from a proper context or API
-  return 'landingpage'; // This should match the theme slug
-};
+import { getTenantId } from '../../../utils/tenantConfig';
 
 interface ContactFormSidebarProps {
   children: React.ReactNode;
@@ -28,6 +22,7 @@ export const ContactFormDialog: React.FC<ContactFormSidebarProps> = ({
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [errorMessage, setErrorMessage] = useState('');
 
   const isOpen = controlledOpen !== undefined ? controlledOpen : internalOpen;
   
@@ -48,10 +43,11 @@ export const ContactFormDialog: React.FC<ContactFormSidebarProps> = ({
 
     setIsSubmitting(true);
     setSubmitStatus('idle');
+    setErrorMessage('');
 
     try {
       // Get current tenant ID
-      const tenantId = getCurrentTenantId();
+      const tenantId = getTenantId();
       
       // Submit to backend API
       const response = await fetch('/api/form-submissions', {
@@ -61,7 +57,7 @@ export const ContactFormDialog: React.FC<ContactFormSidebarProps> = ({
         },
         body: JSON.stringify({
           form_id: 'contact-modal',
-          form_name: 'Contact Modal Form - GO SG CONSULTING',
+          form_name: 'Contact Modal Form - ACATR Business Services Landing Page',
           name: formData.name,
           email: formData.email,
           phone: formData.phone,
@@ -72,11 +68,11 @@ export const ContactFormDialog: React.FC<ContactFormSidebarProps> = ({
       });
 
       if (!response.ok) {
-        throw new Error('Failed to submit form');
+        const errorData = await response.json().catch(() => ({ error: 'Failed to submit form' }));
+        throw new Error(errorData.error || 'Failed to submit form');
       }
 
       const result = await response.json();
-      console.log('[testing] Form submitted successfully:', result);
       
       setSubmitStatus('success');
       setFormData({ name: '', email: '', phone: '', company: '', message: '' });
@@ -88,8 +84,8 @@ export const ContactFormDialog: React.FC<ContactFormSidebarProps> = ({
       }, 2000);
       
     } catch (error) {
-      console.error('[testing] Error submitting form:', error);
       setSubmitStatus('error');
+      setErrorMessage(error instanceof Error ? error.message : 'Failed to submit form. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -210,7 +206,7 @@ export const ContactFormDialog: React.FC<ContactFormSidebarProps> = ({
               )}
               {submitStatus === 'error' && (
                 <div className="p-3 bg-red-50 border border-red-200 rounded-md text-red-800 text-sm">
-                  ❌ Failed to send message. Please try again or contact us directly.
+                  ❌ {errorMessage || 'Failed to send message. Please try again or contact us directly.'}
                 </div>
               )}
 
