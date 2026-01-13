@@ -15,17 +15,67 @@ interface ContactModalProps {
 const WHATSAPP_URL = "https://api.whatsapp.com/send?phone=6580246850";
 
 const ContactModal = ({ open, onOpenChange }: ContactModalProps) => {
-  // Disable background scrolling when sidebar is open
+  // Disable background scrolling when sidebar is open and prevent page shift
   useEffect(() => {
     if (open) {
-      document.body.classList.add("overflow-hidden");
-    } else {
-      document.body.classList.remove("overflow-hidden");
+      // Calculate scrollbar width
+      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+      
+      // Store original padding-right value
+      const originalPaddingRight = document.body.style.paddingRight;
+      const originalOverflow = document.body.style.overflow;
+      
+      // Apply styles to prevent page shift
+      document.body.style.paddingRight = `${scrollbarWidth}px`;
+      document.body.style.overflow = 'hidden';
+      
+      return () => {
+        // Restore original styles
+        document.body.style.paddingRight = originalPaddingRight;
+        document.body.style.overflow = originalOverflow;
+      };
     }
-    return () => {
-      document.body.classList.remove("overflow-hidden");
-    };
   }, [open]);
+
+  // Add custom animation styles
+  useEffect(() => {
+    const styleId = 'contact-modal-animations';
+    if (document.getElementById(styleId)) return; // Don't add duplicate styles
+    
+    const style = document.createElement('style');
+    style.id = styleId;
+    style.textContent = `
+      @keyframes slideInFromRight {
+        from {
+          transform: translateX(100%);
+        }
+        to {
+          transform: translateX(0);
+        }
+      }
+      @keyframes slideOutToRight {
+        from {
+          transform: translateX(0);
+        }
+        to {
+          transform: translateX(100%);
+        }
+      }
+      .contact-modal-content[data-state="open"] {
+        animation: slideInFromRight 300ms cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+      }
+      .contact-modal-content[data-state="closed"] {
+        animation: slideOutToRight 300ms cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+      }
+    `;
+    document.head.appendChild(style);
+    return () => {
+      const existingStyle = document.getElementById(styleId);
+      if (existingStyle) {
+        document.head.removeChild(existingStyle);
+      }
+    };
+  }, []);
 
   const handleChooseWhatsApp = () => {
     window.open(WHATSAPP_URL, "_blank", "noopener,noreferrer");
@@ -37,11 +87,17 @@ const ContactModal = ({ open, onOpenChange }: ContactModalProps) => {
       <DialogPrimitive.Portal>
         {/* Transparent overlay adds blur to page and blocks background interactions */}
         <DialogPrimitive.Overlay
-          className={cn("fixed inset-0 z-40 bg-transparent backdrop-blur-sm")}
+          className={cn(
+            "fixed inset-0 z-40 bg-transparent backdrop-blur-sm",
+            "transition-opacity duration-300 ease-out",
+            "data-[state=closed]:opacity-0 data-[state=open]:opacity-100"
+          )}
         />
         <DialogPrimitive.Content
           className={cn(
-            "fixed inset-0 z-50 w-full h-full sm:right-0 sm:top-0 sm:left-auto sm:w-[420px] lg:w-[520px] sm:h-screen bg-gradient-to-b from-slate-800 via-slate-700 to-indigo-800 shadow-2xl p-0 overflow-y-auto"
+            "contact-modal-content",
+            "fixed inset-0 z-50 w-full h-full sm:right-0 sm:top-0 sm:left-auto sm:w-[420px] lg:w-[520px] sm:h-screen bg-gradient-to-b from-slate-800 via-slate-700 to-indigo-800 shadow-2xl p-0 overflow-y-auto",
+            "will-change-transform"
           )}
         >
           <div className="h-full flex flex-col min-h-screen sm:min-h-0">

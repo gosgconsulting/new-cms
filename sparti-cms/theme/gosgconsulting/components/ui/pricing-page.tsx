@@ -3,6 +3,7 @@
 import React from "react";
 import { ScrollArea } from "./scroll-area";
 import { Button } from "./button";
+import { MessageCircle } from "lucide-react";
 
 // --- Icon Components ---
 const SparklesIcon = () => (
@@ -188,7 +189,8 @@ function PricingCard({
       <div className="mt-auto">
         <Button 
           onClick={onButtonClick}
-          className="w-full h-12 bg-white rounded-lg text-neutral-900 font-bold hover:bg-neutral-200 transition-colors border-0"
+          className="w-full h-12 bg-white rounded-xl !font-bold hover:bg-gray-100 transition-colors border-0 shadow-sm"
+          style={{ color: '#000000', fontWeight: '700', fontSize: '17px' }}
         >
           {buttonText}
         </Button>
@@ -263,8 +265,16 @@ const PricingPage: React.FC<PricingPageProps> = ({ items = [], onContactClick })
     }
   };
 
+  const handleChatClick = () => {
+    if (onContactClick) {
+      onContactClick();
+    } else if (window.dispatchEvent) {
+      window.dispatchEvent(new CustomEvent('openContactModal'));
+    }
+  };
+
   return (
-    <div className="min-h-screen w-full bg-gradient-to-b from-slate-800 via-slate-700 to-indigo-800 flex flex-col items-center justify-center p-8">
+    <div className="min-h-screen w-full bg-gradient-to-b from-slate-800 via-slate-700 to-indigo-800 flex flex-col items-center justify-center p-8 relative">
       <div className="text-center mb-16">
         <h1 className="text-4xl sm:text-5xl font-bold text-white tracking-tight">
           Choose the Right Package for Your Business
@@ -277,6 +287,27 @@ const PricingPage: React.FC<PricingPageProps> = ({ items = [], onContactClick })
         <PricingCard {...starterPlan} onButtonClick={() => handleButtonClick("Starter")} />
         <PricingCard {...proPlan} onButtonClick={() => handleButtonClick("Growth")} />
         <PricingCard {...enterprisePlan} onButtonClick={() => handleButtonClick("Accelerate")} />
+      </div>
+
+      {/* Chat with us button - fixed bottom right */}
+      <div className="fixed bottom-6 right-6 z-50">
+        <button
+          onClick={handleChatClick}
+          className="group relative inline-flex h-14 w-14 items-center justify-center overflow-hidden rounded-full bg-violet-600 hover:bg-violet-700 text-white font-semibold shadow-[0_18px_45px_-10px_rgba(124,58,237,0.75)] border-2 border-violet-500 transition-all duration-300 hover:w-[180px]"
+          aria-label="Chat with us"
+        >
+          {/* Text - slides in from the right */}
+          <div className="inline-flex whitespace-nowrap opacity-0 transition-all duration-200 group-hover:-translate-x-3 group-hover:opacity-100">
+            Chat with us
+          </div>
+          {/* Icon - stays on the right */}
+          <div className="absolute right-3.5">
+            <span className="relative inline-flex items-center justify-center w-6 h-6 rounded-full bg-white/20">
+              <MessageCircle className="w-4 h-4" />
+              <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-green-500 rounded-full ring-2 ring-white" aria-hidden="true" />
+            </span>
+          </div>
+        </button>
       </div>
     </div>
   );

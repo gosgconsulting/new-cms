@@ -27,7 +27,7 @@ const Header: React.FC<HeaderProps> = ({
 
   return (
     <header
-      className={`sticky top-0 z-50 w-full bg-background/95 supports-[backdrop-filter]:bg-background/80 backdrop-blur-lg border-b ${
+      className={`z-50 w-full bg-background/95 supports-[backdrop-filter]:bg-background/80 backdrop-blur-lg border-b ${
         isScrolled ? 'shadow-sm' : ''
       }`}
     >
