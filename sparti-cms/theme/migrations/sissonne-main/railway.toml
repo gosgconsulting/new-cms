@@ -1,0 +1,15 @@
+[build]
+builder = "nixpacks"
+buildCommand = "chmod +x build.sh && ./build.sh"
+
+[deploy]
+startCommand = "node dist/server/node-build.mjs"
+healthcheckPath = "/health"
+healthcheckTimeout = 100
+restartPolicyType = "on_failure"
+
+[phases]
+setup = { nixPkgs = ["nodejs", "nodePackages.pnpm"] }
+
+[variables]
+NODE_ENV = "production"

@@ -1,0 +1,29 @@
+{
+  "name": "Sissonne Dance Academy",
+  "description": "A sophisticated dance academy theme embodying elegance, precision, and artistic excellence. Features comprehensive program showcases, faculty profiles, gallery, and modern dance education content. Perfect for dance schools, ballet academies, and performing arts institutions.",
+  "version": "1.0.0",
+  "author": "GOSG",
+  "is_active": true,
+  "category": "education",
+  "tags": ["dance", "ballet", "academy", "education", "performing-arts", "dance-school"],
+  "features": [
+    "Elegant dance academy design",
+    "Multi-page architecture with React Router",
+    "Program showcase with detailed information",
+    "Faculty profiles and credentials",
+    "Interactive gallery slider",
+    "Testimonial slider",
+    "Hero slider with dynamic content",
+    "Font switcher for typography customization",
+    "Responsive design for all devices",
+    "SEO optimized pages",
+    "Custom dance-specific color palette",
+    "Professional typography with custom fonts",
+    "Contact form integration",
+    "WhatsApp integration",
+    "Google Maps integration"
+  ],
+  "preview_image": "assets/logo.png",
+  "demo_url": "/theme/sissonne",
+  "documentation_url": "/docs/themes/sissonne-dance-academy"
+}

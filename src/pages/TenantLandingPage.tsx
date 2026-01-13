@@ -7,6 +7,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 const LandingPageTheme = lazy(() => import('../../sparti-cms/theme/landingpage'));
 const SpartiSEOLandingTheme = lazy(() => import('../../sparti-cms/theme/sparti-seo-landing'));
 const GosgConsultingTheme = lazy(() => import('../../sparti-cms/theme/gosgconsulting'));
+const SissonneTheme = lazy(() => import('../../sparti-cms/theme/sissonne'));
 
 /**
  * Map theme slugs to their display names and components
@@ -24,6 +25,10 @@ const themeConfig: Record<string, { name: string; component: React.LazyExoticCom
   'gosgconsulting': {
     name: 'GO SG Consulting',
     component: GosgConsultingTheme
+  },
+  'sissonne': {
+    name: 'Sissonne Dance Academy',
+    component: SissonneTheme
   }
 };
 

@@ -1,0 +1,122 @@
+{
+  "pages": [
+    {
+      "page_name": "Homepage",
+      "slug": "/",
+      "meta_title": "Sissonne Dance Academy - Excellence in Dance Education | Singapore",
+      "meta_description": "Discover your dance journey at Sissonne Dance Academy. From classical ballet to contemporary jazz, our comprehensive programs are designed to nurture talent at every level with internationally recognized curricula including RAD and CSTD certifications.",
+      "seo_index": true,
+      "status": "published",
+      "page_type": "page",
+      "keywords": ["dance academy", "ballet", "jazz", "dance school", "singapore", "RAD", "CSTD", "dance education", "dance classes"],
+      "sections": [
+        {
+          "id": "hero",
+          "name": "Hero Slider",
+          "description": "Main hero section with rotating images and call-to-action"
+        },
+        {
+          "id": "programs",
+          "name": "Programs Section",
+          "description": "Detailed showcase of dance programs with interactive selection"
+        },
+        {
+          "id": "faculty",
+          "name": "Faculty Slider",
+          "description": "Featured faculty members with credentials and specialties"
+        },
+        {
+          "id": "testimonials",
+          "name": "Testimonials Slider",
+          "description": "Student and parent testimonials with ratings"
+        },
+        {
+          "id": "gallery",
+          "name": "Gallery Slider",
+          "description": "Visual showcase of academy activities and performances"
+        },
+        {
+          "id": "trial",
+          "name": "Trial Class CTA",
+          "description": "Contact form for booking trial classes"
+        }
+      ]
+    },
+    {
+      "page_name": "Programs",
+      "slug": "/programs",
+      "meta_title": "Dance Programs - Sissonne Dance Academy | Ballet, Jazz, Elite Performance",
+      "meta_description": "Explore our comprehensive dance programs including Ballet (RAD), Jazz CSTD, Elite Performance, and DSA Preparation. Designed to nurture artistic excellence at every level.",
+      "seo_index": true,
+      "status": "published",
+      "page_type": "page",
+      "keywords": ["dance programs", "ballet classes", "jazz classes", "RAD", "CSTD", "elite performance", "DSA preparation"]
+    },
+    {
+      "page_name": "Faculty",
+      "slug": "/faculty",
+      "meta_title": "Our Faculty - World-Class Dance Instructors | Sissonne Dance Academy",
+      "meta_description": "Meet our world-class instructors who bring international expertise and passion to every class, guiding students on their journey to dance excellence.",
+      "seo_index": true,
+      "status": "published",
+      "page_type": "page",
+      "keywords": ["dance instructors", "ballet teachers", "dance faculty", "dance education", "professional instructors"]
+    },
+    {
+      "page_name": "Gallery",
+      "slug": "/gallery",
+      "meta_title": "Gallery - Sissonne Dance Academy Performances & Events",
+      "meta_description": "View our gallery showcasing performances, classes, events, and the vibrant community at Sissonne Dance Academy.",
+      "seo_index": true,
+      "status": "published",
+      "page_type": "page",
+      "keywords": ["dance gallery", "performances", "dance events", "dance photos", "academy photos"]
+    },
+    {
+      "page_name": "About",
+      "slug": "/about",
+      "meta_title": "About Us - Sissonne Dance Academy | Our Mission & Values",
+      "meta_description": "Learn about Sissonne Dance Academy's mission, values, affiliations, and commitment to excellence in dance education. Discover what makes us Singapore's premier dance academy.",
+      "seo_index": true,
+      "status": "published",
+      "page_type": "page",
+      "keywords": ["about dance academy", "dance school mission", "dance education values", "dance academy history"]
+    },
+    {
+      "page_name": "Baskerville",
+      "slug": "/baskerville",
+      "meta_title": "Baskerville Font Demo - Sissonne Dance Academy",
+      "meta_description": "Font variation demonstration page for Baskerville typography.",
+      "seo_index": false,
+      "status": "draft",
+      "page_type": "page"
+    },
+    {
+      "page_name": "Eb Garamond",
+      "slug": "/eb-garamond",
+      "meta_title": "EB Garamond Font Demo - Sissonne Dance Academy",
+      "meta_description": "Font variation demonstration page for EB Garamond typography.",
+      "seo_index": false,
+      "status": "draft",
+      "page_type": "page"
+    },
+    {
+      "page_name": "Lora",
+      "slug": "/lora",
+      "meta_title": "Lora Font Demo - Sissonne Dance Academy",
+      "meta_description": "Font variation demonstration page for Lora typography.",
+      "seo_index": false,
+      "status": "draft",
+      "page_type": "page"
+    },
+    {
+      "page_name": "Amalfi Avenir",
+      "slug": "/amalfi-avenir",
+      "meta_title": "Amalfi Avenir Font Demo - Sissonne Dance Academy",
+      "meta_description": "Font variation demonstration page for Amalfi Avenir typography.",
+      "seo_index": false,
+      "status": "draft",
+      "page_type": "page"
+    }
+  ]
+}

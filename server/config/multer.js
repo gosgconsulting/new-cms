@@ -144,4 +144,3 @@ export const simpleUpload = multer({
     }
   }
 });
-
