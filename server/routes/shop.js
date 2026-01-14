@@ -279,11 +279,308 @@ router.get('/products/slug/:slug', authenticateTenantApiKey, async (req, res) =>
   }
 });
 
+// Get product variants
+router.get('/products/:id/variants', authenticateTenantApiKey, async (req, res) => {
+  try {
+    const tenantId = req.tenantId;
+    const idParam = req.params.id;
+    
+    let productId;
+    
+    // Try to parse as integer first (product ID from products table)
+    const parsedId = parseInt(idParam);
+    if (!isNaN(parsedId)) {
+      productId = parsedId;
+    } else {
+      // If not a number, treat as slug and find product by slug
+      const productBySlug = await query(`
+        SELECT id FROM products WHERE handle = $1 AND tenant_id = $2
+        LIMIT 1
+      `, [idParam, tenantId]);
+      
+      if (productBySlug.rows.length === 0) {
+        // Also check pern_products and find corresponding products table ID
+        const pernProduct = await query(`
+          SELECT p.id 
+          FROM products p
+          JOIN pern_products pp ON p.handle = pp.slug
+          WHERE pp.slug = $1 AND p.tenant_id = $2
+          LIMIT 1
+        `, [idParam, tenantId]);
+        
+        if (pernProduct.rows.length > 0) {
+          productId = pernProduct.rows[0].id;
+        } else {
+          return res.status(404).json({ 
+            success: false, 
+            error: 'Product not found' 
+          });
+        }
+      } else {
+        productId = productBySlug.rows[0].id;
+      }
+    }
+
+    // Verify product belongs to tenant
+    const productCheck = await query(`
+      SELECT id FROM products WHERE id = $1 AND tenant_id = $2
+    `, [productId, tenantId]);
+
+    if (productCheck.rows.length === 0) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'Product not found' 
+      });
+    }
+
+    // Get variants
+    const variantsResult = await query(`
+      SELECT 
+        id,
+        sku,
+        title,
+        price,
+        compare_at_price,
+        inventory_quantity,
+        inventory_management
+      FROM product_variants
+      WHERE product_id = $1 AND tenant_id = $2
+      ORDER BY title ASC, price ASC
+    `, [productId, tenantId]);
+
+    res.json({ 
+      success: true, 
+      data: variantsResult.rows 
+    });
+  } catch (error) {
+    console.error('[testing] Error fetching product variants:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
+  }
+});
+
+// Update product variants (bulk)
+router.put('/products/:id/variants', authenticateTenantApiKey, async (req, res) => {
+  try {
+    const tenantId = req.tenantId;
+    const idParam = req.params.id;
+    const { variants } = req.body;
+
+    if (!Array.isArray(variants)) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Variants must be an array' 
+      });
+    }
+
+    let productId;
+    
+    // Try to parse as integer first (product ID from products table)
+    const parsedId = parseInt(idParam);
+    if (!isNaN(parsedId)) {
+      productId = parsedId;
+    } else {
+      // If not a number, treat as slug and find product by slug
+      const productBySlug = await query(`
+        SELECT id FROM products WHERE handle = $1 AND tenant_id = $2
+        LIMIT 1
+      `, [idParam, tenantId]);
+      
+      if (productBySlug.rows.length === 0) {
+        // Also check pern_products and find corresponding products table ID
+        const pernProduct = await query(`
+          SELECT p.id 
+          FROM products p
+          JOIN pern_products pp ON p.handle = pp.slug
+          WHERE pp.slug = $1 AND p.tenant_id = $2
+          LIMIT 1
+        `, [idParam, tenantId]);
+        
+        if (pernProduct.rows.length > 0) {
+          productId = pernProduct.rows[0].id;
+        } else {
+          return res.status(404).json({ 
+            success: false, 
+            error: 'Product not found' 
+          });
+        }
+      } else {
+        productId = productBySlug.rows[0].id;
+      }
+    }
+
+    // Verify product belongs to tenant
+    const productCheck = await query(`
+      SELECT id FROM products WHERE id = $1 AND tenant_id = $2
+    `, [productId, tenantId]);
+
+    if (productCheck.rows.length === 0) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'Product not found' 
+      });
+    }
+
+    // Start transaction
+    await query('BEGIN');
+
+    try {
+      // Get existing variant IDs
+      const existingVariantsResult = await query(`
+        SELECT id FROM product_variants
+        WHERE product_id = $1 AND tenant_id = $2
+      `, [productId, tenantId]);
+
+      const existingIds = new Set(existingVariantsResult.rows.map(row => row.id));
+      const newIds = new Set(variants.filter(v => v.id).map(v => v.id));
+
+      // Delete variants that are not in the new list
+      const idsToDelete = Array.from(existingIds).filter(id => !newIds.has(id));
+      if (idsToDelete.length > 0) {
+        await query(`
+          DELETE FROM product_variants
+          WHERE id = ANY($1::int[]) AND product_id = $2 AND tenant_id = $3
+        `, [idsToDelete, productId, tenantId]);
+      }
+
+      // Update or insert variants
+      for (const variant of variants) {
+        const {
+          id,
+          sku,
+          title,
+          price,
+          compare_at_price,
+          inventory_quantity,
+          inventory_management
+        } = variant;
+
+        if (!title || title.trim() === '') {
+          continue; // Skip variants without title
+        }
+
+        const priceNum = typeof price === 'string' ? parseFloat(price) : price;
+        const comparePriceNum = compare_at_price 
+          ? (typeof compare_at_price === 'string' ? parseFloat(compare_at_price) : compare_at_price)
+          : null;
+        const inventoryQty = typeof inventory_quantity === 'string' 
+          ? parseInt(inventory_quantity) 
+          : (inventory_quantity || 0);
+        const manageStock = inventory_management !== false && inventory_management !== 'false';
+
+        if (id && existingIds.has(id)) {
+          // Update existing variant
+          await query(`
+            UPDATE product_variants
+            SET sku = $1,
+                title = $2,
+                price = $3,
+                compare_at_price = $4,
+                inventory_quantity = $5,
+                inventory_management = $6,
+                updated_at = NOW()
+            WHERE id = $7 AND product_id = $8 AND tenant_id = $9
+          `, [
+            sku || null,
+            title,
+            priceNum || 0,
+            comparePriceNum,
+            inventoryQty,
+            manageStock,
+            id,
+            productId,
+            tenantId
+          ]);
+        } else {
+          // Insert new variant
+          await query(`
+            INSERT INTO product_variants (
+              product_id, sku, title, price, compare_at_price,
+              inventory_quantity, inventory_management, tenant_id
+            )
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            RETURNING id
+          `, [
+            productId,
+            sku || null,
+            title,
+            priceNum || 0,
+            comparePriceNum,
+            inventoryQty,
+            manageStock,
+            tenantId
+          ]);
+        }
+      }
+
+      await query('COMMIT');
+
+      // Fetch updated variants
+      const updatedVariantsResult = await query(`
+        SELECT 
+          id,
+          sku,
+          title,
+          price,
+          compare_at_price,
+          inventory_quantity,
+          inventory_management
+        FROM product_variants
+        WHERE product_id = $1 AND tenant_id = $2
+        ORDER BY title ASC, price ASC
+      `, [productId, tenantId]);
+
+      res.json({ 
+        success: true, 
+        data: updatedVariantsResult.rows 
+      });
+    } catch (error) {
+      await query('ROLLBACK');
+      throw error;
+    }
+  } catch (error) {
+    console.error('[testing] Error updating product variants:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
+  }
+});
+
 // Create product
 router.post('/products', authenticateTenantApiKey, async (req, res) => {
   try {
     const tenantId = req.tenantId;
-    const { name, slug, price, description, image_url } = req.body;
+    const {
+      name,
+      slug,
+      price,
+      sale_price,
+      description,
+      short_description,
+      image_url,
+      gallery_images,
+      sku,
+      manage_stock,
+      stock_quantity,
+      backorders,
+      categories,
+      tags,
+      meta_title,
+      meta_description,
+      weight,
+      length,
+      width,
+      height,
+      shipping_class,
+      status,
+      featured,
+      product_type,
+      attributes,
+      variations,
+    } = req.body;
 
     if (!name || !slug || price === undefined) {
       return res.status(400).json({ 
@@ -292,18 +589,237 @@ router.post('/products', authenticateTenantApiKey, async (req, res) => {
       });
     }
 
-    const product = await createProduct({
-      name,
-      slug,
-      price: parseFloat(price),
-      description: description || '',
-      image_url: image_url || null
-    }, tenantId);
+    // Start transaction
+    await query('BEGIN');
 
-    res.json({ 
-      success: true, 
-      data: product 
-    });
+    try {
+      // Create product in pern_products table
+      const product = await createProduct({
+        name,
+        slug,
+        price: parseFloat(price),
+        description: description || '',
+        image_url: image_url || null
+      }, tenantId);
+
+      const productId = product.product_id;
+
+      // Also create in products table if it exists (for WooCommerce compatibility)
+      let mainProductId = null;
+      try {
+        const handle = slug || name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+        const productStatus = status === 'publish' ? 'active' : 'draft';
+        
+        const mainProductResult = await query(`
+          INSERT INTO products (
+            name, description, handle, status, featured_image,
+            tenant_id, external_source
+          )
+          VALUES ($1, $2, $3, $4, $5, $6, $7)
+          RETURNING id
+        `, [
+          name,
+          description || '',
+          handle,
+          productStatus,
+          image_url || null,
+          tenantId,
+          'local'
+        ]);
+        
+        mainProductId = mainProductResult.rows[0]?.id;
+      } catch (err) {
+        // products table might not exist, that's okay
+        console.warn('[testing] Could not create product in products table:', err.message);
+      }
+
+      // Create variants
+      if (variations && Array.isArray(variations) && variations.length > 0) {
+        for (const variation of variations) {
+          if (!variation.enabled) continue;
+          
+          const variantTitle = Object.entries(variation.attributes || {})
+            .map(([key, value]) => `${key}: ${value}`)
+            .join(', ') || 'Default';
+          
+          // Use mainProductId if available, otherwise use productId from pern_products
+          const variantProductId = mainProductId || productId;
+          
+          try {
+            await query(`
+              INSERT INTO product_variants (
+                product_id, sku, title, price, compare_at_price,
+                inventory_quantity, inventory_management, tenant_id
+              )
+              VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            `, [
+              variantProductId,
+              variation.sku || null,
+              variantTitle,
+              parseFloat(variation.price || variation.regular_price || price),
+              variation.sale_price ? parseFloat(variation.sale_price) : null,
+              variation.stock_quantity || stock_quantity || 0,
+              manage_stock !== false,
+              tenantId
+            ]);
+          } catch (err) {
+            console.warn('[testing] Could not create variant:', err.message);
+          }
+        }
+      } else {
+        // Create default variant for simple products
+        const variantProductId = mainProductId || productId;
+        try {
+          await query(`
+            INSERT INTO product_variants (
+              product_id, sku, title, price, compare_at_price,
+              inventory_quantity, inventory_management, tenant_id
+            )
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+          `, [
+            variantProductId,
+            sku || null,
+            'Default',
+            parseFloat(price),
+            sale_price ? parseFloat(sale_price) : null,
+            stock_quantity || 0,
+            manage_stock !== false,
+            tenantId
+          ]);
+        } catch (err) {
+          console.warn('[testing] Could not create default variant:', err.message);
+        }
+      }
+
+      // Link categories
+      if (categories && Array.isArray(categories) && categories.length > 0 && mainProductId) {
+        for (const categoryId of categories) {
+          try {
+            await query(`
+              INSERT INTO product_category_relations (product_id, category_id)
+              VALUES ($1, $2)
+              ON CONFLICT (product_id, category_id) DO NOTHING
+            `, [mainProductId, categoryId]);
+          } catch (err) {
+            console.warn('[testing] Could not link category:', err.message);
+          }
+        }
+      }
+
+      // Check if WooCommerce integration is active and create product there
+      let wooCommerceProductId = null;
+      try {
+        const integrationResult = await query(`
+          SELECT config, is_active
+          FROM tenant_integrations
+          WHERE tenant_id = $1 AND integration_type = 'woocommerce' AND is_active = true
+          LIMIT 1
+        `, [tenantId]);
+
+        if (integrationResult.rows.length > 0) {
+          const client = await createWooCommerceClient(tenantId, query);
+          
+          // Map to WooCommerce format
+          const wcProductData = {
+            name,
+            type: product_type || 'simple',
+            regular_price: price.toString(),
+            description: description || '',
+            short_description: short_description || '',
+            status: status || 'draft',
+            featured: featured || false,
+            sku: sku || '',
+            manage_stock: manage_stock !== false,
+            stock_quantity: stock_quantity || 0,
+            backorders: backorders || 'no',
+            weight: weight || '',
+            dimensions: {
+              length: length || '',
+              width: width || '',
+              height: height || '',
+            },
+            shipping_class: shipping_class || '',
+            images: [],
+            categories: categories || [],
+            tags: tags || [],
+            meta_data: [],
+          };
+
+          // Add main image
+          if (image_url) {
+            wcProductData.images.push({ src: image_url });
+          }
+
+          // Add gallery images
+          if (gallery_images && Array.isArray(gallery_images)) {
+            gallery_images.forEach((url) => {
+              if (url && url !== image_url) {
+                wcProductData.images.push({ src: url });
+              }
+            });
+          }
+
+          // Add attributes for variable products
+          if (product_type === 'variable' && attributes && Array.isArray(attributes)) {
+            wcProductData.attributes = attributes.map((attr) => ({
+              name: attr.name,
+              options: attr.options || [],
+              variation: attr.variation !== false,
+            }));
+          }
+
+          // Create product in WooCommerce
+          const wcProduct = await client.createProduct(wcProductData);
+          wooCommerceProductId = wcProduct.id;
+
+          // Create variations in WooCommerce if variable product
+          if (product_type === 'variable' && variations && Array.isArray(variations) && variations.length > 0) {
+            const wcVariations = variations
+              .filter((v) => v.enabled)
+              .map((variation) => ({
+                regular_price: (variation.price || variation.regular_price || price).toString(),
+                sale_price: variation.sale_price ? variation.sale_price.toString() : '',
+                sku: variation.sku || '',
+                stock_quantity: variation.stock_quantity || stock_quantity || 0,
+                attributes: Object.entries(variation.attributes || {}).map(([name, value]) => ({
+                  name,
+                  option: value,
+                })),
+                image: variation.image ? [{ src: variation.image }] : [],
+              }));
+
+            if (wcVariations.length > 0) {
+              await client.createVariations(wooCommerceProductId, wcVariations);
+            }
+          }
+
+          // Update external_id in products table
+          if (mainProductId) {
+            await query(`
+              UPDATE products
+              SET external_id = $1, external_source = 'woocommerce'
+              WHERE id = $2
+            `, [String(wooCommerceProductId), mainProductId]);
+          }
+        }
+      } catch (wcError) {
+        console.error('[testing] Error creating product in WooCommerce:', wcError);
+        // Don't fail the whole request if WooCommerce fails
+      }
+
+      await query('COMMIT');
+
+      res.json({ 
+        success: true, 
+        data: {
+          ...product,
+          wooCommerceId: wooCommerceProductId,
+        }
+      });
+    } catch (error) {
+      await query('ROLLBACK');
+      throw error;
+    }
   } catch (error) {
     console.error('[testing] Error creating product:', error);
     if (error.code === '23505') { // Unique violation
@@ -672,15 +1188,61 @@ router.get('/orders', authenticateTenantApiKey, async (req, res) => {
           filters
         );
 
+        // Transform WooCommerce orders to match expected format
+        const transformedOrders = Array.isArray(wcOrders) ? wcOrders.map(wcOrder => {
+          const billing = wcOrder.billing || {};
+          const paymentMethod = wcOrder.payment_method ? wcOrder.payment_method.toUpperCase() : null;
+          
+          // Map WooCommerce status to our status format
+          const statusMap = {
+            'pending': 'pending',
+            'processing': 'processing',
+            'on-hold': 'pending',
+            'completed': 'completed',
+            'cancelled': 'cancelled',
+            'refunded': 'refunded',
+            'failed': 'failed',
+          };
+          const wcStatus = wcOrder.status?.toLowerCase() || 'pending';
+          const mappedStatus = statusMap[wcStatus] || wcStatus;
+          
+          // Ensure numeric values are properly parsed
+          const totalAmount = parseFloat(String(wcOrder.total || 0));
+          
+          return {
+            order_id: parseInt(String(wcOrder.id || 0)),
+            user_id: parseInt(String(wcOrder.customer_id || 0)),
+            user_email: billing.email || null,
+            user_name: billing.first_name && billing.last_name 
+              ? `${billing.first_name} ${billing.last_name}`.trim()
+              : billing.first_name || billing.last_name || null,
+            status: mappedStatus,
+            date: wcOrder.date_created || wcOrder.date_modified || new Date().toISOString(),
+            amount: totalAmount,
+            total: totalAmount,
+            ref: wcOrder.number || `WC-${wcOrder.id}`,
+            payment_method: paymentMethod === 'STRIPE' || paymentMethod === 'PAYSTACK' 
+              ? paymentMethod 
+              : paymentMethod ? paymentMethod : null,
+            // Additional WooCommerce fields
+            external_id: String(wcOrder.id),
+            external_source: 'woocommerce',
+            line_items: wcOrder.line_items || [],
+            billing_address: billing,
+            shipping_address: wcOrder.shipping || {},
+          };
+        }) : [];
+
         res.json({
           success: true,
-          data: Array.isArray(wcOrders) ? wcOrders : [],
+          data: transformedOrders || [],
           provider: 'woocommerce'
         });
         return;
       } catch (wcError) {
         console.error('[testing] WooCommerce API error, falling back to Sparti:', wcError);
         // Fall back to Sparti if WooCommerce fails
+        // Don't return error, let it fall through to Sparti
       }
     }
 

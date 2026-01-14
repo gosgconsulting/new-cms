@@ -164,6 +164,42 @@ export class WooCommerceClient {
   }
 
   /**
+   * Create a new product in WooCommerce
+   * @param {object} productData - Product data following WooCommerce API format
+   * @returns {Promise<object>} Created product
+   */
+  async createProduct(productData) {
+    const data = await this.request('POST', '/products', productData);
+    return data;
+  }
+
+  /**
+   * Update an existing product
+   * @param {number} id - Product ID
+   * @param {object} productData - Updated product data
+   * @returns {Promise<object>} Updated product
+   */
+  async updateProduct(id, productData) {
+    const data = await this.request('PUT', `/products/${id}`, productData);
+    return data;
+  }
+
+  /**
+   * Create product variations
+   * @param {number} productId - Parent product ID
+   * @param {array} variations - Array of variation objects
+   * @returns {Promise<array>} Created variations
+   */
+  async createVariations(productId, variations) {
+    const results = [];
+    for (const variation of variations) {
+      const data = await this.request('POST', `/products/${productId}/variations`, variation);
+      results.push(data);
+    }
+    return results;
+  }
+
+  /**
    * Get orders with pagination and filters
    * @param {number} page - Page number (default: 1)
    * @param {number} perPage - Items per page (default: 10, max: 100)

@@ -63,7 +63,7 @@ export default function OrdersManager({ currentTenantId }: OrdersManagerProps) {
   });
   const queryClient = useQueryClient();
 
-  const { data: orders = [], isLoading } = useQuery({
+  const { data: orders = [], isLoading, error } = useQuery({
     queryKey: ['orders', currentTenantId, statusFilter],
     queryFn: async () => {
       if (!currentTenantId) {
@@ -77,12 +77,25 @@ export default function OrdersManager({ currentTenantId }: OrdersManagerProps) {
       
       const response = await api.get(`/api/shop/orders?${params.toString()}`, { tenantId: currentTenantId });
       if (!response.ok) {
-        throw new Error('Failed to fetch orders');
+        const errorText = await response.text();
+        let errorData;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch {
+          errorData = { error: errorText || 'Failed to fetch orders' };
+        }
+        throw new Error(errorData.error || 'Failed to fetch orders');
       }
       const result = await response.json();
-      return result.data || [];
+      // Ensure we always return an array
+      if (!result.success) {
+        console.error('[testing] Orders API returned error:', result.error);
+        return [];
+      }
+      return Array.isArray(result.data) ? result.data : [];
     },
     enabled: !!currentTenantId,
+    retry: 1,
   });
 
   // Fetch products for order creation
@@ -431,6 +444,16 @@ export default function OrdersManager({ currentTenantId }: OrdersManagerProps) {
 
       {isLoading ? (
         <div className="text-center py-12">Loading orders...</div>
+      ) : error ? (
+        <Card>
+          <CardContent className="p-12 text-center">
+            <ShoppingCart className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+            <p className="text-red-600 mb-2">Error loading orders</p>
+            <p className="text-sm text-muted-foreground">
+              {error instanceof Error ? error.message : 'Unknown error occurred'}
+            </p>
+          </CardContent>
+        </Card>
       ) : orders.length === 0 ? (
         <Card>
           <CardContent className="p-12 text-center">

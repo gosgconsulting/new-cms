@@ -7,6 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import ProductCreationWizard from './ProductCreationWizard';
+import ProductEditTable from './ProductEditTable';
+import BulkProductEditTable from './BulkProductEditTable';
 
 interface Product {
   product_id: number;
@@ -26,6 +29,7 @@ interface ProductsManagerProps {
 export default function ProductsManager({ currentTenantId }: ProductsManagerProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showBulkEdit, setShowBulkEdit] = useState(false);
   const [editingProductId, setEditingProductId] = useState<number | null>(null);
   const queryClient = useQueryClient();
 
@@ -83,6 +87,7 @@ export default function ProductsManager({ currentTenantId }: ProductsManagerProp
   const handleCancel = () => {
     setShowCreateForm(false);
     setEditingProductId(null);
+    setShowBulkEdit(false);
   };
 
   const filteredProducts = products.filter((product: Product) => {
@@ -104,36 +109,39 @@ export default function ProductsManager({ currentTenantId }: ProductsManagerProp
           <h1 className="text-3xl font-bold">Products</h1>
           <p className="text-muted-foreground mt-1">Manage your product catalog</p>
         </div>
-        {!showCreateForm && !editingProductId && (
-          <Button onClick={() => setShowCreateForm(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Product
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          {!showBulkEdit && (
+            <Button variant="outline" onClick={() => setShowBulkEdit(true)} disabled={showCreateForm || !!editingProductId}>
+              Bulk Edit
+            </Button>
+          )}
+          {!showCreateForm && !editingProductId && (
+            <Button onClick={() => setShowCreateForm(true)} disabled={showBulkEdit}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Product
+            </Button>
+          )}
+        </div>
       </div>
 
-      {/* Inline Create Form */}
+      {/* Product Creation Wizard */}
       {showCreateForm && (
-        <Card className="border-2 border-blue-200 bg-blue-50/30">
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-xl">Create New Product</CardTitle>
-              <Button variant="ghost" size="sm" onClick={handleCancel}>
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <ProductForm
-              currentTenantId={currentTenantId}
-              onSuccess={() => {
-                setShowCreateForm(false);
-                queryClient.invalidateQueries({ queryKey: ['products', currentTenantId] });
-              }}
-              onCancel={handleCancel}
-            />
-          </CardContent>
-        </Card>
+        <ProductCreationWizard
+          currentTenantId={currentTenantId}
+          onSuccess={() => {
+            setShowCreateForm(false);
+            queryClient.invalidateQueries({ queryKey: ['products', currentTenantId] });
+          }}
+          onCancel={handleCancel}
+        />
+      )}
+
+      {/* Bulk Edit Table */}
+      {showBulkEdit && (
+        <BulkProductEditTable
+          currentTenantId={currentTenantId}
+          onClose={handleCancel}
+        />
       )}
 
       <Card>
@@ -197,27 +205,71 @@ interface ProductCardProps {
   currentTenantId: string;
 }
 
+interface ProductVariant {
+  id: number;
+  sku: string | null;
+  title: string;
+  price: number | string; // Can be string from PostgreSQL numeric type
+  compare_at_price: number | string | null; // Can be string from PostgreSQL numeric type
+  inventory_quantity: number;
+  inventory_management: boolean;
+}
+
 function ProductCard({ product, isEditing, onEdit, onDelete, onCancel, currentTenantId }: ProductCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+
+  // Fetch variants when expanded
+  const { data: variants = [], isLoading: isLoadingVariants, error: variantsError } = useQuery({
+    queryKey: ['product-variants', product.product_id, product.slug, currentTenantId],
+    queryFn: async () => {
+      if (!currentTenantId) {
+        return [];
+      }
+      
+      // Fetch variants - the endpoint now supports both ID and slug
+      // Try with slug first (more reliable for mapping between tables)
+      try {
+        const response = await api.get(`/api/shop/products/${product.slug}/variants`, { tenantId: currentTenantId });
+        if (response.ok) {
+          const result = await response.json();
+          return Array.isArray(result.data) ? result.data : [];
+        }
+      } catch (e) {
+        // If slug fails, try with product_id
+        try {
+          const response = await api.get(`/api/shop/products/${product.product_id}/variants`, { tenantId: currentTenantId });
+          if (response.ok) {
+            const result = await response.json();
+            return Array.isArray(result.data) ? result.data : [];
+          }
+        } catch (e2) {
+          console.warn('[testing] Could not fetch variants:', e2);
+        }
+      }
+      
+      return [];
+    },
+    enabled: isExpanded && !!currentTenantId,
+    retry: 1,
+  });
 
   if (isEditing) {
     return (
       <Card className="border-2 border-blue-200 bg-blue-50/30">
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-xl">Edit Product</CardTitle>
-            <Button variant="ghost" size="sm" onClick={onCancel}>
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <ProductForm
-            product={product}
-            currentTenantId={currentTenantId}
-            onSuccess={onCancel}
-            onCancel={onCancel}
-          />
+        <CardContent className="p-6">
+          {isLoadingVariants ? (
+            <div className="py-8 text-center text-muted-foreground">
+              Loading product data...
+            </div>
+          ) : (
+            <ProductEditTable
+              product={product}
+              variants={variants}
+              currentTenantId={currentTenantId}
+              onSuccess={onCancel}
+              onCancel={onCancel}
+            />
+          )}
         </CardContent>
       </Card>
     );
@@ -247,11 +299,54 @@ function ProductCard({ product, isEditing, onEdit, onDelete, onCancel, currentTe
                 </div>
                 {isExpanded && (
                   <div className="mt-3 pt-3 border-t border-gray-200">
-                    <p className="text-sm text-gray-700 whitespace-pre-wrap">{product.description || 'No description'}</p>
-                    <div className="mt-3 text-xs text-gray-500">
-                      <p>Created: {new Date(product.created_at).toLocaleDateString()}</p>
-                      <p>Updated: {new Date(product.updated_at).toLocaleDateString()}</p>
-                    </div>
+                    {isLoadingVariants ? (
+                      <p className="text-sm text-gray-500">Loading variants...</p>
+                    ) : variantsError ? (
+                      <p className="text-sm text-red-500">Error loading variants</p>
+                    ) : variants.length > 0 ? (
+                      <div className="space-y-2">
+                        <h4 className="text-sm font-semibold text-gray-900 mb-2">Product Variants</h4>
+                        <div className="space-y-1">
+                          {variants.map((variant: ProductVariant) => {
+                            const price = parseFloat(String(variant.price || 0));
+                            const comparePrice = variant.compare_at_price ? parseFloat(String(variant.compare_at_price)) : null;
+                            
+                            return (
+                              <div
+                                key={variant.id}
+                                className="flex items-center justify-between p-2 bg-gray-50 rounded border border-gray-200"
+                              >
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-sm font-medium text-gray-900">{variant.title}</span>
+                                    {variant.sku && (
+                                      <span className="text-xs text-gray-500">SKU: {variant.sku}</span>
+                                    )}
+                                  </div>
+                                  {variant.inventory_management && (
+                                    <span className="text-xs text-gray-500">
+                                      Stock: {variant.inventory_quantity}
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  {comparePrice && comparePrice > price && (
+                                    <span className="text-xs text-gray-400 line-through">
+                                      ${comparePrice.toFixed(2)}
+                                    </span>
+                                  )}
+                                  <span className="text-sm font-semibold text-gray-900">
+                                    ${price.toFixed(2)}
+                                  </span>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-sm text-gray-500">No variants available</p>
+                    )}
                   </div>
                 )}
               </div>
@@ -313,6 +408,40 @@ function ProductForm({ product, currentTenantId, onSuccess, onCancel }: ProductF
   const [imageUrl, setImageUrl] = useState(product?.image_url || '');
   const [isSaving, setIsSaving] = useState(false);
   const queryClient = useQueryClient();
+
+  // Fetch variants when editing existing product
+  const { data: variants = [], isLoading: isLoadingVariants } = useQuery({
+    queryKey: ['product-variants', product?.product_id, product?.slug, currentTenantId],
+    queryFn: async () => {
+      if (!product || !currentTenantId) {
+        return [];
+      }
+      
+      try {
+        // Try with slug first
+        const response = await api.get(`/api/shop/products/${product.slug}/variants`, { tenantId: currentTenantId });
+        if (response.ok) {
+          const result = await response.json();
+          return Array.isArray(result.data) ? result.data : [];
+        }
+      } catch (e) {
+        // If slug fails, try with product_id
+        try {
+          const response = await api.get(`/api/shop/products/${product.product_id}/variants`, { tenantId: currentTenantId });
+          if (response.ok) {
+            const result = await response.json();
+            return Array.isArray(result.data) ? result.data : [];
+          }
+        } catch (e2) {
+          console.warn('[testing] Could not fetch variants:', e2);
+        }
+      }
+      
+      return [];
+    },
+    enabled: !!product && !!currentTenantId,
+    retry: 1,
+  });
 
   const saveMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -441,6 +570,24 @@ function ProductForm({ product, currentTenantId, onSuccess, onCancel }: ProductF
           )}
         </div>
       </div>
+
+      {/* Product Variants Table - Only show when editing existing product */}
+      {product && (
+        <div className="md:col-span-2 pt-4 border-t">
+          {isLoadingVariants ? (
+            <div className="py-8 text-center text-muted-foreground">
+              Loading variants...
+            </div>
+          ) : (
+            <ProductVariantTable
+              productId={product.product_id}
+              productSlug={product.slug}
+              variants={variants}
+              currentTenantId={currentTenantId}
+            />
+          )}
+        </div>
+      )}
 
       <div className="flex justify-end space-x-2 pt-4 border-t">
         <Button type="button" variant="outline" onClick={onCancel} disabled={isSaving}>
