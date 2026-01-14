@@ -231,25 +231,29 @@ const Auth: React.FC = () => {
     setLoading(true);
     setMessage(null);
 
-    // Dev-only: inject a super admin session directly (no server)
+    // Dev-only: inject a super admin session directly and use a special dev token
     if (import.meta.env.DEV) {
-      const devSuperAdminSession = {
-        user: {
-          id: 'dev-super-admin',
-          first_name: 'Dev',
-          last_name: 'Admin',
-          email: 'admin@local.dev',
-          role: 'admin',
-          tenant_id: null, // super admin has access to all tenants
-          is_super_admin: true
-        },
-        token: 'dev-super-admin-token', // dummy token for client-side checks
+      const devUser = {
+        id: 'dev-super-admin',
+        first_name: 'Dev',
+        last_name: 'Admin',
+        email: 'admin@local.dev',
+        role: 'admin',
+        tenant_id: null, // super admin has access to all tenants
+        is_super_admin: true
       };
 
-      // Persist session
-      localStorage.setItem('sparti-user-session', JSON.stringify(devSuperAdminSession));
+      // Persist session with a recognized dev token
+      localStorage.setItem('sparti-user-session', JSON.stringify({
+        ...devUser,
+        token: 'dev-super-admin-token'
+      }));
 
-      // Show success and navigate
+      // Optionally set a default tenant context for smoother DX
+      try {
+        localStorage.setItem('sparti-current-tenant-id', 'tenant-gosg');
+      } catch {}
+
       setMessage({
         type: 'success',
         text: 'Developer super admin access enabled. Redirecting...'
@@ -257,7 +261,7 @@ const Auth: React.FC = () => {
 
       setTimeout(() => {
         navigate(from, { replace: true });
-      }, 800);
+      }, 600);
 
       setLoading(false);
       return;
