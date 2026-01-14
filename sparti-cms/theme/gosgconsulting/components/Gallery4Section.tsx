@@ -121,7 +121,7 @@ const Gallery4Section: React.FC<Gallery4SectionProps> = ({ onContactClick }) => 
                     <div className="pt-2">
                       <button
                         onClick={handleLearnMore}
-                        className="inline-flex items-center px-5 py-2.5 rounded-md cta-gradient text-white shadow-sm hover:opacity-90 transition-all"
+                        className="inline-flex items-center px-5 py-2.5 rounded-md bg-white text-brandPurple border border-brandPurple hover:bg-brandPurple hover:text-white transition-colors"
                       >
                         Learn more
                       </button>

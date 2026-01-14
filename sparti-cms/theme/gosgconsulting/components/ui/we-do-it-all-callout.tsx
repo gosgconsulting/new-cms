@@ -86,7 +86,7 @@ const WeDoItAllCallout: React.FC<WeDoItAllCalloutProps> = ({
           <Button
             onClick={() => onChatClick && onChatClick()}
             aria-label="Chat with us"
-            className="relative rounded-full bg-violet-600 hover:bg-violet-700 text-white px-10 md:px-12 py-5 md:py-6 text-xl md:text-2xl font-semibold shadow-[0_22px_60px_-12px_rgba(124,58,237,0.75)] transition-all duration-200"
+            className="relative rounded-full bg-brandPurple text-white hover:bg-white hover:text-brandPurple border border-brandPurple px-10 md:px-12 py-5 md:py-6 text-xl md:text-2xl font-semibold transition-colors"
           >
             <span className="flex items-center gap-3">
               <span className="relative inline-flex items-center justify-center w-9 h-9 rounded-full bg-white/20">
@@ -103,4 +103,3 @@ const WeDoItAllCallout: React.FC<WeDoItAllCalloutProps> = ({
 };
 
 export default WeDoItAllCallout;
-
