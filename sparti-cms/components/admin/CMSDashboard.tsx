@@ -23,6 +23,8 @@ import {
   ShoppingCart,
   Target,
   Star,
+  CreditCard,
+  Truck,
 } from 'lucide-react';
 import { useAuth } from '../auth/AuthProvider';
 import { motion } from 'framer-motion';
@@ -64,6 +66,8 @@ import { CodeTab } from './DeveloperManager';
 import ProductsManager from './ProductsManager';
 import OrdersManager from './OrdersManager';
 import ReviewsManager from './ReviewsManager';
+import PaymentsManager from './PaymentsManager';
+import ShopSettingsManager from './ShopSettingsManager';
 
 // Tenant type for local state
 interface Tenant {
@@ -420,7 +424,16 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({ hideSidebar = false }) => {
   const shopNavItems = [
     { id: 'products', label: 'Products', icon: Package },
     { id: 'orders', label: 'Orders', icon: ShoppingCart },
+    { id: 'payments', label: 'Payments', icon: CreditCard },
     { id: 'reviews', label: 'Reviews', icon: Star },
+    { id: 'settings', label: 'Settings', icon: SettingsIcon },
+  ];
+
+  const shopSettingsItems = [
+    { id: 'payment-methods', label: 'Payment Methods', icon: CreditCard },
+    { id: 'shipping-methods', label: 'Shipping Methods', icon: Truck },
+    { id: 'stripe-connect', label: 'Stripe Connect', icon: CreditCard },
+    { id: 'shop-general', label: 'General', icon: SettingsIcon },
   ];
 
   const navItems = mode === 'cms' ? cmsNavItems : shopNavItems;

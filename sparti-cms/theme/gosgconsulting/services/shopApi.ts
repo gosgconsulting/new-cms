@@ -29,16 +29,23 @@ export async function getProducts(tenantId: string = TENANT_ID) {
  */
 export async function getProductBySlug(slug: string, tenantId: string = TENANT_ID) {
   try {
-    const response = await api.get(`/api/shop/products/slug/${slug}`, { tenantId });
+    console.log('[testing] getProductBySlug called with:', { slug, tenantId });
+    const response = await api.get(`/api/shop/products/slug/${encodeURIComponent(slug)}`, { tenantId });
+    console.log('[testing] API response status:', response.status, response.ok);
+    
     if (!response.ok) {
       if (response.status === 404) {
+        console.log('[testing] Product not found (404)');
         return null;
       }
-      throw new Error('Failed to fetch product');
+      const errorData = await response.json().catch(() => ({}));
+      console.error('[testing] API error response:', errorData);
+      throw new Error(errorData.error || `Failed to fetch product: ${response.status} ${response.statusText}`);
     }
     const result = await response.json();
+    console.log('[testing] Product data received:', result);
     return result.data || null;
-  } catch (error) {
+  } catch (error: any) {
     console.error('[testing] Error fetching product by slug:', error);
     throw error;
   }
