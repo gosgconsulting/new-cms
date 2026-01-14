@@ -16,11 +16,23 @@ export const setDatabaseState = (initialized, error = null) => {
   dbInitializationError = error;
 };
 
+// Helper: detect mock DB mode
+export const isMockDatabaseEnabled = () => {
+  return process.env.MOCK_DATABASE === 'true' || (!process.env.DATABASE_URL && !process.env.DATABASE_PUBLIC_URL);
+};
+
 // Initialize database in the background with retry logic
 // Note: Database migrations should be run via Sequelize CLI (npm run sequelize:migrate)
 // This function only tests the connection and initializes blog schema
 export async function initializeDatabaseInBackground(maxRetries = 5, retryDelay = 5000) {
   let attempt = 0;
+  
+  // If mock mode, mark ready immediately so the app can function in Dyad
+  if (isMockDatabaseEnabled()) {
+    console.warn('[testing] Mock database mode enabled; marking DB as ready (reads return empty data).');
+    setDatabaseState(true);
+    return;
+  }
   
   while (attempt < maxRetries) {
     attempt++;
@@ -36,7 +48,6 @@ export async function initializeDatabaseInBackground(maxRetries = 5, retryDelay 
       // await ensureBlogSchemaInitialized('tenant-gosg');
       
       setDatabaseState(true);
-      // console.log('[testing] Database connection verified and blog schema initialized');
       return; // Success - exit the retry loop
       
     } catch (error) {
@@ -47,8 +58,6 @@ export async function initializeDatabaseInBackground(maxRetries = 5, retryDelay 
         console.error('[testing] Failed to connect to database after all retries');
         console.error('[testing] Note: Make sure migrations are run via: npm run sequelize:migrate');
         setDatabaseState(false, error);
-        // Don't exit - allow server to continue running
-        // API endpoints that need DB will handle errors gracefully
         return;
       }
       
@@ -113,6 +122,7 @@ export async function testDatabaseQuery(testQuery = 'SELECT 1') {
 
 // Get comprehensive database diagnostics
 export async function getDatabaseDiagnostics() {
+  const mock = isMockDatabaseEnabled();
   const diagnostics = {
     connection: {
       initialized: dbInitialized,
@@ -126,8 +136,11 @@ export async function getDatabaseDiagnostics() {
     environment: {
       hasDatabaseUrl: !!process.env.DATABASE_URL,
       hasDatabasePublicUrl: !!process.env.DATABASE_PUBLIC_URL,
-      connectionSource: process.env.DATABASE_PUBLIC_URL ? 'DATABASE_PUBLIC_URL' : 
-                       (process.env.DATABASE_URL ? 'DATABASE_URL' : 'none')
+      connectionSource: mock
+        ? 'mock'
+        : (process.env.DATABASE_PUBLIC_URL ? 'DATABASE_PUBLIC_URL' : 
+           (process.env.DATABASE_URL ? 'DATABASE_URL' : 'none')),
+      mockMode: mock
     }
   };
 
@@ -143,4 +156,3 @@ export async function getDatabaseDiagnostics() {
 
   return diagnostics;
 }
-

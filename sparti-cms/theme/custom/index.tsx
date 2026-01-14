@@ -9,6 +9,7 @@ import CTASection from './components/CTASection';
 interface TenantLandingProps {
   tenantName?: string;
   tenantSlug?: string;
+  tenantId?: string;
 }
 
 /**

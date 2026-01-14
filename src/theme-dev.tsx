@@ -83,8 +83,8 @@ const App = () => {
   
   // Get tenant ID from window variable (if set by server)
   const tenantId = typeof window !== 'undefined' 
-    ? ((window as any).__CMS_TENANT__ || null)
-    : null;
+    ? ((window as any).__CMS_TENANT__ || undefined)
+    : undefined;
   
   // Get branding settings from window variable (if set by server)
   const brandingSettings = typeof window !== 'undefined'
@@ -150,4 +150,3 @@ if (rootElement) {
 } else {
   console.error('[testing] Root element not found');
 }
-

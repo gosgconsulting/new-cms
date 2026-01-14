@@ -13,6 +13,7 @@ import Button from './components/ui/Button';
 interface TenantLandingProps {
   tenantName?: string;
   tenantSlug?: string;
+  tenantId?: string;
 }
 
 /**

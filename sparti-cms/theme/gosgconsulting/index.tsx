@@ -12,6 +12,7 @@ import { applyThemeStyles } from '../../utils/applyThemeStyles';
 interface TenantLandingProps {
   tenantName?: string;
   tenantSlug?: string;
+  tenantId?: string;
 }
 
 /**

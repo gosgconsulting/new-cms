@@ -1,6 +1,6 @@
 import express from 'express';
 import { query } from '../../sparti-cms/db/index.js';
-import { getDatabaseState, getDatabaseDiagnostics } from '../utils/database.js';
+import { getDatabaseState, getDatabaseDiagnostics, isMockDatabaseEnabled } from '../utils/database.js';
 import { PORT } from '../config/constants.js';
 
 const router = express.Router();
@@ -8,12 +8,13 @@ const router = express.Router();
 // Simple health check endpoint for Railway
 router.get('/health', (req, res) => {
   const { dbInitialized } = getDatabaseState();
-  // Always return 200 for basic health check - server is up
+  const mock = isMockDatabaseEnabled();
   res.status(200).json({ 
     status: 'healthy', 
     timestamp: new Date().toISOString(),
     port: PORT,
-    database: dbInitialized ? 'ready' : 'initializing'
+    database: dbInitialized ? (mock ? 'mock' : 'ready') : 'initializing',
+    mock: mock
   });
 });
 
@@ -21,6 +22,7 @@ router.get('/health', (req, res) => {
 router.get('/health/detailed', async (req, res) => {
   try {
     const { dbInitialized, dbInitializationError } = getDatabaseState();
+    const mock = isMockDatabaseEnabled();
     
     if (!dbInitialized) {
       if (dbInitializationError) {
@@ -29,17 +31,30 @@ router.get('/health/detailed', async (req, res) => {
           timestamp: new Date().toISOString(),
           port: PORT,
           database: 'initialization_failed',
-          error: dbInitializationError.message
+          error: dbInitializationError.message,
+          mock
         });
       }
       return res.status(200).json({ 
         status: 'healthy', 
         timestamp: new Date().toISOString(),
         port: PORT,
-        database: 'initializing'
+        database: 'initializing',
+        mock
       });
     }
     
+    if (mock) {
+      // In mock mode, indicate connected (mock) without probing a real DB
+      return res.status(200).json({ 
+        status: 'healthy', 
+        timestamp: new Date().toISOString(),
+        port: PORT,
+        database: 'connected (mock)',
+        mock: true
+      });
+    }
+
     // Check database connectivity
     await query('SELECT 1');
     
@@ -47,7 +62,8 @@ router.get('/health/detailed', async (req, res) => {
       status: 'healthy', 
       timestamp: new Date().toISOString(),
       port: PORT,
-      database: 'connected'
+      database: 'connected',
+      mock: false
     });
   } catch (error) {
     console.error('[testing] Detailed health check failed:', error);
@@ -163,4 +179,3 @@ function getRecommendations(diagnostics) {
 }
 
 export default router;
-
