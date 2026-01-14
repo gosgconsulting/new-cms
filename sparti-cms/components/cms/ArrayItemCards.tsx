@@ -138,7 +138,7 @@ const ItemCard: React.FC<ItemCardProps> = ({
       
       case 'testimonials':
         if (updatedSchemaItem.items) {
-          const itemsMap = updatedSchemaItem.items.reduce((acc, schemaItem) => {
+          const itemsMap = (updatedSchemaItem.items as SchemaItem[]).reduce((acc, schemaItem) => {
             acc[schemaItem.key] = schemaItem.content;
             return acc;
           }, {} as Record<string, any>);
@@ -157,8 +157,8 @@ const ItemCard: React.FC<ItemCardProps> = ({
       
       case 'teamMembers':
         if (updatedSchemaItem.items) {
-          const itemsMap = updatedSchemaItem.items.reduce((acc, schemaItem) => {
-            acc[schemaItem.key] = schemaItem.content || schemaItem.src;
+          const itemsMap = (updatedSchemaItem.items as SchemaItem[]).reduce((acc, schemaItem) => {
+            acc[schemaItem.key] = schemaItem.content || (schemaItem as any).src;
             return acc;
           }, {} as Record<string, any>);
           
@@ -177,7 +177,7 @@ const ItemCard: React.FC<ItemCardProps> = ({
       
       case 'faqs':
         if (updatedSchemaItem.items) {
-          const itemsMap = updatedSchemaItem.items.reduce((acc, schemaItem) => {
+          const itemsMap = (updatedSchemaItem.items as SchemaItem[]).reduce((acc, schemaItem) => {
             acc[schemaItem.key] = schemaItem.content;
             return acc;
           }, {} as Record<string, any>);

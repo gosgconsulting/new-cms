@@ -55,9 +55,8 @@ export function Layout({ children }: LayoutProps) {
                     key={item.name}
                     href={item.href}
                     className="relative text-xl font-body font-medium text-dance-black transition-all duration-300 group"
-                    style={{ "&:hover": { color: "#dc4c81" } }}
-                    onMouseEnter={(e) => (e.target.style.color = "#dc4c81")}
-                    onMouseLeave={(e) => (e.target.style.color = "")}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = "#dc4c81"; }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = ""; }}
                   >
                     {item.name}
                     <span
@@ -73,12 +72,12 @@ export function Layout({ children }: LayoutProps) {
                       isActive(item.href) ? "" : "text-dance-black"
                     }`}
                     style={isActive(item.href) ? { color: "#dc4c81" } : {}}
-                    onMouseEnter={(e) =>
-                      !isActive(item.href) && (e.target.style.color = "#dc4c81")
-                    }
-                    onMouseLeave={(e) =>
-                      !isActive(item.href) && (e.target.style.color = "")
-                    }
+                    onMouseEnter={(e) => {
+                      if (!isActive(item.href)) { (e.currentTarget as HTMLElement).style.color = "#dc4c81"; }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isActive(item.href)) { (e.currentTarget as HTMLElement).style.color = ""; }
+                    }}
                   >
                     {item.name}
                     <span
@@ -130,8 +129,8 @@ export function Layout({ children }: LayoutProps) {
                     href={item.href}
                     className="block text-xl font-medium text-dance-black transition-colors duration-200"
                     onClick={() => setIsMenuOpen(false)}
-                    onMouseEnter={(e) => (e.target.style.color = "#dc4c81")}
-                    onMouseLeave={(e) => (e.target.style.color = "")}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = "#dc4c81"; }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = ""; }}
                   >
                     {item.name}
                   </a>
@@ -144,12 +143,12 @@ export function Layout({ children }: LayoutProps) {
                     }`}
                     style={isActive(item.href) ? { color: "#dc4c81" } : {}}
                     onClick={() => setIsMenuOpen(false)}
-                    onMouseEnter={(e) =>
-                      !isActive(item.href) && (e.target.style.color = "#dc4c81")
-                    }
-                    onMouseLeave={(e) =>
-                      !isActive(item.href) && (e.target.style.color = "")
-                    }
+                    onMouseEnter={(e) => {
+                      if (!isActive(item.href)) { (e.currentTarget as HTMLElement).style.color = "#dc4c81"; }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isActive(item.href)) { (e.currentTarget as HTMLElement).style.color = ""; }
+                    }}
                   >
                     {item.name}
                   </Link>

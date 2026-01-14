@@ -6,7 +6,7 @@ import { Input } from '../../../src/components/ui/input';
 import { Label } from '../../../src/components/ui/label';
 import { Switch } from '../../../src/components/ui/switch';
 import { Textarea } from '../../../src/components/ui/textarea';
-import { ArrowUp, ArrowDown, Plus, Palette, Image, Type } from 'lucide-react';
+import { ArrowUp, ArrowDown, Plus, Palette, Image, Type, Trash } from 'lucide-react';
 import { componentRegistry } from '../../registry';
 import RichTextEditor from './RichTextEditor';
 import SectionTabEditor from './SectionTabEditor';
@@ -21,10 +21,11 @@ interface HomepageSectionEditorProps {
 }
 
 const HomepageSectionEditor: React.FC<HomepageSectionEditorProps> = ({ onSave }) => {
-  const { currentTenant } = useAuth();
+  const { currentTenantId } = useAuth();
+  const devTenantCtx = { id: currentTenantId || '' };
   
   // Use Development tenant sections if applicable, otherwise use default sections
-  const initialSections = isDevelopmentTenant(currentTenant) 
+  const initialSections = isDevelopmentTenant(devTenantCtx) 
     ? developmentSections 
     : [
     {
@@ -334,7 +335,7 @@ const HomepageSectionEditor: React.FC<HomepageSectionEditorProps> = ({ onSave })
   
   // Set default active section
   const [activeSection, setActiveSection] = useState<string>(
-    isDevelopmentTenant(currentTenant) ? 'hero-section' : 'hero-main'
+    isDevelopmentTenant(devTenantCtx) ? 'hero-section' : 'hero-main'
   );
 
   // Get component schemas from registry

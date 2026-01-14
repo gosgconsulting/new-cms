@@ -2,166 +2,118 @@
 
 import { 
   SchemaItem, 
-  MultiLanguageValue, 
-  ValidationResult,
   PageSchema,
   ComponentSchema 
-} from '../types/schema.js';
+} from '../types/schema';
+
+// Local validation result type
+export interface ValidationResult {
+  isValid: boolean;
+  errors: string[];
+  warnings: string[];
+}
+
+// Local multi-language value type (kept for potential future use)
+type MultiLanguageValue = { en: string; fr: string };
 
 /**
- * Validate a single item type
+ * Validate a single item type (aligned to SchemaItem)
  */
 export function validateItemType(item: SchemaItem): ValidationResult {
   const errors: string[] = [];
   const warnings: string[] = [];
   
-  // Check required fields
   if (!item.type) {
     errors.push('Item must have a type');
     return { isValid: false, errors, warnings };
   }
-  
-  if (item.value === undefined || item.value === null) {
-    errors.push('Item must have a value');
-    return { isValid: false, errors, warnings };
-  }
-  
-  // Validate based on item type
+
+  // Validate common fields based on type
   switch (item.type) {
     case 'heading':
-      if (!isValidMultiLanguageValue(item.value)) {
-        errors.push('Heading item must have valid multi-language value');
+      if (!item.content || typeof item.content !== 'string') {
+        errors.push('Heading must have text content');
       }
       if (item.level && (item.level < 1 || item.level > 6)) {
         errors.push('Heading level must be between 1 and 6');
       }
       break;
-      
+
     case 'text':
-      if (!isValidMultiLanguageValue(item.value)) {
-        errors.push('Text item must have valid multi-language value');
+    case 'textarea':
+      if (item.content !== undefined && typeof item.content !== 'string') {
+        errors.push('Text content must be a string');
       }
       break;
-      
+
     case 'image':
-      if (typeof item.value !== 'string' || item.value.trim() === '') {
-        errors.push('Image item must have a valid URL string');
+      if (!item.src || typeof item.src !== 'string') {
+        errors.push('Image must have a valid src URL');
       }
-      if (item.alt && !isValidMultiLanguageValue(item.alt)) {
-        warnings.push('Image alt text should be multi-language');
+      if (item.alt && typeof item.alt !== 'string') {
+        warnings.push('Image alt should be a string');
       }
       break;
-      
+
     case 'link':
-      if (!isValidMultiLanguageValue(item.value)) {
-        errors.push('Link item must have valid multi-language URLs');
+      if (!item.link || typeof item.link !== 'string') {
+        errors.push('Link must have a valid href string');
       }
-      if (!item.label || !isValidMultiLanguageValue(item.label)) {
-        errors.push('Link item must have valid multi-language label');
-      }
-      if (item.target && !['_blank', '_self'].includes(item.target)) {
-        errors.push('Link target must be _blank or _self');
+      if (item.label && typeof item.label !== 'string') {
+        warnings.push('Link label should be a string');
       }
       break;
-      
+
     case 'button':
-      if (!isValidMultiLanguageValue(item.value)) {
-        errors.push('Button item must have valid multi-language text');
+      if (item.buttonText && typeof item.buttonText !== 'string') {
+        warnings.push('Button text should be a string');
       }
-      if (!item.action || typeof item.action !== 'string') {
-        errors.push('Button item must have a valid action URL');
-      }
-      if (item.style && !['primary', 'secondary', 'outline'].includes(item.style)) {
-        errors.push('Button style must be primary, secondary, or outline');
+      if (item.link && typeof item.link !== 'string') {
+        errors.push('Button must have a valid action URL (link)');
       }
       break;
-      
+
     case 'array':
-      if (!Array.isArray(item.value)) {
-        errors.push('Array item must have an array value');
+      if (!Array.isArray(item.items)) {
+        errors.push('Array item must have an items array');
       }
       break;
-      
+
     default:
-      errors.push(`Unknown item type: ${item.type}`);
+      // Allow other types without strict validation
+      break;
   }
-  
+
   return { isValid: errors.length === 0, errors, warnings };
 }
 
 /**
- * Validate multi-language value structure
- */
-export function validateMultiLanguageValue(value: any): ValidationResult {
-  const errors: string[] = [];
-  const warnings: string[] = [];
-  
-  if (!isValidMultiLanguageValue(value)) {
-    errors.push('Value must be an object with en and fr string properties');
-    return { isValid: false, errors, warnings };
-  }
-  
-  // Check for empty values
-  if (value.en.trim() === '' && value.fr.trim() === '') {
-    warnings.push('Both language values are empty');
-  }
-  
-  // Check for missing translations
-  if (value.en.trim() === '' && value.fr.trim() !== '') {
-    warnings.push('English translation is missing');
-  }
-  
-  if (value.fr.trim() === '' && value.en.trim() !== '') {
-    warnings.push('French translation is missing');
-  }
-  
-  return { isValid: true, errors, warnings };
-}
-
-/**
- * Check if a value is a valid multi-language object
- */
-function isValidMultiLanguageValue(value: any): value is MultiLanguageValue {
-  return (
-    typeof value === 'object' &&
-    value !== null &&
-    typeof value.en === 'string' &&
-    typeof value.fr === 'string'
-  );
-}
-
-/**
- * Validate a component schema
+ * Validate a component schema (aligned to ComponentSchema)
  */
 export function validateComponentSchema(component: ComponentSchema): ValidationResult {
   const errors: string[] = [];
   const warnings: string[] = [];
-  
-  // Check component name
-  if (!component.component || typeof component.component !== 'string') {
-    errors.push('Component must have a valid name');
+
+  if (!component.type || typeof component.type !== 'string') {
+    errors.push('Component must have a valid type');
     return { isValid: false, errors, warnings };
   }
-  
-  // Check items array
+
   if (!component.items || !Array.isArray(component.items)) {
     errors.push('Component must have an items array');
     return { isValid: false, errors, warnings };
   }
-  
+
   if (component.items.length === 0) {
     warnings.push('Component has no items');
   }
-  
-  // Validate each item
+
   component.items.forEach((item, index) => {
-    const itemValidation = validateItemType(item);
-    if (!itemValidation.isValid) {
-      errors.push(`Item ${index}: ${itemValidation.errors.join(', ')}`);
-    }
-    warnings.push(...itemValidation.warnings.map(w => `Item ${index}: ${w}`));
+    const res = validateItemType(item);
+    if (!res.isValid) errors.push(`Item ${index}: ${res.errors.join(', ')}`);
+    warnings.push(...res.warnings.map(w => `Item ${index}: ${w}`));
   });
-  
+
   return { isValid: errors.length === 0, errors, warnings };
 }
 
@@ -171,33 +123,29 @@ export function validateComponentSchema(component: ComponentSchema): ValidationR
 export function validatePageSchema(schema: PageSchema): ValidationResult {
   const errors: string[] = [];
   const warnings: string[] = [];
-  
-  // Check components array
+
   if (!schema.components || !Array.isArray(schema.components)) {
     errors.push('Schema must have a components array');
     return { isValid: false, errors, warnings };
   }
-  
+
   if (schema.components.length === 0) {
     warnings.push('Page has no components');
   }
-  
-  // Validate each component
+
   schema.components.forEach((component, index) => {
-    const componentValidation = validateComponentSchema(component);
-    if (!componentValidation.isValid) {
-      errors.push(`Component ${index}: ${componentValidation.errors.join(', ')}`);
-    }
-    warnings.push(...componentValidation.warnings.map(w => `Component ${index}: ${w}`));
+    const res = validateComponentSchema(component);
+    if (!res.isValid) errors.push(`Component ${index}: ${res.errors.join(', ')}`);
+    warnings.push(...res.warnings.map(w => `Component ${index}: ${w}`));
   });
-  
-  // Check for duplicate component names
-  const componentNames = schema.components.map(c => c.component);
-  const uniqueNames = new Set(componentNames);
-  if (componentNames.length !== uniqueNames.size) {
-    warnings.push('Some components have duplicate names');
+
+  // Check for duplicate component types
+  const componentTypes = schema.components.map(c => c.type);
+  const unique = new Set(componentTypes);
+  if (componentTypes.length !== unique.size) {
+    warnings.push('Some components have duplicate types');
   }
-  
+
   return { isValid: errors.length === 0, errors, warnings };
 }
 
@@ -212,39 +160,31 @@ export function validateSchemaRequirements(schema: PageSchema, requirements: {
 }): ValidationResult {
   const errors: string[] = [];
   const warnings: string[] = [];
-  
-  // Check minimum components
+
   if (requirements.minComponents && schema.components.length < requirements.minComponents) {
     errors.push(`Page must have at least ${requirements.minComponents} components`);
   }
-  
-  // Check maximum components
+
   if (requirements.maxComponents && schema.components.length > requirements.maxComponents) {
     errors.push(`Page must have at most ${requirements.maxComponents} components`);
   }
-  
-  // Check required components
+
   if (requirements.requiredComponents) {
-    const componentNames = schema.components.map(c => c.component);
-    const missingComponents = requirements.requiredComponents.filter(
-      req => !componentNames.includes(req)
-    );
-    if (missingComponents.length > 0) {
-      errors.push(`Missing required components: ${missingComponents.join(', ')}`);
+    const componentTypes = schema.components.map(c => c.type);
+    const missing = requirements.requiredComponents.filter(req => !componentTypes.includes(req));
+    if (missing.length > 0) {
+      errors.push(`Missing required components: ${missing.join(', ')}`);
     }
   }
-  
-  // Check allowed item types
+
   if (requirements.allowedItemTypes) {
     const allItemTypes = schema.components.flatMap(c => c.items.map(i => i.type));
-    const invalidItemTypes = allItemTypes.filter(
-      type => !requirements.allowedItemTypes!.includes(type)
-    );
-    if (invalidItemTypes.length > 0) {
-      errors.push(`Invalid item types found: ${[...new Set(invalidItemTypes)].join(', ')}`);
+    const invalid = allItemTypes.filter(t => !requirements.allowedItemTypes!.includes(t));
+    if (invalid.length > 0) {
+      errors.push(`Invalid item types found: ${[...new Set(invalid)].join(', ')}`);
     }
   }
-  
+
   return { isValid: errors.length === 0, errors, warnings };
 }
 
@@ -260,14 +200,14 @@ export function getValidationSummary(schema: PageSchema): {
 } {
   const validation = validatePageSchema(schema);
   const totalItems = schema.components.reduce((sum, c) => sum + c.items.length, 0);
-  
+
   const itemTypeCounts: Record<string, number> = {};
   schema.components.forEach(component => {
     component.items.forEach(item => {
       itemTypeCounts[item.type] = (itemTypeCounts[item.type] || 0) + 1;
     });
   });
-  
+
   return {
     totalComponents: schema.components.length,
     totalItems,

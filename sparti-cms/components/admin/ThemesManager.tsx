@@ -38,6 +38,7 @@ import {
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../auth/AuthProvider';
 import { api } from '../../utils/api';
+import { useNavigate } from 'react-router-dom';
 
 interface Theme {
   id: string;
@@ -58,6 +59,7 @@ interface Tenant {
 
 const ThemesManager: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [themes, setThemes] = useState<Theme[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSyncing, setIsSyncing] = useState(false);
@@ -203,9 +205,9 @@ const ThemesManager: React.FC = () => {
 
   // View theme - opens theme page in new tab
   const handleViewTheme = (theme: Theme) => {
-    // Open theme page in new tab
+    // UPDATED: navigate within current tab using React Router
     const themeUrl = `/theme/${theme.slug}`;
-    window.open(themeUrl, '_blank');
+    navigate(themeUrl);
   };
 
   // Handle activate theme - opens dialog to select tenant
@@ -399,10 +401,9 @@ const ThemesManager: React.FC = () => {
             >
               Use Master Theme
             </button>
+            {/* UPDATED: Preview opens in same tab (removed target and rel) */}
             <a
               href="/theme/master"
-              target="_blank"
-              rel="noreferrer"
               className="inline-flex items-center px-3 py-2 rounded-md border border-blue-300 text-blue-900 text-sm hover:bg-blue-100"
             >
               Preview

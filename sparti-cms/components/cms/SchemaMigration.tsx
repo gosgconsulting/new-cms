@@ -45,7 +45,7 @@ interface SchemaMigrationProps {
 }
 
 const SchemaMigration: React.FC<SchemaMigrationProps> = ({ onClose }) => {
-  const { currentTenant } = useAuth();
+  const { currentTenantId } = useAuth();
   const [pages, setPages] = useState<PageInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [migrating, setMigrating] = useState(false);
@@ -58,7 +58,7 @@ const SchemaMigration: React.FC<SchemaMigrationProps> = ({ onClose }) => {
     const fetchPages = async () => {
       try {
         setLoading(true);
-        const response = await api.get(`/api/pages/all?tenantId=${currentTenant.id}`);
+        const response = await api.get(`/api/pages/all?tenantId=${currentTenantId}`);
         const data = await response.json();
         
         if (data.success) {
@@ -66,7 +66,7 @@ const SchemaMigration: React.FC<SchemaMigrationProps> = ({ onClose }) => {
           const pagesWithSchemaInfo = await Promise.all(
             data.pages.map(async (page: any) => {
               try {
-                const pageResponse = await api.get(`/api/pages/${page.id}?tenantId=${currentTenant.id}`);
+                const pageResponse = await api.get(`/api/pages/${page.id}?tenantId=${currentTenantId}`);
                 const pageData = await pageResponse.json();
                 
                 if (pageData.success && pageData.page.layout) {
@@ -118,10 +118,10 @@ const SchemaMigration: React.FC<SchemaMigrationProps> = ({ onClose }) => {
       }
     };
 
-    if (currentTenant.id) {
+    if (currentTenantId) {
       fetchPages();
     }
-  }, [currentTenant.id]);
+  }, [currentTenantId]);
 
   const handleSelectPage = (pageId: string) => {
     const newSelected = new Set(selectedPages);
@@ -165,7 +165,7 @@ const SchemaMigration: React.FC<SchemaMigrationProps> = ({ onClose }) => {
         
         try {
           const response = await api.post(`/api/pages/${pageId}/migrate-schema`, {
-            tenantId: currentTenant.id
+            tenantId: currentTenantId
           });
 
           const data = await response.json();

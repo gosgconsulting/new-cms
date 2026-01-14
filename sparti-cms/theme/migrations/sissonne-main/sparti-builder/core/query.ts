@@ -349,11 +349,13 @@ export class SpartiQuery {
   }
 
   show(): SpartiQuery {
-    return this.css('display', '');
+    this.css('display', '');
+    return this;
   }
 
   hide(): SpartiQuery {
-    return this.css('display', 'none');
+    this.css('display', 'none');
+    return this;
   }
 
   contents(): SpartiQuery {
