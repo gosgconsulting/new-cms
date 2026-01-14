@@ -9,6 +9,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ContactModal from "@/components/ContactModal";
+import { getPosts, getFeaturedImageUrl, calculateReadTime, getPostCategories } from "../../sparti-cms/theme/gosgconsulting/services/wordpressApi";
 
 // Import placeholder images for fallback
 const placeholderImage = "/placeholder.svg";
@@ -24,6 +25,9 @@ interface BlogPost {
   readTime: string;
   category: string;
 }
+
+// Helper to strip HTML tags from rendered content
+const stripHtml = (html: string) => html.replace(/<[^>]*>/g, '').trim();
 
 // Static blog posts for demonstration (fallback data)
 const staticBlogPosts: BlogPost[] = [
@@ -99,39 +103,51 @@ const Blog = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [dbConnectionFailed, setDbConnectionFailed] = useState(false);
+  const [categories, setCategories] = useState<string[]>(["All"]);
 
-  const categories = [
-    "All",
-    "SEO Strategy",
-    "Local SEO",
-    "Technical SEO",
-    "Content Marketing",
-    "Link Building",
-    "Mobile SEO"
-  ];
-
-  // Fetch posts from database
+  // Fetch posts from WordPress API
   useEffect(() => {
     const fetchPosts = async () => {
       try {
         setIsLoading(true);
-        // Attempt to fetch from database
-        const response = await fetch('/api/blog/posts');
-        
-        if (response.ok) {
-          const data = await response.json();
-          if (Array.isArray(data) && data.length > 0) {
-            setBlogPosts(data);
-          }
-          // If data is empty or not an array, we'll keep the static data
+        // Fetch from WordPress (12 posts, embedded media and terms included)
+        const wpPosts = await getPosts(1, 12);
+        if (Array.isArray(wpPosts) && wpPosts.length > 0) {
+          const mapped: BlogPost[] = wpPosts.map((p) => {
+            const cats = getPostCategories(p);
+            const firstCat = cats[0]?.name || "General";
+            return {
+              id: p.id,
+              slug: p.slug,
+              title: stripHtml(p.title.rendered) || "Untitled",
+              excerpt: stripHtml(p.excerpt?.rendered || p.content?.rendered || "").slice(0, 220) || "",
+              image: getFeaturedImageUrl(p, "large"),
+              date: p.date,
+              readTime: calculateReadTime(p.content?.rendered || ""),
+              category: firstCat,
+            };
+          });
+
+          setBlogPosts(mapped);
+          // Build dynamic category list
+          const catSet = new Set<string>(["All"]);
+          mapped.forEach((post) => catSet.add(post.category));
+          setCategories(Array.from(catSet));
+          setDbConnectionFailed(false);
         } else {
-          console.warn('Failed to fetch blog posts from database, using static data');
+          // Fallback to static posts
+          setBlogPosts(staticBlogPosts);
+          const catSet = new Set<string>(["All", ...staticBlogPosts.map(p => p.category)]);
+          setCategories(Array.from(catSet));
           setDbConnectionFailed(true);
         }
       } catch (err) {
-        console.error('Error fetching blog posts:', err);
+        console.error("Error fetching WordPress posts:", err);
+        // Fallback to static posts
+        setBlogPosts(staticBlogPosts);
+        const catSet = new Set<string>(["All", ...staticBlogPosts.map(p => p.category)]);
+        setCategories(Array.from(catSet));
         setDbConnectionFailed(true);
-        // We don't set error state here to ensure the UI still shows with static data
       } finally {
         setIsLoading(false);
       }
@@ -216,9 +232,9 @@ const Blog = () => {
           <div className="container mx-auto px-4 mt-8">
             <Alert className="bg-amber-50 border-amber-200">
               <AlertCircle className="h-4 w-4 text-amber-500" />
-              <AlertTitle className="text-amber-800">Database Connection Notice</AlertTitle>
+              <AlertTitle className="text-amber-800">WordPress Connection Notice</AlertTitle>
               <AlertDescription className="text-amber-700">
-                Currently displaying demo content. Database connection could not be established.
+                Currently displaying demo content. The WordPress API could not be reached.
               </AlertDescription>
             </Alert>
           </div>
