@@ -30,14 +30,24 @@ PGUSER="postgres"
 POSTGRES_DB="railway"
 POSTGRES_PASSWORD="bFiBuCeLqCnTWwMEAQxnVJWGPZZkHXkG"
 POSTGRES_USER="postgres"
+# PERN-Store compatibility variables
+POSTGRES_HOST="postgres-33yu.railway.internal"
+POSTGRES_DATABASE="railway"
+POSTGRES_DATABASE_TEST="railway_test"
+POSTGRES_PORT="5432"
 
 # Server Configuration
 PORT=4173
 NODE_ENV=development
 JWT_SECRET=sparti-demo-secret-key-change-in-production
+# PERN-Store compatibility - SECRET maps to JWT_SECRET
+SECRET=sparti-demo-secret-key-change-in-production
+REFRESH_SECRET=sparti-refresh-secret-key-change-in-production
 
 # Frontend API Configuration (for Vite)
 VITE_API_BASE_URL="https://cms.sparti.ai"
+# PERN-Store compatibility - VITE_API_URL maps to VITE_API_BASE_URL
+VITE_API_URL="https://cms.sparti.ai"
 
 # Email Configuration (Resend) - REQUIRED for contact forms
 RESEND_API_KEY="re_2ap5qM9k_96jEVym5P34qtcJctKycM1ai"
@@ -45,6 +55,8 @@ SMTP_HOST="smtp.resend.com"
 SMTP_PORT="465"
 SMTP_USER="resend"
 SMTP_FROM_EMAIL="noreply@gosg.com"
+# PERN-Store compatibility - SMTP_FROM maps to SMTP_FROM_EMAIL
+SMTP_FROM="noreply@gosg.com"
 
 # Google Cloud Translation API
 GOOGLE_CLOUD_TRANSLATION_API_KEY="AIzaSyBsMa_Lt6QDUdy5we4OpZ5fVp2wv5ir5hk"
@@ -53,6 +65,8 @@ GOOGLE_CLOUD_TRANSLATION_API_KEY="AIzaSyBsMa_Lt6QDUdy5we4OpZ5fVp2wv5ir5hk"
 GOOGLE_API_KEY="AIzaSyBN_I1rWGaUqN_wtWMnaFM-BGWoJ7xUh7A"
 OPENROUTER_API_KEY="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"
 ANTHROPIC_API_KEY="your-anthropic-api-key-here"
+# Stripe Configuration (PERN-Store compatibility)
+STRIPE_SECRET_KEY="your-stripe-secret-key-here"
 
 # Railway Deployment Configuration
 RAILWAY_DEPLOYMENT_DRAINING_SECONDS="60"
@@ -65,6 +79,11 @@ VITE_GOOGLE_API_KEY="AIzaSyBN_I1rWGaUqN_wtWMnaFM-BGWoJ7xUh7A"
 VITE_OPENROUTER_API_KEY="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"
 VITE_ANTHROPIC_API_KEY="your-anthropic-api-key-here"
 VITE_SMTP_FROM_EMAIL="noreply@gosg.com"
+# PERN-Store compatibility - Google OAuth
+VITE_GOOGLE_CLIENT_ID="your-google-oauth-client-id-here"
+VITE_GOOGLE_CLIENT_SECRET="your-google-oauth-client-secret-here"
+# PERN-Store compatibility - Stripe
+VITE_STRIPE_PUB_KEY="your-stripe-publishable-key-here"
 `;
 
 const envPath = resolve('.env');

@@ -11,26 +11,14 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 
 interface Product {
-  id: number;
+  product_id: number;
   name: string;
-  description: string | null;
-  handle: string;
-  status: string;
-  featured_image: string | null;
-  tenant_id: string;
-  variants: ProductVariant[];
+  slug: string;
+  price: number;
+  description: string;
+  image_url: string | null;
   created_at: string;
   updated_at: string;
-}
-
-interface ProductVariant {
-  id: number;
-  title: string;
-  price: string;
-  compare_at_price: string | null;
-  sku: string | null;
-  inventory_quantity: number;
-  inventory_management: boolean;
 }
 
 interface ProductsManagerProps {
@@ -45,30 +33,36 @@ export default function ProductsManager({ currentTenantId }: ProductsManagerProp
   const queryClient = useQueryClient();
 
   const { data: products = [], isLoading } = useQuery({
-    queryKey: ['products', currentTenantId, statusFilter, searchTerm],
+    queryKey: ['products', currentTenantId, searchTerm],
     queryFn: async () => {
-      const params = new URLSearchParams();
-      if (statusFilter !== 'all') {
-        params.append('status', statusFilter);
+      if (!currentTenantId) {
+        throw new Error('Tenant ID is required');
       }
+      
+      const params = new URLSearchParams();
       if (searchTerm) {
         params.append('search', searchTerm);
       }
       
-      const response = await api.get(`/api/shop/products?${params.toString()}`);
+      const response = await api.get(`/api/shop/products?${params.toString()}`, { tenantId: currentTenantId });
       if (!response.ok) {
         throw new Error('Failed to fetch products');
       }
       const result = await response.json();
       return result.data || [];
     },
+    enabled: !!currentTenantId,
   });
 
   const deleteMutation = useMutation({
     mutationFn: async (productId: number) => {
-      const response = await api.delete(`/api/shop/products/${productId}`);
+      if (!currentTenantId) {
+        throw new Error('Tenant ID is required');
+      }
+      const response = await api.delete(`/api/shop/products/${productId}`, { tenantId: currentTenantId });
       if (!response.ok) {
-        throw new Error('Failed to delete product');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to delete product');
       }
       return response.json();
     },
@@ -90,7 +84,7 @@ export default function ProductsManager({ currentTenantId }: ProductsManagerProp
       return (
         product.name.toLowerCase().includes(searchLower) ||
         product.description?.toLowerCase().includes(searchLower) ||
-        product.handle.toLowerCase().includes(searchLower)
+        product.slug.toLowerCase().includes(searchLower)
       );
     }
     return true;
@@ -121,15 +115,6 @@ export default function ProductsManager({ currentTenantId }: ProductsManagerProp
                 className="pl-10"
               />
             </div>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-3 py-2 border border-border rounded-md bg-background"
-            >
-              <option value="all">All Status</option>
-              <option value="draft">Draft</option>
-              <option value="published">Published</option>
-            </select>
           </div>
         </CardContent>
       </Card>
@@ -152,62 +137,72 @@ export default function ProductsManager({ currentTenantId }: ProductsManagerProp
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredProducts.map((product: Product) => {
-            const defaultVariant = product.variants?.[0];
-            const price = defaultVariant?.price || '0.00';
-            
-            return (
-              <Card key={product.id} className="overflow-hidden">
-                {product.featured_image && (
-                  <div className="aspect-video bg-muted overflow-hidden">
-                    <img
-                      src={product.featured_image}
-                      alt={product.name}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                )}
-                <CardHeader>
-                  <div className="flex items-start justify-between mb-2">
-                    <CardTitle className="text-lg">{product.name}</CardTitle>
-                    <Badge variant={product.status === 'published' ? 'default' : 'secondary'}>
-                      {product.status}
-                    </Badge>
-                  </div>
-                  <p className="text-sm text-muted-foreground line-clamp-2">
-                    {product.description || 'No description'}
-                  </p>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center justify-between">
-                    <span className="font-semibold text-lg">${parseFloat(price).toFixed(2)}</span>
-                    <div className="flex space-x-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setEditingProduct(product)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDelete(product.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                  {product.variants && product.variants.length > 1 && (
-                    <p className="text-xs text-muted-foreground mt-2">
-                      {product.variants.length} variants
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-            );
-          })}
+        <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-gray-50 text-xs uppercase text-gray-500">
+                <tr>
+                  <th className="px-6 py-3 font-semibold">Product</th>
+                  <th className="px-6 py-3 font-semibold">Slug</th>
+                  <th className="px-6 py-3 font-semibold">Price</th>
+                  <th className="px-6 py-3 font-semibold">Description</th>
+                  <th className="px-6 py-3 text-right font-semibold">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {filteredProducts.map((product: Product) => (
+                  <tr key={product.product_id} className="border-t border-gray-200 transition-colors hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        {product.image_url && (
+                          <img
+                            src={product.image_url}
+                            alt={product.name}
+                            className="h-10 w-10 rounded object-cover mr-3"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display = 'none';
+                            }}
+                          />
+                        )}
+                        <div>
+                          <div className="text-sm font-medium text-gray-900">{product.name}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="text-sm text-gray-600">{product.slug}</span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="font-semibold text-gray-900">${product.price.toFixed(2)}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <p className="text-sm text-gray-600 line-clamp-2 max-w-md">
+                        {product.description || 'No description'}
+                      </p>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <div className="flex items-center justify-end gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setEditingProduct(product)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDelete(product.product_id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
@@ -234,23 +229,28 @@ interface ProductDialogProps {
 
 function ProductDialog({ product, onClose, currentTenantId }: ProductDialogProps) {
   const [name, setName] = useState(product?.name || '');
+  const [slug, setSlug] = useState(product?.slug || '');
+  const [price, setPrice] = useState(product?.price?.toString() || '0');
   const [description, setDescription] = useState(product?.description || '');
-  const [handle, setHandle] = useState(product?.handle || '');
-  const [status, setStatus] = useState(product?.status || 'draft');
-  const [featuredImage, setFeaturedImage] = useState(product?.featured_image || '');
+  const [imageUrl, setImageUrl] = useState(product?.image_url || '');
   const [isSaving, setIsSaving] = useState(false);
   const queryClient = useQueryClient();
 
   const saveMutation = useMutation({
     mutationFn: async (data: any) => {
+      if (!currentTenantId) {
+        throw new Error('Tenant ID is required');
+      }
+      
       const url = product
-        ? `/api/shop/products/${product.id}`
+        ? `/api/shop/products/${product.product_id}`
         : '/api/shop/products';
       const method = product ? 'put' : 'post';
       
-      const response = await api[method](url, data);
+      const response = await api[method](url, data, { tenantId: currentTenantId });
       if (!response.ok) {
-        throw new Error('Failed to save product');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to save product');
       }
       return response.json();
     },
@@ -267,14 +267,14 @@ function ProductDialog({ product, onClose, currentTenantId }: ProductDialogProps
     try {
       await saveMutation.mutateAsync({
         name,
-        description,
-        handle: handle || name.toLowerCase().replace(/\s+/g, '-'),
-        status,
-        featured_image: featuredImage || null,
+        slug: slug || name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
+        price: parseFloat(price),
+        description: description || '',
+        image_url: imageUrl || null,
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving product:', error);
-      alert('Failed to save product. Please try again.');
+      alert(error.message || 'Failed to save product. Please try again.');
     } finally {
       setIsSaving(false);
     }
@@ -298,46 +298,61 @@ function ProductDialog({ product, onClose, currentTenantId }: ProductDialogProps
           </div>
           
           <div>
-            <Label htmlFor="handle">Handle (URL slug)</Label>
+            <Label htmlFor="slug">Slug (URL) *</Label>
             <Input
-              id="handle"
-              value={handle}
-              onChange={(e) => setHandle(e.target.value)}
+              id="slug"
+              value={slug}
+              onChange={(e) => setSlug(e.target.value)}
               placeholder="auto-generated from name"
+              required
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              URL-friendly version of the product name
+            </p>
+          </div>
+
+          <div>
+            <Label htmlFor="price">Price *</Label>
+            <Input
+              id="price"
+              type="number"
+              step="0.01"
+              min="0"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              required
             />
           </div>
 
           <div>
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description">Description *</Label>
             <Textarea
               id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={4}
+              required
             />
           </div>
 
           <div>
-            <Label htmlFor="status">Status</Label>
-            <select
-              id="status"
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
-              className="w-full px-3 py-2 border border-border rounded-md bg-background"
-            >
-              <option value="draft">Draft</option>
-              <option value="published">Published</option>
-            </select>
-          </div>
-
-          <div>
-            <Label htmlFor="featuredImage">Featured Image URL</Label>
+            <Label htmlFor="imageUrl">Image URL</Label>
             <Input
-              id="featuredImage"
-              value={featuredImage}
-              onChange={(e) => setFeaturedImage(e.target.value)}
+              id="imageUrl"
+              value={imageUrl}
+              onChange={(e) => setImageUrl(e.target.value)}
               placeholder="https://..."
             />
+            {imageUrl && (
+              <img
+                src={imageUrl}
+                alt="Preview"
+                className="mt-2 h-32 w-32 object-cover rounded border"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = 'none';
+                }}
+              />
+            )}
           </div>
 
           <div className="flex justify-end space-x-2 pt-4">

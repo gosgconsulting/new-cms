@@ -14,6 +14,11 @@ DATABASE_URL="${{Postgres-33yU.DATABASE_URL}}"
 POSTGRES_DB="${{Postgres-33yU.POSTGRES_DB}}"
 POSTGRES_PASSWORD="${{Postgres-33yU.POSTGRES_PASSWORD}}"
 POSTGRES_USER="${{Postgres-33yU.POSTGRES_USER}}"
+# PERN-Store compatibility variables
+POSTGRES_HOST="${{Postgres-33yU.RAILWAY_PRIVATE_DOMAIN}}"
+POSTGRES_DATABASE="${{Postgres-33yU.POSTGRES_DB}}"
+POSTGRES_DATABASE_TEST="railway_test"
+POSTGRES_PORT="5432"
 
 # ====================================================
 # SERVER CONFIGURATION (REQUIRED)
@@ -25,6 +30,8 @@ NODE_ENV="production"
 # FRONTEND API CONFIGURATION (REQUIRED)
 # ====================================================
 VITE_API_BASE_URL="https://cms.sparti.ai"
+# PERN-Store compatibility - VITE_API_URL maps to VITE_API_BASE_URL
+VITE_API_URL="https://cms.sparti.ai"
 
 # ====================================================
 # EMAIL CONFIGURATION (REQUIRED for contact forms)
@@ -32,6 +39,8 @@ VITE_API_BASE_URL="https://cms.sparti.ai"
 # Replace with your actual Resend API key from https://resend.com/api-keys
 RESEND_API_KEY="your-resend-api-key-here"
 SMTP_FROM_EMAIL="noreply@gosg.com"
+# PERN-Store compatibility - SMTP_FROM maps to SMTP_FROM_EMAIL
+SMTP_FROM="noreply@gosg.com"
 VITE_RESEND_API_KEY="your-resend-api-key-here"
 
 # ====================================================
@@ -39,6 +48,24 @@ VITE_RESEND_API_KEY="your-resend-api-key-here"
 # ====================================================
 # Replace with your actual Anthropic API key from https://console.anthropic.com/
 ANTHROPIC_API_KEY="your-anthropic-api-key-here"
+
+# ====================================================
+# PERN-STORE COMPATIBILITY VARIABLES
+# ====================================================
+# Authentication secrets
+# SECRET maps to JWT_SECRET (set separately or use same value)
+SECRET="your-jwt-secret-key-here"
+REFRESH_SECRET="your-refresh-token-secret-key-here"
+
+# Stripe Configuration - Replace with your actual Stripe keys
+STRIPE_SECRET_KEY="your-stripe-secret-key-here"
+
+# Google OAuth (Frontend) - Replace with your actual Google OAuth credentials
+VITE_GOOGLE_CLIENT_ID="your-google-oauth-client-id-here"
+VITE_GOOGLE_CLIENT_SECRET="your-google-oauth-client-secret-here"
+
+# Stripe Public Key (Frontend) - Replace with your actual Stripe publishable key
+VITE_STRIPE_PUB_KEY="your-stripe-publishable-key-here"
 
 # ====================================================
 # OPTIONAL: Additional API Keys

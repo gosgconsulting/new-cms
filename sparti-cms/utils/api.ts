@@ -51,7 +51,8 @@ const getAuthHeaders = (additionalHeaders: Record<string, string> = {}, tenantId
     'Content-Type': 'application/json',
     ...(token && { 'Authorization': `Bearer ${token}` }),
     ...(accessKey && { 'X-Access-Key': accessKey }),
-    ...(tenantApiKey && { 'X-API-Key': tenantApiKey }),
+    ...(tenantApiKey && { 'X-Tenant-API-Key': tenantApiKey }),
+    ...(tenantApiKey && { 'X-API-Key': tenantApiKey }), // Also support X-API-Key for backward compatibility
     // Automatically add X-Tenant-Id header if tenantId is provided
     ...(tenantId && { 'X-Tenant-Id': tenantId }),
     ...additionalHeaders,

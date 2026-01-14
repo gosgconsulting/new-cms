@@ -52,7 +52,7 @@ const themeConfig: Record<string, { name: string; component: React.LazyExoticCom
  * - Can replace hardcoded values with database values when tenant is assigned
  */
 const TenantLandingPage: React.FC = () => {
-  const { tenantSlug, pageSlug } = useParams<{ tenantSlug?: string; pageSlug?: string }>();
+  const { tenantSlug, pageSlug, productname } = useParams<{ tenantSlug?: string; pageSlug?: string; productname?: string }>();
   
   const slug = tenantSlug || 'landingpage';
   
@@ -97,7 +97,7 @@ const TenantLandingPage: React.FC = () => {
       <ThemeComponent 
         tenantName={currentTheme.name} 
         tenantSlug={slug}
-        pageSlug={pageSlug}
+        pageSlug={productname ? `product/${productname}` : pageSlug}
       />
     </Suspense>
   );

@@ -114,6 +114,12 @@ const App = () => {
             <Route path="/embed/pages" element={<EmbedPagesManager />} />
             
             {/* Theme routes - check if it's a known theme first, otherwise use TenantPage */}
+            {/* Product route with product name parameter */}
+            <Route path="/theme/:tenantSlug/product/:productname" element={
+              <ErrorBoundary>
+                <ThemeRouteHandler />
+              </ErrorBoundary>
+            } />
             <Route path="/theme/:tenantSlug/:pageSlug" element={
               <ErrorBoundary>
                 <ThemeRouteHandler />

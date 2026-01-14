@@ -20,10 +20,9 @@ import {
   Store,
   LayoutDashboard,
   Package,
-  FolderTree,
   ShoppingCart,
-  CreditCard,
   Target,
+  Star,
 } from 'lucide-react';
 import { useAuth } from '../auth/AuthProvider';
 import { motion } from 'framer-motion';
@@ -63,10 +62,8 @@ import { CodeTab } from './DeveloperManager';
 
 // Import shop components
 import ProductsManager from './ProductsManager';
-import ProductCategoriesManager from './ProductCategoriesManager';
 import OrdersManager from './OrdersManager';
-import PaymentsManager from './PaymentsManager';
-import ShopSettingsManager from './ShopSettingsManager';
+import ReviewsManager from './ReviewsManager';
 
 // Tenant type for local state
 interface Tenant {
@@ -293,6 +290,51 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({ hideSidebar = false }) => {
     }
   }, [currentTenantId, tenants]);
 
+  // Auto-fetch and store tenant API key when tenant is selected
+  useEffect(() => {
+    const ensureTenantApiKey = async () => {
+      if (!currentTenantId || !user) return;
+      
+      // Check if we already have the API key stored
+      const existingKey = localStorage.getItem(`sparti-tenant-api-key-${currentTenantId}`);
+      if (existingKey) {
+        console.log(`[testing] Tenant API key already exists for ${currentTenantId}`);
+        return;
+      }
+      
+      // Find tenant in the list
+      const tenant = tenants.find(t => t.id === currentTenantId);
+      if (!tenant) return;
+      
+      // Check if tenant has API keys
+      if (tenant.apiKeys && tenant.apiKeys.length > 0) {
+        // Use the first (most recent) API key
+        const apiKey = tenant.apiKeys[0].api_key;
+        localStorage.setItem(`sparti-tenant-api-key-${currentTenantId}`, apiKey);
+        console.log(`[testing] Stored tenant API key for ${currentTenantId}`);
+      } else {
+        // Try to generate a new API key
+        try {
+          const response = await api.post(`/api/tenants/${currentTenantId}/api-keys`, {
+            description: 'Auto-generated API key for shop management'
+          });
+          if (response.ok) {
+            const data = await response.json();
+            if (data.apiKey) {
+              localStorage.setItem(`sparti-tenant-api-key-${currentTenantId}`, data.apiKey);
+              console.log(`[testing] Auto-generated and stored tenant API key for ${currentTenantId}`);
+            }
+          }
+        } catch (error) {
+          console.warn(`[testing] Could not auto-generate API key for tenant ${currentTenantId}:`, error);
+          // Continue without API key - middleware will accept tenant ID as fallback
+        }
+      }
+    };
+    
+    ensureTenantApiKey();
+  }, [currentTenantId, tenants, user]);
+
   // Find current tenant from the tenants array
   const tenant = currentTenantId 
     ? tenants.find(t => t.id === currentTenantId) || null
@@ -304,14 +346,10 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({ hideSidebar = false }) => {
       switch (activeTab) {
         case 'products':
           return <ProductsManager currentTenantId={currentTenantId || ''} />;
-        case 'categories':
-          return <ProductCategoriesManager currentTenantId={currentTenantId || ''} />;
         case 'orders':
           return <OrdersManager currentTenantId={currentTenantId || ''} />;
-        case 'payments':
-          return <PaymentsManager currentTenantId={currentTenantId || ''} />;
-        case 'shop-settings':
-          return <ShopSettingsManager currentTenantId={currentTenantId || ''} />;
+        case 'reviews':
+          return <ReviewsManager currentTenantId={currentTenantId || ''} />;
         default:
           return <div className="text-muted-foreground">Select a section from the sidebar</div>;
       }
@@ -381,10 +419,8 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({ hideSidebar = false }) => {
 
   const shopNavItems = [
     { id: 'products', label: 'Products', icon: Package },
-    { id: 'categories', label: 'Categories', icon: FolderTree },
     { id: 'orders', label: 'Orders', icon: ShoppingCart },
-    { id: 'payments', label: 'Payments', icon: CreditCard },
-    { id: 'shop-settings', label: 'Shop Settings', icon: SettingsIcon },
+    { id: 'reviews', label: 'Reviews', icon: Star },
   ];
 
   const navItems = mode === 'cms' ? cmsNavItems : shopNavItems;
@@ -534,91 +570,95 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({ hideSidebar = false }) => {
               )}
             </li>
 
-            {/* CRM Submenu - Flowbite Style */}
-            <li>
-              <button
-                onClick={() => setCrmExpanded(!crmExpanded)}
-                className={`w-full flex items-center justify-between gap-3 px-3 py-2 text-left rounded-lg text-sm transition-all ${
-                  crmItems.some(item => item.id === activeTab)
-                    ? 'bg-blue-50 text-blue-600 font-medium'
-                    : 'text-gray-700 hover:bg-gray-100'
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <Mail className="h-5 w-5" />
-                  CRM
-                </div>
-                {crmExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-              </button>
-              
-              {crmExpanded && (
-                <ul className="mt-1 ml-4 space-y-1">
-                  {crmItems.map((item) => {
-                    const Icon = item.icon;
-                    const isActive = activeTab === item.id;
-                    
-                    return (
-                      <li key={item.id}>
-                        <button
-                          onClick={() => setActiveTab(item.id)}
-                          className={`w-full flex items-center gap-3 px-3 py-2 text-left rounded-lg text-sm transition-all ${
-                            isActive
-                              ? 'bg-blue-50 text-blue-600 font-medium'
-                              : 'text-gray-700 hover:bg-gray-100'
-                          }`}
-                        >
-                          <Icon className="h-4 w-4" />
-                          {item.label}
-                        </button>
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
-            </li>
+            {/* CRM Submenu - Flowbite Style - Only show in CMS mode */}
+            {mode === 'cms' && (
+              <li>
+                <button
+                  onClick={() => setCrmExpanded(!crmExpanded)}
+                  className={`w-full flex items-center justify-between gap-3 px-3 py-2 text-left rounded-lg text-sm transition-all ${
+                    crmItems.some(item => item.id === activeTab)
+                      ? 'bg-blue-50 text-blue-600 font-medium'
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <Mail className="h-5 w-5" />
+                    CRM
+                  </div>
+                  {crmExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                </button>
+                
+                {crmExpanded && (
+                  <ul className="mt-1 ml-4 space-y-1">
+                    {crmItems.map((item) => {
+                      const Icon = item.icon;
+                      const isActive = activeTab === item.id;
+                      
+                      return (
+                        <li key={item.id}>
+                          <button
+                            onClick={() => setActiveTab(item.id)}
+                            className={`w-full flex items-center gap-3 px-3 py-2 text-left rounded-lg text-sm transition-all ${
+                              isActive
+                                ? 'bg-blue-50 text-blue-600 font-medium'
+                                : 'text-gray-700 hover:bg-gray-100'
+                            }`}
+                          >
+                            <Icon className="h-4 w-4" />
+                            {item.label}
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </li>
+            )}
 
-            {/* SEO Submenu - Flowbite Style */}
-            <li>
-              <button
-                onClick={() => setSeoExpanded(!seoExpanded)}
-                className={`w-full flex items-center justify-between gap-3 px-3 py-2 text-left rounded-lg text-sm transition-all ${
-                  seoItems.some(item => item.id === activeTab)
-                    ? 'bg-blue-50 text-blue-600 font-medium'
-                    : 'text-gray-700 hover:bg-gray-100'
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <Shield className="h-5 w-5" />
-                  SEO
-                </div>
-                {seoExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-              </button>
-              
-              {seoExpanded && (
-                <ul className="mt-1 ml-4 space-y-1">
-                  {seoItems.map((item) => {
-                    const Icon = item.icon;
-                    const isActive = activeTab === item.id;
-                    
-                    return (
-                      <li key={item.id}>
-                        <button
-                          onClick={() => setActiveTab(item.id)}
-                          className={`w-full flex items-center gap-3 px-3 py-2 text-left rounded-lg text-sm transition-all ${
-                            isActive
-                              ? 'bg-blue-50 text-blue-600 font-medium'
-                              : 'text-gray-700 hover:bg-gray-100'
-                          }`}
-                        >
-                          <Icon className="h-4 w-4" />
-                          {item.label}
-                        </button>
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
-            </li>
+            {/* SEO Submenu - Flowbite Style - Only show in CMS mode */}
+            {mode === 'cms' && (
+              <li>
+                <button
+                  onClick={() => setSeoExpanded(!seoExpanded)}
+                  className={`w-full flex items-center justify-between gap-3 px-3 py-2 text-left rounded-lg text-sm transition-all ${
+                    seoItems.some(item => item.id === activeTab)
+                      ? 'bg-blue-50 text-blue-600 font-medium'
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <Shield className="h-5 w-5" />
+                    SEO
+                  </div>
+                  {seoExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                </button>
+                
+                {seoExpanded && (
+                  <ul className="mt-1 ml-4 space-y-1">
+                    {seoItems.map((item) => {
+                      const Icon = item.icon;
+                      const isActive = activeTab === item.id;
+                      
+                      return (
+                        <li key={item.id}>
+                          <button
+                            onClick={() => setActiveTab(item.id)}
+                            className={`w-full flex items-center gap-3 px-3 py-2 text-left rounded-lg text-sm transition-all ${
+                              isActive
+                                ? 'bg-blue-50 text-blue-600 font-medium'
+                                : 'text-gray-700 hover:bg-gray-100'
+                            }`}
+                          >
+                            <Icon className="h-4 w-4" />
+                            {item.label}
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </li>
+            )}
             
             {/* Remaining navigation items - Flowbite Style */}
             {navItems.slice(2).map((item) => {

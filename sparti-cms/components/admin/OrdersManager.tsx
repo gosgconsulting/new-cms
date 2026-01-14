@@ -9,30 +9,27 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 interface Order {
-  id: number;
-  order_number: string;
-  customer_email: string | null;
-  customer_first_name: string | null;
-  customer_last_name: string | null;
+  order_id: number;
+  user_id: number;
+  user_email: string | null;
+  user_name: string | null;
   status: string;
-  subtotal: string;
-  tax_amount: string;
-  shipping_amount: string;
-  total_amount: string;
-  stripe_payment_intent_id: string | null;
-  created_at: string;
-  item_count: number;
+  date: string;
+  amount: number | null;
+  total: number | null;
+  ref: string | null;
+  payment_method: 'PAYSTACK' | 'STRIPE' | null;
   items?: OrderItem[];
 }
 
 interface OrderItem {
   id: number;
+  order_id: number;
+  product_id: number;
   product_name: string;
-  product_handle: string;
-  variant_title: string | null;
+  product_slug: string;
   quantity: number;
-  unit_price: string;
-  total_price: string;
+  price: number;
 }
 
 interface OrdersManagerProps {
@@ -65,7 +62,8 @@ export default function OrdersManager({ currentTenantId }: OrdersManagerProps) {
     mutationFn: async ({ orderId, status }: { orderId: number; status: string }) => {
       const response = await api.put(`/api/shop/orders/${orderId}/status`, { status });
       if (!response.ok) {
-        throw new Error('Failed to update order status');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to update order status');
       }
       return response.json();
     },
@@ -167,34 +165,39 @@ export default function OrdersManager({ currentTenantId }: OrdersManagerProps) {
               </TableHeader>
               <TableBody>
                 {orders.map((order: Order) => (
-                  <TableRow key={order.id}>
-                    <TableCell className="font-medium">{order.order_number}</TableCell>
+                  <TableRow key={order.order_id}>
+                    <TableCell className="font-medium">#{order.order_id}</TableCell>
                     <TableCell>
-                      {order.customer_email || 
-                       `${order.customer_first_name || ''} ${order.customer_last_name || ''}`.trim() ||
-                       'N/A'}
+                      {order.user_name || order.user_email || `User #${order.user_id}`}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center text-sm text-muted-foreground">
                         <Calendar className="h-3 w-3 mr-1" />
-                        {formatDate(order.created_at)}
+                        {formatDate(order.date)}
                       </div>
                     </TableCell>
-                    <TableCell>{order.item_count || 0}</TableCell>
+                    <TableCell>{order.items?.length || 0}</TableCell>
                     <TableCell className="font-semibold">
-                      ${parseFloat(order.total_amount).toFixed(2)}
+                      ${(order.total || order.amount || 0).toFixed(2)}
                     </TableCell>
                     <TableCell>
-                      <Badge variant={getStatusBadgeVariant(order.status)}>
-                        {order.status}
-                      </Badge>
+                      <div className="flex items-center gap-2">
+                        <Badge variant={getStatusBadgeVariant(order.status)}>
+                          {order.status}
+                        </Badge>
+                        {order.payment_method && (
+                          <Badge variant="outline" className="text-xs">
+                            {order.payment_method}
+                          </Badge>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex space-x-2">
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => fetchOrderDetails(order.id)}
+                          onClick={() => fetchOrderDetails(order.order_id)}
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
@@ -202,7 +205,7 @@ export default function OrdersManager({ currentTenantId }: OrdersManagerProps) {
                           value={order.status}
                           onChange={(e) => {
                             updateStatusMutation.mutate({
-                              orderId: order.id,
+                              orderId: order.order_id,
                               status: e.target.value,
                             });
                           }}
@@ -241,27 +244,31 @@ interface OrderDetailDialogProps {
 
 function OrderDetailDialog({ order, onClose }: OrderDetailDialogProps) {
   return (
-    <Dialog open={true} onOpenChange={onClose}>
+      <Dialog open={true} onOpenChange={onClose}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Order Details - {order.order_number}</DialogTitle>
+          <DialogTitle>Order Details - #{order.order_id}</DialogTitle>
         </DialogHeader>
         <div className="space-y-6">
           <div className="grid grid-cols-2 gap-4">
             <div>
               <h3 className="font-semibold mb-2">Customer Information</h3>
               <div className="text-sm space-y-1">
-                <p><strong>Email:</strong> {order.customer_email || 'N/A'}</p>
-                <p><strong>Name:</strong> {`${order.customer_first_name || ''} ${order.customer_last_name || ''}`.trim() || 'N/A'}</p>
+                <p><strong>Name:</strong> {order.user_name || 'N/A'}</p>
+                <p><strong>Email:</strong> {order.user_email || 'N/A'}</p>
+                <p><strong>User ID:</strong> {order.user_id}</p>
               </div>
             </div>
             <div>
               <h3 className="font-semibold mb-2">Order Information</h3>
               <div className="text-sm space-y-1">
                 <p><strong>Status:</strong> {order.status}</p>
-                <p><strong>Date:</strong> {new Date(order.created_at).toLocaleString()}</p>
-                {order.stripe_payment_intent_id && (
-                  <p><strong>Payment ID:</strong> {order.stripe_payment_intent_id}</p>
+                <p><strong>Date:</strong> {new Date(order.date).toLocaleString()}</p>
+                {order.ref && (
+                  <p><strong>Reference:</strong> {order.ref}</p>
+                )}
+                {order.payment_method && (
+                  <p><strong>Payment:</strong> {order.payment_method}</p>
                 )}
               </div>
             </div>
@@ -274,20 +281,23 @@ function OrderDetailDialog({ order, onClose }: OrderDetailDialogProps) {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Product</TableHead>
-                    <TableHead>Variant</TableHead>
                     <TableHead>Quantity</TableHead>
-                    <TableHead>Unit Price</TableHead>
-                    <TableHead>Total</TableHead>
+                    <TableHead>Price</TableHead>
+                    <TableHead>Subtotal</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {order.items.map((item: OrderItem) => (
                     <TableRow key={item.id}>
-                      <TableCell>{item.product_name}</TableCell>
-                      <TableCell>{item.variant_title || 'Default'}</TableCell>
+                      <TableCell>
+                        <div>
+                          <div className="font-medium">{item.product_name}</div>
+                          <div className="text-xs text-muted-foreground">{item.product_slug}</div>
+                        </div>
+                      </TableCell>
                       <TableCell>{item.quantity}</TableCell>
-                      <TableCell>${parseFloat(item.unit_price).toFixed(2)}</TableCell>
-                      <TableCell>${parseFloat(item.total_price).toFixed(2)}</TableCell>
+                      <TableCell>${item.price.toFixed(2)}</TableCell>
+                      <TableCell>${(item.price * item.quantity).toFixed(2)}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -298,10 +308,10 @@ function OrderDetailDialog({ order, onClose }: OrderDetailDialogProps) {
           <div className="border-t pt-4">
             <div className="flex justify-end space-x-4">
               <div className="text-right space-y-1">
-                <p className="text-sm"><strong>Subtotal:</strong> ${parseFloat(order.subtotal).toFixed(2)}</p>
-                <p className="text-sm"><strong>Tax:</strong> ${parseFloat(order.tax_amount).toFixed(2)}</p>
-                <p className="text-sm"><strong>Shipping:</strong> ${parseFloat(order.shipping_amount).toFixed(2)}</p>
-                <p className="text-lg font-bold"><strong>Total:</strong> ${parseFloat(order.total_amount).toFixed(2)}</p>
+                {order.amount && (
+                  <p className="text-sm"><strong>Amount:</strong> ${order.amount.toFixed(2)}</p>
+                )}
+                <p className="text-lg font-bold"><strong>Total:</strong> ${(order.total || order.amount || 0).toFixed(2)}</p>
               </div>
             </div>
           </div>
