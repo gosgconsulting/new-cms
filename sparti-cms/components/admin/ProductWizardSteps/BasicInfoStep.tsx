@@ -52,22 +52,20 @@ export default function BasicInfoStep({
       </div>
 
       <div>
-        <Label htmlFor="description">
-          Full Description <span className="text-red-500">*</span>
-        </Label>
+        <Label htmlFor="description">Full Description</Label>
         <Textarea
           id="description"
           value={data.description}
           onChange={(e) => updateData({ description: e.target.value })}
           className={`mt-1 ${errors.description ? 'border-red-500' : ''}`}
           rows={8}
-          placeholder="Detailed product description"
+          placeholder="Detailed product description (optional)"
         />
         {errors.description && (
           <p className="text-sm text-red-500 mt-1">{errors.description}</p>
         )}
         <p className="text-xs text-muted-foreground mt-1">
-          Full product description with details, features, and benefits
+          Full product description with details, features, and benefits (optional)
         </p>
       </div>
 

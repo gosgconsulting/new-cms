@@ -225,6 +225,23 @@ export class WooCommerceClient {
   }
 
   /**
+   * Get customers with pagination and filters
+   * @param {number} page - Page number (default: 1)
+   * @param {number} perPage - Items per page (default: 10, max: 100)
+   * @param {object} filters - Additional filters (email, role, etc.)
+   */
+  async getCustomers(page = 1, perPage = 10, filters = {}) {
+    const params = {
+      page: Math.max(1, page),
+      per_page: Math.min(100, Math.max(1, perPage)),
+      ...filters,
+    };
+
+    const data = await this.request('GET', '/customers', params);
+    return data;
+  }
+
+  /**
    * Get total count of products (for sync planning)
    */
   async getProductsCount(filters = {}) {

@@ -68,6 +68,7 @@ import OrdersManager from './OrdersManager';
 import ReviewsManager from './ReviewsManager';
 import PaymentsManager from './PaymentsManager';
 import ShopSettingsManager from './ShopSettingsManager';
+import ClientsManager from './ClientsManager';
 
 // Tenant type for local state
 interface Tenant {
@@ -357,6 +358,8 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({ hideSidebar = false }) => {
           return <PaymentsManager currentTenantId={currentTenantId || ''} />;
         case 'reviews':
           return <ReviewsManager currentTenantId={currentTenantId || ''} />;
+        case 'clients':
+          return <ClientsManager currentTenantId={currentTenantId || ''} />;
         case 'settings':
         case 'payment-methods':
         case 'shipping-methods':
@@ -452,6 +455,10 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({ hideSidebar = false }) => {
     { id: 'users', label: 'Users', icon: Users },
   ];
 
+  const clientsItems = [
+    { id: 'clients', label: 'Clients', icon: Users },
+  ];
+
   const crmItems = [
     { id: 'forms', label: 'Forms', icon: FileInput },
     { id: 'contacts', label: 'Contacts', icon: Users },
@@ -469,6 +476,7 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({ hideSidebar = false }) => {
     const currentItem = navItems.find(item => item.id === activeTab) || 
                       crmItems.find(item => item.id === activeTab) ||
                       usersItems.find(item => item.id === activeTab) ||
+                      clientsItems.find(item => item.id === activeTab) ||
                       seoItems.find(item => item.id === activeTab) ||
                       shopSettingsItems.find(item => item.id === activeTab);
     return currentItem ? currentItem.label : 'Dashboard';
@@ -546,52 +554,71 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({ hideSidebar = false }) => {
               );
             })}
             
-            {/* Users Submenu - Flowbite Style */}
-            <li>
-              <button
-                onClick={() => setUsersExpanded(!usersExpanded)}
-                className={`w-full flex items-center justify-between gap-3 px-3 py-2 text-left rounded-lg text-sm transition-all ${
-                  usersItems.some(item => item.id === activeTab)
-                    ? 'bg-blue-50 text-blue-600 font-medium'
-                    : 'text-gray-700 hover:bg-gray-100'
-                }`}
-              >
-                <div className="flex items-center gap-3">
+            {/* Users Submenu - Flowbite Style - Only show in CMS mode */}
+            {mode === 'cms' && (
+              <li>
+                <button
+                  onClick={() => setUsersExpanded(!usersExpanded)}
+                  className={`w-full flex items-center justify-between gap-3 px-3 py-2 text-left rounded-lg text-sm transition-all ${
+                    usersItems.some(item => item.id === activeTab)
+                      ? 'bg-blue-50 text-blue-600 font-medium'
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <Users className="h-5 w-5" />
+                    Users
+                  </div>
+                  {usersExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                </button>
+                
+                {usersExpanded && (
+                  <ul className="mt-1 ml-4 space-y-1">
+                    {usersItems.map((item) => {
+                      const Icon = item.icon;
+                      const isActive = activeTab === item.id;
+                      
+                      if (item.id === 'users' && user?.role !== 'admin') {
+                        return null;
+                      }
+                      
+                      return (
+                        <li key={item.id}>
+                          <button
+                            onClick={() => setActiveTab(item.id)}
+                            className={`w-full flex items-center gap-3 px-3 py-2 text-left rounded-lg text-sm transition-all ${
+                              isActive
+                                ? 'bg-blue-50 text-blue-600 font-medium'
+                                : 'text-gray-700 hover:bg-gray-100'
+                            }`}
+                          >
+                            <Icon className="h-4 w-4" />
+                            {item.label}
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </li>
+            )}
+
+            {/* Clients Submenu - Flowbite Style - Only show in Shop mode */}
+            {mode === 'shop' && (
+              <li>
+                <button
+                  onClick={() => setActiveTab('clients')}
+                  className={`w-full flex items-center gap-3 px-3 py-2 text-left rounded-lg text-sm transition-all ${
+                    activeTab === 'clients'
+                      ? 'bg-blue-50 text-blue-600 font-medium'
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
                   <Users className="h-5 w-5" />
-                  Users
-                </div>
-                {usersExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-              </button>
-              
-              {usersExpanded && (
-                <ul className="mt-1 ml-4 space-y-1">
-                  {usersItems.map((item) => {
-                    const Icon = item.icon;
-                    const isActive = activeTab === item.id;
-                    
-                    if (item.id === 'users' && user?.role !== 'admin') {
-                      return null;
-                    }
-                    
-                    return (
-                      <li key={item.id}>
-                        <button
-                          onClick={() => setActiveTab(item.id)}
-                          className={`w-full flex items-center gap-3 px-3 py-2 text-left rounded-lg text-sm transition-all ${
-                            isActive
-                              ? 'bg-blue-50 text-blue-600 font-medium'
-                              : 'text-gray-700 hover:bg-gray-100'
-                          }`}
-                        >
-                          <Icon className="h-4 w-4" />
-                          {item.label}
-                        </button>
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
-            </li>
+                  Clients
+                </button>
+              </li>
+            )}
 
             {/* CRM Submenu - Flowbite Style - Only show in CMS mode */}
             {mode === 'cms' && (

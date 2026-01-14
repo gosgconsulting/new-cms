@@ -72,6 +72,8 @@ export default function ReviewStep({
         status: data.status,
         featured: data.featured,
         product_type: data.productType,
+        is_subscription: data.isSubscription,
+        subscription_frequency: data.subscriptionFrequency || null,
         attributes: data.attributes.map((attr) => ({
           name: attr.name,
           options: attr.values,

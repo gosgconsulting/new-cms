@@ -604,6 +604,8 @@ router.post('/products', authenticateTenantApiKey, async (req, res) => {
       status,
       featured,
       product_type,
+      is_subscription,
+      subscription_frequency,
       attributes,
       variations,
     } = req.body;
@@ -639,9 +641,9 @@ router.post('/products', authenticateTenantApiKey, async (req, res) => {
         const mainProductResult = await query(`
           INSERT INTO products (
             name, description, handle, status, featured_image,
-            tenant_id, external_source
+            tenant_id, external_source, is_subscription, subscription_frequency
           )
-          VALUES ($1, $2, $3, $4, $5, $6, $7)
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
           RETURNING id
         `, [
           name,
@@ -650,7 +652,9 @@ router.post('/products', authenticateTenantApiKey, async (req, res) => {
           productStatus,
           image_url || null,
           tenantId,
-          'local'
+          'local',
+          is_subscription || false,
+          subscription_frequency || null
         ]);
         
         mainProductId = mainProductResult.rows[0]?.id;
@@ -1843,6 +1847,97 @@ router.post('/stripe/webhook', async (req, res) => {
     res.json({ received: true });
   } catch (error) {
     console.error('[testing] Error processing Stripe webhook:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
+  }
+});
+
+// ===== CLIENTS ROUTES =====
+
+// Get all clients (unique customers from orders)
+router.get('/clients', authenticateUser, async (req, res) => {
+  try {
+    const tenantId = req.tenantId || req.user.tenant_id;
+    
+    // Check e-shop provider setting
+    const eshopProvider = await getEshopProvider(tenantId);
+
+    if (eshopProvider === 'woocommerce') {
+      // Fetch customers from WooCommerce API
+      try {
+        const client = await createWooCommerceClient(tenantId, query);
+        const wcCustomers = await client.getCustomers(1, 100, {
+          orderby: 'registered_date',
+          order: 'desc'
+        });
+
+        const customers = wcCustomers.map((wcCustomer: any) => ({
+          id: `wc-${wcCustomer.id}`,
+          email: wcCustomer.email || null,
+          first_name: wcCustomer.first_name || null,
+          last_name: wcCustomer.last_name || null,
+          phone: wcCustomer.billing?.phone || null,
+          company: wcCustomer.billing?.company || null,
+          address: wcCustomer.billing ? {
+            address_1: wcCustomer.billing.address_1 || null,
+            address_2: wcCustomer.billing.address_2 || null,
+            city: wcCustomer.billing.city || null,
+            state: wcCustomer.billing.state || null,
+            postcode: wcCustomer.billing.postcode || null,
+            country: wcCustomer.billing.country || null,
+          } : null,
+          orders_count: wcCustomer.orders_count || 0,
+          total_spent: parseFloat(wcCustomer.total_spent || 0),
+          date_created: wcCustomer.date_created || null,
+          external_id: String(wcCustomer.id),
+          external_source: 'woocommerce'
+        }));
+
+        return res.json(customers);
+      } catch (wcError: any) {
+        console.error('[testing] Error fetching WooCommerce customers:', wcError);
+        // Fallback to database if WooCommerce fails
+      }
+    }
+
+    // Get unique customers from orders table
+    const result = await query(`
+      SELECT DISTINCT ON (COALESCE(customer_email, ''))
+        customer_email as email,
+        customer_first_name as first_name,
+        customer_last_name as last_name,
+        billing_address->>'phone' as phone,
+        billing_address->>'company' as company,
+        billing_address as address,
+        COUNT(*) OVER (PARTITION BY COALESCE(customer_email, '')) as orders_count,
+        SUM(total_amount) OVER (PARTITION BY COALESCE(customer_email, '')) as total_spent,
+        MIN(created_at) OVER (PARTITION BY COALESCE(customer_email, '')) as date_created
+      FROM orders
+      WHERE tenant_id = $1 
+        AND customer_email IS NOT NULL 
+        AND customer_email != ''
+      ORDER BY COALESCE(customer_email, ''), created_at DESC
+    `, [tenantId]);
+
+    const clients = result.rows.map((row: any) => ({
+      id: `sparti-${row.email}`,
+      email: row.email,
+      first_name: row.first_name,
+      last_name: row.last_name,
+      phone: row.phone || null,
+      company: row.company || null,
+      address: row.address || null,
+      orders_count: parseInt(row.orders_count || 0),
+      total_spent: parseFloat(row.total_spent || 0),
+      date_created: row.date_created,
+      external_source: 'sparti'
+    }));
+
+    res.json(clients);
+  } catch (error: any) {
+    console.error('[testing] Error getting clients:', error);
     res.status(500).json({ 
       success: false, 
       error: error.message 

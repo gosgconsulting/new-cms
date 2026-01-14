@@ -50,6 +50,8 @@ export interface ProductWizardData {
   manageStock: boolean;
   stockQuantity: number;
   backorders: 'no' | 'notify' | 'yes';
+  isSubscription: boolean;
+  subscriptionFrequency: 'month' | 'year' | null;
   
   // Step 5: Images
   mainImage: string;
@@ -119,6 +121,8 @@ export default function ProductCreationWizard({
     manageStock: savedDraft?.manageStock ?? false,
     stockQuantity: savedDraft?.stockQuantity ?? 0,
     backorders: savedDraft?.backorders || 'no',
+    isSubscription: savedDraft?.isSubscription ?? false,
+    subscriptionFrequency: savedDraft?.subscriptionFrequency || null,
     mainImage: savedDraft?.mainImage || '',
     galleryImages: savedDraft?.galleryImages || [],
     variationImages: savedDraft?.variationImages || {},
@@ -151,9 +155,7 @@ export default function ProductCreationWizard({
         if (!wizardData.name.trim()) {
           stepErrors.name = 'Product name is required';
         }
-        if (!wizardData.description.trim()) {
-          stepErrors.description = 'Product description is required';
-        }
+        // Description is now optional
         break;
 
       case 2: // Attributes (only for variable)
@@ -188,12 +190,13 @@ export default function ProductCreationWizard({
         if (wizardData.manageStock && wizardData.stockQuantity < 0) {
           stepErrors.stockQuantity = 'Stock quantity cannot be negative';
         }
+        if (wizardData.isSubscription && !wizardData.subscriptionFrequency) {
+          stepErrors.subscriptionFrequency = 'Subscription frequency is required when subscription is enabled';
+        }
         break;
 
       case 5: // Images
-        if (!wizardData.mainImage.trim()) {
-          stepErrors.mainImage = 'Main product image is required';
-        }
+        // Main image is now optional
         break;
 
       case 6: // Categories (optional, no validation needed)
@@ -207,14 +210,13 @@ export default function ProductCreationWizard({
         if (!wizardData.name.trim()) {
           stepErrors.name = 'Product name is required';
         }
-        if (!wizardData.description.trim()) {
-          stepErrors.description = 'Product description is required';
-        }
+        // Description is now optional
         if (!wizardData.regularPrice || parseFloat(wizardData.regularPrice) <= 0) {
           stepErrors.regularPrice = 'Valid regular price is required';
         }
-        if (!wizardData.mainImage.trim()) {
-          stepErrors.mainImage = 'Main product image is required';
+        // Main image is now optional
+        if (wizardData.isSubscription && !wizardData.subscriptionFrequency) {
+          stepErrors.subscriptionFrequency = 'Subscription frequency is required when subscription is enabled';
         }
         if (wizardData.productType === 'variable') {
           if (wizardData.attributes.length === 0) {

@@ -10,6 +10,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { ProductWizardData } from '../ProductCreationWizard';
+import { Repeat } from 'lucide-react';
 
 interface PricingStepProps {
   data: ProductWizardData;
@@ -149,6 +150,60 @@ export default function PricingStep({
               </p>
             </div>
           </>
+        )}
+      </div>
+
+      <div className="space-y-4 pt-4 border-t">
+        <div className="flex items-center justify-between">
+          <div>
+            <Label htmlFor="isSubscription" className="flex items-center gap-2">
+              <Repeat className="h-4 w-4" />
+              Subscription
+            </Label>
+            <p className="text-xs text-muted-foreground">
+              Enable recurring billing for this product
+            </p>
+          </div>
+          <Switch
+            id="isSubscription"
+            checked={data.isSubscription}
+            onCheckedChange={(checked) =>
+              updateData({ 
+                isSubscription: checked,
+                subscriptionFrequency: checked ? data.subscriptionFrequency || 'month' : null
+              })
+            }
+          />
+        </div>
+
+        {data.isSubscription && (
+          <div>
+            <Label htmlFor="subscriptionFrequency">
+              Billing Frequency <span className="text-red-500">*</span>
+            </Label>
+            <Select
+              value={data.subscriptionFrequency || 'month'}
+              onValueChange={(value: 'month' | 'year') =>
+                updateData({ subscriptionFrequency: value })
+              }
+            >
+              <SelectTrigger className={`mt-1 ${errors.subscriptionFrequency ? 'border-red-500' : ''}`}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="month">Per Month</SelectItem>
+                <SelectItem value="year">Per Year</SelectItem>
+              </SelectContent>
+            </Select>
+            {errors.subscriptionFrequency && (
+              <p className="text-sm text-red-500 mt-1">
+                {errors.subscriptionFrequency}
+              </p>
+            )}
+            <p className="text-xs text-muted-foreground mt-1">
+              How often customers will be charged
+            </p>
+          </div>
         )}
       </div>
     </div>

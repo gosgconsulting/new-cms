@@ -46,19 +46,20 @@ export default function ImagesStep({
       </div>
 
       <div>
-        <Label htmlFor="mainImage">
-          Main Product Image <span className="text-red-500">*</span>
-        </Label>
+        <Label htmlFor="mainImage">Main Product Image</Label>
         <Input
           id="mainImage"
           value={data.mainImage}
           onChange={(e) => updateData({ mainImage: e.target.value })}
           className={`mt-1 ${errors.mainImage ? 'border-red-500' : ''}`}
-          placeholder="https://..."
+          placeholder="https://... (optional)"
         />
         {errors.mainImage && (
           <p className="text-sm text-red-500 mt-1">{errors.mainImage}</p>
         )}
+        <p className="text-xs text-muted-foreground mt-1">
+          Main product image (optional)
+        </p>
         {data.mainImage && (
           <div className="mt-3">
             <img

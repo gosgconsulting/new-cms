@@ -111,16 +111,37 @@ export async function getProductBySlug(slug, tenantId) {
  */
 export async function createProduct(productData, tenantId) {
   try {
-    const { name, slug, price, description, image_url } = productData;
+    const { name, slug, price, description, image_url, is_subscription, subscription_frequency } = productData;
 
-    const result = await query(`
-      INSERT INTO pern_products (name, slug, price, description, image_url, tenant_id)
-      VALUES ($1, $2, $3, $4, $5, $6)
-      RETURNING product_id, name, slug, price, description, image_url, 
-                created_at, updated_at
-    `, [name, slug, price, description || '', image_url || null, tenantId]);
+    // Check if subscription columns exist
+    const hasSubscriptionColumns = await query(`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name = 'pern_products' 
+      AND column_name = 'is_subscription'
+    `).then(result => result.rows.length > 0).catch(() => false);
 
-    return result.rows[0];
+    if (hasSubscriptionColumns) {
+      const result = await query(`
+        INSERT INTO pern_products (name, slug, price, description, image_url, tenant_id, is_subscription, subscription_frequency)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        RETURNING product_id, name, slug, price, description, image_url, 
+                  is_subscription, subscription_frequency, created_at, updated_at
+      `, [name, slug, price, description || '', image_url || null, tenantId, is_subscription || false, subscription_frequency || null]);
+
+      return result.rows[0];
+    } else {
+      // Fallback for older schema - check if description can be null
+      const descriptionValue = description || '';
+      const result = await query(`
+        INSERT INTO pern_products (name, slug, price, description, image_url, tenant_id)
+        VALUES ($1, $2, $3, $4, $5, $6)
+        RETURNING product_id, name, slug, price, description, image_url, 
+                  created_at, updated_at
+      `, [name, slug, price, descriptionValue, image_url || null, tenantId]);
+
+      return result.rows[0];
+    }
   } catch (error) {
     console.error('[testing] Error creating product:', error);
     return handleTableError(error);
