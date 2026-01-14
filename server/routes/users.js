@@ -1,8 +1,10 @@
 import express from 'express';
 import { authenticateUser } from '../middleware/auth.js';
 import { getDatabaseState } from '../utils/database.js';
+import { query } from '../../sparti-cms/db/index.js';
 import models from '../../sparti-cms/db/sequelize/models/index.js';
 import { Op } from 'sequelize';
+import bcrypt from 'bcrypt';
 
 const { User } = models;
 
@@ -32,33 +34,58 @@ router.get('/users', authenticateUser, async (req, res) => {
     }
 
     console.log(`[testing] API: Fetching all users for tenant: ${req.tenantId}`);
+    console.log(`[testing] API: User is_super_admin: ${req.user.is_super_admin}`);
     
-    // Build where clause based on user permissions
-    const whereClause = {};
+    // Build query based on user permissions
+    let usersQuery;
+    let queryParams = [];
     
     // If user is not a super admin, filter by tenant
     if (!req.user.is_super_admin) {
-      whereClause.tenant_id = req.tenantId || req.user.tenant_id;
+      const tenantId = req.tenantId || req.user.tenant_id;
+      usersQuery = `
+        SELECT 
+          id, first_name, last_name, email, role, status, 
+          is_active, tenant_id, 
+          COALESCE(is_super_admin, false) as is_super_admin,
+          created_at, updated_at
+        FROM users
+        WHERE tenant_id = $1
+        ORDER BY created_at DESC
+      `;
+      queryParams = [tenantId];
+    } else {
+      // Super admins can see all users, including those with tenant_id = NULL
+      usersQuery = `
+        SELECT 
+          id, first_name, last_name, email, role, status, 
+          is_active, tenant_id, 
+          COALESCE(is_super_admin, false) as is_super_admin,
+          created_at, updated_at
+        FROM users
+        ORDER BY created_at DESC
+      `;
     }
-    // Super admins can see all users, so no tenant filter
     
-    // Fetch users using Sequelize
-    const users = await User.findAll({
-      where: whereClause,
-      attributes: {
-        exclude: ['password_hash'] // Never return password hash
-      },
-      order: [['created_at', 'DESC']]
-    });
+    // Fetch users using raw SQL query
+    const result = await query(usersQuery, queryParams);
+    const users = result.rows;
+    
+    console.log(`[testing] API: Found ${users.length} user(s)`);
     
     res.json({
       success: true,
-      users: users.map(user => user.toJSON()),
+      users: users,
       total: users.length,
       tenantId: req.tenantId || req.user.tenant_id
     });
   } catch (error) {
     console.error('[testing] API: Error fetching users:', error);
+    console.error('[testing] API: Error details:', {
+      code: error.code,
+      message: error.message,
+      stack: error.stack
+    });
     
     // Handle database not ready errors
     const { dbInitialized } = getDatabaseState();
@@ -113,24 +140,40 @@ router.get('/users/:id', authenticateUser, async (req, res) => {
 
     console.log(`[testing] API: Fetching user ${userId} for tenant: ${req.tenantId}`);
     
-    // Build where clause based on user permissions
-    const whereClause = { id: userId };
+    // Build query based on user permissions
+    let userQuery;
+    let queryParams = [userId];
     
     // If user is not a super admin, filter by tenant
     if (!req.user.is_super_admin) {
-      whereClause.tenant_id = req.tenantId || req.user.tenant_id;
+      const tenantId = req.tenantId || req.user.tenant_id;
+      userQuery = `
+        SELECT 
+          id, first_name, last_name, email, role, status, 
+          is_active, tenant_id, 
+          COALESCE(is_super_admin, false) as is_super_admin,
+          created_at, updated_at
+        FROM users
+        WHERE id = $1 AND tenant_id = $2
+      `;
+      queryParams = [userId, tenantId];
+    } else {
+      // Super admins can see any user
+      userQuery = `
+        SELECT 
+          id, first_name, last_name, email, role, status, 
+          is_active, tenant_id, 
+          COALESCE(is_super_admin, false) as is_super_admin,
+          created_at, updated_at
+        FROM users
+        WHERE id = $1
+      `;
     }
-    // Super admins can see any user, so no tenant filter
     
-    // Fetch user using Sequelize
-    const user = await User.findOne({
-      where: whereClause,
-      attributes: {
-        exclude: ['password_hash'] // Never return password hash
-      }
-    });
+    // Fetch user using raw SQL query
+    const result = await query(userQuery, queryParams);
     
-    if (!user) {
+    if (result.rows.length === 0) {
       return res.status(404).json({
         success: false,
         error: 'User not found'
@@ -139,7 +182,7 @@ router.get('/users/:id', authenticateUser, async (req, res) => {
     
     res.json({
       success: true,
-      user: user.toJSON()
+      user: result.rows[0]
     });
   } catch (error) {
     console.error('[testing] API: Error fetching user:', error);

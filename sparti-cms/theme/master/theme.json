@@ -1,0 +1,10 @@
+{
+  "slug": "master",
+  "name": "Master Theme",
+  "version": "1.0.0",
+  "description": "A minimal, tenant-aware base theme built for migrations.",
+  "is_active": true,
+  "author": "Sparti",
+  "categories": ["base", "migration"],
+  "tags": ["tenant-aware", "minimal", "base"]
+}

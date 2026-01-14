@@ -8,6 +8,7 @@ const LandingPageTheme = lazy(() => import('../../sparti-cms/theme/landingpage')
 const SpartiSEOLandingTheme = lazy(() => import('../../sparti-cms/theme/sparti-seo-landing'));
 const GosgConsultingTheme = lazy(() => import('../../sparti-cms/theme/gosgconsulting'));
 const SissonneTheme = lazy(() => import('../../sparti-cms/theme/sissonne'));
+const MasterTheme = lazy(() => import('../../sparti-cms/theme/master'));
 
 /**
  * Map theme slugs to their display names and components
@@ -29,6 +30,10 @@ const themeConfig: Record<string, { name: string; component: React.LazyExoticCom
   'sissonne': {
     name: 'Sissonne Dance Academy',
     component: SissonneTheme
+  },
+  'master': {
+    name: 'Master Theme',
+    component: MasterTheme
   }
 };
 
@@ -94,4 +99,3 @@ const TenantLandingPage: React.FC = () => {
 };
 
 export default TenantLandingPage;
-

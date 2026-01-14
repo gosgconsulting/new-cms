@@ -34,6 +34,7 @@ POSTGRES_USER="postgres"
 # Server Configuration
 PORT=4173
 NODE_ENV=development
+JWT_SECRET=sparti-demo-secret-key-change-in-production
 
 # Frontend API Configuration (for Vite)
 VITE_API_BASE_URL="https://cms.sparti.ai"

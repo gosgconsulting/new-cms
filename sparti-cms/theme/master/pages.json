@@ -1,0 +1,11 @@
+[
+  {
+    "page_name": "Homepage",
+    "slug": "/",
+    "meta_title": "Home",
+    "meta_description": "Master Theme Homepage",
+    "seo_index": true,
+    "status": "published",
+    "page_type": "page"
+  }
+]

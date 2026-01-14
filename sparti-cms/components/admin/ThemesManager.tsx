@@ -371,6 +371,46 @@ const ThemesManager: React.FC = () => {
 
   return (
     <div className="p-6 space-y-6">
+      {/* Master Theme helper banner */}
+      <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+          <div>
+            <h3 className="text-sm font-semibold text-blue-900">Master Theme</h3>
+            <p className="text-sm text-blue-800">
+              Use the Master Theme as a clean, tenant-aware base for migrations. It loads branding/styles via public API with the selected tenant.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              className="inline-flex items-center px-3 py-2 rounded-md bg-blue-600 text-white text-sm hover:bg-blue-700"
+              onClick={() => {
+                const master = themes.find((t) => t.slug === 'master');
+                if (master) {
+                  setSelectedThemeForActivation(master);
+                  setShowActivateModal(true);
+                } else {
+                  toast({
+                    title: 'Master theme not found',
+                    description: 'Please click "Sync Themes" first to register the Master theme.',
+                    variant: 'destructive',
+                  });
+                }
+              }}
+            >
+              Use Master Theme
+            </button>
+            <a
+              href="/theme/master"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center px-3 py-2 rounded-md border border-blue-300 text-blue-900 text-sm hover:bg-blue-100"
+            >
+              Preview
+            </a>
+          </div>
+        </div>
+      </div>
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -727,4 +767,3 @@ const ThemesManager: React.FC = () => {
 };
 
 export default ThemesManager;
-

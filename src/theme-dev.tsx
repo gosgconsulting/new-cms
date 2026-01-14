@@ -50,7 +50,8 @@ const getThemeSlug = (): string => {
 const themeNames: Record<string, string> = {
   'landingpage': 'ACATR Business Services',
   'sparti-seo-landing': 'Sparti SEO Landing',
-  'gosgconsulting': 'GO SG Consulting'
+  'gosgconsulting': 'GO SG Consulting',
+  'master': 'Master Theme'
 };
 
 // Dynamic theme import based on slug
@@ -62,6 +63,8 @@ const loadTheme = (slug: string) => {
       return lazy(() => import('../sparti-cms/theme/sparti-seo-landing'));
     case 'gosgconsulting':
       return lazy(() => import('../sparti-cms/theme/gosgconsulting'));
+    case 'master':
+      return lazy(() => import('../sparti-cms/theme/master'));
     default:
       return lazy(() => import('../sparti-cms/theme/landingpage'));
   }
