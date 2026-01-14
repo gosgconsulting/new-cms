@@ -1,6 +1,9 @@
 {
   "pages": [
     { "id": "home", "name": "Home", "slug": "", "component": "Homepage" },
-    { "id": "shop", "name": "Shop", "slug": "shop", "component": "Shop" }
+    { "id": "shop", "name": "Shop", "slug": "shop", "component": "Shop" },
+    { "id": "product", "name": "Product", "slug": "product", "component": "Product" },
+    { "id": "cart", "name": "Cart", "slug": "cart", "component": "Cart" },
+    { "id": "checkout", "name": "Checkout", "slug": "checkout", "component": "Checkout" }
   ]
 }
