@@ -31,6 +31,15 @@ const router = express.Router();
 router.post('/auth/login', async (req, res) => {
   console.log('[testing] Login attempt started');
   
+  // Ensure response is only sent once
+  let responseSent = false;
+  const sendResponse = (status: number, data: any) => {
+    if (!responseSent && !res.headersSent) {
+      responseSent = true;
+      res.status(status).json(data);
+    }
+  };
+  
   try {
     // Step 1: Check database initialization state
     console.log('[testing] Step 1: Checking database initialization state...');
@@ -43,7 +52,7 @@ router.post('/auth/login', async (req, res) => {
       });
     } catch (stateError) {
       console.error('[testing] Error getting database state:', stateError);
-      return res.status(500).json({
+      return sendResponse(500, {
         success: false,
         error: 'Server configuration error',
         message: 'Unable to check database state. Please check server logs.'
