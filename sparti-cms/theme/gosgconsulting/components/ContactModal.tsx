@@ -118,7 +118,7 @@ const ContactModal = ({ open, onOpenChange }: ContactModalProps) => {
             </div>
             
             {/* Content with proper mobile padding */}
-            <div className="flex-1 px-4 sm:px-4 py-4 pb-8 sm:pb-4 safe-area-inset-bottom">
+            <div className="flex-1 px-4 sm:px-4 py-4 pb-8 sm:pb-4 safe-area-inset-bottom bg-white">
               <ModalContactForm />
               
               {/* Avatars and WhatsApp below the form */}
