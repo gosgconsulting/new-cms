@@ -27,18 +27,14 @@ const router = express.Router();
 
 // ===== AUTHENTICATION ROUTES =====
 
+// Async error handler wrapper
+const asyncHandler = (fn) => (req, res, next) => {
+  Promise.resolve(fn(req, res, next)).catch(next);
+};
+
 // Login endpoint
-router.post('/auth/login', async (req, res) => {
+router.post('/auth/login', asyncHandler(async (req, res) => {
   console.log('[testing] Login attempt started');
-  
-  // Ensure response is only sent once
-  let responseSent = false;
-  const sendResponse = (status: number, data: any) => {
-    if (!responseSent && !res.headersSent) {
-      responseSent = true;
-      res.status(status).json(data);
-    }
-  };
   
   try {
     // Step 1: Check database initialization state
@@ -52,11 +48,14 @@ router.post('/auth/login', async (req, res) => {
       });
     } catch (stateError) {
       console.error('[testing] Error getting database state:', stateError);
-      return sendResponse(500, {
-        success: false,
-        error: 'Server configuration error',
-        message: 'Unable to check database state. Please check server logs.'
-      });
+      if (!res.headersSent) {
+        return res.status(500).json({
+          success: false,
+          error: 'Server configuration error',
+          message: 'Unable to check database state. Please check server logs.'
+        });
+      }
+      return;
     }
     
     const { dbInitialized, dbInitializationError } = dbState;
