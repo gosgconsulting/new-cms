@@ -111,10 +111,11 @@ const App = () => {
             {/* Embed route for iframe access */}
             <Route path="/embed/pages" element={<EmbedPagesManager />} />
             
-            {/* Theme routes - check if it's a known theme first, otherwise use TenantPage */}
+            
+            {/* Theme routes - check for known themes first */}
             <Route path="/theme/:tenantSlug/:pageSlug" element={
               <ErrorBoundary>
-                <ThemeRouteHandler />
+                <TenantLandingPage />
               </ErrorBoundary>
             } />
             <Route path="/theme/:tenantSlug" element={
@@ -122,7 +123,13 @@ const App = () => {
                 <TenantLandingPage />
               </ErrorBoundary>
             } />
-            
+            {/* Tenant-specific pages (for actual tenant slugs, not theme slugs) */}
+            <Route path="/tenant/:tenantSlug/:pageSlug" element={
+              <ErrorBoundary>
+                <TenantPage />
+              </ErrorBoundary>
+            } />
+			
             {/* Theme admin/auth routes */}
             <Route path="/theme/:themeSlug/admin" element={
               <ErrorBoundary>

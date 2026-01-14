@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import './theme.css';
 import Header from './components/Header';
 import HeroSection from './components/HeroSection';
@@ -8,6 +9,7 @@ import FAQSection from './components/FAQSection';
 import CTASection from './components/CTASection';
 import Footer from './components/Footer';
 import { ContactFormDialog } from './components/ContactFormDialog';
+import { ThankYouPage } from './components/ThankYouPage';
 import { useThemeSettings, useThemeBranding } from '../../hooks/useThemeSettings';
 import { getSiteName, getLogoSrc, getFaviconSrc, applyFavicon } from './utils/settings';
 
@@ -26,6 +28,8 @@ const TenantLanding: React.FC<TenantLandingProps> = ({
   tenantSlug = 'landingpage',
   tenantId
 }) => {
+  const location = useLocation();
+  
   // Get tenant ID from props or environment
   const effectiveTenantId = tenantId || (typeof window !== 'undefined' && (window as any).__CMS_TENANT__) || null;
   
@@ -39,6 +43,9 @@ const TenantLanding: React.FC<TenantLandingProps> = ({
   const { branding, loading: brandingLoading, error: brandingError } = useThemeBranding(tenantSlug, 'tenant-2960b682'); // TODO: fix this
   
   const [isContactDialogOpen, setIsContactDialogOpen] = useState(false);
+  
+  // Check if we're on the thank you page
+  const isThankYouPage = location.pathname.includes('/thank-you');
 
   const handleContactClick = () => {
     setIsContactDialogOpen(true);
@@ -146,6 +153,17 @@ const TenantLanding: React.FC<TenantLandingProps> = ({
       highlight: 'Streamlined process from setup to operations with professional oversight'
     }
   ];
+
+  // Render thank you page if on thank you route, otherwise render homepage
+  if (isThankYouPage) {
+    return (
+      <ThankYouPage 
+        tenantName={siteName}
+        tenantSlug={tenantSlug}
+        tenantId={effectiveTenantId}
+      />
+    );
+  }
 
   // Always render hardcoded content - no database checks
   return (
