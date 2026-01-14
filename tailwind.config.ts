@@ -10,6 +10,13 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        heading: ['Amalfi Coast', 'Playfair Display', 'serif'],
+        'heading-cursive': ['Amalfi Coast', 'Playfair Display', 'serif'],
+        body: ['Avenir', 'Source Sans Pro', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', 'sans-serif'],
+        button: ['Poppins', 'sans-serif'],
+        handwriting: ['Dancing Script', 'cursive'],
+      },
       colors: {
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
@@ -61,6 +68,26 @@ const config: Config = {
         brandGold: 'hsl(var(--brand-gold))',
         brandPurple: 'hsl(var(--brand-purple))',
         starYellow: "#FACC15", // Adding star yellow color
+        // Sissonne Dance Academy Colors
+        dance: {
+          pink: "hsl(var(--dance-gold))", // This is the primary pink (330 45% 75%)
+          rose: "hsl(var(--dance-rose))",
+          purple: "hsl(var(--dance-purple))",
+          black: "hsl(var(--dance-black))",
+          white: "hsl(var(--dance-white))",
+          gray: {
+            50: "hsl(var(--dance-gray-50))",
+            100: "hsl(var(--dance-gray-100))",
+            200: "hsl(var(--dance-gray-200))",
+            800: "hsl(var(--dance-gray-800))",
+            900: "hsl(var(--dance-gray-900))",
+          },
+        },
+        stage: {
+          spotlight: "hsl(var(--stage-spotlight))",
+          ambient: "hsl(var(--stage-ambient))",
+          drama: "hsl(var(--stage-drama))",
+        },
       },
       borderRadius: {
         lg: 'var(--radius)',

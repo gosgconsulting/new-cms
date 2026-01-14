@@ -1,5 +1,5 @@
-import React from 'react';
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import React, { useMemo } from 'react';
+import { useLocation, useParams } from "react-router-dom";
 import './theme.css';
 import { Layout } from "./components/Layout";
 import Index from "./pages/Index";
@@ -23,32 +23,68 @@ interface TenantLandingProps {
  * Sissonne Dance Academy Theme
  * A sophisticated dance academy theme with multiple pages, programs showcase,
  * faculty profiles, gallery, and comprehensive dance education content.
+ * 
+ * Uses the parent app's router - routes are determined by the current location path.
+ * Handles both /theme/sissonne (homepage) and /theme/sissonne/:pageSlug (sub-pages).
  */
 const TenantLanding: React.FC<TenantLandingProps> = ({ 
   tenantName = 'Sissonne Dance Academy', 
   tenantSlug = 'sissonne',
   tenantId
 }) => {
+  const location = useLocation();
+  const params = useParams<{ pageSlug?: string }>();
+  
+  // Determine which page to render
+  // If pageSlug param exists (from /theme/sissonne/:pageSlug route), use it
+  // Otherwise, extract from pathname or default to homepage
+  const currentPage = useMemo(() => {
+    // Check if we have a pageSlug param (from /theme/:tenantSlug/:pageSlug route)
+    if (params.pageSlug) {
+      return params.pageSlug;
+    }
+    
+    // Otherwise, extract from pathname
+    const pathParts = location.pathname.split('/').filter(Boolean);
+    const themeIndex = pathParts.indexOf(tenantSlug);
+    if (themeIndex >= 0 && themeIndex < pathParts.length - 1) {
+      return pathParts[themeIndex + 1];
+    }
+    
+    return ''; // Homepage
+  }, [location.pathname, tenantSlug, params.pageSlug]);
+
+  // Render the appropriate page component based on current route
+  const renderPage = () => {
+    switch (currentPage) {
+      case '':
+      case undefined:
+        return <Index />;
+      case 'programs':
+        return <Programs />;
+      case 'faculty':
+        return <Faculty />;
+      case 'gallery':
+        return <Gallery />;
+      case 'about':
+        return <About />;
+      case 'baskerville':
+        return <Baskerville />;
+      case 'eb-garamond':
+        return <EbGaramond />;
+      case 'lora':
+        return <Lora />;
+      case 'amalfi-avenir':
+        return <AmalfiAvenir />;
+      default:
+        return <NotFound />;
+    }
+  };
+
   return (
-    <BrowserRouter>
-      <Layout>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/programs" element={<Programs />} />
-          <Route path="/faculty" element={<Faculty />} />
-          <Route path="/gallery" element={<Gallery />} />
-          <Route path="/about" element={<About />} />
-
-          {/* Font Variation Pages */}
-          <Route path="/baskerville" element={<Baskerville />} />
-          <Route path="/eb-garamond" element={<EbGaramond />} />
-          <Route path="/lora" element={<Lora />} />
-          <Route path="/amalfi-avenir" element={<AmalfiAvenir />} />
-
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </Layout>
-    </BrowserRouter>
+    <Layout tenantSlug={tenantSlug}>
+      {renderPage()}
+    </Layout>
   );
 };
 

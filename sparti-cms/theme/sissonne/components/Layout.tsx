@@ -5,11 +5,13 @@ import { FontSwitcher } from "./FontSwitcher";
 
 interface LayoutProps {
   children: React.ReactNode;
+  tenantSlug?: string;
 }
 
-export function Layout({ children }: LayoutProps) {
+export function Layout({ children, tenantSlug = 'sissonne' }: LayoutProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
+  const themeBasePath = `/theme/${tenantSlug}`;
 
   // Scroll to top when route changes
   useEffect(() => {
@@ -17,16 +19,20 @@ export function Layout({ children }: LayoutProps) {
   }, [location.pathname]);
 
   const navigation = [
-    { name: "Home", href: "/", type: "link" },
+    { name: "Home", href: themeBasePath, type: "link" },
     { name: "Programs", href: "#programs", type: "anchor" },
     { name: "Teachers", href: "#faculty", type: "anchor" },
     { name: "Gallery", href: "#gallery", type: "anchor" },
-    { name: "About", href: "/about", type: "link" },
+    { name: "About", href: `${themeBasePath}/about`, type: "link" },
   ];
 
   const isActive = (href: string) => {
-    if (href === "/") {
-      return location.pathname === "/";
+    if (href === themeBasePath) {
+      return location.pathname === themeBasePath || location.pathname === `${themeBasePath}/`;
+    }
+    if (href.startsWith('#')) {
+      // Anchor links - check if we're on homepage
+      return location.pathname === themeBasePath || location.pathname === `${themeBasePath}/`;
     }
     return location.pathname.startsWith(href);
   };
@@ -38,7 +44,7 @@ export function Layout({ children }: LayoutProps) {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-24 items-center justify-between">
             {/* Logo */}
-            <Link to="/" className="flex items-center group">
+            <Link to={themeBasePath} className="flex items-center group">
               <img
                 src="/theme/sissonne/assets/logo.png"
                 alt="Sissonne Dance Academy Logo"
@@ -53,15 +59,11 @@ export function Layout({ children }: LayoutProps) {
                   <a
                     key={item.name}
                     href={item.href}
-                    className="relative text-xl font-body font-medium text-dance-black transition-all duration-300 group"
-                    style={{ "&:hover": { color: "#dc4c81" } }}
-                    onMouseEnter={(e) => (e.target.style.color = "#dc4c81")}
-                    onMouseLeave={(e) => (e.target.style.color = "")}
+                    className="relative text-xl font-body font-medium text-dance-black transition-all duration-300 group hover:text-dance-pink"
                   >
                     {item.name}
                     <span
-                      className="absolute bottom-0 left-0 w-0 h-0.5 transition-all duration-300 group-hover:w-full"
-                      style={{ backgroundColor: "#dc4c81" }}
+                      className="absolute bottom-0 left-0 w-0 h-0.5 transition-all duration-300 group-hover:w-full bg-dance-pink"
                     ></span>
                   </a>
                 ) : (
@@ -69,24 +71,16 @@ export function Layout({ children }: LayoutProps) {
                     key={item.name}
                     to={item.href}
                     className={`relative text-xl font-body font-medium transition-all duration-300 group ${
-                      isActive(item.href) ? "" : "text-dance-black"
+                      isActive(item.href) ? "text-dance-pink" : "text-dance-black hover:text-dance-pink"
                     }`}
-                    style={isActive(item.href) ? { color: "#dc4c81" } : {}}
-                    onMouseEnter={(e) =>
-                      !isActive(item.href) && (e.target.style.color = "#dc4c81")
-                    }
-                    onMouseLeave={(e) =>
-                      !isActive(item.href) && (e.target.style.color = "")
-                    }
                   >
                     {item.name}
                     <span
-                      className={`absolute bottom-0 left-0 h-0.5 transition-all duration-300 ${
+                      className={`absolute bottom-0 left-0 h-0.5 transition-all duration-300 bg-dance-pink ${
                         isActive(item.href)
                           ? "w-full"
                           : "w-0 group-hover:w-full"
                       }`}
-                      style={{ backgroundColor: "#dc4c81" }}
                     ></span>
                   </Link>
                 ),
@@ -97,8 +91,7 @@ export function Layout({ children }: LayoutProps) {
             <div className="hidden lg:flex items-center">
               <a
                 href="#book-trial"
-                className="text-dance-white px-8 py-4 rounded-full text-sm font-button font-medium tracking-wide transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl hover:opacity-90"
-                style={{ backgroundColor: "#dc4c81" }}
+                className="bg-dance-pink text-dance-white px-8 py-4 rounded-full text-sm font-button font-medium tracking-wide transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl hover:opacity-90"
               >
                 Book a trial
               </a>
@@ -127,10 +120,8 @@ export function Layout({ children }: LayoutProps) {
                   <a
                     key={item.name}
                     href={item.href}
-                    className="block text-xl font-medium text-dance-black transition-colors duration-200"
+                    className="block text-xl font-medium text-dance-black transition-colors duration-200 hover:text-dance-pink"
                     onClick={() => setIsMenuOpen(false)}
-                    onMouseEnter={(e) => (e.target.style.color = "#dc4c81")}
-                    onMouseLeave={(e) => (e.target.style.color = "")}
                   >
                     {item.name}
                   </a>
@@ -139,16 +130,9 @@ export function Layout({ children }: LayoutProps) {
                     key={item.name}
                     to={item.href}
                     className={`block text-xl font-medium transition-colors duration-200 ${
-                      isActive(item.href) ? "font-semibold" : "text-dance-black"
+                      isActive(item.href) ? "font-semibold text-dance-pink" : "text-dance-black hover:text-dance-pink"
                     }`}
-                    style={isActive(item.href) ? { color: "#dc4c81" } : {}}
                     onClick={() => setIsMenuOpen(false)}
-                    onMouseEnter={(e) =>
-                      !isActive(item.href) && (e.target.style.color = "#dc4c81")
-                    }
-                    onMouseLeave={(e) =>
-                      !isActive(item.href) && (e.target.style.color = "")
-                    }
                   >
                     {item.name}
                   </Link>
@@ -161,8 +145,7 @@ export function Layout({ children }: LayoutProps) {
                 </div>
                 <a
                   href="#book-trial"
-                  className="block text-center w-full text-dance-white px-6 py-4 rounded-full font-button font-medium tracking-wide transition-all duration-300 transform hover:scale-105 shadow-xl hover:opacity-90"
-                  style={{ backgroundColor: "#dc4c81" }}
+                  className="block text-center w-full bg-dance-pink text-dance-white px-6 py-4 rounded-full font-button font-medium tracking-wide transition-all duration-300 transform hover:scale-105 shadow-xl hover:opacity-90"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   Book a trial
@@ -253,25 +236,25 @@ export function Layout({ children }: LayoutProps) {
                 </h3>
                 <div className="space-y-3">
                   <Link
-                    to="/programs"
+                    to={`${themeBasePath}/programs`}
                     className="block text-dance-gray-200 hover:text-dance-pink transition-colors duration-200"
                   >
                     Ballet
                   </Link>
                   <Link
-                    to="/programs"
+                    to={`${themeBasePath}/programs`}
                     className="block text-dance-gray-200 hover:text-dance-pink transition-colors duration-200"
                   >
                     Jazz CSTD
                   </Link>
                   <Link
-                    to="/programs"
+                    to={`${themeBasePath}/programs`}
                     className="block text-dance-gray-200 hover:text-dance-pink transition-colors duration-200"
                   >
                     Elite Performance
                   </Link>
                   <Link
-                    to="/programs"
+                    to={`${themeBasePath}/programs`}
                     className="block text-dance-gray-200 hover:text-dance-pink transition-colors duration-200"
                   >
                     DSA Preparation
@@ -315,8 +298,7 @@ export function Layout({ children }: LayoutProps) {
         className="fixed -right-[3.2rem] top-1/2 -translate-y-1/2 z-50 group"
       >
         <div
-          className="flex items-center justify-center gap-2 shadow-xl text-white px-4 py-3 -rotate-90 origin-center hover:opacity-90 transition-opacity"
-          style={{ backgroundColor: "#dc4c81" }}
+          className="flex items-center justify-center gap-2 shadow-xl text-white px-4 py-3 -rotate-90 origin-center hover:opacity-90 transition-opacity bg-dance-pink"
         >
           <span className="text-lg">👋</span>
           <span className="text-sm font-semibold tracking-wide uppercase">Contact Us</span>

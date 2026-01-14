@@ -152,7 +152,7 @@ export default function Index() {
           <div className="text-center mb-16">
             <h2 className="text-2xl md:text-3xl font-heading font-bold text-dance-black mb-6">
               Discover Your{" "}
-              <span style={{ color: "#dca3bf" }}>Dance Journey</span>
+              <span className="text-dance-rose">Dance Journey</span>
             </h2>
             <p className="text-xl font-body font-light text-dance-gray-800 max-w-3xl mx-auto leading-relaxed">
               From classical ballet to contemporary jazz, our comprehensive
@@ -291,8 +291,7 @@ export default function Index() {
             <div className="w-full flex flex-col justify-center p-40">
               <div className="mb-8">
                 <h3
-                  className="text-2xl font-heading font-normal mb-6"
-                  style={{ color: "#dca3bf" }}
+                  className="text-2xl font-heading font-normal mb-6 text-dance-rose"
                 >
                   BOOK A TRIAL
                 </h3>

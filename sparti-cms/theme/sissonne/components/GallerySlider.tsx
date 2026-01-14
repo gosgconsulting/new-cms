@@ -101,8 +101,7 @@ export function GallerySlider() {
             {galleryImages[currentImageIndex].subtitle}
           </p>
           <p
-            className="text-xl font-body font-light"
-            style={{ color: "#dc4c81" }}
+            className="text-xl font-body font-light text-dance-pink"
           >
             Hover for enhanced view
           </p>

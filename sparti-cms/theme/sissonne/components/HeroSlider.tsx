@@ -133,7 +133,6 @@ export function HeroSlider() {
             <span className="block hero-title">{currentSlideData.title}</span>
             <span
               className="block text-dance-pink hero-subtitle font-heading font-bold"
-              style={{ color: "#dc4c81" }}
             >
               {currentSlideData.subtitle}
             </span>
@@ -146,8 +145,7 @@ export function HeroSlider() {
         <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
           <a
             href="#book-trial"
-            className="text-dance-white px-10 py-4 rounded-full text-lg font-button font-medium tracking-wide transition-all duration-300 transform hover:scale-105 shadow-2xl hover:opacity-90"
-            style={{ backgroundColor: "#dc4c81" }}
+            className="bg-dance-pink text-dance-white px-10 py-4 rounded-full text-lg font-button font-medium tracking-wide transition-all duration-300 transform hover:scale-105 shadow-2xl hover:opacity-90"
           >
             Book a trial
           </a>
@@ -167,12 +165,9 @@ export function HeroSlider() {
               onClick={() => goToSlide(index)}
               className={`w-3 h-3 rounded-full transition-all duration-300 ${
                 index === currentSlide
-                  ? "scale-125"
+                  ? "scale-125 bg-dance-pink"
                   : "bg-dance-white/50 hover:bg-dance-white/80"
               }`}
-              style={
-                index === currentSlide ? { backgroundColor: "#dc4c81" } : {}
-              }
             ></button>
           ))}
         </div>
