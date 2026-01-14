@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Package, Edit, Trash2, X, Save, Search, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, Package, Edit, Trash2, X, Save, Search, ChevronDown, ChevronUp, FileJson } from 'lucide-react';
 import { api } from '../../utils/api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,6 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import ProductCreationWizard from './ProductCreationWizard';
 import ProductEditTable from './ProductEditTable';
 import BulkProductEditTable from './BulkProductEditTable';
+import ProductJsonViewer from './ProductJsonViewer';
 
 interface Product {
   product_id: number;
@@ -217,6 +218,7 @@ interface ProductVariant {
 
 function ProductCard({ product, isEditing, onEdit, onDelete, onCancel, currentTenantId }: ProductCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [showJsonViewer, setShowJsonViewer] = useState(false);
 
   // Fetch variants when expanded
   const { data: variants = [], isLoading: isLoadingVariants, error: variantsError } = useQuery({
@@ -354,6 +356,15 @@ function ProductCard({ product, isEditing, onEdit, onDelete, onCancel, currentTe
                 <Button
                   variant="ghost"
                   size="sm"
+                  onClick={() => setShowJsonViewer(true)}
+                  title="View complete product data as JSON"
+                >
+                  <FileJson className="h-4 w-4 mr-1" />
+                  JSON
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={() => setIsExpanded(!isExpanded)}
                 >
                   {isExpanded ? (
@@ -389,6 +400,15 @@ function ProductCard({ product, isEditing, onEdit, onDelete, onCancel, currentTe
           </div>
         </div>
       </CardContent>
+      
+      {/* JSON Viewer Dialog */}
+      <ProductJsonViewer
+        productId={product.product_id}
+        productSlug={product.slug}
+        currentTenantId={currentTenantId}
+        open={showJsonViewer}
+        onOpenChange={setShowJsonViewer}
+      />
     </Card>
   );
 }

@@ -229,6 +229,31 @@ router.get('/products/:id', authenticateTenantApiKey, async (req, res) => {
     const tenantId = req.tenantId;
     const productId = parseInt(req.params.id);
 
+    // Check e-shop provider setting
+    const eshopProvider = await getEshopProvider(tenantId);
+
+    if (eshopProvider === 'woocommerce') {
+      // Try to get from WooCommerce API for complete data
+      try {
+        const client = await createWooCommerceClient(tenantId, query);
+        const wcProduct = await client.getProduct(productId);
+
+        if (wcProduct) {
+          // Return full WooCommerce product data
+          res.json({ 
+            success: true, 
+            data: wcProduct,
+            source: 'woocommerce'
+          });
+          return;
+        }
+      } catch (wcError) {
+        console.warn('[testing] Could not fetch product from WooCommerce, falling back to local:', wcError.message);
+        // Fall through to local database
+      }
+    }
+
+    // Fallback to local database
     const product = await getProduct(productId, tenantId);
 
     if (!product) {
@@ -240,7 +265,8 @@ router.get('/products/:id', authenticateTenantApiKey, async (req, res) => {
 
     res.json({ 
       success: true, 
-      data: product 
+      data: product,
+      source: 'local'
     });
   } catch (error) {
     console.error('[testing] Error fetching product:', error);
