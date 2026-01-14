@@ -16,6 +16,7 @@ import DatabaseViewer from "./pages/DatabaseViewer";
 import PublicDashboard from "./pages/PublicDashboard";
 import TenantLandingPage from "./pages/TenantLandingPage";
 import TenantPage from "./pages/TenantPage";
+import ThankYou from "./pages/ThankYou";
 
 // Component to handle theme sub-routes - checks if it's a known theme
 const ThemeRouteHandler: React.FC = () => {
@@ -137,6 +138,7 @@ const App = () => {
             
             {/* Other routes */}
             <Route path="/auth" element={<Auth />} />
+            <Route path="/thank-you" element={<ThankYou />} />
             <Route path="/database-viewer" element={<DatabaseViewer />} />
             <Route path="/components-viewer" element={<ComponentsViewer />} />
             <Route path="/dev" element={

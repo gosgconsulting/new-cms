@@ -4,6 +4,7 @@ import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 import { Send } from "lucide-react";
 import { getTenantId } from "../../../utils/tenantConfig";
+import { useNavigate } from "react-router-dom";
 
 type ModalContactFormProps = {
   className?: string;
@@ -18,6 +19,7 @@ const ModalContactForm: React.FC<ModalContactFormProps> = ({ className = "" }) =
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState("");
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,20 +62,15 @@ const ModalContactForm: React.FC<ModalContactFormProps> = ({ className = "" }) =
         throw new Error(errorData.error || 'Failed to submit form');
       }
 
-      const result = await response.json();
-      
-      setSubmitStatus('success');
-      // Reset form
+      // Reset form fields
       setName("");
       setEmail("");
       setPhone("");
       setCompany("");
       setMessage("");
-      
-      // Clear success message after 3 seconds
-      setTimeout(() => {
-        setSubmitStatus('idle');
-      }, 3000);
+
+      // Redirect to thank-you page instead of showing success message
+      navigate('/thank-you');
       
     } catch (error) {
       setSubmitStatus('error');
@@ -169,14 +166,6 @@ const ModalContactForm: React.FC<ModalContactFormProps> = ({ className = "" }) =
             />
           </div>
 
-          {/* Success/Error Messages */}
-          {submitStatus === 'success' && (
-            <div className="rounded-lg bg-green-50 border border-green-200 p-4 text-green-800 text-sm">
-              <p className="font-medium">Message sent successfully!</p>
-              <p className="text-green-600 mt-1">We'll get back to you soon.</p>
-            </div>
-          )}
-          
           {submitStatus === 'error' && errorMessage && (
             <div className="rounded-lg bg-red-50 border border-red-200 p-4 text-red-800 text-sm">
               <p className="font-medium">Error sending message</p>
