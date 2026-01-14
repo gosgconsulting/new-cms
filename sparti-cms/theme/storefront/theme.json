@@ -1,0 +1,17 @@
+{
+  "name": "Storefront",
+  "description": "A simple ecommerce storefront theme based on the Master Theme.",
+  "version": "1.0.0",
+  "author": "GOSG",
+  "is_active": true,
+  "category": "ecommerce",
+  "tags": ["store", "shop", "ecommerce", "products"],
+  "features": [
+    "Simple homepage with product cards",
+    "Shop page listing products",
+    "Responsive layout with Tailwind"
+  ],
+  "preview_image": "assets/logo.png",
+  "demo_url": "/theme/storefront",
+  "documentation_url": "/docs/themes/storefront"
+}
