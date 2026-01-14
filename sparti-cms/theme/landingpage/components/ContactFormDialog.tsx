@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { getTenantId } from '../../../utils/tenantConfig';
 
 interface ContactFormSidebarProps {
@@ -13,7 +12,6 @@ export const ContactFormDialog: React.FC<ContactFormSidebarProps> = ({
   isOpen: controlledOpen, 
   onOpenChange 
 }) => {
-  const navigate = useNavigate();
   const [internalOpen, setInternalOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -82,11 +80,14 @@ export const ContactFormDialog: React.FC<ContactFormSidebarProps> = ({
       // Show success message briefly, then navigate to thank you page
       setTimeout(() => {
         setOpen(false);
-        // Navigate to thank you page
+        // Navigate to thank you page - use window.location for full URL navigation
+        // This ensures correct navigation in standalone theme deployments
         const currentPath = window.location.pathname;
-        const basePath = currentPath.replace(/\/thank-you$/, '');
-        const thankYouPath = `${basePath}/thank-you`;
-        navigate(thankYouPath);
+        const basePath = currentPath.replace(/\/thank-you$/, '') || '/';
+        // Ensure path starts with / for absolute navigation
+        const thankYouPath = basePath === '/' ? '/thank-you' : `${basePath}/thank-you`;
+        // Use window.location.href for full URL navigation (works in all deployment scenarios)
+        window.location.href = thankYouPath;
       }, 1500);
       
     } catch (error) {
