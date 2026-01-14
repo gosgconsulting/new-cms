@@ -403,7 +403,7 @@ export default function About() {
             standards, and a nurturing community can make in your dance journey.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="bg-gradient-to-r from-dance-pink to-dance-purple text-dance-white px-8 py-4 rounded-full font-button font-medium text-lg hover:from-dance-purple hover:to-dance-pink transition-all duration-300 transform hover:scale-105 shadow-xl">
+            <button className="bg-dance-pink text-dance-white px-8 py-4 rounded-full font-button font-medium text-lg hover:bg-dance-pink/90 transition-all duration-300 transform hover:scale-105 shadow-xl">
               Book your trial class
             </button>
             <button className="bg-dance-black text-dance-white px-8 py-4 rounded-full font-button font-medium text-lg hover:bg-dance-gray-800 transition-all duration-300 transform hover:scale-105 shadow-lg">

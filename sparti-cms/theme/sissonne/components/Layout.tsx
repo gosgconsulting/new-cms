@@ -307,7 +307,7 @@ export function Layout({ children, tenantSlug = 'sissonne' }: LayoutProps) {
       </a>
 
       {/* Font Switcher Widget */}
-      <FontSwitcher />
+            <FontSwitcher tenantSlug={tenantSlug} />
     </div>
   );
 }

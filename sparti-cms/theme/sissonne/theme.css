@@ -2,8 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Google Fonts for fallbacks */
+/* Google Fonts for all font variations */
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Source+Sans+Pro:wght@300;400;600&family=Poppins:wght@400;500;600&family=Dancing+Script:wght@400&display=swap');
+/* Baskerville font combination */
+@import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap');
+/* EB Garamond font combination */
+@import url('https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700&family=Nunito+Sans:wght@300;400;600;700&display=swap');
+/* Lora font combination */
+@import url('https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&family=Work+Sans:wght@300;400;500;600&display=swap');
 
 /* Custom Font Declarations */
 @font-face {
@@ -108,7 +114,8 @@
     --sidebar-ring: 217.2 91.2% 59.8%;
 
     /* Soft Pink and White Dance Academy Colors */
-    --dance-gold: 330 45% 75%;
+    /* Primary pink: #dc4c81 = hsl(330, 60%, 58%) - more vibrant */
+    --dance-gold: 330 60% 58%;
     --dance-rose: 330 30% 88%;
     --dance-purple: 330 25% 75%;
     --dance-black: 220 13% 9%;
@@ -163,7 +170,7 @@
     --sidebar-ring: 217.2 91.2% 59.8%;
 
     /* Soft Pink and White Dance Academy Colors - Dark Mode */
-    --dance-gold: 330 40% 70%;
+    --dance-gold: 330 60% 65%;
     --dance-rose: 330 25% 80%;
     --dance-purple: 330 20% 65%;
     --dance-black: 220 13% 6%;
@@ -188,7 +195,7 @@
 
   body {
     @apply bg-background text-foreground;
-    font-family: 'Avenir', 'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+    font-family: 'Source Sans Pro', 'Avenir', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
     font-weight: 300; /* Light weight for elegance as per brand guide */
   }
 
@@ -198,7 +205,17 @@
   h4,
   h5,
   h6 {
-    font-family: 'Amalfi Coast', 'Playfair Display', serif;
+    font-family: 'Playfair Display', 'Amalfi Coast', serif;
+  }
+  
+  /* Font heading class defaults to Playfair Display for homepage */
+  .font-heading {
+    font-family: 'Playfair Display', 'Amalfi Coast', serif;
+  }
+  
+  /* Font body class defaults to Source Sans Pro for homepage */
+  .font-body {
+    font-family: 'Source Sans Pro', 'Avenir', sans-serif;
   }
 }
 

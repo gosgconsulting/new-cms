@@ -2,32 +2,37 @@ import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Type, ChevronUp, ChevronDown } from "lucide-react";
 
-export function FontSwitcher() {
+interface FontSwitcherProps {
+  tenantSlug?: string;
+}
+
+export function FontSwitcher({ tenantSlug = 'sissonne' }: FontSwitcherProps) {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
+  const themeBasePath = `/theme/${tenantSlug}`;
 
   const fonts = [
     {
       name: "Baskerville",
-      path: "/baskerville",
+      path: `${themeBasePath}/baskerville`,
       headlineFont: "Libre Baskerville",
       bodyFont: "Inter",
     },
     {
       name: "EB Garamond",
-      path: "/eb-garamond",
+      path: `${themeBasePath}/eb-garamond`,
       headlineFont: "EB Garamond",
       bodyFont: "Nunito Sans",
     },
     {
       name: "Lora",
-      path: "/lora",
+      path: `${themeBasePath}/lora`,
       headlineFont: "Lora",
       bodyFont: "Work Sans",
     },
     {
       name: "Amalfi & Avenir",
-      path: "/amalfi-avenir",
+      path: `${themeBasePath}/amalfi-avenir`,
       headlineFont: "Amalfi Coast",
       bodyFont: "Avenir",
     },
@@ -35,10 +40,10 @@ export function FontSwitcher() {
 
   const getCurrentFont = () => {
     // Handle homepage as Playfair
-    if (location.pathname === "/") {
+    if (location.pathname === themeBasePath || location.pathname === `${themeBasePath}/`) {
       return "Playfair";
     }
-    const current = fonts.find((font) => location.pathname === font.path);
+    const current = fonts.find((font) => location.pathname === font.path || location.pathname.startsWith(font.path));
     return current ? current.name : "Playfair";
   };
 
@@ -74,9 +79,9 @@ export function FontSwitcher() {
             <div className="p-2 space-y-1">
               {/* Homepage Playfair option */}
               <Link
-                to="/"
+                to={themeBasePath}
                 className={`block px-3 py-2 rounded-lg text-sm transition-colors duration-300 ${
-                  location.pathname === "/"
+                  location.pathname === themeBasePath || location.pathname === `${themeBasePath}/`
                     ? "bg-dance-pink text-dance-white"
                     : "text-dance-gray-700 hover:bg-dance-gray-100"
                 }`}
@@ -92,7 +97,7 @@ export function FontSwitcher() {
                   key={font.path}
                   to={font.path}
                   className={`block px-3 py-2 rounded-lg text-sm transition-colors duration-300 ${
-                    location.pathname === font.path
+                    location.pathname === font.path || location.pathname.startsWith(font.path)
                       ? "bg-dance-pink text-dance-white"
                       : "text-dance-gray-700 hover:bg-dance-gray-100"
                   }`}
