@@ -214,6 +214,7 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({ hideSidebar = false }) => {
   const [crmExpanded, setCrmExpanded] = useState<boolean>(false);
   const [usersExpanded, setUsersExpanded] = useState<boolean>(false);
   const [seoExpanded, setSeoExpanded] = useState<boolean>(false);
+  const [shopSettingsExpanded, setShopSettingsExpanded] = useState<boolean>(false);
   const [tenantDropdownOpen, setTenantDropdownOpen] = useState<boolean>(false);
   const [isEditMode, setIsEditMode] = useState<boolean>(false);
   const [currentThemeId, setCurrentThemeId] = useState<string>('custom');
@@ -352,8 +353,16 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({ hideSidebar = false }) => {
           return <ProductsManager currentTenantId={currentTenantId || ''} />;
         case 'orders':
           return <OrdersManager currentTenantId={currentTenantId || ''} />;
+        case 'payments':
+          return <PaymentsManager currentTenantId={currentTenantId || ''} />;
         case 'reviews':
           return <ReviewsManager currentTenantId={currentTenantId || ''} />;
+        case 'settings':
+        case 'payment-methods':
+        case 'shipping-methods':
+        case 'stripe-connect':
+        case 'shop-general':
+          return <ShopSettingsManager currentTenantId={currentTenantId || ''} activeTab={activeTab} />;
         default:
           return <div className="text-muted-foreground">Select a section from the sidebar</div>;
       }
@@ -460,7 +469,8 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({ hideSidebar = false }) => {
     const currentItem = navItems.find(item => item.id === activeTab) || 
                       crmItems.find(item => item.id === activeTab) ||
                       usersItems.find(item => item.id === activeTab) ||
-                      seoItems.find(item => item.id === activeTab);
+                      seoItems.find(item => item.id === activeTab) ||
+                      shopSettingsItems.find(item => item.id === activeTab);
     return currentItem ? currentItem.label : 'Dashboard';
   };
 
@@ -672,9 +682,54 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({ hideSidebar = false }) => {
                 )}
               </li>
             )}
+
+            {/* Shop Settings Submenu - Flowbite Style - Only show in Shop mode */}
+            {mode === 'shop' && (
+              <li>
+                <button
+                  onClick={() => setShopSettingsExpanded(!shopSettingsExpanded)}
+                  className={`w-full flex items-center justify-between gap-3 px-3 py-2 text-left rounded-lg text-sm transition-all ${
+                    shopSettingsItems.some(item => item.id === activeTab) || activeTab === 'settings'
+                      ? 'bg-blue-50 text-blue-600 font-medium'
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <SettingsIcon className="h-5 w-5" />
+                    Settings
+                  </div>
+                  {shopSettingsExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                </button>
+                
+                {shopSettingsExpanded && (
+                  <ul className="mt-1 ml-4 space-y-1">
+                    {shopSettingsItems.map((item) => {
+                      const Icon = item.icon;
+                      const isActive = activeTab === item.id;
+                      
+                      return (
+                        <li key={item.id}>
+                          <button
+                            onClick={() => setActiveTab(item.id)}
+                            className={`w-full flex items-center gap-3 px-3 py-2 text-left rounded-lg text-sm transition-all ${
+                              isActive
+                                ? 'bg-blue-50 text-blue-600 font-medium'
+                                : 'text-gray-700 hover:bg-gray-100'
+                            }`}
+                          >
+                            <Icon className="h-4 w-4" />
+                            {item.label}
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </li>
+            )}
             
             {/* Remaining navigation items - Flowbite Style */}
-            {navItems.slice(2).map((item) => {
+            {navItems.slice(2).filter(item => mode === 'shop' ? item.id !== 'settings' : true).map((item) => {
               const Icon = item.icon;
               const isActive = activeTab === item.id;
               

@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ShoppingCart, Filter, Calendar, ChevronDown, ChevronUp, Package } from 'lucide-react';
+import { ShoppingCart, Filter, Calendar, ChevronDown, ChevronUp, Package, Plus, X } from 'lucide-react';
 import { api } from '../../utils/api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 interface Order {
   order_id: number;
@@ -35,9 +37,30 @@ interface OrdersManagerProps {
   currentTenantId: string;
 }
 
+interface Product {
+  product_id: number;
+  name: string;
+  slug: string;
+  price: number;
+}
+
+interface OrderItemInput {
+  product_id: number;
+  quantity: number;
+  product_name?: string;
+  product_price?: number;
+}
+
 export default function OrdersManager({ currentTenantId }: OrdersManagerProps) {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [expandedOrders, setExpandedOrders] = useState<Set<number>>(new Set());
+  const [showAddOrder, setShowAddOrder] = useState(false);
+  const [newOrder, setNewOrder] = useState({
+    user_id: '',
+    status: 'pending',
+    payment_method: '' as 'PAYSTACK' | 'STRIPE' | '' | null,
+    items: [] as OrderItemInput[],
+  });
   const queryClient = useQueryClient();
 
   const { data: orders = [], isLoading } = useQuery({
@@ -62,6 +85,21 @@ export default function OrdersManager({ currentTenantId }: OrdersManagerProps) {
     enabled: !!currentTenantId,
   });
 
+  // Fetch products for order creation
+  const { data: products = [] } = useQuery({
+    queryKey: ['products', currentTenantId],
+    queryFn: async () => {
+      if (!currentTenantId) return [];
+      const response = await api.get('/api/shop/products', { tenantId: currentTenantId });
+      if (!response.ok) {
+        throw new Error('Failed to fetch products');
+      }
+      const result = await response.json();
+      return result.data || [];
+    },
+    enabled: !!currentTenantId && showAddOrder,
+  });
+
   const updateStatusMutation = useMutation({
     mutationFn: async ({ orderId, status }: { orderId: number; status: string }) => {
       if (!currentTenantId) {
@@ -76,6 +114,30 @@ export default function OrdersManager({ currentTenantId }: OrdersManagerProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['orders', currentTenantId] });
+    },
+  });
+
+  const createOrderMutation = useMutation({
+    mutationFn: async (orderData: any) => {
+      if (!currentTenantId) {
+        throw new Error('Tenant ID is required');
+      }
+      const response = await api.post('/api/shop/orders', orderData, { tenantId: currentTenantId });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to create order');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['orders', currentTenantId] });
+      setShowAddOrder(false);
+      setNewOrder({
+        user_id: '',
+        status: 'pending',
+        payment_method: '',
+        items: [],
+      });
     },
   });
 
@@ -131,6 +193,73 @@ export default function OrdersManager({ currentTenantId }: OrdersManagerProps) {
     });
   };
 
+  const handleAddProduct = () => {
+    if (products.length === 0) return;
+    setNewOrder(prev => ({
+      ...prev,
+      items: [...prev.items, { product_id: products[0].product_id, quantity: 1 }],
+    }));
+  };
+
+  const handleRemoveProduct = (index: number) => {
+    setNewOrder(prev => ({
+      ...prev,
+      items: prev.items.filter((_, i) => i !== index),
+    }));
+  };
+
+  const handleProductChange = (index: number, productId: number) => {
+    const product = products.find((p: Product) => p.product_id === productId);
+    setNewOrder(prev => ({
+      ...prev,
+      items: prev.items.map((item, i) => 
+        i === index 
+          ? { ...item, product_id: productId, product_name: product?.name, product_price: product?.price }
+          : item
+      ),
+    }));
+  };
+
+  const handleQuantityChange = (index: number, quantity: number) => {
+    setNewOrder(prev => ({
+      ...prev,
+      items: prev.items.map((item, i) => 
+        i === index ? { ...item, quantity: Math.max(1, quantity) } : item
+      ),
+    }));
+  };
+
+  const calculateTotal = () => {
+    return newOrder.items.reduce((total, item) => {
+      const product = products.find((p: Product) => p.product_id === item.product_id);
+      return total + (product?.price || 0) * item.quantity;
+    }, 0);
+  };
+
+  const handleCreateOrder = () => {
+    if (!newOrder.user_id) {
+      alert('Please enter a user ID');
+      return;
+    }
+    if (newOrder.items.length === 0) {
+      alert('Please add at least one product');
+      return;
+    }
+
+    const total = calculateTotal();
+    createOrderMutation.mutate({
+      user_id: parseInt(newOrder.user_id), // Include user_id for manual order creation
+      items: newOrder.items.map(item => ({
+        product_id: item.product_id,
+        quantity: item.quantity,
+      })),
+      amount: total,
+      total: Math.round(total * 100), // Convert to cents
+      payment_method: newOrder.payment_method || null,
+      status: newOrder.status,
+    });
+  };
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
@@ -138,7 +267,147 @@ export default function OrdersManager({ currentTenantId }: OrdersManagerProps) {
           <h1 className="text-3xl font-bold">Orders</h1>
           <p className="text-muted-foreground mt-1">Manage customer orders</p>
         </div>
+        <Button onClick={() => setShowAddOrder(true)}>
+          <Plus className="h-4 w-4 mr-2" />
+          Add Order
+        </Button>
       </div>
+
+      {/* Add Order Form */}
+      {showAddOrder && (
+        <Card className="border-blue-200 bg-blue-50/30">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle>Create New Order</CardTitle>
+              <Button variant="ghost" size="sm" onClick={() => setShowAddOrder(false)}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <Label htmlFor="user_id">User ID *</Label>
+                <Input
+                  id="user_id"
+                  type="number"
+                  value={newOrder.user_id}
+                  onChange={(e) => setNewOrder(prev => ({ ...prev, user_id: e.target.value }))}
+                  placeholder="Enter user ID"
+                />
+              </div>
+              <div>
+                <Label htmlFor="status">Status</Label>
+                <select
+                  id="status"
+                  value={newOrder.status}
+                  onChange={(e) => setNewOrder(prev => ({ ...prev, status: e.target.value }))}
+                  className="w-full px-3 py-2 border border-border rounded-md bg-background"
+                >
+                  <option value="pending">Pending</option>
+                  <option value="processing">Processing</option>
+                  <option value="shipped">Shipped</option>
+                  <option value="delivered">Delivered</option>
+                  <option value="cancelled">Cancelled</option>
+                </select>
+              </div>
+              <div>
+                <Label htmlFor="payment_method">Payment Method</Label>
+                <select
+                  id="payment_method"
+                  value={newOrder.payment_method || ''}
+                  onChange={(e) => setNewOrder(prev => ({ ...prev, payment_method: e.target.value as any || null }))}
+                  className="w-full px-3 py-2 border border-border rounded-md bg-background"
+                >
+                  <option value="">None</option>
+                  <option value="STRIPE">Stripe</option>
+                  <option value="PAYSTACK">Paystack</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <Label>Order Items *</Label>
+                <Button variant="outline" size="sm" onClick={handleAddProduct} disabled={products.length === 0}>
+                  <Plus className="h-4 w-4 mr-1" />
+                  Add Product
+                </Button>
+              </div>
+              {newOrder.items.length === 0 ? (
+                <div className="text-center py-8 border border-dashed rounded-md text-muted-foreground">
+                  No products added. Click "Add Product" to add items.
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {newOrder.items.map((item, index) => {
+                    const product = products.find((p: Product) => p.product_id === item.product_id);
+                    return (
+                      <div key={index} className="flex items-center gap-2 p-3 border rounded-md bg-background">
+                        <select
+                          value={item.product_id}
+                          onChange={(e) => handleProductChange(index, parseInt(e.target.value))}
+                          className="flex-1 px-3 py-2 border border-border rounded-md bg-background"
+                        >
+                          {products.map((p: Product) => (
+                            <option key={p.product_id} value={p.product_id}>
+                              {p.name} - ${p.price.toFixed(2)}
+                            </option>
+                          ))}
+                        </select>
+                        <Input
+                          type="number"
+                          min="1"
+                          value={item.quantity}
+                          onChange={(e) => handleQuantityChange(index, parseInt(e.target.value) || 1)}
+                          className="w-20"
+                        />
+                        <div className="w-24 text-right font-medium">
+                          ${((product?.price || 0) * item.quantity).toFixed(2)}
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleRemoveProduct(index)}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {newOrder.items.length > 0 && (
+              <div className="flex justify-end pt-4 border-t">
+                <div className="text-right space-y-1">
+                  <p className="text-lg font-bold">
+                    Total: ${calculateTotal().toFixed(2)}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            <div className="flex justify-end gap-2 pt-4 border-t">
+              <Button variant="outline" onClick={() => setShowAddOrder(false)}>
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleCreateOrder}
+                disabled={createOrderMutation.isPending || !newOrder.user_id || newOrder.items.length === 0}
+              >
+                {createOrderMutation.isPending ? 'Creating...' : 'Create Order'}
+              </Button>
+            </div>
+            {createOrderMutation.isError && (
+              <div className="text-sm text-red-600">
+                {createOrderMutation.error instanceof Error ? createOrderMutation.error.message : 'Failed to create order'}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardContent className="p-4">
