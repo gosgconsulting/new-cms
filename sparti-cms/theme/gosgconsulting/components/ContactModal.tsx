@@ -102,15 +102,12 @@ const ContactModal = ({ open, onOpenChange }: ContactModalProps) => {
         >
           <div className="h-full flex flex-col min-h-screen sm:min-h-0">
             {/* Header with proper mobile padding */}
-            <div className="flex items-center justify-between px-4 sm:px-4 py-4 sm:py-3 pt-8 sm:pt-3 safe-area-inset-top">
-              <div className="inline-flex items-center rounded-full border border-white/10 bg-white/5 backdrop-blur px-4 py-2 text-sm text-white/90">
-                Contact Us
-              </div>
+            <div className="flex items-center justify-end px-4 sm:px-4 py-4 sm:py-3 pt-8 sm:pt-3 safe-area-inset-top">
               <Button
                 type="button"
                 variant="ghost"
                 onClick={() => onOpenChange(false)}
-                className="rounded-full text-white hover:text-white/90 p-2"
+                className="rounded-full text-black hover:text-black/80 p-2"
                 aria-label="Close"
               >
                 <X className="h-5 w-5 sm:h-4 sm:w-4" />
