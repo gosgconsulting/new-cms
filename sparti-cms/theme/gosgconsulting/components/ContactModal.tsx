@@ -96,7 +96,7 @@ const ContactModal = ({ open, onOpenChange }: ContactModalProps) => {
         <DialogPrimitive.Content
           className={cn(
             "contact-modal-content",
-            "fixed inset-0 z-50 w-full h-full sm:right-0 sm:top-0 sm:left-auto sm:w-[420px] lg:w-[520px] sm:h-screen bg-gradient-to-b from-slate-800 via-slate-700 to-indigo-800 shadow-2xl p-0 overflow-y-auto",
+            "fixed inset-0 z-50 w-full h-full sm:right-0 sm:top-0 sm:left-auto sm:w-[420px] lg:w-[520px] sm:h-screen bg-gray-50 shadow-2xl p-0 overflow-y-auto",
             "will-change-transform"
           )}
         >
@@ -115,7 +115,8 @@ const ContactModal = ({ open, onOpenChange }: ContactModalProps) => {
             </div>
             
             {/* Content with proper mobile padding */}
-            <div className="flex-1 px-4 sm:px-4 py-4 pb-8 sm:pb-4 safe-area-inset-bottom bg-white">
+            <div className="flex-1 px-4 sm:px-4 py-4 pb-8 sm:pb-4 safe-area-inset-bottom bg-gray-50">
+              <p className="text-gray-800 font-semibold text-lg mb-3">Contact us</p>
               <ModalContactForm />
               
               {/* Avatars and WhatsApp below the form */}
