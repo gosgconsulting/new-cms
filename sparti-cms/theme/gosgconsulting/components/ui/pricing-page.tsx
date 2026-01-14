@@ -150,38 +150,28 @@ function PricingCard({
       </div>
 
       {/* Scrollable content area */}
-      <div className="flex-grow mb-6">
+      <div className="flex-grow mb-4">
         <ScrollArea className="h-auto max-h-[420px]">
           <div className="space-y-4 text-sm text-neutral-300 pr-4">
-            {features.map((feature, idx) => (
-              <div key={idx} className="space-y-2">
-                {typeof feature === 'object' && feature.category && (
-                  <h4 className="text-white font-semibold text-base">{feature.category}</h4>
-                )}
-                {typeof feature === 'object' && feature.items ? (
-                  <ul className="space-y-1 ml-2">
-                    {feature.items.map((item, itemIdx) => (
-                      <li key={itemIdx} className="flex items-start gap-2">
-                        <div className="flex items-center justify-center w-3 h-3 bg-violet-500 rounded-full mt-1 flex-shrink-0">
-                          <div className="w-1 h-1 bg-white rounded-full"></div>
-                        </div>
-                        <span className="text-neutral-300">{item}</span>
-                      </li>
-                    ))}
-                  </ul>
-                ) : typeof feature === 'string' ? (
-                  <div className="flex items-start gap-2">
-                    <div className="flex items-center justify-center w-3 h-3 bg-violet-500 rounded-full mt-1 flex-shrink-0">
-                      <div className="w-1 h-1 bg-white rounded-full"></div>
-                    </div>
-                    <span className="text-neutral-300">{feature}</span>
+            <h4 className="text-white font-semibold text-base">What's included</h4>
+            <ul className="space-y-2 ml-2">
+              {(features as string[]).map((item, idx) => (
+                <li key={idx} className="flex items-start gap-2">
+                  <div className="flex items-center justify-center w-3 h-3 bg-violet-500 rounded-full mt-1 flex-shrink-0">
+                    <div className="w-1 h-1 bg-white rounded-full"></div>
                   </div>
-                ) : null}
-              </div>
-            ))}
+                  <span className="text-neutral-300">{item}</span>
+                </li>
+              ))}
+            </ul>
           </div>
         </ScrollArea>
       </div>
+
+      {/* Footnote inside card */}
+      <p className="text-xs text-neutral-400 mb-4">
+        * Scopes and quantity will be defined together after the consultation call.
+      </p>
 
       {/* Button section - fixed at bottom */}
       <div className="mt-auto">
@@ -212,10 +202,9 @@ const PricingPage: React.FC<PricingPageProps> = ({ items = [], onContactClick })
     icon: <BriefcaseIcon />,
     iconBgClass: "from-blue-500/20 to-cyan-500/20",
     features: [
-      { category: "Website & Conversion", items: ["High-converting landing page"] },
-      { category: "Acquisition", items: ["SEM", "Social Ads", "Retargeting"] },
-      { category: "Creative Production", items: ["Branded creative assets (ads + social)"] },
-      { category: "SEO", items: ["Premium SEO backlinks", "SEO-optimized articles"] }
+      "Full-stack growth team dedicated to you: 1 developer, SEO expert, Paid Media expert, and creative asset production (4 people).",
+      "One landing page per month, paid ads campaigns, and ongoing creative assets — every month.",
+      "Strategy, tracking, optimization, and reporting to continuously improve results."
     ],
     buttonText: "Get Started",
     isPopular: true,
@@ -246,23 +235,6 @@ const PricingPage: React.FC<PricingPageProps> = ({ items = [], onContactClick })
         <p className="mt-4 text-lg text-neutral-300 max-w-3xl mx-auto">
           A single, comprehensive plan with all services included. We tailor the scope after a consultation to fit your goals and stage.
         </p>
-        <div className="mt-6 max-w-3xl mx-auto text-left text-neutral-300 space-y-3">
-          <h2 className="text-white font-semibold text-xl">What's included:</h2>
-          <ul className="list-disc list-inside space-y-2">
-            <li>
-              A full-stack growth team dedicated to you: 1 developer, SEO expert, Paid Media expert, and creative asset production (4 people).
-            </li>
-            <li>
-              We'll create a high-converting landing page each month, run paid ads campaigns, and produce the creative assets you need—every month.
-            </li>
-            <li>
-              Ongoing strategy, tracking, optimization, and reporting to continuously improve results.
-            </li>
-          </ul>
-          <p className="text-xs text-neutral-400 mt-2">
-            * Scopes and quantity will be defined together after the consultation call.
-          </p>
-        </div>
       </div>
       <div className="flex items-center justify-center">
         <PricingCard {...yourGrowthTeamPlan} onButtonClick={() => handleButtonClick("Your Growth Team")} />
