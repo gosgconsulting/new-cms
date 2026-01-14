@@ -31,17 +31,22 @@ const Header: React.FC<HeaderProps> = ({
         isScrolled ? 'shadow-sm' : ''
       }`}
     >
-      <nav className="mx-auto flex flex-col items-center justify-center px-3 py-4 md:px-4 md:py-5">
+      <nav className="mx-auto max-w-7xl flex items-center justify-between px-4 py-4 md:px-6 md:py-5">
         {/* Logo */}
-        <div className="flex items-center justify-center mb-2">
+        <div className="flex items-center justify-start">
           <img
             src={defaultLogoSrc}
             alt={tenantName}
-            className="h-10 md:h-10 w-auto object-contain"
+            className="h-10 md:h-12 w-auto object-contain select-none"
+            loading="eager"
+            decoding="async"
+            onError={(e) => {
+              (e.currentTarget as HTMLImageElement).src = gosgLogo;
+            }}
           />
         </div>
 
-        {/* Your Growth Team Inside - centered */}
+        {/* Your Growth Team Inside - aligned right */}
         <div className="inline-flex items-center px-3 py-2 md:px-4 md:py-2 border-2 border-dashed border-blue-500 bg-blue-50/80 backdrop-blur-sm rounded-lg">
           <span className="text-blue-600 font-semibold text-xs md:text-base">
             Your Growth Team Inside
