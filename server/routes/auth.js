@@ -29,7 +29,18 @@ const router = express.Router();
 
 // Async error handler wrapper
 const asyncHandler = (fn) => (req, res, next) => {
-  Promise.resolve(fn(req, res, next)).catch(next);
+  Promise.resolve(fn(req, res, next)).catch((error) => {
+    console.error('[testing] Unhandled async error in route handler:', error);
+    console.error('[testing] Error stack:', error?.stack);
+    if (!res.headersSent) {
+      res.status(500).json({
+        success: false,
+        error: 'Internal server error',
+        message: error?.message || 'An unexpected error occurred. Please try again.',
+        diagnostic: '/health/database'
+      });
+    }
+  });
 };
 
 // Login endpoint
