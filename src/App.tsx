@@ -16,6 +16,22 @@ import DatabaseViewer from "./pages/DatabaseViewer";
 import PublicDashboard from "./pages/PublicDashboard";
 import TenantLandingPage from "./pages/TenantLandingPage";
 import TenantPage from "./pages/TenantPage";
+
+// Component to handle theme sub-routes - checks if it's a known theme
+const ThemeRouteHandler: React.FC = () => {
+  const { tenantSlug } = useParams<{ tenantSlug: string }>();
+  
+  // Known themes that handle their own routing
+  const knownThemes = ['sissonne', 'landingpage', 'sparti-seo-landing', 'gosgconsulting'];
+  
+  if (tenantSlug && knownThemes.includes(tenantSlug)) {
+    // Route to theme component which handles sub-routes
+    return <TenantLandingPage />;
+  }
+  
+  // Otherwise, use TenantPage for database-driven pages
+  return <TenantPage />;
+};
 import ErrorBoundary from "./components/ErrorBoundary";
 import EmbedPagesManager from "../sparti-cms/components/embed/EmbedPagesManager";
 import ThemeAdminRedirect from "./components/ThemeAdminRedirect";
@@ -95,10 +111,10 @@ const App = () => {
             {/* Embed route for iframe access */}
             <Route path="/embed/pages" element={<EmbedPagesManager />} />
             
-            {/* Theme routes */}
+            {/* Theme routes - check if it's a known theme first, otherwise use TenantPage */}
             <Route path="/theme/:tenantSlug/:pageSlug" element={
               <ErrorBoundary>
-                <TenantPage />
+                <ThemeRouteHandler />
               </ErrorBoundary>
             } />
             <Route path="/theme/:tenantSlug" element={

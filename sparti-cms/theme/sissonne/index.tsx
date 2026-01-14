@@ -17,6 +17,7 @@ interface TenantLandingProps {
   tenantName?: string;
   tenantSlug?: string;
   tenantId?: string;
+  pageSlug?: string;
 }
 
 /**
@@ -30,15 +31,20 @@ interface TenantLandingProps {
 const TenantLanding: React.FC<TenantLandingProps> = ({ 
   tenantName = 'Sissonne Dance Academy', 
   tenantSlug = 'sissonne',
-  tenantId
+  tenantId,
+  pageSlug
 }) => {
   const location = useLocation();
   const params = useParams<{ pageSlug?: string }>();
   
   // Determine which page to render
-  // If pageSlug param exists (from /theme/sissonne/:pageSlug route), use it
-  // Otherwise, extract from pathname or default to homepage
+  // Priority: 1) pageSlug prop, 2) params.pageSlug, 3) extract from pathname, 4) homepage
   const currentPage = useMemo(() => {
+    // Check pageSlug prop first (passed from TenantLandingPage)
+    if (pageSlug) {
+      return pageSlug;
+    }
+    
     // Check if we have a pageSlug param (from /theme/:tenantSlug/:pageSlug route)
     if (params.pageSlug) {
       return params.pageSlug;
@@ -52,7 +58,7 @@ const TenantLanding: React.FC<TenantLandingProps> = ({
     }
     
     return ''; // Homepage
-  }, [location.pathname, tenantSlug, params.pageSlug]);
+  }, [location.pathname, tenantSlug, params.pageSlug, pageSlug]);
 
   // Render the appropriate page component based on current route
   const renderPage = () => {

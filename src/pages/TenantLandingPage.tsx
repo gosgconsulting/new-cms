@@ -42,7 +42,7 @@ const themeConfig: Record<string, { name: string; component: React.LazyExoticCom
  * - Can replace hardcoded values with database values when tenant is assigned
  */
 const TenantLandingPage: React.FC = () => {
-  const { tenantSlug } = useParams<{ tenantSlug: string }>();
+  const { tenantSlug, pageSlug } = useParams<{ tenantSlug?: string; pageSlug?: string }>();
   
   const slug = tenantSlug || 'landingpage';
   
@@ -81,11 +81,13 @@ const TenantLandingPage: React.FC = () => {
   }
 
   // Use null fallback - let each theme handle its own loading state
+  // Pass pageSlug if it exists so theme can handle sub-routes
   return (
     <Suspense fallback={null}>
       <ThemeComponent 
         tenantName={currentTheme.name} 
-        tenantSlug={slug} 
+        tenantSlug={slug}
+        pageSlug={pageSlug}
       />
     </Suspense>
   );

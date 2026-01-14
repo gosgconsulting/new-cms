@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X, Phone, Mail, MapPin } from "lucide-react";
 import { FontSwitcher } from "./FontSwitcher";
+import logoImage from "../assets/logo.png";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -46,7 +47,7 @@ export function Layout({ children, tenantSlug = 'sissonne' }: LayoutProps) {
             {/* Logo */}
             <Link to={themeBasePath} className="flex items-center group">
               <img
-                src="/theme/sissonne/assets/logo.png"
+                src={logoImage}
                 alt="Sissonne Dance Academy Logo"
                 className="h-20 w-auto object-contain transition-all duration-300"
               />
