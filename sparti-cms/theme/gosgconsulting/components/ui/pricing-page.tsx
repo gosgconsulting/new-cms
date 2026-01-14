@@ -99,8 +99,6 @@ function PricingCard({
   onButtonClick,
 }: PricingCardProps) {
   const cardStyle: React.CSSProperties = {
-    width: "19rem",
-    height: "38rem",
     backgroundColor: "rgba(15, 23, 42, 1)",
     backgroundImage:
       "radial-gradient(at 88% 40%, rgba(15, 23, 42, 1) 0px, transparent 85%)," +
@@ -114,7 +112,7 @@ function PricingCard({
 
   return (
     <div
-      className="relative hover:bg-white/[0.04] transition-all duration-300 group rounded-2xl p-6 flex flex-col"
+      className="relative hover:bg-white/[0.04] transition-all duration-300 group rounded-2xl p-6 flex flex-col w-full max-w-md sm:max-w-lg"
       style={cardStyle}
     >
       <style>{`@keyframes rotate { to { transform: translate(-50%, -50%) rotate(360deg); } }`}</style>
@@ -153,7 +151,7 @@ function PricingCard({
 
       {/* Scrollable content area */}
       <div className="flex-grow mb-6">
-        <ScrollArea className="h-full max-h-[320px]">
+        <ScrollArea className="h-auto max-h-[420px]">
           <div className="space-y-4 text-sm text-neutral-300 pr-4">
             {features.map((feature, idx) => (
               <div key={idx} className="space-y-2">
@@ -209,8 +207,8 @@ const PricingPage: React.FC<PricingPageProps> = ({ items = [], onContactClick })
   const yourGrowthTeamPlan: PricingCardProps = {
     planName: "Your Growth Team",
     description: "",
-    price: "1,700 SGD",
-    priceDescription: "/ month",
+    price: "From 1,000 SGD",
+    priceDescription: "per month",
     icon: <BriefcaseIcon />,
     iconBgClass: "from-blue-500/20 to-cyan-500/20",
     features: [
@@ -241,13 +239,30 @@ const PricingPage: React.FC<PricingPageProps> = ({ items = [], onContactClick })
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-b from-slate-800 via-slate-700 to-indigo-800 flex flex-col items-center justify-center p-8 relative">
-      <div className="text-center mb-16">
+      <div className="text-center mb-10">
         <h1 className="text-4xl sm:text-5xl font-bold text-white tracking-tight">
           Your Growth Team
         </h1>
-        <p className="mt-4 text-lg text-neutral-400">
-          One simple plan with all services included: Website, SEO, SEM, Social Ads, and Creative Design.
+        <p className="mt-4 text-lg text-neutral-300 max-w-3xl mx-auto">
+          A single, comprehensive plan with all services included. We tailor the scope after a consultation to fit your goals and stage.
         </p>
+        <div className="mt-6 max-w-3xl mx-auto text-left text-neutral-300 space-y-3">
+          <h2 className="text-white font-semibold text-xl">What's included:</h2>
+          <ul className="list-disc list-inside space-y-2">
+            <li>
+              A full-stack growth team dedicated to you: 1 developer, SEO expert, Paid Media expert, and creative asset production (4 people).
+            </li>
+            <li>
+              We'll create a high-converting landing page each month, run paid ads campaigns, and produce the creative assets you need—every month.
+            </li>
+            <li>
+              Ongoing strategy, tracking, optimization, and reporting to continuously improve results.
+            </li>
+          </ul>
+          <p className="text-xs text-neutral-400 mt-2">
+            * Scopes and quantity will be defined together after the consultation call.
+          </p>
+        </div>
       </div>
       <div className="flex items-center justify-center">
         <PricingCard {...yourGrowthTeamPlan} onButtonClick={() => handleButtonClick("Your Growth Team")} />
