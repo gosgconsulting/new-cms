@@ -21,6 +21,7 @@ import {
 } from '../../sparti-cms/db/modules/ecommerce.js';
 import { authenticateTenantApiKey } from '../middleware/tenantApiKey.js';
 import { authenticateUser } from '../middleware/auth.js';
+import { createWooCommerceClient } from '../services/woocommerceClient.js';
 import Stripe from 'stripe';
 
 const router = express.Router();
@@ -37,14 +38,154 @@ function generateOrderNumber() {
   return `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
 }
 
+// Helper function to get e-shop provider setting
+async function getEshopProvider(tenantId) {
+  try {
+    const result = await query(`
+      SELECT setting_value
+      FROM site_settings
+      WHERE setting_key = 'shop_eshop_provider'
+        AND tenant_id = $1
+      ORDER BY created_at DESC
+      LIMIT 1
+    `, [tenantId]);
+
+    return result.rows.length > 0 ? result.rows[0].setting_value : 'sparti';
+  } catch (error) {
+    console.error('[testing] Error getting e-shop provider:', error);
+    return 'sparti'; // Default to Sparti
+  }
+}
+
 // ===== PRODUCTS ROUTES (PERN-Store Schema) =====
 
 // Get all products
 router.get('/products', authenticateTenantApiKey, async (req, res) => {
   try {
     const tenantId = req.tenantId;
-    const { search, limit } = req.query;
+    const { search, limit, page = 1, per_page = 10 } = req.query;
 
+    // Check e-shop provider setting
+    const eshopProvider = await getEshopProvider(tenantId);
+
+    if (eshopProvider === 'woocommerce') {
+      // Use WooCommerce API - but first try to get from synced database
+      // If no synced products, fetch from WooCommerce API and transform
+      try {
+        // Check if we have synced products in database
+        const syncedProducts = await query(`
+          SELECT COUNT(*) as count
+          FROM products
+          WHERE tenant_id = $1 AND external_source = 'woocommerce'
+        `, [tenantId]);
+
+        const hasSyncedProducts = parseInt(syncedProducts.rows[0]?.count || 0) > 0;
+
+        if (hasSyncedProducts) {
+          // Use synced products from database - query products table and transform
+          let sql = `
+            SELECT 
+              p.id,
+              p.name,
+              p.handle as slug,
+              p.description,
+              p.featured_image as image_url,
+              p.status,
+              p.external_id,
+              p.external_source,
+              p.created_at,
+              p.updated_at,
+              COALESCE(
+                (SELECT MIN(pv.price) FROM product_variants pv WHERE pv.product_id = p.id),
+                (SELECT price FROM product_variants pv WHERE pv.product_id = p.id LIMIT 1),
+                0
+              ) as price
+            FROM products p
+            WHERE p.tenant_id = $1 AND p.external_source = 'woocommerce'
+          `;
+          const params = [tenantId];
+          let paramIndex = 2;
+
+          if (search) {
+            sql += ` AND (p.name ILIKE $${paramIndex} OR p.description ILIKE $${paramIndex})`;
+            params.push(`%${search}%`);
+            paramIndex++;
+          }
+
+          sql += ` ORDER BY p.created_at DESC`;
+
+          if (limit) {
+            sql += ` LIMIT $${paramIndex}`;
+            params.push(parseInt(limit));
+          }
+
+          const result = await query(sql, params);
+          
+          // Transform to match expected format
+          const transformedProducts = result.rows.map(row => ({
+            product_id: row.id,
+            name: row.name,
+            slug: row.slug,
+            price: parseFloat(row.price || 0),
+            description: row.description || '',
+            image_url: row.image_url,
+            created_at: row.created_at,
+            updated_at: row.updated_at,
+            external_id: row.external_id,
+            external_source: row.external_source,
+            status: row.status,
+          }));
+
+          res.json({
+            success: true,
+            data: transformedProducts,
+            provider: 'woocommerce-synced'
+          });
+          return;
+        } else {
+          // No synced products yet, fetch from WooCommerce API and transform
+          const client = await createWooCommerceClient(tenantId, query);
+          const filters = {};
+          if (search) filters.search = search;
+          
+          const wcProducts = await client.getProducts(
+            parseInt(page) || 1,
+            parseInt(per_page) || parseInt(limit) || 100,
+            filters
+          );
+
+          // Transform WooCommerce products to match expected format
+          const transformedProducts = Array.isArray(wcProducts) ? wcProducts.map(wcProduct => ({
+            product_id: wcProduct.id,
+            name: wcProduct.name || 'Unnamed Product',
+            slug: wcProduct.slug || wcProduct.name?.toLowerCase().replace(/\s+/g, '-') || '',
+            price: parseFloat(wcProduct.price || 0),
+            description: wcProduct.description || wcProduct.short_description || '',
+            image_url: wcProduct.images && wcProduct.images.length > 0 ? wcProduct.images[0].src : null,
+            created_at: wcProduct.date_created || new Date().toISOString(),
+            updated_at: wcProduct.date_modified || wcProduct.date_created || new Date().toISOString(),
+            // Additional WooCommerce fields
+            external_id: String(wcProduct.id),
+            external_source: 'woocommerce',
+            status: wcProduct.status,
+            stock_status: wcProduct.stock_status,
+            stock_quantity: wcProduct.stock_quantity,
+          })) : [];
+
+          res.json({
+            success: true,
+            data: transformedProducts,
+            provider: 'woocommerce-api'
+          });
+          return;
+        }
+      } catch (wcError) {
+        console.error('[testing] WooCommerce API error, falling back to Sparti:', wcError);
+        // Fall back to Sparti if WooCommerce fails
+      }
+    }
+
+    // Use Sparti (default or fallback)
     const filters = {};
     if (search) filters.search = search;
     if (limit) filters.limit = parseInt(limit);
@@ -53,7 +194,8 @@ router.get('/products', authenticateTenantApiKey, async (req, res) => {
 
     res.json({ 
       success: true, 
-      data: products 
+      data: products,
+      provider: 'sparti'
     });
   } catch (error) {
     console.error('[testing] Error fetching products:', error);
@@ -510,8 +652,39 @@ router.delete('/categories/:id', authenticateTenantApiKey, async (req, res) => {
 router.get('/orders', authenticateTenantApiKey, async (req, res) => {
   try {
     const tenantId = req.tenantId;
-    const { status, userId, dateFrom, dateTo, limit } = req.query;
+    const { status, userId, dateFrom, dateTo, limit, page = 1, per_page = 10 } = req.query;
 
+    // Check e-shop provider setting
+    const eshopProvider = await getEshopProvider(tenantId);
+
+    if (eshopProvider === 'woocommerce') {
+      // Use WooCommerce API
+      try {
+        const client = await createWooCommerceClient(tenantId, query);
+        const filters = {};
+        if (status) filters.status = status;
+        if (dateFrom) filters.after = dateFrom;
+        if (dateTo) filters.before = dateTo;
+        
+        const wcOrders = await client.getOrders(
+          parseInt(page) || 1,
+          parseInt(per_page) || parseInt(limit) || 10,
+          filters
+        );
+
+        res.json({
+          success: true,
+          data: Array.isArray(wcOrders) ? wcOrders : [],
+          provider: 'woocommerce'
+        });
+        return;
+      } catch (wcError) {
+        console.error('[testing] WooCommerce API error, falling back to Sparti:', wcError);
+        // Fall back to Sparti if WooCommerce fails
+      }
+    }
+
+    // Use Sparti (default or fallback)
     const filters = {};
     if (status) filters.status = status;
     if (userId) filters.userId = parseInt(userId);
@@ -523,7 +696,8 @@ router.get('/orders', authenticateTenantApiKey, async (req, res) => {
 
     res.json({ 
       success: true, 
-      data: orders 
+      data: orders,
+      provider: 'sparti'
     });
   } catch (error) {
     console.error('[testing] Error fetching orders:', error);

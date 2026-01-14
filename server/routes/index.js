@@ -23,6 +23,7 @@ import aiAssistantRoutes from './ai-assistant.js';
 import shopRoutes from './shop.js';
 import mediaRoutes from './media.js';
 import docsRoutes from './docs.js';
+import woocommerceSyncRoutes from './woocommerce-sync.js';
 
 const router = express.Router();
 
@@ -72,6 +73,7 @@ router.use('/api', usersRoutes);
 router.use('/api', aiAssistantRoutes);
 router.use('/api/shop', shopRoutes);
 router.use('/api/media', mediaRoutes);
+router.use('/api/woocommerce', woocommerceSyncRoutes);
 router.use('/api', docsRoutes);
 
 // Theme routes (mounted before other routes to catch /theme/* paths)

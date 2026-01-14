@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { CreditCard, CheckCircle, XCircle, ExternalLink, RefreshCw, Settings, Truck } from 'lucide-react';
+import { CreditCard, CheckCircle, XCircle, ExternalLink, RefreshCw, Settings, Truck, Puzzle } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import { api } from '../../utils/api';
 import { Button } from '@/components/ui/button';
@@ -72,6 +72,7 @@ export default function ShopSettingsManager({ currentTenantId, activeTab: propAc
 
   const tabs = [
     { id: 'general', label: 'General', icon: Settings },
+    { id: 'integrations', label: 'Integrations', icon: Puzzle },
     { id: 'payment-methods', label: 'Payment Methods', icon: CreditCard },
     { id: 'shipping-methods', label: 'Shipping Methods', icon: Truck },
     { id: 'stripe-connect', label: 'Stripe Connect', icon: CreditCard },
@@ -79,6 +80,8 @@ export default function ShopSettingsManager({ currentTenantId, activeTab: propAc
 
   const renderTabContent = () => {
     switch (activeTab) {
+      case 'integrations':
+        return renderIntegrations();
       case 'payment-methods':
         return <PaymentMethodsManager currentTenantId={currentTenantId} />;
       case 'shipping-methods':
@@ -194,6 +197,188 @@ export default function ShopSettingsManager({ currentTenantId, activeTab: propAc
           )}
         </CardContent>
       </Card>
+      </div>
+    );
+  };
+
+  const renderIntegrations = () => {
+    const [eshopProvider, setEshopProvider] = useState<string>('sparti');
+    const [isSaving, setIsSaving] = useState(false);
+    const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+    const [woocommerceStatus, setWooCommerceStatus] = useState<{ is_active: boolean; is_configured: boolean } | null>(null);
+
+    // Fetch current e-shop provider setting
+    const { data: settings = [], isLoading: isLoadingSettings } = useQuery({
+      queryKey: ['shop-integrations-settings', currentTenantId],
+      queryFn: async () => {
+        if (!currentTenantId) return [];
+        const response = await api.get(`/api/settings/site-settings-by-tenant/${currentTenantId}`, { tenantId: currentTenantId });
+        if (!response.ok) {
+          throw new Error('Failed to fetch settings');
+        }
+        const result = await response.json();
+        return result.data || [];
+      },
+      enabled: !!currentTenantId,
+    });
+
+    // Fetch WooCommerce integration status
+    const { data: woocommerceIntegration } = useQuery({
+      queryKey: ['woocommerce-integration', currentTenantId],
+      queryFn: async () => {
+        if (!currentTenantId) return null;
+        try {
+          const token = localStorage.getItem('sparti-user-session');
+          const authToken = token ? JSON.parse(token).token : null;
+          const response = await fetch(`/api/tenants/${currentTenantId}/integrations/woocommerce`, {
+            headers: {
+              ...(authToken && { 'Authorization': `Bearer ${authToken}` })
+            }
+          });
+          if (response.ok) {
+            return await response.json();
+          }
+          return null;
+        } catch (error) {
+          console.error('[testing] Error fetching WooCommerce status:', error);
+          return null;
+        }
+      },
+      enabled: !!currentTenantId,
+    });
+
+    // Update provider from settings
+    useEffect(() => {
+      if (settings && settings.length > 0) {
+        const providerSetting = settings.find((s: any) => s.setting_key === 'shop_eshop_provider');
+        if (providerSetting) {
+          setEshopProvider(providerSetting.setting_value || 'sparti');
+        }
+      }
+    }, [settings]);
+
+    // Update WooCommerce status
+    useEffect(() => {
+      if (woocommerceIntegration) {
+        setWooCommerceStatus({
+          is_active: woocommerceIntegration.is_active || false,
+          is_configured: !!woocommerceIntegration.config,
+        });
+      } else {
+        setWooCommerceStatus({ is_active: false, is_configured: false });
+      }
+    }, [woocommerceIntegration]);
+
+    const handleSave = async () => {
+      setIsSaving(true);
+      setSaveMessage(null);
+
+      try {
+        const response = await api.post('/api/settings/site-settings', {
+          tenantId: currentTenantId,
+          settings: [
+            {
+              setting_key: 'shop_eshop_provider',
+              setting_value: eshopProvider,
+              setting_type: 'text',
+              setting_category: 'shop',
+              is_public: false,
+            },
+          ],
+        });
+
+        if (response.ok) {
+          setSaveMessage({ type: 'success', text: 'E-shop provider saved successfully' });
+          queryClient.invalidateQueries({ queryKey: ['shop-integrations-settings', currentTenantId] });
+        } else {
+          const error = await response.json();
+          setSaveMessage({ type: 'error', text: error.error || 'Failed to save settings' });
+        }
+      } catch (error: any) {
+        setSaveMessage({ type: 'error', text: error.message || 'Failed to save settings' });
+      } finally {
+        setIsSaving(false);
+      }
+    };
+
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <div className="flex items-center space-x-3">
+              <Puzzle className="h-6 w-6" />
+              <div>
+                <CardTitle>E-shop Integration</CardTitle>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Choose which e-commerce platform to use for products and orders
+                </p>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {isLoadingSettings ? (
+              <div className="text-center py-4">Loading settings...</div>
+            ) : (
+              <>
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-foreground">
+                    E-shop Provider
+                  </label>
+                  <select
+                    value={eshopProvider}
+                    onChange={(e) => setEshopProvider(e.target.value)}
+                    className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-brandPurple focus:border-transparent"
+                  >
+                    <option value="sparti">Sparti (Default)</option>
+                    <option value="woocommerce">WooCommerce</option>
+                  </select>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {eshopProvider === 'sparti' 
+                      ? 'Using the built-in Sparti e-commerce system'
+                      : 'Using WooCommerce REST API for products and orders'}
+                  </p>
+                </div>
+
+                {eshopProvider === 'woocommerce' && (
+                  <Alert className={woocommerceStatus?.is_active ? 'bg-green-50 border-green-200' : 'bg-amber-50 border-amber-200'}>
+                    {woocommerceStatus?.is_active ? (
+                      <>
+                        <CheckCircle className="h-4 w-4 text-green-600" />
+                        <AlertDescription className="text-green-800">
+                          WooCommerce integration is active and configured. Products and orders will be fetched from your WooCommerce store.
+                        </AlertDescription>
+                      </>
+                    ) : (
+                      <>
+                        <XCircle className="h-4 w-4 text-amber-600" />
+                        <AlertDescription className="text-amber-800">
+                          WooCommerce integration is not active. Please configure it in the Developer → Integrations section first.
+                        </AlertDescription>
+                      </>
+                    )}
+                  </Alert>
+                )}
+
+                {saveMessage && (
+                  <Alert variant={saveMessage.type === 'error' ? 'destructive' : 'default'} className={saveMessage.type === 'success' ? 'bg-green-50 border-green-200' : ''}>
+                    <AlertDescription className={saveMessage.type === 'success' ? 'text-green-800' : ''}>
+                      {saveMessage.text}
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                <div className="flex justify-end">
+                  <Button
+                    onClick={handleSave}
+                    disabled={isSaving}
+                  >
+                    {isSaving ? 'Saving...' : 'Save Settings'}
+                  </Button>
+                </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
       </div>
     );
   };
