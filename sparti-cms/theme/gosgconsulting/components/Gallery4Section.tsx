@@ -451,25 +451,24 @@ const Gallery4Section: React.FC<Gallery4SectionProps> = ({ items = [], onContact
 
           {/* Progress Bar with Dots - 6 dots for 6 service cards */}
           <div className="flex justify-center items-center mt-8">
-            <div className="relative flex items-center" style={{ width: `${servicesData.length * 40}px` }}>
-              {/* Horizontal line */}
-              <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-px bg-gray-300"></div>
-              
-              {/* Dots positioned on the line - one for each service card */}
-              <div className="relative flex items-center justify-between w-full">
-                {servicesData.map((_, index) => (
+            {/* Minimalist dots without line */}
+            <div className="flex items-center gap-3">
+              {servicesData.map((_, index) => {
+                const isActive = currentCardIndex === index;
+                return (
                   <button
                     key={index}
                     onClick={() => goToCard(index)}
-                    className={`relative transition-all duration-300 ${
-                      currentCardIndex === index
-                        ? 'w-8 h-2 bg-gray-900 rounded-full'
-                        : 'w-2 h-2 bg-gray-400 rounded-full hover:bg-gray-600'
-                    }`}
                     aria-label={`Go to ${servicesData[index].title}`}
+                    aria-current={isActive ? 'true' : undefined}
+                    className={`transition-all duration-200 rounded-full ${
+                      isActive
+                        ? 'w-3 h-3 bg-gray-900 ring-2 ring-gray-900/10'
+                        : 'w-2 h-2 bg-gray-400 hover:bg-gray-600'
+                    }`}
                   />
-                ))}
-              </div>
+                );
+              })}
             </div>
           </div>
         </div>
