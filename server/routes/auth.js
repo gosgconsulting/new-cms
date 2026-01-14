@@ -171,7 +171,7 @@ router.post('/auth/login', async (req, res) => {
         return res.status(503).json({
           success: false,
           error: 'Database connection failed',
-          message: 'Unable to connect to database. Check DATABASE_URL environment variable and ensure database server is running.',
+          message: 'Unable to connect to database. If DATABASE_URL points to localhost, ensure Postgres is running locally. For cloud/Railway databases, use the full remote connection string in DATABASE_PUBLIC_URL or DATABASE_URL.',
           diagnostic: '/health/database',
           errorCode: connectionTestError?.code
         });
@@ -180,7 +180,7 @@ router.post('/auth/login', async (req, res) => {
       return res.status(503).json({
         success: false,
         error: 'Database connection error',
-        message: `Database connection test failed: ${connectionTestError?.message || 'Unknown error'}`,
+        message: `Database connection test failed: ${connectionTestError?.message || 'Unknown error'}. Check DATABASE_URL/DATABASE_PUBLIC_URL environment variable.`,
         diagnostic: '/health/database',
         errorCode: connectionTestError?.code
       });
