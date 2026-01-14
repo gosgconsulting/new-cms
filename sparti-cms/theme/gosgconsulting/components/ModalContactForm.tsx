@@ -187,7 +187,7 @@ const ModalContactForm: React.FC<ModalContactFormProps> = ({ className = "" }) =
           <div className="mt-4 sm:mt-2 flex justify-center">
             <Button
               type="submit"
-              className="rounded-2xl bg-brandPurple text-white hover:bg-white hover:text-brandPurple border border-brandPurple px-6 py-4 sm:py-5 font-semibold transition-colors w-full sm:w-auto"
+              className="rounded-2xl bg-brandPurple text-white hover:bg-brandPurple hover:text-white border border-brandPurple px-6 py-4 sm:py-5 font-semibold transition-colors w-full sm:w-auto"
               disabled={isSubmitting}
             >
               {isSubmitting ? (

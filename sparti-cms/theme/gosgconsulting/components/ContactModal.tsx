@@ -125,7 +125,7 @@ const ContactModal = ({ open, onOpenChange }: ContactModalProps) => {
                 <Button
                   type="button"
                   onClick={handleChooseWhatsApp}
-                  className="rounded-full bg-brandPurple text-white hover:bg-white hover:text-brandPurple border border-brandPurple px-6 py-4 font-semibold transition-colors w-full sm:w-auto"
+                  className="rounded-full bg-brandPurple text-white hover:bg-brandPurple hover:text-white border border-brandPurple px-6 py-4 font-semibold transition-colors w-full sm:w-auto"
                 >
                   <span className="flex items-center gap-3">
                     <span className="relative inline-flex items-center justify-center w-7 h-7 rounded-full bg-white/20">
