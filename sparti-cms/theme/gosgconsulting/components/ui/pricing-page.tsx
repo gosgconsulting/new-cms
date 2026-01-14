@@ -206,55 +206,21 @@ interface PricingPageProps {
 
 // --- Main PricingPage Component ---
 const PricingPage: React.FC<PricingPageProps> = ({ items = [], onContactClick }) => {
-  const starterPlan: PricingCardProps = {
-    planName: "✅ Starter",
-    description: "",
-    price: "1,000 SGD",
-    priceDescription: "/ month",
-    icon: <SparklesIcon />,
-    iconBgClass: "from-emerald-500/20 to-teal-500/20",
-    features: [
-      { category: "Digital Foundation", items: ["1 high-converting landing page / month", "1 acquisition channel (SEM or Social Ads)"] },
-      { category: "Creative Production", items: ["2 branded creative assets / month"] },
-      { category: "Organic Growth", items: ["10 SEO backlinks / month"] },
-      { category: "Perfect for", items: ["Early-stage businesses"] }
-    ],
-    buttonText: "Get Started",
-    isPopular: false,
-  };
-
-  const proPlan: PricingCardProps = {
-    planName: "🚀 Growth",
+  const yourGrowthTeamPlan: PricingCardProps = {
+    planName: "Your Growth Team",
     description: "",
     price: "1,700 SGD",
     priceDescription: "/ month",
     icon: <BriefcaseIcon />,
     iconBgClass: "from-blue-500/20 to-cyan-500/20",
     features: [
-      { category: "Acquisition & Conversion", items: ["1 high-converting landing page / month", "2 paid-ad channels running together (SEM + Social Ads)"] },
-      { category: "Creative Production", items: ["4 branded ad/creative assets / month"] },
-      { category: "Organic Growth", items: ["10 SEO backlinks / month", "6 SEO-optimized articles / month"] },
-      { category: "Perfect for", items: ["Growing businesses", "Scaling operations"] }
+      { category: "Website & Conversion", items: ["High-converting landing page"] },
+      { category: "Acquisition", items: ["SEM", "Social Ads", "Retargeting"] },
+      { category: "Creative Production", items: ["Branded creative assets (ads + social)"] },
+      { category: "SEO", items: ["Premium SEO backlinks", "SEO-optimized articles"] }
     ],
     buttonText: "Get Started",
     isPopular: true,
-  };
-
-  const enterprisePlan: PricingCardProps = {
-    planName: "💥 Accelerate",
-    description: "",
-    price: "3,000 SGD",
-    priceDescription: "/ month",
-    icon: <BuildingIcon />,
-    iconBgClass: "from-purple-500/20 to-indigo-500/20",
-    features: [
-      { category: "Acquisition & Domination", items: ["1 high-converting landing page / month", "All advertising channels included (SEM + Social + Retargeting)"] },
-      { category: "Creative Production", items: ["12 branded creative assets / month", "(full social + ad engine)"] },
-      { category: "Organic Growth", items: ["10 premium SEO backlink / month"] },
-      { category: "Perfect for", items: ["Established brands", "Market leaders"] }
-    ],
-    buttonText: "Get Started",
-    isPopular: false,
   };
 
   const handleButtonClick = (planName: string) => {
@@ -277,16 +243,14 @@ const PricingPage: React.FC<PricingPageProps> = ({ items = [], onContactClick })
     <div className="min-h-screen w-full bg-gradient-to-b from-slate-800 via-slate-700 to-indigo-800 flex flex-col items-center justify-center p-8 relative">
       <div className="text-center mb-16">
         <h1 className="text-4xl sm:text-5xl font-bold text-white tracking-tight">
-          Choose the Right Package for Your Business
+          Your Growth Team
         </h1>
         <p className="mt-4 text-lg text-neutral-400">
-          All packages include our complete full-stack digital marketing services: Website, SEO, SEM, Social Ads, and Creative Design.
+          One simple plan with all services included: Website, SEO, SEM, Social Ads, and Creative Design.
         </p>
       </div>
-      <div className="flex flex-col lg:flex-row items-center justify-center gap-8">
-        <PricingCard {...starterPlan} onButtonClick={() => handleButtonClick("Starter")} />
-        <PricingCard {...proPlan} onButtonClick={() => handleButtonClick("Growth")} />
-        <PricingCard {...enterprisePlan} onButtonClick={() => handleButtonClick("Accelerate")} />
+      <div className="flex items-center justify-center">
+        <PricingCard {...yourGrowthTeamPlan} onButtonClick={() => handleButtonClick("Your Growth Team")} />
       </div>
 
       {/* Chat with us button - fixed bottom right */}
