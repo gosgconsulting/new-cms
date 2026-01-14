@@ -230,45 +230,51 @@ const Auth: React.FC = () => {
   const handleQuickAdminAccess = async () => {
     setLoading(true);
     setMessage(null);
-    
-    // Auto-fill form with admin credentials
-    setFormData({
-      first_name: '',
-      last_name: '',
-      email: 'admin',
-      password: 'admin',
-      confirm_password: ''
-    });
-    
-    // Ensure we're in sign-in mode
-    if (isSignUp) {
-      setIsSignUp(false);
+
+    // Dev-only: inject a super admin session directly (no server)
+    if (import.meta.env.DEV) {
+      const devSuperAdminSession = {
+        user: {
+          id: 'dev-super-admin',
+          first_name: 'Dev',
+          last_name: 'Admin',
+          email: 'admin@local.dev',
+          role: 'admin',
+          tenant_id: null, // super admin has access to all tenants
+          is_super_admin: true
+        },
+        token: 'dev-super-admin-token', // dummy token for client-side checks
+      };
+
+      // Persist session
+      localStorage.setItem('sparti-user-session', JSON.stringify(devSuperAdminSession));
+
+      // Show success and navigate
+      setMessage({
+        type: 'success',
+        text: 'Developer super admin access enabled. Redirecting...'
+      });
+
+      setTimeout(() => {
+        navigate(from, { replace: true });
+      }, 800);
+
+      setLoading(false);
+      return;
     }
-    
+
+    // Fallback to normal admin login (non-dev)
     try {
       const result = await signIn('admin', 'admin');
-      
       if (result.success) {
-        setMessage({ 
-          type: 'success', 
-          text: 'Admin login successful! Redirecting...' 
-        });
-        
-        setTimeout(() => {
-          navigate(from, { replace: true });
-        }, 1000);
+        setMessage({ type: 'success', text: 'Admin login successful! Redirecting...' });
+        setTimeout(() => navigate(from, { replace: true }), 1000);
       } else {
-        setMessage({ 
-          type: 'error', 
-          text: result.error || 'Admin login failed. Make sure an admin user exists.' 
-        });
+        setMessage({ type: 'error', text: result.error || 'Admin login failed. Make sure an admin user exists.' });
       }
     } catch (error) {
       console.error('Quick admin access error:', error);
-      setMessage({ 
-        type: 'error', 
-        text: 'Admin login failed. Please try again or create an admin user first.' 
-      });
+      setMessage({ type: 'error', text: 'Admin login failed. Please try again or create an admin user first.' });
     } finally {
       setLoading(false);
     }
@@ -603,7 +609,7 @@ const Auth: React.FC = () => {
                 )}
               </button>
               <p className="text-xs text-center text-muted-foreground mt-2">
-                Sign in as super admin (admin/admin) for development.
+                Enables a local super admin session for development (full tenant access, no server login).
               </p>
             </div>
           )}
