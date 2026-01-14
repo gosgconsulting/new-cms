@@ -67,7 +67,6 @@ export default function ExcelTable<T extends Record<string, any>>({
       : column.readonly;
     if (isReadonly) return;
 
-    const rowData = data[row];
     const value = rowData?.[column.key] ?? '';
     const displayValue = column.format 
       ? column.format(value, rowData)

@@ -1276,6 +1276,105 @@ router.get('/orders/:id', authenticateTenantApiKey, async (req, res) => {
     const tenantId = req.tenantId;
     const orderId = parseInt(req.params.id);
 
+    // Check e-shop provider setting
+    const eshopProvider = await getEshopProvider(tenantId);
+
+    if (eshopProvider === 'woocommerce') {
+      // Use WooCommerce API to get full order details
+      try {
+        const client = await createWooCommerceClient(tenantId, query);
+        const wcOrder = await client.getOrder(orderId);
+
+        if (!wcOrder) {
+          return res.status(404).json({ 
+            success: false, 
+            error: 'Order not found' 
+          });
+        }
+
+        const billing = wcOrder.billing || {};
+        const shipping = wcOrder.shipping || {};
+        
+        // Map WooCommerce status to our status format
+        const statusMap = {
+          'pending': 'pending',
+          'processing': 'processing',
+          'on-hold': 'pending',
+          'completed': 'completed',
+          'cancelled': 'cancelled',
+          'refunded': 'refunded',
+          'failed': 'failed',
+        };
+        const wcStatus = wcOrder.status?.toLowerCase() || 'pending';
+        const mappedStatus = statusMap[wcStatus] || wcStatus;
+        
+        const paymentMethod = wcOrder.payment_method ? wcOrder.payment_method.toUpperCase() : null;
+
+        // Transform WooCommerce order to match expected format
+        const transformedOrder = {
+          order_id: parseInt(String(wcOrder.id || 0)),
+          order_number: wcOrder.number || `WC-${wcOrder.id}`,
+          user_id: parseInt(String(wcOrder.customer_id || 0)),
+          user_email: billing.email || null,
+          user_name: billing.first_name && billing.last_name 
+            ? `${billing.first_name} ${billing.last_name}`.trim()
+            : billing.first_name || billing.last_name || null,
+          customer_email: billing.email || null,
+          customer_first_name: billing.first_name || null,
+          customer_last_name: billing.last_name || null,
+          status: mappedStatus,
+          date: wcOrder.date_created || wcOrder.date_modified || new Date().toISOString(),
+          amount: parseFloat(String(wcOrder.total || 0)),
+          total: parseFloat(String(wcOrder.total || 0)),
+          total_amount: parseFloat(String(wcOrder.total || 0)),
+          subtotal: parseFloat(String(wcOrder.subtotal || 0)),
+          tax_amount: parseFloat(String(wcOrder.total_tax || 0)),
+          shipping_amount: parseFloat(String(wcOrder.shipping_total || 0)),
+          ref: wcOrder.number || `WC-${wcOrder.id}`,
+          payment_method: paymentMethod === 'STRIPE' || paymentMethod === 'PAYSTACK' 
+            ? paymentMethod 
+            : paymentMethod ? paymentMethod : null,
+          external_id: String(wcOrder.id),
+          external_source: 'woocommerce',
+          billing_address: billing.address_1 ? {
+            first_name: billing.first_name || null,
+            last_name: billing.last_name || null,
+            company: billing.company || null,
+            address_1: billing.address_1 || null,
+            address_2: billing.address_2 || null,
+            city: billing.city || null,
+            state: billing.state || null,
+            postcode: billing.postcode || null,
+            country: billing.country || null,
+            email: billing.email || null,
+            phone: billing.phone || null,
+          } : null,
+          shipping_address: shipping.address_1 ? {
+            first_name: shipping.first_name || null,
+            last_name: shipping.last_name || null,
+            company: shipping.company || null,
+            address_1: shipping.address_1 || null,
+            address_2: shipping.address_2 || null,
+            city: shipping.city || null,
+            state: shipping.state || null,
+            postcode: shipping.postcode || null,
+            country: shipping.country || null,
+          } : null,
+          line_items: wcOrder.line_items || [],
+        };
+
+        res.json({ 
+          success: true, 
+          data: transformedOrder 
+        });
+        return;
+      } catch (wcError) {
+        console.error('[testing] Error fetching order from WooCommerce:', wcError);
+        // Fall through to try local database
+      }
+    }
+
+    // Fallback to local database
     const order = await getOrder(orderId, tenantId);
 
     if (!order) {

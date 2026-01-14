@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import OrderDetailsView from './OrderDetailsView';
 
 interface Order {
   order_id: number;
@@ -54,6 +55,7 @@ interface OrderItemInput {
 export default function OrdersManager({ currentTenantId }: OrdersManagerProps) {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [expandedOrders, setExpandedOrders] = useState<Set<number>>(new Set());
+  const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
   const [showAddOrder, setShowAddOrder] = useState(false);
   const [newOrder, setNewOrder] = useState({
     user_id: '',
@@ -155,29 +157,26 @@ export default function OrdersManager({ currentTenantId }: OrdersManagerProps) {
   });
 
   const fetchOrderDetails = async (orderId: number) => {
-    if (expandedOrders.has(orderId)) {
-      // Collapse
-      setExpandedOrders(prev => {
-        const next = new Set(prev);
-        next.delete(orderId);
-        return next;
-      });
-      return;
-    }
-
-    // Expand and fetch details
-    const response = await api.get(`/api/shop/orders/${orderId}`, { tenantId: currentTenantId });
-    if (response.ok) {
-      const result = await response.json();
-      // Update the order in the list with details
-      queryClient.setQueryData(['orders', currentTenantId, statusFilter], (oldData: Order[] = []) => {
-        return oldData.map(order => 
-          order.order_id === orderId ? result.data : order
-        );
-      });
-      setExpandedOrders(prev => new Set(prev).add(orderId));
-    }
+    // Show detailed view
+    setSelectedOrderId(orderId);
   };
+
+  // Fetch selected order details
+  const { data: selectedOrder, isLoading: isLoadingOrderDetails } = useQuery({
+    queryKey: ['order-details', selectedOrderId, currentTenantId],
+    queryFn: async () => {
+      if (!selectedOrderId || !currentTenantId) {
+        return null;
+      }
+      const response = await api.get(`/api/shop/orders/${selectedOrderId}`, { tenantId: currentTenantId });
+      if (!response.ok) {
+        throw new Error('Failed to fetch order details');
+      }
+      const result = await response.json();
+      return result.data;
+    },
+    enabled: !!selectedOrderId && !!currentTenantId,
+  });
 
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
@@ -459,6 +458,28 @@ export default function OrdersManager({ currentTenantId }: OrdersManagerProps) {
           <CardContent className="p-12 text-center">
             <ShoppingCart className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
             <p className="text-muted-foreground">No orders found</p>
+          </CardContent>
+        </Card>
+      ) : selectedOrderId && selectedOrder ? (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle>Order Details</CardTitle>
+              <Button variant="ghost" size="sm" onClick={() => setSelectedOrderId(null)}>
+                <X className="h-4 w-4 mr-2" />
+                Back to Orders
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {isLoadingOrderDetails ? (
+              <div className="text-center py-12">Loading order details...</div>
+            ) : (
+              <OrderDetailsView 
+                order={selectedOrder} 
+                getStatusBadgeVariant={getStatusBadgeVariant}
+              />
+            )}
           </CardContent>
         </Card>
       ) : (
