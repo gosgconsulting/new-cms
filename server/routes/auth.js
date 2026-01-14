@@ -60,7 +60,7 @@ router.post('/auth/login', async (req, res) => {
         return res.status(503).json({
           success: false,
           error: 'Database initialization failed',
-          message: `Database connection failed: ${dbInitializationError.message}. Check DATABASE_URL environment variable.`,
+          message: `Database connection failed: ${dbInitializationError.message}. Check DATABASE_URL or DATABASE_PUBLIC_URL environment variable in your .env file.`,
           diagnostic: '/health/database'
         });
       }
@@ -137,7 +137,7 @@ router.post('/auth/login', async (req, res) => {
         return res.status(503).json({
           success: false,
           error: 'Database connection failed',
-          message: 'Unable to connect to database. Check DATABASE_URL environment variable and ensure database server is running.',
+          message: 'Unable to connect to database. Check DATABASE_URL or DATABASE_PUBLIC_URL environment variable in your .env file and ensure database server is running.',
           diagnostic: '/health/database'
         });
       }
@@ -180,7 +180,7 @@ router.post('/auth/login', async (req, res) => {
       return res.status(503).json({
         success: false,
         error: 'Database connection error',
-        message: `Database connection test failed: ${connectionTestError?.message || 'Unknown error'}. Check DATABASE_URL/DATABASE_PUBLIC_URL environment variable.`,
+          message: `Database connection test failed: ${connectionTestError?.message || 'Unknown error'}. Check DATABASE_URL or DATABASE_PUBLIC_URL environment variable in your .env file.`,
         diagnostic: '/health/database',
         errorCode: connectionTestError?.code
       });
@@ -243,7 +243,7 @@ router.post('/auth/login', async (req, res) => {
         return res.status(503).json({
           success: false,
           error: 'Database connection failed',
-          message: 'Unable to connect to database. Check DATABASE_URL environment variable and ensure database server is running.',
+          message: 'Unable to connect to database. Check DATABASE_URL or DATABASE_PUBLIC_URL environment variable in your .env file and ensure database server is running.',
           diagnostic: '/health/database',
           errorCode: queryError.code
         });
@@ -436,7 +436,7 @@ router.post('/auth/login', async (req, res) => {
       return res.status(503).json({
         success: false,
         error: 'Database connection failed',
-        message: `Unable to connect to database (${error.code}). Check DATABASE_URL environment variable and ensure database server is running. For localhost connections, ensure the database is accessible.`,
+          message: `Unable to connect to database (${error.code}). Check DATABASE_URL or DATABASE_PUBLIC_URL environment variable in your .env file and ensure database server is running. For localhost connections, ensure the database is accessible.`,
         diagnostic: '/health/database',
         errorCode: error.code
       });

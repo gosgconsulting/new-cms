@@ -12,6 +12,8 @@ const getConnectionString = () => {
   } else {
     console.error('[testing] WARNING: No DATABASE_URL or DATABASE_PUBLIC_URL found in environment variables!');
     console.error('[testing] Falling back to MOCK DATABASE mode so the app can run without a real DB.');
+    console.error('[testing] To fix: Set DATABASE_PUBLIC_URL or DATABASE_URL in your .env file');
+    console.error('[testing] Example: DATABASE_PUBLIC_URL=postgresql://user:password@host:port/database');
     // In mock mode we won't throw here; upstream handles gracefully
     return null;
   }

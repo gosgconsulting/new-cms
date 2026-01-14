@@ -11,7 +11,6 @@ import {
   AlertCircle,
   CheckCircle,
   ArrowLeft,
-  Shield,
   Info
 } from 'lucide-react';
 import { Link, useNavigate, useLocation, useParams } from 'react-router-dom';
@@ -221,64 +220,6 @@ const Auth: React.FC = () => {
     } catch (error) {
       console.error('Registration error:', error);
       setMessage({ type: 'error', text: 'Registration failed. Please try again.' });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Function to quickly sign in as admin (for development)
-  const handleQuickAdminAccess = async () => {
-    setLoading(true);
-    setMessage(null);
-
-    // Dev-only: inject a super admin session directly and use a special dev token
-    if (import.meta.env.DEV) {
-      const devUser = {
-        id: 'dev-super-admin',
-        first_name: 'Dev',
-        last_name: 'Admin',
-        email: 'admin@local.dev',
-        role: 'admin',
-        tenant_id: null, // super admin has access to all tenants
-        is_super_admin: true
-      };
-
-      // Persist session with a recognized dev token
-      localStorage.setItem('sparti-user-session', JSON.stringify({
-        ...devUser,
-        token: 'dev-super-admin-token'
-      }));
-
-      // Optionally set a default tenant context for smoother DX
-      try {
-        localStorage.setItem('sparti-current-tenant-id', 'tenant-gosg');
-      } catch {}
-
-      setMessage({
-        type: 'success',
-        text: 'Developer super admin access enabled. Redirecting...'
-      });
-
-      setTimeout(() => {
-        navigate(from, { replace: true });
-      }, 600);
-
-      setLoading(false);
-      return;
-    }
-
-    // Fallback to normal admin login (non-dev)
-    try {
-      const result = await signIn('admin', 'admin');
-      if (result.success) {
-        setMessage({ type: 'success', text: 'Admin login successful! Redirecting...' });
-        setTimeout(() => navigate(from, { replace: true }), 1000);
-      } else {
-        setMessage({ type: 'error', text: result.error || 'Admin login failed. Make sure an admin user exists.' });
-      }
-    } catch (error) {
-      console.error('Quick admin access error:', error);
-      setMessage({ type: 'error', text: 'Admin login failed. Please try again or create an admin user first.' });
     } finally {
       setLoading(false);
     }
@@ -594,29 +535,6 @@ const Auth: React.FC = () => {
               )}
             </button>
           </form>
-
-          {/* Quick Admin Access Button */}
-          {import.meta.env.DEV && (
-            <div className="mt-6 border-t pt-6">
-              <button
-                onClick={handleQuickAdminAccess}
-                disabled={loading}
-                className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                {loading ? (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                ) : (
-                  <>
-                    <Shield className="h-4 w-4" />
-                    <span>Admin Access</span>
-                  </>
-                )}
-              </button>
-              <p className="text-xs text-center text-muted-foreground mt-2">
-                Enables a local super admin session for development (full tenant access, no server login).
-              </p>
-            </div>
-          )}
 
           {/* Switch mode - Flowbite Link Style */}
           <div className="mt-6 text-center">
