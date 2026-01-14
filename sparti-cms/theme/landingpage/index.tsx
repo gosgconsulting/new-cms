@@ -122,9 +122,9 @@ const TenantLanding: React.FC<TenantLandingProps> = ({
       image: serviceImages[1],
       features: [
         'Corporate Secretary Fee (S$800/year)',
-        'Tax Filing Services (S$800/year)',
-        'Basic Bookkeeping (S$200/year minimum)',
-        'Local Director Services (S$2,500/year)',
+        'Tax Filing Services (S$1,200/year)',
+        'Basic Bookkeeping (S$900/year minimum)',
+        'Local Director Services (S$4,500/year)',
         'Annual compliance filing',
         'Regulatory authority submissions'
       ],
