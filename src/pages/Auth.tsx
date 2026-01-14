@@ -226,6 +226,54 @@ const Auth: React.FC = () => {
     }
   };
 
+  // Function to quickly sign in as admin (for development)
+  const handleQuickAdminAccess = async () => {
+    setLoading(true);
+    setMessage(null);
+    
+    // Auto-fill form with admin credentials
+    setFormData({
+      first_name: '',
+      last_name: '',
+      email: 'admin',
+      password: 'admin',
+      confirm_password: ''
+    });
+    
+    // Ensure we're in sign-in mode
+    if (isSignUp) {
+      setIsSignUp(false);
+    }
+    
+    try {
+      const result = await signIn('admin', 'admin');
+      
+      if (result.success) {
+        setMessage({ 
+          type: 'success', 
+          text: 'Admin login successful! Redirecting...' 
+        });
+        
+        setTimeout(() => {
+          navigate(from, { replace: true });
+        }, 1000);
+      } else {
+        setMessage({ 
+          type: 'error', 
+          text: result.error || 'Admin login failed. Make sure an admin user exists.' 
+        });
+      }
+    } catch (error) {
+      console.error('Quick admin access error:', error);
+      setMessage({ 
+        type: 'error', 
+        text: 'Admin login failed. Please try again or create an admin user first.' 
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Function to create admin user
   const handleCreateAdmin = async () => {
     setLoading(true);
@@ -541,7 +589,7 @@ const Auth: React.FC = () => {
           {import.meta.env.DEV && (
             <div className="mt-6 border-t pt-6">
               <button
-                onClick={handleCreateAdmin}
+                onClick={handleQuickAdminAccess}
                 disabled={loading}
                 className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
@@ -550,12 +598,12 @@ const Auth: React.FC = () => {
                 ) : (
                   <>
                     <Shield className="h-4 w-4" />
-                    <span>Create Admin Access</span>
+                    <span>Admin Access</span>
                   </>
                 )}
               </button>
               <p className="text-xs text-center text-muted-foreground mt-2">
-                Creates a local demo admin (super admin) and signs you in for development.
+                Sign in as super admin (admin/admin) for development.
               </p>
             </div>
           )}
