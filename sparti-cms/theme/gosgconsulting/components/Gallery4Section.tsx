@@ -81,7 +81,7 @@ const Gallery4Section: React.FC<Gallery4SectionProps> = ({ onContactClick }) => 
       <div className="container mx-auto max-w-7xl">
         <div className="text-center mb-12">
           <h2 className="text-4xl md:text-5xl font-bold text-gray-900">
-            What’s included in your growth package
+            What's included in your growth package
           </h2>
           <p className="mt-4 text-lg text-gray-600 max-w-3xl mx-auto">
             A focused breakdown of the core areas driving results, each tailored to your goals and adapted after consultation.
@@ -121,7 +121,7 @@ const Gallery4Section: React.FC<Gallery4SectionProps> = ({ onContactClick }) => 
                     <div className="pt-2">
                       <button
                         onClick={handleLearnMore}
-                        className="inline-flex items-center px-4 py-2 rounded-md border border-gray-300 text-gray-900 hover:bg-gray-100 transition-colors"
+                        className="inline-flex items-center px-5 py-2.5 rounded-md cta-gradient text-white shadow-sm hover:opacity-90 transition-all"
                       >
                         Learn more
                       </button>
