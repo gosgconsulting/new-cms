@@ -9,6 +9,7 @@ const SpartiSEOLandingTheme = lazy(() => import('../../sparti-cms/theme/sparti-s
 const GosgConsultingTheme = lazy(() => import('../../sparti-cms/theme/gosgconsulting'));
 const SissonneTheme = lazy(() => import('../../sparti-cms/theme/sissonne'));
 const MasterTheme = lazy(() => import('../../sparti-cms/theme/master'));
+const StorefrontTheme = lazy(() => import('../../sparti-cms/theme/storefront'));
 
 /**
  * Map theme slugs to their display names and components
@@ -34,6 +35,10 @@ const themeConfig: Record<string, { name: string; component: React.LazyExoticCom
   'master': {
     name: 'Master Theme',
     component: MasterTheme
+  },
+  'storefront': {
+    name: 'Storefront',
+    component: StorefrontTheme
   }
 };
 
