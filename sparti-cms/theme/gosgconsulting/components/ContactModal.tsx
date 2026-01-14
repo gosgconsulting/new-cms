@@ -102,7 +102,8 @@ const ContactModal = ({ open, onOpenChange }: ContactModalProps) => {
         >
           <div className="h-full flex flex-col min-h-screen sm:min-h-0">
             {/* Header with proper mobile padding */}
-            <div className="flex items-center justify-end px-4 sm:px-4 py-4 sm:py-3 pt-8 sm:pt-3 safe-area-inset-top">
+            <div className="flex items-center justify-between px-4 sm:px-4 py-4 sm:py-3 pt-8 sm:pt-3 safe-area-inset-top">
+              <span className="text-gray-800 font-semibold text-lg">Contact us</span>
               <Button
                 type="button"
                 variant="ghost"
@@ -110,13 +111,15 @@ const ContactModal = ({ open, onOpenChange }: ContactModalProps) => {
                 className="rounded-full text-black hover:text-black/80 p-2"
                 aria-label="Close"
               >
-                <X className="h-5 w-5 sm:h-4 sm:w-4" />
+                <X className="h-7 w-7" />
               </Button>
             </div>
             
             {/* Content with proper mobile padding */}
             <div className="flex-1 px-4 sm:px-4 py-4 pb-8 sm:pb-4 safe-area-inset-bottom bg-gray-50">
-              <p className="text-gray-800 font-semibold text-lg mb-3">Contact us</p>
+              <p className="text-gray-600 text-sm mb-4">
+                Tell us about your goals — we'll tailor the scope after a quick consultation.
+              </p>
               <ModalContactForm />
               
               {/* Avatars and WhatsApp below the form */}
