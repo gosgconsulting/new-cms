@@ -113,18 +113,14 @@ const App = () => {
             {/* Embed route for iframe access */}
             <Route path="/embed/pages" element={<EmbedPagesManager />} />
             
-<<<<<<< HEAD
-            
-            {/* Theme routes - check for known themes first */}
-=======
             {/* Theme routes - check if it's a known theme first, otherwise use TenantPage */}
-            {/* Product route with product name parameter */}
+            {/* Product route with product name parameter - more specific, must come first */}
             <Route path="/theme/:tenantSlug/product/:productname" element={
               <ErrorBoundary>
                 <ThemeRouteHandler />
               </ErrorBoundary>
             } />
->>>>>>> b4481126fd2057210ab010a05326325d67ea0a10
+            {/* Theme sub-routes (e.g., /thank-you) */}
             <Route path="/theme/:tenantSlug/:pageSlug" element={
               <ErrorBoundary>
                 <TenantLandingPage />
