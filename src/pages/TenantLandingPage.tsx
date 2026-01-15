@@ -10,7 +10,7 @@ const GosgConsultingTheme = lazy(() => import('../../sparti-cms/theme/gosgconsul
 const SissonneTheme = lazy(() => import('../../sparti-cms/theme/sissonne'));
 const MasterTheme = lazy(() => import('../../sparti-cms/theme/master'));
 const StorefrontTheme = lazy(() => import('../../sparti-cms/theme/storefront'));
-const STRFitnessTheme = lazy(() => import('../../sparti-cms/theme/strfitness/index'));
+const STRFitnessTheme = lazy(() => import('../../sparti-cms/theme/strfitness'));
 
 /**
  * Map theme slugs to their display names and components
