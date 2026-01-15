@@ -11,6 +11,7 @@ import ProductCreationWizard from './ProductCreationWizard';
 import ProductEditTable from './ProductEditTable';
 import BulkProductEditTable from './BulkProductEditTable';
 import ProductJsonViewer from './ProductJsonViewer';
+import ProductVariantTable from './ProductVariantTable';
 
 interface Product {
   product_id: number;

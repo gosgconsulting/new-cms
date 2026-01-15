@@ -24,6 +24,10 @@ export interface ProductRow {
   inventory_management?: boolean;
 }
 
+// Helper to normalize truthy values to boolean
+const toBoolean = (val: unknown): boolean =>
+  val === true || val === 'true' || val === 1 || val === '1';
+
 interface ProductEditTableProps {
   product: {
     product_id: number;
@@ -136,7 +140,7 @@ export default function ProductEditTable({
           inventory_quantity: typeof v.inventory_quantity === 'string' 
             ? parseInt(v.inventory_quantity) 
             : (v.inventory_quantity || 0),
-          inventory_management: v.inventory_management !== false && v.inventory_management !== 'false',
+          inventory_management: toBoolean((v as any).inventory_management),
         })) },
         { tenantId: currentTenantId }
       );

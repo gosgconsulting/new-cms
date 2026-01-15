@@ -1,0 +1,10 @@
+{
+  "slug": "strfitness",
+  "name": "STR Fitness - 1-on-1 Personal Training",
+  "version": "1.0.0",
+  "description": "A premium, physiotherapy-informed 1-on-1 Personal Training landing theme.",
+  "is_active": true,
+  "author": "Sparti",
+  "categories": ["fitness", "landing"],
+  "tags": ["personal-training", "physiotherapy-informed", "premium"]
+}

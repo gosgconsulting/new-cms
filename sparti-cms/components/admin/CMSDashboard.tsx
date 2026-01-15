@@ -76,6 +76,8 @@ interface Tenant {
   name: string;
   isDevelopment?: boolean;
   theme_id?: string | null;
+  // Added: API keys array used when storing tenant API key locally
+  apiKeys?: Array<{ api_key: string }>;
 }
 
 // Blog Management Component
