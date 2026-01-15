@@ -52,6 +52,8 @@ const STRFitnessTheme: React.FC<TenantLandingProps> = ({
     link.href = favicon;
   }, [branding?.site_favicon]);
 
+  const [isContactOpen, setIsContactOpen] = useState(false);
+
   if (brandingLoading || stylesLoading) {
     return (
       <div className="min-h-screen theme-bg flex items-center justify-center">
@@ -67,8 +69,6 @@ const STRFitnessTheme: React.FC<TenantLandingProps> = ({
     if (brandingError) console.warn('[strfitness-theme] Branding load error:', brandingError);
     if (stylesError) console.warn('[strfitness-theme] Styles load error:', stylesError);
   }
-
-  const [isContactOpen, setIsContactOpen] = useState(false);
 
   const isThankYouPage =
     location.pathname === '/thank-you' ||
