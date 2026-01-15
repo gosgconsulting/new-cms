@@ -23,7 +23,7 @@ export const EditableSlug: React.FC<EditableSlugProps> = ({
   isHomepage = false,
   onSlugUpdate
 }) => {
-  const { currentTenant } = useAuth();
+  const { currentTenantId } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(currentSlug);
   const [isLoading, setIsLoading] = useState(false);
@@ -115,7 +115,7 @@ export const EditableSlug: React.FC<EditableSlugProps> = ({
         pageType,
         newSlug: normalizedSlug,
         oldSlug: currentSlug,
-        tenantId: currentTenant.id
+        tenantId: currentTenantId
       });
 
       if (!response.ok) {

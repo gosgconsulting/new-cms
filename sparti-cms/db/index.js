@@ -84,6 +84,27 @@ export {
   savePageVersion
 } from './modules/pages.js';
 
+// Ecommerce (PERN-Store schema)
+export {
+  getProducts,
+  getProduct,
+  getProductBySlug,
+  createProduct,
+  updateProduct,
+  deleteProduct,
+  getCart,
+  addToCart,
+  updateCartItem,
+  removeFromCart,
+  getOrders,
+  getOrder,
+  createOrder,
+  updateOrderStatus,
+  getReviews,
+  createReview,
+  deleteReview
+} from './modules/ecommerce.js';
+
 // Content/Posts management
 export {
   getPosts,

@@ -2,10 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { 
   Settings as SettingsIcon,
   Search,
-  Globe,
   Eye,
   EyeOff,
-  Image as ImageIcon,
   Save,
   RefreshCw
 } from 'lucide-react';
@@ -17,22 +15,12 @@ import { Switch } from "../../../src/components/ui/switch";
 import { toast } from "@/components/ui/use-toast";
 import { useAuth } from "../auth/AuthProvider";
 import { api } from "../../utils/api";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 interface SEOSettings {
   seo_index: boolean;
-  og_title: string;
-  og_description: string;
-  og_image: string;
-  og_type: string;
-  og_site_name: string;
-  og_url: string;
+  meta_title: string;
+  meta_description: string;
+  meta_title_rule: string;
 }
 
 const SEOSettingsManager: React.FC = () => {
@@ -41,12 +29,9 @@ const SEOSettingsManager: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [settings, setSettings] = useState<SEOSettings>({
     seo_index: true,
-    og_title: '',
-    og_description: '',
-    og_image: '',
-    og_type: 'website',
-    og_site_name: '',
-    og_url: ''
+    meta_title: '',
+    meta_description: '',
+    meta_title_rule: '{{Website Title}} | {Page Title}'
   });
 
   useEffect(() => {
@@ -61,54 +46,35 @@ const SEOSettingsManager: React.FC = () => {
     try {
       setLoading(true);
       
-      // Load all SEO settings
-      const [seoIndexRes, ogTitleRes, ogDescRes, ogImageRes, ogTypeRes, ogSiteNameRes, ogUrlRes] = await Promise.all([
+      const [seoIndexRes, metaTitleRes, metaDescRes, metaTitleRuleRes] = await Promise.all([
         api.get(`/api/settings/site-settings/seo_index?tenantId=${currentTenantId}`, { tenantId: currentTenantId }),
-        api.get(`/api/settings/site-settings/og_title?tenantId=${currentTenantId}`, { tenantId: currentTenantId }),
-        api.get(`/api/settings/site-settings/og_description?tenantId=${currentTenantId}`, { tenantId: currentTenantId }),
-        api.get(`/api/settings/site-settings/og_image?tenantId=${currentTenantId}`, { tenantId: currentTenantId }),
-        api.get(`/api/settings/site-settings/og_type?tenantId=${currentTenantId}`, { tenantId: currentTenantId }),
-        api.get(`/api/settings/site-settings/og_site_name?tenantId=${currentTenantId}`, { tenantId: currentTenantId }),
-        api.get(`/api/settings/site-settings/og_url?tenantId=${currentTenantId}`, { tenantId: currentTenantId })
+        api.get(`/api/settings/site-settings/meta_title?tenantId=${currentTenantId}`, { tenantId: currentTenantId }),
+        api.get(`/api/settings/site-settings/meta_description?tenantId=${currentTenantId}`, { tenantId: currentTenantId }),
+        api.get(`/api/settings/site-settings/meta_title_rule?tenantId=${currentTenantId}`, { tenantId: currentTenantId })
       ]);
 
       const newSettings: SEOSettings = {
-        seo_index: true, // Default to true
-        og_title: '',
-        og_description: '',
-        og_image: '',
-        og_type: 'website',
-        og_site_name: '',
-        og_url: ''
+        seo_index: true,
+        meta_title: '',
+        meta_description: '',
+        meta_title_rule: '{{Website Title}} | {Page Title}'
       };
 
       if (seoIndexRes.ok) {
         const data = await seoIndexRes.json();
         newSettings.seo_index = data.setting_value === 'true' || data.setting_value === true;
       }
-      if (ogTitleRes.ok) {
-        const data = await ogTitleRes.json();
-        newSettings.og_title = data.setting_value || '';
+      if (metaTitleRes.ok) {
+        const data = await metaTitleRes.json();
+        newSettings.meta_title = data.setting_value || '';
       }
-      if (ogDescRes.ok) {
-        const data = await ogDescRes.json();
-        newSettings.og_description = data.setting_value || '';
+      if (metaDescRes.ok) {
+        const data = await metaDescRes.json();
+        newSettings.meta_description = data.setting_value || '';
       }
-      if (ogImageRes.ok) {
-        const data = await ogImageRes.json();
-        newSettings.og_image = data.setting_value || '';
-      }
-      if (ogTypeRes.ok) {
-        const data = await ogTypeRes.json();
-        newSettings.og_type = data.setting_value || 'website';
-      }
-      if (ogSiteNameRes.ok) {
-        const data = await ogSiteNameRes.json();
-        newSettings.og_site_name = data.setting_value || '';
-      }
-      if (ogUrlRes.ok) {
-        const data = await ogUrlRes.json();
-        newSettings.og_url = data.setting_value || '';
+      if (metaTitleRuleRes.ok) {
+        const data = await metaTitleRuleRes.json();
+        newSettings.meta_title_rule = data.setting_value || '{{Website Title}} | {Page Title}';
       }
 
       setSettings(newSettings);
@@ -140,12 +106,9 @@ const SEOSettingsManager: React.FC = () => {
       // Save all settings
       const settingsToSave = [
         { key: 'seo_index', value: settings.seo_index ? 'true' : 'false', type: 'text', category: 'seo' },
-        { key: 'og_title', value: settings.og_title, type: 'text', category: 'seo' },
-        { key: 'og_description', value: settings.og_description, type: 'textarea', category: 'seo' },
-        { key: 'og_image', value: settings.og_image, type: 'media', category: 'seo' },
-        { key: 'og_type', value: settings.og_type, type: 'text', category: 'seo' },
-        { key: 'og_site_name', value: settings.og_site_name, type: 'text', category: 'seo' },
-        { key: 'og_url', value: settings.og_url, type: 'text', category: 'seo' }
+        { key: 'meta_title', value: settings.meta_title, type: 'text', category: 'seo' },
+        { key: 'meta_description', value: settings.meta_description, type: 'textarea', category: 'seo' },
+        { key: 'meta_title_rule', value: settings.meta_title_rule, type: 'text', category: 'seo' },
       ];
 
       const savePromises = settingsToSave.map(setting =>
@@ -180,6 +143,15 @@ const SEOSettingsManager: React.FC = () => {
       [key]: value
     }));
   };
+
+  // Helper to preview rule application with example values
+  const previewTitle = (() => {
+    const website = settings.meta_title || 'Website Title';
+    const page = 'Page Title';
+    return (settings.meta_title_rule || '{{Website Title}} | {Page Title}')
+      .replace('{{Website Title}}', website)
+      .replace('{Page Title}', page);
+  })();
 
   if (loading) {
     return (
@@ -232,8 +204,7 @@ const SEOSettingsManager: React.FC = () => {
               Search Engine Indexing
             </h3>
             <p className="text-sm text-muted-foreground mb-4">
-              Control whether search engines should index your site. For headless CMS setups (like Diora), 
-              you may want to disable indexing if the sitemap is not used here.
+              Control whether search engines should index your site.
             </p>
             
             <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
@@ -262,99 +233,58 @@ const SEOSettingsManager: React.FC = () => {
             </div>
           </div>
 
-          {/* OpenGraph Settings */}
+          {/* Meta Title & Description */}
           <div className="border-b border-gray-200 pb-4">
             <h3 className="text-lg font-semibold text-foreground flex items-center mb-2">
-              <Globe className="mr-2 h-5 w-5 text-brandPurple" />
-              OpenGraph Settings
+              Meta Title & Description
             </h3>
             <p className="text-sm text-muted-foreground mb-4">
-              Configure how your site appears when shared on social media. By default, OpenGraph will use 
-              the featured image from the page (or slider image), or fallback to your site logo if no image is found.
+              Set site-wide defaults for your meta title and description, and define how page titles should be formatted.
             </p>
 
             <div className="space-y-4">
               <div>
-                <Label htmlFor="og_title">OpenGraph Title</Label>
+                <Label htmlFor="meta_title">Meta Title (Website Title)</Label>
                 <Input
-                  id="og_title"
-                  value={settings.og_title}
-                  onChange={(e) => handleInputChange('og_title', e.target.value)}
-                  placeholder="Default: Site Name"
+                  id="meta_title"
+                  value={settings.meta_title}
+                  onChange={(e) => handleInputChange('meta_title', e.target.value)}
+                  placeholder="e.g., GOSG Consulting"
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  Title shown when sharing on social media. Leave empty to use site name.
+                  Used as the base website title in your title formatting rule.
                 </p>
               </div>
 
               <div>
-                <Label htmlFor="og_description">OpenGraph Description</Label>
+                <Label htmlFor="meta_description">Meta Description</Label>
                 <Textarea
-                  id="og_description"
-                  value={settings.og_description}
-                  onChange={(e) => handleInputChange('og_description', e.target.value)}
-                  placeholder="Default: Site Description"
+                  id="meta_description"
+                  value={settings.meta_description}
+                  onChange={(e) => handleInputChange('meta_description', e.target.value)}
+                  placeholder="Brief site-wide description"
                   rows={3}
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  Description shown when sharing on social media. Leave empty to use site description.
+                  Default meta description used across pages unless overridden.
                 </p>
               </div>
 
               <div>
-                <Label htmlFor="og_image">OpenGraph Image</Label>
+                <Label htmlFor="meta_title_rule">Title Format Rule</Label>
                 <Input
-                  id="og_image"
-                  value={settings.og_image}
-                  onChange={(e) => handleInputChange('og_image', e.target.value)}
-                  placeholder="URL to default OpenGraph image"
+                  id="meta_title_rule"
+                  value={settings.meta_title_rule}
+                  onChange={(e) => handleInputChange('meta_title_rule', e.target.value)}
+                  placeholder="{{Website Title}} | {Page Title}"
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  Default image for social sharing. If not set, will use featured image from page or site logo.
+                  Use placeholders: {'{{Website Title}}'} and {'{Page Title}'}. Example preview below.
                 </p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="og_type">OpenGraph Type</Label>
-                  <Select 
-                    value={settings.og_type} 
-                    onValueChange={(value) => handleInputChange('og_type', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="website">Website</SelectItem>
-                      <SelectItem value="article">Article</SelectItem>
-                      <SelectItem value="product">Product</SelectItem>
-                      <SelectItem value="profile">Profile</SelectItem>
-                    </SelectContent>
-                  </Select>
+                <div className="mt-2 p-3 rounded bg-gray-50 border text-sm">
+                  <span className="text-muted-foreground">Preview (example): </span>
+                  <span className="font-medium">{previewTitle}</span>
                 </div>
-
-                <div>
-                  <Label htmlFor="og_site_name">Site Name</Label>
-                  <Input
-                    id="og_site_name"
-                    value={settings.og_site_name}
-                    onChange={(e) => handleInputChange('og_site_name', e.target.value)}
-                    placeholder="Default: Site Name"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="og_url">OpenGraph URL</Label>
-                <Input
-                  id="og_url"
-                  value={settings.og_url}
-                  onChange={(e) => handleInputChange('og_url', e.target.value)}
-                  placeholder="Canonical URL for your site"
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  The canonical URL of your site. Leave empty to use current page URL.
-                </p>
               </div>
             </div>
           </div>
@@ -365,4 +295,3 @@ const SEOSettingsManager: React.FC = () => {
 };
 
 export default SEOSettingsManager;
-

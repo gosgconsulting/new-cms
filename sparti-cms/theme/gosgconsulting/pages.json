@@ -81,6 +81,42 @@
       "seo_index": false,
       "status": "published",
       "page_type": "page"
+    },
+    {
+      "page_name": "Shop",
+      "slug": "/shop",
+      "meta_title": "Shop - GO SG Consulting Digital Marketing Packages",
+      "meta_description": "Browse our digital marketing packages and services. Find the perfect solution for your business growth.",
+      "seo_index": true,
+      "status": "published",
+      "page_type": "page"
+    },
+    {
+      "page_name": "Cart",
+      "slug": "/cart",
+      "meta_title": "Shopping Cart - GO SG Consulting",
+      "meta_description": "Review your selected digital marketing packages and proceed to checkout.",
+      "seo_index": false,
+      "status": "published",
+      "page_type": "page"
+    },
+    {
+      "page_name": "Product",
+      "slug": "/product/:productname",
+      "meta_title": "Product Details - GO SG Consulting",
+      "meta_description": "View detailed information about our digital marketing packages and services.",
+      "seo_index": true,
+      "status": "published",
+      "page_type": "page"
+    },
+    {
+      "page_name": "Checkout",
+      "slug": "/checkout",
+      "meta_title": "Checkout - GO SG Consulting",
+      "meta_description": "Complete your order for digital marketing services.",
+      "seo_index": false,
+      "status": "published",
+      "page_type": "page"
     }
   ]
 }

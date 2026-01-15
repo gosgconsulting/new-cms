@@ -1,36 +1,26 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Package, Edit, Trash2, Eye, EyeOff, Search } from 'lucide-react';
+import { Plus, Package, Edit, Trash2, X, Save, Search, ChevronDown, ChevronUp, FileJson } from 'lucide-react';
 import { api } from '../../utils/api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import ProductCreationWizard from './ProductCreationWizard';
+import ProductEditTable from './ProductEditTable';
+import BulkProductEditTable from './BulkProductEditTable';
+import ProductJsonViewer from './ProductJsonViewer';
 
 interface Product {
-  id: number;
+  product_id: number;
   name: string;
-  description: string | null;
-  handle: string;
-  status: string;
-  featured_image: string | null;
-  tenant_id: string;
-  variants: ProductVariant[];
+  slug: string;
+  price: number;
+  description: string;
+  image_url: string | null;
   created_at: string;
   updated_at: string;
-}
-
-interface ProductVariant {
-  id: number;
-  title: string;
-  price: string;
-  compare_at_price: string | null;
-  sku: string | null;
-  inventory_quantity: number;
-  inventory_management: boolean;
 }
 
 interface ProductsManagerProps {
@@ -39,36 +29,42 @@ interface ProductsManagerProps {
 
 export default function ProductsManager({ currentTenantId }: ProductsManagerProps) {
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showBulkEdit, setShowBulkEdit] = useState(false);
+  const [editingProductId, setEditingProductId] = useState<number | null>(null);
   const queryClient = useQueryClient();
 
   const { data: products = [], isLoading } = useQuery({
-    queryKey: ['products', currentTenantId, statusFilter, searchTerm],
+    queryKey: ['products', currentTenantId, searchTerm],
     queryFn: async () => {
-      const params = new URLSearchParams();
-      if (statusFilter !== 'all') {
-        params.append('status', statusFilter);
+      if (!currentTenantId) {
+        throw new Error('Tenant ID is required');
       }
+      
+      const params = new URLSearchParams();
       if (searchTerm) {
         params.append('search', searchTerm);
       }
       
-      const response = await api.get(`/api/shop/products?${params.toString()}`);
+      const response = await api.get(`/api/shop/products?${params.toString()}`, { tenantId: currentTenantId });
       if (!response.ok) {
         throw new Error('Failed to fetch products');
       }
       const result = await response.json();
       return result.data || [];
     },
+    enabled: !!currentTenantId,
   });
 
   const deleteMutation = useMutation({
     mutationFn: async (productId: number) => {
-      const response = await api.delete(`/api/shop/products/${productId}`);
+      if (!currentTenantId) {
+        throw new Error('Tenant ID is required');
+      }
+      const response = await api.delete(`/api/shop/products/${productId}`, { tenantId: currentTenantId });
       if (!response.ok) {
-        throw new Error('Failed to delete product');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to delete product');
       }
       return response.json();
     },
@@ -84,13 +80,24 @@ export default function ProductsManager({ currentTenantId }: ProductsManagerProp
     deleteMutation.mutate(productId);
   };
 
+  const handleEdit = (productId: number) => {
+    setEditingProductId(productId);
+    setShowCreateForm(false);
+  };
+
+  const handleCancel = () => {
+    setShowCreateForm(false);
+    setEditingProductId(null);
+    setShowBulkEdit(false);
+  };
+
   const filteredProducts = products.filter((product: Product) => {
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase();
       return (
         product.name.toLowerCase().includes(searchLower) ||
         product.description?.toLowerCase().includes(searchLower) ||
-        product.handle.toLowerCase().includes(searchLower)
+        product.slug.toLowerCase().includes(searchLower)
       );
     }
     return true;
@@ -103,11 +110,40 @@ export default function ProductsManager({ currentTenantId }: ProductsManagerProp
           <h1 className="text-3xl font-bold">Products</h1>
           <p className="text-muted-foreground mt-1">Manage your product catalog</p>
         </div>
-        <Button onClick={() => setShowCreateDialog(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Product
-        </Button>
+        <div className="flex items-center gap-2">
+          {!showBulkEdit && (
+            <Button variant="outline" onClick={() => setShowBulkEdit(true)} disabled={showCreateForm || !!editingProductId}>
+              Bulk Edit
+            </Button>
+          )}
+          {!showCreateForm && !editingProductId && (
+            <Button onClick={() => setShowCreateForm(true)} disabled={showBulkEdit}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Product
+            </Button>
+          )}
+        </div>
       </div>
+
+      {/* Product Creation Wizard */}
+      {showCreateForm && (
+        <ProductCreationWizard
+          currentTenantId={currentTenantId}
+          onSuccess={() => {
+            setShowCreateForm(false);
+            queryClient.invalidateQueries({ queryKey: ['products', currentTenantId] });
+          }}
+          onCancel={handleCancel}
+        />
+      )}
+
+      {/* Bulk Edit Table */}
+      {showBulkEdit && (
+        <BulkProductEditTable
+          currentTenantId={currentTenantId}
+          onClose={handleCancel}
+        />
+      )}
 
       <Card>
         <CardContent className="p-4">
@@ -121,28 +157,19 @@ export default function ProductsManager({ currentTenantId }: ProductsManagerProp
                 className="pl-10"
               />
             </div>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-3 py-2 border border-border rounded-md bg-background"
-            >
-              <option value="all">All Status</option>
-              <option value="draft">Draft</option>
-              <option value="published">Published</option>
-            </select>
           </div>
         </CardContent>
       </Card>
 
       {isLoading ? (
         <div className="text-center py-12">Loading products...</div>
-      ) : filteredProducts.length === 0 ? (
+      ) : filteredProducts.length === 0 && !showCreateForm ? (
         <Card>
           <CardContent className="p-12 text-center">
             <Package className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
             <p className="text-muted-foreground">No products found</p>
             <Button
-              onClick={() => setShowCreateDialog(true)}
+              onClick={() => setShowCreateForm(true)}
               className="mt-4"
               variant="outline"
             >
@@ -152,111 +179,311 @@ export default function ProductsManager({ currentTenantId }: ProductsManagerProp
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredProducts.map((product: Product) => {
-            const defaultVariant = product.variants?.[0];
-            const price = defaultVariant?.price || '0.00';
-            
-            return (
-              <Card key={product.id} className="overflow-hidden">
-                {product.featured_image && (
-                  <div className="aspect-video bg-muted overflow-hidden">
-                    <img
-                      src={product.featured_image}
-                      alt={product.name}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                )}
-                <CardHeader>
-                  <div className="flex items-start justify-between mb-2">
-                    <CardTitle className="text-lg">{product.name}</CardTitle>
-                    <Badge variant={product.status === 'published' ? 'default' : 'secondary'}>
-                      {product.status}
-                    </Badge>
-                  </div>
-                  <p className="text-sm text-muted-foreground line-clamp-2">
-                    {product.description || 'No description'}
-                  </p>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center justify-between">
-                    <span className="font-semibold text-lg">${parseFloat(price).toFixed(2)}</span>
-                    <div className="flex space-x-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setEditingProduct(product)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDelete(product.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                  {product.variants && product.variants.length > 1 && (
-                    <p className="text-xs text-muted-foreground mt-2">
-                      {product.variants.length} variants
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-            );
-          })}
+        <div className="space-y-4">
+          {filteredProducts.map((product: Product) => (
+            <ProductCard
+              key={product.product_id}
+              product={product}
+              isEditing={editingProductId === product.product_id}
+              onEdit={() => handleEdit(product.product_id)}
+              onDelete={() => handleDelete(product.product_id)}
+              onCancel={handleCancel}
+              currentTenantId={currentTenantId}
+            />
+          ))}
         </div>
-      )}
-
-      {/* Create/Edit Product Dialog */}
-      {(showCreateDialog || editingProduct) && (
-        <ProductDialog
-          product={editingProduct}
-          onClose={() => {
-            setShowCreateDialog(false);
-            setEditingProduct(null);
-          }}
-          currentTenantId={currentTenantId}
-        />
       )}
     </div>
   );
 }
 
-interface ProductDialogProps {
-  product: Product | null;
-  onClose: () => void;
+interface ProductCardProps {
+  product: Product;
+  isEditing: boolean;
+  onEdit: () => void;
+  onDelete: () => void;
+  onCancel: () => void;
   currentTenantId: string;
 }
 
-function ProductDialog({ product, onClose, currentTenantId }: ProductDialogProps) {
+interface ProductVariant {
+  id: number;
+  sku: string | null;
+  title: string;
+  price: number | string; // Can be string from PostgreSQL numeric type
+  compare_at_price: number | string | null; // Can be string from PostgreSQL numeric type
+  inventory_quantity: number;
+  inventory_management: boolean;
+}
+
+function ProductCard({ product, isEditing, onEdit, onDelete, onCancel, currentTenantId }: ProductCardProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [showJsonViewer, setShowJsonViewer] = useState(false);
+
+  // Fetch variants when expanded
+  const { data: variants = [], isLoading: isLoadingVariants, error: variantsError } = useQuery({
+    queryKey: ['product-variants', product.product_id, product.slug, currentTenantId],
+    queryFn: async () => {
+      if (!currentTenantId) {
+        return [];
+      }
+      
+      // Fetch variants - the endpoint now supports both ID and slug
+      // Try with slug first (more reliable for mapping between tables)
+      try {
+        const response = await api.get(`/api/shop/products/${product.slug}/variants`, { tenantId: currentTenantId });
+        if (response.ok) {
+          const result = await response.json();
+          return Array.isArray(result.data) ? result.data : [];
+        }
+      } catch (e) {
+        // If slug fails, try with product_id
+        try {
+          const response = await api.get(`/api/shop/products/${product.product_id}/variants`, { tenantId: currentTenantId });
+          if (response.ok) {
+            const result = await response.json();
+            return Array.isArray(result.data) ? result.data : [];
+          }
+        } catch (e2) {
+          console.warn('[testing] Could not fetch variants:', e2);
+        }
+      }
+      
+      return [];
+    },
+    enabled: isExpanded && !!currentTenantId,
+    retry: 1,
+  });
+
+  if (isEditing) {
+    return (
+      <Card className="border-2 border-blue-200 bg-blue-50/30">
+        <CardContent className="p-6">
+          {isLoadingVariants ? (
+            <div className="py-8 text-center text-muted-foreground">
+              Loading product data...
+            </div>
+          ) : (
+            <ProductEditTable
+              product={product}
+              variants={variants}
+              currentTenantId={currentTenantId}
+              onSuccess={onCancel}
+              onCancel={onCancel}
+            />
+          )}
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="hover:shadow-md transition-shadow">
+      <CardContent className="p-6">
+        <div className="flex items-start gap-4">
+          {product.image_url && (
+            <img
+              src={product.image_url}
+              alt={product.name}
+              className="h-20 w-20 rounded-lg object-cover border border-gray-200"
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = 'none';
+              }}
+            />
+          )}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-gray-900 mb-1">{product.name}</h3>
+                <p className="text-sm text-gray-500 mb-2">/{product.slug}</p>
+                <div className="flex items-center gap-4 mb-3">
+                  <span className="text-xl font-bold text-gray-900">${product.price.toFixed(2)}</span>
+                </div>
+                {isExpanded && (
+                  <div className="mt-3 pt-3 border-t border-gray-200">
+                    {isLoadingVariants ? (
+                      <p className="text-sm text-gray-500">Loading variants...</p>
+                    ) : variantsError ? (
+                      <p className="text-sm text-red-500">Error loading variants</p>
+                    ) : variants.length > 0 ? (
+                      <div className="space-y-2">
+                        <h4 className="text-sm font-semibold text-gray-900 mb-2">Product Variants</h4>
+                        <div className="space-y-1">
+                          {variants.map((variant: ProductVariant) => {
+                            const price = parseFloat(String(variant.price || 0));
+                            const comparePrice = variant.compare_at_price ? parseFloat(String(variant.compare_at_price)) : null;
+                            
+                            return (
+                              <div
+                                key={variant.id}
+                                className="flex items-center justify-between p-2 bg-gray-50 rounded border border-gray-200"
+                              >
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-sm font-medium text-gray-900">{variant.title}</span>
+                                    {variant.sku && (
+                                      <span className="text-xs text-gray-500">SKU: {variant.sku}</span>
+                                    )}
+                                  </div>
+                                  {variant.inventory_management && (
+                                    <span className="text-xs text-gray-500">
+                                      Stock: {variant.inventory_quantity}
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  {comparePrice && comparePrice > price && (
+                                    <span className="text-xs text-gray-400 line-through">
+                                      ${comparePrice.toFixed(2)}
+                                    </span>
+                                  )}
+                                  <span className="text-sm font-semibold text-gray-900">
+                                    ${price.toFixed(2)}
+                                  </span>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-sm text-gray-500">No variants available</p>
+                    )}
+                  </div>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowJsonViewer(true)}
+                  title="View complete product data as JSON"
+                >
+                  <FileJson className="h-4 w-4 mr-1" />
+                  JSON
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsExpanded(!isExpanded)}
+                >
+                  {isExpanded ? (
+                    <>
+                      <ChevronUp className="h-4 w-4 mr-1" />
+                      Less
+                    </>
+                  ) : (
+                    <>
+                      <ChevronDown className="h-4 w-4 mr-1" />
+                      More
+                    </>
+                  )}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onEdit}
+                >
+                  <Edit className="h-4 w-4 mr-1" />
+                  Edit
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onDelete}
+                  className="text-red-600 hover:text-red-700"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+      
+      {/* JSON Viewer Dialog */}
+      <ProductJsonViewer
+        productId={product.product_id}
+        productSlug={product.slug}
+        currentTenantId={currentTenantId}
+        open={showJsonViewer}
+        onOpenChange={setShowJsonViewer}
+      />
+    </Card>
+  );
+}
+
+interface ProductFormProps {
+  product?: Product | null;
+  currentTenantId: string;
+  onSuccess: () => void;
+  onCancel: () => void;
+}
+
+function ProductForm({ product, currentTenantId, onSuccess, onCancel }: ProductFormProps) {
   const [name, setName] = useState(product?.name || '');
+  const [slug, setSlug] = useState(product?.slug || '');
+  const [price, setPrice] = useState(product?.price?.toString() || '0');
   const [description, setDescription] = useState(product?.description || '');
-  const [handle, setHandle] = useState(product?.handle || '');
-  const [status, setStatus] = useState(product?.status || 'draft');
-  const [featuredImage, setFeaturedImage] = useState(product?.featured_image || '');
+  const [imageUrl, setImageUrl] = useState(product?.image_url || '');
   const [isSaving, setIsSaving] = useState(false);
   const queryClient = useQueryClient();
 
+  // Fetch variants when editing existing product
+  const { data: variants = [], isLoading: isLoadingVariants } = useQuery({
+    queryKey: ['product-variants', product?.product_id, product?.slug, currentTenantId],
+    queryFn: async () => {
+      if (!product || !currentTenantId) {
+        return [];
+      }
+      
+      try {
+        // Try with slug first
+        const response = await api.get(`/api/shop/products/${product.slug}/variants`, { tenantId: currentTenantId });
+        if (response.ok) {
+          const result = await response.json();
+          return Array.isArray(result.data) ? result.data : [];
+        }
+      } catch (e) {
+        // If slug fails, try with product_id
+        try {
+          const response = await api.get(`/api/shop/products/${product.product_id}/variants`, { tenantId: currentTenantId });
+          if (response.ok) {
+            const result = await response.json();
+            return Array.isArray(result.data) ? result.data : [];
+          }
+        } catch (e2) {
+          console.warn('[testing] Could not fetch variants:', e2);
+        }
+      }
+      
+      return [];
+    },
+    enabled: !!product && !!currentTenantId,
+    retry: 1,
+  });
+
   const saveMutation = useMutation({
     mutationFn: async (data: any) => {
+      if (!currentTenantId) {
+        throw new Error('Tenant ID is required');
+      }
+      
       const url = product
-        ? `/api/shop/products/${product.id}`
+        ? `/api/shop/products/${product.product_id}`
         : '/api/shop/products';
       const method = product ? 'put' : 'post';
       
-      const response = await api[method](url, data);
+      const response = await api[method](url, data, { tenantId: currentTenantId });
       if (!response.ok) {
-        throw new Error('Failed to save product');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to save product');
       }
       return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products', currentTenantId] });
-      onClose();
+      onSuccess();
     },
   });
 
@@ -267,91 +494,130 @@ function ProductDialog({ product, onClose, currentTenantId }: ProductDialogProps
     try {
       await saveMutation.mutateAsync({
         name,
-        description,
-        handle: handle || name.toLowerCase().replace(/\s+/g, '-'),
-        status,
-        featured_image: featuredImage || null,
+        slug: slug || name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
+        price: parseFloat(price),
+        description: description || '',
+        image_url: imageUrl || null,
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving product:', error);
-      alert('Failed to save product. Please try again.');
+      alert(error.message || 'Failed to save product. Please try again.');
     } finally {
       setIsSaving(false);
     }
   };
 
   return (
-    <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>{product ? 'Edit Product' : 'Create Product'}</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label htmlFor="name">Product Name *</Label>
-            <Input
-              id="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-            />
-          </div>
-          
-          <div>
-            <Label htmlFor="handle">Handle (URL slug)</Label>
-            <Input
-              id="handle"
-              value={handle}
-              onChange={(e) => setHandle(e.target.value)}
-              placeholder="auto-generated from name"
-            />
-          </div>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="md:col-span-2">
+          <Label htmlFor="name">Product Name *</Label>
+          <Input
+            id="name"
+            value={name}
+            onChange={(e) => {
+              setName(e.target.value);
+              if (!product && !slug) {
+                setSlug(e.target.value.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''));
+              }
+            }}
+            required
+            className="mt-1"
+          />
+        </div>
+        
+        <div>
+          <Label htmlFor="slug">Slug (URL) *</Label>
+          <Input
+            id="slug"
+            value={slug}
+            onChange={(e) => setSlug(e.target.value)}
+            placeholder="auto-generated from name"
+            required
+            className="mt-1"
+          />
+          <p className="text-xs text-muted-foreground mt-1">
+            URL-friendly version of the product name
+          </p>
+        </div>
 
-          <div>
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={4}
+        <div>
+          <Label htmlFor="price">Price *</Label>
+          <Input
+            id="price"
+            type="number"
+            step="0.01"
+            min="0"
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+            required
+            className="mt-1"
+          />
+        </div>
+
+        <div className="md:col-span-2">
+          <Label htmlFor="description">Description *</Label>
+          <Textarea
+            id="description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            rows={4}
+            required
+            className="mt-1"
+          />
+        </div>
+
+        <div className="md:col-span-2">
+          <Label htmlFor="imageUrl">Image URL</Label>
+          <Input
+            id="imageUrl"
+            value={imageUrl}
+            onChange={(e) => setImageUrl(e.target.value)}
+            placeholder="https://..."
+            className="mt-1"
+          />
+          {imageUrl && (
+            <div className="mt-2">
+              <img
+                src={imageUrl}
+                alt="Preview"
+                className="h-32 w-32 object-cover rounded border"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = 'none';
+                }}
+              />
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Product Variants Table - Only show when editing existing product */}
+      {product && (
+        <div className="md:col-span-2 pt-4 border-t">
+          {isLoadingVariants ? (
+            <div className="py-8 text-center text-muted-foreground">
+              Loading variants...
+            </div>
+          ) : (
+            <ProductVariantTable
+              productId={product.product_id}
+              productSlug={product.slug}
+              variants={variants}
+              currentTenantId={currentTenantId}
             />
-          </div>
+          )}
+        </div>
+      )}
 
-          <div>
-            <Label htmlFor="status">Status</Label>
-            <select
-              id="status"
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
-              className="w-full px-3 py-2 border border-border rounded-md bg-background"
-            >
-              <option value="draft">Draft</option>
-              <option value="published">Published</option>
-            </select>
-          </div>
-
-          <div>
-            <Label htmlFor="featuredImage">Featured Image URL</Label>
-            <Input
-              id="featuredImage"
-              value={featuredImage}
-              onChange={(e) => setFeaturedImage(e.target.value)}
-              placeholder="https://..."
-            />
-          </div>
-
-          <div className="flex justify-end space-x-2 pt-4">
-            <Button type="button" variant="outline" onClick={onClose}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isSaving}>
-              {isSaving ? 'Saving...' : product ? 'Update' : 'Create'}
-            </Button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
+      <div className="flex justify-end space-x-2 pt-4 border-t">
+        <Button type="button" variant="outline" onClick={onCancel} disabled={isSaving}>
+          Cancel
+        </Button>
+        <Button type="submit" disabled={isSaving}>
+          <Save className="h-4 w-4 mr-2" />
+          {isSaving ? 'Saving...' : product ? 'Update Product' : 'Create Product'}
+        </Button>
+      </div>
+    </form>
   );
 }
-
-

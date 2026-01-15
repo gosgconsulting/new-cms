@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --brand-primary: #9b87f5;
+    --brand-secondary: #7E69AB;
+    --brand-accent: #F94E40;
+    --brand-background: #FFFFFF;
+    --brand-text: #333333;
+  }
+
+  body {
+    @apply bg-white text-gray-900;
+    color: var(--brand-text);
+    background-color: var(--brand-background);
+  }
+}
+
+.text-brandPurple { color: var(--brand-primary) !important; }
+.bg-brandPurple { background-color: var(--brand-primary) !important; }
+.border-brandPurple { border-color: var(--brand-primary) !important; }

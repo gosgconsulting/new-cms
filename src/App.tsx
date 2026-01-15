@@ -16,13 +16,15 @@ import DatabaseViewer from "./pages/DatabaseViewer";
 import PublicDashboard from "./pages/PublicDashboard";
 import TenantLandingPage from "./pages/TenantLandingPage";
 import TenantPage from "./pages/TenantPage";
+import ThankYou from "./pages/ThankYou";
+import Shop from "./pages/Shop";
 
 // Component to handle theme sub-routes - checks if it's a known theme
 const ThemeRouteHandler: React.FC = () => {
   const { tenantSlug } = useParams<{ tenantSlug: string }>();
   
   // Known themes that handle their own routing
-  const knownThemes = ['sissonne', 'landingpage', 'sparti-seo-landing', 'gosgconsulting'];
+  const knownThemes = ['sissonne', 'landingpage', 'sparti-seo-landing', 'gosgconsulting', 'storefront'];
   
   if (tenantSlug && knownThemes.includes(tenantSlug)) {
     // Route to theme component which handles sub-routes
@@ -111,8 +113,18 @@ const App = () => {
             {/* Embed route for iframe access */}
             <Route path="/embed/pages" element={<EmbedPagesManager />} />
             
+<<<<<<< HEAD
             
             {/* Theme routes - check for known themes first */}
+=======
+            {/* Theme routes - check if it's a known theme first, otherwise use TenantPage */}
+            {/* Product route with product name parameter */}
+            <Route path="/theme/:tenantSlug/product/:productname" element={
+              <ErrorBoundary>
+                <ThemeRouteHandler />
+              </ErrorBoundary>
+            } />
+>>>>>>> b4481126fd2057210ab010a05326325d67ea0a10
             <Route path="/theme/:tenantSlug/:pageSlug" element={
               <ErrorBoundary>
                 <TenantLandingPage />
@@ -144,6 +156,12 @@ const App = () => {
             
             {/* Other routes */}
             <Route path="/auth" element={<Auth />} />
+            <Route path="/thank-you" element={<ThankYou />} />
+            <Route path="/shop" element={
+              <ErrorBoundary>
+                <Shop />
+              </ErrorBoundary>
+            } />
             <Route path="/database-viewer" element={<DatabaseViewer />} />
             <Route path="/components-viewer" element={<ComponentsViewer />} />
             <Route path="/dev" element={

@@ -27,8 +27,24 @@ const router = express.Router();
 
 // ===== AUTHENTICATION ROUTES =====
 
+// Async error handler wrapper
+const asyncHandler = (fn) => (req, res, next) => {
+  Promise.resolve(fn(req, res, next)).catch((error) => {
+    console.error('[testing] Unhandled async error in route handler:', error);
+    console.error('[testing] Error stack:', error?.stack);
+    if (!res.headersSent) {
+      res.status(500).json({
+        success: false,
+        error: 'Internal server error',
+        message: error?.message || 'An unexpected error occurred. Please try again.',
+        diagnostic: '/health/database'
+      });
+    }
+  });
+};
+
 // Login endpoint
-router.post('/auth/login', async (req, res) => {
+router.post('/auth/login', asyncHandler(async (req, res) => {
   console.log('[testing] Login attempt started');
   
   try {
@@ -43,11 +59,14 @@ router.post('/auth/login', async (req, res) => {
       });
     } catch (stateError) {
       console.error('[testing] Error getting database state:', stateError);
-      return res.status(500).json({
-        success: false,
-        error: 'Server configuration error',
-        message: 'Unable to check database state. Please check server logs.'
-      });
+      if (!res.headersSent) {
+        return res.status(500).json({
+          success: false,
+          error: 'Server configuration error',
+          message: 'Unable to check database state. Please check server logs.'
+        });
+      }
+      return;
     }
     
     const { dbInitialized, dbInitializationError } = dbState;

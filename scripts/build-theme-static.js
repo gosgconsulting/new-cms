@@ -131,8 +131,8 @@ const App = () => {
         <Sonner />
         <BrowserRouter>
           <Routes>
-            {/* Root shows theme */}
-            <Route path="/" element={
+            {/* All routes handled by theme component (theme handles internal routing) */}
+            <Route path="*" element={
               <ErrorBoundary>
                 <Suspense fallback={null}>
                   <ThemeComponent 
@@ -143,9 +143,6 @@ const App = () => {
                 </Suspense>
               </ErrorBoundary>
             } />
-            
-            {/* Catch all - redirect to theme */}
-            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>

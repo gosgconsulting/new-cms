@@ -45,7 +45,10 @@ const TenantLanding: React.FC<TenantLandingProps> = ({
   const [isContactDialogOpen, setIsContactDialogOpen] = useState(false);
   
   // Check if we're on the thank you page
-  const isThankYouPage = location.pathname.includes('/thank-you');
+  // Match /thank-you exactly or as a path segment (e.g., /thank-you or /theme/landingpage/thank-you)
+  const isThankYouPage = location.pathname === '/thank-you' || 
+                         location.pathname.endsWith('/thank-you') ||
+                         location.pathname.includes('/thank-you');
 
   const handleContactClick = () => {
     setIsContactDialogOpen(true);

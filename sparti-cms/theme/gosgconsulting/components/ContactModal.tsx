@@ -96,29 +96,30 @@ const ContactModal = ({ open, onOpenChange }: ContactModalProps) => {
         <DialogPrimitive.Content
           className={cn(
             "contact-modal-content",
-            "fixed inset-0 z-50 w-full h-full sm:right-0 sm:top-0 sm:left-auto sm:w-[420px] lg:w-[520px] sm:h-screen bg-gradient-to-b from-slate-800 via-slate-700 to-indigo-800 shadow-2xl p-0 overflow-y-auto",
+            "fixed inset-0 z-50 w-full h-full sm:right-0 sm:top-0 sm:left-auto sm:w-[420px] lg:w-[520px] sm:h-screen bg-gray-50 shadow-2xl p-0 overflow-y-auto",
             "will-change-transform"
           )}
         >
           <div className="h-full flex flex-col min-h-screen sm:min-h-0">
             {/* Header with proper mobile padding */}
             <div className="flex items-center justify-between px-4 sm:px-4 py-4 sm:py-3 pt-8 sm:pt-3 safe-area-inset-top">
-              <div className="inline-flex items-center rounded-full border border-white/10 bg-white/5 backdrop-blur px-4 py-2 text-sm text-white/90">
-                Contact Us
-              </div>
+              <span className="text-gray-800 font-semibold text-lg">Contact us</span>
               <Button
                 type="button"
                 variant="ghost"
                 onClick={() => onOpenChange(false)}
-                className="rounded-full text-white hover:text-white/90 p-2"
+                className="rounded-full text-black hover:text-black/80 p-2"
                 aria-label="Close"
               >
-                <X className="h-5 w-5 sm:h-4 sm:w-4" />
+                <X className="h-7 w-7" />
               </Button>
             </div>
             
             {/* Content with proper mobile padding */}
-            <div className="flex-1 px-4 sm:px-4 py-4 pb-8 sm:pb-4 safe-area-inset-bottom">
+            <div className="flex-1 px-4 sm:px-4 py-4 pb-8 sm:pb-4 safe-area-inset-bottom bg-gray-50">
+              <p className="text-gray-600 text-sm mb-4">
+                Tell us about your goals — we'll tailor the scope after a quick consultation.
+              </p>
               <ModalContactForm />
               
               {/* Avatars and WhatsApp below the form */}
@@ -127,7 +128,7 @@ const ContactModal = ({ open, onOpenChange }: ContactModalProps) => {
                 <Button
                   type="button"
                   onClick={handleChooseWhatsApp}
-                  className="rounded-full bg-gradient-to-r from-[#9b87f5] via-[#7E69AB] to-[#0EA5E9] hover:from-[#8c7af2] hover:to-[#0d94dd] text-white px-6 py-4 font-semibold shadow-[0_18px_45px_-10px_rgba(124,58,237,0.55)] transition-all duration-300 w-full sm:w-auto"
+                  className="rounded-full bg-brandPurple text-white hover:bg-brandPurple hover:text-white border border-brandPurple px-6 py-4 font-semibold transition-colors w-full sm:w-auto"
                 >
                   <span className="flex items-center gap-3">
                     <span className="relative inline-flex items-center justify-center w-7 h-7 rounded-full bg-white/20">

@@ -74,6 +74,11 @@ interface PageData {
   page_type: string;
   created_at: string;
   updated_at: string;
+  // Added optional fields used in versioning
+  campaign_source?: string | null;
+  conversion_goal?: string | null;
+  legal_type?: string | null;
+  last_reviewed_date?: string | null;
 }
 
 interface PageLayout {
@@ -859,7 +864,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack, currentTenantId
               JSON Editor
             </Button>
           )}
-          <Button onClick={handleSave} disabled={saving}>
+          <Button onClick={() => handleSave()} disabled={saving}>
             {saving ? (
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
             ) : (

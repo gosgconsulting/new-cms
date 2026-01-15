@@ -336,11 +336,11 @@ export class UniversalElementDetector {
   // Universal method to check if site has specific framework
   static detectFramework(): string {
     const indicators = {
-      'React': () => window.React || document.querySelector('[data-reactroot]'),
-      'Vue': () => window.Vue || document.querySelector('[data-server-rendered]'),
-      'Angular': () => window.ng || document.querySelector('[ng-app], [ng-version]'),
+      'React': () => (window as any).React || document.querySelector('[data-reactroot]'),
+      'Vue': () => (window as any).Vue || document.querySelector('[data-server-rendered]'),
+      'Angular': () => (window as any).ng || document.querySelector('[ng-app], [ng-version]'),
       'WordPress': () => document.querySelector('link[href*="wp-content"]'),
-      'Shopify': () => window.Shopify || document.querySelector('script[src*="shopify"]'),
+      'Shopify': () => (window as any).Shopify || document.querySelector('script[src*="shopify"]'),
       'Squarespace': () => document.querySelector('script[src*="squarespace"]'),
       'Wix': () => document.querySelector('meta[name="generator"][content*="Wix"]'),
     };

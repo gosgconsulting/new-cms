@@ -9,6 +9,7 @@ const SpartiSEOLandingTheme = lazy(() => import('../../sparti-cms/theme/sparti-s
 const GosgConsultingTheme = lazy(() => import('../../sparti-cms/theme/gosgconsulting'));
 const SissonneTheme = lazy(() => import('../../sparti-cms/theme/sissonne'));
 const MasterTheme = lazy(() => import('../../sparti-cms/theme/master'));
+const StorefrontTheme = lazy(() => import('../../sparti-cms/theme/storefront'));
 
 /**
  * Map theme slugs to their display names and components
@@ -34,6 +35,10 @@ const themeConfig: Record<string, { name: string; component: React.LazyExoticCom
   'master': {
     name: 'Master Theme',
     component: MasterTheme
+  },
+  'storefront': {
+    name: 'Storefront',
+    component: StorefrontTheme
   }
 };
 
@@ -47,8 +52,13 @@ const themeConfig: Record<string, { name: string; component: React.LazyExoticCom
  * - Can replace hardcoded values with database values when tenant is assigned
  */
 const TenantLandingPage: React.FC = () => {
+<<<<<<< HEAD
   const { tenantSlug, pageSlug } = useParams<{ tenantSlug: string; pageSlug?: string }>();
   const location = useLocation();
+=======
+  const { tenantSlug, pageSlug, productname } = useParams<{ tenantSlug?: string; pageSlug?: string; productname?: string }>();
+  
+>>>>>>> b4481126fd2057210ab010a05326325d67ea0a10
   const slug = tenantSlug || 'landingpage';
   
   // Get theme config or fallback
@@ -92,7 +102,7 @@ const TenantLandingPage: React.FC = () => {
       <ThemeComponent 
         tenantName={currentTheme.name} 
         tenantSlug={slug}
-        pageSlug={pageSlug}
+        pageSlug={productname ? `product/${productname}` : pageSlug}
       />
     </Suspense>
   );

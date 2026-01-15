@@ -30,6 +30,9 @@ export async function initializeTenantDefaults(tenantId) {
       categories: { inserted: 0, skipped: 0 },
       tags: { inserted: 0, skipped: 0 }
     },
+    ecommerce: {
+      tables_ready: false
+    },
     errors: []
   };
 
@@ -163,6 +166,48 @@ export async function initializeTenantDefaults(tenantId) {
     // Optional: Copy posts from master (if any exist)
     // We'll skip this for now as posts are typically tenant-specific content
 
+    // 9. Ecommerce tables: Verify tables exist (shared tables, tenant-isolated via tenant_id)
+    // Tables are shared across all tenants but data is isolated per tenant using tenant_id
+    // No initial data to insert - store starts empty for each tenant
+    console.log(`[testing] Verifying ecommerce tables exist for tenant ${tenantId}...`);
+    try {
+      const ecommerceTables = [
+        'pern_products',
+        'pern_cart',
+        'pern_cart_item',
+        'pern_orders',
+        'pern_order_item',
+        'pern_reviews'
+      ];
+      
+      let tablesReady = true;
+      for (const tableName of ecommerceTables) {
+        const tableExists = await query(`
+          SELECT EXISTS (
+            SELECT FROM information_schema.tables 
+            WHERE table_schema = 'public' 
+            AND table_name = $1
+          );
+        `, [tableName]);
+        
+        if (!tableExists.rows[0].exists) {
+          console.warn(`[testing] Ecommerce table ${tableName} does not exist. Run migrations: npm run sequelize:migrate`);
+          tablesReady = false;
+          break;
+        }
+      }
+      
+      summary.ecommerce.tables_ready = tablesReady;
+      if (tablesReady) {
+        console.log(`[testing] Ecommerce tables verified - store is ready for tenant ${tenantId} (empty initially)`);
+        console.log(`[testing] Note: Ecommerce tables are shared but tenant-isolated via tenant_id column`);
+      }
+    } catch (ecommerceError) {
+      console.error(`[testing] Error verifying ecommerce tables:`, ecommerceError);
+      summary.errors.push(`Ecommerce tables verification: ${ecommerceError.message}`);
+      summary.ecommerce.tables_ready = false;
+    }
+
     console.log(`[testing] Tenant initialization complete for ${tenantId}`);
     console.log(`[testing] Summary:`, JSON.stringify(summary, null, 2));
     console.log(`[testing] Note: Shared tables (Blog, Settings, SEO, Branding) use master data (tenant_id = NULL) accessible to all tenants`);
@@ -171,14 +216,16 @@ export async function initializeTenantDefaults(tenantId) {
     // Format summary for API response
     const formattedSummary = {
       total: (summary.sitemap.inserted || 0) + 
-             (summary.media.folders.inserted || 0),
+             (summary.media.folders.inserted || 0) +
+             (summary.ecommerce.tables_ready ? 1 : 0),
       settings: 0, // Settings accessed from master, not copied
       branding: 0, // Branding accessed from master, not copied
       sitemap: summary.sitemap.inserted || 0,
       media_folders: summary.media.folders.inserted || 0,
       robots: 0, // No longer copying - tenants access master data
       categories: 0, // No longer copying - tenants access master data
-      tags: 0 // No longer copying - tenants access master data
+      tags: 0, // No longer copying - tenants access master data
+      ecommerce: summary.ecommerce.tables_ready ? 1 : 0
     };
 
     return {

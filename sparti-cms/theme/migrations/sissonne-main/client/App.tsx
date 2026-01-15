@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Layout } from "./components/Layout";
-import { SpartiBuilder } from "@sparti";
+import { SpartiBuilder } from "../sparti-builder";
 import Index from "./pages/Index";
 import Programs from "./pages/Programs";
 import Faculty from "./pages/Faculty";
