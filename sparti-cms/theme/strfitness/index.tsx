@@ -8,18 +8,12 @@ interface TenantLandingProps {
   tenantId?: string | null;
 }
 
-/**
- * STR Fitness Theme
- * Premium, physiotherapy-informed 1-on-1 Personal Training landing page.
- * - Tenant-aware via useThemeBranding/useThemeStyles
- * - Simple, performance-focused, outcome-oriented sections
- */
 const STRFitnessTheme: React.FC<TenantLandingProps> = ({
   tenantName = 'STR Fitness',
   tenantSlug = 'strfitness',
   tenantId
 }) => {
-  // Determine effective tenant ID: prefer prop, then window injection, then null
+  // Effective tenant ID (stable calculation with useMemo)
   const effectiveTenantId = useMemo(() => {
     if (tenantId) return tenantId;
     if (typeof window !== 'undefined' && (window as any).__CMS_TENANT__) {
@@ -28,32 +22,29 @@ const STRFitnessTheme: React.FC<TenantLandingProps> = ({
     return null;
   }, [tenantId]);
 
-  // Tenant-aware branding and style settings
+  // Hooks are called unconditionally and always in the same order
   const { branding, loading: brandingLoading, error: brandingError } = useThemeBranding(tenantSlug, effectiveTenantId ?? undefined);
   const { styles, loading: stylesLoading, error: stylesError } = useThemeStyles(tenantSlug, effectiveTenantId ?? undefined);
 
-  // Derived presentation values with safe fallbacks
+  // Favicon side-effect (safe, unconditional)
+  useEffect(() => {
+    const favicon = branding?.site_favicon || null;
+    if (!favicon) return;
+    let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement | null;
+    if (!link) {
+      link = document.createElement('link');
+      link.rel = 'icon';
+      document.head.appendChild(link);
+    }
+    link.href = favicon;
+  }, [branding?.site_favicon]);
+
+  // Derived presentation values
   const siteName = branding?.site_name || tenantName;
   const siteTagline = branding?.site_tagline || '1‑on‑1 Personal Training';
   const logoSrc = branding?.site_logo || null;
 
-  // Optional favicon application
-  useEffect(() => {
-    const favicon = branding?.site_favicon || null;
-    if (!favicon) return;
-    const applyFavicon = () => {
-      let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement | null;
-      if (!link) {
-        link = document.createElement('link');
-        link.rel = 'icon';
-        document.head.appendChild(link);
-      }
-      link.href = favicon;
-    };
-    applyFavicon();
-  }, [branding?.site_favicon]);
-
-  // Loading state
+  // Loading UI
   if (brandingLoading || stylesLoading) {
     return (
       <div className="min-h-screen theme-bg flex items-center justify-center">
@@ -65,13 +56,12 @@ const STRFitnessTheme: React.FC<TenantLandingProps> = ({
     );
   }
 
-  // Proceed even if branding/styles errors occur (use fallbacks)
+  // Log errors but continue with fallbacks
   if (brandingError || stylesError) {
     if (brandingError) console.warn('[strfitness-theme] Branding load error:', brandingError);
     if (stylesError) console.warn('[strfitness-theme] Styles load error:', stylesError);
   }
 
-  // Local CTA modal state (simple placeholder)
   const [contactOpen, setContactOpen] = useState(false);
 
   return (
@@ -106,13 +96,13 @@ const STRFitnessTheme: React.FC<TenantLandingProps> = ({
       {/* Main */}
       <main className="flex-1">
         {/* HERO */}
-        <section className="relative border-b border-border/60">
+        <section className="relative">
           <div className="max-w-6xl mx-auto px-4 py-16 md:py-24">
             <h1 className="text-4xl md:text-5xl font-bold leading-tight mb-4">
               1‑on‑1 Personal Training for Performance and Longevity
             </h1>
             <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mb-8">
-              Personalised coaching in a physiotherapy‑informed environment. Assessment‑led, structured, and built for long‑term results—whether you’re returning from injury, preparing for competition, or investing in your health.
+              Personalised coaching in a physiotherapy‑informed environment. Assessment‑led, structured, and built for long‑term results—whether you're returning from injury, preparing for competition, or investing in your health.
             </p>
             <div className="flex gap-3">
               <button
@@ -137,7 +127,7 @@ const STRFitnessTheme: React.FC<TenantLandingProps> = ({
         </section>
 
         {/* VALUE PROPOSITION */}
-        <section className="border-b border-border/60">
+        <section className="border-t border-border/60">
           <div className="max-w-6xl mx-auto px-4 py-12 md:py-16">
             <h2 className="text-2xl md:text-3xl font-semibold mb-4">Personal Training, Not a Membership</h2>
             <p className="text-muted-foreground max-w-3xl mb-4">
@@ -150,7 +140,7 @@ const STRFitnessTheme: React.FC<TenantLandingProps> = ({
         </section>
 
         {/* WHY 1-ON-1 AT STR */}
-        <section id="why" className="border-b border-border/60">
+        <section id="why" className="border-t border-border/60">
           <div className="max-w-6xl mx-auto px-4 py-12 md:py-16">
             <h2 className="text-2xl md:text-3xl font-semibold mb-6">Why 1‑on‑1 at STR</h2>
             <ul className="grid md:grid-cols-2 gap-4 text-sm md:text-base">
@@ -165,9 +155,9 @@ const STRFitnessTheme: React.FC<TenantLandingProps> = ({
         </section>
 
         {/* WHO IT'S FOR */}
-        <section className="border-b border-border/60">
+        <section className="border-t border-border/60">
           <div className="max-w-6xl mx-auto px-4 py-12 md:py-16">
-            <h2 className="text-2xl md:text-3xl font-semibold mb-4">Who It’s For</h2>
+            <h2 className="text-2xl md:text-3xl font-semibold mb-4">Who It's For</h2>
             <ul className="list-disc pl-6 space-y-2 text-muted-foreground max-w-3xl">
               <li>Beginners who want proper guidance and a clear plan</li>
               <li>Athletes and HYROX competitors sharpening performance</li>
@@ -178,7 +168,7 @@ const STRFitnessTheme: React.FC<TenantLandingProps> = ({
         </section>
 
         {/* COACHING APPROACH */}
-        <section className="border-b border-border/60">
+        <section className="border-t border-border/60">
           <div className="max-w-6xl mx-auto px-4 py-12 md:py-16">
             <h2 className="text-2xl md:text-3xl font-semibold mb-4">Coaching Approach</h2>
             <div className="grid md:grid-cols-4 gap-4">
@@ -206,7 +196,7 @@ const STRFitnessTheme: React.FC<TenantLandingProps> = ({
         </section>
 
         {/* COACH CREDENTIALS (SUMMARY) */}
-        <section className="border-b border-border/60">
+        <section className="border-t border-border/60">
           <div className="max-w-6xl mx-auto px-4 py-12 md:py-16">
             <h2 className="text-2xl md:text-3xl font-semibold mb-4">Coach Credentials</h2>
             <div className="max-w-3xl space-y-3 text-muted-foreground">
@@ -219,7 +209,7 @@ const STRFitnessTheme: React.FC<TenantLandingProps> = ({
         </section>
 
         {/* LOCATION & CTA */}
-        <section className="border-b border-border/60">
+        <section className="border-t border-border/60">
           <div className="max-w-6xl mx-auto px-4 py-12 md:py-16">
             <h2 className="text-2xl md:text-3xl font-semibold mb-3">Location</h2>
             <p className="text-muted-foreground mb-6">Private training space in Singapore. Sessions by appointment only.</p>
@@ -242,7 +232,7 @@ const STRFitnessTheme: React.FC<TenantLandingProps> = ({
         </div>
       </footer>
 
-      {/* Simple placeholder for contact modal */}
+      {/* Contact modal */}
       {contactOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4" onClick={() => setContactOpen(false)}>
           <div className="bg-background rounded-lg p-6 w-full max-w-md border border-border" onClick={(e) => e.stopPropagation()}>
