@@ -1873,7 +1873,7 @@ router.get('/clients', authenticateUser, async (req, res) => {
           order: 'desc'
         });
 
-        const customers = wcCustomers.map((wcCustomer: any) => ({
+        const customers = wcCustomers.map((wcCustomer) => ({
           id: `wc-${wcCustomer.id}`,
           email: wcCustomer.email || null,
           first_name: wcCustomer.first_name || null,
@@ -1896,7 +1896,7 @@ router.get('/clients', authenticateUser, async (req, res) => {
         }));
 
         return res.json(customers);
-      } catch (wcError: any) {
+      } catch (wcError) {
         console.error('[testing] Error fetching WooCommerce customers:', wcError);
         // Fallback to database if WooCommerce fails
       }
@@ -1921,7 +1921,7 @@ router.get('/clients', authenticateUser, async (req, res) => {
       ORDER BY COALESCE(customer_email, ''), created_at DESC
     `, [tenantId]);
 
-    const clients = result.rows.map((row: any) => ({
+    const clients = result.rows.map((row) => ({
       id: `sparti-${row.email}`,
       email: row.email,
       first_name: row.first_name,
@@ -1936,7 +1936,7 @@ router.get('/clients', authenticateUser, async (req, res) => {
     }));
 
     res.json(clients);
-  } catch (error: any) {
+  } catch (error) {
     console.error('[testing] Error getting clients:', error);
     res.status(500).json({ 
       success: false, 

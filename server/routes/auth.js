@@ -522,7 +522,7 @@ router.post('/auth/login', asyncHandler(async (req, res) => {
       errorCode: error?.code
     });
   }
-});
+}));
 
 // REGISTER endpoint expected by the frontend
 router.post('/auth/register', async (req, res) => {
