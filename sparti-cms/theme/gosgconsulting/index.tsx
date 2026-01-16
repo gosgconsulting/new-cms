@@ -166,17 +166,43 @@ const GOSGContent: React.FC<TenantLandingProps> = ({
     ]
   };
 
-  // NEW: SEO page schema override
+  // UPDATED: SEO page schema with same structure as homepage, content tailored to SEO
   const seoData = {
     slug: 'seo',
     meta: homepageData.meta,
     components: [
-      // Keep hero and challenge
-      homepageData.components[0],
-      homepageData.components[1],
-      // About section
-      homepageData.components[2],
-      // Pricing with SEO offer override
+      // Hero (same component, SEO copy)
+      {
+        key: "MainHeroSection",
+        name: "Hero",
+        type: "HomeHeroSection",
+        items: [
+          { key: "headingPrefix", type: "heading", level: 1, content: "Grow organic traffic with" },
+          { key: "headingEmphasis", type: "heading", level: 1, content: "SEO that compounds" }
+        ]
+      },
+      // Challenge (same component, SEO-specific pain points)
+      {
+        key: "ProblemSection",
+        name: "Problem",
+        type: "ChallengeSection",
+        items: [
+          { key: "hint", type: "text", content: "Struggling to get found on Google?" },
+          { key: "heading", type: "heading", level: 2, content: "You're not ranking — and leads stall" },
+          {
+            key: "bullets",
+            type: "array",
+            items: [
+              { key: "b1", type: "text", content: "Content consistency is missing", icon: "x" },
+              { key: "b2", type: "text", content: "No quality backlinks to build authority", icon: "link" },
+              { key: "b3", type: "text", content: "No transparent reporting or iteration", icon: "barChart3" }
+            ]
+          }
+        ]
+      },
+      // About (unchanged)
+      { key: "AnimatedAboutSection", name: "Animated About", type: "AboutSection2", items: [] },
+      // Pricing (override for SEO offer)
       {
         key: "PricingPageSection",
         name: "Pricing",
@@ -198,31 +224,50 @@ const GOSGContent: React.FC<TenantLandingProps> = ({
           }
         ]
       },
-      // What's Included section tailored to SEO offer
+      // Gallery4Section: replace content with 3 sections (structure preserved)
       {
-        key: "WhatsIncluded",
+        key: "Gallery4Section",
         name: "What's Included",
-        type: "WhatsIncludedSection",
+        type: "Gallery4Section",
         items: [
-          { key: "included", title: "What's included", items: [
-            "12 blog articles per month",
-            "10 external backlinks per month",
-            "Monthly reports"
-          ]},
-          { key: "process", title: "Process", steps: [
-            "SEO Audit",
-            "Keywords research",
-            "Topics suggestions",
-            "Approval",
-            "Writing"
-          ]},
-          { key: "price", title: "Price", content: "$600 SGD / month" }
+          {
+            id: "blog-articles",
+            title: "Blog Articles",
+            description: "Publish consistent, SEO-optimized content to build topical authority and drive organic growth.",
+            bullets: [
+              "12 blog articles per month",
+              "Keyword-led topics and outlines",
+              "SEO-optimized content"
+            ],
+            image: "/assets/seo/blog-articles.svg"
+          },
+          {
+            id: "backlinks",
+            title: "Backlinks",
+            description: "Grow domain authority with quality external links acquired through outreach and trusted placements.",
+            bullets: [
+              "10 external backlinks per month",
+              "Relevant placements from trusted sites",
+              "Natural anchor strategy"
+            ],
+            image: "/assets/seo/backlinks.svg"
+          },
+          {
+            id: "monthly-report",
+            title: "Monthly Report",
+            description: "Stay informed with transparent reporting and next steps to keep improving results.",
+            bullets: [
+              "Monthly performance report",
+              "Insights and recommendations",
+              "Next‑month plan"
+            ],
+            image: "/assets/seo/monthly-report.svg"
+          }
         ]
       }
     ]
   };
 
-  // Decide which schema to render
   const pageData = pageSlug === 'seo' ? seoData : homepageData;
 
   const handleContactClick = () => {
@@ -353,7 +398,6 @@ const GOSGTheme: React.FC<TenantLandingProps> = ({
       case undefined:
         return <GOSGContent tenantName={tenantName} tenantSlug={tenantSlug} />;
       case 'seo':
-        // Render SEO-specific content
         return <GOSGContent tenantName={tenantName} tenantSlug={tenantSlug} pageSlug="seo" />;
       case 'thank-you':
         return <ThankYouPage tenantName={tenantName} tenantSlug={tenantSlug} tenantId={undefined} />;

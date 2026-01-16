@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">
+  <defs>
+    <linearGradient id="g3" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1F2937"/>
+      <stop offset="100%" stop-color="#111827"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="800" fill="url(#g3)"/>
+  <g stroke="#4F46E5" stroke-width="6" opacity="0.4" fill="none">
+    <path d="M120 600 C 320 480, 520 700, 720 540 S 1020 420, 1120 520"/>
+  </g>
+  <text x="50%" y="50%" font-size="64" text-anchor="middle" fill="#FFFFFF" font-family="Inter, Arial" dy="-16">Monthly Report</text>
+  <text x="50%" y="50%" font-size="28" text-anchor="middle" fill="#E5E7EB" font-family="Inter, Arial" dy="40">Insights, recommendations, next steps</text>
+</svg>

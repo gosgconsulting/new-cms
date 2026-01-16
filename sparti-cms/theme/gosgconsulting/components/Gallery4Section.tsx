@@ -14,59 +14,67 @@ interface Gallery4SectionProps {
   onContactClick?: () => void;
 }
 
-const Gallery4Section: React.FC<Gallery4SectionProps> = ({ onContactClick }) => {
+const Gallery4Section: React.FC<Gallery4SectionProps> = ({ items = [], onContactClick }) => {
   const { openPopup } = usePopup();
 
-  const sections: InfoSection[] = [
-    {
-      id: 'website-conversion',
-      title: 'Website & Conversion',
-      description:
-        'We design and improve high‑converting landing pages with continuous optimization, A/B testing, and conversion tracking.',
-      services: [
-        'High-converting landing page',
-        'A/B testing and conversion tracking',
-        'Monthly conversion improvements',
-      ],
-      image:
-        'https://images.unsplash.com/photo-1467232004584-a241de8bcf5d?w=900&auto=format&fit=crop&q=80',
-    },
-    {
-      id: 'acquisition',
-      title: 'Acquisition',
-      description:
-        'Drive qualified traffic with paid acquisition across search and social, supported by smart retargeting.',
-      services: ['SEM (Search Ads)', 'Social Ads', 'Retargeting'],
-      image:
-        'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=900&auto=format&fit=crop&q=80',
-    },
-    {
-      id: 'creative-production',
-      title: 'Creative Production',
-      description:
-        'Consistent, branded creative assets that power your ads and social presence, plus copywriting that converts.',
-      services: [
-        'Branded creative assets (ads & social)',
-        'Copywriting for conversion',
-        'Design system & brand consistency',
-      ],
-      image:
-        'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=900&auto=format&fit=crop&q=80',
-    },
-    {
-      id: 'seo',
-      title: 'SEO',
-      description:
-        'Build compounding organic growth through premium backlinks, SEO content, and ongoing technical checks.',
-      services: [
-        'Premium SEO backlinks',
-        'SEO-optimized articles',
-        'Technical SEO checks',
-      ],
-      image:
-        'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=900&auto=format&fit=crop&q=80',
-    },
-  ];
+  const sections: InfoSection[] = items.length > 0
+    ? items.map((it: any, idx: number) => ({
+        id: it.id ?? `section-${idx}`,
+        title: it.title ?? '',
+        description: it.description ?? '',
+        services: it.services ?? it.bullets ?? [],
+        image: it.image ?? '/placeholder.svg',
+      }))
+    : [
+      {
+        id: 'website-conversion',
+        title: 'Website & Conversion',
+        description:
+          'We design and improve high‑converting landing pages with continuous optimization, A/B testing, and conversion tracking.',
+        services: [
+          'High-converting landing page',
+          'A/B testing and conversion tracking',
+          'Monthly conversion improvements',
+        ],
+        image:
+          'https://images.unsplash.com/photo-1467232004584-a241de8bcf5d?w=900&auto=format&fit=crop&q=80',
+      },
+      {
+        id: 'acquisition',
+        title: 'Acquisition',
+        description:
+          'Drive qualified traffic with paid acquisition across search and social, supported by smart retargeting.',
+        services: ['SEM (Search Ads)', 'Social Ads', 'Retargeting'],
+        image:
+          'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=900&auto=format&fit=crop&q=80',
+      },
+      {
+        id: 'creative-production',
+        title: 'Creative Production',
+        description:
+          'Consistent, branded creative assets that power your ads and social presence, plus copywriting that converts.',
+        services: [
+          'Branded creative assets (ads & social)',
+          'Copywriting for conversion',
+          'Design system & brand consistency',
+        ],
+        image:
+          'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=900&auto=format&fit=crop&q=80',
+      },
+      {
+        id: 'seo',
+        title: 'SEO',
+        description:
+          'Build compounding organic growth through premium backlinks, SEO content, and ongoing technical checks.',
+        services: [
+          'Premium SEO backlinks',
+          'SEO-optimized articles',
+          'Technical SEO checks',
+        ],
+        image:
+          'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=900&auto=format&fit=crop&q=80',
+      },
+    ];
 
   const handleLearnMore = () => {
     if (onContactClick) {
