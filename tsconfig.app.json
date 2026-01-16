@@ -26,5 +26,10 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src", "sparti-cms"]
+  "include": ["src", "sparti-cms"],
+  "exclude": [
+    "sparti-cms/theme/**/node_modules/**",
+    "sparti-cms/theme/masterastrowind/**",
+    "sparti-cms/theme/migrations/**"
+  ]
 }

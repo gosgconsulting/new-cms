@@ -200,7 +200,9 @@ const CodeViewerDialog: React.FC<CodeViewerDialogProps> = ({
             </div>
           ) : (
             <div
-              ref={(el) => (editorRef.current = el)}
+              ref={(el) => {
+                editorRef.current = el;
+              }}
               className="w-full h-full p-4 outline-none font-mono text-sm border border-gray-300 rounded overflow-auto bg-white"
               style={{
                 minHeight: 400,

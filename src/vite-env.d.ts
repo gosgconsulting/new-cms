@@ -11,3 +11,26 @@ interface ImportMetaEnv {
 interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
+
+// React Three Fiber JSX bridge
+// In some setups (notably with newer React/TS JSX typings), R3F's intrinsic elements
+// may not be picked up automatically. Declare the minimal tags we use.
+declare namespace React {
+  namespace JSX {
+    interface IntrinsicElements {
+      mesh: any;
+      planeGeometry: any;
+      shaderMaterial: any;
+    }
+  }
+}
+
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      mesh: any;
+      planeGeometry: any;
+      shaderMaterial: any;
+    }
+  }
+}

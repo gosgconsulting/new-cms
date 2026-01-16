@@ -4,7 +4,7 @@ import React from "react";
 import { motion, Variants } from "framer-motion";
 import { cn } from "../../lib/utils";
 
-type AsTag = keyof JSX.IntrinsicElements;
+type AsTag = keyof React.JSX.IntrinsicElements;
 
 interface TimelineContentProps {
   as?: AsTag;
@@ -27,7 +27,7 @@ export function TimelineContent({
   className,
   children,
 }: TimelineContentProps) {
-  const Component: any = motion[as] || motion.div;
+  const Component: any = (motion as any)[as] || motion.div;
 
   const defaultVariants: Variants = {
     visible: { opacity: 1, y: 0, filter: "blur(0px)", transition: { duration: 0.6 } },
@@ -51,4 +51,3 @@ export function TimelineContent({
 }
 
 export default TimelineContent;
-
