@@ -4,7 +4,6 @@ import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 import { Send } from "lucide-react";
 import { getTenantId } from "../../../utils/tenantConfig";
-import { useNavigate } from "react-router-dom";
 
 type ModalContactFormProps = {
   className?: string;
@@ -19,7 +18,6 @@ const ModalContactForm: React.FC<ModalContactFormProps> = ({ className = "" }) =
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState("");
-  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,8 +67,12 @@ const ModalContactForm: React.FC<ModalContactFormProps> = ({ className = "" }) =
       setCompany("");
       setMessage("");
 
-      // Redirect to thank-you page instead of showing success message
-      navigate('/thank-you');
+      // Redirect to thank-you page using window.location for full URL navigation
+      // This ensures correct navigation in standalone theme deployments
+      const currentPath = window.location.pathname;
+      const basePath = currentPath.replace(/\/thank-you$/, '') || '/';
+      const thankYouPath = basePath === '/' ? '/thank-you' : `${basePath}/thank-you`;
+      window.location.href = thankYouPath;
       
     } catch (error) {
       setSubmitStatus('error');

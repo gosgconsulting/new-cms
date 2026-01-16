@@ -14,6 +14,7 @@ import Cart from './pages/Cart';
 import Product from './pages/Product';
 import Checkout from './pages/Checkout';
 import NotFound from './pages/NotFound';
+import { ThankYouPage } from './components/ThankYouPage';
 
 interface TenantLandingProps {
   tenantName?: string;
@@ -227,6 +228,20 @@ const GOSGTheme: React.FC<TenantLandingProps> = ({
     // Otherwise, extract from pathname
     const pathParts = location.pathname.split('/').filter(Boolean);
     const themeIndex = pathParts.indexOf(tenantSlug);
+    
+    // Handle standalone deployment (pathname doesn't include /theme/gosgconsulting/)
+    // In standalone mode, pathname is like /thank-you, /shop, etc.
+    if (themeIndex < 0) {
+      // Standalone mode: pathname is directly the page slug
+      // Check if it's a product route
+      if (pathParts[0] === 'product' && pathParts.length > 1) {
+        return 'product';
+      }
+      // Return the first path part as the page slug (e.g., 'thank-you', 'shop', etc.)
+      return pathParts[0] || '';
+    }
+    
+    // Theme mode: pathname includes /theme/gosgconsulting/
     if (themeIndex >= 0 && themeIndex < pathParts.length - 1) {
       const nextPart = pathParts[themeIndex + 1];
       // Check if it's a product route
@@ -266,6 +281,8 @@ const GOSGTheme: React.FC<TenantLandingProps> = ({
       case '':
       case undefined:
         return <GOSGContent tenantName={tenantName} tenantSlug={tenantSlug} />;
+      case 'thank-you':
+        return <ThankYouPage tenantName={tenantName} tenantSlug={tenantSlug} tenantId={undefined} />;
       case 'shop':
         return <Shop />;
       case 'cart':
