@@ -1,9 +1,28 @@
 :root {
   /* Visual hints; actual colors come from styles loaded via the CMS */
 }
+
+/* Master theme: editorial + conversion-focused defaults */
 .theme-bg {
   background-color: hsl(var(--background));
 }
+
 .theme-primary-border {
   border-color: hsl(var(--primary));
+}
+
+/* Subtle readability improvements */
+html {
+  text-rendering: geometricPrecision;
+}
+
+body {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+
+h1,
+h2,
+h3 {
+  letter-spacing: -0.02em;
 }
