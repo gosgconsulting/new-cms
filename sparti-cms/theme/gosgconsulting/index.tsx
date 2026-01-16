@@ -118,7 +118,11 @@ const GOSGContent: React.FC<TenantLandingProps> = ({
       console.log('[testing] Branding settings loaded:', branding);
     }
   }, [branding, brandingError]);
-  
+
+  const handleContactClick = () => {
+    setContactModalOpen(true);
+  };
+
   // Complete homepage data with all GOSG sections
   // Use dynamic site name and tagline from branding settings
   const homepageData = {
@@ -163,7 +167,46 @@ const GOSGContent: React.FC<TenantLandingProps> = ({
       // Section 4 — Pricing Page
       { key: "PricingPageSection", name: "Pricing", type: "PricingPage", items: [] },
       // Section 5 — Gallery4 services
-      { key: "Gallery4Section", name: "Our Services", type: "Gallery4Section", items: [] }
+      { key: "Gallery4Section", name: "Our Services", type: "Gallery4Section", items: [] },
+      // NEW: FAQ
+      {
+        key: "FAQSection",
+        name: "FAQ",
+        type: "FAQSection",
+        items: [
+          {
+            question: "What does 'full‑stack growth' mean?",
+            answer: "We handle the full funnel end-to-end: positioning, website conversion, SEO, paid ads, creatives, and tracking—so every channel works together to drive revenue."
+          },
+          {
+            question: "How fast will I see results?",
+            answer: "Paid ads can generate leads quickly, while SEO compounds over time. We'll align the plan to your goals and share clear performance reporting month-to-month."
+          },
+          {
+            question: "Do you work with my existing website?",
+            answer: "Yes. We can optimize your current site for conversions and SEO, or rebuild key pages where needed—without disrupting your brand."
+          },
+          {
+            question: "Is this a good fit for small businesses?",
+            answer: "Yes. We tailor scopes to your stage—whether you need a consistent lead pipeline, better conversion rates, or a complete growth system."
+          }
+        ]
+      },
+      // NEW: Pre-footer CTA banner
+      {
+        key: "PreFooterCTA",
+        name: "CTA",
+        type: "CTASection",
+        items: [
+          {
+            heading: "Ready to turn traffic into revenue?",
+            description: "Get a clear growth plan tailored to your business in a free strategy call.",
+            primaryLabel: "Get free consultation",
+            secondaryLabel: "See results",
+            secondaryHref: `/theme/${tenantSlug}/blog`
+          }
+        ]
+      }
     ]
   };
 
@@ -271,16 +314,51 @@ const GOSGContent: React.FC<TenantLandingProps> = ({
             image: "/assets/seo/data-you-trust.svg"
           }
         ]
+      },
+      // NEW: FAQ
+      {
+        key: "FAQSection",
+        name: "FAQ",
+        type: "FAQSection",
+        items: [
+          {
+            question: "How long does SEO take to work?",
+            answer: "SEO compounds. You may see early movement in weeks, but meaningful growth typically builds over 3–6 months depending on competition and your starting point."
+          },
+          {
+            question: "What's included in your monthly SEO service?",
+            answer: "Keyword research, topic planning, content production, link building, on-page improvements, and a transparent monthly report with next steps."
+          },
+          {
+            question: "Do you guarantee #1 rankings?",
+            answer: "No one can honestly guarantee exact rankings. We focus on the work that reliably increases visibility and qualified traffic—then we measure outcomes with clear reporting."
+          },
+          {
+            question: "Can you target local searches in Singapore?",
+            answer: "Yes. We optimize for local intent, service areas, and high-value keywords, and we structure content to capture leads—not just traffic."
+          }
+        ]
+      },
+      // NEW: Pre-footer CTA banner
+      {
+        key: "PreFooterCTA",
+        name: "CTA",
+        type: "CTASection",
+        items: [
+          {
+            heading: "Want SEO that compounds every month?",
+            description: "Let's map out your keywords, content plan, and backlink strategy in a free consultation.",
+            primaryLabel: "Get free SEO consultation",
+            secondaryLabel: "Read SEO insights",
+            secondaryHref: `/theme/${tenantSlug}/blog`
+          }
+        ]
       }
     ]
   };
 
   const pageData = pageSlug === 'seo' ? seoData : homepageData;
 
-  const handleContactClick = () => {
-    setContactModalOpen(true);
-  };
-  
   return (
     <div className="min-h-screen flex flex-col">
       {/* SEO metadata */}

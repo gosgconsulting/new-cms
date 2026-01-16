@@ -14,7 +14,9 @@
         { "id": "challenge", "name": "Challenge Section", "description": "Problem/solution layout with animated timeline and pain points" },
         { "id": "about", "name": "Animated About Section", "description": "Vision into reality section with feature highlights" },
         { "id": "pricing", "name": "Pricing Section", "description": "Comprehensive pricing plans with features and CTAs" },
-        { "id": "services", "name": "Services Gallery", "description": "Gallery showcase of all digital marketing services" }
+        { "id": "services", "name": "Services Gallery", "description": "Gallery showcase of all digital marketing services" },
+        { "id": "faq", "name": "FAQ", "description": "Frequently asked questions accordion" },
+        { "id": "cta", "name": "Call to Action Banner", "description": "Marketing hook + CTA before footer" }
       ]
     },
     {
@@ -31,7 +33,9 @@
         { "id": "challenge", "name": "Challenge Section", "description": "Problem/solution layout with animated timeline and pain points" },
         { "id": "about", "name": "Animated About Section", "description": "Vision into reality section with feature highlights" },
         { "id": "pricing", "name": "Pricing Section", "description": "Comprehensive pricing plans with features and CTAs" },
-        { "id": "services", "name": "Services Gallery", "description": "Gallery showcase of all digital marketing services" }
+        { "id": "services", "name": "Services Gallery", "description": "Gallery showcase of all digital marketing services" },
+        { "id": "faq", "name": "FAQ", "description": "SEO service FAQs" },
+        { "id": "cta", "name": "Call to Action Banner", "description": "Marketing hook + CTA before footer" }
       ]
     },
     {
