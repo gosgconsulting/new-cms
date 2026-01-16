@@ -4,7 +4,34 @@
       "page_name": "Homepage",
       "slug": "/",
       "meta_title": "Optimal Consulting",
-      "meta_description": "Optimal Consulting homepage preview",
+      "meta_description": "Strategic leadership and talent optimisation consulting across Asia.",
+      "seo_index": true,
+      "status": "published",
+      "page_type": "page"
+    },
+    {
+      "page_name": "Services - Assessments",
+      "slug": "/services/assessments",
+      "meta_title": "Assessments - Optimal Consulting",
+      "meta_description": "Evidence-based psychometrics and leadership diagnostics.",
+      "seo_index": true,
+      "status": "published",
+      "page_type": "page"
+    },
+    {
+      "page_name": "Services - Academy",
+      "slug": "/services/academy",
+      "meta_title": "Academy - Optimal Consulting",
+      "meta_description": "Capability building for leaders and HR teams across Asia.",
+      "seo_index": true,
+      "status": "published",
+      "page_type": "page"
+    },
+    {
+      "page_name": "Services - Consulting",
+      "slug": "/services/consulting",
+      "meta_title": "Consulting - Optimal Consulting",
+      "meta_description": "Strategic workforce and leadership optimisation consulting.",
       "seo_index": true,
       "status": "published",
       "page_type": "page"
@@ -12,8 +39,8 @@
     {
       "page_name": "Blog",
       "slug": "/blog",
-      "meta_title": "Blog - Optimal Consulting",
-      "meta_description": "Blog page (Optimal Consulting)",
+      "meta_title": "Insights - Optimal Consulting",
+      "meta_description": "Insights for executives and HR leaders.",
       "seo_index": true,
       "status": "published",
       "page_type": "page"
@@ -21,8 +48,8 @@
     {
       "page_name": "Shop",
       "slug": "/shop",
-      "meta_title": "Shop - Optimal Consulting",
-      "meta_description": "Shop page (Optimal Consulting)",
+      "meta_title": "Offerings - Optimal Consulting",
+      "meta_description": "Starter engagements to begin your talent optimisation journey.",
       "seo_index": true,
       "status": "published",
       "page_type": "page"

@@ -1,6 +1,22 @@
-import React, { useMemo, useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import './theme.css';
 import { useThemeBranding, useThemeStyles } from '../../hooks/useThemeSettings';
+import {
+  ArrowRight,
+  BarChart3,
+  BookOpen,
+  Briefcase,
+  Building2,
+  CheckCircle2,
+  Download,
+  Globe,
+  ShieldCheck,
+  Sparkles,
+  Users,
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 
 interface TenantLandingProps {
   tenantName?: string;
@@ -9,43 +25,79 @@ interface TenantLandingProps {
   pageSlug?: string;
 }
 
-type PageKey = 'home' | 'blog' | 'blogPost' | 'shop' | 'product';
+type PageKey = 'home' | 'blog' | 'blogPost' | 'shop' | 'product' | 'service';
 
-const BLOG_POSTS = [
-  {
-    slug: 'welcome-to-optimal',
-    title: 'Welcome to Optimal Consulting',
-    excerpt: 'A clean starting point for tenant-aware consulting sites.',
-    body: [
-      'This is a minimal blog page intended to verify routing and future CMS wiring.',
-      'Replace this static content with CMS-driven content when ready.',
-    ],
-  },
-  {
-    slug: 'consulting-basics',
-    title: 'Consulting basics with tenant-aware styles',
-    excerpt: 'Branding + styles loaded via public API make themes reusable across tenants.',
-    body: [
-      'Branding (name/logo/favicon) and styles (colors/typography) can be loaded via public API.',
-      'Start hardcoded, then enable CMS when a tenant is assigned.',
-    ],
-  },
-] as const;
+type ServiceKey = 'assessments' | 'academy' | 'consulting';
 
-const SHOP_PRODUCTS = [
+const SERVICES: Array<{
+  key: ServiceKey;
+  title: string;
+  description: string;
+  benefit: string;
+  metric: string;
+  icon: React.ReactNode;
+}> = [
   {
-    slug: 'discovery-session',
-    name: 'Discovery Session',
-    price: '$99',
-    description: 'A placeholder product to validate /shop routing and page structure.',
+    key: 'assessments',
+    title: 'Assessments',
+    description: 'Evidence-based psychometrics and leadership diagnostics for selection and development.',
+    benefit: 'Make faster, higher-confidence talent decisions with predictive insight.',
+    metric: 'Up to 3× faster shortlisting',
+    icon: <BarChart3 className="h-5 w-5" />,
   },
   {
-    slug: 'strategy-workshop',
-    name: 'Strategy Workshop',
-    price: '$499',
-    description: 'Replace with real products when you connect a store.',
+    key: 'academy',
+    title: 'Academy',
+    description: 'Capability building for leaders, HR teams, and internal coaches—across Asia.',
+    benefit: 'Scale leadership standards with consistent assessment language and tools.',
+    metric: '90%+ participant satisfaction',
+    icon: <Users className="h-5 w-5" />,
   },
-] as const;
+  {
+    key: 'consulting',
+    title: 'Consulting Services',
+    description: 'Strategic workforce and leadership optimisation—aligned to business priorities.',
+    benefit: 'Link leadership behaviours to outcomes with pragmatic, data-driven roadmaps.',
+    metric: 'Measured uplift in bench strength',
+    icon: <Briefcase className="h-5 w-5" />,
+  },
+];
+
+const PARTNERS = [
+  {
+    name: 'Hogan',
+    logo: 'partner-hogan.svg',
+    note: 'Leadership potential, derailers, and values for robust selection and development decisions.',
+  },
+  {
+    name: 'Mosaic',
+    logo: 'partner-mosaic.svg',
+    note: 'Competency-based frameworks and analytics to standardise leadership behaviours at scale.',
+  },
+  {
+    name: 'SMG',
+    logo: 'partner-smg.svg',
+    note: 'Regional delivery expertise and enabling tools for consistent rollout across Asia.',
+  },
+];
+
+const RESOURCES = [
+  {
+    title: 'Optimal Consulting – Brochure',
+    description: 'Overview of services, methodology, and delivery model.',
+    file: 'optimal-consulting-brochure.pdf',
+  },
+  {
+    title: 'Whitepaper: Building a Predictable Leadership Pipeline',
+    description: 'Practical steps for measuring potential and accelerating readiness.',
+    file: 'leadership-pipeline-whitepaper.pdf',
+  },
+  {
+    title: 'Talent Optimisation Playbook (Executive Summary)',
+    description: 'A quick guide to align talent strategy with business outcomes.',
+    file: 'talent-optimisation-playbook.pdf',
+  },
+];
 
 function normalizeSlug(input?: string) {
   return (input || '').replace(/^\/+/, '').trim();
@@ -61,16 +113,184 @@ function resolvePage(pageSlug?: string): { key: PageKey; param?: string } {
   if (slug === 'shop') return { key: 'shop' };
   if (slug.startsWith('shop/')) return { key: 'product', param: slug.slice('shop/'.length) };
 
+  if (slug.startsWith('services/')) {
+    const serviceKey = slug.slice('services/'.length) as ServiceKey;
+    return { key: 'service', param: serviceKey };
+  }
+
   return { key: 'home' };
 }
 
+function useLeadForm(opts: { themeSlug: string; tenantId?: string | null }) {
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState<'idle' | 'success' | 'error'>('idle');
+
+  const submit = async (payload: {
+    name: string;
+    email: string;
+    company?: string;
+    phone?: string;
+    message?: string;
+  }) => {
+    setSubmitting(true);
+    setSubmitted('idle');
+
+    try {
+      const res = await fetch('/api/form-submissions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          form_id: `${opts.themeSlug}-consultation`,
+          form_name: 'Consultation Request',
+          tenant_id: opts.tenantId ?? undefined,
+          ...payload,
+        }),
+      });
+
+      if (!res.ok) throw new Error('Request failed');
+      setSubmitted('success');
+    } catch {
+      setSubmitted('error');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return { submitting, submitted, submit };
+}
+
+function LeadForm({
+  themeSlug,
+  tenantId,
+  variant = 'full',
+}: {
+  themeSlug: string;
+  tenantId?: string | null;
+  variant?: 'full' | 'compact';
+}) {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [company, setCompany] = useState('');
+  const [phone, setPhone] = useState('');
+  const [message, setMessage] = useState('');
+
+  const { submitting, submitted, submit } = useLeadForm({ themeSlug, tenantId });
+
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await submit({ name, email, company, phone, message });
+  };
+
+  const showAllFields = variant === 'full';
+
+  return (
+    <form onSubmit={onSubmit} className="grid gap-3">
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-1.5">
+          <label className="text-sm font-medium">Name</label>
+          <Input value={name} onChange={(e) => setName(e.target.value)} required placeholder="Your full name" />
+        </div>
+        <div className="grid gap-1.5">
+          <label className="text-sm font-medium">Work Email</label>
+          <Input
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            type="email"
+            placeholder="name@company.com"
+          />
+        </div>
+      </div>
+
+      {showAllFields && (
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-1.5">
+            <label className="text-sm font-medium">Company</label>
+            <Input value={company} onChange={(e) => setCompany(e.target.value)} placeholder="Organisation" />
+          </div>
+          <div className="grid gap-1.5">
+            <label className="text-sm font-medium">Phone (optional)</label>
+            <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+65 …" />
+          </div>
+        </div>
+      )}
+
+      {showAllFields && (
+        <div className="grid gap-1.5">
+          <label className="text-sm font-medium">What are you trying to achieve?</label>
+          <Textarea
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            placeholder="E.g., identify high potentials, accelerate readiness, strengthen succession…"
+            rows={4}
+          />
+        </div>
+      )}
+
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <Button type="submit" disabled={submitting} className="min-w-[160px]">
+          {submitting ? 'Sending…' : 'Request a consultation'}
+        </Button>
+        <p className="text-xs text-muted-foreground">
+          We reply within 1–2 business days.
+        </p>
+      </div>
+
+      {submitted === 'success' && (
+        <p className="text-sm text-green-600">Thanks—your request has been sent.</p>
+      )}
+      {submitted === 'error' && (
+        <p className="text-sm text-destructive">Something went wrong. Please try again.</p>
+      )}
+    </form>
+  );
+}
+
+const BLOG_POSTS = [
+  {
+    slug: 'predictable-pipeline',
+    title: 'Predictable leadership pipelines: what to measure',
+    excerpt: 'A data-driven approach to assessing potential, readiness, and fit—without slowing hiring.',
+    body: [
+      'Decision-makers need a reliable way to identify and develop future leaders. The most effective systems combine validated assessment data with structured development pathways.',
+      'Optimal Consulting helps HR leaders operationalise this with clear success profiles, consistent psychometrics, and scalable enablement via our Academy.'
+    ],
+  },
+  {
+    slug: 'high-potential',
+    title: 'High potential is not high performance',
+    excerpt: 'How to differentiate potential from performance and reduce costly promotion risks.',
+    body: [
+      'High performance today does not always translate to success at the next level. Predictive indicators (motives, interpersonal style, derailers) provide additional clarity.',
+      'We use proven tools and a pragmatic methodology to help organisations reduce risk while accelerating development.'
+    ],
+  },
+] as const;
+
+const SHOP_PRODUCTS = [
+  {
+    slug: 'discovery-session',
+    name: 'Discovery Session',
+    price: 'SGD 0',
+    description: 'A complimentary 30-minute scoping call to understand your outcomes and constraints.',
+  },
+  {
+    slug: 'leadership-diagnostic',
+    name: 'Leadership Diagnostic (Pilot)',
+    price: 'From SGD 8,000',
+    description: 'A small cohort pilot assessment + insights report to validate your success profile.',
+  },
+  {
+    slug: 'academy-certification',
+    name: 'HR Certification (2-day)',
+    price: 'From SGD 3,500',
+    description: 'Enable internal HR teams to interpret assessment outputs and coach effectively.',
+  },
+] as const;
+
 /**
  * Optimal Consulting Theme
- * Minimal, tenant-aware base theme intended for duplication/migrations.
- *
- * Asset convention:
- * - Put assets in /public/theme/<themeSlug>/assets
- * - Refer to them with: /theme/<themeSlug>/assets/<file>
+ * Landing page geared to convert organisational decision-makers.
  */
 const OptimalConsultingTheme: React.FC<TenantLandingProps> = ({
   tenantName = 'Optimal Consulting',
@@ -78,175 +298,479 @@ const OptimalConsultingTheme: React.FC<TenantLandingProps> = ({
   tenantId,
   pageSlug,
 }) => {
-  // Always declare hooks before any conditional returns
+  // IMPORTANT: hooks must be declared unconditionally
   const [contactOpen, setContactOpen] = useState(false);
 
   const page = useMemo(() => resolvePage(pageSlug), [pageSlug]);
 
-  // Determine effective tenant ID
   const effectiveTenantId = useMemo(() => {
     if (tenantId) return tenantId;
-    if (typeof window !== 'undefined' && (window as any).__CMS_TENANT__) {
-      return (window as any).__CMS_TENANT__;
-    }
+    if (typeof window !== 'undefined' && (window as any).__CMS_TENANT__) return (window as any).__CMS_TENANT__;
     return null;
   }, [tenantId]);
 
-  // If no tenant is set, run fully hardcoded (no API/DB dependency).
+  // Hardcoded-first mode unless tenant id exists
   const cmsEnabled = !!effectiveTenantId;
 
-  // Optional CMS-driven settings
-  const { branding, loading: brandingLoading, error: brandingError } = useThemeBranding(
-    tenantSlug,
-    effectiveTenantId ?? undefined,
-    { enabled: cmsEnabled }
-  );
-  const { loading: stylesLoading, error: stylesError } = useThemeStyles(
-    tenantSlug,
-    effectiveTenantId ?? undefined,
-    { enabled: cmsEnabled }
-  );
+  const { branding, loading: brandingLoading } = useThemeBranding(tenantSlug, effectiveTenantId ?? undefined, {
+    enabled: cmsEnabled,
+  });
+  const { loading: stylesLoading } = useThemeStyles(tenantSlug, effectiveTenantId ?? undefined, {
+    enabled: cmsEnabled,
+  });
 
-  // Derived presentation values with safe fallbacks
   const siteName = branding?.site_name || tenantName;
-  const siteTagline = branding?.site_tagline || 'Consulting theme for fast migrations';
+  const siteTagline =
+    branding?.site_tagline || 'Strategic leadership and talent optimisation across Asia.';
   const logoSrc = branding?.site_logo || null;
 
   const baseUrl = `/theme/${tenantSlug}`;
   const assetUrl = (file: string) => `${baseUrl}/assets/${file}`;
 
-  // Optional favicon application
+  // Handle #contact hash by opening the modal
   useEffect(() => {
-    const favicon = branding?.site_favicon || null;
-    if (!favicon) return;
+    const openFromHash = () => {
+      if (typeof window === 'undefined') return;
+      if (window.location.hash === '#contact') {
+        setContactOpen(true);
+      }
+    };
 
-    let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement | null;
-    if (!link) {
-      link = document.createElement('link');
-      link.rel = 'icon';
-      document.head.appendChild(link);
-    }
-    link.href = favicon;
-  }, [branding?.site_favicon]);
+    openFromHash();
+    window.addEventListener('hashchange', openFromHash);
+    return () => window.removeEventListener('hashchange', openFromHash);
+  }, []);
 
-  // Loading state (only when CMS fetch is enabled)
   if (cmsEnabled && (brandingLoading || stylesLoading)) {
     return (
       <div className="min-h-screen theme-bg flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto mb-4 theme-primary-border"></div>
-          <p className="text-muted-foreground">Loading theme...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto mb-4 theme-primary-border" />
+          <p className="text-muted-foreground">Loading…</p>
         </div>
       </div>
     );
   }
 
-  if (brandingError || stylesError) {
-    if (brandingError) console.warn('[optimalconsulting-theme] Branding load error:', brandingError);
-    if (stylesError) console.warn('[optimalconsulting-theme] Styles load error:', stylesError);
-  }
+  const HomeLanding = () => (
+    <div>
+      {/* 1) HERO */}
+      <section className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-primary/10 via-transparent to-transparent" />
+        <div className="max-w-6xl mx-auto px-4 py-16 lg:py-20 grid gap-10 lg:grid-cols-2 lg:items-center">
+          <div>
+            <div className="inline-flex items-center gap-2 rounded-full border border-border bg-background/60 px-3 py-1 text-xs text-muted-foreground">
+              <Sparkles className="h-4 w-4" />
+              Singapore HQ • Asia delivery
+            </div>
 
-  const NavLink = ({ href, label }: { href: string; label: string }) => {
-    const active = normalizeSlug(pageSlug) === normalizeSlug(href.replace(baseUrl + '/', ''));
-    return (
-      <a
-        href={href}
-        className={`text-sm px-3 py-2 rounded-md transition-colors ${
-          active ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
-        }`}
-      >
-        {label}
-      </a>
-    );
-  };
+            <h1 className="mt-4 text-4xl md:text-5xl font-semibold tracking-tight">
+              Predict, Develop &amp; Elevate Your Leadership Pipeline
+            </h1>
+            <p className="mt-4 text-base md:text-lg text-muted-foreground max-w-xl">
+              {siteName} helps organisational leaders make talent decisions with validated assessments,
+              scalable capability building, and pragmatic consulting—so you can strengthen succession
+              and improve performance outcomes.
+            </p>
 
-  const PageTitle = () => {
-    if (page.key === 'blog') return 'Blog';
-    if (page.key === 'blogPost') return 'Blog post';
-    if (page.key === 'shop') return 'Shop';
-    if (page.key === 'product') return 'Product';
-    return 'Home';
-  };
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Button asChild className="min-w-[200px]">
+                <a href={`${baseUrl}#contact`}>
+                  Book consultation <ArrowRight className="ml-2 h-4 w-4" />
+                </a>
+              </Button>
+              <Button asChild variant="outline" className="min-w-[200px]">
+                <a href={assetUrl('optimal-consulting-brochure.pdf')} download>
+                  <Download className="mr-2 h-4 w-4" /> Download brochure
+                </a>
+              </Button>
+            </div>
 
-  const HomeContent = () => (
-    <section className="relative">
-      <div className="max-w-6xl mx-auto px-4 py-16 grid gap-10 lg:grid-cols-2 lg:items-center">
-        <div>
-          <h1 className="text-4xl font-bold mb-3">{siteName}</h1>
-          <p className="text-lg text-muted-foreground mb-6">Consulting theme base for quick migrations.</p>
-          <div className="flex flex-wrap gap-3">
-            <a
-              href="/admin"
-              className="px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 text-sm"
-            >
-              Go to CMS
-            </a>
-            <a href={`${baseUrl}/blog`} className="px-4 py-2 rounded-md border border-border hover:bg-muted text-sm">
-              Blog
-            </a>
-            <a href={`${baseUrl}/shop`} className="px-4 py-2 rounded-md border border-border hover:bg-muted text-sm">
-              Shop
-            </a>
+            <div className="mt-6 grid gap-3 sm:grid-cols-3">
+              <div className="rounded-xl border border-border bg-card p-4">
+                <p className="text-xs text-muted-foreground">For</p>
+                <p className="mt-1 font-medium">HR Leaders</p>
+              </div>
+              <div className="rounded-xl border border-border bg-card p-4">
+                <p className="text-xs text-muted-foreground">For</p>
+                <p className="mt-1 font-medium">Executives</p>
+              </div>
+              <div className="rounded-xl border border-border bg-card p-4">
+                <p className="text-xs text-muted-foreground">For</p>
+                <p className="mt-1 font-medium">Talent Teams</p>
+              </div>
+            </div>
           </div>
 
-          {!cmsEnabled && (
-            <p className="mt-4 text-xs text-muted-foreground">
-              Running in hardcoded mode (no tenant selected → no CMS API calls).
-            </p>
-          )}
+          <div className="relative">
+            <div className="absolute -inset-6 rounded-3xl bg-gradient-to-tr from-primary/20 to-transparent blur-2xl" />
+            <div className="relative rounded-2xl border border-border bg-card overflow-hidden">
+              <img
+                src={assetUrl('hero-illustration.svg')}
+                alt="Leadership development illustration"
+                className="w-full h-auto"
+              />
+            </div>
+            <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground">
+              <span className="inline-flex items-center gap-2">
+                <ShieldCheck className="h-4 w-4" /> Data-driven, evidence-based
+              </span>
+              <span className="inline-flex items-center gap-2">
+                <Globe className="h-4 w-4" /> Regional presence
+              </span>
+            </div>
+          </div>
+        </div>
+      </section>
 
-          {effectiveTenantId && (
-            <p className="mt-2 text-xs text-muted-foreground">Tenant ID: {effectiveTenantId}</p>
-          )}
+      {/* 2) WHAT WE DO */}
+      <section id="what-we-do" className="border-t border-border bg-background">
+        <div className="max-w-6xl mx-auto px-4 py-14">
+          <div className="flex items-end justify-between gap-6 flex-wrap">
+            <div>
+              <h2 className="text-2xl md:text-3xl font-semibold">What we do</h2>
+              <p className="mt-2 text-muted-foreground max-w-2xl">
+                Three connected offerings to assess potential, build capability, and deliver outcomes.
+              </p>
+            </div>
+            <Button asChild variant="outline">
+              <a href={`${baseUrl}/services/assessments`}>Explore services</a>
+            </Button>
+          </div>
 
-          {cmsEnabled && stylesError && (
-            <p className="mt-2 text-xs text-destructive">
-              Styles could not be loaded for this tenant/theme (showing defaults).
+          <div className="mt-8 grid gap-4 lg:grid-cols-3">
+            {SERVICES.map((s) => (
+              <div key={s.key} className="rounded-2xl border border-border bg-card p-6">
+                <div className="flex items-center justify-between">
+                  <div className="inline-flex items-center gap-2 text-sm font-medium">
+                    <span className="text-primary">{s.icon}</span>
+                    {s.title}
+                  </div>
+                  <span className="text-xs rounded-full border border-border px-2 py-1 text-muted-foreground">
+                    {s.metric}
+                  </span>
+                </div>
+                <p className="mt-4 text-sm text-muted-foreground">{s.description}</p>
+                <p className="mt-3 text-sm">
+                  <span className="font-medium">Benefit:</span> {s.benefit}
+                </p>
+                <div className="mt-5">
+                  <a
+                    href={`${baseUrl}/services/${s.key}`}
+                    className="inline-flex items-center text-sm font-medium text-primary hover:underline"
+                  >
+                    View details <ArrowRight className="ml-2 h-4 w-4" />
+                  </a>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 3) WHY CHOOSE US */}
+      <section id="why" className="border-t border-border bg-muted/20">
+        <div className="max-w-6xl mx-auto px-4 py-14">
+          <h2 className="text-2xl md:text-3xl font-semibold">Why choose us</h2>
+          <p className="mt-2 text-muted-foreground max-w-2xl">
+            Modern consulting—people-centric and data-led—built for regional execution.
+          </p>
+
+          <div className="mt-8 grid gap-4 md:grid-cols-2">
+            <div className="rounded-2xl border border-border bg-card p-6">
+              <div className="flex items-start gap-3">
+                <BarChart3 className="h-5 w-5 text-primary mt-0.5" />
+                <div>
+                  <p className="font-medium">Data-driven tools</p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Predictive assessments and structured diagnostics to reduce decision risk.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="rounded-2xl border border-border bg-card p-6">
+              <div className="flex items-start gap-3">
+                <ShieldCheck className="h-5 w-5 text-primary mt-0.5" />
+                <div>
+                  <p className="font-medium">Global psychometrics partners</p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Licensed tools and best-practice methodology to ensure defensible decisions.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="rounded-2xl border border-border bg-card p-6">
+              <div className="flex items-start gap-3">
+                <Globe className="h-5 w-5 text-primary mt-0.5" />
+                <div>
+                  <p className="font-medium">Regional presence</p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Singapore HQ with delivery capability across Asia for consistent rollout.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="rounded-2xl border border-border bg-card p-6">
+              <div className="flex items-start gap-3">
+                <CheckCircle2 className="h-5 w-5 text-primary mt-0.5" />
+                <div>
+                  <p className="font-medium">Proven methodology</p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Clear success profiles, calibrated decision standards, and scalable enablement.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 4) IMPACT METRICS */}
+      <section id="impact" className="border-t border-border bg-background">
+        <div className="max-w-6xl mx-auto px-4 py-14">
+          <div className="flex items-end justify-between gap-6 flex-wrap">
+            <div>
+              <h2 className="text-2xl md:text-3xl font-semibold">By the numbers</h2>
+              <p className="mt-2 text-muted-foreground max-w-2xl">
+                Credibility you can reference in the boardroom.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              { stat: '4,500+', label: 'Assessments delivered', icon: <BarChart3 className="h-4 w-4" /> },
+              { stat: '1,200+', label: 'High potentials assessed', icon: <Users className="h-4 w-4" /> },
+              { stat: '350+', label: 'Licensed users certified', icon: <Building2 className="h-4 w-4" /> },
+              { stat: '12', label: 'Markets supported across Asia', icon: <Globe className="h-4 w-4" /> },
+            ].map((m) => (
+              <div key={m.label} className="rounded-2xl border border-border bg-card p-6">
+                <div className="flex items-center justify-between text-muted-foreground">
+                  <span className="inline-flex items-center gap-2 text-xs">
+                    {m.icon}
+                    Impact
+                  </span>
+                </div>
+                <p className="mt-4 text-3xl font-semibold tracking-tight">{m.stat}</p>
+                <p className="mt-2 text-sm text-muted-foreground">{m.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 5) STRATEGIC PARTNERS */}
+      <section id="partners" className="border-t border-border bg-muted/20">
+        <div className="max-w-6xl mx-auto px-4 py-14">
+          <h2 className="text-2xl md:text-3xl font-semibold">Strategic partners</h2>
+          <p className="mt-2 text-muted-foreground max-w-2xl">
+            We collaborate with trusted assessment and enablement partners to deliver robust outcomes.
+          </p>
+
+          <div className="mt-8 grid gap-4 md:grid-cols-3">
+            {PARTNERS.map((p) => (
+              <div key={p.name} className="rounded-2xl border border-border bg-card p-6">
+                <img src={assetUrl(p.logo)} alt={`${p.name} logo`} className="h-8 w-auto" />
+                <p className="mt-4 text-sm text-muted-foreground">{p.note}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 6) TESTIMONIALS */}
+      <section id="testimonials" className="border-t border-border bg-background">
+        <div className="max-w-6xl mx-auto px-4 py-14">
+          <div className="flex items-end justify-between gap-6 flex-wrap">
+            <div>
+              <h2 className="text-2xl md:text-3xl font-semibold">Client impact</h2>
+              <p className="mt-2 text-muted-foreground max-w-2xl">
+                Specific outcomes—clear signals—credible decisions.
+              </p>
+            </div>
+            <Button asChild variant="outline">
+              <a href={`${baseUrl}/blog`}>
+                <BookOpen className="mr-2 h-4 w-4" /> Insights
+              </a>
+            </Button>
+          </div>
+
+          <div className="mt-8 grid gap-4 md:grid-cols-3">
+            {[
+              {
+                quote:
+                  'We reduced promotion risk by introducing validated potential indicators and a calibrated success profile for critical roles.',
+                by: 'Regional HR Director, Financial Services',
+              },
+              {
+                quote:
+                  'The Academy enabled our HR team to interpret assessment outputs consistently and coach leaders with confidence.',
+                by: 'Head of Talent, Technology',
+              },
+              {
+                quote:
+                  'We aligned leadership behaviours to strategy and built a practical pipeline plan that business leaders could sponsor.',
+                by: 'Chief People Officer, Consumer',
+              },
+            ].map((t, idx) => (
+              <div key={idx} className="rounded-2xl border border-border bg-card p-6">
+                <p className="text-sm leading-6">“{t.quote}”</p>
+                <p className="mt-4 text-xs text-muted-foreground">— {t.by}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 7) RESOURCES */}
+      <section id="resources" className="border-t border-border bg-muted/20">
+        <div className="max-w-6xl mx-auto px-4 py-14">
+          <h2 className="text-2xl md:text-3xl font-semibold">Featured resources</h2>
+          <p className="mt-2 text-muted-foreground max-w-2xl">
+            Practical, board-ready materials you can share internally.
+          </p>
+
+          <div className="mt-8 grid gap-4 md:grid-cols-3">
+            {RESOURCES.map((r) => (
+              <div key={r.file} className="rounded-2xl border border-border bg-card p-6 flex flex-col">
+                <p className="font-medium">{r.title}</p>
+                <p className="mt-2 text-sm text-muted-foreground flex-1">{r.description}</p>
+                <div className="mt-5">
+                  <a
+                    href={assetUrl(r.file)}
+                    download
+                    className="inline-flex items-center text-sm font-medium text-primary hover:underline"
+                  >
+                    <Download className="mr-2 h-4 w-4" /> Download PDF
+                  </a>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 8) CTA / CONTACT */}
+      <section id="contact" className="border-t border-border bg-background">
+        <div className="max-w-6xl mx-auto px-4 py-14 grid gap-8 lg:grid-cols-2">
+          <div>
+            <h2 className="text-2xl md:text-3xl font-semibold">Ready to partner with us?</h2>
+            <p className="mt-2 text-muted-foreground max-w-xl">
+              Tell us what you’re trying to achieve. We’ll propose a practical approach—assessment,
+              academy enablement, and/or consulting—aligned to your context.
             </p>
-          )}
+
+            <div className="mt-6 rounded-2xl border border-border bg-card p-6">
+              <p className="text-sm font-medium">What you’ll get</p>
+              <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
+                {[
+                  'A short discovery call with a consultant',
+                  'A recommended scope and timeline',
+                  'A clear view of expected outcomes and metrics',
+                ].map((x) => (
+                  <li key={x} className="flex gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-primary mt-0.5" />
+                    <span>{x}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-border bg-card p-6">
+            <LeadForm themeSlug={tenantSlug} tenantId={effectiveTenantId} />
+          </div>
+        </div>
+      </section>
+
+      {/* 9) FOOTER */}
+      <footer className="border-t border-border bg-background">
+        <div className="max-w-6xl mx-auto px-4 py-10 grid gap-8 md:grid-cols-3">
+          <div>
+            <div className="flex items-center gap-3">
+              {logoSrc ? (
+                <img src={logoSrc} alt={siteName} className="h-8 w-auto" />
+              ) : (
+                <div className="h-8 w-8 rounded bg-primary/10 flex items-center justify-center text-primary font-bold">
+                  {siteName.substring(0, 1)}
+                </div>
+              )}
+              <div>
+                <p className="font-medium">{siteName}</p>
+                <p className="text-xs text-muted-foreground">{siteTagline}</p>
+              </div>
+            </div>
+            <p className="mt-4 text-sm text-muted-foreground">
+              Strategic leadership and talent optimisation consulting firm headquartered in Singapore with a presence across Asia.
+            </p>
+          </div>
+
+          <div>
+            <p className="font-medium">Offices</p>
+            <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
+              <li>Singapore</li>
+              <li>Kuala Lumpur</li>
+              <li>Hong Kong</li>
+              <li>Shanghai</li>
+              <li>Tokyo</li>
+            </ul>
+          </div>
+
+          <div>
+            <p className="font-medium">Contact</p>
+            <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
+              <li>
+                <a className="hover:underline" href="mailto:hello@optimalconsulting.com">
+                  hello@optimalconsulting.com
+                </a>
+              </li>
+              <li>
+                <a className="hover:underline" href="tel:+6560000000">
+                  +65 6000 0000
+                </a>
+              </li>
+              <li className="flex items-center gap-2">
+                <Building2 className="h-4 w-4" /> Singapore HQ
+              </li>
+            </ul>
+
+            <div className="mt-6 flex flex-wrap gap-4 text-sm">
+              <a className="text-muted-foreground hover:text-foreground" href="/privacy-policy">
+                Privacy
+              </a>
+              <a className="text-muted-foreground hover:text-foreground" href="/terms-conditions">
+                Terms
+              </a>
+              <a className="text-muted-foreground hover:text-foreground" href="https://www.linkedin.com" target="_blank" rel="noreferrer">
+                LinkedIn
+              </a>
+            </div>
+          </div>
         </div>
 
-        <div className="rounded-2xl border border-border bg-card p-6">
-          <div className="flex items-center justify-between">
-            <p className="text-sm font-medium">Theme assets preview</p>
-            <span className="text-xs text-muted-foreground">{baseUrl}</span>
-          </div>
-          <div className="mt-4 rounded-xl overflow-hidden border border-border bg-background">
-            <img
-              src={assetUrl('hero.svg')}
-              alt="Theme illustration"
-              className="w-full h-auto"
-              onError={(e) => {
-                (e.target as HTMLImageElement).style.display = 'none';
-              }}
-            />
-          </div>
-          <ul className="mt-4 text-sm text-muted-foreground space-y-1">
-            <li>• Assets: /public/theme/{tenantSlug}/assets</li>
-            <li>• Pages: /, /blog, /shop</li>
-            <li>• CMS branding/styles are optional and can be enabled later</li>
-          </ul>
+        <div className="max-w-6xl mx-auto px-4 pb-8 text-xs text-muted-foreground">
+          © {new Date().getFullYear()} {siteName}. All rights reserved.
         </div>
-      </div>
-    </section>
+      </footer>
+    </div>
   );
 
-  const BlogListContent = () => (
+  const BlogList = () => (
     <section>
       <div className="max-w-4xl mx-auto px-4 py-12">
-        <h1 className="text-3xl font-bold">Blog</h1>
-        <p className="mt-2 text-muted-foreground">Basic blog listing (static for now).</p>
+        <h1 className="text-3xl font-semibold">Insights</h1>
+        <p className="mt-2 text-muted-foreground">Short, practical perspectives for leaders and HR teams.</p>
 
         <div className="mt-8 grid gap-4">
           {BLOG_POSTS.map((post) => (
             <a
               key={post.slug}
               href={`${baseUrl}/blog/${post.slug}`}
-              className="block rounded-xl border border-border bg-card p-5 hover:bg-muted/40 transition-colors"
+              className="block rounded-2xl border border-border bg-card p-6 hover:bg-muted/40 transition-colors"
             >
               <div className="flex items-center justify-between gap-4">
-                <h2 className="text-lg font-semibold">{post.title}</h2>
-                <span className="text-xs text-muted-foreground">Read</span>
+                <h2 className="text-lg font-medium">{post.title}</h2>
+                <ArrowRight className="h-4 w-4 text-muted-foreground" />
               </div>
               <p className="mt-2 text-sm text-muted-foreground">{post.excerpt}</p>
             </a>
@@ -256,16 +780,16 @@ const OptimalConsultingTheme: React.FC<TenantLandingProps> = ({
     </section>
   );
 
-  const BlogPostContent = ({ slug }: { slug: string }) => {
+  const BlogPost = ({ slug }: { slug: string }) => {
     const post = BLOG_POSTS.find((p) => p.slug === slug);
     if (!post) {
       return (
         <section>
           <div className="max-w-4xl mx-auto px-4 py-12">
-            <h1 className="text-2xl font-bold">Post not found</h1>
-            <p className="mt-2 text-muted-foreground">No blog post with slug: {slug}</p>
-            <a href={`${baseUrl}/blog`} className="inline-block mt-6 text-sm underline">
-              Back to blog
+            <h1 className="text-2xl font-semibold">Post not found</h1>
+            <p className="mt-2 text-muted-foreground">No post with slug: {slug}</p>
+            <a className="inline-block mt-6 text-sm underline" href={`${baseUrl}/blog`}>
+              Back to Insights
             </a>
           </div>
         </section>
@@ -275,12 +799,12 @@ const OptimalConsultingTheme: React.FC<TenantLandingProps> = ({
     return (
       <section>
         <div className="max-w-4xl mx-auto px-4 py-12">
-          <a href={`${baseUrl}/blog`} className="text-sm text-muted-foreground hover:text-foreground">
-            ← Back to blog
+          <a className="text-sm text-muted-foreground hover:text-foreground" href={`${baseUrl}/blog`}>
+            ← Back to Insights
           </a>
-          <h1 className="mt-4 text-3xl font-bold">{post.title}</h1>
+          <h1 className="mt-4 text-3xl font-semibold">{post.title}</h1>
           <p className="mt-2 text-muted-foreground">{post.excerpt}</p>
-          <div className="mt-8 space-y-4 text-sm leading-6 text-foreground">
+          <div className="mt-8 space-y-4 text-sm leading-6">
             {post.body.map((p, idx) => (
               <p key={idx}>{p}</p>
             ))}
@@ -290,28 +814,24 @@ const OptimalConsultingTheme: React.FC<TenantLandingProps> = ({
     );
   };
 
-  const ShopContent = () => (
+  const ShopList = () => (
     <section>
       <div className="max-w-6xl mx-auto px-4 py-12">
-        <h1 className="text-3xl font-bold">Shop</h1>
-        <p className="mt-2 text-muted-foreground">Basic shop listing (static for now).</p>
+        <h1 className="text-3xl font-semibold">Offerings</h1>
+        <p className="mt-2 text-muted-foreground">Starter engagements you can use to begin.</p>
 
         <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {SHOP_PRODUCTS.map((product) => (
             <a
               key={product.slug}
               href={`${baseUrl}/shop/${product.slug}`}
-              className="block rounded-xl border border-border bg-card p-5 hover:bg-muted/40 transition-colors"
+              className="block rounded-2xl border border-border bg-card p-6 hover:bg-muted/40 transition-colors"
             >
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <h2 className="text-lg font-semibold">{product.name}</h2>
-                  <p className="text-sm text-muted-foreground mt-1">{product.description}</p>
-                </div>
+              <p className="font-medium">{product.name}</p>
+              <p className="mt-2 text-sm text-muted-foreground">{product.description}</p>
+              <div className="mt-4 flex items-center justify-between">
                 <span className="text-sm font-semibold">{product.price}</span>
-              </div>
-              <div className="mt-4">
-                <span className="text-xs text-muted-foreground">View product</span>
+                <span className="text-xs text-primary">View</span>
               </div>
             </a>
           ))}
@@ -320,16 +840,16 @@ const OptimalConsultingTheme: React.FC<TenantLandingProps> = ({
     </section>
   );
 
-  const ProductContent = ({ slug }: { slug: string }) => {
+  const Product = ({ slug }: { slug: string }) => {
     const product = SHOP_PRODUCTS.find((p) => p.slug === slug);
     if (!product) {
       return (
         <section>
           <div className="max-w-4xl mx-auto px-4 py-12">
-            <h1 className="text-2xl font-bold">Product not found</h1>
-            <p className="mt-2 text-muted-foreground">No product with slug: {slug}</p>
-            <a href={`${baseUrl}/shop`} className="inline-block mt-6 text-sm underline">
-              Back to shop
+            <h1 className="text-2xl font-semibold">Not found</h1>
+            <p className="mt-2 text-muted-foreground">No item with slug: {slug}</p>
+            <a className="inline-block mt-6 text-sm underline" href={`${baseUrl}/shop`}>
+              Back to Offerings
             </a>
           </div>
         </section>
@@ -339,27 +859,77 @@ const OptimalConsultingTheme: React.FC<TenantLandingProps> = ({
     return (
       <section>
         <div className="max-w-4xl mx-auto px-4 py-12">
-          <a href={`${baseUrl}/shop`} className="text-sm text-muted-foreground hover:text-foreground">
-            ← Back to shop
+          <a className="text-sm text-muted-foreground hover:text-foreground" href={`${baseUrl}/shop`}>
+            ← Back to Offerings
           </a>
           <div className="mt-4 rounded-2xl border border-border bg-card p-6">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h1 className="text-3xl font-bold">{product.name}</h1>
+                <h1 className="text-3xl font-semibold">{product.name}</h1>
                 <p className="mt-2 text-muted-foreground">{product.description}</p>
               </div>
               <div className="text-right">
                 <p className="text-xl font-semibold">{product.price}</p>
-                <button
-                  className="mt-3 px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 text-sm"
-                  onClick={() => setContactOpen(true)}
-                >
+                <Button className="mt-3" onClick={() => setContactOpen(true)}>
                   Enquire
-                </button>
+                </Button>
               </div>
             </div>
-            <div className="mt-6 text-sm text-muted-foreground">
-              This is a placeholder product detail page. Connect it to your real product/catalog system when ready.
+            <p className="mt-6 text-sm text-muted-foreground">
+              This is a starter page. Connect it to your product/catalog system when ready.
+            </p>
+          </div>
+        </div>
+      </section>
+    );
+  };
+
+  const ServicePage = ({ keyName }: { keyName: string }) => {
+    const svc = SERVICES.find((s) => s.key === keyName);
+    if (!svc) {
+      return (
+        <section>
+          <div className="max-w-4xl mx-auto px-4 py-12">
+            <h1 className="text-2xl font-semibold">Service not found</h1>
+            <p className="mt-2 text-muted-foreground">Unknown service: {keyName}</p>
+            <a className="inline-block mt-6 text-sm underline" href={`${baseUrl}#what-we-do`}>
+              Back to services
+            </a>
+          </div>
+        </section>
+      );
+    }
+
+    return (
+      <section>
+        <div className="max-w-4xl mx-auto px-4 py-12">
+          <a className="text-sm text-muted-foreground hover:text-foreground" href={`${baseUrl}#what-we-do`}>
+            ← Back to services
+          </a>
+          <h1 className="mt-4 text-3xl font-semibold">{svc.title}</h1>
+          <p className="mt-3 text-muted-foreground">{svc.description}</p>
+
+          <div className="mt-8 grid gap-4">
+            <div className="rounded-2xl border border-border bg-card p-6">
+              <p className="font-medium">What you get</p>
+              <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
+                <li className="flex gap-2"><CheckCircle2 className="h-4 w-4 text-primary mt-0.5" /> Evidence-based tools and structured interpretation</li>
+                <li className="flex gap-2"><CheckCircle2 className="h-4 w-4 text-primary mt-0.5" /> Role-based success profiles and decision criteria</li>
+                <li className="flex gap-2"><CheckCircle2 className="h-4 w-4 text-primary mt-0.5" /> Actionable insights for selection, development, and succession</li>
+              </ul>
+            </div>
+            <div className="rounded-2xl border border-border bg-card p-6">
+              <p className="font-medium">Outcome</p>
+              <p className="mt-2 text-sm text-muted-foreground">{svc.benefit}</p>
+              <p className="mt-3 text-sm"><span className="font-medium">Metric focus:</span> {svc.metric}</p>
+            </div>
+          </div>
+
+          <div className="mt-8 rounded-2xl border border-border bg-card p-6">
+            <p className="font-medium">Speak to a consultant</p>
+            <p className="mt-2 text-sm text-muted-foreground">Share your outcomes and context—we’ll propose a practical scope.</p>
+            <div className="mt-4">
+              <LeadForm themeSlug={tenantSlug} tenantId={effectiveTenantId} variant="compact" />
             </div>
           </div>
         </div>
@@ -369,20 +939,30 @@ const OptimalConsultingTheme: React.FC<TenantLandingProps> = ({
 
   const content =
     page.key === 'blog'
-      ? <BlogListContent />
+      ? <BlogList />
       : page.key === 'blogPost' && page.param
-        ? <BlogPostContent slug={page.param} />
+        ? <BlogPost slug={page.param} />
         : page.key === 'shop'
-          ? <ShopContent />
+          ? <ShopList />
           : page.key === 'product' && page.param
-            ? <ProductContent slug={page.param} />
-            : <HomeContent />;
+            ? <Product slug={page.param} />
+            : page.key === 'service' && page.param
+              ? <ServicePage keyName={page.param} />
+              : <HomeLanding />;
+
+  const headerLinks = [
+    { href: baseUrl, label: 'Home' },
+    { href: `${baseUrl}#what-we-do`, label: 'Services' },
+    { href: `${baseUrl}#impact`, label: 'Impact' },
+    { href: `${baseUrl}#resources`, label: 'Resources' },
+    { href: `${baseUrl}/blog`, label: 'Insights' },
+  ];
 
   return (
     <div className="min-h-screen theme-bg text-foreground flex flex-col">
       {/* Header */}
-      <header className="w-full border-b border-border/60 bg-background/90 backdrop-blur">
-        <div className="max-w-6xl mx-auto p-4 flex items-center justify-between gap-4">
+      <header className="sticky top-0 z-40 w-full border-b border-border bg-background/90 backdrop-blur">
+        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
           <a href={baseUrl} className="flex items-center gap-3 min-w-0">
             {logoSrc ? (
               <img src={logoSrc} alt={siteName} className="h-8 w-auto" />
@@ -391,26 +971,33 @@ const OptimalConsultingTheme: React.FC<TenantLandingProps> = ({
                 {siteName.substring(0, 1)}
               </div>
             )}
-            <div className="flex flex-col min-w-0">
-              <span className="font-semibold truncate">{siteName}</span>
-              <span className="text-xs text-muted-foreground truncate">{siteTagline}</span>
+            <div className="hidden sm:block min-w-0">
+              <p className="font-medium truncate">{siteName}</p>
+              <p className="text-xs text-muted-foreground truncate">{siteTagline}</p>
             </div>
           </a>
 
-          <nav className="hidden md:flex items-center">
-            <NavLink href={baseUrl} label="Home" />
-            <NavLink href={`${baseUrl}/blog`} label="Blog" />
-            <NavLink href={`${baseUrl}/shop`} label="Shop" />
+          <nav className="hidden lg:flex items-center">
+            {headerLinks.map((l) => (
+              <a
+                key={l.href}
+                href={l.href}
+                className="text-sm px-3 py-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/60"
+              >
+                {l.label}
+              </a>
+            ))}
           </nav>
 
           <div className="flex items-center gap-2">
-            <span className="hidden lg:inline text-xs text-muted-foreground">{PageTitle()}</span>
-            <button
-              onClick={() => setContactOpen(true)}
-              className="px-3 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 text-sm"
-            >
-              Contact
-            </button>
+            <Button asChild variant="outline" className="hidden sm:inline-flex">
+              <a href={assetUrl('optimal-consulting-brochure.pdf')} download>
+                <Download className="mr-2 h-4 w-4" /> Brochure
+              </a>
+            </Button>
+            <Button onClick={() => setContactOpen(true)}>
+              Book consultation
+            </Button>
           </div>
         </div>
       </header>
@@ -418,33 +1005,30 @@ const OptimalConsultingTheme: React.FC<TenantLandingProps> = ({
       {/* Content */}
       <main className="flex-1">{content}</main>
 
-      {/* Footer */}
-      <footer className="w-full border-t border-border/60 bg-background">
-        <div className="max-w-6xl mx-auto p-4 text-sm text-muted-foreground">
-          © {new Date().getFullYear()} {siteName}. All rights reserved.
-        </div>
-      </footer>
-
-      {/* Contact Modal */}
+      {/* Contact modal */}
       {contactOpen && (
         <div
-          className="fixed inset-0 bg-black/50 flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
           onClick={() => setContactOpen(false)}
         >
           <div
-            className="bg-background rounded-lg p-6 w-full max-w-md border border-border"
+            className="w-full max-w-lg rounded-2xl border border-border bg-background p-6"
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 className="text-lg font-semibold mb-2">Contact</h2>
-            <p className="text-sm text-muted-foreground mb-4">
-              Replace this with your contact form component when needed.
-            </p>
-            <button
-              onClick={() => setContactOpen(false)}
-              className="px-3 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 text-sm"
-            >
-              Close
-            </button>
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-lg font-semibold">Book a consultation</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Tell us your objective—we’ll respond with a recommended approach.
+                </p>
+              </div>
+              <Button variant="ghost" onClick={() => setContactOpen(false)}>
+                Close
+              </Button>
+            </div>
+            <div className="mt-5">
+              <LeadForm themeSlug={tenantSlug} tenantId={effectiveTenantId} />
+            </div>
           </div>
         </div>
       )}
