@@ -673,36 +673,32 @@ export async function updateMultipleBrandingSettings(settings, tenantId = 'tenan
         const normalizedThemeId = themeId || null;
         
         // Try to find existing setting first
-        // Handle NULL theme_id explicitly since Sequelize's where clause doesn't handle NULL well
-        let whereClause = {
-          setting_key: key,
-          tenant_id: tenantId
-        };
-        
-        // Explicitly handle NULL theme_id
-        if (normalizedThemeId === null) {
-          whereClause.theme_id = { [Op.is]: null };
-        } else {
-          whereClause.theme_id = normalizedThemeId;
-        }
-        
+        // IMPORTANT: Search without theme_id first to find existing records
+        // regardless of their theme_id value. This handles:
+        // - Records created before theme_id was added
+        // - Records with different theme_id values
+        // - Migration scenarios
         let setting = await SiteSetting.findOne({
-          where: whereClause,
+          where: {
+            setting_key: key,
+            tenant_id: tenantId
+            // Don't filter by theme_id initially - we'll update it if needed
+          },
           transaction
         });
         
         if (setting) {
           // Update existing setting
+          // Also update theme_id if it's different (helps with migration)
           await setting.update({
             setting_value: settingValue,
             setting_type: settingType,
             setting_category: category,
-            is_public: isPublic
+            is_public: isPublic,
+            theme_id: normalizedThemeId  // Update theme_id to match what we want
           }, { transaction });
         } else {
-          // Try to create new setting
-          // If it fails with unique constraint, it means the record exists
-          // (possibly due to COALESCE-based unique index vs WHERE clause mismatch)
+          // No existing record found, create new one
           try {
             setting = await SiteSetting.create({
               setting_key: key,
@@ -715,45 +711,24 @@ export async function updateMultipleBrandingSettings(settings, tenantId = 'tenan
             }, { transaction });
           } catch (createError) {
             // If unique constraint violation, the record exists but wasn't found
-            // This can happen due to COALESCE-based unique index
+            // This can happen due to COALESCE-based unique index vs WHERE clause mismatch
             if (createError.name === 'SequelizeUniqueConstraintError' || createError.code === '23505' || createError.parent?.code === '23505') {
-              // Unique constraint violation - record exists but wasn't found by Sequelize
-              // This can happen due to COALESCE-based unique index vs WHERE clause mismatch
-              // Try to find it again using raw query to handle COALESCE properly
+              // Try one more time with a raw query to find ANY record with this key+tenant
               let found;
               try {
-                // Handle NULL values properly in the query
-                if (normalizedThemeId) {
-                  // Both tenant_id and theme_id are provided
-                  found = await sequelize.query(`
-                    SELECT * FROM site_settings 
-                    WHERE setting_key = :key 
-                      AND tenant_id = :tenantId
-                      AND theme_id = :themeId
-                    LIMIT 1
-                  `, {
-                    replacements: { key, tenantId, themeId: normalizedThemeId },
-                    type: QueryTypes.SELECT,
-                    transaction
-                  });
-                } else {
-                  // theme_id is NULL, need to check for NULL explicitly
-                  found = await sequelize.query(`
-                    SELECT * FROM site_settings 
-                    WHERE setting_key = :key 
-                      AND tenant_id = :tenantId
-                      AND theme_id IS NULL
-                    LIMIT 1
-                  `, {
-                    replacements: { key, tenantId },
-                    type: QueryTypes.SELECT,
-                    transaction
-                  });
-                }
+                found = await sequelize.query(`
+                  SELECT * FROM site_settings 
+                  WHERE setting_key = :key 
+                    AND tenant_id = :tenantId
+                  LIMIT 1
+                `, {
+                  replacements: { key, tenantId },
+                  type: QueryTypes.SELECT,
+                  transaction
+                });
               } catch (queryError) {
-                // If the query itself fails, the transaction might be aborted
                 console.error(`[testing] Error in raw query to find existing setting:`, queryError);
-                throw createError; // Re-throw original create error
+                throw createError;
               }
               
               if (found && found.length > 0) {
@@ -764,14 +739,13 @@ export async function updateMultipleBrandingSettings(settings, tenantId = 'tenan
                     setting_value: settingValue,
                     setting_type: settingType,
                     setting_category: category,
-                    is_public: isPublic
+                    is_public: isPublic,
+                    theme_id: normalizedThemeId
                   }, { transaction });
                 } else {
                   throw createError;
                 }
               } else {
-                // Record doesn't exist but constraint violation occurred
-                // This might be a race condition or constraint mismatch
                 console.error(`[testing] Unique constraint violation for ${key} but record not found. Tenant: ${tenantId}, Theme: ${normalizedThemeId}`);
                 throw createError;
               }
