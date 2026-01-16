@@ -3,6 +3,7 @@ import './theme.css';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, MessageCircle, BookOpen, Calendar, UserPlus, User, Menu, X, Instagram } from 'lucide-react';
 import ContactModal from './ContactModal';
+import { STR_ASSETS } from './config/assets';
 
 interface TenantLandingProps {
   tenantName?: string;
@@ -91,7 +92,7 @@ const BookingPage: React.FC<TenantLandingProps> = ({
             <div className="flex items-center space-x-2">
               <a href="/theme/str">
                 <img 
-                  src="/theme/str/assets/logos/str-logo-1-1024x604.png" 
+                  src={STR_ASSETS.logos.header} 
                   alt="STR" 
                   className="h-12 w-auto"
                   onError={(e) => {
@@ -418,7 +419,7 @@ const BookingPage: React.FC<TenantLandingProps> = ({
             {/* Left Column - Logo & Social */}
             <div className="space-y-6">
               <img 
-                src="/theme/str/assets/logos/str-logo-1-1024x604.png" 
+                src={STR_ASSETS.logos.footer} 
                 alt="STR" 
                 className="h-12 w-auto"
                 onError={(e) => {

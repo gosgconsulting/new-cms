@@ -11,6 +11,8 @@ import ClassesPage from './classes';
 import ThankYouPage from './thank-you';
 import ContactModal from './ContactModal';
 import HeroSection from './components/HeroSection';
+import { STR_ASSETS, getGalleryImages } from './config/assets';
+import { fetchSTRReviews, type STRTestimonial, type STRPlaceInfo, formatReviewDate, getInitials } from './services/googleReviews';
 
 interface TenantLandingProps {
   tenantName?: string;
@@ -99,9 +101,11 @@ const STRTheme: React.FC<TenantLandingProps> = ({
   // Default: render homepage
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeProgramme, setActiveProgramme] = useState(0);
-  const [activeGalleryFilter, setActiveGalleryFilter] = useState('All');
   const [activeGalleryIndex, setActiveGalleryIndex] = useState(0);
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
+  const [testimonials, setTestimonials] = useState<STRTestimonial[]>([]);
+  const [placeInfo, setPlaceInfo] = useState<STRPlaceInfo | null>(null);
+  const [testimonialsLoading, setTestimonialsLoading] = useState(true);
 
   // Check for #contact hash in URL and open modal
   useEffect(() => {
@@ -123,7 +127,58 @@ const STRTheme: React.FC<TenantLandingProps> = ({
       window.removeEventListener('hashchange', handleHashChange);
     };
   }, []);
+
+  // Fetch Google reviews on component mount
+  useEffect(() => {
+    const loadReviews = async () => {
+      setTestimonialsLoading(true);
+      try {
+        const reviewsData = await fetchSTRReviews(15); // Fetch up to 15 reviews (5 slides × 3 reviews)
+        setPlaceInfo(reviewsData.place);
+        if (reviewsData.reviews.length > 0) {
+          setTestimonials(reviewsData.reviews);
+        } else {
+          // Fallback to default testimonials if no reviews found
+          setTestimonials([
+            {
+              name: 'Melissa K.',
+              role: 'Student',
+              quote: 'The Coaches Are Knowledgeable And Supportive, Making Every Workout Feel Focused, Effective, And Perfectly Aligned With My Fitness Goals.',
+              rating: 5,
+              time: Math.floor(Date.now() / 1000),
+              relativeTime: 'Recently',
+            },
+            {
+              name: 'Daniel R.',
+              role: 'Entrepreneur',
+              quote: 'Training Here Feels Structured And Motivating, With Clear Guidance That Helps Me Stay Consistent And See Real Progress Over Time.',
+              rating: 5,
+              time: Math.floor(Date.now() / 1000),
+              relativeTime: 'Recently',
+            },
+            {
+              name: 'Jonathan P.',
+              role: 'Athlete',
+              quote: 'The Programs Are Well-Designed And Challenging, Pushing Me To Improve While Still Feeling Safe And Properly Coached.',
+              rating: 5,
+              time: Math.floor(Date.now() / 1000),
+              relativeTime: 'Recently',
+            },
+          ]);
+        }
+      } catch (error) {
+        console.error('[testing] Failed to load Google reviews:', error);
+        // Keep default testimonials on error
+      } finally {
+        setTestimonialsLoading(false);
+      }
+    };
+
+    loadReviews();
+  }, []);
   const galleryCarouselApi = useRef<any>(null);
+  const testimonialsCarouselApi = useRef<any>(null);
+  const [activeTestimonialSlide, setActiveTestimonialSlide] = useState(0);
 
   // Navigation items
   const navItems = [
@@ -182,60 +237,10 @@ const STRTheme: React.FC<TenantLandingProps> = ({
     },
   ];
 
-  // Gallery filters
-  const galleryFilters = ['All', 'Training', 'Facility', 'Equipment', 'Team', 'Results'];
+  // Gallery images - loaded from centralized asset config
+  const galleryImages = getGalleryImages();
 
-  // Gallery images
-  const galleryImages = [
-    { src: 'https://images.pexels.com/photos/4164754/pexels-photo-4164754.jpeg?auto=compress&cs=tinysrgb&w=800', alt: 'Training session', title: 'Athlete Training', category: 'Training' },
-    { src: 'https://images.pexels.com/photos/4164754/pexels-photo-4164754.jpeg?auto=compress&cs=tinysrgb&w=800', alt: 'Equipment', title: 'Training Equipment', category: 'Equipment' },
-    { src: 'https://images.pexels.com/photos/4164754/pexels-photo-4164754.jpeg?auto=compress&cs=tinysrgb&w=800', alt: 'Client workout', title: 'Client Session', category: 'Training' },
-    { src: 'https://images.pexels.com/photos/4164754/pexels-photo-4164754.jpeg?auto=compress&cs=tinysrgb&w=800', alt: 'Group training', title: 'Group Training', category: 'Training' },
-    { src: 'https://images.pexels.com/photos/4164754/pexels-photo-4164754.jpeg?auto=compress&cs=tinysrgb&w=800', alt: 'Training environment', title: 'Facility', category: 'Facility' },
-    { src: 'https://images.pexels.com/photos/4164754/pexels-photo-4164754.jpeg?auto=compress&cs=tinysrgb&w=800', alt: 'Athlete performance', title: 'Performance Training', category: 'Training' },
-    { src: 'https://images.pexels.com/photos/4164754/pexels-photo-4164754.jpeg?auto=compress&cs=tinysrgb&w=800', alt: 'Rehabilitation', title: 'Rehab Session', category: 'Training' },
-    { src: 'https://images.pexels.com/photos/4164754/pexels-photo-4164754.jpeg?auto=compress&cs=tinysrgb&w=800', alt: 'Strength training', title: 'Strength Workout', category: 'Training' },
-    { src: 'https://images.pexels.com/photos/4164754/pexels-photo-4164754.jpeg?auto=compress&cs=tinysrgb&w=800', alt: 'Coaching', title: 'Coaching Session', category: 'Team' },
-  ];
-
-  // Filter gallery images
-  const filteredGalleryImages = activeGalleryFilter === 'All' 
-    ? galleryImages 
-    : galleryImages.filter(img => img.category === activeGalleryFilter);
-
-  // Testimonials
-  const testimonials = [
-    {
-      name: 'Melissa K.',
-      role: 'Student',
-      quote: 'The Coaches Are Knowledgeable And Supportive, Making Every Workout Feel Focused, Effective, And Perfectly Aligned With My Fitness Goals.',
-    },
-    {
-      name: 'Daniel R.',
-      role: 'Entrepreneur',
-      quote: 'Training Here Feels Structured And Motivating, With Clear Guidance That Helps Me Stay Consistent And See Real Progress Over Time.',
-    },
-    {
-      name: 'Jonathan P.',
-      role: 'Athlete',
-      quote: 'The Programs Are Well-Designed And Challenging, Pushing Me To Improve While Still Feeling Safe And Properly Coached.',
-    },
-    {
-      name: 'Sarah M.',
-      role: 'Professional',
-      quote: 'STR Has Completely Transformed My Approach To Training. The Evidence-Based Coaching And Personalized Attention Have Helped Me Achieve Goals I Never Thought Possible.',
-    },
-    {
-      name: 'James T.',
-      role: 'Rehabilitation Client',
-      quote: 'After A Serious Injury, STR\'s Rehabilitation Program Got Me Back To Full Strength. The Team\'s Expertise And Support Were Invaluable Throughout My Recovery.',
-    },
-    {
-      name: 'Emma R.',
-      role: 'Athlete',
-      quote: 'The Sports Training Program Has Significantly Improved My Performance. The Coaches Understand What Athletes Need And Deliver Results.',
-    },
-  ];
+  // Testimonials are now loaded from Google Reviews API (see useEffect above)
 
   // Team members
   const teamMembers = [
@@ -245,7 +250,7 @@ const STRTheme: React.FC<TenantLandingProps> = ({
       description: 'JJ, a former National Youth Wushu Athlete, earned a Physiotherapy degree from Trinity College Dublin and specialized in sports physiotherapy at Sengkang General Hospital. He competes in endurance events like Hyrox — ranking top 6 Singaporean in 2024 — and volunteers with the Special Olympics and Wushu community.',
       qualifications: '',
       specialization: '',
-      image: 'https://images.pexels.com/photos/4164754/pexels-photo-4164754.jpeg?auto=compress&cs=tinysrgb&w=600',
+      image: '/theme/str/assets/team/JJ-Head-Coach-scaled-e1743491665639.jpg',
       profileLink: '#',
     },
     {
@@ -254,7 +259,7 @@ const STRTheme: React.FC<TenantLandingProps> = ({
       description: 'Brandon Khoo is an experienced strength and conditioning coach specializing in kettlebell and barbell training. He has designed and led both individualized and group training programs, focusing on strength, endurance, mobility, and injury prevention. He is passionate about helping clients build functional strength through structured progression.',
       qualifications: '',
       specialization: '',
-      image: 'https://images.pexels.com/photos/4164754/pexels-photo-4164754.jpeg?auto=compress&cs=tinysrgb&w=600',
+      image: '/theme/str/assets/team/Brandon-Khoo-Coach-scaled-e1743491558663.jpg',
       profileLink: '#',
     },
     {
@@ -263,7 +268,7 @@ const STRTheme: React.FC<TenantLandingProps> = ({
       description: 'Jing Yong earned an Accountancy degree from Nanyang Technological University and currently holds a managerial position at a local investment firm. A former competitive athlete in triathlons, track and field and cross-country running, he now focuses on endurance events such as Hyrox, marathons, and team-based functional fitness races.',
       qualifications: '',
       specialization: '',
-      image: 'https://images.pexels.com/photos/4164754/pexels-photo-4164754.jpeg?auto=compress&cs=tinysrgb&w=600',
+      image: '/theme/str/assets/team/Jing-Yong-Coach-e1743491534837.jpg',
       profileLink: '#',
     },
     {
@@ -272,7 +277,7 @@ const STRTheme: React.FC<TenantLandingProps> = ({
       description: 'Jessica is an experienced and versatile personal trainer with expertise in both strength and hybrid training. She has helped numerous clients achieve both fitness and aesthetic goals, while ensuring that they train safely and efficiently. She competes in half marathons and HYROX, ranking as the top Singaporean woman in both Open (2nd overall, first in AG) and Pro (3rd overall, first in AG) categories in HYROX 2024 races.',
       qualifications: '',
       specialization: '',
-      image: 'https://images.pexels.com/photos/4164754/pexels-photo-4164754.jpeg?auto=compress&cs=tinysrgb&w=600',
+      image: '/theme/str/assets/team/Jessica-e1744082680759.jpeg',
       profileLink: '#',
     },
     {
@@ -281,7 +286,7 @@ const STRTheme: React.FC<TenantLandingProps> = ({
       description: 'Jacqueline is a passionate fitness trainer dedicated to helping others feel strong, confident, and empowered through movement. While she works as an HR professional by day, her true energy comes from the world of fitness—especially spin and pilates. She believes fitness should be fun, approachable, and inclusive, regardless of experience level. Her mission is to create a supportive space where members are encouraged to grow, challenge themselves, and celebrate progress.',
       qualifications: '',
       specialization: '',
-      image: 'https://images.pexels.com/photos/4164754/pexels-photo-4164754.jpeg?auto=compress&cs=tinysrgb&w=600',
+      image: '/theme/str/assets/team/Jacqueline-e1744082763597.jpeg',
       profileLink: '#',
     },
   ];
@@ -314,30 +319,58 @@ const STRTheme: React.FC<TenantLandingProps> = ({
     },
   ];
 
+  // Check if we're on the homepage
+  const isHomepage = currentPage === '' || !currentPage;
+
   return (
     <div className="str-theme min-h-screen bg-background text-foreground">
       {/* Header */}
-      <header className="relative z-50 bg-background/95 backdrop-blur-sm border-b border-border">
+      <header className={`relative z-50 ${isHomepage ? 'bg-transparent absolute top-0 left-0 right-0' : 'bg-background/95 backdrop-blur-sm border-b border-border'}`}>
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex h-20 items-center justify-between">
+          <div className={`flex items-center justify-between ${isHomepage ? 'pt-4 pb-4' : 'h-20'}`}>
             {/* Logo */}
             <div className="flex items-center space-x-2">
-              <img 
-                src="/theme/str/assets/logos/str-logo-1-1024x604.png" 
-                alt="STR" 
-                className="h-12 w-auto"
-                onError={(e) => {
-                  // Fallback to text if image not found
-                  const target = e.target as HTMLImageElement;
-                  if (target.dataset.fallbackAdded) return; // Prevent duplicate fallback
-                  target.style.display = 'none';
-                  target.dataset.fallbackAdded = 'true';
-                  const fallback = document.createElement('div');
-                  fallback.className = 'text-2xl font-bold text-primary';
-                  fallback.textContent = 'STR';
-                  target.parentElement?.appendChild(fallback);
-                }}
-              />
+              {isHomepage ? (
+                // Circular logo on homepage (larger size)
+                <a href="/theme/str">
+                  <img 
+                    src={STR_ASSETS.logos.circular} 
+                    alt="STR Logo - Strength Through Range" 
+                    className="h-16 sm:h-20 md:h-24 lg:h-28 w-auto"
+                    onError={(e) => {
+                      // Fallback to text if image not found
+                      const target = e.target as HTMLImageElement;
+                      if (target.dataset.fallbackAdded) return; // Prevent duplicate fallback
+                      target.style.display = 'none';
+                      target.dataset.fallbackAdded = 'true';
+                      const fallback = document.createElement('div');
+                      fallback.className = 'text-2xl font-bold text-primary';
+                      fallback.textContent = 'STR';
+                      target.parentElement?.appendChild(fallback);
+                    }}
+                  />
+                </a>
+              ) : (
+                // Regular header logo on other pages
+                <a href="/theme/str">
+                  <img 
+                    src={STR_ASSETS.logos.header} 
+                    alt="STR" 
+                    className="h-12 w-auto"
+                    onError={(e) => {
+                      // Fallback to text if image not found
+                      const target = e.target as HTMLImageElement;
+                      if (target.dataset.fallbackAdded) return; // Prevent duplicate fallback
+                      target.style.display = 'none';
+                      target.dataset.fallbackAdded = 'true';
+                      const fallback = document.createElement('div');
+                      fallback.className = 'text-2xl font-bold text-primary';
+                      fallback.textContent = 'STR';
+                      target.parentElement?.appendChild(fallback);
+                    }}
+                  />
+                </a>
+              )}
             </div>
 
             {/* Desktop Navigation */}
@@ -346,7 +379,7 @@ const STRTheme: React.FC<TenantLandingProps> = ({
                 <a
                   key={item.name}
                   href={item.href}
-                  className="text-foreground hover:text-primary transition-colors"
+                  className={`transition-colors ${isHomepage ? 'text-foreground hover:text-primary' : 'text-foreground hover:text-primary'}`}
                 >
                   {item.name}
                 </a>
@@ -361,7 +394,7 @@ const STRTheme: React.FC<TenantLandingProps> = ({
 
             {/* Mobile Menu Button */}
             <button
-              className="lg:hidden text-foreground"
+              className={`lg:hidden ${isHomepage ? 'text-foreground' : 'text-foreground'}`}
               onClick={() => setIsMenuOpen(!isMenuOpen)}
             >
               {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -371,7 +404,7 @@ const STRTheme: React.FC<TenantLandingProps> = ({
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="lg:hidden border-t border-border bg-background">
+          <div className={`lg:hidden border-t ${isHomepage ? 'border-transparent bg-transparent' : 'border-border bg-background'}`}>
             <div className="container mx-auto px-4 py-4 space-y-3">
               {navItems.map((item) => (
                 <a
@@ -408,9 +441,15 @@ const STRTheme: React.FC<TenantLandingProps> = ({
         {/* Background Image with Overlay */}
         <div className="absolute inset-0">
           <img
-            src="https://images.pexels.com/photos/4164754/pexels-photo-4164754.jpeg?auto=compress&cs=tinysrgb&w=1920"
-            alt="Training"
-            className="w-full h-full object-cover grayscale"
+            src={STR_ASSETS.backgrounds.aboutUs}
+            alt="STR Fitness Gym Training"
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              // Fallback to placeholder if image not found
+              const target = e.target as HTMLImageElement;
+              target.src = 'https://images.pexels.com/photos/4164754/pexels-photo-4164754.jpeg?auto=compress&cs=tinysrgb&w=1920';
+              target.className = 'w-full h-full object-cover grayscale';
+            }}
           />
           <div className="absolute inset-0 bg-background/80"></div>
         </div>
@@ -475,9 +514,22 @@ const STRTheme: React.FC<TenantLandingProps> = ({
               <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold uppercase text-foreground leading-tight mb-6">
                 OUR PROGRAMMES
               </h2>
-              <p className="text-lg md:text-xl text-foreground/80 leading-relaxed max-w-xl">
+              <p className="text-lg md:text-xl text-foreground/80 leading-relaxed max-w-xl mb-8">
                 Discover our comprehensive training programmes designed to help you achieve your fitness goals, whether you're building strength, improving performance, or recovering from injury.
               </p>
+              {/* Programmes Image */}
+              <div className="w-full max-w-xl">
+                <img 
+                  src={STR_ASSETS.images.programmes}
+                  alt="STR Fitness Gym Facilities - Rowing Machines, Training Area, and Weightlifting Equipment"
+                  className="w-full h-auto rounded-lg object-cover shadow-lg"
+                  onError={(e) => {
+                    // Fallback if image not found
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                  }}
+                />
+              </div>
             </div>
 
             {/* Right Column - Accordion */}
@@ -567,29 +619,9 @@ const STRTheme: React.FC<TenantLandingProps> = ({
           <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold uppercase mb-6 text-center text-foreground leading-tight">GALLERY</h2>
           
           {/* Introduction Text */}
-          <p className="text-sm text-muted-foreground text-center mb-8">
+          <p className="text-sm text-muted-foreground text-center mb-12">
             Training sessions, facility photos and videos
           </p>
-
-          {/* Filter Buttons */}
-          <div className="flex flex-wrap items-center justify-center gap-3 mb-12">
-            {galleryFilters.map((filter) => (
-              <button
-                key={filter}
-                onClick={() => {
-                  setActiveGalleryFilter(filter);
-                  setActiveGalleryIndex(0);
-                }}
-                className={`px-6 py-2 rounded-full font-medium uppercase text-sm transition-all ${
-                  activeGalleryFilter === filter
-                    ? 'bg-[#E48D2A] text-white'
-                    : 'bg-transparent border border-white text-white hover:bg-white/10'
-                }`}
-              >
-                {filter}
-              </button>
-            ))}
-          </div>
 
           {/* Image Slider */}
           <div className="relative mb-8">
@@ -611,7 +643,7 @@ const STRTheme: React.FC<TenantLandingProps> = ({
               }}
             >
               <CarouselContent className="-ml-4 md:-ml-8">
-                {filteredGalleryImages.map((image, index) => (
+                {galleryImages.map((image, index) => (
                   <CarouselItem key={index} className="pl-4 md:pl-8 basis-full md:basis-2/3 lg:basis-1/2">
                     <div className="relative rounded-3xl overflow-hidden shadow-2xl">
                       <div className="aspect-[4/3] relative">
@@ -620,15 +652,12 @@ const STRTheme: React.FC<TenantLandingProps> = ({
                           alt={image.alt}
                           className="w-full h-full object-cover"
                           loading="lazy"
+                          onError={(e) => {
+                            // Fallback to placeholder if image not found
+                            const target = e.target as HTMLImageElement;
+                            target.src = 'https://images.pexels.com/photos/4164754/pexels-photo-4164754.jpeg?auto=compress&cs=tinysrgb&w=800';
+                          }}
                         />
-                        {/* Optional video play icon overlay */}
-                        {index % 3 === 1 && (
-                          <div className="absolute inset-0 flex items-center justify-center bg-black/20">
-                            <div className="w-16 h-16 rounded-full bg-white/90 flex items-center justify-center">
-                              <div className="w-0 h-0 border-l-[12px] border-l-black border-t-[8px] border-t-transparent border-b-[8px] border-b-transparent ml-1"></div>
-                            </div>
-                          </div>
-                        )}
                       </div>
                     </div>
                   </CarouselItem>
@@ -659,40 +688,210 @@ const STRTheme: React.FC<TenantLandingProps> = ({
 
       {/* Testimonials Section */}
       <section id="testimonials" className="py-20 px-4 sm:px-6 lg:px-8 bg-background">
-        <div className="container mx-auto">
+        <div className="container mx-auto max-w-7xl">
           {/* Section Header */}
           <div className="mb-12">
             {/* Main Heading */}
-            <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold uppercase text-foreground leading-tight">
+            <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold uppercase text-foreground leading-tight mb-8">
               RESULT YOU CAN FEEL & SEE
             </h2>
-          </div>
 
-          {/* Testimonial Cards Grid - 2 Rows */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-            {testimonials.map((testimonial, index) => (
-              <div
-                key={index}
-                className="bg-gray-800/60 rounded-3xl p-6 h-full transition-all duration-300 border border-transparent"
-              >
-                {/* Star Icon at Top Center */}
-                <div className="flex justify-center mb-4">
-                  <Star className="h-5 w-5 text-[#E00000]" fill="#E00000" />
+            {/* Google Badge */}
+            {placeInfo && placeInfo.rating > 0 && (
+              <div className="flex items-center gap-4 mb-8 p-4 bg-white/5 rounded-2xl border border-white/10 backdrop-blur-sm">
+                {/* Google Logo */}
+                <div className="flex-shrink-0">
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                  </svg>
                 </div>
-
-                {/* Testimonial Text */}
-                <p className="text-foreground mb-6 leading-relaxed text-base">
-                  {testimonial.quote}
-                </p>
-
-                {/* Author Information */}
-                <div className="mt-auto">
-                  <p className="font-bold text-foreground text-lg mb-1">{testimonial.name}</p>
-                  <p className="text-gray-400 text-sm">{testimonial.role}</p>
+                {/* Rating and Review Count */}
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-1">
+                    <span className="text-3xl font-bold text-foreground">{placeInfo.rating.toFixed(1)}</span>
+                    <div className="flex items-center gap-0.5">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Star
+                          key={star}
+                          className={`h-5 w-5 ${
+                            star <= Math.round(placeInfo.rating)
+                              ? 'text-yellow-400 fill-yellow-400'
+                              : 'text-gray-400 fill-gray-400'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                  <div className="h-6 w-px bg-foreground/20"></div>
+                  <div>
+                    <p className="text-foreground font-medium">
+                      Based on <span className="font-bold">{placeInfo.totalReviews}</span> Google reviews
+                    </p>
+                  </div>
                 </div>
               </div>
-            ))}
+            )}
           </div>
+
+          {/* Testimonial Cards Carousel - Google Reviews Style */}
+          {testimonialsLoading ? (
+            <div className="flex justify-center items-center py-20">
+              <div className="text-center">
+                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#E00000] mb-4"></div>
+                <p className="text-foreground/60">Loading reviews...</p>
+              </div>
+            </div>
+          ) : testimonials.length > 0 ? (
+            <>
+              {/* Reviews Carousel */}
+              <div className="relative mb-8">
+                <Carousel
+                  opts={{
+                    align: 'start',
+                    loop: true,
+                    slidesToScroll: 1,
+                  }}
+                  className="w-full"
+                  setApi={(api) => {
+                    if (api) {
+                      testimonialsCarouselApi.current = api;
+                      setActiveTestimonialSlide(api.selectedScrollSnap());
+                      api.on('select', () => {
+                        setActiveTestimonialSlide(api.selectedScrollSnap());
+                      });
+                    }
+                  }}
+                >
+                  <CarouselContent className="-ml-4 md:-ml-6">
+                    {/* Group reviews into slides of 3 */}
+                    {Array.from({ length: Math.ceil(testimonials.length / 3) }).map((_, slideIndex) => {
+                      const slideReviews = testimonials.slice(slideIndex * 3, slideIndex * 3 + 3);
+                      return (
+                        <CarouselItem key={slideIndex} className="pl-4 md:pl-6 basis-full">
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {slideReviews.map((testimonial, reviewIndex) => {
+                              const reviewDate = formatReviewDate(testimonial.time);
+                              const initials = getInitials(testimonial.name);
+                              const globalIndex = slideIndex * 3 + reviewIndex;
+                              
+                              return (
+                                <div
+                                  key={globalIndex}
+                                  className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-200 h-full flex flex-col"
+                                >
+                                  {/* Avatar with Google Logo */}
+                                  <div className="flex items-start gap-4 mb-4">
+                                    <div className="relative flex-shrink-0">
+                                      {testimonial.profilePhotoUrl ? (
+                                        <img
+                                          src={testimonial.profilePhotoUrl}
+                                          alt={testimonial.name}
+                                          className="w-12 h-12 rounded-full object-cover"
+                                          onError={(e) => {
+                                            const target = e.target as HTMLImageElement;
+                                            target.style.display = 'none';
+                                            const parent = target.parentElement;
+                                            if (parent && !parent.querySelector('.initials-fallback')) {
+                                              const fallback = document.createElement('div');
+                                              fallback.className = 'initials-fallback w-12 h-12 rounded-full bg-[#EA4335] flex items-center justify-center text-white font-bold text-lg';
+                                              fallback.textContent = initials;
+                                              parent.appendChild(fallback);
+                                            }
+                                          }}
+                                        />
+                                      ) : (
+                                        <div className="w-12 h-12 rounded-full bg-[#EA4335] flex items-center justify-center text-white font-bold text-lg">
+                                          {initials}
+                                        </div>
+                                      )}
+                                      {/* Google 'G' Logo Badge */}
+                                      <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-white flex items-center justify-center shadow-md border border-gray-200">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                                          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                                          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                                          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                                        </svg>
+                                      </div>
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <p className="font-bold text-gray-900 text-base mb-1 truncate">{testimonial.name}</p>
+                                      <p className="text-gray-500 text-sm">{reviewDate}</p>
+                                    </div>
+                                  </div>
+
+                                  {/* Star Rating */}
+                                  <div className="flex items-center gap-2 mb-4">
+                                    <div className="flex items-center gap-0.5">
+                                      {[1, 2, 3, 4, 5].map((star) => (
+                                        <Star
+                                          key={star}
+                                          className={`h-4 w-4 ${
+                                            star <= testimonial.rating
+                                              ? 'text-yellow-400 fill-yellow-400'
+                                              : 'text-gray-300 fill-gray-300'
+                                          }`}
+                                        />
+                                      ))}
+                                    </div>
+                                    {/* Verified Checkmark */}
+                                    <div className="w-4 h-4 rounded-full bg-purple-500 flex items-center justify-center">
+                                      <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                      </svg>
+                                    </div>
+                                  </div>
+
+                                  {/* Review Text */}
+                                  <p className="text-gray-700 mb-4 leading-relaxed text-sm flex-grow">
+                                    {testimonial.quote.length > 150 ? (
+                                      <>
+                                        {testimonial.quote.substring(0, 150)}...{' '}
+                                        <button className="text-gray-500 hover:text-gray-700 text-sm font-medium">
+                                          Read more
+                                        </button>
+                                      </>
+                                    ) : (
+                                      testimonial.quote
+                                    )}
+                                  </p>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </CarouselItem>
+                      );
+                    })}
+                  </CarouselContent>
+                </Carousel>
+              </div>
+
+              {/* Bullet Navigation */}
+              <div className="flex justify-center items-center gap-2 mb-8">
+                {Array.from({ length: Math.ceil(testimonials.length / 3) }).map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => {
+                      testimonialsCarouselApi.current?.scrollTo(index);
+                    }}
+                    className={`h-2 rounded-full transition-all duration-300 ${
+                      activeTestimonialSlide === index
+                        ? 'bg-[#E00000] w-8'
+                        : 'bg-gray-400 w-2 hover:bg-gray-500'
+                    }`}
+                    aria-label={`Go to slide ${index + 1}`}
+                  />
+                ))}
+              </div>
+            </>
+          ) : (
+            <div className="text-center py-20">
+              <p className="text-foreground/60">No reviews available at this time.</p>
+            </div>
+          )}
 
           {/* CTA Button */}
           <div className="flex justify-center">
@@ -816,7 +1015,7 @@ const STRTheme: React.FC<TenantLandingProps> = ({
             {/* Left Column - Logo & Social */}
             <div className="space-y-6">
               <img 
-                src="/theme/str/assets/logos/str-logo-1-1024x604.png" 
+                src={STR_ASSETS.logos.footer} 
                 alt="STR" 
                 className="h-12 w-auto"
                 onError={(e) => {
