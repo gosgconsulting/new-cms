@@ -2,7 +2,7 @@
 
 import React from "react";
 import RadialOrbitalTimeline from "./ui/radial-orbital-timeline";
-import { X, Sparkles, BarChart3, Users, Zap, Target, TrendingUp, CheckCircle, UserCheck, Shield } from "lucide-react";
+import { X, Sparkles, BarChart3, Users, Zap, Target, TrendingUp, CheckCircle, UserCheck, Shield, FileText, Link } from "lucide-react";
 
 type Item = {
   key: string;
@@ -27,6 +27,8 @@ const iconMap: Record<string, React.ReactNode> = {
   checkCircle: <CheckCircle className="h-5 w-5" />,
   userCheck: <UserCheck className="h-5 w-5" />,
   shield: <Shield className="h-5 w-5" />,
+  fileText: <FileText className="h-5 w-5" />,
+  link: <Link className="h-5 w-5" />,
 };
 
 const defaultTimeline = [
