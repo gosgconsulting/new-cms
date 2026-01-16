@@ -48,7 +48,9 @@ const SHOP_PRODUCTS = [
 ] as const;
 
 function normalizeSlug(input?: string) {
-  return (input || '').replace(/^\/+/, '').trim();
+  const raw = (input || '').replace(/^\/+/, '').trim();
+  // strip query/hash so routing works for URLs like /thank-you?via=whatsapp
+  return raw.split('?')[0].split('#')[0];
 }
 
 function resolvePage(pageSlug?: string): { key: PageKey; param?: string } {
@@ -89,6 +91,14 @@ const MasterTheme: React.FC<TenantLandingProps> = ({
   // IMPORTANT: hooks must be declared unconditionally (before any early returns)
   const [contactOpen, setContactOpen] = useState(false);
 
+  // Contact modal multi-step state
+  const [contactStep, setContactStep] = useState<1 | 2 | 3>(1);
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [contactChannel, setContactChannel] = useState<'whatsapp' | 'form'>('form');
+  const [message, setMessage] = useState('');
+
   const page = useMemo(() => resolvePage(pageSlug), [pageSlug]);
 
   // Determine effective tenant ID: prefer prop, then window injection, then null
@@ -123,7 +133,21 @@ const MasterTheme: React.FC<TenantLandingProps> = ({
   const baseUrl = `/theme/${tenantSlug}`;
   const assetUrl = (file: string) => `${baseUrl}/assets/${file}`;
 
+  // Update this to your real WhatsApp business number (digits only, include country code)
+  const WHATSAPP_BUSINESS_NUMBER = '6590000000';
+
   const cardClass = 'rounded-2xl border border-border bg-card shadow-sm';
+
+  // Reset modal state when opening
+  useEffect(() => {
+    if (!contactOpen) return;
+    setContactStep(1);
+    setFullName('');
+    setEmail('');
+    setPhone('');
+    setContactChannel('form');
+    setMessage('');
+  }, [contactOpen]);
 
   // Optional favicon application
   useEffect(() => {
@@ -208,53 +232,73 @@ const MasterTheme: React.FC<TenantLandingProps> = ({
     </div>
   );
 
-  const ThankYouContent = () => (
-    <section>
-      <div className="max-w-4xl mx-auto px-4 py-16 sm:py-20">
-        <div className={`${cardClass} p-8 sm:p-10`}
-        >
-          <p className="text-xs font-semibold tracking-[0.22em] uppercase text-muted-foreground">Thank you</p>
-          <h1 className="mt-3 text-4xl sm:text-5xl font-extrabold tracking-tight">We've received your message.</h1>
-          <p className="mt-4 text-muted-foreground max-w-2xl">
-            We'll get back to you shortly with next steps.
-          </p>
+  const ThankYouContent = () => {
+    const [redirecting, setRedirecting] = useState(false);
 
-          <div className="mt-8 grid gap-4 sm:grid-cols-3">
-            <div className={`${cardClass} p-6`}
-            >
-              <p className="text-sm font-semibold">Next</p>
-              <p className="mt-2 text-sm text-muted-foreground">We review your request and reply.</p>
-            </div>
-            <div className={`${cardClass} p-6`}
-            >
-              <p className="text-sm font-semibold">Call</p>
-              <p className="mt-2 text-sm text-muted-foreground">We can jump on a quick discovery call.</p>
-            </div>
-            <div className={`${cardClass} p-6`}
-            >
-              <p className="text-sm font-semibold">Plan</p>
-              <p className="mt-2 text-sm text-muted-foreground">We share a clear package + timeline.</p>
-            </div>
-          </div>
+    useEffect(() => {
+      const params = new URLSearchParams(window.location.search);
+      const via = params.get('via');
+      const redirect = params.get('redirect');
 
-          <div className="mt-10 flex flex-wrap gap-3">
-            <a
-              href={baseUrl}
-              className="px-5 py-2.5 rounded-xl border border-border hover:bg-muted text-sm"
-            >
-              Back to home
-            </a>
-            <button
-              onClick={() => setContactOpen(true)}
-              className="px-5 py-2.5 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 text-sm shadow-sm"
-            >
-              Book a call
-            </button>
+      if (via === 'whatsapp' && redirect) {
+        setRedirecting(true);
+        // Small delay ensures this page view is registered before leaving for WhatsApp
+        const t = window.setTimeout(() => {
+          window.location.href = decodeURIComponent(redirect);
+        }, 600);
+        return () => window.clearTimeout(t);
+      }
+    }, []);
+
+    return (
+      <section>
+        <div className="max-w-4xl mx-auto px-4 py-16 sm:py-20">
+          <div className={`${cardClass} p-8 sm:p-10`}>
+            <p className="text-xs font-semibold tracking-[0.22em] uppercase text-muted-foreground">Thank you</p>
+            <h1 className="mt-3 text-4xl sm:text-5xl font-extrabold tracking-tight">
+              {redirecting ? 'Redirecting you to WhatsApp…' : 'We\'ve received your message.'}
+            </h1>
+            <p className="mt-4 text-muted-foreground max-w-2xl">
+              {redirecting
+                ? 'One moment — we\'re opening WhatsApp with your details pre-filled.'
+                : 'We\'ll get back to you shortly with next steps.'}
+            </p>
+
+            {!redirecting && (
+              <div className="mt-8 grid gap-4 sm:grid-cols-3">
+                <div className={`${cardClass} p-6`}>
+                  <p className="text-sm font-semibold">Next</p>
+                  <p className="mt-2 text-sm text-muted-foreground">We review your request and reply.</p>
+                </div>
+                <div className={`${cardClass} p-6`}>
+                  <p className="text-sm font-semibold">Call</p>
+                  <p className="mt-2 text-sm text-muted-foreground">We can jump on a quick discovery call.</p>
+                </div>
+                <div className={`${cardClass} p-6`}>
+                  <p className="text-sm font-semibold">Plan</p>
+                  <p className="mt-2 text-sm text-muted-foreground">We share a clear package + timeline.</p>
+                </div>
+              </div>
+            )}
+
+            <div className="mt-10 flex flex-wrap gap-3">
+              <a href={baseUrl} className="px-5 py-2.5 rounded-xl border border-border hover:bg-muted text-sm">
+                Back to home
+              </a>
+              {!redirecting && (
+                <button
+                  onClick={() => setContactOpen(true)}
+                  className="px-5 py-2.5 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 text-sm shadow-sm"
+                >
+                  Book a call
+                </button>
+              )}
+            </div>
           </div>
         </div>
-      </div>
-    </section>
-  );
+      </section>
+    );
+  };
 
   const HomeContent = () => (
     <div>
@@ -919,7 +963,7 @@ const MasterTheme: React.FC<TenantLandingProps> = ({
         <FooterContent />
       </footer>
 
-      {/* Simple placeholder for contact modal */}
+      {/* Contact modal (step-by-step) */}
       {contactOpen && (
         <div
           className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
@@ -929,44 +973,181 @@ const MasterTheme: React.FC<TenantLandingProps> = ({
             className="bg-background rounded-2xl p-6 w-full max-w-md border border-border shadow-sm"
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 className="text-lg font-semibold mb-1">Book a call</h2>
-            <p className="text-sm text-muted-foreground mb-4">Tell us about your site — we'll reply with next steps.</p>
-            <form
-              className="grid gap-3"
-              onSubmit={(e) => {
-                e.preventDefault();
-                setContactOpen(false);
-                window.location.href = `${baseUrl}/thank-you`;
-              }}
-            >
-              <label className="grid gap-1 text-sm">
-                <span className="text-xs text-muted-foreground">Name</span>
-                <input className="h-10 rounded-xl border border-border bg-background px-3" required />
-              </label>
-              <label className="grid gap-1 text-sm">
-                <span className="text-xs text-muted-foreground">Email</span>
-                <input type="email" className="h-10 rounded-xl border border-border bg-background px-3" required />
-              </label>
-              <label className="grid gap-1 text-sm">
-                <span className="text-xs text-muted-foreground">Message</span>
-                <textarea className="min-h-24 rounded-xl border border-border bg-background px-3 py-2" />
-              </label>
-              <div className="flex gap-2 justify-end pt-2">
-                <button
-                  type="button"
-                  onClick={() => setContactOpen(false)}
-                  className="px-3 py-2 rounded-xl border border-border hover:bg-muted text-sm"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 text-sm shadow-sm"
-                >
-                  Send
-                </button>
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h2 className="text-lg font-semibold">Contact us</h2>
+                <p className="text-sm text-muted-foreground">Step {contactStep} of 3</p>
               </div>
-            </form>
+              <button
+                type="button"
+                onClick={() => setContactOpen(false)}
+                className="px-2 py-1 rounded-lg border border-border hover:bg-muted text-sm"
+              >
+                Close
+              </button>
+            </div>
+
+            {/* Step 1 */}
+            {contactStep === 1 && (
+              <form
+                className="mt-6 grid gap-3"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  setContactStep(2);
+                }}
+              >
+                <label className="grid gap-1 text-sm">
+                  <span className="text-xs text-muted-foreground">Full name</span>
+                  <input
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    className="h-10 rounded-xl border border-border bg-background px-3"
+                    placeholder="Jane Doe"
+                    required
+                  />
+                </label>
+                <label className="grid gap-1 text-sm">
+                  <span className="text-xs text-muted-foreground">Email</span>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="h-10 rounded-xl border border-border bg-background px-3"
+                    placeholder="jane@company.com"
+                    required
+                  />
+                </label>
+                <label className="grid gap-1 text-sm">
+                  <span className="text-xs text-muted-foreground">Phone (with country code)</span>
+                  <input
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    className="h-10 rounded-xl border border-border bg-background px-3"
+                    placeholder="+65 9123 4567"
+                    required
+                  />
+                </label>
+
+                <div className="flex justify-end pt-2">
+                  <button
+                    type="submit"
+                    className="px-4 py-2 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 text-sm shadow-sm"
+                  >
+                    Next
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* Step 2 */}
+            {contactStep === 2 && (
+              <div className="mt-6">
+                <p className="text-sm font-semibold">How would you like to contact us?</p>
+                <div className="mt-4 grid gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setContactChannel('whatsapp')}
+                    className={`text-left rounded-2xl border p-4 transition-colors ${
+                      contactChannel === 'whatsapp'
+                        ? 'border-primary/50 bg-primary/5'
+                        : 'border-border hover:bg-muted/40'
+                    }`}
+                  >
+                    <p className="font-semibold">WhatsApp</p>
+                    <p className="mt-1 text-sm text-muted-foreground">Fastest way to reach us.</p>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setContactChannel('form')}
+                    className={`text-left rounded-2xl border p-4 transition-colors ${
+                      contactChannel === 'form' ? 'border-primary/50 bg-primary/5' : 'border-border hover:bg-muted/40'
+                    }`}
+                  >
+                    <p className="font-semibold">Contact form</p>
+                    <p className="mt-1 text-sm text-muted-foreground">Send a message and we'll reply by email.</p>
+                  </button>
+                </div>
+
+                <div className="mt-6 flex items-center justify-between gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setContactStep(1)}
+                    className="px-3 py-2 rounded-xl border border-border hover:bg-muted text-sm"
+                  >
+                    Back
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setContactStep(3)}
+                    className="px-4 py-2 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 text-sm shadow-sm"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 3 */}
+            {contactStep === 3 && (
+              <form
+                className="mt-6 grid gap-3"
+                onSubmit={(e) => {
+                  e.preventDefault();
+
+                  const hello = `Hello I am ${fullName}.`; 
+                  const details = `Email: ${email}. Phone: ${phone}.`;
+                  const body = message?.trim() ? `Message: ${message.trim()}` : '';
+                  const text = [hello, details, body].filter(Boolean).join(' ');
+
+                  if (contactChannel === 'whatsapp') {
+                    const digitsOnlyBusiness = WHATSAPP_BUSINESS_NUMBER.replace(/[^0-9]/g, '');
+                    const waUrl = `https://wa.me/${digitsOnlyBusiness}?text=${encodeURIComponent(text)}`;
+                    const trackingUrl = `${baseUrl}/thank-you?via=whatsapp&redirect=${encodeURIComponent(waUrl)}`;
+                    setContactOpen(false);
+                    window.location.href = trackingUrl;
+                    return;
+                  }
+
+                  // contact form
+                  setContactOpen(false);
+                  window.location.href = `${baseUrl}/thank-you`;
+                }}
+              >
+                <div className="rounded-2xl border border-border bg-muted/30 p-4">
+                  <p className="text-xs text-muted-foreground">Channel</p>
+                  <p className="text-sm font-semibold">
+                    {contactChannel === 'whatsapp' ? 'WhatsApp' : 'Contact form'}
+                  </p>
+                </div>
+
+                <label className="grid gap-1 text-sm">
+                  <span className="text-xs text-muted-foreground">Your message</span>
+                  <textarea
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    className="min-h-28 rounded-xl border border-border bg-background px-3 py-2"
+                    placeholder="Tell us what you need…"
+                    required
+                  />
+                </label>
+
+                <div className="flex items-center justify-between gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setContactStep(2)}
+                    className="px-3 py-2 rounded-xl border border-border hover:bg-muted text-sm"
+                  >
+                    Back
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 text-sm shadow-sm"
+                  >
+                    Send
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       )}
