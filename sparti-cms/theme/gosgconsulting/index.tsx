@@ -166,7 +166,7 @@ const GOSGContent: React.FC<TenantLandingProps> = ({
     ]
   };
 
-  // UPDATED: SEO page schema with same structure as homepage, content tailored to SEO
+  // NEW: SEO page schema override
   const seoData = {
     slug: 'seo',
     meta: homepageData.meta,
@@ -177,32 +177,32 @@ const GOSGContent: React.FC<TenantLandingProps> = ({
         name: "Hero",
         type: "HomeHeroSection",
         items: [
-          { key: "headingPrefix", type: "heading", level: 1, content: "Grow organic traffic with" },
-          { key: "headingEmphasis", type: "heading", level: 1, content: "SEO that compounds" }
+          { key: "headingPrefix", type: "heading", level: 1, content: "Rank higher every month" },
+          { key: "headingEmphasis", type: "heading", level: 1, content: "Traffic that converts" }
         ]
       },
-      // Challenge (same component, SEO-specific pain points)
+      // Challenge (same component, SEO-specific hooks)
       {
         key: "ProblemSection",
         name: "Problem",
         type: "ChallengeSection",
         items: [
-          { key: "hint", type: "text", content: "Struggling to get found on Google?" },
-          { key: "heading", type: "heading", level: 2, content: "You're not ranking — and leads stall" },
+          { key: "hint", type: "text", content: "Search visibility unlocked" },
+          { key: "heading", type: "heading", level: 2, content: "Authority Google trusts" },
           {
             key: "bullets",
             type: "array",
             items: [
-              { key: "b1", type: "text", content: "Content consistency is missing", icon: "x" },
-              { key: "b2", type: "text", content: "No quality backlinks to build authority", icon: "link" },
-              { key: "b3", type: "text", content: "No transparent reporting or iteration", icon: "barChart3" }
+              { key: "b1", type: "text", content: "Content built to rank", icon: "fileText" },
+              { key: "b2", type: "text", content: "Backlinks that matter", icon: "link" },
+              { key: "b3", type: "text", content: "Results you can track", icon: "barChart3" }
             ]
           }
         ]
       },
       // About (unchanged)
       { key: "AnimatedAboutSection", name: "Animated About", type: "AboutSection2", items: [] },
-      // Pricing (override for SEO offer)
+      // Pricing (override for SEO offer using short descriptions and process)
       {
         key: "PricingPageSection",
         name: "Pricing",
@@ -213,18 +213,18 @@ const GOSGContent: React.FC<TenantLandingProps> = ({
             price: "$600 SGD",
             priceDescription: "per month",
             features: [
-              "12 blog articles per month",
-              "10 external backlinks per month",
-              "Monthly reports",
+              "Strategic articles designed to capture high intent searches",
+              "Quality backlinks that strengthen domain authority steadily",
+              "Transparent monthly reports showing rankings, traffic and impact",
               "Process: SEO Audit > Keywords research > Topics suggestions > Approval > Writing"
             ],
             buttonText: "Start SEO",
             pageTitle: "SEO Service",
-            pageDescription: "Fixed monthly SEO including content, backlinks, and reporting."
+            pageDescription: "Long term SEO system built for consistent lead generation"
           }
         ]
       },
-      // Gallery4Section: replace content with 3 sections (structure preserved)
+      // Gallery4Section: keep same layout; update descriptions and images
       {
         key: "Gallery4Section",
         name: "What's Included",
@@ -233,7 +233,7 @@ const GOSGContent: React.FC<TenantLandingProps> = ({
           {
             id: "blog-articles",
             title: "Blog Articles",
-            description: "Publish consistent, SEO-optimized content to build topical authority and drive organic growth.",
+            description: "Strategic articles designed to capture high intent searches",
             bullets: [
               "12 blog articles per month",
               "Keyword-led topics and outlines",
@@ -244,7 +244,7 @@ const GOSGContent: React.FC<TenantLandingProps> = ({
           {
             id: "backlinks",
             title: "Backlinks",
-            description: "Grow domain authority with quality external links acquired through outreach and trusted placements.",
+            description: "Quality backlinks that strengthen domain authority steadily",
             bullets: [
               "10 external backlinks per month",
               "Relevant placements from trusted sites",
@@ -255,7 +255,7 @@ const GOSGContent: React.FC<TenantLandingProps> = ({
           {
             id: "monthly-report",
             title: "Monthly Report",
-            description: "Stay informed with transparent reporting and next steps to keep improving results.",
+            description: "Transparent monthly reports showing rankings, traffic and impact",
             bullets: [
               "Monthly performance report",
               "Insights and recommendations",
