@@ -30,7 +30,7 @@ const Footer: React.FC<FooterProps> = ({
               <a href="/terms-conditions" className="hover:text-brandTeal transition-colors">
                 Terms of Service
               </a>
-              <a href="/blog" className="hover:text-brandTeal transition-colors">
+              <a href={`/theme/${tenantSlug}/blog`} className="hover:text-brandTeal transition-colors">
                 Blog
               </a>
             </div>
@@ -46,4 +46,3 @@ const Footer: React.FC<FooterProps> = ({
 };
 
 export default Footer;
-
