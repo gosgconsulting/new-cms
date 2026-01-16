@@ -58,23 +58,23 @@ const ClassesPage: React.FC<TenantLandingProps> = ({
   return (
     <div className="str-theme min-h-screen bg-background text-foreground">
       {/* Header */}
-      <header className="relative z-50 bg-background/95 backdrop-blur-sm border-b border-border">
+      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex h-20 items-center justify-between">
             {/* Logo */}
             <div className="flex items-center space-x-2">
               <a href="/theme/str">
-                <img 
-                  src={STR_ASSETS.logos.header} 
-                  alt="STR" 
-                  className="h-12 w-auto"
+                <img
+                  src={STR_ASSETS.logos.header}
+                  alt="STR"
+                  className="h-10 w-auto"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     if (target.dataset.fallbackAdded) return;
                     target.style.display = 'none';
                     target.dataset.fallbackAdded = 'true';
                     const fallback = document.createElement('div');
-                    fallback.className = 'text-2xl font-bold text-primary';
+                    fallback.className = 'text-xl font-bold text-primary';
                     fallback.textContent = 'STR';
                     target.parentElement?.appendChild(fallback);
                   }}
@@ -178,10 +178,10 @@ const ClassesPage: React.FC<TenantLandingProps> = ({
           {/* Main Footer Content */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12 lg:gap-16 mb-12">
             {/* Left Column - Logo & Social */}
-            <div className="space-y-6">
-              <img 
-                src={STR_ASSETS.logos.footer} 
-                alt="STR" 
+            <div className="space-y-3">
+              <img
+                src={STR_ASSETS.logos.footer}
+                alt="STR"
                 className="h-12 w-auto"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
@@ -189,14 +189,14 @@ const ClassesPage: React.FC<TenantLandingProps> = ({
                   target.style.display = 'none';
                   target.dataset.fallbackAdded = 'true';
                   const fallback = document.createElement('div');
-                  fallback.className = 'text-4xl font-bold text-foreground uppercase tracking-tight';
+                  fallback.className = 'text-2xl font-bold text-foreground uppercase tracking-tight';
                   fallback.textContent = 'STR';
                   target.parentElement?.appendChild(fallback);
                 }}
               />
               <div className="flex items-center gap-4">
                 <a
-                  href="https://instagram.com"
+                  href="https://www.instagram.com/strfitnessclub.sg/"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-10 h-10 rounded-full border-2 border-foreground/30 flex items-center justify-center hover:border-[#E48D2A] hover:bg-[#E48D2A]/10 transition-all duration-300 group"

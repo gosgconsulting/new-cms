@@ -1,7 +1,13 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
+import { Menu, X } from 'lucide-react';
 import { extractPropsFromItems, getImage, getHeading, getButton, getTextByKey, SchemaItem } from '../utils/schemaHelpers';
 import { STR_ASSETS } from '../config/assets';
+
+interface NavItem {
+  name: string;
+  href: string;
+}
 
 interface HeroSectionProps {
   tenantName?: string;
@@ -16,6 +22,11 @@ interface HeroSectionProps {
   buttonUrl?: string;
   items?: SchemaItem[];
   onButtonClick?: () => void;
+  showHeader?: boolean;
+  navItems?: NavItem[];
+  isMenuOpen?: boolean;
+  setIsMenuOpen?: (open: boolean) => void;
+  isHomepage?: boolean;
 }
 
 const HeroSection: React.FC<HeroSectionProps> = ({
@@ -30,7 +41,12 @@ const HeroSection: React.FC<HeroSectionProps> = ({
   buttonText,
   buttonUrl,
   items,
-  onButtonClick
+  onButtonClick,
+  showHeader = false,
+  navItems = [],
+  isMenuOpen = false,
+  setIsMenuOpen,
+  isHomepage = false
 }) => {
   // Extract props from items if provided (for schema-based editing)
   const extractedProps = items ? extractPropsFromItems(items) : {};
@@ -60,7 +76,119 @@ const HeroSection: React.FC<HeroSectionProps> = ({
   };
 
   return (
-    <section className="relative pt-20 pb-20 px-4 sm:px-6 lg:px-8 min-h-screen flex items-center overflow-hidden">
+    <section className="relative min-h-screen flex items-center overflow-hidden">
+      {/* Hero Header - visible on homepage with circular logo, visible on other pages with regular logo */}
+      {showHeader && (
+        <header className="absolute top-0 left-0 right-0 z-50 bg-transparent">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className={`flex items-center justify-between ${
+              isHomepage 
+                ? 'pt-8 pb-6 sm:pt-10 sm:pb-8' 
+                : 'h-20'
+            }`}>
+              {/* Logo */}
+              <div className={`flex items-center space-x-2 ${isHomepage ? 'pl-4 sm:pl-6' : ''}`}>
+                {isHomepage ? (
+                  // Circular logo on homepage (larger size, transparent background)
+                  <a href="/theme/str">
+                    <img 
+                      src={STR_ASSETS.logos.circular} 
+                      alt="STR Logo - Strength Through Range" 
+                      className="h-16 sm:h-20 md:h-24 lg:h-28 w-auto"
+                      onError={(e) => {
+                        // Fallback to text if image not found
+                        const target = e.target as HTMLImageElement;
+                        if (target.dataset.fallbackAdded) return; // Prevent duplicate fallback
+                        target.style.display = 'none';
+                        target.dataset.fallbackAdded = 'true';
+                        const fallback = document.createElement('div');
+                        fallback.className = 'text-2xl font-bold text-primary';
+                        fallback.textContent = 'STR';
+                        target.parentElement?.appendChild(fallback);
+                      }}
+                    />
+                  </a>
+                ) : (
+                  // Regular header logo on other pages
+                  <a href="/theme/str">
+                    <img 
+                      src={STR_ASSETS.logos.header} 
+                      alt="STR" 
+                      className="h-12 w-auto"
+                      onError={(e) => {
+                        // Fallback to text if image not found
+                        const target = e.target as HTMLImageElement;
+                        if (target.dataset.fallbackAdded) return; // Prevent duplicate fallback
+                        target.style.display = 'none';
+                        target.dataset.fallbackAdded = 'true';
+                        const fallback = document.createElement('div');
+                        fallback.className = 'text-2xl font-bold text-primary';
+                        fallback.textContent = 'STR';
+                        target.parentElement?.appendChild(fallback);
+                      }}
+                    />
+                  </a>
+                )}
+              </div>
+
+              {/* Desktop Navigation */}
+              <nav className="hidden lg:flex items-center space-x-8">
+                {navItems.map((item) => (
+                  <a
+                    key={item.name}
+                    href={item.href}
+                    className="transition-colors text-foreground hover:text-primary"
+                  >
+                    {item.name}
+                  </a>
+                ))}
+                <Button
+                  className="bg-[#E00000] text-white hover:bg-[#E00000]/90 font-bold uppercase px-6 py-2 rounded-lg text-sm transition-all duration-300"
+                  onClick={() => window.location.href = '/theme/str/booking'}
+                >
+                  Get Started
+                </Button>
+              </nav>
+
+              {/* Mobile Menu Button */}
+              <button
+                className="lg:hidden text-foreground"
+                onClick={() => setIsMenuOpen && setIsMenuOpen(!isMenuOpen)}
+              >
+                {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              </button>
+            </div>
+          </div>
+
+          {/* Mobile Menu */}
+          {isMenuOpen && (
+            <div className="lg:hidden border-t border-transparent bg-transparent">
+              <div className="container mx-auto px-4 py-4 space-y-3">
+                {navItems.map((item) => (
+                  <a
+                    key={item.name}
+                    href={item.href}
+                    className="block text-foreground hover:text-primary transition-colors"
+                    onClick={() => setIsMenuOpen && setIsMenuOpen(false)}
+                  >
+                    {item.name}
+                  </a>
+                ))}
+                <Button
+                  className="w-full bg-[#E00000] text-white hover:bg-[#E00000]/90 font-bold uppercase px-6 py-3 rounded-lg text-sm transition-all duration-300 mt-4"
+                  onClick={() => {
+                    setIsMenuOpen && setIsMenuOpen(false);
+                    window.location.href = '/theme/str/booking';
+                  }}
+                >
+                  Get Started
+                </Button>
+              </div>
+            </div>
+          )}
+        </header>
+      )}
+
       {/* Background Image with Overlay */}
       <div className="absolute inset-0">
         <img
@@ -76,18 +204,18 @@ const HeroSection: React.FC<HeroSectionProps> = ({
         <div className="absolute inset-0 bg-background/70"></div>
       </div>
       
-      <div className="container mx-auto relative z-10">
+      <div className="container mx-auto relative z-10 px-6 sm:px-6 lg:px-8 py-16 sm:py-20">
         <div className="max-w-4xl">
-          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold uppercase text-foreground mb-6 leading-tight">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold uppercase text-foreground mb-6 sm:mb-8 leading-tight">
             {finalTitle}
           </h1>
-          <p className="text-xl md:text-2xl text-foreground mb-4 leading-relaxed font-medium">
+          <p className="text-xl md:text-2xl text-foreground mb-4 sm:mb-5 leading-relaxed font-medium">
             {finalSubtitle}
           </p>
-          <p className="text-lg md:text-xl text-muted-foreground mb-6 leading-relaxed">
+          <p className="text-lg md:text-xl text-muted-foreground mb-6 sm:mb-7 leading-relaxed">
             {finalDescription}
           </p>
-          <p className="text-base md:text-lg text-muted-foreground mb-8 leading-relaxed whitespace-pre-line">
+          <p className="text-base md:text-lg text-muted-foreground mb-8 sm:mb-10 leading-relaxed whitespace-pre-line">
             {finalAddress}
           </p>
           <Button

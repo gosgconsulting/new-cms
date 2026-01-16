@@ -45,7 +45,7 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
   const handleWhatsAppClick = () => {
     // Open WhatsApp with a pre-filled message
     const message = encodeURIComponent('Hello! I would like to get in touch with STR Fitness.');
-    window.open(`https://wa.me/?text=${message}`, '_blank');
+    window.open(`https://wa.me/6588411329?text=${message}`, '_blank');
   };
 
   if (!isOpen) return null;

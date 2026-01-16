@@ -4,6 +4,7 @@ import './theme.css';
 import { Button } from '@/components/ui/button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, CarouselIndicators } from '@/components/ui/carousel';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Star, Menu, X, ArrowRight, Wrench, Award, Users, ChevronUp, Plus, Minus, Instagram } from 'lucide-react';
 import BookingPage from './booking';
 import PackagesPage from './packages';
@@ -101,11 +102,14 @@ const STRTheme: React.FC<TenantLandingProps> = ({
   // Default: render homepage
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeProgramme, setActiveProgramme] = useState(0);
-  const [activeGalleryIndex, setActiveGalleryIndex] = useState(0);
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
+  const [selectedGalleryImage, setSelectedGalleryImage] = useState<{ src: string; alt: string } | null>(null);
+  const galleryCarouselApi = useRef<any>(null);
+  const [activeGalleryIndex, setActiveGalleryIndex] = useState(0);
   const [testimonials, setTestimonials] = useState<STRTestimonial[]>([]);
   const [placeInfo, setPlaceInfo] = useState<STRPlaceInfo | null>(null);
   const [testimonialsLoading, setTestimonialsLoading] = useState(true);
+  const [isScrolled, setIsScrolled] = useState(false);
 
   // Check for #contact hash in URL and open modal
   useEffect(() => {
@@ -176,7 +180,6 @@ const STRTheme: React.FC<TenantLandingProps> = ({
 
     loadReviews();
   }, []);
-  const galleryCarouselApi = useRef<any>(null);
   const testimonialsCarouselApi = useRef<any>(null);
   const [activeTestimonialSlide, setActiveTestimonialSlide] = useState(0);
 
@@ -185,7 +188,9 @@ const STRTheme: React.FC<TenantLandingProps> = ({
     { name: 'About Us', href: '#about' },
     { name: 'Programmes', href: '#programmes' },
     { name: 'Gallery', href: '#gallery' },
-    { name: 'FAQs', href: '#faq' },
+    { name: 'Reviews', href: '#testimonials' },
+    { name: 'Team', href: '#team' },
+    { name: 'FAQ', href: '#faq' },
   ];
 
   // Footer menu items
@@ -322,21 +327,35 @@ const STRTheme: React.FC<TenantLandingProps> = ({
   // Check if we're on the homepage
   const isHomepage = currentPage === '' || !currentPage;
 
+  // Track scroll position for sticky header visibility on homepage
+  useEffect(() => {
+    if (!isHomepage) return;
+
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 250);
+    };
+
+    // Check initial scroll position
+    handleScroll();
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [isHomepage]);
+
   return (
     <div className="str-theme min-h-screen bg-background text-foreground">
-      {/* Header */}
-      <header className={`relative z-50 ${isHomepage ? 'bg-transparent absolute top-0 left-0 right-0' : 'bg-background/95 backdrop-blur-sm border-b border-border'}`}>
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className={`flex items-center justify-between ${isHomepage ? 'pt-4 pb-4' : 'h-20'}`}>
-            {/* Logo */}
-            <div className="flex items-center space-x-2">
-              {isHomepage ? (
-                // Circular logo on homepage (larger size)
+      {/* Header - only render for non-homepage pages */}
+      {!isHomepage && (
+        <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex h-20 items-center justify-between">
+              {/* Logo */}
+              <div className="flex items-center space-x-2">
                 <a href="/theme/str">
                   <img 
-                    src={STR_ASSETS.logos.circular} 
-                    alt="STR Logo - Strength Through Range" 
-                    className="h-16 sm:h-20 md:h-24 lg:h-28 w-auto"
+                    src={STR_ASSETS.logos.header} 
+                    alt="STR" 
+                    className="h-10 w-auto"
                     onError={(e) => {
                       // Fallback to text if image not found
                       const target = e.target as HTMLImageElement;
@@ -344,14 +363,79 @@ const STRTheme: React.FC<TenantLandingProps> = ({
                       target.style.display = 'none';
                       target.dataset.fallbackAdded = 'true';
                       const fallback = document.createElement('div');
-                      fallback.className = 'text-2xl font-bold text-primary';
+                      fallback.className = 'text-xl font-bold text-primary';
                       fallback.textContent = 'STR';
                       target.parentElement?.appendChild(fallback);
                     }}
                   />
                 </a>
-              ) : (
-                // Regular header logo on other pages
+              </div>
+
+              {/* Desktop Navigation */}
+              <nav className="hidden lg:flex items-center space-x-8">
+                {navItems.map((item) => (
+                  <a
+                    key={item.name}
+                    href={item.href}
+                    className="transition-colors text-foreground hover:text-primary"
+                  >
+                    {item.name}
+                  </a>
+                ))}
+                <Button
+                  className="bg-[#E00000] text-white hover:bg-[#E00000]/90 font-bold uppercase px-6 py-2 rounded-lg text-sm transition-all duration-300"
+                  onClick={() => window.location.href = '/theme/str/booking'}
+                >
+                  Get Started
+                </Button>
+              </nav>
+
+              {/* Mobile Menu Button */}
+              <button
+                className="lg:hidden text-foreground"
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+              >
+                {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              </button>
+            </div>
+          </div>
+
+          {/* Mobile Menu */}
+          {isMenuOpen && (
+            <div className="lg:hidden border-t border-border bg-background">
+              <div className="container mx-auto px-4 py-4 space-y-3">
+                {navItems.map((item) => (
+                  <a
+                    key={item.name}
+                    href={item.href}
+                    className="block text-foreground hover:text-primary transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    {item.name}
+                  </a>
+                ))}
+                <Button
+                  className="w-full bg-[#E00000] text-white hover:bg-[#E00000]/90 font-bold uppercase px-6 py-3 rounded-lg text-sm transition-all duration-300 mt-4"
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    window.location.href = '/theme/str/booking';
+                  }}
+                >
+                  Get Started
+                </Button>
+              </div>
+            </div>
+          )}
+        </header>
+      )}
+
+      {/* Sticky Header - appears after scrolling on homepage */}
+      {isHomepage && isScrolled && (
+        <header className="sticky top-0 z-[60] bg-background/95 backdrop-blur-sm border-b border-border transition-opacity duration-300">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex h-20 items-center justify-between">
+              {/* Logo */}
+              <div className="flex items-center space-x-2">
                 <a href="/theme/str">
                   <img 
                     src={STR_ASSETS.logos.header} 
@@ -370,74 +454,79 @@ const STRTheme: React.FC<TenantLandingProps> = ({
                     }}
                   />
                 </a>
-              )}
-            </div>
+              </div>
 
-            {/* Desktop Navigation */}
-            <nav className="hidden lg:flex items-center space-x-8">
-              {navItems.map((item) => (
-                <a
-                  key={item.name}
-                  href={item.href}
-                  className={`transition-colors ${isHomepage ? 'text-foreground hover:text-primary' : 'text-foreground hover:text-primary'}`}
+              {/* Desktop Navigation */}
+              <nav className="hidden lg:flex items-center space-x-8">
+                {navItems.map((item) => (
+                  <a
+                    key={item.name}
+                    href={item.href}
+                    className="transition-colors text-foreground hover:text-primary"
+                  >
+                    {item.name}
+                  </a>
+                ))}
+                <Button
+                  className="bg-[#E00000] text-white hover:bg-[#E00000]/90 font-bold uppercase px-6 py-2 rounded-lg text-sm transition-all duration-300"
+                  onClick={() => window.location.href = '/theme/str/booking'}
                 >
-                  {item.name}
-                </a>
-              ))}
-              <Button
-                className="bg-[#E00000] text-white hover:bg-[#E00000]/90 font-bold uppercase px-6 py-2 rounded-lg text-sm transition-all duration-300"
-                onClick={() => window.location.href = '/theme/str/booking'}
-              >
-                Get Started
-              </Button>
-            </nav>
+                  Get Started
+                </Button>
+              </nav>
 
-            {/* Mobile Menu Button */}
-            <button
-              className={`lg:hidden ${isHomepage ? 'text-foreground' : 'text-foreground'}`}
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-            >
-              {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile Menu */}
-        {isMenuOpen && (
-          <div className={`lg:hidden border-t ${isHomepage ? 'border-transparent bg-transparent' : 'border-border bg-background'}`}>
-            <div className="container mx-auto px-4 py-4 space-y-3">
-              {navItems.map((item) => (
-                <a
-                  key={item.name}
-                  href={item.href}
-                  className="block text-foreground hover:text-primary transition-colors"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  {item.name}
-                </a>
-              ))}
-              <Button
-                className="w-full bg-[#E00000] text-white hover:bg-[#E00000]/90 font-bold uppercase px-6 py-3 rounded-lg text-sm transition-all duration-300 mt-4"
-                onClick={() => {
-                  setIsMenuOpen(false);
-                  window.location.href = '/theme/str/booking';
-                }}
+              {/* Mobile Menu Button */}
+              <button
+                className="lg:hidden text-foreground"
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
               >
-                Get Started
-              </Button>
+                {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              </button>
             </div>
           </div>
-        )}
-      </header>
+
+          {/* Mobile Menu */}
+          {isMenuOpen && (
+            <div className="lg:hidden border-t border-border bg-background/95 backdrop-blur-sm">
+              <div className="container mx-auto px-4 py-4 space-y-3">
+                {navItems.map((item) => (
+                  <a
+                    key={item.name}
+                    href={item.href}
+                    className="block text-foreground hover:text-primary transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    {item.name}
+                  </a>
+                ))}
+                <Button
+                  className="w-full bg-[#E00000] text-white hover:bg-[#E00000]/90 font-bold uppercase px-6 py-3 rounded-lg text-sm transition-all duration-300 mt-4"
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    window.location.href = '/theme/str/booking';
+                  }}
+                >
+                  Get Started
+                </Button>
+              </div>
+            </div>
+          )}
+        </header>
+      )}
 
       {/* Hero Section */}
       <HeroSection 
         tenantSlug={tenantSlug}
         items={undefined} // Can be populated from database schema in future
+        showHeader={isHomepage}
+        navItems={navItems}
+        isMenuOpen={isMenuOpen}
+        setIsMenuOpen={setIsMenuOpen}
+        isHomepage={isHomepage}
       />
 
       {/* About Us Section */}
-      <section id="about" className="relative py-20 px-4 sm:px-6 lg:px-8 min-h-[90vh] flex items-center overflow-hidden">
+      <section id="about" className="relative py-16 sm:py-20 px-4 sm:px-6 lg:px-8 min-h-[90vh] flex items-center overflow-hidden">
         {/* Background Image with Overlay */}
         <div className="absolute inset-0">
           <img
@@ -506,9 +595,9 @@ const STRTheme: React.FC<TenantLandingProps> = ({
       </section>
 
       {/* Explore Our Programmes Section */}
-      <section id="programmes" className="py-20 px-4 sm:px-6 lg:px-8 bg-background">
+      <section id="programmes" className="py-16 sm:py-20 px-4 sm:px-6 lg:px-8 bg-background">
         <div className="container mx-auto max-w-6xl">
-          <div className="grid md:grid-cols-2 gap-12 items-start">
+          <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-start">
             {/* Left Column - Big Title */}
             <div className="flex flex-col justify-center">
               <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold uppercase text-foreground leading-tight mb-6">
@@ -614,8 +703,8 @@ const STRTheme: React.FC<TenantLandingProps> = ({
       </section>
 
       {/* Gallery Section */}
-      <section id="gallery" className="py-20 px-4 sm:px-6 lg:px-8 bg-background">
-        <div className="container mx-auto">
+      <section id="gallery" className="py-16 sm:py-20 px-4 sm:px-6 lg:px-8 bg-background">
+        <div className="container mx-auto max-w-7xl">
           <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold uppercase mb-6 text-center text-foreground leading-tight">GALLERY</h2>
           
           {/* Introduction Text */}
@@ -623,11 +712,11 @@ const STRTheme: React.FC<TenantLandingProps> = ({
             Training sessions, facility photos and videos
           </p>
 
-          {/* Image Slider */}
+          {/* Gallery Slider - 4 images per slide */}
           <div className="relative mb-8">
             <Carousel
               opts={{
-                align: 'center',
+                align: 'start',
                 loop: true,
                 slidesToScroll: 1,
               }}
@@ -642,26 +731,40 @@ const STRTheme: React.FC<TenantLandingProps> = ({
                 }
               }}
             >
-              <CarouselContent className="-ml-4 md:-ml-8">
-                {galleryImages.map((image, index) => (
-                  <CarouselItem key={index} className="pl-4 md:pl-8 basis-full md:basis-2/3 lg:basis-1/2">
-                    <div className="relative rounded-3xl overflow-hidden shadow-2xl">
-                      <div className="aspect-[4/3] relative">
-                        <img
-                          src={image.src}
-                          alt={image.alt}
-                          className="w-full h-full object-cover"
-                          loading="lazy"
-                          onError={(e) => {
-                            // Fallback to placeholder if image not found
-                            const target = e.target as HTMLImageElement;
-                            target.src = 'https://images.pexels.com/photos/4164754/pexels-photo-4164754.jpeg?auto=compress&cs=tinysrgb&w=800';
-                          }}
-                        />
+              <CarouselContent className="-ml-2 md:-ml-4">
+                {/* Group images into slides of 4 */}
+                {Array.from({ length: Math.ceil(galleryImages.length / 4) }).map((_, slideIndex) => {
+                  const slideImages = galleryImages.slice(slideIndex * 4, slideIndex * 4 + 4);
+                  return (
+                    <CarouselItem key={slideIndex} className="pl-2 md:pl-4 basis-full">
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        {slideImages.map((image, imageIndex) => {
+                          const globalIndex = slideIndex * 4 + imageIndex;
+                          return (
+                            <div
+                              key={globalIndex}
+                              className="relative rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 group cursor-pointer"
+                              onClick={() => setSelectedGalleryImage(image)}
+                            >
+                              <div className="aspect-square relative">
+                                <img
+                                  src={image.src}
+                                  alt={image.alt}
+                                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                                  loading="lazy"
+                                  onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    target.src = 'https://images.pexels.com/photos/4164754/pexels-photo-4164754.jpeg?auto=compress&cs=tinysrgb&w=800';
+                                  }}
+                                />
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
-                    </div>
-                  </CarouselItem>
-                ))}
+                    </CarouselItem>
+                  );
+                })}
               </CarouselContent>
             </Carousel>
           </div>
@@ -671,14 +774,14 @@ const STRTheme: React.FC<TenantLandingProps> = ({
             <button
               onClick={() => galleryCarouselApi.current?.scrollPrev()}
               className="w-12 h-12 rounded-full border-2 border-[#E48D2A] bg-background flex items-center justify-center hover:bg-[#E48D2A]/10 transition-colors"
-              aria-label="Previous image"
+              aria-label="Previous images"
             >
               <ArrowRight className="h-5 w-5 text-[#E48D2A] transition-colors rotate-180" />
             </button>
             <button
               onClick={() => galleryCarouselApi.current?.scrollNext()}
               className="w-12 h-12 rounded-full border-2 border-[#E48D2A] bg-background flex items-center justify-center hover:bg-[#E48D2A]/10 transition-colors"
-              aria-label="Next image"
+              aria-label="Next images"
             >
               <ArrowRight className="h-5 w-5 text-[#E48D2A] transition-colors" />
             </button>
@@ -907,7 +1010,7 @@ const STRTheme: React.FC<TenantLandingProps> = ({
       </section>
 
       {/* Our Team Section */}
-      <section id="team" className="py-20 px-4 sm:px-6 lg:px-8 bg-background">
+      <section id="team" className="py-16 sm:py-20 px-4 sm:px-6 lg:px-8 bg-background">
         <div className="container mx-auto max-w-7xl">
           <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold uppercase mb-12 text-center text-foreground leading-tight">OUR TEAM</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -1008,12 +1111,12 @@ const STRTheme: React.FC<TenantLandingProps> = ({
       </section>
 
       {/* Footer */}
-      <footer className="py-16 px-4 sm:px-6 lg:px-8 bg-background border-t border-border/20">
+      <footer className="py-12 sm:py-16 px-4 sm:px-6 lg:px-8 bg-background border-t border-border/20">
         <div className="container mx-auto max-w-7xl">
           {/* Main Footer Content */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 lg:gap-16 mb-12">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 lg:gap-16 mb-12">
             {/* Left Column - Logo & Social */}
-            <div className="space-y-6">
+            <div className="space-y-3">
               <img 
                 src={STR_ASSETS.logos.footer} 
                 alt="STR" 
@@ -1025,14 +1128,14 @@ const STRTheme: React.FC<TenantLandingProps> = ({
                   target.style.display = 'none';
                   target.dataset.fallbackAdded = 'true';
                   const fallback = document.createElement('div');
-                  fallback.className = 'text-4xl font-bold text-foreground uppercase tracking-tight';
+                  fallback.className = 'text-2xl font-bold text-foreground uppercase tracking-tight';
                   fallback.textContent = 'STR';
                   target.parentElement?.appendChild(fallback);
                 }}
               />
               <div className="flex items-center gap-4">
                 <a
-                  href="https://instagram.com"
+                  href="https://www.instagram.com/strfitnessclub.sg/"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-10 h-10 rounded-full border-2 border-foreground/30 flex items-center justify-center hover:border-[#E48D2A] hover:bg-[#E48D2A]/10 transition-all duration-300 group"
@@ -1041,7 +1144,7 @@ const STRTheme: React.FC<TenantLandingProps> = ({
                   <Instagram className="h-5 w-5 text-foreground group-hover:text-[#E48D2A] transition-colors" />
                 </a>
                 <a
-                  href="https://wa.me"
+                  href="https://wa.me/6588411329"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-10 h-10 rounded-full border-2 border-foreground/30 flex items-center justify-center hover:border-[#E48D2A] hover:bg-[#E48D2A]/10 transition-all duration-300 group"
@@ -1117,6 +1220,22 @@ const STRTheme: React.FC<TenantLandingProps> = ({
         isOpen={isContactModalOpen} 
         onClose={() => setIsContactModalOpen(false)} 
       />
+
+      {/* Gallery Image Modal */}
+      <Dialog open={!!selectedGalleryImage} onOpenChange={() => setSelectedGalleryImage(null)}>
+        <DialogContent className="max-w-7xl max-h-[95vh] p-0 bg-transparent border-0">
+          {selectedGalleryImage && (
+            <div className="relative w-full h-full flex items-center justify-center">
+              <img
+                src={selectedGalleryImage.src}
+                alt={selectedGalleryImage.alt}
+                className="max-w-full max-h-[95vh] w-auto h-auto object-contain rounded-lg"
+                loading="lazy"
+              />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
