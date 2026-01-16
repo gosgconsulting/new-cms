@@ -46,7 +46,7 @@ const themeConfig: Record<string, { name: string; component: React.LazyExoticCom
     component: StorefrontTheme
   },
   'str': {
-    name: 'ACATR Business Services',
+    name: 'STR',
     component: StrTheme
   }
 };

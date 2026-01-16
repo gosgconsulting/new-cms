@@ -383,25 +383,6 @@ const ThemesManager: React.FC = () => {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <button
-              className="inline-flex items-center px-3 py-2 rounded-md bg-blue-600 text-white text-sm hover:bg-blue-700"
-              onClick={() => {
-                const master = themes.find((t) => t.slug === 'master');
-                if (master) {
-                  setSelectedThemeForActivation(master);
-                  setShowActivateModal(true);
-                } else {
-                  toast({
-                    title: 'Master theme not found',
-                    description: 'Please click "Sync Themes" first to register the Master theme.',
-                    variant: 'destructive',
-                  });
-                }
-              }}
-            >
-              Use Master Theme
-            </button>
-            {/* UPDATED: Preview opens in same tab (removed target and rel) */}
             <a
               href="/theme/master"
               className="inline-flex items-center px-3 py-2 rounded-md border border-blue-300 text-blue-900 text-sm hover:bg-blue-100"
