@@ -1,6 +1,15 @@
 import React from "react";
 
-import { FcGoogle } from "react-icons/fc";
+const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg viewBox="0 0 24 24" aria-hidden="true" {...props}>
+    <g fill="none">
+      <path fill="#EA4335" d="M12 10.2v3.9h5.4c-.2 1.4-1.6 4.2-5.4 4.2-3.3 0-6-2.7-6-6s2.7-6 6-6c1.9 0 3.2.8 3.9 1.5l2.7-2.6C16.9 3 14.7 2 12 2 6.9 2 2.8 6.1 2.8 11.2S6.9 20.4 12 20.4c6.9 0 9.6-4.8 9.6-7.3 0-.5 0-.8-.1-1.1H12z"/>
+      <path fill="#34A853" d="M3.9 7.3 7.1 9.7C8 7.4 9.8 6 12 6c1.9 0 3.2.8 3.9 1.5l2.7-2.6C16.9 3 14.7 2 12 2 8.6 2 5.7 3.8 3.9 7.3z" opacity=".9"/>
+      <path fill="#FBBC05" d="M12 20.4c3.8 0 5.2-2.6 5.4-4.2H12v-3.9h9.5c.1.4.1.7.1 1.1 0 2.5-2.7 7.3-9.6 7.3z" opacity=".9"/>
+      <path fill="#4285F4" d="M3.2 14.7c1.1 3 4 5.7 8.8 5.7 2.8 0 5.2-1 6.9-2.9l-3.2-2.5c-.9.6-2 1-3.7 1-3 0-5.6-2-6.5-4.7l-3.1 2.4z" opacity=".9"/>
+    </g>
+  </svg>
+);
 
 import { Button } from "../ui/button";
 import { Card, CardContent, CardHeader } from "../ui/card";
@@ -43,7 +52,7 @@ const SignupSection = () => {
                   Create an account
                 </Button>
                 <Button variant="outline" className="w-full">
-                  <FcGoogle className="mr-2 size-5" />
+                  <GoogleIcon className="mr-2 size-5" />
                   Sign up with Google
                 </Button>
               </div>

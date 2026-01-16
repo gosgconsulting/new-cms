@@ -1,4 +1,6 @@
+// @ts-ignore - Astro loader available only in Astro builds
 import { glob } from "astro/loaders";
+// @ts-ignore - Astro content types available only in Astro builds
 import { defineCollection, z } from "astro:content";
 
 const blog = defineCollection({

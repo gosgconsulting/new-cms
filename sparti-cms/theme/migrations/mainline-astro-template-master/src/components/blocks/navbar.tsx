@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 
 import { ChevronRight, Github } from "lucide-react";
 
-import { ThemeToggle } from "@/components/theme-toggle";
-import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "../theme-toggle";
+import { Button } from "../ui/button";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -11,9 +11,9 @@ import {
   NavigationMenuLink,
   NavigationMenuList,
   NavigationMenuTrigger,
-} from "@/components/ui/navigation-menu";
-import { GITHUB_URL } from "@/consts";
-import { cn } from "@/lib/utils";
+} from "../ui/navigation-menu";
+import { GITHUB_URL } from "../../consts";
+import { cn } from "../../lib/utils";
 
 const ITEMS = [
   {

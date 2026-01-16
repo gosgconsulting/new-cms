@@ -1,7 +1,7 @@
 import { ArrowUpRight } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import { GITHUB_URL } from "@/consts";
+import { Button } from "../ui/button";
+import { GITHUB_URL } from "../../consts";
 
 export function Footer() {
   const navigation = [

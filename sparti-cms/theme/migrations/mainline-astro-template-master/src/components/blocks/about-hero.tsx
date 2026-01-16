@@ -1,4 +1,4 @@
-import { DashedLine } from "@/components/dashed-line";
+import { DashedLine } from "../dashed-line";
 
 const stats = [
   {
@@ -37,14 +37,14 @@ export function AboutHero() {
             execute, and deliver projects. Our mission is to provide our
             customers with an unbeatable edge over delays, inefficiencies, and
             disorganisation through actionable insights and seamless
-            collaboration. We’ll stop at nothing to give you the tools you need
+            collaboration. We'll stop at nothing to give you the tools you need
             to get every project across the finish line.
             <br />
             <br />
-            We’re customer-obsessed — investing the time to understand every
+            We're customer-obsessed — investing the time to understand every
             aspect of your workflow so that we can help you operate better than
-            ever before. We’re all in this together because your success is our
-            success. In our history as a company, we’ve never lost a customer,
+            ever before. We're all in this together because your success is our
+            success. In our history as a company, we've never lost a customer,
             because when your projects succeed, so do we.
           </p>
         </div>

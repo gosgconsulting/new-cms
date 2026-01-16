@@ -5,7 +5,7 @@ const BlogPost = ({
   post,
   children,
 }: {
-  post: any[];
+  post: any;
   children: React.ReactNode;
 }) => {
   const { title, authorName, image, pubDate, description, authorImage } =

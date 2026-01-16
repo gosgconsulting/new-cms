@@ -1,6 +1,4 @@
-import Marquee from "react-fast-marquee";
-
-import { cn } from "@/lib/utils";
+import { cn } from "../../lib/utils";
 
 type Company = {
   name: string;
@@ -140,26 +138,28 @@ const LogoRow = ({ companies, gridClassName, direction }: LogoRowProps) => {
         </div>
       </div>
 
-      {/* Mobile marquee version */}
+      {/* Mobile scroll version (no external marquee dependency) */}
       <div className="md:hidden">
-        <Marquee direction={direction} pauseOnHover>
-          {companies.map((company, index) => (
-            <a
-              href={company.href}
-              target="_blank"
-              key={index}
-              className="mx-8 inline-block transition-opacity hover:opacity-70"
-            >
-              <img
-                src={company.logo}
-                alt={`${company.name} logo`}
-                width={company.width}
-                height={company.height}
-                className="object-contain"
-              />
-            </a>
-          ))}
-        </Marquee>
+        <div className="overflow-x-auto">
+          <div className="flex items-center gap-8 px-4 py-2">
+            {companies.map((company, index) => (
+              <a
+                href={company.href}
+                target="_blank"
+                key={index}
+                className="inline-block transition-opacity hover:opacity-70"
+              >
+                <img
+                  src={company.logo}
+                  alt={`${company.name} logo`}
+                  width={company.width}
+                  height={company.height}
+                  className="object-contain"
+                />
+              </a>
+            ))}
+          </div>
+        </div>
       </div>
     </>
   );
