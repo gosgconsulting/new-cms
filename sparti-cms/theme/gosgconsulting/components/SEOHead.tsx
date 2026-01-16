@@ -13,11 +13,19 @@ interface SEOHeadProps {
 
 const SEOHead: React.FC<SEOHeadProps> = ({ meta, favicon }) => {
   React.useEffect(() => {
-    // Always remove any existing favicon links - favicons are completely disabled
-    const existingFavicons = document.querySelectorAll('link[rel="icon"], link[rel="shortcut icon"], link[rel="apple-touch-icon"], link[rel="mask-icon"]');
-    existingFavicons.forEach(favicon => favicon.remove());
+    // Note: Favicons are now managed by applyFavicon() in utils/settings.ts
+    // We don't remove them here to allow branding settings to control the favicon
     
-    // Ensure no favicon is added even if one is provided
+    // If a favicon prop is provided, apply it
+    if (favicon) {
+      const link = document.createElement('link');
+      link.rel = 'icon';
+      link.href = favicon;
+      link.type = favicon.endsWith('.png') ? 'image/png' : 
+                   favicon.endsWith('.ico') ? 'image/x-icon' : 
+                   favicon.endsWith('.svg') ? 'image/svg+xml' : 'image/png';
+      document.head.appendChild(link);
+    }
     
     // Update document title
     if (meta.title) {
@@ -66,7 +74,7 @@ const SEOHead: React.FC<SEOHeadProps> = ({ meta, favicon }) => {
       }
       ogDescription.setAttribute('content', meta.description);
     }
-  }, [meta]);
+  }, [meta, favicon]);
 
   return null; // This component doesn't render anything visible
 };

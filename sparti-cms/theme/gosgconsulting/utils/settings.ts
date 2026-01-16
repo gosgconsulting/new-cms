@@ -109,11 +109,20 @@ export function applyFavicon(faviconSrc: string | null): void {
   );
   existingLinks.forEach(link => link.remove());
   
+  // Ensure favicon URL is absolute if it's a relative path
+  // If it starts with /, it's already relative to the root, which is fine
+  // If it starts with http:// or https://, it's already absolute
+  // Otherwise, make it relative to root
+  let faviconUrl = faviconSrc;
+  if (!faviconUrl.startsWith('http://') && !faviconUrl.startsWith('https://') && !faviconUrl.startsWith('/')) {
+    faviconUrl = '/' + faviconUrl;
+  }
+  
   // Add new favicon with proper type
   const link = document.createElement('link');
   link.rel = 'icon';
   link.type = faviconType;
-  link.href = faviconSrc;
+  link.href = faviconUrl;
   
   // Add to head
   document.head.appendChild(link);
@@ -122,7 +131,7 @@ export function applyFavicon(faviconSrc: string | null): void {
   const shortcutLink = document.createElement('link');
   shortcutLink.rel = 'shortcut icon';
   shortcutLink.type = faviconType;
-  shortcutLink.href = faviconSrc;
+  shortcutLink.href = faviconUrl;
   document.head.appendChild(shortcutLink);
   
   // Set up an observer to re-add favicon if it gets removed (e.g., by useSEO hook)
@@ -143,8 +152,15 @@ export function applyFavicon(faviconSrc: string | null): void {
                   const newLink = document.createElement('link');
                   newLink.rel = 'icon';
                   newLink.type = faviconType;
-                  newLink.href = faviconSrc;
+                  newLink.href = faviconUrl;
                   document.head.appendChild(newLink);
+                  
+                  // Also re-add shortcut icon
+                  const newShortcutLink = document.createElement('link');
+                  newShortcutLink.rel = 'shortcut icon';
+                  newShortcutLink.type = faviconType;
+                  newShortcutLink.href = faviconUrl;
+                  document.head.appendChild(newShortcutLink);
                 }
               }, 100);
             }

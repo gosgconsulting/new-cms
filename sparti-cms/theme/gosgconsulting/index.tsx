@@ -82,18 +82,22 @@ const GOSGContent: React.FC<TenantLandingProps> = ({
   const faviconSrc = getFaviconSrc(branding);
   
   // Apply favicon when branding loads
+  // Use a longer delay to ensure SEOHead has finished running first
   useEffect(() => {
     if (faviconSrc && !brandingLoading) {
-      // Apply favicon immediately
-      applyFavicon(faviconSrc);
-      
-      // Also apply after a short delay to ensure it persists (in case useSEO runs after)
-      const timeoutId = setTimeout(() => {
+      // Apply favicon after a delay to ensure it runs after SEOHead
+      const timeoutId1 = setTimeout(() => {
         applyFavicon(faviconSrc);
-      }, 300);
+      }, 100);
+      
+      // Also apply after a longer delay to ensure it persists
+      const timeoutId2 = setTimeout(() => {
+        applyFavicon(faviconSrc);
+      }, 500);
       
       return () => {
-        clearTimeout(timeoutId);
+        clearTimeout(timeoutId1);
+        clearTimeout(timeoutId2);
         // Clean up observer if it exists
         if ((window as any).__faviconObserver) {
           (window as any).__faviconObserver.disconnect();
@@ -187,7 +191,7 @@ const GOSGContent: React.FC<TenantLandingProps> = ({
   return (
     <div className="min-h-screen flex flex-col">
       {/* SEO metadata */}
-      <SEOHead meta={homepageData.meta} />
+      <SEOHead meta={homepageData.meta} favicon={faviconSrc || undefined} />
       
       {/* Header */}
       <Header 
@@ -365,18 +369,22 @@ const ShopPageLayout: React.FC<ShopPageLayoutProps> = ({
   const faviconSrc = getFaviconSrc(branding);
   
   // Apply favicon when branding loads
+  // Use a longer delay to ensure SEOHead has finished running first
   useEffect(() => {
     if (faviconSrc && !brandingLoading) {
-      // Apply favicon immediately
-      applyFavicon(faviconSrc);
-      
-      // Also apply after a short delay to ensure it persists (in case useSEO runs after)
-      const timeoutId = setTimeout(() => {
+      // Apply favicon after a delay to ensure it runs after SEOHead
+      const timeoutId1 = setTimeout(() => {
         applyFavicon(faviconSrc);
-      }, 300);
+      }, 100);
+      
+      // Also apply after a longer delay to ensure it persists
+      const timeoutId2 = setTimeout(() => {
+        applyFavicon(faviconSrc);
+      }, 500);
       
       return () => {
-        clearTimeout(timeoutId);
+        clearTimeout(timeoutId1);
+        clearTimeout(timeoutId2);
         // Clean up observer if it exists
         if ((window as any).__faviconObserver) {
           (window as any).__faviconObserver.disconnect();
