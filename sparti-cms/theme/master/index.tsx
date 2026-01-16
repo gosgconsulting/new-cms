@@ -64,6 +64,12 @@ function resolvePage(pageSlug?: string): { key: PageKey; param?: string } {
   return { key: 'home' };
 }
 
+function scrollToId(id: string) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
 /**
  * Master Theme
  * Minimal, tenant-aware base theme intended for duplication/migrations.
@@ -109,7 +115,7 @@ const MasterTheme: React.FC<TenantLandingProps> = ({
 
   // Derived presentation values with safe fallbacks
   const siteName = branding?.site_name || tenantName;
-  const siteTagline = branding?.site_tagline || 'A tenant-aware base theme';
+  const siteTagline = branding?.site_tagline || 'High-converting websites with a built-in CMS';
   const logoSrc = branding?.site_logo || null;
 
   const baseUrl = `/theme/${tenantSlug}`;
@@ -160,6 +166,15 @@ const MasterTheme: React.FC<TenantLandingProps> = ({
     );
   };
 
+  const HeaderAction = () => (
+    <button
+      onClick={() => setContactOpen(true)}
+      className="px-3 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 text-sm"
+    >
+      Book a call
+    </button>
+  );
+
   const PageTitle = () => {
     if (page.key === 'blog') return 'Blog';
     if (page.key === 'blogPost') return 'Blog post';
@@ -168,67 +183,405 @@ const MasterTheme: React.FC<TenantLandingProps> = ({
     return 'Home';
   };
 
+  const SectionHeading = ({
+    eyebrow,
+    title,
+    subtitle,
+  }: {
+    eyebrow?: string;
+    title: string;
+    subtitle?: string;
+  }) => (
+    <div className="max-w-3xl">
+      {eyebrow && <p className="text-xs font-semibold tracking-widest uppercase text-muted-foreground">{eyebrow}</p>}
+      <h2 className="mt-2 text-2xl sm:text-3xl font-bold">{title}</h2>
+      {subtitle && <p className="mt-3 text-muted-foreground">{subtitle}</p>}
+    </div>
+  );
+
   const HomeContent = () => (
-    <section className="relative">
-      <div className="max-w-6xl mx-auto px-4 py-16 grid gap-10 lg:grid-cols-2 lg:items-center">
-        <div>
-          <h1 className="text-4xl font-bold mb-3">{siteName}</h1>
-          <p className="text-lg text-muted-foreground mb-6">Tenant-aware base theme for fast migrations.</p>
-          <div className="flex flex-wrap gap-3">
-            <a
-              href="/admin"
-              className="px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 text-sm"
-            >
-              Go to CMS
-            </a>
-            <a href={`${baseUrl}/blog`} className="px-4 py-2 rounded-md border border-border hover:bg-muted text-sm">
-              Blog
-            </a>
-            <a href={`${baseUrl}/shop`} className="px-4 py-2 rounded-md border border-border hover:bg-muted text-sm">
-              Shop
-            </a>
-          </div>
-
-          {!cmsEnabled && (
-            <p className="mt-4 text-xs text-muted-foreground">
-              Running in hardcoded mode (no tenant selected → no CMS API calls).
+    <div>
+      {/* 2. Hero Section */}
+      <section className="relative overflow-hidden">
+        <div className="max-w-6xl mx-auto px-4 py-16 sm:py-20 grid gap-10 lg:grid-cols-2 lg:items-center">
+          <div>
+            <p className="inline-flex items-center gap-2 text-xs px-3 py-1 rounded-full border border-border bg-background/60 text-muted-foreground">
+              Sparti Website Builder
+              <span className="h-1 w-1 rounded-full bg-muted-foreground/60" />
+              CMS + high converting templates
             </p>
-          )}
-
-          {effectiveTenantId && (
-            <p className="mt-2 text-xs text-muted-foreground">Tenant ID: {effectiveTenantId}</p>
-          )}
-
-          {cmsEnabled && stylesError && (
-            <p className="mt-2 text-xs text-destructive">
-              Styles could not be loaded for this tenant/theme (showing defaults).
+            <h1 className="mt-4 text-4xl sm:text-5xl font-bold tracking-tight">
+              Launch a website that converts — in days, not weeks.
+            </h1>
+            <p className="mt-4 text-lg text-muted-foreground">
+              Built for service businesses. Pick a proven layout, customize it visually, and manage content in a simple
+              CMS — without sacrificing speed, SEO, or design quality.
             </p>
-          )}
-        </div>
+            <div className="mt-7 flex flex-wrap items-center gap-3">
+              <button
+                onClick={() => setContactOpen(true)}
+                className="px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 text-sm"
+              >
+                Get a quote
+              </button>
+              <button
+                onClick={() => scrollToId('pricing')}
+                className="px-4 py-2 rounded-md border border-border hover:bg-muted text-sm"
+              >
+                See pricing
+              </button>
+            </div>
+            <div className="mt-6 text-xs text-muted-foreground">
+              No long-term contracts. Transparent packages. Built-in CMS.
+            </div>
+          </div>
 
-        <div className="rounded-2xl border border-border bg-card p-6">
-          <div className="flex items-center justify-between">
-            <p className="text-sm font-medium">Theme assets preview</p>
-            <span className="text-xs text-muted-foreground">{baseUrl}</span>
+          <div className="rounded-2xl border border-border bg-card p-5 sm:p-6">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-medium">Preview</p>
+              <span className="text-xs text-muted-foreground">{baseUrl}</span>
+            </div>
+            <div className="mt-4 rounded-xl overflow-hidden border border-border bg-background">
+              <img
+                src={assetUrl('hero.svg')}
+                alt="Website preview"
+                className="w-full h-auto"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = 'none';
+                }}
+              />
+              <div className="p-4 text-sm text-muted-foreground">
+                Modern sections, clear CTAs, and structured content that can be edited in the CMS.
+              </div>
+            </div>
           </div>
-          <div className="mt-4 rounded-xl overflow-hidden border border-border bg-background">
-            <img
-              src={assetUrl('hero.svg')}
-              alt="Theme illustration"
-              className="w-full h-auto"
-              onError={(e) => {
-                (e.target as HTMLImageElement).style.display = 'none';
-              }}
-            />
-          </div>
-          <ul className="mt-4 text-sm text-muted-foreground space-y-1">
-            <li>• Assets: /public/theme/{tenantSlug}/assets</li>
-            <li>• Pages: /, /blog, /shop</li>
-            <li>• CMS branding/styles are optional and can be enabled later</li>
-          </ul>
         </div>
-      </div>
-    </section>
+      </section>
+
+      {/* 3. Trust Signals */}
+      <section className="border-y border-border/60 bg-background/40">
+        <div className="max-w-6xl mx-auto px-4 py-10">
+          <div className="grid gap-6 lg:grid-cols-3">
+            <div className="rounded-xl border border-border bg-card p-5">
+              <p className="text-sm font-medium">Credibility, fast</p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Use trust signals out of the box: logos, numbers, and proof sections.
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-3 lg:col-span-2">
+              {[
+                { label: 'Sites shipped', value: '100+' },
+                { label: 'Avg. time to launch', value: '7 days' },
+                { label: 'Conversion-focused layouts', value: '12+' },
+                { label: 'CMS-managed pages', value: 'Unlimited' },
+              ].map((item) => (
+                <div key={item.label} className="rounded-xl border border-border bg-card p-5">
+                  <p className="text-2xl font-bold">{item.value}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{item.label}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 4. Problem → Solution */}
+      <section id="problem-solution">
+        <div className="max-w-6xl mx-auto px-4 py-14">
+          <SectionHeading
+            eyebrow="Problem → Solution"
+            title="Websites fail when the message is unclear and updates are painful."
+            subtitle="Sparti Website Builder gives you a proven structure, then lets you update content in minutes with a CMS." 
+          />
+
+          <div className="mt-10 grid gap-4 lg:grid-cols-2">
+            <div className="rounded-2xl border border-border bg-card p-6">
+              <p className="text-sm font-semibold">Common pain points</p>
+              <ul className="mt-4 space-y-3 text-sm text-muted-foreground">
+                <li>• Beautiful site, but no enquiries</li>
+                <li>• Hard to edit content — you need a developer for everything</li>
+                <li>• No trust built early, so visitors bounce</li>
+                <li>• Pricing and process are unclear</li>
+              </ul>
+            </div>
+            <div className="rounded-2xl border border-border bg-card p-6">
+              <p className="text-sm font-semibold">Our structured solution</p>
+              <ul className="mt-4 space-y-3 text-sm text-muted-foreground">
+                <li>• High-converting homepage layout (hero → proof → CTA)</li>
+                <li>• CMS-managed sections (services, testimonials, FAQs)</li>
+                <li>• Fast, responsive, SEO-ready components</li>
+                <li>• Clear packages so leads self-qualify</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 5. Services Overview */}
+      <section id="services" className="bg-background/40 border-y border-border/60">
+        <div className="max-w-6xl mx-auto px-4 py-14">
+          <SectionHeading
+            eyebrow="Services"
+            title="Everything you need to ship and grow."
+            subtitle="Outcome-focused building blocks that make your site a sales asset, not a brochure." 
+          />
+
+          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              {
+                title: 'Conversion-first pages',
+                desc: 'Proven sections and CTAs designed to generate enquiries.',
+              },
+              {
+                title: 'Built-in CMS',
+                desc: 'Edit content, publish pages, and update offers without dev help.',
+              },
+              {
+                title: 'SEO-ready structure',
+                desc: 'Clean markup and fast pages to support ranking and performance.',
+              },
+              {
+                title: 'Ongoing iteration',
+                desc: 'Add pages, refine copy, and improve conversion over time.',
+              },
+            ].map((s) => (
+              <div key={s.title} className="rounded-2xl border border-border bg-card p-6">
+                <p className="font-semibold">{s.title}</p>
+                <p className="mt-2 text-sm text-muted-foreground">{s.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 6. How It Works */}
+      <section id="how-it-works">
+        <div className="max-w-6xl mx-auto px-4 py-14">
+          <SectionHeading
+            eyebrow="How it works"
+            title="A simple, transparent process."
+            subtitle="No endless back-and-forth. You'll always know what's next." 
+          />
+
+          <div className="mt-10 grid gap-4 lg:grid-cols-4">
+            {[
+              { step: '01', title: 'Choose a structure', desc: 'Start with a high-converting homepage blueprint.' },
+              { step: '02', title: 'Customize visually', desc: 'Swap copy, colors, images, and sections with ease.' },
+              { step: '03', title: 'Connect your CMS', desc: 'Manage content, FAQs, pricing, and testimonials.' },
+              { step: '04', title: 'Launch + improve', desc: 'Ship fast, then iterate with real user data.' },
+            ].map((item) => (
+              <div key={item.step} className="rounded-2xl border border-border bg-card p-6">
+                <p className="text-xs font-semibold text-muted-foreground">{item.step}</p>
+                <p className="mt-2 font-semibold">{item.title}</p>
+                <p className="mt-2 text-sm text-muted-foreground">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 7. Results / Case Studies */}
+      <section id="results" className="bg-background/40 border-y border-border/60">
+        <div className="max-w-6xl mx-auto px-4 py-14">
+          <SectionHeading
+            eyebrow="Results"
+            title="Proof that structure works."
+            subtitle="Dummy examples of what clients typically see when the homepage is built around conversion." 
+          />
+
+          <div className="mt-10 grid gap-4 lg:grid-cols-3">
+            {[
+              {
+                name: 'Local services brand',
+                metric: '+38% enquiries',
+                desc: 'Clear CTA + trust section reduced hesitation and increased form submissions.',
+              },
+              {
+                name: 'Consulting practice',
+                metric: '-22% bounce rate',
+                desc: 'Better above-the-fold messaging and scannable services improved engagement.',
+              },
+              {
+                name: 'B2B provider',
+                metric: '2x faster edits',
+                desc: 'CMS-managed pages removed dependency on developers for routine updates.',
+              },
+            ].map((c) => (
+              <div key={c.name} className="rounded-2xl border border-border bg-card p-6">
+                <p className="text-sm font-semibold">{c.name}</p>
+                <p className="mt-2 text-2xl font-bold">{c.metric}</p>
+                <p className="mt-2 text-sm text-muted-foreground">{c.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 8. Testimonials / Reviews */}
+      <section id="testimonials">
+        <div className="max-w-6xl mx-auto px-4 py-14">
+          <SectionHeading
+            eyebrow="Testimonials"
+            title="Clients love the speed and clarity."
+            subtitle="More trust. Less friction. Better leads." 
+          />
+
+          <div className="mt-10 grid gap-4 lg:grid-cols-3">
+            {[
+              {
+                quote:
+                  'We finally have a homepage that explains what we do in 10 seconds — and enquiries started coming in immediately.',
+                name: 'Operations Lead',
+              },
+              {
+                quote:
+                  'The CMS means we can update offers and FAQs ourselves. It feels like we got a marketing team in a box.',
+                name: 'Founder',
+              },
+              {
+                quote:
+                  'Clean structure, fast pages, and a clear process. Launching was painless.',
+                name: 'Marketing Manager',
+              },
+            ].map((t) => (
+              <figure key={t.name} className="rounded-2xl border border-border bg-card p-6">
+                <blockquote className="text-sm leading-6 text-foreground">"{t.quote}"</blockquote>
+                <figcaption className="mt-4 text-xs text-muted-foreground">— {t.name}</figcaption>
+              </figure>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 9. Pricing / Packages */}
+      <section id="pricing" className="bg-background/40 border-y border-border/60">
+        <div className="max-w-6xl mx-auto px-4 py-14">
+          <SectionHeading
+            eyebrow="Pricing"
+            title="Simple packages that qualify leads."
+            subtitle="Dummy pricing — replace with real packages in the CMS." 
+          />
+
+          <div className="mt-10 grid gap-4 lg:grid-cols-3">
+            {[
+              {
+                name: 'Starter',
+                price: '$499',
+                perks: ['Homepage + basic pages', 'Conversion-first layout', 'CMS for content'],
+              },
+              {
+                name: 'Growth',
+                price: '$999',
+                perks: ['Everything in Starter', 'Services + case studies', 'SEO setup + tracking'],
+                highlight: true,
+              },
+              {
+                name: 'Scale',
+                price: '$1,999',
+                perks: ['Everything in Growth', 'Advanced sections + integrations', 'Ongoing optimization'],
+              },
+            ].map((p) => (
+              <div
+                key={p.name}
+                className={`rounded-2xl border bg-card p-6 ${p.highlight ? 'border-primary/50' : 'border-border'}`}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="font-semibold">{p.name}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">Perfect for service providers</p>
+                  </div>
+                  {p.highlight && (
+                    <span className="text-xs px-2 py-1 rounded-full bg-primary text-primary-foreground">Most popular</span>
+                  )}
+                </div>
+                <p className="mt-4 text-3xl font-bold">{p.price}</p>
+                <ul className="mt-5 space-y-2 text-sm text-muted-foreground">
+                  {p.perks.map((perk) => (
+                    <li key={perk}>• {perk}</li>
+                  ))}
+                </ul>
+                <button
+                  onClick={() => setContactOpen(true)}
+                  className={`mt-6 w-full px-4 py-2 rounded-md text-sm ${
+                    p.highlight
+                      ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+                      : 'border border-border hover:bg-muted'
+                  }`}
+                >
+                  Choose {p.name}
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 10. FAQ */}
+      <section id="faq">
+        <div className="max-w-6xl mx-auto px-4 py-14">
+          <SectionHeading
+            eyebrow="FAQ"
+            title="Answers to common questions."
+            subtitle="Reduce friction and objections before the first call." 
+          />
+
+          <div className="mt-10 max-w-3xl space-y-3">
+            {[
+              {
+                q: 'Can I update the website myself?',
+                a: 'Yes. Sparti Website Builder includes a CMS so you can update text, images, FAQs, pricing, and pages without a developer.',
+              },
+              {
+                q: 'Is it SEO-friendly?',
+                a: 'Yes. The structure is built to be fast, responsive, and search-engine friendly, with clear content hierarchy.',
+              },
+              {
+                q: 'How fast can we launch?',
+                a: 'Most service sites can launch in under a week once content is ready. The structure and sections are already proven.',
+              },
+              {
+                q: 'Do you offer ongoing support?',
+                a: 'Yes. Choose an ongoing package if you want continuous improvements, new sections/pages, and conversion optimization.',
+              },
+            ].map((item) => (
+              <details key={item.q} className="rounded-xl border border-border bg-card p-5">
+                <summary className="cursor-pointer font-medium">{item.q}</summary>
+                <p className="mt-3 text-sm text-muted-foreground">{item.a}</p>
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 11. Final Call to Action */}
+      <section className="border-y border-border/60 bg-background/40">
+        <div className="max-w-6xl mx-auto px-4 py-14">
+          <div className="rounded-3xl border border-border bg-card p-8 sm:p-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+            <div>
+              <p className="text-xs font-semibold tracking-widest uppercase text-muted-foreground">Ready to launch?</p>
+              <h2 className="mt-2 text-2xl sm:text-3xl font-bold">Let's build your high-converting site.</h2>
+              <p className="mt-3 text-muted-foreground">
+                Get a homepage structure that sells, plus a CMS so your team can keep it fresh.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <button
+                onClick={() => setContactOpen(true)}
+                className="px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 text-sm"
+              >
+                Book a call
+              </button>
+              <button
+                onClick={() => scrollToId('services')}
+                className="px-4 py-2 rounded-md border border-border hover:bg-muted text-sm"
+              >
+                Explore services
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
   );
 
   const BlogListContent = () => (
@@ -378,9 +731,92 @@ const MasterTheme: React.FC<TenantLandingProps> = ({
             ? <ProductContent slug={page.param} />
             : <HomeContent />;
 
+  const FooterContent = () => (
+    <div className="max-w-6xl mx-auto p-6 sm:p-8">
+      <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+        <div>
+          <div className="flex items-center gap-3">
+            {logoSrc ? (
+              <img src={logoSrc} alt={siteName} className="h-8 w-auto" />
+            ) : (
+              <div className="h-8 w-8 rounded bg-primary/10 flex items-center justify-center text-primary font-bold">
+                {siteName.substring(0, 1)}
+              </div>
+            )}
+            <div>
+              <p className="font-semibold">{siteName}</p>
+              <p className="text-xs text-muted-foreground">{siteTagline}</p>
+            </div>
+          </div>
+          <p className="mt-4 text-sm text-muted-foreground">
+            Sparti Website Builder helps service businesses launch high-converting sites with a CMS.
+          </p>
+        </div>
+
+        <div>
+          <p className="text-sm font-semibold">Pages</p>
+          <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
+            <li>
+              <a className="hover:text-foreground" href={baseUrl}>
+                Home
+              </a>
+            </li>
+            <li>
+              <a className="hover:text-foreground" href={`${baseUrl}/blog`}>
+                Blog
+              </a>
+            </li>
+            <li>
+              <a className="hover:text-foreground" href={`${baseUrl}/shop`}>
+                Shop
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <div>
+          <p className="text-sm font-semibold">Sections</p>
+          <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
+            <li>
+              <button className="hover:text-foreground" onClick={() => scrollToId('services')}>
+                Services
+              </button>
+            </li>
+            <li>
+              <button className="hover:text-foreground" onClick={() => scrollToId('pricing')}>
+                Pricing
+              </button>
+            </li>
+            <li>
+              <button className="hover:text-foreground" onClick={() => scrollToId('faq')}>
+                FAQ
+              </button>
+            </li>
+          </ul>
+        </div>
+
+        <div>
+          <p className="text-sm font-semibold">Contact</p>
+          <p className="mt-3 text-sm text-muted-foreground">Let's talk about your next website.</p>
+          <button
+            onClick={() => setContactOpen(true)}
+            className="mt-4 w-full px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 text-sm"
+          >
+            Book a call
+          </button>
+        </div>
+      </div>
+
+      <div className="mt-10 border-t border-border/60 pt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xs text-muted-foreground">
+        <p>© {new Date().getFullYear()} {siteName}. All rights reserved.</p>
+        <p>Built with Sparti Website Builder</p>
+      </div>
+    </div>
+  );
+
   return (
     <div className="min-h-screen theme-bg text-foreground flex flex-col">
-      {/* Header */}
+      {/* 1. Header / Navigation */}
       <header className="w-full border-b border-border/60 bg-background/90 backdrop-blur">
         <div className="max-w-6xl mx-auto p-4 flex items-center justify-between gap-4">
           <a href={baseUrl} className="flex items-center gap-3 min-w-0">
@@ -401,16 +837,23 @@ const MasterTheme: React.FC<TenantLandingProps> = ({
             <NavLink href={baseUrl} label="Home" />
             <NavLink href={`${baseUrl}/blog`} label="Blog" />
             <NavLink href={`${baseUrl}/shop`} label="Shop" />
+            <button
+              onClick={() => scrollToId('pricing')}
+              className="text-sm px-3 py-2 rounded-md transition-colors text-muted-foreground hover:text-foreground hover:bg-muted/60"
+            >
+              Pricing
+            </button>
+            <button
+              onClick={() => scrollToId('faq')}
+              className="text-sm px-3 py-2 rounded-md transition-colors text-muted-foreground hover:text-foreground hover:bg-muted/60"
+            >
+              FAQ
+            </button>
           </nav>
 
           <div className="flex items-center gap-2">
             <span className="hidden lg:inline text-xs text-muted-foreground">{PageTitle()}</span>
-            <button
-              onClick={() => setContactOpen(true)}
-              className="px-3 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 text-sm"
-            >
-              Contact
-            </button>
+            <HeaderAction />
           </div>
         </div>
       </header>
@@ -418,11 +861,9 @@ const MasterTheme: React.FC<TenantLandingProps> = ({
       {/* Content */}
       <main className="flex-1">{content}</main>
 
-      {/* Footer */}
+      {/* 12. Footer */}
       <footer className="w-full border-t border-border/60 bg-background">
-        <div className="max-w-6xl mx-auto p-4 text-sm text-muted-foreground">
-          © {new Date().getFullYear()} {siteName}. All rights reserved.
-        </div>
+        <FooterContent />
       </footer>
 
       {/* Simple placeholder for contact modal */}
@@ -435,17 +876,57 @@ const MasterTheme: React.FC<TenantLandingProps> = ({
             className="bg-background rounded-lg p-6 w-full max-w-md border border-border"
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 className="text-lg font-semibold mb-2">Contact</h2>
+            <h2 className="text-lg font-semibold mb-1">Book a call</h2>
             <p className="text-sm text-muted-foreground mb-4">
-              Replace this with your contact form component when needed.
+              Tell us about your site and we'll reply with next steps.
             </p>
-            <button
-              onClick={() => setContactOpen(false)}
-              className="px-3 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 text-sm"
+            <form
+              className="grid gap-3"
+              onSubmit={(e) => {
+                e.preventDefault();
+                setContactOpen(false);
+              }}
             >
-              Close
-            </button>
+              <label className="grid gap-1 text-sm">
+                <span className="text-xs text-muted-foreground">Name</span>
+                <input className="h-10 rounded-md border border-border bg-background px-3" required />
+              </label>
+              <label className="grid gap-1 text-sm">
+                <span className="text-xs text-muted-foreground">Email</span>
+                <input
+                  type="email"
+                  className="h-10 rounded-md border border-border bg-background px-3"
+                  required
+                />
+              </label>
+              <label className="grid gap-1 text-sm">
+                <span className="text-xs text-muted-foreground">Message</span>
+                <textarea className="min-h-24 rounded-md border border-border bg-background px-3 py-2" />
+              </label>
+              <div className="flex gap-2 justify-end pt-2">
+                <button
+                  type="button"
+                  onClick={() => setContactOpen(false)}
+                  className="px-3 py-2 rounded-md border border-border hover:bg-muted text-sm"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-3 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 text-sm"
+                >
+                  Send
+                </button>
+              </div>
+            </form>
           </div>
+        </div>
+      )}
+
+      {/* Dev hint: keep out of the main layout */}
+      {!cmsEnabled && (
+        <div className="fixed bottom-3 left-3 rounded-md border border-border bg-background/90 backdrop-blur px-3 py-2 text-xs text-muted-foreground">
+          Hardcoded mode (no tenant selected)
         </div>
       )}
     </div>
