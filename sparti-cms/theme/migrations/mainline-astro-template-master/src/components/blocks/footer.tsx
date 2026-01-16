@@ -11,7 +11,7 @@ const withBase = (path: string) => {
 
 export function Footer() {
   const navigation = [
-    { name: "Product", href: "/#feature-modern-teams" },
+    { name: "Features", href: "/#features" },
     { name: "Pricing", href: "/pricing" },
     { name: "FAQ", href: "/faq" },
     { name: "Blog", href: "/blog" },
@@ -26,13 +26,14 @@ export function Footer() {
   const legal = [{ name: "Privacy Policy", href: "/privacy" }];
 
   return (
-    <footer className="flex flex-col items-center gap-14 pt-28 lg:pt-32">
+    <footer className="flex flex-col items-center gap-14 pt-24 lg:pt-32">
       <div className="container space-y-3 text-center">
         <h2 className="text-2xl tracking-tight md:text-4xl lg:text-5xl">
-          Build a site that converts
+          Ready to launch?
         </h2>
         <p className="text-muted-foreground mx-auto max-w-xl leading-snug text-balance">
-          Sparti Website Builder ships high-converting pages with a built-in CMS.
+          Ship a conversion-first site with tenant-aware branding — and manage it
+          with a CMS.
         </p>
         <div>
           <Button size="lg" className="mt-4" asChild>

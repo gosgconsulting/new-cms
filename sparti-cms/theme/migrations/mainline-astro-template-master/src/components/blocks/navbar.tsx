@@ -22,17 +22,17 @@ const withBase = (path: string) => {
 const ITEMS = [
   {
     label: "Features",
-    href: "#features",
+    href: "/#features",
     dropdownItems: [
       {
-        title: "Conversion-first pages",
-        href: "/#feature-modern-teams",
+        title: "Conversion-first structure",
+        href: "/#features",
         description: "Proven sections that drive enquiries",
       },
       {
-        title: "CMS + editing",
-        href: "/#resource-allocation",
-        description: "Update content without a developer",
+        title: "Tenant-aware theming",
+        href: "/#features",
+        description: "Branding + styles per tenant",
       },
     ],
   },
@@ -67,7 +67,7 @@ export const Navbar = ({
       <div className="flex items-center justify-between px-6 py-3">
         <a href={withBase("/")} className="flex shrink-0 items-center gap-2">
           {logoSrc ? (
-            <img src={logoSrc} alt={siteName} className="h-5 w-auto" />
+            <img src={logoSrc} alt={siteName} className="h-6 w-auto" />
           ) : (
             <span className="text-sm font-semibold">{siteName}</span>
           )}
@@ -78,7 +78,7 @@ export const Navbar = ({
           <NavigationMenuList>
             {ITEMS.map((link) =>
               link.dropdownItems ? (
-                <NavigationMenuItem key={link.label} className="">
+                <NavigationMenuItem key={link.label}>
                   <NavigationMenuTrigger className="data-[state=open]:bg-accent/50 bg-transparent! px-1.5">
                     {link.label}
                   </NavigationMenuTrigger>
@@ -105,7 +105,7 @@ export const Navbar = ({
                   </NavigationMenuContent>
                 </NavigationMenuItem>
               ) : (
-                <NavigationMenuItem key={link.label} className="">
+                <NavigationMenuItem key={link.label}>
                   <a
                     href={withBase(link.href)}
                     className={cn(

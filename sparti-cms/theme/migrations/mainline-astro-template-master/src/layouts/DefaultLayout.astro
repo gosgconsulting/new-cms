@@ -31,8 +31,8 @@ const faviconSrc = branding?.site_favicon || null;
   <head>
     <BaseHead title={title || siteName} description={siteDescription} favicon={faviconSrc} />
   </head>
-  <body class={`h-screen antialiased`}>
-    <Navbar client:only='react' logoSrc={logoSrc} siteName={siteName} />
+  <body class="min-h-screen antialiased">
+    <Navbar client:only="react" logoSrc={logoSrc} siteName={siteName} />
     <main><slot /></main>
     <Footer />
   </body>

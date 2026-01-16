@@ -1,117 +1,108 @@
 "use client";
 
-import { useState } from "react";
-
 import { Check } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
+
+const withBase = (path: string) => {
+  const base = (import.meta as any).env?.BASE_URL || "/";
+  const normalizedBase = base.endsWith("/") ? base : base + "/";
+  if (path.startsWith("/")) return normalizedBase.replace(/\/$/, "") + path;
+  return normalizedBase + path;
+};
 
 const plans = [
   {
-    name: "Free",
-    monthlyPrice: "$0",
-    yearlyPrice: "$0",
-    description: "Free for everyone",
+    name: "Starter",
+    price: "$499",
+    description: "A clean launch-ready site foundation.",
     features: [
-      "Unlimited members",
-      "2 teams",
-      "500 issues",
-      "Slack and Github integrations",
+      "Conversion-first homepage",
+      "Core pages (about, contact)",
+      "Tenant branding wired",
+      "Basic CMS sections",
     ],
   },
   {
-    name: "Startup",
-    monthlyPrice: "$8",
-    yearlyPrice: "$6",
+    name: "Growth",
+    price: "$999",
+    description: "Best for teams who want more proof + clarity.",
+    highlight: true,
     features: [
-      "All free plan features and...",
-      "Mainline AI",
-      "Unlimited teams",
-      "Unlimited issues and file uploads",
-      "Mainline Insights",
-      "Admin roles",
+      "Everything in Starter",
+      "Pricing + FAQ sections",
+      "Blog ready",
+      "SEO + performance pass",
     ],
   },
   {
-    name: "Enterprise",
-    monthlyPrice: "$8",
-    yearlyPrice: "$6",
+    name: "Scale",
+    price: "$1,999",
+    description: "For ongoing iteration and advanced pages.",
     features: [
-      "All free plan features and...",
-      "Mainline AI",
-      "Supermainline AGI",
-      "Free daily catered lunch",
-      "random HIPPA audits",
+      "Everything in Growth",
+      "More landing pages",
+      "Integrations support",
+      "Ongoing optimization",
     ],
   },
-];
+] as const;
 
 export const Pricing = ({ className }: { className?: string }) => {
-  const [isAnnual, setIsAnnual] = useState(true);
-
   return (
-    <section className={cn("py-28 lg:py-32", className)}>
+    <section id="pricing" className={cn("py-24 lg:py-32", className)}>
       <div className="container max-w-5xl">
         <div className="space-y-4 text-center">
           <h2 className="text-2xl tracking-tight md:text-4xl lg:text-5xl">
             Pricing
           </h2>
-          <p className="text-muted-foreground mx-auto max-w-xl leading-snug text-balance">
-            Use Mainline for free with your whole team. Upgrade to enable
-            unlimited issues, enhanced security controls, and additional
-            features.
+          <p className="text-muted-foreground mx-auto max-w-2xl leading-snug text-balance">
+            Simple packages you can customize. Replace these values later with
+            CMS-driven pricing.
           </p>
         </div>
 
-        <div className="mt-8 grid items-start gap-5 text-start md:mt-12 md:grid-cols-3 lg:mt-20">
+        <div className="mt-10 grid items-start gap-5 md:mt-14 md:grid-cols-3">
           {plans.map((plan) => (
             <Card
               key={plan.name}
-              className={`${
-                plan.name === "Startup"
-                  ? "outline-primary origin-top outline-4"
-                  : ""
-              }`}
+              className={cn(
+                "rounded-3xl",
+                plan.highlight && "outline-primary origin-top outline-4",
+              )}
             >
-              <CardContent className="flex flex-col gap-7 px-6 py-5">
-                <div className="space-y-2">
-                  <h3 className="text-foreground font-semibold">{plan.name}</h3>
-                  <div className="space-y-1">
-                    <div className="text-muted-foreground text-lg font-medium">
-                      {isAnnual ? plan.yearlyPrice : plan.monthlyPrice}{" "}
-                      {plan.name !== "Free" && (
-                        <span className="text-muted-foreground">
-                          per user/
-                          {isAnnual ? "year" : "month"}
-                        </span>
-                      )}
+              <CardContent className="flex flex-col gap-6 px-6 py-6">
+                <div>
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <h3 className="text-foreground font-semibold">{plan.name}</h3>
+                      <p className="text-muted-foreground mt-1 text-sm">
+                        {plan.description}
+                      </p>
                     </div>
+                    {plan.highlight && (
+                      <span className="rounded-full bg-primary px-2 py-1 text-xs font-medium text-primary-foreground">
+                        Most popular
+                      </span>
+                    )}
+                  </div>
+                  <div className="mt-5">
+                    <span className="text-4xl font-extrabold tracking-tight">
+                      {plan.price}
+                    </span>
+                    <span className="text-muted-foreground ml-2 text-sm">
+                      one-time
+                    </span>
                   </div>
                 </div>
-
-                {plan.name !== "Free" ? (
-                  <div className="flex items-center gap-2">
-                    <Switch
-                      checked={isAnnual}
-                      onCheckedChange={() => setIsAnnual(!isAnnual)}
-                      aria-label="Toggle annual billing"
-                    />
-                    <span className="text-sm font-medium">Billed annually</span>
-                  </div>
-                ) : (
-                  <span className="text-muted-foreground text-sm">
-                    {plan.description}
-                  </span>
-                )}
 
                 <div className="space-y-3">
                   {plan.features.map((feature) => (
                     <div
                       key={feature}
-                      className="text-muted-foreground flex items-center gap-1.5"
+                      className="text-muted-foreground flex items-center gap-2"
                     >
                       <Check className="size-5 shrink-0" />
                       <span className="text-sm">{feature}</span>
@@ -120,10 +111,11 @@ export const Pricing = ({ className }: { className?: string }) => {
                 </div>
 
                 <Button
-                  className="w-fit"
-                  variant={plan.name === "Startup" ? "default" : "outline"}
+                  className="w-full"
+                  variant={plan.highlight ? "default" : "outline"}
+                  asChild
                 >
-                  Get started
+                  <a href={withBase("/contact")}>Book a call</a>
                 </Button>
               </CardContent>
             </Card>

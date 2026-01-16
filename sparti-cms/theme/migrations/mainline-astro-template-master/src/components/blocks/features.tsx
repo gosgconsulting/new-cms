@@ -1,91 +1,83 @@
-import { ChevronRight } from "lucide-react";
-
-import { DashedLine } from "../dashed-line";
+import {
+  LayoutTemplate,
+  PencilLine,
+  Search,
+  Zap,
+  ShieldCheck,
+  BarChart3,
+} from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
 
-const items = [
+const features = [
   {
-    title: "Purpose-built for product development",
-    image: "/features/triage-card.svg",
+    title: "Conversion-first structure",
+    description: "Hero → proof → offer → FAQs → CTA, with clear hierarchy.",
+    icon: LayoutTemplate,
   },
   {
-    title: "Manage projects end-to-end",
-    image: "/features/cycle-card.svg",
+    title: "Built-in editing",
+    description: "Update copy, sections, and pages from the CMS—without a developer.",
+    icon: PencilLine,
   },
   {
-    title: "Build momentum and healthy habits",
-    image: "/features/overview-card.svg",
+    title: "SEO-ready",
+    description: "Clean semantic structure, fast pages, and strong content organization.",
+    icon: Search,
+  },
+  {
+    title: "Fast by default",
+    description: "Astro + Tailwind keeps output lean and performance high.",
+    icon: Zap,
+  },
+  {
+    title: "Tenant-aware theming",
+    description: "Branding + styles load per tenant so one theme can power many sites.",
+    icon: ShieldCheck,
+  },
+  {
+    title: "Measure & iterate",
+    description: "Launch quickly, then improve conversions with data and updates.",
+    icon: BarChart3,
   },
 ];
 
 export const Features = () => {
   return (
-    <section id="feature-modern-teams" className="pb-28 lg:pb-32">
+    <section id="features" className="pb-24 lg:pb-32">
       <div className="container">
-        {/* Top dashed line with text */}
-        <div className="relative flex items-center justify-center">
-          <DashedLine className="text-muted-foreground" />
-          <span className="bg-muted text-muted-foreground absolute px-3 font-mono text-sm font-medium tracking-wide max-md:hidden">
-            MEASURE TWICE. CUT ONCE.
-          </span>
-        </div>
-
-        {/* Content */}
-        <div className="mx-auto mt-10 grid max-w-4xl items-center gap-3 md:gap-0 lg:mt-24 lg:grid-cols-2">
+        <div className="mx-auto max-w-3xl text-center">
           <h2 className="text-2xl tracking-tight md:text-4xl lg:text-5xl">
-            Made for modern product teams
+            Everything you need to launch
           </h2>
-          <p className="text-muted-foreground leading-snug">
-            Mainline is built on the habits that make the best product teams
-            successful: staying focused, moving quickly, and always aiming for
-            high-quality work.
+          <p className="text-muted-foreground mt-4 leading-snug text-balance">
+            A clean marketing site foundation with CMS hooks—designed for service
+            businesses.
           </p>
         </div>
 
-        {/* Features Card */}
-        <Card className="mt-8 rounded-3xl md:mt-12 lg:mt-20">
-          <CardContent className="flex p-0 max-md:flex-col">
-            {items.map((item, i) => (
-              <div key={i} className="flex flex-1 max-md:flex-col">
-                <div className="flex-1 p-4 pe-0! md:p-6">
-                  <div className="relative aspect-[1.28/1] overflow-hidden">
-                    <img
-                      src={item.image}
-                      alt={`${item.title} interface`}
-                      className="object-cover object-left-top ps-4 pt-2"
-                    />
-                    <div className="from-background absolute inset-0 z-10 bg-linear-to-t via-transparent to-transparent" />
-                  </div>
-
-                  <a
-                    href="#"
-                    className={
-                      "group flex items-center justify-between gap-4 pe-4 pt-4 md:pe-6 md:pt-6"
-                    }
-                  >
-                    <h3 className="font-display max-w-60 text-2xl leading-tight font-bold tracking-tight">
-                      {item.title}
-                    </h3>
-                    <div className="rounded-full border p-2">
-                      <ChevronRight className="size-6 transition-transform group-hover:translate-x-1 lg:size-9" />
+        <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:mt-16 lg:grid-cols-3">
+          {features.map((f) => {
+            const Icon = f.icon;
+            return (
+              <Card key={f.title} className="rounded-3xl">
+                <CardContent className="p-6">
+                  <div className="flex items-start gap-3">
+                    <div className="grid size-10 place-items-center rounded-2xl bg-primary/10 text-primary">
+                      <Icon className="size-5" />
                     </div>
-                  </a>
-                </div>
-                {i < items.length - 1 && (
-                  <div className="relative hidden md:block">
-                    <DashedLine orientation="vertical" />
+                    <div>
+                      <h3 className="font-semibold tracking-tight">{f.title}</h3>
+                      <p className="text-muted-foreground mt-2 text-sm leading-relaxed">
+                        {f.description}
+                      </p>
+                    </div>
                   </div>
-                )}
-                {i < items.length - 1 && (
-                  <div className="relative block md:hidden">
-                    <DashedLine orientation="horizontal" />
-                  </div>
-                )}
-              </div>
-            ))}
-          </CardContent>
-        </Card>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
       </div>
     </section>
   );

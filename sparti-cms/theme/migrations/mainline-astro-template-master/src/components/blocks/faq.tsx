@@ -6,54 +6,56 @@ import {
 } from "@/components/ui/accordion";
 import { cn } from "@/lib/utils";
 
+const withBase = (path: string) => {
+  const base = (import.meta as any).env?.BASE_URL || "/";
+  const normalizedBase = base.endsWith("/") ? base : base + "/";
+  if (path.startsWith("/")) return normalizedBase.replace(/\/$/, "") + path;
+  return normalizedBase + path;
+};
+
 const categories = [
+  {
+    title: "Getting started",
+    questions: [
+      {
+        question: "How fast can we launch?",
+        answer:
+          "Typically 5–10 business days once your content and assets are ready.",
+      },
+      {
+        question: "Can I update the website myself?",
+        answer:
+          "Yes. The Master theme is designed to be CMS-driven so you can update sections and pages without a developer.",
+      },
+    ],
+  },
+  {
+    title: "SEO & performance",
+    questions: [
+      {
+        question: "Is the site SEO-friendly?",
+        answer:
+          "Yes—clean structure, fast pages, and room for content expansion (blog and landing pages).",
+      },
+      {
+        question: "Will it be fast on mobile?",
+        answer:
+          "Yes. Astro outputs lean HTML and we keep assets optimized for performance.",
+      },
+    ],
+  },
   {
     title: "Support",
     questions: [
       {
-        question: "How do I update my account without breaking my laptop?",
+        question: "Do you offer ongoing support?",
         answer:
-          "Lorem ipsum dolor sit amet consectetur adipisicing elit. Minus voluptates deserunt officia temporibus dignissimos.",
+          "Yes. You can choose an ongoing package for updates, experiments, and improvements.",
       },
       {
-        question: "Is support free, or do I need to Google everything?",
+        question: "Can you connect integrations (forms, email, etc.)?",
         answer:
-          "Lorem ipsum dolor sit amet consectetur adipisicing elit. Minus voluptates deserunt officia temporibus dignissimos.",
-      },
-      {
-        question: "Are you going to be subsumed by AI?",
-        answer:
-          "Lorem ipsum dolor sit amet consectetur adipisicing elit. Minus voluptates deserunt officia temporibus dignissimos.",
-      },
-    ],
-  },
-  {
-    title: "Your account",
-    questions: [
-      {
-        question: "Is support free, or do I need to Google everything?",
-        answer:
-          "Lorem ipsum dolor sit amet consectetur adipisicing elit. Minus voluptates deserunt officia temporibus dignissimos.",
-      },
-      {
-        question: "Are you going to be subsumed by AI?",
-        answer:
-          "Lorem ipsum dolor sit amet consectetur adipisicing elit. Minus voluptates deserunt officia temporibus dignissimos.",
-      },
-    ],
-  },
-  {
-    title: "Other questions",
-    questions: [
-      {
-        question: "Is support free, or do I need to Google everything?",
-        answer:
-          "Lorem ipsum dolor sit amet consectetur adipisicing elit. Minus voluptates deserunt officia temporibus dignissimos.",
-      },
-      {
-        question: "Are you going to be subsumed by AI?",
-        answer:
-          "Lorem ipsum dolor sit amet consectetur adipisicing elit. Minus voluptates deserunt officia temporibus dignissimos.",
+          "Yes. We can connect common integrations depending on your setup and plan.",
       },
     ],
   },
@@ -69,22 +71,22 @@ export const FAQ = ({
   className2?: string;
 }) => {
   return (
-    <section className={cn("py-28 lg:py-32", className)}>
+    <section id="faq" className={cn("py-24 lg:py-32", className)}>
       <div className="container max-w-5xl">
-        <div className={cn("mx-auto grid gap-16 lg:grid-cols-2", className2)}>
+        <div className={cn("mx-auto grid gap-14 lg:grid-cols-2", className2)}>
           <div className="space-y-4">
             {headerTag === "h1" ? (
               <h1 className="text-2xl tracking-tight md:text-4xl lg:text-5xl">
-                Got Questions?
+                Frequently asked questions
               </h1>
             ) : (
               <h2 className="text-2xl tracking-tight md:text-4xl lg:text-5xl">
-                Got Questions?
+                Frequently asked questions
               </h2>
             )}
             <p className="text-muted-foreground max-w-md leading-snug lg:mx-auto">
               If you can't find what you're looking for,{" "}
-              <a href="/contact" className="underline underline-offset-4">
+              <a href={withBase("/contact")} className="underline underline-offset-4">
                 get in touch
               </a>
               .
@@ -93,7 +95,7 @@ export const FAQ = ({
 
           <div className="grid gap-6 text-start">
             {categories.map((category, categoryIndex) => (
-              <div key={category.title} className="">
+              <div key={category.title}>
                 <h3 className="text-muted-foreground border-b py-4">
                   {category.title}
                 </h3>
