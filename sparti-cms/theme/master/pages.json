@@ -1,11 +1,13 @@
-[
-  {
-    "page_name": "Homepage",
-    "slug": "/",
-    "meta_title": "Home",
-    "meta_description": "Master Theme Homepage",
-    "seo_index": true,
-    "status": "published",
-    "page_type": "page"
-  }
-]
+{
+  "pages": [
+    {
+      "page_name": "Homepage",
+      "slug": "/",
+      "meta_title": "Master Theme",
+      "meta_description": "Master Theme homepage preview",
+      "seo_index": true,
+      "status": "published",
+      "page_type": "page"
+    }
+  ]
+}

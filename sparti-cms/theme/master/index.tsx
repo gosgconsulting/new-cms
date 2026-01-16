@@ -20,6 +20,10 @@ const MasterTheme: React.FC<TenantLandingProps> = ({
   tenantSlug = 'master',
   tenantId
 }) => {
+  // Simple local CTA modal state (placeholder)
+  // IMPORTANT: hooks must be declared unconditionally (before any early returns)
+  const [contactOpen, setContactOpen] = useState(false);
+
   // Determine effective tenant ID: prefer prop, then window injection, then null
   const effectiveTenantId = useMemo(() => {
     if (tenantId) return tenantId;
@@ -30,8 +34,14 @@ const MasterTheme: React.FC<TenantLandingProps> = ({
   }, [tenantId]);
 
   // Tenant-aware branding and style settings
-  const { branding, loading: brandingLoading, error: brandingError } = useThemeBranding(tenantSlug, effectiveTenantId ?? undefined);
-  const { styles, loading: stylesLoading, error: stylesError } = useThemeStyles(tenantSlug, effectiveTenantId ?? undefined);
+  const { branding, loading: brandingLoading, error: brandingError } = useThemeBranding(
+    tenantSlug,
+    effectiveTenantId ?? undefined
+  );
+  const { styles, loading: stylesLoading, error: stylesError } = useThemeStyles(
+    tenantSlug,
+    effectiveTenantId ?? undefined
+  );
 
   // Derived presentation values with safe fallbacks
   const siteName = branding?.site_name || tenantName;
@@ -42,16 +52,14 @@ const MasterTheme: React.FC<TenantLandingProps> = ({
   useEffect(() => {
     const favicon = branding?.site_favicon || null;
     if (!favicon) return;
-    const applyFavicon = () => {
-      let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement | null;
-      if (!link) {
-        link = document.createElement('link');
-        link.rel = 'icon';
-        document.head.appendChild(link);
-      }
-      link.href = favicon;
-    };
-    applyFavicon();
+
+    let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement | null;
+    if (!link) {
+      link = document.createElement('link');
+      link.rel = 'icon';
+      document.head.appendChild(link);
+    }
+    link.href = favicon;
   }, [branding?.site_favicon]);
 
   // Loading state
@@ -71,9 +79,6 @@ const MasterTheme: React.FC<TenantLandingProps> = ({
     if (brandingError) console.warn('[master-theme] Branding load error:', brandingError);
     if (stylesError) console.warn('[master-theme] Styles load error:', stylesError);
   }
-
-  // Simple local CTA modal state (placeholder)
-  const [contactOpen, setContactOpen] = useState(false);
 
   return (
     <div className="min-h-screen theme-bg text-foreground flex flex-col">
@@ -107,32 +112,65 @@ const MasterTheme: React.FC<TenantLandingProps> = ({
       {/* Hero */}
       <main className="flex-1">
         <section className="relative">
-          <div className="max-w-6xl mx-auto px-4 py-16">
-            <h1 className="text-4xl font-bold mb-3">
-              {siteName}
-            </h1>
-            <p className="text-lg text-muted-foreground mb-6">
-              Tenant-aware base theme for fast migrations.
-            </p>
-            <div className="flex gap-3">
-              <a
-                href="/admin"
-                className="px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 text-sm"
-              >
-                Go to CMS
-              </a>
-              <a
-                href={`/theme/${tenantSlug}`}
-                className="px-4 py-2 rounded-md border border-border hover:bg-muted text-sm"
-              >
-                Preview Theme
-              </a>
-            </div>
-            {effectiveTenantId && (
-              <p className="mt-4 text-xs text-muted-foreground">
-                Tenant ID: {effectiveTenantId}
+          <div className="max-w-6xl mx-auto px-4 py-16 grid gap-10 lg:grid-cols-2 lg:items-center">
+            <div>
+              <h1 className="text-4xl font-bold mb-3">{siteName}</h1>
+              <p className="text-lg text-muted-foreground mb-6">
+                Tenant-aware base theme for fast migrations.
               </p>
-            )}
+              <div className="flex flex-wrap gap-3">
+                <a
+                  href="/admin"
+                  className="px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 text-sm"
+                >
+                  Go to CMS
+                </a>
+                <a
+                  href={`/theme/${tenantSlug}`}
+                  className="px-4 py-2 rounded-md border border-border hover:bg-muted text-sm"
+                >
+                  Preview Theme
+                </a>
+                <a
+                  href="/theme/landingpage"
+                  className="px-4 py-2 rounded-md border border-border hover:bg-muted text-sm"
+                >
+                  View another theme
+                </a>
+              </div>
+              {effectiveTenantId && (
+                <p className="mt-4 text-xs text-muted-foreground">
+                  Tenant ID: {effectiveTenantId}
+                </p>
+              )}
+              {stylesError && (
+                <p className="mt-2 text-xs text-destructive">
+                  Styles could not be loaded for this tenant/theme (showing defaults).
+                </p>
+              )}
+            </div>
+
+            <div className="rounded-2xl border border-border bg-card p-6">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-medium">Master theme preview</p>
+                <span className="text-xs text-muted-foreground">/theme/master</span>
+              </div>
+              <div className="mt-4 rounded-xl overflow-hidden border border-border bg-background">
+                <img
+                  src="/theme/master/assets/hero.svg"
+                  alt="Master theme illustration"
+                  className="w-full h-auto"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = 'none';
+                  }}
+                />
+              </div>
+              <ul className="mt-4 text-sm text-muted-foreground space-y-1">
+                <li>• Branding via public API (site name, logo, favicon)</li>
+                <li>• Theme styles via public API (colors, typography)</li>
+                <li>• Minimal layout: header, hero, footer</li>
+              </ul>
+            </div>
           </div>
         </section>
       </main>
@@ -146,8 +184,14 @@ const MasterTheme: React.FC<TenantLandingProps> = ({
 
       {/* Simple placeholder for contact modal */}
       {contactOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4" onClick={() => setContactOpen(false)}>
-          <div className="bg-background rounded-lg p-6 w-full max-w-md border border-border" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center p-4"
+          onClick={() => setContactOpen(false)}
+        >
+          <div
+            className="bg-background rounded-lg p-6 w-full max-w-md border border-border"
+            onClick={(e) => e.stopPropagation()}
+          >
             <h2 className="text-lg font-semibold mb-2">Contact</h2>
             <p className="text-sm text-muted-foreground mb-4">
               Replace this with your contact form component when needed.
