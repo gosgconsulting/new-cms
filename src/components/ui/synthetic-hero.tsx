@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useRef } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { useGSAP } from "@gsap/react";
@@ -142,7 +142,7 @@ const SyntheticHero: React.FC<HeroProps> = ({
   const paragraphRef = useRef<HTMLParagraphElement | null>(null);
   const ctaRef = useRef<HTMLDivElement | null>(null);
   const microRef = useRef<HTMLUListElement | null>(null);
-  const canvasContainerRef = useRef<HTMLDivElement | null>(null);
+  const [canvasContainer, setCanvasContainer] = useState<HTMLDivElement | null>(null);
 
   const shaderUniforms = useMemo(
     () => ({
@@ -214,14 +214,16 @@ const SyntheticHero: React.FC<HeroProps> = ({
 
   return (
     <section ref={sectionRef} className="relative flex items-center justify-center min-h-screen overflow-hidden">
-      <div ref={canvasContainerRef} className="absolute inset-0 z-0">
-        <Canvas
-          className="w-full h-full"
-          eventSource={canvasContainerRef.current ?? undefined}
-          eventPrefix="client"
-        >
-          <ShaderPlane vertexShader={vertexShader} fragmentShader={fragmentShader} uniforms={shaderUniforms} />
-        </Canvas>
+      <div ref={setCanvasContainer} className="absolute inset-0 z-0">
+        {canvasContainer && (
+          <Canvas
+            className="w-full h-full"
+            eventSource={canvasContainer}
+            eventPrefix="client"
+          >
+            <ShaderPlane vertexShader={vertexShader} fragmentShader={fragmentShader} uniforms={shaderUniforms} />
+          </Canvas>
+        )}
       </div>
 
       <div className="relative z-10 flex flex-col items-center text-center px-6">
