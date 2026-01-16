@@ -201,7 +201,11 @@ const GOSGContent: React.FC<TenantLandingProps> = ({
         ]
       },
       // About (unchanged)
-      { key: "AnimatedAboutSection", name: "Animated About", type: "AboutSection2", items: [] },
+      { key: "AnimatedAboutSection", name: "Animated About", type: "AboutSection2", items: [
+        { key: "variant", type: "text", content: "seo" },
+        { key: "taglineTitle", type: "text", content: "We Are Your SEO Growth Team And We Will" },
+        { key: "taglineAccent", type: "text", content: "TAKE YOU FURTHER" }
+      ] },
       // Pricing (override for SEO offer using short descriptions and process)
       {
         key: "PricingPageSection",
