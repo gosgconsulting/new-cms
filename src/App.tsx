@@ -16,6 +16,7 @@ import TenantLandingPage from "./pages/TenantLandingPage";
 import TenantPage from "./pages/TenantPage";
 import ThankYou from "./pages/ThankYou";
 import Shop from "./pages/Shop";
+import DemoHero from "./pages/DemoHero";
 
 // Component to handle theme sub-routes - checks if it's a known theme
 const ThemeRouteHandler: React.FC = () => {
@@ -179,6 +180,7 @@ const App = () => {
                 </SuperAdminRoute>
               </ErrorBoundary>
             } />
+            <Route path="/demo-hero" element={<DemoHero />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           </AuthProvider>
