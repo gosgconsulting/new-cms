@@ -56,10 +56,46 @@
       "page_type": "page"
     },
     {
+      "page_name": "Booking",
+      "slug": "/booking",
+      "meta_title": "Book Your Session - STR Fitness",
+      "meta_description": "Book your training session, class, or chat with our team at STR Fitness. New members and existing members welcome.",
+      "seo_index": true,
+      "status": "published",
+      "page_type": "page"
+    },
+    {
+      "page_name": "Packages",
+      "slug": "/packages",
+      "meta_title": "Training Packages - STR Fitness",
+      "meta_description": "Explore our training packages and find the perfect plan for your fitness journey at STR Fitness.",
+      "seo_index": true,
+      "status": "published",
+      "page_type": "page"
+    },
+    {
+      "page_name": "Book Classes",
+      "slug": "/booking/classes",
+      "meta_title": "Book a Class - STR Fitness",
+      "meta_description": "Reserve your spot in our group classes or training sessions at STR Fitness.",
+      "seo_index": true,
+      "status": "published",
+      "page_type": "page"
+    },
+    {
       "page_name": "Thank You",
       "slug": "/thank-you",
-      "meta_title": "Thank You - ACATR Business Services",
-      "meta_description": "Thank you for contacting ACATR Business Services. We've received your message and will get back to you within 4 hours.",
+      "meta_title": "Thank You - STR Fitness",
+      "meta_description": "Thank you for contacting STR Fitness. We will get back to you soon.",
+      "seo_index": false,
+      "status": "published",
+      "page_type": "page"
+    },
+    {
+      "page_name": "Thank You",
+      "slug": "/thank-you",
+      "meta_title": "Thank You - STR Fitness",
+      "meta_description": "Thank you for contacting STR Fitness. We've received your message and will get back to you soon.",
       "seo_index": false,
       "status": "published",
       "page_type": "page"

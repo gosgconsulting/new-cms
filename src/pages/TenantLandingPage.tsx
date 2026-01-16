@@ -65,6 +65,28 @@ const TenantLandingPage: React.FC = () => {
   const location = useLocation();
   const slug = tenantSlug || 'landingpage';
   
+  // Extract full page path from location for nested routes like /booking/classes
+  // Always extract from pathname to handle both /theme/:tenantSlug/:pageSlug and /theme/:tenantSlug/* routes
+  const fullPageSlug = useMemo(() => {
+    if (productname) {
+      return `product/${productname}`;
+    }
+    
+    // Extract full path from pathname to handle nested routes
+    const pathParts = location.pathname.split('/').filter(Boolean);
+    const themeIndex = pathParts.indexOf('theme');
+    const tenantIndex = pathParts.indexOf(tenantSlug);
+    
+    if (themeIndex >= 0 && tenantIndex === themeIndex + 1 && tenantIndex + 1 < pathParts.length) {
+      // Get all parts after tenant slug (handles both single and nested paths)
+      const remainingParts = pathParts.slice(tenantIndex + 1);
+      return remainingParts.join('/');
+    }
+    
+    // Fallback to pageSlug if pathname parsing didn't work
+    return pageSlug;
+  }, [pageSlug, location.pathname, tenantSlug, productname]);
+  
   // Get theme config or fallback
   const currentTheme = useMemo(() => {
     return themeConfig[slug] || themeConfig['landingpage'];
@@ -106,7 +128,7 @@ const TenantLandingPage: React.FC = () => {
       <ThemeComponent 
         tenantName={currentTheme.name} 
         tenantSlug={slug}
-        pageSlug={productname ? `product/${productname}` : pageSlug}
+        pageSlug={fullPageSlug}
       />
     </Suspense>
   );

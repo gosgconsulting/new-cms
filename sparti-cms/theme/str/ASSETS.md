@@ -42,7 +42,8 @@ Assets are stored in two locations for redundancy:
   - Path: `/theme/str/assets/hero/hero-background.jpg`
   - Format: JPG (optimized for web)
   - Dimensions: Recommended 1920px width
-  - **To replace**: Place your hero image in `public/theme/str/assets/hero/hero-background.jpg`
+  - **Current**: Black and white gym interior photo with dynamic lighting
+  - **To replace**: Place your hero image in `public/theme/str/assets/hero/hero-background.jpg` and `sparti-cms/theme/str/assets/hero/hero-background.jpg`
 
 ## Usage in Components
 

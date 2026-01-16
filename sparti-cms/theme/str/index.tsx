@@ -1,9 +1,16 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo, useEffect } from 'react';
+import { useLocation, useParams } from 'react-router-dom';
 import './theme.css';
 import { Button } from '@/components/ui/button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, CarouselIndicators } from '@/components/ui/carousel';
 import { Star, Menu, X, ArrowRight, Wrench, Award, Users, ChevronUp, Plus, Minus, Instagram } from 'lucide-react';
+import BookingPage from './booking';
+import PackagesPage from './packages';
+import ClassesPage from './classes';
+import ThankYouPage from './thank-you';
+import ContactModal from './ContactModal';
+import HeroSection from './components/HeroSection';
 
 interface TenantLandingProps {
   tenantName?: string;
@@ -15,14 +22,108 @@ interface TenantLandingProps {
 const STRTheme: React.FC<TenantLandingProps> = ({
   tenantName = 'STR',
   tenantSlug = 'str',
-  tenantId
+  tenantId,
+  pageSlug
 }) => {
+  const location = useLocation();
+  const params = useParams<{ pageSlug?: string }>();
+  
+  // Determine which page to render
+  const currentPage = useMemo(() => {
+    // Check pageSlug prop first (passed from TenantLandingPage)
+    if (pageSlug) {
+      return pageSlug;
+    }
+    
+    // Check if we have a pageSlug param (from /theme/:tenantSlug/:pageSlug route)
+    if (params.pageSlug) {
+      return params.pageSlug;
+    }
+    
+    // Otherwise, extract from pathname
+    const pathParts = location.pathname.split('/').filter(Boolean);
+    
+    // Look for 'theme' in path to determine if we're in theme mode
+    const themeIndex = pathParts.indexOf('theme');
+    const tenantIndex = pathParts.indexOf(tenantSlug);
+    
+    // If we're in theme mode (/theme/str/...)
+    if (themeIndex >= 0 && tenantIndex === themeIndex + 1) {
+      // The page slug should be after the tenant slug
+      if (tenantIndex + 1 < pathParts.length) {
+        // Handle nested routes like booking/classes
+        const remainingParts = pathParts.slice(tenantIndex + 1);
+        return remainingParts.join('/');
+      }
+      return ''; // Homepage if nothing after tenant slug
+    }
+    
+    // Handle standalone deployment (pathname doesn't include /theme/str/)
+    // Direct access like /booking or /packages
+    if (tenantIndex < 0) {
+      // Check if it's a known page
+      const firstPart = pathParts[0];
+      if (firstPart === 'booking' || firstPart === 'packages') {
+        return firstPart;
+      }
+      return firstPart || '';
+    }
+    
+    // Fallback: if tenant slug is found, check what comes after it
+    if (tenantIndex >= 0 && tenantIndex < pathParts.length - 1) {
+      // Handle nested routes
+      const remainingParts = pathParts.slice(tenantIndex + 1);
+      return remainingParts.join('/');
+    }
+    
+    return ''; // Homepage
+  }, [location.pathname, tenantSlug, params.pageSlug, pageSlug]);
+
+  // Render the appropriate page component based on current route
+  if (currentPage === 'booking') {
+    return <BookingPage tenantName={tenantName} tenantSlug={tenantSlug} tenantId={tenantId} pageSlug={currentPage} />;
+  }
+  
+  if (currentPage === 'packages') {
+    return <PackagesPage tenantName={tenantName} tenantSlug={tenantSlug} tenantId={tenantId} pageSlug={currentPage} />;
+  }
+  
+  if (currentPage === 'booking/classes') {
+    return <ClassesPage tenantName={tenantName} tenantSlug={tenantSlug} tenantId={tenantId} pageSlug={currentPage} />;
+  }
+  
+  if (currentPage === 'thank-you') {
+    return <ThankYouPage tenantName={tenantName} tenantSlug={tenantSlug} tenantId={tenantId} pageSlug={currentPage} />;
+  }
+  
+  // Default: render homepage
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeProgramme, setActiveProgramme] = useState(0);
   const [activeGalleryFilter, setActiveGalleryFilter] = useState('All');
   const [activeGalleryIndex, setActiveGalleryIndex] = useState(0);
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
+
+  // Check for #contact hash in URL and open modal
+  useEffect(() => {
+    const handleHashChange = () => {
+      if (window.location.hash === '#contact') {
+        setIsContactModalOpen(true);
+        // Remove hash from URL without scrolling
+        window.history.replaceState(null, '', window.location.pathname);
+      }
+    };
+
+    // Check on mount
+    handleHashChange();
+
+    // Listen for hash changes
+    window.addEventListener('hashchange', handleHashChange);
+
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+    };
+  }, []);
   const galleryCarouselApi = useRef<any>(null);
-  const teamCarouselApi = useRef<any>(null);
 
   // Navigation items
   const navItems = [
@@ -30,7 +131,6 @@ const STRTheme: React.FC<TenantLandingProps> = ({
     { name: 'Programmes', href: '#programmes' },
     { name: 'Gallery', href: '#gallery' },
     { name: 'FAQs', href: '#faq' },
-    { name: 'Contact', href: '#contact' },
   ];
 
   // Footer menu items
@@ -47,23 +147,38 @@ const STRTheme: React.FC<TenantLandingProps> = ({
   const programmes = [
     {
       title: 'PERSONAL TRAINING',
-      description: 'One-on-one coaching tailored to your individual goals, whether you\'re looking to build strength, improve performance, or recover from injury. Our experienced coaches guide every workout with proper form and purpose.',
-      content: 'Personal training at STR is designed to give you individualized attention and a program specifically tailored to your needs. Whether you\'re a beginner or an advanced athlete, our coaches will work with you to achieve your goals through evidence-based training methods.',
+      description: 'Designed specifically for your own personal goals, work with a professional coach with fully guided and supervised sessions to ensure maximal success in achieving your goals.',
+      content: '',
     },
     {
-      title: 'SPORTS TRAINING',
-      description: 'Specialized programs designed for athletes looking to enhance their performance, speed, agility, and sport-specific skills. Follow proven training programs designed to deliver real, measurable results.',
-      content: 'Our sports training programs are built on scientific principles and years of experience working with athletes. We focus on developing the physical attributes that matter most for your sport, from power and speed to endurance and agility.',
+      title: 'SPORTS MASSAGE',
+      description: 'Sports massage focuses on preventing and treating sports-related injuries by improving muscle flexibility and reducing tension.',
+      content: '',
     },
     {
-      title: 'REHABILITATION',
-      description: 'Evidence-based rehabilitation programs to help you recover from injuries and return to peak physical condition safely and effectively. Train in a motivating environment that helps you stay consistent and reach your goals.',
-      content: 'STR\'s rehabilitation programs combine therapeutic exercise with progressive strength training to help you recover from injuries and prevent future ones. Our approach is evidence-based and tailored to your specific needs.',
+      title: 'STR MEMBERSHIP PROGRAMME',
+      description: 'Unlimited access to group classes and open gym access, here at STR Fitness club',
+      content: '',
     },
     {
-      title: 'STRENGTH PROGRAMMES',
-      description: 'Comprehensive strength training programs for all levels, from beginners to advanced athletes seeking to maximize their potential. Build real strength through structured, progressive training.',
-      content: 'Our strength programmes are designed to help you build functional strength that translates to real-world performance. We use proven methods and progressive overload to ensure continuous improvement.',
+      title: 'PHYSIOTHERAPY',
+      description: 'Our fully equipped gym with state-of-the-art rehabilitation equipment ensures that your recovery is optimised all the way, from symptom relief, restoration of function, all the way to performance.',
+      content: '',
+    },
+    {
+      title: 'GROUP CLASSES',
+      description: 'We offer classes of different intensity, ranging from beginners-friendly to more advanced levels, to help you build the strength and speed needed for your next race. Whether you are looking to start your HYROX journey, maintain your fitness during the off-season or train for your next podium win, we have just the right class for you.',
+      content: '',
+    },
+    {
+      title: 'OPEN GYM',
+      description: 'Open Gym Access. Capped at 5 pax per hourly slot, train with our official HYROX Center Equipment and state of the art equipment. Unwind, relax and connect afterwards at our outdoor terrace! Open Gym Hours: Monday - Friday 10am - 5pm, Saturday - Sunday 12pm - 5pm',
+      content: '',
+    },
+    {
+      title: 'YOUTH STRENGTH & CONDITIONING',
+      description: 'Engaging the youth and propelling them for long term athletic development while developing lifelong habits and values. Our coaches are specially equipped with the right skillset to motivate and teach the youth population.',
+      content: '',
     },
   ];
 
@@ -125,38 +240,47 @@ const STRTheme: React.FC<TenantLandingProps> = ({
   // Team members
   const teamMembers = [
     {
-      name: 'Alex Johnson',
-      role: 'Head Coach',
-      description: 'Expert in strength & conditioning with over 10 years of experience helping athletes reach peak performance.',
-      qualifications: 'MSc Sports Science, CSCS',
-      specialization: 'Strength & Conditioning, Performance Training',
+      name: 'JJ',
+      role: 'Head Coach | Founder | Physiotherapist',
+      description: 'JJ, a former National Youth Wushu Athlete, earned a Physiotherapy degree from Trinity College Dublin and specialized in sports physiotherapy at Sengkang General Hospital. He competes in endurance events like Hyrox — ranking top 6 Singaporean in 2024 — and volunteers with the Special Olympics and Wushu community.',
+      qualifications: '',
+      specialization: '',
       image: 'https://images.pexels.com/photos/4164754/pexels-photo-4164754.jpeg?auto=compress&cs=tinysrgb&w=600',
       profileLink: '#',
     },
     {
-      name: 'Sarah Williams',
-      role: 'Senior Coach',
-      description: 'Specialized in rehabilitation and injury prevention, helping clients recover and prevent future injuries.',
-      qualifications: 'BSc Physiotherapy, NASM-CPT',
-      specialization: 'Rehabilitation, Injury Prevention',
+      name: 'Brandon Khoo',
+      role: 'PT Coach',
+      description: 'Brandon Khoo is an experienced strength and conditioning coach specializing in kettlebell and barbell training. He has designed and led both individualized and group training programs, focusing on strength, endurance, mobility, and injury prevention. He is passionate about helping clients build functional strength through structured progression.',
+      qualifications: '',
+      specialization: '',
       image: 'https://images.pexels.com/photos/4164754/pexels-photo-4164754.jpeg?auto=compress&cs=tinysrgb&w=600',
       profileLink: '#',
     },
     {
-      name: 'David Martinez',
-      role: 'Performance Coach',
-      description: 'Dedicated to athletic development and sports-specific training for competitive athletes.',
-      qualifications: 'MSc Exercise Physiology, USAW',
-      specialization: 'Sports Training, Athletic Development',
+      name: 'Jing Yong',
+      role: 'Group Class Coach',
+      description: 'Jing Yong earned an Accountancy degree from Nanyang Technological University and currently holds a managerial position at a local investment firm. A former competitive athlete in triathlons, track and field and cross-country running, he now focuses on endurance events such as Hyrox, marathons, and team-based functional fitness races.',
+      qualifications: '',
+      specialization: '',
       image: 'https://images.pexels.com/photos/4164754/pexels-photo-4164754.jpeg?auto=compress&cs=tinysrgb&w=600',
       profileLink: '#',
     },
     {
-      name: 'Lisa Anderson',
-      role: 'Strength Coach',
-      description: 'Focuses on building functional strength and power through evidence-based training methods.',
-      qualifications: 'BSc Kinesiology, NSCA-CSCS',
-      specialization: 'Strength Programmes, Power Development',
+      name: 'Jessica',
+      role: 'Group Class Coach | PT Coach',
+      description: 'Jessica is an experienced and versatile personal trainer with expertise in both strength and hybrid training. She has helped numerous clients achieve both fitness and aesthetic goals, while ensuring that they train safely and efficiently. She competes in half marathons and HYROX, ranking as the top Singaporean woman in both Open (2nd overall, first in AG) and Pro (3rd overall, first in AG) categories in HYROX 2024 races.',
+      qualifications: '',
+      specialization: '',
+      image: 'https://images.pexels.com/photos/4164754/pexels-photo-4164754.jpeg?auto=compress&cs=tinysrgb&w=600',
+      profileLink: '#',
+    },
+    {
+      name: 'Jacqueline',
+      role: 'Group Class Coach',
+      description: 'Jacqueline is a passionate fitness trainer dedicated to helping others feel strong, confident, and empowered through movement. While she works as an HR professional by day, her true energy comes from the world of fitness—especially spin and pilates. She believes fitness should be fun, approachable, and inclusive, regardless of experience level. Her mission is to create a supportive space where members are encouraged to grow, challenge themselves, and celebrate progress.',
+      qualifications: '',
+      specialization: '',
       image: 'https://images.pexels.com/photos/4164754/pexels-photo-4164754.jpeg?auto=compress&cs=tinysrgb&w=600',
       profileLink: '#',
     },
@@ -193,7 +317,7 @@ const STRTheme: React.FC<TenantLandingProps> = ({
   return (
     <div className="str-theme min-h-screen bg-background text-foreground">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
+      <header className="relative z-50 bg-background/95 backdrop-blur-sm border-b border-border">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex h-20 items-center justify-between">
             {/* Logo */}
@@ -227,6 +351,12 @@ const STRTheme: React.FC<TenantLandingProps> = ({
                   {item.name}
                 </a>
               ))}
+              <Button
+                className="bg-[#E00000] text-white hover:bg-[#E00000]/90 font-bold uppercase px-6 py-2 rounded-lg text-sm transition-all duration-300"
+                onClick={() => window.location.href = '/theme/str/booking'}
+              >
+                Get Started
+              </Button>
             </nav>
 
             {/* Mobile Menu Button */}
@@ -253,45 +383,25 @@ const STRTheme: React.FC<TenantLandingProps> = ({
                   {item.name}
                 </a>
               ))}
+              <Button
+                className="w-full bg-[#E00000] text-white hover:bg-[#E00000]/90 font-bold uppercase px-6 py-3 rounded-lg text-sm transition-all duration-300 mt-4"
+                onClick={() => {
+                  setIsMenuOpen(false);
+                  window.location.href = '/theme/str/booking';
+                }}
+              >
+                Get Started
+              </Button>
             </div>
           </div>
         )}
       </header>
 
       {/* Hero Section */}
-      <section className="relative pt-32 pb-20 px-4 sm:px-6 lg:px-8 min-h-screen flex items-center overflow-hidden">
-        {/* Background Image with Overlay */}
-        <div className="absolute inset-0">
-          <img
-            src="/theme/str/assets/hero/hero-background.jpg"
-            alt="Training"
-            className="w-full h-full object-cover grayscale"
-            onError={(e) => {
-              // Fallback to placeholder if image not found
-              const target = e.target as HTMLImageElement;
-              target.src = 'https://images.pexels.com/photos/4164754/pexels-photo-4164754.jpeg?auto=compress&cs=tinysrgb&w=1920';
-            }}
-          />
-          <div className="absolute inset-0 bg-background/70"></div>
-        </div>
-        
-        <div className="container mx-auto relative z-10">
-          <div className="max-w-4xl">
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold uppercase text-foreground mb-6 leading-tight">
-              TRAINING BETTER, LIVING BETTER
-            </h1>
-            <p className="text-xl md:text-2xl text-muted-foreground mb-8 leading-relaxed">
-              Strength Training • Rehabilitation • Performance • Conditioning
-            </p>
-            <Button
-              size="lg"
-              className="bg-primary text-primary-foreground hover:bg-primary/90 text-lg px-8 py-6 font-semibold"
-            >
-              EXPLORE OUR PROGRAMMES
-            </Button>
-          </div>
-        </div>
-      </section>
+      <HeroSection 
+        tenantSlug={tenantSlug}
+        items={undefined} // Can be populated from database schema in future
+      />
 
       {/* About Us Section */}
       <section id="about" className="relative py-20 px-4 sm:px-6 lg:px-8 min-h-[90vh] flex items-center overflow-hidden">
@@ -309,19 +419,19 @@ const STRTheme: React.FC<TenantLandingProps> = ({
           <div className="w-full">
             {/* Main Heading */}
             <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold uppercase mb-6 text-foreground leading-tight">
-              MORE THAN JUST A GYM
+              About Us
             </h2>
 
-            {/* Subheading */}
+            {/* Content */}
             <p className="text-lg md:text-xl text-foreground mb-16 max-w-3xl leading-relaxed">
-              Where Smart Training Meets Proven Methods To Help You Achieve Real, Lasting Results.
+              Our space is dedicated to cultivating an environment to guide individuals on a transformative journey that balances the physical and mental aspects of health. By integrating personalized training and evidence-based rehabilitation, we empower anyone to unlock their full potential. Through a focus on mental resilience, self-belief, and holistic well-being, we cultivate a space where individuals overcome challenges, enhance performance, and achieve a sustainable, confident lifestyle.
             </p>
 
             {/* Feature Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {/* Expert Coaching Card */}
               <div className="bg-white rounded-3xl p-6 shadow-2xl h-full flex flex-col">
-                <div className="w-12 h-12 rounded-full bg-[#E00000] flex items-center justify-center mb-4 flex-shrink-0">
+                <div className="w-12 h-12 rounded-full bg-[#E48D2A] flex items-center justify-center mb-4 flex-shrink-0">
                   <Wrench className="h-6 w-6 text-white" />
                 </div>
                 <h3 className="text-xl font-bold uppercase text-black mb-3">EXPERT COACHING</h3>
@@ -332,7 +442,7 @@ const STRTheme: React.FC<TenantLandingProps> = ({
 
               {/* Structured Programs Card */}
               <div className="bg-white rounded-3xl p-6 shadow-2xl h-full flex flex-col">
-                <div className="w-12 h-12 rounded-full bg-[#E00000] flex items-center justify-center mb-4 flex-shrink-0">
+                <div className="w-12 h-12 rounded-full bg-[#E48D2A] flex items-center justify-center mb-4 flex-shrink-0">
                   <Award className="h-6 w-6 text-white" />
                 </div>
                 <h3 className="text-xl font-bold text-black mb-3">Structured Programs</h3>
@@ -343,7 +453,7 @@ const STRTheme: React.FC<TenantLandingProps> = ({
 
               {/* Supportive Community Card */}
               <div className="bg-white rounded-3xl p-6 shadow-2xl h-full flex flex-col">
-                <div className="w-12 h-12 rounded-full bg-[#E00000] flex items-center justify-center mb-4 flex-shrink-0">
+                <div className="w-12 h-12 rounded-full bg-[#E48D2A] flex items-center justify-center mb-4 flex-shrink-0">
                   <Users className="h-6 w-6 text-white" />
                 </div>
                 <h3 className="text-xl font-bold uppercase text-black mb-3">SUPPORTIVE COMMUNITY</h3>
@@ -379,10 +489,10 @@ const STRTheme: React.FC<TenantLandingProps> = ({
                     {/* Active State - White Background with Lime Green Accent */}
                     {isActive ? (
                       <div className="relative bg-white rounded-2xl p-6 shadow-lg overflow-hidden">
-                        {/* Lime Green Accent on Top and Left - Irregular/Tilted Shape */}
-                        <div className="absolute top-0 left-0 w-3 h-full bg-[#E00000]"></div>
+                        {/* Orange Accent on Top and Left - Irregular/Tilted Shape */}
+                        <div className="absolute top-0 left-0 w-3 h-full bg-[#E48D2A]"></div>
                         <div 
-                          className="absolute top-0 left-0 w-full h-2 bg-[#E00000]"
+                          className="absolute top-0 left-0 w-full h-2 bg-[#E48D2A]"
                           style={{ clipPath: 'polygon(0 0, 100% 0, 95% 100%, 0 100%)' }}
                         ></div>
                         
@@ -401,16 +511,19 @@ const STRTheme: React.FC<TenantLandingProps> = ({
                         
                         {/* Expanded Content */}
                         <div className="mt-6 pl-6">
-                          <p className="text-black/70 text-base leading-relaxed mb-4">
+                          <p className="text-black/70 text-base leading-relaxed mb-6">
                             {programme.description}
-                          </p>
-                          <p className="text-black/60 text-sm leading-relaxed mb-6">
-                            {programme.content}
+                            {programme.content && (
+                              <>
+                                <br /><br />
+                                <span className="text-black/60 text-sm">{programme.content}</span>
+                              </>
+                            )}
                           </p>
                           {/* CTA Button */}
                           <Button
                             className="bg-[#E00000] text-white hover:bg-[#E00000]/90 font-bold uppercase px-6 py-3 rounded-lg text-sm transition-all duration-300 hover:scale-105"
-                            onClick={() => window.location.href = '#contact'}
+                            onClick={() => window.location.href = '/theme/str/booking'}
                           >
                             GET STARTED
                           </Button>
@@ -469,8 +582,8 @@ const STRTheme: React.FC<TenantLandingProps> = ({
                 }}
                 className={`px-6 py-2 rounded-full font-medium uppercase text-sm transition-all ${
                   activeGalleryFilter === filter
-                    ? 'bg-[#E00000] text-white'
-                    : 'bg-transparent border border-[#E00000] text-[#E00000] hover:bg-[#E00000]/10'
+                    ? 'bg-[#E48D2A] text-white'
+                    : 'bg-transparent border border-white text-white hover:bg-white/10'
                 }`}
               >
                 {filter}
@@ -528,17 +641,17 @@ const STRTheme: React.FC<TenantLandingProps> = ({
           <div className="flex items-center justify-center gap-4">
             <button
               onClick={() => galleryCarouselApi.current?.scrollPrev()}
-              className="w-12 h-12 rounded-full border-2 border-[#A0A0A0] bg-background flex items-center justify-center hover:border-[#E00000] hover:bg-[#E00000]/10 transition-colors"
+              className="w-12 h-12 rounded-full border-2 border-[#E48D2A] bg-background flex items-center justify-center hover:bg-[#E48D2A]/10 transition-colors"
               aria-label="Previous image"
             >
-              <ArrowRight className="h-5 w-5 text-[#A0A0A0] hover:text-[#E00000] transition-colors rotate-180" />
+              <ArrowRight className="h-5 w-5 text-[#E48D2A] transition-colors rotate-180" />
             </button>
             <button
               onClick={() => galleryCarouselApi.current?.scrollNext()}
-              className="w-12 h-12 rounded-full border-2 border-[#A0A0A0] bg-background flex items-center justify-center hover:border-[#E00000] hover:bg-[#E00000]/10 transition-colors"
+              className="w-12 h-12 rounded-full border-2 border-[#E48D2A] bg-background flex items-center justify-center hover:bg-[#E48D2A]/10 transition-colors"
               aria-label="Next image"
             >
-              <ArrowRight className="h-5 w-5 text-[#A0A0A0] hover:text-[#E00000] transition-colors" />
+              <ArrowRight className="h-5 w-5 text-[#E48D2A] transition-colors" />
             </button>
           </div>
         </div>
@@ -586,7 +699,7 @@ const STRTheme: React.FC<TenantLandingProps> = ({
             <Button
               size="lg"
               className="bg-[#E00000] text-white hover:bg-[#E00000]/90 text-lg px-10 py-6 font-bold uppercase rounded-lg transition-all duration-300 hover:scale-105"
-              onClick={() => window.location.href = '#programmes'}
+              onClick={() => window.location.href = '/theme/str/booking'}
             >
               START YOUR JOURNEY
             </Button>
@@ -596,67 +709,31 @@ const STRTheme: React.FC<TenantLandingProps> = ({
 
       {/* Our Team Section */}
       <section id="team" className="py-20 px-4 sm:px-6 lg:px-8 bg-background">
-        <div className="container mx-auto">
+        <div className="container mx-auto max-w-7xl">
           <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold uppercase mb-12 text-center text-foreground leading-tight">OUR TEAM</h2>
-          <div className="relative">
-            <Carousel
-              opts={{
-                align: 'start',
-                loop: true,
-                slidesToScroll: 1,
-              }}
-              className="w-full"
-              setApi={(api) => {
-                if (api) {
-                  teamCarouselApi.current = api;
-                }
-              }}
-            >
-              <CarouselContent className="-ml-2 md:-ml-4">
-                {teamMembers.map((member, index) => (
-                  <CarouselItem key={index} className="pl-2 md:pl-4 basis-full md:basis-1/2 lg:basis-1/4">
-                    <div className="relative rounded-2xl overflow-hidden transition-all duration-300 border border-gray-700/50">
-                      {/* Image Area - Top 60% */}
-                      <div className="relative h-64 md:h-80 overflow-hidden">
-                        <img
-                          src={member.image}
-                          alt={member.name}
-                          className="w-full h-full object-cover"
-                          loading="lazy"
-                        />
-                      </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {teamMembers.map((member, index) => (
+              <div key={index} className="relative rounded-2xl overflow-hidden transition-all duration-300 border border-gray-700/50 flex flex-col h-full">
+                {/* Image Area - Fixed Height */}
+                <div className="relative h-64 md:h-72 overflow-hidden flex-shrink-0">
+                  <img
+                    src={member.image}
+                    alt={member.name}
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                  />
+                </div>
 
-                      {/* Dark Panel - Bottom 40% */}
-                      <div className="bg-background p-6">
-                        <h3 className="text-2xl font-bold uppercase text-foreground mb-2">{member.name.toUpperCase()}</h3>
-                        <p className="text-[#A0A0A0] text-sm font-medium mb-3">{member.role}</p>
-                        <p className="text-muted-foreground text-sm leading-relaxed">
-                          {member.description}
-                        </p>
-                      </div>
-                    </div>
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-            </Carousel>
-            
-            {/* Navigation Controls */}
-            <div className="flex items-center justify-center gap-4 mt-8">
-              <button
-                onClick={() => teamCarouselApi.current?.scrollPrev()}
-              className="w-12 h-12 rounded-full border-2 border-[#A0A0A0] bg-background flex items-center justify-center hover:border-[#E00000] hover:bg-[#E00000]/10 transition-colors"
-              aria-label="Previous team member"
-            >
-              <ArrowRight className="h-5 w-5 text-[#A0A0A0] hover:text-[#E00000] transition-colors rotate-180" />
-            </button>
-            <button
-              onClick={() => teamCarouselApi.current?.scrollNext()}
-              className="w-12 h-12 rounded-full border-2 border-[#A0A0A0] bg-background flex items-center justify-center hover:border-[#E00000] hover:bg-[#E00000]/10 transition-colors"
-              aria-label="Next team member"
-            >
-              <ArrowRight className="h-5 w-5 text-[#A0A0A0] hover:text-[#E00000] transition-colors" />
-              </button>
-            </div>
+                {/* Dark Panel - Bottom Section with Flex Grow */}
+                <div className="bg-background p-6 flex flex-col flex-grow">
+                  <h3 className="text-2xl font-bold uppercase text-foreground mb-2">{member.name.toUpperCase()}</h3>
+                  <p className="text-[#A0A0A0] text-sm font-medium mb-3">{member.role}</p>
+                  <p className="text-muted-foreground text-sm leading-relaxed flex-grow">
+                    {member.description}
+                  </p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -674,7 +751,7 @@ const STRTheme: React.FC<TenantLandingProps> = ({
               >
                 <AccordionTrigger className="text-left hover:no-underline py-0 [&>svg]:hidden">
                   <span className="text-foreground text-lg font-medium pr-4 flex-1">{faq.question}</span>
-                  <div className="ml-auto shrink-0 w-8 h-8 rounded-full bg-[#38304C] border border-[#8A2BE2]/50 flex items-center justify-center relative">
+                  <div className="ml-auto shrink-0 w-8 h-8 rounded-full bg-[#E48D2A] border border-[#E48D2A]/50 flex items-center justify-center relative">
                     <Plus className="plus-icon h-4 w-4 text-white" />
                     <Minus className="minus-icon h-4 w-4 text-white" />
                   </div>
@@ -691,7 +768,7 @@ const STRTheme: React.FC<TenantLandingProps> = ({
             <Button
               size="lg"
               className="bg-[#E00000] text-white hover:bg-[#E00000]/90 text-lg px-10 py-6 font-bold uppercase rounded-lg transition-all duration-300 hover:scale-105"
-              onClick={() => window.location.href = '#contact'}
+              onClick={() => window.location.href = '/theme/str/booking'}
             >
               GET STARTED TODAY
             </Button>
@@ -723,7 +800,7 @@ const STRTheme: React.FC<TenantLandingProps> = ({
             <Button
               size="lg"
               className="bg-[#E00000] text-white hover:bg-[#E00000]/90 text-lg px-10 py-6 font-bold uppercase rounded-lg transition-all duration-300 hover:scale-105"
-              onClick={() => window.location.href = '#programmes'}
+              onClick={() => window.location.href = '/theme/str#programmes'}
             >
               EXPLORE OUR PROGRAMMES
             </Button>
@@ -759,20 +836,20 @@ const STRTheme: React.FC<TenantLandingProps> = ({
                   href="https://instagram.com"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-10 h-10 rounded-full border-2 border-foreground/30 flex items-center justify-center hover:border-[#E00000] hover:bg-[#E00000]/10 transition-all duration-300 group"
+                  className="w-10 h-10 rounded-full border-2 border-foreground/30 flex items-center justify-center hover:border-[#E48D2A] hover:bg-[#E48D2A]/10 transition-all duration-300 group"
                   aria-label="Instagram"
                 >
-                  <Instagram className="h-5 w-5 text-foreground group-hover:text-[#E00000] transition-colors" />
+                  <Instagram className="h-5 w-5 text-foreground group-hover:text-[#E48D2A] transition-colors" />
                 </a>
                 <a
                   href="https://wa.me"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-10 h-10 rounded-full border-2 border-foreground/30 flex items-center justify-center hover:border-[#E00000] hover:bg-[#E00000]/10 transition-all duration-300 group"
+                  className="w-10 h-10 rounded-full border-2 border-foreground/30 flex items-center justify-center hover:border-[#E48D2A] hover:bg-[#E48D2A]/10 transition-all duration-300 group"
                   aria-label="WhatsApp"
                 >
                   <svg
-                    className="h-5 w-5 text-foreground group-hover:text-[#E00000] transition-colors"
+                    className="h-5 w-5 text-foreground group-hover:text-[#E48D2A] transition-colors"
                     fill="currentColor"
                     viewBox="0 0 24 24"
                   >
@@ -835,6 +912,12 @@ const STRTheme: React.FC<TenantLandingProps> = ({
           </div>
         </div>
       </footer>
+
+      {/* Contact Modal */}
+      <ContactModal 
+        isOpen={isContactModalOpen} 
+        onClose={() => setIsContactModalOpen(false)} 
+      />
     </div>
   );
 };

@@ -132,6 +132,12 @@ const App = () => {
                 <TenantLandingPage />
               </ErrorBoundary>
             } />
+            {/* Theme nested routes (e.g., /booking/classes) - catch-all for paths with more than 2 segments */}
+            <Route path="/theme/:tenantSlug/*" element={
+              <ErrorBoundary>
+                <TenantLandingPage />
+              </ErrorBoundary>
+            } />
             <Route path="/theme/:tenantSlug" element={
               <ErrorBoundary>
                 <TenantLandingPage />
