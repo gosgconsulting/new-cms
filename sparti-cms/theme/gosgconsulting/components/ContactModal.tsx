@@ -60,7 +60,15 @@ const ContactModal = ({ open, onOpenChange }: ContactModalProps) => {
   }, []);
 
   const handleChooseWhatsApp = () => {
-    window.open(WHATSAPP_URL, "_blank", "noopener,noreferrer");
+    const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
+    const isSEOPage =
+      pathname.includes('/seo') ||
+      /\/theme\/[^/]+\/seo(\/|$)/.test(pathname);
+
+    const message = isSEOPage ? 'Hello! I am interested in SEO Services' : undefined;
+    const url = message ? `${WHATSAPP_URL}&text=${encodeURIComponent(message)}` : WHATSAPP_URL;
+
+    window.open(url, "_blank", "noopener,noreferrer");
     onOpenChange(false);
   };
 
