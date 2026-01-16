@@ -276,6 +276,69 @@ app.use('/api', async (req, res) => {
   }
 });
 
+// Proxy /uploads requests to backend CMS
+// This allows the static theme to serve uploaded files from the CMS backend
+app.use('/uploads', async (req, res) => {
+  try {
+    // Build target URL - req.path will be like '/file-1768540187677-444216355.png'
+    const queryString = Object.keys(req.query).length > 0 
+      ? '?' + new URLSearchParams(req.query).toString() 
+      : '';
+    
+    const uploadsPath = `/uploads${req.path}${queryString}`;
+    const targetUrl = `${BACKEND_URL}${uploadsPath}`;
+    
+    console.log(`[testing] Proxying uploads request ${req.method} ${req.url} to ${targetUrl}`);
+    
+    // Forward headers (excluding host and connection)
+    const headers = { ...req.headers };
+    delete headers.host;
+    delete headers.connection;
+    delete headers['content-length'];
+    
+    // Make request to backend
+    const fetchOptions = {
+      method: req.method,
+      headers: headers,
+    };
+    
+    const response = await fetch(targetUrl, fetchOptions);
+    
+    console.log(`[testing] Backend uploads response status: ${response.status}`);
+    
+    if (!response.ok) {
+      res.status(response.status).json({
+        success: false,
+        error: 'Failed to fetch upload',
+        message: `Backend returned ${response.status}`
+      });
+      return;
+    }
+    
+    // Forward response headers (important for images: content-type, cache-control, etc.)
+    const headersToSkip = ['content-encoding', 'transfer-encoding', 'connection', 'content-length'];
+    response.headers.forEach((value, key) => {
+      const lowerKey = key.toLowerCase();
+      if (!headersToSkip.includes(lowerKey)) {
+        res.setHeader(key, value);
+      }
+    });
+    
+    // Get response as buffer for binary data (images, files, etc.)
+    const buffer = await response.arrayBuffer();
+    res.status(response.status).send(Buffer.from(buffer));
+    
+    console.log(`[testing] Uploads proxy response sent: status ${response.status}, size: ${buffer.byteLength} bytes`);
+  } catch (error) {
+    console.error(`[testing] Error proxying uploads request:`, error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to proxy uploads request',
+      message: error.message
+    });
+  }
+});
+
 // Serve static files from the dist directory
 const distPath = join(__dirname, '..', 'dist');
 if (!existsSync(distPath)) {
