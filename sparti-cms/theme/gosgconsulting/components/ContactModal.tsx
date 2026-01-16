@@ -4,15 +4,13 @@ import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { Button } from "./ui/button";
 import { cn } from "../lib/utils";
 import ModalContactForm from "./ModalContactForm";
-import { X, MessageCircle } from "lucide-react";
+import { X } from "lucide-react";
 import AvatarGroup from "./AvatarGroup";
 
 interface ContactModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
-
-const WHATSAPP_URL = "https://api.whatsapp.com/send?phone=6580246850";
 
 const ContactModal = ({ open, onOpenChange }: ContactModalProps) => {
   // Disable background scrolling when modal is open and prevent page shift
@@ -22,7 +20,7 @@ const ContactModal = ({ open, onOpenChange }: ContactModalProps) => {
       const originalPaddingRight = document.body.style.paddingRight;
       const originalOverflow = document.body.style.overflow;
       document.body.style.paddingRight = `${scrollbarWidth}px`;
-      document.body.style.overflow = 'hidden';
+      document.body.style.overflow = "hidden";
       return () => {
         document.body.style.paddingRight = originalPaddingRight;
         document.body.style.overflow = originalOverflow;
@@ -30,11 +28,11 @@ const ContactModal = ({ open, onOpenChange }: ContactModalProps) => {
     }
   }, [open]);
 
-  // RE-ADDED: custom slide-in-from-right animations (for sidebar drawer)
+  // custom slide-in-from-right animations (for sidebar drawer)
   useEffect(() => {
-    const styleId = 'contact-modal-animations';
+    const styleId = "contact-modal-animations";
     if (document.getElementById(styleId)) return;
-    const style = document.createElement('style');
+    const style = document.createElement("style");
     style.id = styleId;
     style.textContent = `
       @keyframes slideInFromRight {
@@ -59,19 +57,6 @@ const ContactModal = ({ open, onOpenChange }: ContactModalProps) => {
     };
   }, []);
 
-  const handleChooseWhatsApp = () => {
-    const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
-    const isSEOPage =
-      pathname.includes('/seo') ||
-      /\/theme\/[^/]+\/seo(\/|$)/.test(pathname);
-
-    const message = isSEOPage ? 'Hello! I am interested in SEO Services' : undefined;
-    const url = message ? `${WHATSAPP_URL}&text=${encodeURIComponent(message)}` : WHATSAPP_URL;
-
-    window.open(url, "_blank", "noopener,noreferrer");
-    onOpenChange(false);
-  };
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogPrimitive.Portal>
@@ -83,6 +68,7 @@ const ContactModal = ({ open, onOpenChange }: ContactModalProps) => {
             "data-[state=closed]:opacity-0 data-[state=open]:opacity-100"
           )}
         />
+
         {/* Sidebar drawer content */}
         <DialogPrimitive.Content
           className={cn(
@@ -109,31 +95,7 @@ const ContactModal = ({ open, onOpenChange }: ContactModalProps) => {
             </p>
           </div>
 
-          {/* WhatsApp CTA */}
-          <div className="mb-5">
-            <Button
-              type="button"
-              onClick={handleChooseWhatsApp}
-              className="w-full h-12 rounded-xl bg-green-500 hover:bg-green-600 text-white font-semibold"
-            >
-              <span className="flex items-center justify-center gap-3">
-                <span className="relative inline-flex items-center justify-center w-7 h-7 rounded-full bg-white/20">
-                  <MessageCircle className="w-4 h-4" />
-                  <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-green-500 rounded-full ring-2 ring-white" />
-                </span>
-                <span>WhatsApp</span>
-              </span>
-            </Button>
-          </div>
-
-          {/* Divider with "or" */}
-          <div className="flex items-center gap-3 mb-5">
-            <div className="h-px w-full bg-neutral-200" />
-            <span className="text-xs text-neutral-500 uppercase tracking-wide">or</span>
-            <div className="h-px w-full bg-neutral-200" />
-          </div>
-
-          {/* Contact form (brand content) */}
+          {/* Multi-step contact form (includes WhatsApp option) */}
           <div>
             <ModalContactForm />
           </div>
@@ -141,9 +103,7 @@ const ContactModal = ({ open, onOpenChange }: ContactModalProps) => {
           {/* Optional trust/avatars below form, subtle */}
           <div className="mt-6 flex flex-col items-center gap-3">
             <AvatarGroup size="md" />
-            <p className="text-xs text-neutral-500">
-              We reply within 24 hours.
-            </p>
+            <p className="text-xs text-neutral-500">We reply within 24 hours.</p>
           </div>
         </DialogPrimitive.Content>
       </DialogPrimitive.Portal>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useMemo } from 'react';
 import Header from './Header';
 import Footer from './Footer';
 import { useThemeBranding } from '../../../hooks/useThemeSettings';
@@ -9,6 +9,8 @@ interface ThankYouPageProps {
   tenantSlug?: string;
   tenantId?: string;
 }
+
+const WHATSAPP_PHONE = '6580246850';
 
 export const ThankYouPage: React.FC<ThankYouPageProps> = ({
   tenantName = 'GO SG Consulting',
@@ -21,6 +23,29 @@ export const ThankYouPage: React.FC<ThankYouPageProps> = ({
   const siteName = getSiteName(branding, tenantName);
   const logoSrc = getLogoSrc(branding);
 
+  const searchParams = useMemo(() => {
+    if (typeof window === 'undefined') return new URLSearchParams();
+    return new URLSearchParams(window.location.search);
+  }, []);
+
+  const via = searchParams.get('via');
+  const whatsappMessage = searchParams.get('message') || '';
+
+  const isWhatsappRedirect = via === 'whatsapp';
+
+  useEffect(() => {
+    if (!isWhatsappRedirect) return;
+
+    const url = `https://api.whatsapp.com/send?phone=${WHATSAPP_PHONE}&text=${encodeURIComponent(whatsappMessage)}`;
+
+    // Small delay so the thank-you page is registered (tracking) before leaving.
+    const t = window.setTimeout(() => {
+      window.location.href = url;
+    }, 700);
+
+    return () => window.clearTimeout(t);
+  }, [isWhatsappRedirect, whatsappMessage]);
+
   const handleGoHome = () => {
     // Navigate to homepage - remove /thank-you from current path
     const currentPath = window.location.pathname;
@@ -32,6 +57,54 @@ export const ThankYouPage: React.FC<ThankYouPageProps> = ({
       window.location.href = basePath;
     }
   };
+
+  if (isWhatsappRedirect) {
+    return (
+      <div className="min-h-screen bg-white">
+        <Header tenantName={siteName} tenantSlug={tenantSlug} logoSrc={logoSrc} />
+
+        <main className="container mx-auto px-4 py-16">
+          <div className="max-w-2xl mx-auto text-center">
+            <div className="mb-6">
+              <div className="w-24 h-24 mx-auto bg-green-100 rounded-full flex items-center justify-center">
+                <svg className="w-12 h-12 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+            </div>
+
+            <h1 className="text-3xl md:text-4xl font-bold mb-3 text-slate-900">
+              Redirecting to WhatsApp...
+            </h1>
+            <p className="text-slate-600 mb-8">
+              We saved your enquiry. Opening WhatsApp with your message.
+            </p>
+
+            <div className="flex items-center justify-center gap-3 text-slate-700">
+              <div className="h-5 w-5 rounded-full border-2 border-slate-300 border-t-slate-700 animate-spin" />
+              <span className="text-sm">Please wait</span>
+            </div>
+
+            <div className="mt-10">
+              <button
+                onClick={handleGoHome}
+                className="px-6 py-3 bg-brandPurple text-white rounded-2xl font-semibold hover:bg-violet-700 transition-colors"
+              >
+                Return to Homepage
+              </button>
+            </div>
+          </div>
+        </main>
+
+        <Footer
+          tenantName={siteName}
+          tenantSlug={tenantSlug}
+          logoSrc={logoSrc}
+          companyDescription={getSiteDescription(branding, "Full-stack digital growth solution helping brands grow their revenue and leads through comprehensive digital marketing services.")}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white">
