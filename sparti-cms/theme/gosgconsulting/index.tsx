@@ -31,7 +31,8 @@ interface TenantLandingProps {
  */
 const GOSGContent: React.FC<TenantLandingProps> = ({ 
   tenantName = 'GO SG Consulting', 
-  tenantSlug = 'gosgconsulting' 
+  tenantSlug = 'gosgconsulting',
+  pageSlug
 }) => {
   const { contactModalOpen, setContactModalOpen, openPopup } = usePopup();
   
@@ -137,8 +138,7 @@ const GOSGContent: React.FC<TenantLandingProps> = ({
           { key: "headingEmphasis", type: "heading", level: 1, content: "Full‑Stack Growth Engine" }
         ]
       },
-
-      // Section 2 — Challenge (animation left, problem layout right)
+      // Section 2 — Challenge
       {
         key: "ProblemSection",
         name: "Problem",
@@ -157,32 +157,73 @@ const GOSGContent: React.FC<TenantLandingProps> = ({
           }
         ]
       },
+      // Section 3 — Animated headline
+      { key: "AnimatedAboutSection", name: "Animated About", type: "AboutSection2", items: [] },
+      // Section 4 — Pricing Page
+      { key: "PricingPageSection", name: "Pricing", type: "PricingPage", items: [] },
+      // Section 5 — Gallery4 services
+      { key: "Gallery4Section", name: "Our Services", type: "Gallery4Section", items: [] }
+    ]
+  };
 
-      // Section 3 — Animated headline section
-      {
-        key: "AnimatedAboutSection",
-        name: "Animated About",
-        type: "AboutSection2",
-        items: []
-      },
-
-      // Section 4 — Pricing Page section
+  // NEW: SEO page schema override
+  const seoData = {
+    slug: 'seo',
+    meta: homepageData.meta,
+    components: [
+      // Keep hero and challenge
+      homepageData.components[0],
+      homepageData.components[1],
+      // About section
+      homepageData.components[2],
+      // Pricing with SEO offer override
       {
         key: "PricingPageSection",
         name: "Pricing",
         type: "PricingPage",
-        items: []
+        items: [
+          {
+            planName: "SEO Service",
+            price: "$600 SGD",
+            priceDescription: "per month",
+            features: [
+              "12 blog articles per month",
+              "10 external backlinks per month",
+              "Monthly reports",
+              "Process: SEO Audit > Keywords research > Topics suggestions > Approval > Writing"
+            ],
+            buttonText: "Start SEO",
+            pageTitle: "SEO Service",
+            pageDescription: "Fixed monthly SEO including content, backlinks, and reporting."
+          }
+        ]
       },
-
-      // Section 5 — Gallery4 services section
+      // What's Included section tailored to SEO offer
       {
-        key: "Gallery4Section",
-        name: "Our Services",
-        type: "Gallery4Section",
-        items: []
+        key: "WhatsIncluded",
+        name: "What's Included",
+        type: "WhatsIncludedSection",
+        items: [
+          { key: "included", title: "What's included", items: [
+            "12 blog articles per month",
+            "10 external backlinks per month",
+            "Monthly reports"
+          ]},
+          { key: "process", title: "Process", steps: [
+            "SEO Audit",
+            "Keywords research",
+            "Topics suggestions",
+            "Approval",
+            "Writing"
+          ]},
+          { key: "price", title: "Price", content: "$600 SGD / month" }
+        ]
       }
     ]
   };
+
+  // Decide which schema to render
+  const pageData = pageSlug === 'seo' ? seoData : homepageData;
 
   const handleContactClick = () => {
     setContactModalOpen(true);
@@ -191,7 +232,7 @@ const GOSGContent: React.FC<TenantLandingProps> = ({
   return (
     <div className="min-h-screen flex flex-col">
       {/* SEO metadata */}
-      <SEOHead meta={homepageData.meta} favicon={faviconSrc || undefined} />
+      <SEOHead meta={pageData.meta} favicon={faviconSrc || undefined} />
       
       {/* Header */}
       <Header 
@@ -204,7 +245,7 @@ const GOSGContent: React.FC<TenantLandingProps> = ({
       {/* Main content: Dynamic page rendering */}
       <main className="flex-grow">
         <DynamicPageRenderer
-          schema={homepageData}
+          schema={pageData}
           onContactClick={handleContactClick}
           onPopupOpen={openPopup}
         />
@@ -312,8 +353,8 @@ const GOSGTheme: React.FC<TenantLandingProps> = ({
       case undefined:
         return <GOSGContent tenantName={tenantName} tenantSlug={tenantSlug} />;
       case 'seo':
-        // NEW: exact copy of homepage at /seo
-        return <GOSGContent tenantName={tenantName} tenantSlug={tenantSlug} />;
+        // Render SEO-specific content
+        return <GOSGContent tenantName={tenantName} tenantSlug={tenantSlug} pageSlug="seo" />;
       case 'thank-you':
         return <ThankYouPage tenantName={tenantName} tenantSlug={tenantSlug} tenantId={undefined} />;
       case 'shop':
@@ -321,7 +362,6 @@ const GOSGTheme: React.FC<TenantLandingProps> = ({
       case 'cart':
         return <Cart />;
       case 'product':
-        // Product page needs the product name - it will extract from URL
         return <Product />;
       case 'checkout':
         return <Checkout />;

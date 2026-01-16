@@ -210,6 +210,21 @@ const PricingPage: React.FC<PricingPageProps> = ({ items = [], onContactClick })
     isPopular: true,
   };
 
+  // NEW: override from schema items[0] if provided (used by /seo page)
+  const override = items && items.length > 0 ? items[0] : undefined;
+
+  const plan: PricingCardProps = {
+    planName: override?.planName ?? yourGrowthTeamPlan.planName,
+    description: override?.description ?? yourGrowthTeamPlan.description,
+    price: override?.price ?? yourGrowthTeamPlan.price,
+    priceDescription: override?.priceDescription ?? yourGrowthTeamPlan.priceDescription,
+    features: override?.features ?? yourGrowthTeamPlan.features,
+    icon: yourGrowthTeamPlan.icon,
+    iconBgClass: override?.iconBgClass ?? yourGrowthTeamPlan.iconBgClass,
+    isPopular: true,
+    buttonText: override?.buttonText ?? yourGrowthTeamPlan.buttonText,
+  };
+
   const handleButtonClick = (planName: string) => {
     if (onContactClick) {
       onContactClick();
@@ -226,18 +241,24 @@ const PricingPage: React.FC<PricingPageProps> = ({ items = [], onContactClick })
     }
   };
 
+  // NEW: Page header derived from plan or override
+  const pageTitle = override?.pageTitle ?? plan.planName;
+  const pageDescription =
+    override?.pageDescription ??
+    "A single, comprehensive plan with all services included. We tailor the scope after a consultation to fit your goals and stage.";
+
   return (
     <div className="min-h-screen w-full bg-gradient-to-b from-slate-800 via-slate-700 to-indigo-800 flex flex-col items-center justify-center p-8 relative">
       <div className="text-center mb-10">
         <h1 className="text-4xl sm:text-5xl font-bold text-white tracking-tight">
-          Your Growth Team
+          {pageTitle}
         </h1>
         <p className="mt-4 text-lg text-neutral-300 max-w-3xl mx-auto">
-          A single, comprehensive plan with all services included. We tailor the scope after a consultation to fit your goals and stage.
+          {pageDescription}
         </p>
       </div>
       <div className="flex items-center justify-center">
-        <PricingCard {...yourGrowthTeamPlan} onButtonClick={() => handleButtonClick("Your Growth Team")} />
+        <PricingCard {...plan} onButtonClick={() => handleButtonClick(plan.planName)} />
       </div>
 
       {/* Chat with us button - fixed bottom right */}
@@ -247,11 +268,9 @@ const PricingPage: React.FC<PricingPageProps> = ({ items = [], onContactClick })
           className="group relative inline-flex h-14 w-14 items-center justify-center overflow-hidden rounded-full bg-violet-600 hover:bg-violet-700 text-white font-semibold shadow-[0_18px_45px_-10px_rgba(124,58,237,0.75)] border-2 border-violet-500 transition-all duration-300 hover:w-[180px]"
           aria-label="Chat with us"
         >
-          {/* Text - slides in from the right */}
           <div className="inline-flex whitespace-nowrap opacity-0 transition-all duration-200 group-hover:-translate-x-3 group-hover:opacity-100">
             Chat with us
           </div>
-          {/* Icon - stays on the right */}
           <div className="absolute right-3.5">
             <span className="relative inline-flex items-center justify-center w-6 h-6 rounded-full bg-white/20">
               <MessageCircle className="w-4 h-4" />
