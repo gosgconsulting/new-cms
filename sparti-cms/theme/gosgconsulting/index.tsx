@@ -178,7 +178,9 @@ const GOSGContent: React.FC<TenantLandingProps> = ({
         type: "HomeHeroSection",
         items: [
           { key: "headingPrefix", type: "heading", level: 1, content: "Rank higher every month" },
-          { key: "headingEmphasis", type: "heading", level: 1, content: "Traffic that converts" }
+          { key: "headingEmphasis", type: "heading", level: 1, content: "Traffic that converts" },
+          // NEW: hero labels for SEO
+          { key: "badges", type: "array", items: ["SEO", "Content", "Backlinks", "Keywords", "Rankings", "Traffic", "Authority"] }
         ]
       },
       // Challenge (same component, SEO-specific hooks)

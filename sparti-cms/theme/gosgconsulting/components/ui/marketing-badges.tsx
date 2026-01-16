@@ -103,7 +103,31 @@ const sizeClasses = {
   lg: "px-10 py-3.5 text-xl",
 }
 
-export function MarketingBadges() {
+// NEW: helper to build badges from labels (keeps same visual structure)
+function buildBadgesFromLabels(labels: string[]): Badge[] {
+  const layout = [
+    { color: "from-orange-400 to-orange-500", rotation: -2, zIndex: 1, offsetX: -45, offsetY: -50 },
+    { color: "from-purple-400 to-purple-500", rotation: 2, zIndex: 2, offsetX: 20, offsetY: -45 },
+    { color: "from-teal-400 to-teal-500", rotation: 0, zIndex: 3, offsetX: -25, offsetY: -5 },
+    { color: "from-rose-400 to-rose-500", rotation: -1, zIndex: 4, offsetX: 60, offsetY: -5 },
+    { color: "from-pink-400 to-pink-500", rotation: 3, zIndex: 5, offsetX: -60, offsetY: 40 },
+    { color: "from-green-400 to-green-500", rotation: -2, zIndex: 6, offsetX: 0, offsetY: 40 },
+    { color: "from-emerald-400 to-emerald-500", rotation: 3, zIndex: 7, offsetX: 30, offsetY: 65 },
+  ];
+  return labels.slice(0, layout.length).map((label, idx) => ({
+    id: label.toLowerCase().replace(/\s+/g, "-"),
+    label,
+    color: layout[idx].color,
+    size: "md",
+    rotation: layout[idx].rotation,
+    zIndex: layout[idx].zIndex,
+    offsetX: layout[idx].offsetX,
+    offsetY: layout[idx].offsetY,
+  }));
+}
+
+// UPDATED: accept optional labels prop
+export function MarketingBadges({ labels }: { labels?: string[] }) {
   const [hoveredId, setHoveredId] = useState<string | null>(null)
   const [clickedId, setClickedId] = useState<string | null>(null)
 
@@ -111,9 +135,13 @@ export function MarketingBadges() {
     setClickedId(clickedId === id ? null : id)
   }
 
+  const usedBadges: Badge[] = Array.isArray(labels) && labels.length > 0
+    ? buildBadgesFromLabels(labels)
+    : badges;
+
   return (
     <div className="relative flex h-[160px] w-full items-center justify-center">
-      {badges.map((badge) => {
+      {usedBadges.map((badge) => {
         const isHovered = hoveredId === badge.id
         const isClicked = clickedId === badge.id
         const isOtherHovered = hoveredId !== null && hoveredId !== badge.id
@@ -174,4 +202,3 @@ export function MarketingBadges() {
     </div>
   )
 }
-

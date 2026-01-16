@@ -40,6 +40,10 @@ const HomeHeroSection = ({ items = [], onContactClick, onPopupOpen }: HomeHeroSe
   const description = items.find(item => item.key === 'description');
   const button = items.find(item => item.key === 'button');
 
+  // NEW: optional badges override from schema (array of strings)
+  const badgesItem = items.find(item => item.key === 'badges');
+  const badgeLabels = Array.isArray((badgesItem as any)?.items) ? (badgesItem as any).items as string[] : undefined;
+
   return (
     <>
       <HeroHighlight containerClassName="h-[50rem] py-20 md:py-24 relative">
@@ -94,7 +98,7 @@ const HomeHeroSection = ({ items = [], onContactClick, onPopupOpen }: HomeHeroSe
               <div className="grid grid-cols-1 md:grid-cols-2 items-start justify-items-center gap-8 md:gap-6">
                 {/* Left column: labels */}
                 <div className="flex flex-col items-center">
-                  <MarketingBadges />
+                  <MarketingBadges labels={badgeLabels} />
                 </div>
 
                 {/* Right column: We Do It All with more top spacing */}
