@@ -10,6 +10,15 @@
       "page_type": "page"
     },
     {
+      "page_name": "Thank You",
+      "slug": "/thank-you",
+      "meta_title": "Thank You - Master Theme",
+      "meta_description": "Thank you page (Master Theme)",
+      "seo_index": false,
+      "status": "published",
+      "page_type": "page"
+    },
+    {
       "page_name": "Blog",
       "slug": "/blog",
       "meta_title": "Blog - Master Theme",

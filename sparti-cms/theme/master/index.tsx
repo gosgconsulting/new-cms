@@ -9,7 +9,7 @@ interface TenantLandingProps {
   pageSlug?: string;
 }
 
-type PageKey = 'home' | 'blog' | 'blogPost' | 'shop' | 'product';
+type PageKey = 'home' | 'thankYou' | 'blog' | 'blogPost' | 'shop' | 'product';
 
 const BLOG_POSTS = [
   {
@@ -54,6 +54,8 @@ function normalizeSlug(input?: string) {
 function resolvePage(pageSlug?: string): { key: PageKey; param?: string } {
   const slug = normalizeSlug(pageSlug);
   if (!slug) return { key: 'home' };
+
+  if (slug === 'thank-you') return { key: 'thankYou' };
 
   if (slug === 'blog') return { key: 'blog' };
   if (slug.startsWith('blog/')) return { key: 'blogPost', param: slug.slice('blog/'.length) };
@@ -180,6 +182,7 @@ const MasterTheme: React.FC<TenantLandingProps> = ({
   );
 
   const PageTitle = () => {
+    if (page.key === 'thankYou') return 'Thank you';
     if (page.key === 'blog') return 'Blog';
     if (page.key === 'blogPost') return 'Blog post';
     if (page.key === 'shop') return 'Shop';
@@ -203,6 +206,54 @@ const MasterTheme: React.FC<TenantLandingProps> = ({
       <h2 className="mt-3 text-3xl sm:text-4xl font-extrabold tracking-tight">{title}</h2>
       {subtitle && <p className="mt-3 text-muted-foreground max-w-2xl">{subtitle}</p>}
     </div>
+  );
+
+  const ThankYouContent = () => (
+    <section>
+      <div className="max-w-4xl mx-auto px-4 py-16 sm:py-20">
+        <div className={`${cardClass} p-8 sm:p-10`}
+        >
+          <p className="text-xs font-semibold tracking-[0.22em] uppercase text-muted-foreground">Thank you</p>
+          <h1 className="mt-3 text-4xl sm:text-5xl font-extrabold tracking-tight">We've received your message.</h1>
+          <p className="mt-4 text-muted-foreground max-w-2xl">
+            We'll get back to you shortly with next steps.
+          </p>
+
+          <div className="mt-8 grid gap-4 sm:grid-cols-3">
+            <div className={`${cardClass} p-6`}
+            >
+              <p className="text-sm font-semibold">Next</p>
+              <p className="mt-2 text-sm text-muted-foreground">We review your request and reply.</p>
+            </div>
+            <div className={`${cardClass} p-6`}
+            >
+              <p className="text-sm font-semibold">Call</p>
+              <p className="mt-2 text-sm text-muted-foreground">We can jump on a quick discovery call.</p>
+            </div>
+            <div className={`${cardClass} p-6`}
+            >
+              <p className="text-sm font-semibold">Plan</p>
+              <p className="mt-2 text-sm text-muted-foreground">We share a clear package + timeline.</p>
+            </div>
+          </div>
+
+          <div className="mt-10 flex flex-wrap gap-3">
+            <a
+              href={baseUrl}
+              className="px-5 py-2.5 rounded-xl border border-border hover:bg-muted text-sm"
+            >
+              Back to home
+            </a>
+            <button
+              onClick={() => setContactOpen(true)}
+              className="px-5 py-2.5 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 text-sm shadow-sm"
+            >
+              Book a call
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
   );
 
   const HomeContent = () => (
@@ -239,8 +290,7 @@ const MasterTheme: React.FC<TenantLandingProps> = ({
             </div>
           </div>
 
-          <div className={`${cardClass} p-5 sm:p-6`}
-          >
+          <div className={`${cardClass} p-5 sm:p-6`}>
             <div className="flex items-center justify-between">
               <p className="text-sm font-semibold">Preview</p>
               <span className="text-xs text-muted-foreground">{baseUrl}</span>
@@ -266,8 +316,7 @@ const MasterTheme: React.FC<TenantLandingProps> = ({
       <section className="border-y border-border/60 bg-background/40">
         <div className="max-w-6xl mx-auto px-4 py-10">
           <div className="grid gap-4 lg:grid-cols-3">
-            <div className={`${cardClass} p-6`}
-            >
+            <div className={`${cardClass} p-6`}>
               <p className="text-sm font-semibold">Trust, instantly</p>
               <p className="mt-2 text-sm text-muted-foreground">Add credibility above the fold with proof blocks.</p>
             </div>
@@ -278,8 +327,7 @@ const MasterTheme: React.FC<TenantLandingProps> = ({
                 { label: 'Conversion layouts', value: '12+' },
                 { label: 'CMS pages', value: 'Unlimited' },
               ].map((item) => (
-                <div key={item.label} className={`${cardClass} p-6`}
-                >
+                <div key={item.label} className={`${cardClass} p-6`}>
                   <p className="text-3xl font-extrabold tracking-tight">{item.value}</p>
                   <p className="mt-1 text-xs text-muted-foreground">{item.label}</p>
                 </div>
@@ -299,8 +347,7 @@ const MasterTheme: React.FC<TenantLandingProps> = ({
           />
 
           <div className="mt-10 grid gap-4 lg:grid-cols-2">
-            <div className={`${cardClass} p-7`}
-            >
+            <div className={`${cardClass} p-7`}>
               <p className="text-sm font-semibold">Common pain points</p>
               <ul className="mt-4 space-y-3 text-sm text-muted-foreground">
                 <li>• Beautiful site, but no enquiries</li>
@@ -309,8 +356,7 @@ const MasterTheme: React.FC<TenantLandingProps> = ({
                 <li>• Pricing and process are unclear</li>
               </ul>
             </div>
-            <div className={`${cardClass} p-7`}
-            >
+            <div className={`${cardClass} p-7`}>
               <p className="text-sm font-semibold">Our structured solution</p>
               <ul className="mt-4 space-y-3 text-sm text-muted-foreground">
                 <li>• Conversion-first homepage blueprint</li>
@@ -351,8 +397,7 @@ const MasterTheme: React.FC<TenantLandingProps> = ({
                 desc: 'Improve conversion over time.',
               },
             ].map((s) => (
-              <div key={s.title} className={`${cardClass} p-7`}
-              >
+              <div key={s.title} className={`${cardClass} p-7`}>
                 <p className="font-semibold">{s.title}</p>
                 <p className="mt-2 text-sm text-muted-foreground">{s.desc}</p>
               </div>
@@ -377,8 +422,7 @@ const MasterTheme: React.FC<TenantLandingProps> = ({
               { step: '03', title: 'Manage via CMS', desc: 'Edit services, FAQs, pricing, proof.' },
               { step: '04', title: 'Launch + improve', desc: 'Ship fast, then iterate with data.' },
             ].map((item) => (
-              <div key={item.step} className={`${cardClass} p-7`}
-              >
+              <div key={item.step} className={`${cardClass} p-7`}>
                 <p className="text-xs font-semibold tracking-[0.22em] text-muted-foreground">{item.step}</p>
                 <p className="mt-2 font-semibold">{item.title}</p>
                 <p className="mt-2 text-sm text-muted-foreground">{item.desc}</p>
@@ -415,8 +459,7 @@ const MasterTheme: React.FC<TenantLandingProps> = ({
                 desc: 'CMS removed dependency on developers.',
               },
             ].map((c) => (
-              <div key={c.name} className={`${cardClass} p-7`}
-              >
+              <div key={c.name} className={`${cardClass} p-7`}>
                 <p className="text-sm font-semibold">{c.name}</p>
                 <p className="mt-3 text-3xl font-extrabold tracking-tight">{c.metric}</p>
                 <p className="mt-2 text-sm text-muted-foreground">{c.desc}</p>
@@ -450,8 +493,7 @@ const MasterTheme: React.FC<TenantLandingProps> = ({
                 name: 'Marketing Manager',
               },
             ].map((t) => (
-              <figure key={t.name} className={`${cardClass} p-7`}
-              >
+              <figure key={t.name} className={`${cardClass} p-7`}>
                 <blockquote className="text-sm leading-6 text-foreground">"{t.quote}"</blockquote>
                 <figcaption className="mt-4 text-xs text-muted-foreground">— {t.name}</figcaption>
               </figure>
@@ -553,8 +595,7 @@ const MasterTheme: React.FC<TenantLandingProps> = ({
                 a: 'Yes — choose an ongoing package for improvements and optimization.',
               },
             ].map((item) => (
-              <details key={item.q} className={`${cardClass} p-6`}
-              >
+              <details key={item.q} className={`${cardClass} p-6`}>
                 <summary className="cursor-pointer font-semibold">{item.q}</summary>
                 <p className="mt-3 text-sm text-muted-foreground">{item.a}</p>
               </details>
@@ -566,8 +607,7 @@ const MasterTheme: React.FC<TenantLandingProps> = ({
       {/* 11. Final Call to Action */}
       <section className="border-y border-border/60 bg-background/40">
         <div className="max-w-6xl mx-auto px-4 py-14">
-          <div className={`${cardClass} p-8 sm:p-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6`}
-          >
+          <div className={`${cardClass} p-8 sm:p-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6`}>
             <div>
               <p className="text-xs font-semibold tracking-[0.22em] uppercase text-muted-foreground">Ready to launch?</p>
               <h2 className="mt-3 text-3xl sm:text-4xl font-extrabold tracking-tight">Let's build your site.</h2>
@@ -704,8 +744,7 @@ const MasterTheme: React.FC<TenantLandingProps> = ({
           <a href={`${baseUrl}/shop`} className="text-sm text-muted-foreground hover:text-foreground">
             ← Back to shop
           </a>
-          <div className={`mt-4 ${cardClass} p-7`}
-          >
+          <div className={`mt-4 ${cardClass} p-7`}>
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h1 className="text-4xl font-extrabold tracking-tight">{product.name}</h1>
@@ -731,15 +770,17 @@ const MasterTheme: React.FC<TenantLandingProps> = ({
   };
 
   const content =
-    page.key === 'blog'
-      ? <BlogListContent />
-      : page.key === 'blogPost' && page.param
-        ? <BlogPostContent slug={page.param} />
-        : page.key === 'shop'
-          ? <ShopContent />
-          : page.key === 'product' && page.param
-            ? <ProductContent slug={page.param} />
-            : <HomeContent />;
+    page.key === 'thankYou'
+      ? <ThankYouContent />
+      : page.key === 'blog'
+        ? <BlogListContent />
+        : page.key === 'blogPost' && page.param
+          ? <BlogPostContent slug={page.param} />
+          : page.key === 'shop'
+            ? <ShopContent />
+            : page.key === 'product' && page.param
+              ? <ProductContent slug={page.param} />
+              : <HomeContent />;
 
   const FooterContent = () => (
     <div className="max-w-6xl mx-auto p-6 sm:p-8">
@@ -818,7 +859,9 @@ const MasterTheme: React.FC<TenantLandingProps> = ({
       </div>
 
       <div className="mt-10 border-t border-border/60 pt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xs text-muted-foreground">
-        <p>© {new Date().getFullYear()} {siteName}. All rights reserved.</p>
+        <p>
+          © {new Date().getFullYear()} {siteName}. All rights reserved.
+        </p>
         <p>Built with Sparti Website Builder</p>
       </div>
     </div>
@@ -893,6 +936,7 @@ const MasterTheme: React.FC<TenantLandingProps> = ({
               onSubmit={(e) => {
                 e.preventDefault();
                 setContactOpen(false);
+                window.location.href = `${baseUrl}/thank-you`;
               }}
             >
               <label className="grid gap-1 text-sm">
