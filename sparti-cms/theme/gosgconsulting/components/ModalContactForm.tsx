@@ -2,14 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
-import {
-  ArrowLeft,
-  ArrowRight,
-  CheckCircle2,
-  Loader2,
-  MessageCircle,
-  Send,
-} from "lucide-react";
+import { ArrowLeft, ArrowRight, Loader2, MessageCircle, Send } from "lucide-react";
 import { getTenantId } from "../../../utils/tenantConfig";
 
 type ModalContactFormProps = {
@@ -158,6 +151,7 @@ const ModalContactForm: React.FC<ModalContactFormProps> = ({ className = "" }) =
         const params = new URLSearchParams({
           via: "whatsapp",
           message,
+          phone: WHATSAPP_PHONE,
         });
         window.location.href = `${thankYouPath}?${params.toString()}`;
       } else {
@@ -180,86 +174,102 @@ const ModalContactForm: React.FC<ModalContactFormProps> = ({ className = "" }) =
     <div className={`w-full ${className}`}>
       <form
         onSubmit={handleSubmit}
-        className="space-y-5 p-4 sm:p-6 lg:p-8 rounded-2xl bg-white border border-neutral-200"
+        className={
+          "w-full rounded-[28px] border border-neutral-200 bg-white/80 backdrop-blur-sm " +
+          "shadow-[0_14px_40px_rgba(0,0,0,0.12)] p-6 sm:p-8"
+        }
       >
-        {/* Progress */}
-        <div className="flex items-center justify-between">
-          <div className="text-sm font-medium text-neutral-700">Step {step} / 3</div>
-          <div className="flex items-center gap-2 text-xs text-neutral-500">
-            <CheckCircle2 className={`h-4 w-4 ${step >= 1 ? "text-brandPurple" : "text-neutral-300"}`} />
-            <CheckCircle2 className={`h-4 w-4 ${step >= 2 ? "text-brandPurple" : "text-neutral-300"}`} />
-            <CheckCircle2 className={`h-4 w-4 ${step >= 3 ? "text-brandPurple" : "text-neutral-300"}`} />
-          </div>
-        </div>
-
         {/* Step 1 */}
         {step === 1 && (
-          <div className="rounded-xl bg-white p-3 sm:p-4 lg:p-6 space-y-4 sm:space-y-5">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-neutral-900">
+                1. Let's start with your details
+              </h2>
+              <p className="text-sm text-neutral-600">Name and email are required.</p>
+            </div>
+
+            {/* Always 1 column (no 2-col layout) */}
+            <div className="space-y-4">
               <div>
-                <label htmlFor="name" className="block text-sm font-medium mb-2 text-violet-700">
+                <label htmlFor="name" className="block text-sm font-medium text-neutral-800 mb-2">
                   Name *
                 </label>
                 <Input
                   id="name"
-                  placeholder="Your name"
+                  placeholder="Type your answer here..."
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   disabled={isSubmitting}
-                  className="focus-visible:ring-brandPurple focus-visible:border-brandPurple"
+                  className="h-11 rounded-xl bg-white focus-visible:ring-2 focus-visible:ring-neutral-900/20"
                 />
               </div>
+
               <div>
-                <label htmlFor="email" className="block text-sm font-medium mb-2 text-violet-700">
+                <label htmlFor="email" className="block text-sm font-medium text-neutral-800 mb-2">
                   Email *
                 </label>
                 <Input
                   id="email"
                   type="email"
-                  placeholder="you@example.com"
+                  placeholder="Type your answer here..."
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={isSubmitting}
-                  className="focus-visible:ring-brandPurple focus-visible:border-brandPurple"
+                  className="h-11 rounded-xl bg-white focus-visible:ring-2 focus-visible:ring-neutral-900/20"
                 />
               </div>
-            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <div>
-                <label htmlFor="phone" className="block text-sm font-medium mb-2 text-violet-700">
+                <label htmlFor="phone" className="block text-sm font-medium text-neutral-800 mb-2">
                   Phone
                 </label>
                 <Input
                   id="phone"
                   type="tel"
-                  placeholder="+65 1234 5678"
+                  placeholder="Type your answer here..."
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   disabled={isSubmitting}
-                  className="focus-visible:ring-brandPurple focus-visible:border-brandPurple"
+                  className="h-11 rounded-xl bg-white focus-visible:ring-2 focus-visible:ring-neutral-900/20"
                 />
               </div>
+
               <div>
-                <label htmlFor="company" className="block text-sm font-medium mb-2 text-violet-700">
+                <label htmlFor="company" className="block text-sm font-medium text-neutral-800 mb-2">
                   Company
                 </label>
                 <Input
                   id="company"
-                  placeholder="Company name"
+                  placeholder="Type your answer here..."
                   value={company}
                   onChange={(e) => setCompany(e.target.value)}
                   disabled={isSubmitting}
-                  className="focus-visible:ring-brandPurple focus-visible:border-brandPurple"
+                  className="h-11 rounded-xl bg-white focus-visible:ring-2 focus-visible:ring-neutral-900/20"
                 />
               </div>
             </div>
 
-            <div className="flex justify-end pt-2">
+            {submitStatus === "error" && errorMessage && (
+              <div className="rounded-xl bg-red-50 border border-red-200 p-4 text-red-800 text-sm">
+                <p className="font-medium">Error</p>
+                <p className="text-red-600 mt-1">{errorMessage}</p>
+              </div>
+            )}
+
+            <div className="flex items-center justify-between pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                disabled
+                className="rounded-full px-6 py-5 opacity-60"
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" /> Back
+              </Button>
               <Button
                 type="button"
                 onClick={goNext}
-                className="rounded-xl bg-brandPurple text-white hover:bg-brandPurple hover:text-white border border-brandPurple px-5"
+                className="rounded-full bg-neutral-900 text-white hover:bg-neutral-800 px-7 py-5"
               >
                 Next <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
@@ -269,13 +279,16 @@ const ModalContactForm: React.FC<ModalContactFormProps> = ({ className = "" }) =
 
         {/* Step 2 */}
         {step === 2 && (
-          <div className="rounded-xl bg-white p-3 sm:p-4 lg:p-6 space-y-4 sm:space-y-5">
-            <div>
-              <p className="text-sm font-medium text-neutral-700">How would you like to contact us?</p>
-              <p className="text-xs text-neutral-500 mt-1">Choose one option, then continue.</p>
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-neutral-900">
+                2. How would you like to contact us?
+              </h2>
+              <p className="text-sm text-neutral-600">Choose one option, then continue.</p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {/* Keep selections in 1 column */}
+            <div className="grid grid-cols-1 gap-3">
               <button
                 type="button"
                 onClick={() => setMethod("whatsapp")}
@@ -303,12 +316,12 @@ const ModalContactForm: React.FC<ModalContactFormProps> = ({ className = "" }) =
                 className={
                   "text-left rounded-2xl border p-4 transition-colors " +
                   (method === "form"
-                    ? "border-violet-500 bg-violet-50"
+                    ? "border-neutral-900 bg-neutral-50"
                     : "border-neutral-200 bg-white hover:bg-neutral-50")
                 }
               >
                 <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-xl bg-brandPurple text-white flex items-center justify-center">
+                  <div className="h-10 w-10 rounded-xl bg-neutral-900 text-white flex items-center justify-center">
                     <Send className="h-5 w-5" />
                   </div>
                   <div>
@@ -319,15 +332,22 @@ const ModalContactForm: React.FC<ModalContactFormProps> = ({ className = "" }) =
               </button>
             </div>
 
+            {submitStatus === "error" && errorMessage && (
+              <div className="rounded-xl bg-red-50 border border-red-200 p-4 text-red-800 text-sm">
+                <p className="font-medium">Error</p>
+                <p className="text-red-600 mt-1">{errorMessage}</p>
+              </div>
+            )}
+
             <div className="flex items-center justify-between pt-2">
-              <Button type="button" variant="outline" onClick={goBack} className="rounded-xl">
+              <Button type="button" variant="outline" onClick={goBack} className="rounded-full px-6 py-5">
                 <ArrowLeft className="h-4 w-4 mr-2" /> Back
               </Button>
               <Button
                 type="button"
                 onClick={goNext}
                 disabled={!canGoNextFromStep2}
-                className="rounded-xl bg-brandPurple text-white hover:bg-brandPurple hover:text-white border border-brandPurple px-5 disabled:opacity-50"
+                className="rounded-full bg-neutral-900 text-white hover:bg-neutral-800 px-7 py-5 disabled:opacity-50"
               >
                 Next <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
@@ -337,9 +357,20 @@ const ModalContactForm: React.FC<ModalContactFormProps> = ({ className = "" }) =
 
         {/* Step 3 */}
         {step === 3 && (
-          <div className="rounded-xl bg-white p-3 sm:p-4 lg:p-6 space-y-4 sm:space-y-5">
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-neutral-900">
+                3. What can we help you with?
+              </h2>
+              <p className="text-sm text-neutral-600">
+                {method === "whatsapp"
+                  ? "We'll redirect you to WhatsApp after saving your enquiry."
+                  : "We'll save your enquiry and show a confirmation page."}
+              </p>
+            </div>
+
             <div>
-              <label htmlFor="message" className="block text-sm font-medium mb-2 text-violet-700">
+              <label htmlFor="message" className="block text-sm font-medium text-neutral-800 mb-2">
                 Your message *
               </label>
               <Textarea
@@ -348,30 +379,31 @@ const ModalContactForm: React.FC<ModalContactFormProps> = ({ className = "" }) =
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 disabled={isSubmitting}
-                className="focus-visible:ring-brandPurple focus-visible:border-brandPurple"
+                className="rounded-xl bg-white focus-visible:ring-2 focus-visible:ring-neutral-900/20"
               />
-              <p className="text-xs text-neutral-500 mt-2">
-                {method === "whatsapp"
-                  ? `We'll redirect you to WhatsApp after saving your enquiry.`
-                  : `We'll save your enquiry and show a confirmation page.`}
-              </p>
             </div>
 
             {submitStatus === "error" && errorMessage && (
-              <div className="rounded-lg bg-red-50 border border-red-200 p-4 text-red-800 text-sm">
+              <div className="rounded-xl bg-red-50 border border-red-200 p-4 text-red-800 text-sm">
                 <p className="font-medium">Error</p>
                 <p className="text-red-600 mt-1">{errorMessage}</p>
               </div>
             )}
 
             <div className="flex items-center justify-between pt-2">
-              <Button type="button" variant="outline" onClick={goBack} className="rounded-xl" disabled={isSubmitting}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={goBack}
+                className="rounded-full px-6 py-5"
+                disabled={isSubmitting}
+              >
                 <ArrowLeft className="h-4 w-4 mr-2" /> Back
               </Button>
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="rounded-xl bg-brandPurple text-white hover:bg-brandPurple hover:text-white border border-brandPurple px-6"
+                className="rounded-full bg-neutral-900 text-white hover:bg-neutral-800 px-7 py-5"
               >
                 {isSubmitting ? (
                   <>
@@ -380,7 +412,7 @@ const ModalContactForm: React.FC<ModalContactFormProps> = ({ className = "" }) =
                   </>
                 ) : (
                   <>
-                    Send message <ArrowRight className="h-4 w-4 ml-2" />
+                    Send <ArrowRight className="h-4 w-4 ml-2" />
                   </>
                 )}
               </Button>
