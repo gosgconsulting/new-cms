@@ -77,7 +77,7 @@ const Blog: React.FC<BlogProps> = ({
 
   const handlePostClick = (slug: string) => {
     // This would be handled by the CMS routing system
-    window.location.href = `/blog/${slug}`;
+    window.location.href = `/theme/${tenantSlug}/blog/${slug}`;
   };
 
   return (
