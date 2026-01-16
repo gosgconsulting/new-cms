@@ -9,6 +9,7 @@ import ContactModal from './components/ContactModal';
 import { PopupProvider, usePopup } from './contexts/PopupContext';
 import { useThemeBranding, useThemeStyles } from '../../hooks/useThemeSettings';
 import { applyThemeStyles } from '../../utils/applyThemeStyles';
+import { getSiteName, getLogoSrc, getFaviconSrc, getSiteDescription, applyFavicon } from './utils/settings';
 import Shop from './pages/Shop';
 import Cart from './pages/Cart';
 import Product from './pages/Product';
@@ -73,10 +74,32 @@ const GOSGContent: React.FC<TenantLandingProps> = ({
     };
   }, [styles, stylesError]);
   
-  // Extract branding values with fallbacks
-  const siteName = branding?.site_name || tenantName;
-  const logoSrc = branding?.site_logo || '/theme/gosgconsulting/assets/go-sg-logo-official.png';
-  const favicon = branding?.site_favicon || null;
+  // Get settings from database with fallback to defaults using utility functions
+  const siteName = getSiteName(branding, tenantName);
+  const logoSrc = getLogoSrc(branding);
+  const faviconSrc = getFaviconSrc(branding);
+  
+  // Apply favicon when branding loads
+  useEffect(() => {
+    if (faviconSrc && !brandingLoading) {
+      // Apply favicon immediately
+      applyFavicon(faviconSrc);
+      
+      // Also apply after a short delay to ensure it persists (in case useSEO runs after)
+      const timeoutId = setTimeout(() => {
+        applyFavicon(faviconSrc);
+      }, 300);
+      
+      return () => {
+        clearTimeout(timeoutId);
+        // Clean up observer if it exists
+        if ((window as any).__faviconObserver) {
+          (window as any).__faviconObserver.disconnect();
+          delete (window as any).__faviconObserver;
+        }
+      };
+    }
+  }, [faviconSrc, brandingLoading]);
   
   // Log branding loading state for debugging
   useEffect(() => {
@@ -185,7 +208,7 @@ const GOSGContent: React.FC<TenantLandingProps> = ({
         tenantName={siteName}
         tenantSlug={tenantSlug}
         logoSrc={logoSrc}
-        companyDescription={branding?.site_description || "Full-stack digital growth solution helping brands grow their revenue and leads through comprehensive digital marketing services."}
+        companyDescription={getSiteDescription(branding, "Full-stack digital growth solution helping brands grow their revenue and leads through comprehensive digital marketing services.")}
         onContactClick={handleContactClick}
       />
       
@@ -331,10 +354,34 @@ const ShopPageLayout: React.FC<ShopPageLayoutProps> = ({
   tenantSlug = 'gosgconsulting'
 }) => {
   const { contactModalOpen, setContactModalOpen } = usePopup();
-  const { branding } = useThemeBranding('gosgconsulting', 'tenant-gosg');
+  const { branding, loading: brandingLoading } = useThemeBranding('gosgconsulting', 'tenant-gosg');
   
-  const siteName = branding?.site_name || tenantName;
-  const logoSrc = branding?.site_logo || '/theme/gosgconsulting/assets/go-sg-logo-official.png';
+  // Get settings from database with fallback to defaults using utility functions
+  const siteName = getSiteName(branding, tenantName);
+  const logoSrc = getLogoSrc(branding);
+  const faviconSrc = getFaviconSrc(branding);
+  
+  // Apply favicon when branding loads
+  useEffect(() => {
+    if (faviconSrc && !brandingLoading) {
+      // Apply favicon immediately
+      applyFavicon(faviconSrc);
+      
+      // Also apply after a short delay to ensure it persists (in case useSEO runs after)
+      const timeoutId = setTimeout(() => {
+        applyFavicon(faviconSrc);
+      }, 300);
+      
+      return () => {
+        clearTimeout(timeoutId);
+        // Clean up observer if it exists
+        if ((window as any).__faviconObserver) {
+          (window as any).__faviconObserver.disconnect();
+          delete (window as any).__faviconObserver;
+        }
+      };
+    }
+  }, [faviconSrc, brandingLoading]);
 
   const handleContactClick = () => {
     setContactModalOpen(true);
@@ -355,7 +402,7 @@ const ShopPageLayout: React.FC<ShopPageLayoutProps> = ({
         tenantName={siteName}
         tenantSlug={tenantSlug}
         logoSrc={logoSrc}
-        companyDescription={branding?.site_description || "Full-stack digital growth solution helping brands grow their revenue and leads through comprehensive digital marketing services."}
+        companyDescription={getSiteDescription(branding, "Full-stack digital growth solution helping brands grow their revenue and leads through comprehensive digital marketing services.")}
         onContactClick={handleContactClick}
       />
       <ContactModal open={contactModalOpen} onOpenChange={setContactModalOpen} />

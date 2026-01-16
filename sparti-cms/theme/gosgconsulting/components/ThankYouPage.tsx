@@ -2,6 +2,7 @@ import React from 'react';
 import Header from './Header';
 import Footer from './Footer';
 import { useThemeBranding } from '../../../hooks/useThemeSettings';
+import { getSiteName, getLogoSrc, getSiteDescription } from '../utils/settings';
 
 interface ThankYouPageProps {
   tenantName?: string;
@@ -16,8 +17,9 @@ export const ThankYouPage: React.FC<ThankYouPageProps> = ({
 }) => {
   const { branding } = useThemeBranding(tenantSlug, tenantId || 'tenant-gosg');
   
-  const siteName = branding?.site_name || tenantName;
-  const logoSrc = branding?.site_logo || '/theme/gosgconsulting/assets/go-sg-logo-official.png';
+  // Get settings from database with fallback to defaults using utility functions
+  const siteName = getSiteName(branding, tenantName);
+  const logoSrc = getLogoSrc(branding);
 
   const handleGoHome = () => {
     // Navigate to homepage - remove /thank-you from current path
@@ -105,7 +107,7 @@ export const ThankYouPage: React.FC<ThankYouPageProps> = ({
         tenantName={siteName}
         tenantSlug={tenantSlug}
         logoSrc={logoSrc}
-        companyDescription={branding?.site_description || "Full-stack digital growth solution helping brands grow their revenue and leads through comprehensive digital marketing services."}
+        companyDescription={getSiteDescription(branding, "Full-stack digital growth solution helping brands grow their revenue and leads through comprehensive digital marketing services.")}
       />
     </div>
   );
