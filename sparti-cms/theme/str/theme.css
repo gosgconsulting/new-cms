@@ -1,9 +1,100 @@
-:root {
-  /* Visual hints; actual colors come from styles loaded via the CMS */
+/* STR Theme — dark background with bold yellow primary accent */
+/* Colors use HSL triplets to work with Tailwind's hsl(var(--token)) pattern */
+.str-theme {
+  --background: 0 0% 6%;
+  --foreground: 0 0% 96%;
+  --muted: 0 0% 10%;
+  --muted-foreground: 0 0% 70%;
+  --card: 0 0% 8%;
+  --card-foreground: 0 0% 96%;
+  --border: 0 0% 20%;
+  --input: 0 0% 22%;
+
+  /* Bold yellow accents */
+  --primary: 50 100% 50%;
+  --primary-foreground: 0 0% 6%;
+
+  --accent: 50 100% 45%;
+  --accent-foreground: 0 0% 6%;
+
+  --ring: 50 100% 50%;
+  --destructive: 0 80% 50%;
+  --destructive-foreground: 0 0% 98%;
+  --radius: 0.5rem;
+
+  /* Base smoothing */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
-.theme-bg {
+
+/* Helpful utilities leveraging the scoped variables */
+.str-theme .theme-bg {
   background-color: hsl(var(--background));
 }
-.theme-primary-border {
+.str-theme .theme-primary-border {
   border-color: hsl(var(--primary));
+}
+
+/* Typography refinements for bold landing feel */
+.str-theme h1,
+.str-theme h2 {
+  letter-spacing: 0.02em;
+}
+.str-theme h1 {
+  text-transform: uppercase;
+}
+
+/* Links and interactive focus */
+.str-theme a {
+  color: hsl(var(--foreground));
+}
+.str-theme a:hover {
+  color: hsl(var(--accent));
+}
+.str-theme :focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px hsl(var(--ring) / 0.45);
+}
+
+/* Buttons using shadcn/ui token classes will inherit these variables */
+.str-theme .btn,
+.str-theme button {
+  border-radius: var(--radius);
+}
+
+/* Cards and panels (generic surfaces) */
+.str-theme .card,
+.str-theme .panel,
+.str-theme .surface {
+  background-color: hsl(var(--card));
+  color: hsl(var(--card-foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+}
+
+/* Accents for highlights */
+.str-theme .highlight {
+  background-color: hsl(var(--accent) / 0.12);
+  border-color: hsl(var(--accent));
+}
+
+/* Inputs and field chrome */
+.str-theme input,
+.str-theme textarea,
+.str-theme select {
+  background-color: hsl(var(--muted));
+  color: hsl(var(--foreground));
+  border-color: hsl(var(--input));
+  border-radius: var(--radius);
+}
+
+/* Accordion open state highlight to mimic the reference's emphasis */
+.str-theme [data-state="open"] {
+  background-color: hsl(var(--accent) / 0.08);
+  border-color: hsl(var(--accent));
+}
+
+/* Footer subtler divider */
+.str-theme footer {
+  border-top: 1px solid hsl(var(--border));
 }
