@@ -16,6 +16,7 @@ import Product from './pages/Product';
 import Checkout from './pages/Checkout';
 import NotFound from './pages/NotFound';
 import { ThankYouPage } from './components/ThankYouPage';
+import Blog from './components/Blog';
 
 interface TenantLandingProps {
   tenantName?: string;
@@ -405,6 +406,9 @@ const GOSGTheme: React.FC<TenantLandingProps> = ({
         return <GOSGContent tenantName={tenantName} tenantSlug={tenantSlug} />;
       case 'seo':
         return <GOSGContent tenantName={tenantName} tenantSlug={tenantSlug} pageSlug="seo" />;
+      case 'blog':
+        // NEW: theme blog index
+        return <Blog tenantName={tenantName} tenantSlug={tenantSlug} />;
       case 'thank-you':
         return <ThankYouPage tenantName={tenantName} tenantSlug={tenantSlug} tenantId={undefined} />;
       case 'shop':
@@ -412,6 +416,7 @@ const GOSGTheme: React.FC<TenantLandingProps> = ({
       case 'cart':
         return <Cart />;
       case 'product':
+        // Product page needs the product name - it will extract from URL
         return <Product />;
       case 'checkout':
         return <Checkout />;

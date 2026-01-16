@@ -29,6 +29,10 @@ const themeConfig: Record<string, { name: string; component: React.LazyExoticCom
     name: 'GO SG Consulting',
     component: GosgConsultingTheme
   },
+  'gosgconsulting.com': {
+    name: 'GO SG Consulting',
+    component: GosgConsultingTheme
+  },
   'sissonne': {
     name: 'Sissonne Dance Academy',
     component: SissonneTheme

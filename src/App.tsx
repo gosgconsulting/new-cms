@@ -6,8 +6,6 @@ import { BrowserRouter, Routes, Route, Navigate, useParams, useLocation } from "
 import AdminTopBar from "@/components/AdminTopBar";
 import { useSEO } from "@/hooks/useSEO";
 import { AuthProvider } from "../sparti-cms/components/auth/AuthProvider";
-import Blog from "./pages/Blog";
-import BlogPost from "./pages/BlogPost";
 import NotFound from "./pages/NotFound";
 import Admin from "./pages/Admin";
 import Auth from "./pages/Auth";
@@ -24,7 +22,7 @@ const ThemeRouteHandler: React.FC = () => {
   const { tenantSlug } = useParams<{ tenantSlug: string }>();
   
   // Known themes that handle their own routing
-  const knownThemes = ['sissonne', 'landingpage', 'sparti-seo-landing', 'gosgconsulting', 'storefront', 'strfitness'];
+  const knownThemes = ['sissonne', 'landingpage', 'sparti-seo-landing', 'gosgconsulting', 'gosgconsulting.com', 'storefront', 'strfitness'];
   
   if (tenantSlug && knownThemes.includes(tenantSlug)) {
     // Route to theme component which handles sub-routes
@@ -99,7 +97,8 @@ const App = () => {
             <Route path="/dashboard/*" element={<PublicDashboard />} />
             
             {/* Blog routes */}
-            <Route path="/blog" element={
+            {/* CMS-level blog routes */}
+            {/* <Route path="/blog" element={
               <ErrorBoundary>
                 <Blog />
               </ErrorBoundary>
@@ -108,7 +107,7 @@ const App = () => {
               <ErrorBoundary>
                 <BlogPost />
               </ErrorBoundary>
-            } />
+            } /> */}
             
             {/* Embed route for iframe access */}
             <Route path="/embed/pages" element={<EmbedPagesManager />} />
@@ -116,6 +115,12 @@ const App = () => {
             {/* Theme routes - check if it's a known theme first, otherwise use TenantPage */}
             {/* Product route with product name parameter - more specific, must come first */}
             <Route path="/theme/:tenantSlug/product/:productname" element={
+              <ErrorBoundary>
+                <ThemeRouteHandler />
+              </ErrorBoundary>
+            } />
+            {/* Theme blog post route */}
+            <Route path="/theme/:tenantSlug/blog/:slug" element={
               <ErrorBoundary>
                 <ThemeRouteHandler />
               </ErrorBoundary>
