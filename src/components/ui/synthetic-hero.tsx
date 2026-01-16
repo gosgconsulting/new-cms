@@ -143,6 +143,7 @@ const SyntheticHero: React.FC<HeroProps> = ({
   const ctaRef = useRef<HTMLDivElement | null>(null);
   const microRef = useRef<HTMLUListElement | null>(null);
   const [canvasContainer, setCanvasContainer] = useState<HTMLDivElement | null>(null);
+  const canvasContainerRef = useRef<HTMLDivElement | null>(null);
 
   const shaderUniforms = useMemo(
     () => ({
@@ -214,16 +215,18 @@ const SyntheticHero: React.FC<HeroProps> = ({
 
   return (
     <section ref={sectionRef} className="relative flex items-center justify-center min-h-screen overflow-hidden">
-      <div ref={setCanvasContainer} className="absolute inset-0 z-0">
-        {canvasContainer && (
-          <Canvas
-            className="w-full h-full"
-            eventSource={canvasContainer}
-            eventPrefix="client"
-          >
-            <ShaderPlane vertexShader={vertexShader} fragmentShader={fragmentShader} uniforms={shaderUniforms} />
-          </Canvas>
-        )}
+      <div ref={canvasContainerRef} className="absolute inset-0 z-0">
+        <Canvas
+          className="w-full h-full"
+          onCreated={(state) => {
+            // Connect R3F pointer/gesture events to the container once the canvas is ready
+            if (canvasContainerRef.current) {
+              state.events.connect(canvasContainerRef.current);
+            }
+          }}
+        >
+          <ShaderPlane vertexShader={vertexShader} fragmentShader={fragmentShader} uniforms={shaderUniforms} />
+        </Canvas>
       </div>
 
       <div className="relative z-10 flex flex-col items-center text-center px-6">
