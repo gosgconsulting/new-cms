@@ -30,6 +30,35 @@ const ContactModal = ({ open, onOpenChange }: ContactModalProps) => {
     }
   }, [open]);
 
+  // RE-ADDED: custom slide-in-from-right animations (for sidebar drawer)
+  useEffect(() => {
+    const styleId = 'contact-modal-animations';
+    if (document.getElementById(styleId)) return;
+    const style = document.createElement('style');
+    style.id = styleId;
+    style.textContent = `
+      @keyframes slideInFromRight {
+        from { transform: translateX(100%); }
+        to { transform: translateX(0); }
+      }
+      @keyframes slideOutToRight {
+        from { transform: translateX(0); }
+        to { transform: translateX(100%); }
+      }
+      .contact-modal-content[data-state="open"] {
+        animation: slideInFromRight 300ms cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+      }
+      .contact-modal-content[data-state="closed"] {
+        animation: slideOutToRight 300ms cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+      }
+    `;
+    document.head.appendChild(style);
+    return () => {
+      const existingStyle = document.getElementById(styleId);
+      if (existingStyle) document.head.removeChild(existingStyle);
+    };
+  }, []);
+
   const handleChooseWhatsApp = () => {
     window.open(WHATSAPP_URL, "_blank", "noopener,noreferrer");
     onOpenChange(false);
@@ -46,14 +75,11 @@ const ContactModal = ({ open, onOpenChange }: ContactModalProps) => {
             "data-[state=closed]:opacity-0 data-[state=open]:opacity-100"
           )}
         />
-        {/* Centered modal content */}
+        {/* Sidebar drawer content */}
         <DialogPrimitive.Content
           className={cn(
-            "fixed left-1/2 top-1/2 z-50 w-[92vw] max-w-lg -translate-x-1/2 -translate-y-1/2",
-            "rounded-2xl bg-white shadow-2xl p-6",
-            "data-[state=open]:animate-in data-[state=closed]:animate-out",
-            "data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0",
-            "data-[state=open]:zoom-in-95 data-[state=closed]:zoom-out-95"
+            "contact-modal-content",
+            "fixed inset-y-0 right-0 z-50 w-full sm:w-[420px] lg:w-[520px] h-full bg-white shadow-2xl p-6 overflow-y-auto"
           )}
         >
           {/* Close button */}
