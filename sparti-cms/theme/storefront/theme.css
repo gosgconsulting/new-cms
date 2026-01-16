@@ -12,9 +12,8 @@
   }
 
   body {
-    @apply bg-white text-gray-900;
-    color: var(--brand-text);
     background-color: var(--brand-background);
+    color: var(--brand-text);
   }
 }
 
