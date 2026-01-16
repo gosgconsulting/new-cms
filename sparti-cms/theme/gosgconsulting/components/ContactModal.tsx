@@ -15,67 +15,20 @@ interface ContactModalProps {
 const WHATSAPP_URL = "https://api.whatsapp.com/send?phone=6580246850";
 
 const ContactModal = ({ open, onOpenChange }: ContactModalProps) => {
-  // Disable background scrolling when sidebar is open and prevent page shift
+  // Disable background scrolling when modal is open and prevent page shift
   useEffect(() => {
     if (open) {
-      // Calculate scrollbar width
       const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
-      
-      // Store original padding-right value
       const originalPaddingRight = document.body.style.paddingRight;
       const originalOverflow = document.body.style.overflow;
-      
-      // Apply styles to prevent page shift
       document.body.style.paddingRight = `${scrollbarWidth}px`;
       document.body.style.overflow = 'hidden';
-      
       return () => {
-        // Restore original styles
         document.body.style.paddingRight = originalPaddingRight;
         document.body.style.overflow = originalOverflow;
       };
     }
   }, [open]);
-
-  // Add custom animation styles
-  useEffect(() => {
-    const styleId = 'contact-modal-animations';
-    if (document.getElementById(styleId)) return; // Don't add duplicate styles
-    
-    const style = document.createElement('style');
-    style.id = styleId;
-    style.textContent = `
-      @keyframes slideInFromRight {
-        from {
-          transform: translateX(100%);
-        }
-        to {
-          transform: translateX(0);
-        }
-      }
-      @keyframes slideOutToRight {
-        from {
-          transform: translateX(0);
-        }
-        to {
-          transform: translateX(100%);
-        }
-      }
-      .contact-modal-content[data-state="open"] {
-        animation: slideInFromRight 300ms cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
-      }
-      .contact-modal-content[data-state="closed"] {
-        animation: slideOutToRight 300ms cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
-      }
-    `;
-    document.head.appendChild(style);
-    return () => {
-      const existingStyle = document.getElementById(styleId);
-      if (existingStyle) {
-        document.head.removeChild(existingStyle);
-      }
-    };
-  }, []);
 
   const handleChooseWhatsApp = () => {
     window.open(WHATSAPP_URL, "_blank", "noopener,noreferrer");
@@ -85,64 +38,78 @@ const ContactModal = ({ open, onOpenChange }: ContactModalProps) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogPrimitive.Portal>
-        {/* Transparent overlay adds blur to page and blocks background interactions */}
+        {/* Semi-dark overlay with subtle blur */}
         <DialogPrimitive.Overlay
           className={cn(
-            "fixed inset-0 z-40 bg-transparent backdrop-blur-sm",
+            "fixed inset-0 z-40 bg-black/50 backdrop-blur-[2px]",
             "transition-opacity duration-300 ease-out",
             "data-[state=closed]:opacity-0 data-[state=open]:opacity-100"
           )}
         />
+        {/* Centered modal content */}
         <DialogPrimitive.Content
           className={cn(
-            "contact-modal-content",
-            "fixed inset-0 z-50 w-full h-full sm:right-0 sm:top-0 sm:left-auto sm:w-[420px] lg:w-[520px] sm:h-screen bg-gray-50 shadow-2xl p-0 overflow-y-auto",
-            "will-change-transform"
+            "fixed left-1/2 top-1/2 z-50 w-[92vw] max-w-lg -translate-x-1/2 -translate-y-1/2",
+            "rounded-2xl bg-white shadow-2xl p-6",
+            "data-[state=open]:animate-in data-[state=closed]:animate-out",
+            "data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0",
+            "data-[state=open]:zoom-in-95 data-[state=closed]:zoom-out-95"
           )}
         >
-          <div className="h-full flex flex-col min-h-screen sm:min-h-0">
-            {/* Header with proper mobile padding */}
-            <div className="flex items-center justify-between px-4 sm:px-4 py-4 sm:py-3 pt-8 sm:pt-3 safe-area-inset-top">
-              <span className="text-gray-800 font-semibold text-lg">Contact us</span>
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => onOpenChange(false)}
-                className="rounded-full text-black hover:text-black/80 p-2"
-                aria-label="Close"
-              >
-                <X className="h-7 w-7" />
-              </Button>
-            </div>
-            
-            {/* Content with proper mobile padding */}
-            <div className="flex-1 px-4 sm:px-4 py-4 pb-8 sm:pb-4 safe-area-inset-bottom bg-gray-50">
-              <p className="text-gray-600 text-sm mb-4">
-                Tell us about your goals — we'll tailor the scope after a quick consultation.
-              </p>
-              <ModalContactForm />
-              
-              {/* Avatars and WhatsApp below the form */}
-              <div className="mt-8 sm:mt-6 flex flex-col items-center gap-4 sm:gap-3">
-                <AvatarGroup size="md" />
-                <Button
-                  type="button"
-                  onClick={handleChooseWhatsApp}
-                  className="rounded-full bg-brandPurple text-white hover:bg-brandPurple hover:text-white border border-brandPurple px-6 py-4 font-semibold transition-colors w-full sm:w-auto"
-                >
-                  <span className="flex items-center gap-3">
-                    <span className="relative inline-flex items-center justify-center w-7 h-7 rounded-full bg-white/20">
-                      <MessageCircle className="w-4 h-4" />
-                      <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-green-500 rounded-full ring-2 ring-white" />
-                    </span>
-                    <span>WhatsApp</span>
-                  </span>
-                </Button>
-              </div>
-              
-              {/* Extra bottom padding for mobile */}
-              <div className="mt-8 sm:mt-6" />
-            </div>
+          {/* Close button */}
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={() => onOpenChange(false)}
+            className="absolute right-3 top-3 rounded-full text-neutral-700 hover:text-neutral-900 p-2"
+            aria-label="Close"
+          >
+            <X className="h-5 w-5" />
+          </Button>
+
+          {/* Title */}
+          <div className="text-center mb-4">
+            <span className="text-gray-900 font-semibold text-xl">Contact us</span>
+            <p className="text-gray-600 text-sm mt-2">
+              Tell us about your goals — we'll tailor the scope after a quick consultation.
+            </p>
+          </div>
+
+          {/* WhatsApp CTA */}
+          <div className="mb-5">
+            <Button
+              type="button"
+              onClick={handleChooseWhatsApp}
+              className="w-full h-12 rounded-xl bg-green-500 hover:bg-green-600 text-white font-semibold"
+            >
+              <span className="flex items-center justify-center gap-3">
+                <span className="relative inline-flex items-center justify-center w-7 h-7 rounded-full bg-white/20">
+                  <MessageCircle className="w-4 h-4" />
+                  <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-green-500 rounded-full ring-2 ring-white" />
+                </span>
+                <span>WhatsApp</span>
+              </span>
+            </Button>
+          </div>
+
+          {/* Divider with "or" */}
+          <div className="flex items-center gap-3 mb-5">
+            <div className="h-px w-full bg-neutral-200" />
+            <span className="text-xs text-neutral-500 uppercase tracking-wide">or</span>
+            <div className="h-px w-full bg-neutral-200" />
+          </div>
+
+          {/* Contact form (brand content) */}
+          <div>
+            <ModalContactForm />
+          </div>
+
+          {/* Optional trust/avatars below form, subtle */}
+          <div className="mt-6 flex flex-col items-center gap-3">
+            <AvatarGroup size="md" />
+            <p className="text-xs text-neutral-500">
+              We reply within 24 hours.
+            </p>
           </div>
         </DialogPrimitive.Content>
       </DialogPrimitive.Portal>
