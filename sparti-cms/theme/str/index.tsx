@@ -325,7 +325,7 @@ const STRTheme: React.FC<TenantLandingProps> = ({
               <img 
                 src="/theme/str/assets/logos/str-logo-1-1024x604.png" 
                 alt="STR" 
-                className="h-8 w-auto"
+                className="h-12 w-auto"
                 onError={(e) => {
                   // Fallback to text if image not found
                   const target = e.target as HTMLImageElement;

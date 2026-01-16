@@ -66,7 +66,7 @@ const PackagesPage: React.FC<TenantLandingProps> = ({
                 <img 
                   src="/theme/str/assets/logos/str-logo-1-1024x604.png" 
                   alt="STR" 
-                  className="h-8 w-auto"
+                  className="h-12 w-auto"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     if (target.dataset.fallbackAdded) return;

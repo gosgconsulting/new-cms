@@ -77,6 +77,19 @@ const HeroSection: React.FC<HeroSectionProps> = ({
       
       <div className="container mx-auto relative z-10">
         <div className="max-w-4xl">
+          {/* Circular STR Logo */}
+          <div className="flex justify-center mb-8">
+            <img 
+              src="/theme/str/assets/logos/str-logo-circular.png" 
+              alt="STR Logo - Strength Through Range" 
+              className="h-24 sm:h-32 md:h-40 lg:h-48 w-auto"
+              onError={(e) => {
+                // Fallback if image not found
+                const target = e.target as HTMLImageElement;
+                target.style.display = 'none';
+              }}
+            />
+          </div>
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold uppercase text-foreground mb-6 leading-tight">
             {finalTitle}
           </h1>
