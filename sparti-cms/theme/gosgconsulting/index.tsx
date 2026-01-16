@@ -9,7 +9,7 @@ import ContactModal from './components/ContactModal';
 import { PopupProvider, usePopup } from './contexts/PopupContext';
 import { useThemeBranding, useThemeStyles } from '../../hooks/useThemeSettings';
 import { applyThemeStyles } from '../../utils/applyThemeStyles';
-import { getSiteName, getLogoSrc, getFaviconSrc, getSiteDescription, applyFavicon } from './utils/settings';
+import { getSiteName, getSiteTagline, getSiteDescription, getLogoSrc, getFaviconSrc, applyFavicon } from './utils/settings';
 import Shop from './pages/Shop';
 import Cart from './pages/Cart';
 import Product from './pages/Product';
@@ -76,6 +76,8 @@ const GOSGContent: React.FC<TenantLandingProps> = ({
   
   // Get settings from database with fallback to defaults using utility functions
   const siteName = getSiteName(branding, tenantName);
+  const siteTagline = getSiteTagline(branding, 'Full-Stack Digital Growth Solution');
+  const siteDescription = getSiteDescription(branding, 'Helping brands grow their revenue and leads through comprehensive digital marketing services including SEO, SEM, Social Media Ads, Website Design, and Graphic Design.');
   const logoSrc = getLogoSrc(branding);
   const faviconSrc = getFaviconSrc(branding);
   
@@ -112,11 +114,12 @@ const GOSGContent: React.FC<TenantLandingProps> = ({
   }, [branding, brandingError]);
   
   // Complete homepage data with all GOSG sections
+  // Use dynamic site name and tagline from branding settings
   const homepageData = {
     slug: 'home',
     meta: {
-      title: 'GO SG Consulting - Full-Stack Digital Growth Solution',
-      description: 'Helping brands grow their revenue and leads through comprehensive digital marketing services including SEO, SEM, Social Media Ads, Website Design, and Graphic Design.',
+      title: siteTagline ? `${siteName} - ${siteTagline}` : siteName,
+      description: siteDescription,
       keywords: 'digital marketing, SEO, SEM, social media ads, website design, graphic design, Singapore, full-stack',
     },
     components: [
