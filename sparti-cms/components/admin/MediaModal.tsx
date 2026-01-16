@@ -267,7 +267,16 @@ const MediaModal: React.FC<MediaModalProps> = ({
                         ? 'border-brandPurple bg-brandPurple/10'
                         : 'border-border hover:border-brandPurple/50'
                     }`}
-                    onClick={() => setSelectedItem(item.url)}
+                    onClick={() => {
+                      // Auto-select and close on single click for better UX
+                      setSelectedItem(item.url);
+                      // Small delay to show selection feedback, then auto-select
+                      setTimeout(() => {
+                        onSelect(item.url);
+                        onClose();
+                        setSelectedItem(null);
+                      }, 150);
+                    }}
                   >
                     <div className="aspect-square p-2">
                       {item.type === 'image' ? (
@@ -306,7 +315,16 @@ const MediaModal: React.FC<MediaModalProps> = ({
                         ? 'bg-brandPurple/10 border border-brandPurple'
                         : 'hover:bg-secondary/50 border border-transparent'
                     }`}
-                    onClick={() => setSelectedItem(item.url)}
+                    onClick={() => {
+                      // Auto-select and close on single click for better UX
+                      setSelectedItem(item.url);
+                      // Small delay to show selection feedback, then auto-select
+                      setTimeout(() => {
+                        onSelect(item.url);
+                        onClose();
+                        setSelectedItem(null);
+                      }, 150);
+                    }}
                   >
                     <div className="flex-shrink-0">
                       {item.type === 'image' ? (
@@ -339,9 +357,15 @@ const MediaModal: React.FC<MediaModalProps> = ({
           </ScrollArea>
 
           {/* Footer */}
-          <div className="flex items-center justify-between p-4 border-t border-border">
+          <div className="flex items-center justify-between p-4 border-t border-border bg-background">
             <div className="text-sm text-muted-foreground">
-              {selectedItem ? `Selected: ${filteredItems.find(item => item.url === selectedItem)?.name}` : 'No item selected'}
+              {selectedItem ? (
+                <span>
+                  Selected: <span className="font-medium text-foreground">{filteredItems.find(item => item.url === selectedItem)?.name}</span>
+                </span>
+              ) : (
+                'Click an item to select it automatically, or use the Select button below'
+              )}
             </div>
             
             <div className="flex items-center gap-2">
@@ -351,9 +375,9 @@ const MediaModal: React.FC<MediaModalProps> = ({
               <Button 
                 onClick={handleSelect} 
                 disabled={!selectedItem}
-                className="bg-brandPurple hover:bg-brandPurple/90"
+                className="bg-brandPurple hover:bg-brandPurple/90 min-w-[100px]"
               >
-                Select
+                {selectedItem ? 'Select & Close' : 'Select'}
               </Button>
             </div>
           </div>
