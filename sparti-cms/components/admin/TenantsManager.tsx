@@ -77,11 +77,26 @@ const TenantsManager: React.FC = () => {
   // Get available themes (includes 'custom' option + themes from database)
   const getAvailableThemes = (): Array<{ value: string; label: string }> => {
     const customOption = { value: 'custom', label: 'Custom' };
-    const dbThemes = themesData.map(theme => ({
-      value: theme.slug || theme.id,
-      label: theme.name || theme.slug
-    }));
-    return [customOption, ...dbThemes];
+
+    // Build a unique list keyed by slug/value, prefer the explicit Custom option
+    const unique = new Map<string, { value: string; label: string }>();
+    unique.set(customOption.value, customOption);
+
+    // Add DB themes, skipping 'custom' to avoid duplicate and ignoring empty slugs
+    themesData.forEach((theme) => {
+      const value = theme.slug || theme.id;
+      if (!value || value === 'custom') return;
+      const label = theme.name || value;
+      if (!unique.has(value)) {
+        unique.set(value, { value, label });
+      }
+    });
+
+    // Sort alphabetically by label while keeping Custom first
+    const options = Array.from(unique.values());
+    const [first, ...rest] = options;
+    rest.sort((a, b) => a.label.localeCompare(b.label));
+    return [first, ...rest];
   };
 
   // Get theme display name from theme_id
