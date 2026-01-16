@@ -1,0 +1,9 @@
+:root {
+  /* Visual hints; actual colors come from styles loaded via the CMS */
+}
+.theme-bg {
+  background-color: hsl(var(--background));
+}
+.theme-primary-border {
+  border-color: hsl(var(--primary));
+}

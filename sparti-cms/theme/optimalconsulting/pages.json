@@ -1,0 +1,31 @@
+{
+  "pages": [
+    {
+      "page_name": "Homepage",
+      "slug": "/",
+      "meta_title": "Optimal Consulting",
+      "meta_description": "Optimal Consulting homepage preview",
+      "seo_index": true,
+      "status": "published",
+      "page_type": "page"
+    },
+    {
+      "page_name": "Blog",
+      "slug": "/blog",
+      "meta_title": "Blog - Optimal Consulting",
+      "meta_description": "Blog page (Optimal Consulting)",
+      "seo_index": true,
+      "status": "published",
+      "page_type": "page"
+    },
+    {
+      "page_name": "Shop",
+      "slug": "/shop",
+      "meta_title": "Shop - Optimal Consulting",
+      "meta_description": "Shop page (Optimal Consulting)",
+      "seo_index": true,
+      "status": "published",
+      "page_type": "page"
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "slug": "optimalconsulting",
+  "name": "Optimal Consulting",
+  "version": "1.0.0",
+  "description": "Consulting theme duplicated from Master, ready for tenant-aware migrations.",
+  "is_active": true,
+  "author": "Sparti",
+  "category": "consulting",
+  "tags": ["consulting", "tenant-aware", "minimal", "base"],
+  "preview_image": "assets/preview.svg",
+  "demo_url": "/theme/optimalconsulting"
+}
