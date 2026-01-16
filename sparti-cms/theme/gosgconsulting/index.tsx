@@ -168,7 +168,7 @@ const GOSGContent: React.FC<TenantLandingProps> = ({
       { key: "PricingPageSection", name: "Pricing", type: "PricingPage", items: [] },
       // Section 5 — Gallery4 services
       { key: "Gallery4Section", name: "Our Services", type: "Gallery4Section", items: [] },
-      // NEW: FAQ
+      // FAQ
       {
         key: "FAQSection",
         name: "FAQ",
@@ -192,7 +192,7 @@ const GOSGContent: React.FC<TenantLandingProps> = ({
           }
         ]
       },
-      // NEW: Pre-footer CTA banner
+      // Pre-footer CTA banner
       {
         key: "PreFooterCTA",
         name: "CTA",
@@ -201,16 +201,14 @@ const GOSGContent: React.FC<TenantLandingProps> = ({
           {
             heading: "Ready to turn traffic into revenue?",
             description: "Get a clear growth plan tailored to your business in a free strategy call.",
-            primaryLabel: "Get free consultation",
-            secondaryLabel: "See results",
-            secondaryHref: `/theme/${tenantSlug}/blog`
+            primaryLabel: "Get free consultation"
           }
         ]
       }
     ]
   };
 
-  // NEW: SEO page schema override
+  // SEO page schema override
   const seoData = {
     slug: 'seo',
     meta: homepageData.meta,
@@ -223,7 +221,7 @@ const GOSGContent: React.FC<TenantLandingProps> = ({
         items: [
           { key: "headingPrefix", type: "heading", level: 1, content: "Rank higher every month" },
           { key: "headingEmphasis", type: "heading", level: 1, content: "Traffic that converts" },
-          // NEW: hero labels for SEO
+          // hero labels for SEO
           { key: "badges", type: "array", items: ["SEO", "Content", "Backlinks", "Keywords", "Rankings", "Traffic", "Authority"] }
         ]
       },
@@ -246,13 +244,13 @@ const GOSGContent: React.FC<TenantLandingProps> = ({
           }
         ]
       },
-      // About (unchanged)
+      // About
       { key: "AnimatedAboutSection", name: "Animated About", type: "AboutSection2", items: [
         { key: "variant", type: "text", content: "seo" },
         { key: "taglineTitle", type: "text", content: "We Are Your SEO Growth Team And We Will" },
         { key: "taglineAccent", type: "text", content: "TAKE YOU FURTHER" }
       ] },
-      // Pricing (override for SEO offer using short descriptions and process)
+      // Pricing (override for SEO offer)
       {
         key: "PricingPageSection",
         name: "Pricing",
@@ -274,7 +272,7 @@ const GOSGContent: React.FC<TenantLandingProps> = ({
           }
         ]
       },
-      // Gallery4Section: keep same layout; update descriptions and images
+      // Gallery4Section
       {
         key: "Gallery4Section",
         name: "What's Included",
@@ -315,7 +313,7 @@ const GOSGContent: React.FC<TenantLandingProps> = ({
           }
         ]
       },
-      // NEW: FAQ
+      // FAQ
       {
         key: "FAQSection",
         name: "FAQ",
@@ -339,7 +337,7 @@ const GOSGContent: React.FC<TenantLandingProps> = ({
           }
         ]
       },
-      // NEW: Pre-footer CTA banner
+      // Pre-footer CTA banner
       {
         key: "PreFooterCTA",
         name: "CTA",
@@ -348,9 +346,7 @@ const GOSGContent: React.FC<TenantLandingProps> = ({
           {
             heading: "Want SEO that compounds every month?",
             description: "Let's map out your keywords, content plan, and backlink strategy in a free consultation.",
-            primaryLabel: "Get free SEO consultation",
-            secondaryLabel: "Read SEO insights",
-            secondaryHref: `/theme/${tenantSlug}/blog`
+            primaryLabel: "Get free SEO consultation"
           }
         ]
       }
@@ -485,7 +481,7 @@ const GOSGTheme: React.FC<TenantLandingProps> = ({
       case 'seo':
         return <GOSGContent tenantName={tenantName} tenantSlug={tenantSlug} pageSlug="seo" />;
       case 'blog':
-        // NEW: theme blog index
+        // theme blog index
         return <Blog tenantName={tenantName} tenantSlug={tenantSlug} />;
       case 'thank-you':
         return <ThankYouPage tenantName={tenantName} tenantSlug={tenantSlug} tenantId={undefined} />;
