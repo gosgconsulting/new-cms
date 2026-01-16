@@ -13,8 +13,9 @@ export const app = express();
 // CORS middleware (must be first, before any other middleware)
 app.use(corsMiddleware);
 
-// Basic middleware
+// Basic middleware - body parsing
 app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Export app directory for static file serving
 export const appDir = __dirname;

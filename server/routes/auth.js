@@ -46,6 +46,8 @@ const asyncHandler = (fn) => (req, res, next) => {
 // Login endpoint
 router.post('/auth/login', asyncHandler(async (req, res) => {
   console.log('[testing] Login attempt started');
+  console.log('[testing] Request body:', JSON.stringify(req.body));
+  console.log('[testing] Request headers:', JSON.stringify(req.headers));
   
   try {
     // Step 1: Check database initialization state
@@ -94,15 +96,42 @@ router.post('/auth/login', asyncHandler(async (req, res) => {
 
     // Step 2: Validate input
     console.log('[testing] Step 2: Validating input...');
-    const { email, password } = req.body;
+    console.log('[testing] Request body type:', typeof req.body);
+    console.log('[testing] Request body keys:', req.body ? Object.keys(req.body) : 'null/undefined');
+    console.log('[testing] Content-Type header:', req.headers['content-type']);
     
-    if (!email || !password) {
-      console.error('[testing] Missing email or password');
+    const { email, password } = req.body || {};
+    
+    // Check if body is empty or missing
+    if (!req.body || typeof req.body !== 'object' || Object.keys(req.body).length === 0) {
+      console.error('[testing] Request body is missing or invalid:', req.body);
+      console.error('[testing] Raw request body:', req.rawBody || 'not available');
       return res.status(400).json({
         success: false,
-        error: 'Email and password are required'
+        error: 'Invalid request body',
+        message: 'Request body must be valid JSON with email and password fields. Make sure Content-Type is application/json.'
       });
     }
+    
+    // Validate email and password are present and not empty
+    if (!email || typeof email !== 'string' || email.trim() === '') {
+      console.error('[testing] Missing or invalid email. Received:', email);
+      return res.status(400).json({
+        success: false,
+        error: 'Email is required',
+        message: 'Please provide a valid email address'
+      });
+    }
+    
+    if (!password || typeof password !== 'string' || password.trim() === '') {
+      console.error('[testing] Missing or invalid password');
+      return res.status(400).json({
+        success: false,
+        error: 'Password is required',
+        message: 'Please provide a password'
+      });
+    }
+    
     console.log('[testing] Input validated, email:', email);
 
     // Capture tenant from header or query for master DB tenant scoping
