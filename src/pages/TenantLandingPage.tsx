@@ -48,6 +48,10 @@ const themeConfig: Record<string, { name: string; component: React.LazyExoticCom
   'strfitness': {
     name: 'STR Fitness — 1-on-1 Personal Training',
     component: STRFitnessTheme
+  },
+  'str': {
+    name: 'STR Fitness — 1-on-1 Personal Training',
+    component: STRFitnessTheme
   }
 };
 
