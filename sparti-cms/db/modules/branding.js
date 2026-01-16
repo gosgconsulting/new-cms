@@ -642,6 +642,7 @@ export async function updateMultipleBrandingSettings(settings, tenantId = 'tenan
   const transaction = await sequelize.transaction();
   const errors = [];
   let transactionAborted = false;
+  let firstError = null; // Track the first error that might cause transaction abort
   
   try {
     for (const [key, value] of Object.entries(settings)) {
@@ -672,12 +673,21 @@ export async function updateMultipleBrandingSettings(settings, tenantId = 'tenan
         const normalizedThemeId = themeId || null;
         
         // Try to find existing setting first
+        // Handle NULL theme_id explicitly since Sequelize's where clause doesn't handle NULL well
+        let whereClause = {
+          setting_key: key,
+          tenant_id: tenantId
+        };
+        
+        // Explicitly handle NULL theme_id
+        if (normalizedThemeId === null) {
+          whereClause.theme_id = { [Op.is]: null };
+        } else {
+          whereClause.theme_id = normalizedThemeId;
+        }
+        
         let setting = await SiteSetting.findOne({
-          where: {
-            setting_key: key,
-            tenant_id: tenantId,
-            theme_id: normalizedThemeId
-          },
+          where: whereClause,
           transaction
         });
         
@@ -707,18 +717,44 @@ export async function updateMultipleBrandingSettings(settings, tenantId = 'tenan
             // If unique constraint violation, the record exists but wasn't found
             // This can happen due to COALESCE-based unique index
             if (createError.name === 'SequelizeUniqueConstraintError' || createError.code === '23505' || createError.parent?.code === '23505') {
+              // Unique constraint violation - record exists but wasn't found by Sequelize
+              // This can happen due to COALESCE-based unique index vs WHERE clause mismatch
               // Try to find it again using raw query to handle COALESCE properly
-              const found = await sequelize.query(`
-                SELECT * FROM site_settings 
-                WHERE setting_key = :key 
-                  AND COALESCE(tenant_id, '') = COALESCE(:tenantId, '')
-                  AND COALESCE(theme_id, '') = COALESCE(:themeId, '')
-                LIMIT 1
-              `, {
-                replacements: { key, tenantId, themeId: normalizedThemeId },
-                type: QueryTypes.SELECT,
-                transaction
-              });
+              let found;
+              try {
+                // Handle NULL values properly in the query
+                if (normalizedThemeId) {
+                  // Both tenant_id and theme_id are provided
+                  found = await sequelize.query(`
+                    SELECT * FROM site_settings 
+                    WHERE setting_key = :key 
+                      AND tenant_id = :tenantId
+                      AND theme_id = :themeId
+                    LIMIT 1
+                  `, {
+                    replacements: { key, tenantId, themeId: normalizedThemeId },
+                    type: QueryTypes.SELECT,
+                    transaction
+                  });
+                } else {
+                  // theme_id is NULL, need to check for NULL explicitly
+                  found = await sequelize.query(`
+                    SELECT * FROM site_settings 
+                    WHERE setting_key = :key 
+                      AND tenant_id = :tenantId
+                      AND theme_id IS NULL
+                    LIMIT 1
+                  `, {
+                    replacements: { key, tenantId },
+                    type: QueryTypes.SELECT,
+                    transaction
+                  });
+                }
+              } catch (queryError) {
+                // If the query itself fails, the transaction might be aborted
+                console.error(`[testing] Error in raw query to find existing setting:`, queryError);
+                throw createError; // Re-throw original create error
+              }
               
               if (found && found.length > 0) {
                 // Found it, now update using Sequelize
@@ -734,6 +770,9 @@ export async function updateMultipleBrandingSettings(settings, tenantId = 'tenan
                   throw createError;
                 }
               } else {
+                // Record doesn't exist but constraint violation occurred
+                // This might be a race condition or constraint mismatch
+                console.error(`[testing] Unique constraint violation for ${key} but record not found. Tenant: ${tenantId}, Theme: ${normalizedThemeId}`);
                 throw createError;
               }
             } else {
@@ -742,12 +781,27 @@ export async function updateMultipleBrandingSettings(settings, tenantId = 'tenan
           }
         }
       } catch (settingError) {
-        // Check if transaction is aborted
+        // Check if transaction is aborted (PostgreSQL error code 25P02 = in_failed_sql_transaction)
         if (settingError.parent && settingError.parent.code === '25P02') {
           transactionAborted = true;
-          errors.push({ key, error: 'Transaction aborted' });
-          console.error(`[testing] Transaction aborted while processing ${key}`);
+          // Include the first error that caused the transaction to abort
+          const abortError = firstError 
+            ? `Transaction aborted due to previous error in ${firstError.key}: ${firstError.error}`
+            : 'Transaction aborted due to an error';
+          errors.push({ key, error: abortError });
+          console.error(`[testing] Transaction aborted while processing ${key}. First error was:`, firstError);
           break; // Exit loop, transaction is dead
+        }
+        
+        // Track the first error (this might be what causes the transaction to abort)
+        if (!firstError) {
+          firstError = {
+            key,
+            error: settingError.message || settingError.toString(),
+            code: settingError.code || settingError.parent?.code,
+            detail: settingError.detail || settingError.parent?.detail,
+            constraint: settingError.constraint
+          };
         }
         
         // Log detailed error information
@@ -758,14 +812,16 @@ export async function updateMultipleBrandingSettings(settings, tenantId = 'tenan
           parentCode: settingError.parent?.code,
           parentMessage: settingError.parent?.message,
           constraint: settingError.constraint,
-          detail: settingError.detail
+          detail: settingError.detail,
+          stack: settingError.stack
         });
         
         errors.push({ 
           key, 
           error: settingError.message || settingError.toString(),
           code: settingError.code || settingError.parent?.code,
-          detail: settingError.detail || settingError.parent?.detail
+          detail: settingError.detail || settingError.parent?.detail,
+          constraint: settingError.constraint
         });
       }
     }
@@ -773,9 +829,17 @@ export async function updateMultipleBrandingSettings(settings, tenantId = 'tenan
     // If transaction was aborted or we have errors, rollback everything
     if (transactionAborted || errors.length > 0) {
       await transaction.rollback();
-      const errorMessage = transactionAborted 
-        ? 'Transaction was aborted due to an error'
-        : `Failed to update ${errors.length} setting(s): ${errors.map(e => `${e.key} (${e.code || e.error})`).join(', ')}`;
+      let errorMessage;
+      if (transactionAborted) {
+        // Include details about the first error that caused the abort
+        if (firstError) {
+          errorMessage = `Transaction was aborted due to an error in ${firstError.key}: ${firstError.error}${firstError.detail ? ` (${firstError.detail})` : ''}${firstError.constraint ? ` [Constraint: ${firstError.constraint}]` : ''}`;
+        } else {
+          errorMessage = 'Transaction was aborted due to an error';
+        }
+      } else {
+        errorMessage = `Failed to update ${errors.length} setting(s): ${errors.map(e => `${e.key} (${e.code || e.error}${e.detail ? ` - ${e.detail}` : ''})`).join(', ')}`;
+      }
       throw new Error(errorMessage);
     }
     
