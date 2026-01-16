@@ -1,7 +1,8 @@
 /* STR Theme — dark background with bold yellow primary accent */
 /* Colors use HSL triplets to work with Tailwind's hsl(var(--token)) pattern */
 .str-theme {
-  --background: 0 0% 6%;
+  /* Full black sections */
+  --background: 0 0% 0%;
   --foreground: 0 0% 96%;
   --muted: 0 0% 10%;
   --muted-foreground: 0 0% 70%;
@@ -33,6 +34,18 @@
 }
 .str-theme .theme-primary-border {
   border-color: hsl(var(--primary));
+}
+
+/* Force ACATR gradient sections to be full black inside STR */
+.str-theme .bg-gradient-subtle {
+  background: none !important;
+  background-color: hsl(var(--background)) !important;
+}
+
+/* FAQ section uses a light gradient by default — make it black */
+.str-theme .faq-section {
+  background: none !important;
+  background-color: hsl(var(--background)) !important;
 }
 
 /* Typography refinements for bold landing feel */
