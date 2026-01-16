@@ -54,13 +54,13 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
     <>
       {/* Backdrop */}
       <div 
-        className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm transition-opacity"
+        className="fixed inset-0 z-[70] bg-black/80 backdrop-blur-sm transition-opacity"
         onClick={onClose}
       />
       
       {/* Sidebar */}
       <div 
-        className="fixed right-0 top-0 bottom-0 z-50 w-full max-w-md bg-background shadow-2xl overflow-y-auto transform transition-transform duration-300 ease-in-out"
+        className="fixed right-0 top-0 bottom-0 z-[70] w-full max-w-md bg-background shadow-2xl overflow-y-auto transform transition-transform duration-300 ease-in-out"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close Button */}

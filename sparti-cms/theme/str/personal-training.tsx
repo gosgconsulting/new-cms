@@ -1,16 +1,10 @@
 import React, { useState, useRef, useMemo, useEffect } from 'react';
-import { useLocation, useParams } from 'react-router-dom';
 import './theme.css';
 import { Button } from '@/components/ui/button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, CarouselIndicators } from '@/components/ui/carousel';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Star, Menu, X, ArrowRight, Wrench, Award, Users, ChevronUp, Plus, Minus, Instagram } from 'lucide-react';
-import BookingPage from './booking';
-import PackagesPage from './packages';
-import ClassesPage from './classes';
-import ThankYouPage from './thank-you';
-import PersonalTrainingPage from './personal-training';
 import ContactModal from './ContactModal';
 import HeroSection from './components/HeroSection';
 import { STR_ASSETS, getGalleryImages } from './config/assets';
@@ -23,88 +17,11 @@ interface TenantLandingProps {
   pageSlug?: string;
 }
 
-const STRTheme: React.FC<TenantLandingProps> = ({
+const PersonalTrainingPage: React.FC<TenantLandingProps> = ({
   tenantName = 'STR',
   tenantSlug = 'str',
-  tenantId,
-  pageSlug
+  tenantId
 }) => {
-  const location = useLocation();
-  const params = useParams<{ pageSlug?: string }>();
-  
-  // Determine which page to render
-  const currentPage = useMemo(() => {
-    // Check pageSlug prop first (passed from TenantLandingPage)
-    if (pageSlug) {
-      return pageSlug;
-    }
-    
-    // Check if we have a pageSlug param (from /theme/:tenantSlug/:pageSlug route)
-    if (params.pageSlug) {
-      return params.pageSlug;
-    }
-    
-    // Otherwise, extract from pathname
-    const pathParts = location.pathname.split('/').filter(Boolean);
-    
-    // Look for 'theme' in path to determine if we're in theme mode
-    const themeIndex = pathParts.indexOf('theme');
-    const tenantIndex = pathParts.indexOf(tenantSlug);
-    
-    // If we're in theme mode (/theme/str/...)
-    if (themeIndex >= 0 && tenantIndex === themeIndex + 1) {
-      // The page slug should be after the tenant slug
-      if (tenantIndex + 1 < pathParts.length) {
-        // Handle nested routes like booking/classes
-        const remainingParts = pathParts.slice(tenantIndex + 1);
-        return remainingParts.join('/');
-      }
-      return ''; // Homepage if nothing after tenant slug
-    }
-    
-    // Handle standalone deployment (pathname doesn't include /theme/str/)
-    // Direct access like /booking or /packages
-    if (tenantIndex < 0) {
-      // Check if it's a known page
-      const firstPart = pathParts[0];
-      if (firstPart === 'booking' || firstPart === 'packages') {
-        return firstPart;
-      }
-      return firstPart || '';
-    }
-    
-    // Fallback: if tenant slug is found, check what comes after it
-    if (tenantIndex >= 0 && tenantIndex < pathParts.length - 1) {
-      // Handle nested routes
-      const remainingParts = pathParts.slice(tenantIndex + 1);
-      return remainingParts.join('/');
-    }
-    
-    return ''; // Homepage
-  }, [location.pathname, tenantSlug, params.pageSlug, pageSlug]);
-
-  // Render the appropriate page component based on current route
-  if (currentPage === 'booking') {
-    return <BookingPage tenantName={tenantName} tenantSlug={tenantSlug} tenantId={tenantId} pageSlug={currentPage} />;
-  }
-  
-  if (currentPage === 'packages') {
-    return <PackagesPage tenantName={tenantName} tenantSlug={tenantSlug} tenantId={tenantId} pageSlug={currentPage} />;
-  }
-  
-  if (currentPage === 'booking/classes') {
-    return <ClassesPage tenantName={tenantName} tenantSlug={tenantSlug} tenantId={tenantId} pageSlug={currentPage} />;
-  }
-  
-  if (currentPage === 'thank-you') {
-    return <ThankYouPage tenantName={tenantName} tenantSlug={tenantSlug} tenantId={tenantId} pageSlug={currentPage} />;
-  }
-  
-  if (currentPage === 'personal-training') {
-    return <PersonalTrainingPage tenantName={tenantName} tenantSlug={tenantSlug} tenantId={tenantId} pageSlug={currentPage} />;
-  }
-  
-  // Default: render homepage
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeProgramme, setActiveProgramme] = useState(0);
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
@@ -263,49 +180,42 @@ const STRTheme: React.FC<TenantLandingProps> = ({
     { name: 'FAQ', href: '#faq' },
   ];
 
-  // Programmes data for accordion
+  // Programmes data for accordion - PT-focused services
   const programmes = [
     {
-      title: 'PERSONAL TRAINING',
-      description: 'Designed specifically for your own personal goals, work with a professional coach with fully guided and supervised sessions to ensure maximal success in achieving your goals.',
+      title: 'INITIAL ASSESSMENT & GOAL SETTING',
+      description: `Your journey begins with a comprehensive movement and strength assessment. We evaluate your current fitness level, identify movement patterns, assess any limitations, and discuss your specific goals. This foundation allows us to design a program that's perfectly tailored to your body and objectives—whether that's injury recovery, performance enhancement, or long‑term health.`,
       content: '',
     },
     {
-      title: 'SPORTS MASSAGE',
-      description: 'Sports massage focuses on preventing and treating sports-related injuries by improving muscle flexibility and reducing tension.',
+      title: 'CUSTOMIZED TRAINING PROGRAMS',
+      description: `Every workout is designed specifically for you. Based on your assessment, goals, and progress, your coach creates a structured program that evolves with you. No generic templates—just evidence‑based training that addresses your unique needs, schedule, and preferences. Each session builds on the last, ensuring continuous progress toward your goals.`,
       content: '',
     },
     {
-      title: 'STR MEMBERSHIP PROGRAMME',
-      description: 'Unlimited access to group classes and open gym access, here at STR Fitness club',
+      title: 'MOVEMENT CORRECTION & FORM COACHING',
+      description: `Proper form isn't just about safety—it's about maximizing results. Your coach provides real‑time feedback on every exercise, correcting movement patterns and teaching you the fundamentals of effective training. This attention to detail ensures you're not just going through the motions, but building strength, mobility, and movement quality that will serve you for years to come.`,
       content: '',
     },
     {
-      title: 'PHYSIOTHERAPY',
-      description: 'Our fully equipped gym with state-of-the-art rehabilitation equipment ensures that your recovery is optimised all the way, from symptom relief, restoration of function, all the way to performance.',
+      title: 'PROGRESS TRACKING & ADJUSTMENTS',
+      description: `Your program isn't set in stone—it adapts as you improve. Your coach tracks your progress, measures your strength gains, and adjusts your training load, exercises, and intensity based on how your body responds. This data‑driven approach ensures you're always progressing, never plateauing, and always working at the right level for optimal results.`,
       content: '',
     },
     {
-      title: 'GROUP CLASSES',
-      description: 'We offer classes of different intensity, ranging from beginners-friendly to more advanced levels, to help you build the strength and speed needed for your next race. Whether you are looking to start your HYROX journey, maintain your fitness during the off-season or train for your next podium win, we have just the right class for you.',
+      title: 'INJURY PREVENTION & REHABILITATION SUPPORT',
+      description: `Our physiotherapy‑informed approach means your coach understands how to work with injuries, not around them. Whether you're recovering from an injury or preventing one, your training program incorporates rehabilitation principles, movement corrections, and progressive loading that supports your body's healing and resilience. Train safely while building back stronger.`,
       content: '',
     },
     {
-      title: 'OPEN GYM',
-      description: 'Open Gym Access. Capped at 5 pax per hourly slot, train with our official HYROX Center Equipment and state of the art equipment. Unwind, relax and connect afterwards at our outdoor terrace! Open Gym Hours: Monday - Friday 10am - 5pm, Saturday - Sunday 12pm - 5pm',
-      content: '',
-    },
-    {
-      title: 'YOUTH STRENGTH & CONDITIONING',
-      description: 'Engaging the youth and propelling them for long term athletic development while developing lifelong habits and values. Our coaches are specially equipped with the right skillset to motivate and teach the youth population.',
+      title: 'NUTRITION & LIFESTYLE GUIDANCE',
+      description: `Training is only part of the equation. Your coach provides evidence‑based guidance on nutrition, recovery, sleep, and lifestyle factors that support your goals. While we're not dietitians, we help you understand how to fuel your body for performance, recovery, and long‑term health—creating sustainable habits that amplify your training results.`,
       content: '',
     },
   ];
 
   // Gallery images - loaded from centralized asset config
   const galleryImages = getGalleryImages();
-
-  // Testimonials are now loaded from Google Reviews API (see useEffect above)
 
   // Team members
   const teamMembers = [
@@ -356,41 +266,38 @@ const STRTheme: React.FC<TenantLandingProps> = ({
     },
   ];
 
-  // FAQ data
+  // FAQ data - PT-focused
   const faqData = [
     {
-      question: 'What experience level do I need to train at STR?',
-      answer: 'STR welcomes clients of all experience levels, from complete beginners to elite athletes. Our coaches tailor programs to your current fitness level and goals, ensuring safe and effective progression.',
+      question: 'What makes STR Personal Training different?',
+      answer: 'STR Personal Training is assessment‑led and physiotherapy‑informed. Every program starts with a comprehensive evaluation of your movement, strength, and goals. Unlike generic training programs, your coach designs every session specifically for you, provides real‑time form correction, and adjusts your program based on your progress. You get undivided attention, evidence‑based coaching, and a program that evolves with you—not a one‑size‑fits‑all template.',
     },
     {
-      question: 'How do I know if STR is right for me?',
-      answer: 'STR is ideal if you\'re looking for evidence-based coaching, personalized attention, and long-term physical development. We focus on building strength, improving performance, and supporting rehabilitation needs.',
+      question: 'How does the initial assessment work?',
+      answer: 'Your first session is a comprehensive assessment where your coach evaluates your movement patterns, strength levels, mobility, and any limitations or injuries. We discuss your goals, training history, and lifestyle factors. This foundation allows us to design a program that\'s perfectly tailored to your body and objectives. The assessment typically takes 60‑90 minutes and includes movement screening, strength testing, and goal setting.',
     },
     {
-      question: 'What should I expect in my first session?',
-      answer: 'Your first session includes a comprehensive assessment of your movement patterns, strength levels, and goals. This allows us to design a program specifically tailored to your needs and objectives.',
+      question: 'What should I expect in my first 1‑on‑1 session?',
+      answer: 'After your initial assessment, your first training session introduces you to your personalized program. Your coach guides you through each exercise with real‑time form correction, explains the purpose of each movement, and ensures you\'re comfortable with the training approach. You\'ll learn proper technique, understand how the program addresses your goals, and experience the level of attention and coaching you\'ll receive in every session.',
     },
     {
-      question: 'How often should I train?',
-      answer: 'Training frequency depends on your goals, experience level, and schedule. Our coaches will recommend an optimal training schedule during your initial consultation, typically ranging from 2-5 sessions per week.',
+      question: 'How often should I do personal training?',
+      answer: 'Training frequency depends on your goals, experience level, schedule, and budget. Most clients train 2‑3 times per week for optimal results, though some train more frequently for specific goals like competition prep or injury rehabilitation. During your initial consultation, your coach will recommend a training frequency that balances your goals with your lifestyle and ensures sustainable progress.',
     },
     {
-      question: 'Do you offer group training sessions?',
-      answer: 'Yes, we offer both individual and small group training options. Group sessions provide a supportive environment while maintaining personalized coaching attention.',
+      question: 'Can personal training help with injury recovery?',
+      answer: 'Yes. Our physiotherapy‑informed approach means your coach understands how to work with injuries safely and effectively. Your program incorporates rehabilitation principles, movement corrections, and progressive loading that supports your body\'s healing process. We work closely with physiotherapists when needed and design training that addresses your injury while building strength and function. Many clients come to us specifically for post‑injury training.',
     },
     {
-      question: 'What results can I expect?',
-      answer: 'Results vary based on individual goals, consistency, and commitment. Our evidence-based approach focuses on sustainable, long-term improvements in strength, performance, and overall physical health.',
+      question: 'What results can I expect from personal training?',
+      answer: 'Results depend on your goals, consistency, and commitment, but most clients see measurable improvements within 4‑6 weeks. You can expect increased strength, improved movement quality, better body composition, enhanced performance, and reduced injury risk. Our evidence‑based approach focuses on sustainable, long‑term improvements rather than quick fixes. Your coach tracks your progress and adjusts your program to ensure you\'re always moving toward your goals.',
     },
   ];
 
-  // Check if we're on the homepage
-  const isHomepage = currentPage === '' || !currentPage;
+  const isHomepage = true; // Use homepage layout with header in hero
 
-  // Track scroll position for sticky header visibility on homepage
+  // Track scroll position for sticky header visibility
   useEffect(() => {
-    if (!isHomepage) return;
-
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 250);
     };
@@ -400,97 +307,12 @@ const STRTheme: React.FC<TenantLandingProps> = ({
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [isHomepage]);
+  }, []);
 
   return (
     <div className="str-theme min-h-screen bg-background text-foreground">
-      {/* Header - only render for non-homepage pages */}
-      {!isHomepage && (
-        <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex h-20 items-center justify-between">
-              {/* Logo */}
-              <div className="flex items-center space-x-2">
-                <a href="/theme/str">
-                  <img 
-                    src={STR_ASSETS.logos.header} 
-                    alt="STR" 
-                    className="h-10 w-auto"
-                    onError={(e) => {
-                      // Fallback to text if image not found
-                      const target = e.target as HTMLImageElement;
-                      if (target.dataset.fallbackAdded) return; // Prevent duplicate fallback
-                      target.style.display = 'none';
-                      target.dataset.fallbackAdded = 'true';
-                      const fallback = document.createElement('div');
-                      fallback.className = 'text-xl font-bold text-primary';
-                      fallback.textContent = 'STR';
-                      target.parentElement?.appendChild(fallback);
-                    }}
-                  />
-                </a>
-              </div>
-
-              {/* Desktop Navigation */}
-              <nav className="hidden lg:flex items-center space-x-8">
-                {navItems.map((item) => (
-                  <a
-                    key={item.name}
-                    href={item.href}
-                    className="transition-colors text-foreground hover:text-primary"
-                  >
-                    {item.name}
-                  </a>
-                ))}
-                <Button
-                  className="bg-[#E00000] text-white hover:bg-[#E00000]/90 font-bold uppercase px-6 py-2 rounded-lg text-sm transition-all duration-300"
-                  onClick={() => window.location.href = '/theme/str/booking'}
-                >
-                  Get Started
-                </Button>
-              </nav>
-
-              {/* Mobile Menu Button */}
-              <button
-                className="lg:hidden text-foreground"
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
-              >
-                {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-              </button>
-            </div>
-          </div>
-
-          {/* Mobile Menu */}
-          {isMenuOpen && (
-            <div className="lg:hidden border-t border-border bg-background">
-              <div className="container mx-auto px-4 py-4 space-y-3">
-                {navItems.map((item) => (
-                  <a
-                    key={item.name}
-                    href={item.href}
-                    className="block text-foreground hover:text-primary transition-colors"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    {item.name}
-                  </a>
-                ))}
-                <Button
-                  className="w-full bg-[#E00000] text-white hover:bg-[#E00000]/90 font-bold uppercase px-6 py-3 rounded-lg text-sm transition-all duration-300 mt-4"
-                  onClick={() => {
-                    setIsMenuOpen(false);
-                    window.location.href = '/theme/str/booking';
-                  }}
-                >
-                  Get Started
-                </Button>
-              </div>
-            </div>
-          )}
-        </header>
-      )}
-
-      {/* Sticky Header - appears after scrolling on homepage */}
-      {isHomepage && isScrolled && (
+      {/* Sticky Header - appears after scrolling */}
+      {isScrolled && (
         <header className="sticky top-0 z-[60] bg-background/95 backdrop-blur-sm border-b border-border transition-opacity duration-300">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex h-20 items-center justify-between">
@@ -529,7 +351,7 @@ const STRTheme: React.FC<TenantLandingProps> = ({
                 ))}
                 <Button
                   className="bg-[#E00000] text-white hover:bg-[#E00000]/90 font-bold uppercase px-6 py-2 rounded-lg text-sm transition-all duration-300"
-                  onClick={() => window.location.href = '/theme/str/booking'}
+                  onClick={() => setIsContactModalOpen(true)}
                 >
                   Get Started
                 </Button>
@@ -563,7 +385,7 @@ const STRTheme: React.FC<TenantLandingProps> = ({
                   className="w-full bg-[#E00000] text-white hover:bg-[#E00000]/90 font-bold uppercase px-6 py-3 rounded-lg text-sm transition-all duration-300 mt-4"
                   onClick={() => {
                     setIsMenuOpen(false);
-                    window.location.href = '/theme/str/booking';
+                    setIsContactModalOpen(true);
                   }}
                 >
                   Get Started
@@ -578,11 +400,16 @@ const STRTheme: React.FC<TenantLandingProps> = ({
       <HeroSection 
         tenantSlug={tenantSlug}
         items={undefined} // Can be populated from database schema in future
-        showHeader={isHomepage}
+        showHeader={true}
         navItems={navItems}
         isMenuOpen={isMenuOpen}
         setIsMenuOpen={setIsMenuOpen}
-        isHomepage={isHomepage}
+        isHomepage={true}
+        title="1‑On‑1 Personal Training For Performance And Longevity"
+        subtitle="Personalized Coaching In A Physiotherapy‑Informed Environment"
+        description="Assessment‑led, structured, and built for long‑term results. Every session is tailored to your goals—whether you're recovering from injury, preparing for competition, or building long‑term health and strength."
+        buttonText="Chat With Us"
+        onButtonClick={() => setIsContactModalOpen(true)}
       />
 
       {/* About Us Section */}
@@ -607,46 +434,46 @@ const STRTheme: React.FC<TenantLandingProps> = ({
           <div className="w-full">
             {/* Main Heading */}
             <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold uppercase mb-6 text-foreground leading-tight">
-              About Us
+              Why Choose STR Personal Training
             </h2>
 
             {/* Content */}
             <p className="text-lg md:text-xl text-foreground mb-16 max-w-3xl leading-relaxed">
-              Our space is dedicated to cultivating an environment to guide individuals on a transformative journey that balances the physical and mental aspects of health. By integrating personalized training and evidence-based rehabilitation, we empower anyone to unlock their full potential. Through a focus on mental resilience, self-belief, and holistic well-being, we cultivate a space where individuals overcome challenges, enhance performance, and achieve a sustainable, confident lifestyle.
+              At STR, we believe personal training should be exactly that—personal. Every 1‑on‑1 session begins with a comprehensive assessment of your movement patterns, strength levels, and specific goals. Our physiotherapy‑informed approach ensures you train safely while making measurable progress. Whether you're recovering from injury, preparing for competition, or building long‑term health, your program is designed specifically for you—not a generic template. No classes. No crowds. Just focused, expert coaching that delivers real results.
             </p>
 
             {/* Feature Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* Expert Coaching Card */}
+              {/* 1-on-1 Expert Coaching Card */}
               <div className="bg-white rounded-3xl p-6 shadow-2xl h-full flex flex-col">
                 <div className="w-12 h-12 rounded-full bg-[#E48D2A] flex items-center justify-center mb-4 flex-shrink-0">
                   <Wrench className="h-6 w-6 text-white" />
                 </div>
-                <h3 className="text-xl font-bold uppercase text-black mb-3">EXPERT COACHING</h3>
+                <h3 className="text-xl font-bold uppercase text-black mb-3">1‑ON‑1 EXPERT COACHING</h3>
                 <p className="text-black/80 text-sm leading-relaxed flex-grow">
-                  Train With Experienced Coaches Who Guide Every Workout With Proper Form And Purpose.
+                  Work directly with experienced coaches who provide undivided attention, real‑time form correction, and personalized guidance every single session. No distractions, no waiting—just you and your coach.
                 </p>
               </div>
 
-              {/* Structured Programs Card */}
+              {/* Personalized Training Plans Card */}
               <div className="bg-white rounded-3xl p-6 shadow-2xl h-full flex flex-col">
                 <div className="w-12 h-12 rounded-full bg-[#E48D2A] flex items-center justify-center mb-4 flex-shrink-0">
                   <Award className="h-6 w-6 text-white" />
                 </div>
-                <h3 className="text-xl font-bold text-black mb-3">Structured Programs</h3>
+                <h3 className="text-xl font-bold uppercase text-black mb-3">PERSONALIZED TRAINING PLANS</h3>
                 <p className="text-black/80 text-sm leading-relaxed flex-grow">
-                  Follow Proven Training Programs Designed To Deliver Real, Measurable Results.
+                  Every program starts with a comprehensive assessment. Your training plan is built specifically for your body, your goals, and your schedule—not a one‑size‑fits‑all template.
                 </p>
               </div>
 
-              {/* Supportive Community Card */}
+              {/* Individual Attention Card */}
               <div className="bg-white rounded-3xl p-6 shadow-2xl h-full flex flex-col">
                 <div className="w-12 h-12 rounded-full bg-[#E48D2A] flex items-center justify-center mb-4 flex-shrink-0">
                   <Users className="h-6 w-6 text-white" />
                 </div>
-                <h3 className="text-xl font-bold uppercase text-black mb-3">SUPPORTIVE COMMUNITY</h3>
+                <h3 className="text-xl font-bold uppercase text-black mb-3">DEDICATED SUPPORT</h3>
                 <p className="text-black/80 text-sm leading-relaxed flex-grow">
-                  Train In A Motivating Environment That Helps You Stay Consistent And Reach Your Goals.
+                  Your coach tracks your progress, adjusts your program in real‑time, and provides the accountability you need to stay consistent. Every session is focused entirely on your success.
                 </p>
               </div>
             </div>
@@ -661,10 +488,10 @@ const STRTheme: React.FC<TenantLandingProps> = ({
             {/* Left Column - Big Title */}
             <div className="flex flex-col justify-center">
               <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold uppercase text-foreground leading-tight mb-6">
-                OUR PROGRAMMES
+                WHAT'S INCLUDED IN YOUR PT PROGRAM
               </h2>
               <p className="text-lg md:text-xl text-foreground/80 leading-relaxed max-w-xl mb-8">
-                Discover our comprehensive training programmes designed to help you achieve your fitness goals, whether you're building strength, improving performance, or recovering from injury.
+                Every 1‑on‑1 personal training program at STR includes comprehensive support from assessment to results. Here's what you get when you train with us.
               </p>
               {/* Programmes Image */}
               <div className="w-full max-w-xl">
@@ -724,7 +551,7 @@ const STRTheme: React.FC<TenantLandingProps> = ({
                           {/* CTA Button */}
                           <Button
                             className="bg-[#E00000] text-white hover:bg-[#E00000]/90 font-bold uppercase px-6 py-3 rounded-lg text-sm transition-all duration-300 hover:scale-105"
-                            onClick={() => window.location.href = '/theme/str/booking'}
+                            onClick={() => setIsContactModalOpen(true)}
                           >
                             GET STARTED
                           </Button>
@@ -1061,9 +888,9 @@ const STRTheme: React.FC<TenantLandingProps> = ({
             <Button
               size="lg"
               className="bg-[#E00000] text-white hover:bg-[#E00000]/90 text-lg px-10 py-6 font-bold uppercase rounded-lg transition-all duration-300 hover:scale-105"
-              onClick={() => window.location.href = '/theme/str/booking'}
+              onClick={() => setIsContactModalOpen(true)}
             >
-              START YOUR JOURNEY
+              START YOUR PERSONAL TRAINING JOURNEY
             </Button>
           </div>
         </div>
@@ -1130,7 +957,7 @@ const STRTheme: React.FC<TenantLandingProps> = ({
             <Button
               size="lg"
               className="bg-[#E00000] text-white hover:bg-[#E00000]/90 text-lg px-10 py-6 font-bold uppercase rounded-lg transition-all duration-300 hover:scale-105"
-              onClick={() => window.location.href = '/theme/str/booking'}
+              onClick={() => setIsContactModalOpen(true)}
             >
               GET STARTED TODAY
             </Button>
@@ -1152,19 +979,19 @@ const STRTheme: React.FC<TenantLandingProps> = ({
           <div className="text-center">
             {/* Marketing Hook */}
             <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold uppercase mb-6 text-foreground leading-tight">
-              READY TO TRANSFORM YOUR TRAINING?
+              READY TO START YOUR PERSONAL TRAINING JOURNEY?
             </h2>
             <p className="text-lg md:text-xl text-foreground/80 mb-8 max-w-2xl mx-auto leading-relaxed">
-              Join STR today and experience evidence-based coaching that delivers real, lasting results. Your journey to better strength, performance, and rehabilitation starts here.
+              Experience 1‑on‑1 coaching that's assessment‑led, physiotherapy‑informed, and designed specifically for you. Whether you're recovering from injury, preparing for competition, or building long‑term health, your personalized program starts with a conversation. Chat with us today to learn how we can help you achieve your goals.
             </p>
             
             {/* CTA Button */}
             <Button
               size="lg"
               className="bg-[#E00000] text-white hover:bg-[#E00000]/90 text-lg px-10 py-6 font-bold uppercase rounded-lg transition-all duration-300 hover:scale-105"
-              onClick={() => window.location.href = '/theme/str#programmes'}
+              onClick={() => setIsContactModalOpen(true)}
             >
-              EXPLORE OUR PROGRAMMES
+              CHAT WITH US
             </Button>
           </div>
         </div>
@@ -1300,4 +1127,4 @@ const STRTheme: React.FC<TenantLandingProps> = ({
   );
 };
 
-export default STRTheme;
+export default PersonalTrainingPage;

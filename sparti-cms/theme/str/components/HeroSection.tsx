@@ -83,11 +83,11 @@ const HeroSection: React.FC<HeroSectionProps> = ({
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className={`flex items-center justify-between ${
               isHomepage 
-                ? 'pt-8 pb-6 sm:pt-10 sm:pb-8' 
+                ? 'h-20' 
                 : 'h-20'
             }`}>
               {/* Logo */}
-              <div className={`flex items-center space-x-2 ${isHomepage ? 'pl-4 sm:pl-6' : ''}`}>
+              <div className={`flex items-center ${isHomepage ? 'pt-8 sm:pt-10 md:pt-12' : ''}`}>
                 {isHomepage ? (
                   // Circular logo on homepage (larger size, transparent background)
                   <a href="/theme/str">
@@ -132,7 +132,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
               </div>
 
               {/* Desktop Navigation */}
-              <nav className="hidden lg:flex items-center space-x-8">
+              <nav className="hidden lg:flex items-center space-x-8 ml-8">
                 {navItems.map((item) => (
                   <a
                     key={item.name}
@@ -144,7 +144,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
                 ))}
                 <Button
                   className="bg-[#E00000] text-white hover:bg-[#E00000]/90 font-bold uppercase px-6 py-2 rounded-lg text-sm transition-all duration-300"
-                  onClick={() => window.location.href = '/theme/str/booking'}
+                  onClick={onButtonClick || (() => window.location.href = '/theme/str/booking')}
                 >
                   Get Started
                 </Button>
@@ -178,7 +178,11 @@ const HeroSection: React.FC<HeroSectionProps> = ({
                   className="w-full bg-[#E00000] text-white hover:bg-[#E00000]/90 font-bold uppercase px-6 py-3 rounded-lg text-sm transition-all duration-300 mt-4"
                   onClick={() => {
                     setIsMenuOpen && setIsMenuOpen(false);
-                    window.location.href = '/theme/str/booking';
+                    if (onButtonClick) {
+                      onButtonClick();
+                    } else {
+                      window.location.href = '/theme/str/booking';
+                    }
                   }}
                 >
                   Get Started
@@ -204,9 +208,9 @@ const HeroSection: React.FC<HeroSectionProps> = ({
         <div className="absolute inset-0 bg-background/70"></div>
       </div>
       
-      <div className="container mx-auto relative z-10 px-6 sm:px-6 lg:px-8 py-16 sm:py-20">
+      <div className="container mx-auto relative z-10 px-6 sm:px-6 lg:px-8 pt-24 sm:pt-28 md:pt-32 pb-16 sm:pb-20">
         <div className="max-w-4xl">
-          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold uppercase text-foreground mb-6 sm:mb-8 leading-tight">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold uppercase text-foreground mb-8 sm:mb-10 md:mb-12 leading-tight">
             {finalTitle}
           </h1>
           <p className="text-xl md:text-2xl text-foreground mb-4 sm:mb-5 leading-relaxed font-medium">
@@ -215,9 +219,11 @@ const HeroSection: React.FC<HeroSectionProps> = ({
           <p className="text-lg md:text-xl text-muted-foreground mb-6 sm:mb-7 leading-relaxed">
             {finalDescription}
           </p>
-          <p className="text-base md:text-lg text-muted-foreground mb-8 sm:mb-10 leading-relaxed whitespace-pre-line">
-            {finalAddress}
-          </p>
+          <div className="mb-8 sm:mb-10">
+            <span className="inline-block px-4 py-2 rounded-full border-2 border-foreground/30 bg-background/20 text-foreground text-sm md:text-base">
+              {finalAddress.replace(/\n/g, ' • ')}
+            </span>
+          </div>
           <Button
             size="lg"
             className="bg-primary text-primary-foreground hover:bg-primary/90 text-lg px-8 py-6 font-semibold"
