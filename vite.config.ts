@@ -1,5 +1,6 @@
 import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react-swc";
+import tailwindcss from "@tailwindcss/vite";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 import dyadComponentTagger from '@dyad-sh/react-vite-component-tagger';
@@ -15,6 +16,8 @@ export default defineConfig(({ mode }) => {
   const envVars = { ...env, ...process.env };
   
   const plugins = [
+    // Tailwind v4 (Vite plugin)
+    tailwindcss(),
     dyadComponentTagger(), 
     react(),
     mode === 'development' && componentTagger(),

@@ -1,9 +1,7 @@
+@import "tailwindcss";
+
 @plugin "flowbite/plugin";
 @source "../node_modules/flowbite";
-
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
 
 @layer base {
   :root {
@@ -38,7 +36,7 @@
     /* Additional brand colors */
     --brand-teal: 174 80% 45%;
     --brand-blue: 210 100% 50%;
-    --brand-gold: 36 100% 65%; 
+    --brand-gold: 36 100% 65%;
     --brand-purple: 270 70% 60%;
     --coral: 5 88% 62%;
 
@@ -48,13 +46,13 @@
     --brand-accent: #F94E40;
     --brand-background: #FFFFFF;
     --brand-text: #333333;
-    
+
     /* Enhanced color variables for advanced styling */
     --gradient-start: #9b87f5;
     --gradient-end: #7E69AB;
     --label-color: #666666;
     --footer-dark-text: #FFFFFF;
-    
+
     /* Global typography variables */
     --font-heading: "Inter", sans-serif;
     --font-body: "Inter", sans-serif;

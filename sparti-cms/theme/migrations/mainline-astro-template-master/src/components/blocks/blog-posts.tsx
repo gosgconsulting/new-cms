@@ -1,8 +1,23 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 
-const BlogPosts = ({ posts }: { posts: any[] }) => {
+type CmsPost = {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt?: string | null;
+  created_at?: string;
+  published_at?: string;
+};
+
+const withBase = (path: string) => {
+  const base = (import.meta as any).env?.BASE_URL || "/";
+  const normalizedBase = base.endsWith("/") ? base : base + "/";
+  if (path.startsWith("/")) return normalizedBase.replace(/\/$/, "") + path;
+  return normalizedBase + path;
+};
+
+const BlogPosts = ({ posts }: { posts: CmsPost[] }) => {
   return (
     <>
       <section>
@@ -12,8 +27,7 @@ const BlogPosts = ({ posts }: { posts: any[] }) => {
           </h1>
 
           <p className="text-muted-foreground max-w-md leading-snug font-medium lg:mx-auto">
-            Explore our blog for insightful articles, personal reflections and
-            more.
+            Updates, ideas, and practical tactics from Sparti.
           </p>
         </div>
       </section>
@@ -23,37 +37,19 @@ const BlogPosts = ({ posts }: { posts: any[] }) => {
             {posts.map((post) => (
               <a
                 key={post.id}
-                className="rounded-xl border"
-                href={`/blog/${post.id}/`}
+                className="rounded-xl border bg-card shadow-sm hover:bg-muted/30 transition-colors"
+                href={withBase(`/blog/${post.slug}`)}
               >
-                <div className="p-2">
-                  <img
-                    src={post.data.image}
-                    alt="placeholder"
-                    className="aspect-video w-full rounded-lg object-cover"
-                  />
-                </div>
-                <div className="px-3 pt-2 pb-4">
-                  <h2 className="mb-1 font-semibold">{post.data.title}</h2>
-                  <p className="text-muted-foreground line-clamp-2 text-sm">
-                    {post.data.description}
+                <div className="p-4">
+                  <h2 className="mb-1 font-semibold line-clamp-2">{post.title}</h2>
+                  <p className="text-muted-foreground line-clamp-3 text-sm">
+                    {post.excerpt || "Read the full post"}
                   </p>
                   <Separator className="my-5" />
                   <div className="flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                      <Avatar className="ring-input size-7 rounded-full ring-1">
-                        <AvatarImage
-                          src={post.data.authorImage}
-                          alt="placeholder"
-                        />
-                        <AvatarFallback>CN</AvatarFallback>
-                      </Avatar>
-                      <span className="text-sm font-medium">
-                        {post.data.authorName}
-                      </span>
-                    </div>
+                    <span className="text-sm font-medium">Sparti</span>
                     <Badge variant="secondary" className="h-fit">
-                      10 Min Read
+                      Article
                     </Badge>
                   </div>
                 </div>

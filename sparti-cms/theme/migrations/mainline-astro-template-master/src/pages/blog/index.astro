@@ -1,21 +1,33 @@
 ---
-import { getCollection } from 'astro:content';
-
 import { Background } from '@/components/background';
 import { BlogPosts } from '@/components/blocks/blog-posts';
 import { SITE_TITLE, SITE_DESCRIPTION } from '@/consts';
 import DefaultLayout from '@/layouts/DefaultLayout.astro';
 
-const posts = (await getCollection('blog')).sort(
-	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
-);
----
+const tenantId = Astro.request.headers.get('x-tenant-id') || Astro.url.searchParams.get('tenantId') || '';
+const baseUrl = new URL(Astro.request.url);
 
-<DefaultLayout title={SITE_TITLE} description={SITE_DESCRIPTION} >
+const res = await fetch(
+  new URL(`/api/v1/blog/posts?limit=50&tenantId=${encodeURIComponent(tenantId)}`, baseUrl),
+  {
+    headers: tenantId ? { 'X-Tenant-Id': tenantId } : undefined,
+  }
+);
+
+const json = await res.json();
+const posts = (json?.data || []).map((p) => ({
+  id: String(p.id),
+  slug: p.slug,
+  title: p.title,
+  excerpt: p.excerpt,
+  created_at: p.created_at,
+  published_at: p.published_at,
+}));
+
+<DefaultLayout title={SITE_TITLE} description={SITE_DESCRIPTION}>
 	<Background>
 		<div class="py-28 lg:pt-44 lg:pb-32">
 			<BlogPosts posts={posts} client:only='react' />
 		</div>
 	</Background>
 </DefaultLayout>
-

@@ -1,28 +1,34 @@
 ---
-import { type CollectionEntry, getCollection } from 'astro:content';
-import { render } from 'astro:content';
-
 import { BlogPost } from '@/components/blocks/blog-post';
 import DefaultLayout from '@/layouts/DefaultLayout.astro';
 
-export async function getStaticPaths() {
-	const posts = await getCollection('blog');
-	return posts.map((post) => ({
-		params: { slug: post.id },
-		props: post,
-	}));
-}
-type Props = CollectionEntry<'blog'>;
+const tenantId = Astro.request.headers.get('x-tenant-id') || Astro.url.searchParams.get('tenantId') || '';
+const baseUrl = new URL(Astro.request.url);
 
-const post = Astro.props;
-const { title, description, pubDate, updatedDate, heroImage } = post.data;
-const { Content } = await render(post);
+const raw = Astro.params.slug;
+const slug = Array.isArray(raw) ? raw.join('/') : raw;
+
+const res = await fetch(
+  new URL(`/api/v1/blog/posts/${encodeURIComponent(slug)}?tenantId=${encodeURIComponent(tenantId)}`, baseUrl),
+  {
+    headers: tenantId ? { 'X-Tenant-Id': tenantId } : undefined,
+  }
+);
+
+if (res.status === 404) {
+  throw new Error('Post not found');
+}
+
+const json = await res.json();
+const post = json?.data;
+
+const contentHtml = post?.content || '';
 
 ---
-<DefaultLayout>
+<DefaultLayout title={post?.title || 'Blog'} description={post?.excerpt || ''}>
 	<div class="py-28 lg:pt-44 lg:pb-32">
-		<BlogPost post={post} client:only='react' >
-			<Content />
+		<BlogPost post={post} client:only='react'>
+			<div set:html={contentHtml} />
 		</BlogPost>
 	</div>
 </DefaultLayout>

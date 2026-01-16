@@ -1,19 +1,23 @@
 import { useState, useEffect } from "react";
 
-import { ChevronRight, Github } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 
-import { ThemeToggle } from "../theme-toggle";
-import { Button } from "../ui/button";
+import { Button } from "@/components/ui/button";
 import {
   NavigationMenu,
   NavigationMenuContent,
   NavigationMenuItem,
-  NavigationMenuLink,
   NavigationMenuList,
   NavigationMenuTrigger,
-} from "../ui/navigation-menu";
-import { GITHUB_URL } from "../../consts";
-import { cn } from "../../lib/utils";
+} from "@/components/ui/navigation-menu";
+import { cn } from "@/lib/utils";
+
+const withBase = (path: string) => {
+  const base = (import.meta as any).env?.BASE_URL || "/";
+  const normalizedBase = base.endsWith("/") ? base : base + "/";
+  if (path.startsWith("/")) return normalizedBase.replace(/\/$/, "") + path;
+  return normalizedBase + path;
+};
 
 const ITEMS = [
   {
@@ -21,25 +25,30 @@ const ITEMS = [
     href: "#features",
     dropdownItems: [
       {
-        title: "Modern product teams",
+        title: "Conversion-first pages",
         href: "/#feature-modern-teams",
-        description:
-          "Mainline is built on the habits that make the best product teams successful",
+        description: "Proven sections that drive enquiries",
       },
       {
-        title: "Resource Allocation",
+        title: "CMS + editing",
         href: "/#resource-allocation",
-        description: "Mainline your resource allocation and execution",
+        description: "Update content without a developer",
       },
     ],
   },
-  { label: "About Us", href: "/about" },
   { label: "Pricing", href: "/pricing" },
   { label: "FAQ", href: "/faq" },
+  { label: "Blog", href: "/blog" },
   { label: "Contact", href: "/contact" },
 ];
 
-export const Navbar = () => {
+export const Navbar = ({
+  logoSrc,
+  siteName = "Sparti",
+}: {
+  logoSrc?: string | null;
+  siteName?: string;
+}) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [pathname, setPathname] = useState("");
@@ -51,19 +60,17 @@ export const Navbar = () => {
   return (
     <section
       className={cn(
-        "bg-background/70 absolute left-1/2 z-50 w-[min(90%,700px)] -translate-x-1/2 rounded-4xl border backdrop-blur-md transition-all duration-300",
+        "bg-background/70 absolute left-1/2 z-50 w-[min(92%,900px)] -translate-x-1/2 rounded-4xl border backdrop-blur-md transition-all duration-300",
         "top-5 lg:top-12",
       )}
     >
       <div className="flex items-center justify-between px-6 py-3">
-        <a href="/" className="flex shrink-0 items-center gap-2">
-          <img
-            src="/logo.svg"
-            alt="logo"
-            width={94}
-            height={18}
-            className="dark:invert"
-          />
+        <a href={withBase("/")} className="flex shrink-0 items-center gap-2">
+          {logoSrc ? (
+            <img src={logoSrc} alt={siteName} className="h-5 w-auto" />
+          ) : (
+            <span className="text-sm font-semibold">{siteName}</span>
+          )}
         </a>
 
         {/* Desktop Navigation */}
@@ -76,11 +83,11 @@ export const Navbar = () => {
                     {link.label}
                   </NavigationMenuTrigger>
                   <NavigationMenuContent>
-                    <ul className="w-[400px] space-y-2 p-4">
+                    <ul className="w-[420px] space-y-2 p-4">
                       {link.dropdownItems.map((item) => (
                         <li key={item.title}>
                           <a
-                            href={item.href}
+                            href={withBase(item.href)}
                             className="group hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground flex items-center gap-4 rounded-md p-3 leading-none no-underline outline-hidden transition-colors select-none"
                           >
                             <div className="space-y-1.5 transition-transform duration-300 group-hover:translate-x-1">
@@ -100,10 +107,10 @@ export const Navbar = () => {
               ) : (
                 <NavigationMenuItem key={link.label} className="">
                   <a
-                    href={link.href}
+                    href={withBase(link.href)}
                     className={cn(
                       "relative bg-transparent px-1.5 text-sm font-medium transition-opacity hover:opacity-75",
-                      pathname === link.href && "text-muted-foreground",
+                      pathname === withBase(link.href) && "text-muted-foreground",
                     )}
                   >
                     {link.label}
@@ -114,20 +121,12 @@ export const Navbar = () => {
           </NavigationMenuList>
         </NavigationMenu>
 
-        {/* Auth Buttons */}
+        {/* CTA */}
         <div className="flex items-center gap-2.5">
-          <ThemeToggle />
-          <a href="/login" className="max-lg:hidden">
-            <Button variant="outline">
-              <span className="relative z-10">Login</span>
+          <a href={withBase("/contact")} className="max-lg:hidden">
+            <Button>
+              <span className="relative z-10">Book a call</span>
             </Button>
-          </a>
-          <a
-            href={GITHUB_URL}
-            className="text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <Github className="size-4" />
-            <span className="sr-only">GitHub</span>
           </a>
 
           {/* Hamburger Menu Button (Mobile Only) */}
@@ -195,7 +194,7 @@ export const Navbar = () => {
                     {link.dropdownItems.map((item) => (
                       <a
                         key={item.title}
-                        href={item.href}
+                        href={withBase(item.href)}
                         className="hover:bg-accent group block rounded-md p-2 transition-colors"
                         onClick={() => {
                           setIsMenuOpen(false);
@@ -219,10 +218,10 @@ export const Navbar = () => {
             ) : (
               <a
                 key={link.label}
-                href={link.href}
+                href={withBase(link.href)}
                 className={cn(
                   "text-foreground hover:text-foreground/80 py-4 text-base font-medium transition-colors first:pt-0 last:pb-0",
-                  pathname === link.href && "text-muted-foreground",
+                  pathname === withBase(link.href) && "text-muted-foreground",
                 )}
                 onClick={() => setIsMenuOpen(false)}
               >
@@ -230,6 +229,9 @@ export const Navbar = () => {
               </a>
             ),
           )}
+          <a href={withBase("/contact")} className="pt-4">
+            <Button className="w-full">Book a call</Button>
+          </a>
         </nav>
       </div>
     </section>

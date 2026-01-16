@@ -5,18 +5,21 @@ import '../styles/global.css';
 import { SITE_TITLE, SITE_METADATA } from '../consts';
 
 interface Props {
-	title: string;
-	description: string;
-	image?: string;
+  title: string;
+  description: string;
+  image?: string;
+  favicon?: string | null;
 }
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 
-const { title, description, image } = Astro.props;
+const { title, description, image, favicon } = Astro.props;
 const finalTitle = title || SITE_METADATA.title.default;
 const finalDescription = description || SITE_METADATA.description;
 const finalImage = image || SITE_METADATA.openGraph.images[0].url;
 const imageURL = new URL(finalImage, Astro.url);
+const baseUrl = (import.meta.env.BASE_URL || '/').replace(/\/$/, '');
+
 ---
 
 <!-- Global Metadata -->
@@ -32,14 +35,14 @@ const imageURL = new URL(finalImage, Astro.url);
 <!-- Preload local fonts -->
 <link 
   rel="preload" 
-  href="/fonts/dm-sans/DMSans-Regular.ttf" 
+  href={`${baseUrl}/fonts/dm-sans/DMSans-Regular.ttf`}
   as="font" 
   type="font/ttf" 
   crossorigin="anonymous"
 />
 <link 
   rel="preload" 
-  href="/fonts/dm-sans/DMSans-Bold.ttf" 
+  href={`${baseUrl}/fonts/dm-sans/DMSans-Bold.ttf`}
   as="font" 
   type="font/ttf" 
   crossorigin="anonymous"
@@ -64,34 +67,43 @@ const imageURL = new URL(finalImage, Astro.url);
 </script>
 
 <!-- Favicon -->
-{SITE_METADATA.icons.icon.map((icon) => (
-  <link
-    rel="icon"
-    type={icon.type}
-    sizes={icon.sizes}
-    href={icon.url}
-  />
-))}
-{SITE_METADATA.icons.apple.map((icon) => (
-  <link
-    rel="apple-touch-icon"
-    sizes={icon.sizes}
-    href={icon.url}
-  />
-))}
-{SITE_METADATA.icons.shortcut.map((icon) => (
-  <link
-    rel="shortcut icon"
-    href={icon.url}
-  />
-))}
+{favicon ? (
+  <>
+    <link rel="icon" href={favicon} />
+    <link rel="apple-touch-icon" href={favicon} />
+  </>
+) : (
+  <>
+    {SITE_METADATA.icons.icon.map((icon) => (
+      <link
+        rel="icon"
+        type={icon.type}
+        sizes={icon.sizes}
+        href={`${baseUrl}${icon.url}`}
+      />
+    ))}
+    {SITE_METADATA.icons.apple.map((icon) => (
+      <link
+        rel="apple-touch-icon"
+        sizes={icon.sizes}
+        href={`${baseUrl}${icon.url}`}
+      />
+    ))}
+    {SITE_METADATA.icons.shortcut.map((icon) => (
+      <link
+        rel="shortcut icon"
+        href={`${baseUrl}${icon.url}`}
+      />
+    ))}
+  </>
+)}
 
-<link rel="sitemap" href="/sitemap-index.xml" />
+<link rel="sitemap" href={`${baseUrl}/sitemap-index.xml`} />
 <link
-	rel="alternate"
-	type="application/rss+xml"
-	title={SITE_TITLE}
-	href={new URL('rss.xml', Astro.site)}
+  rel="alternate"
+  type="application/rss+xml"
+  title={SITE_TITLE}
+  href={new URL('rss.xml', Astro.site)}
 />
 <meta name="generator" content={Astro.generator} />
 
