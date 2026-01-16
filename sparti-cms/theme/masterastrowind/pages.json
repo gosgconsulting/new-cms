@@ -1,0 +1,166 @@
+{
+  "pages": [
+    {
+      "page_name": "Homepage",
+      "slug": "/",
+      "meta_title": "Master Astrowind - Home",
+      "meta_description": "Free template for creating websites with Astro + Tailwind CSS",
+      "seo_index": true,
+      "status": "published",
+      "page_type": "page"
+    },
+    {
+      "page_name": "About",
+      "slug": "/about",
+      "meta_title": "About - Master Astrowind",
+      "meta_description": "About page for Master Astrowind theme",
+      "seo_index": true,
+      "status": "published",
+      "page_type": "page"
+    },
+    {
+      "page_name": "Contact",
+      "slug": "/contact",
+      "meta_title": "Contact - Master Astrowind",
+      "meta_description": "Contact page for Master Astrowind theme",
+      "seo_index": true,
+      "status": "published",
+      "page_type": "page"
+    },
+    {
+      "page_name": "Services",
+      "slug": "/services",
+      "meta_title": "Services - Master Astrowind",
+      "meta_description": "Services page for Master Astrowind theme",
+      "seo_index": true,
+      "status": "published",
+      "page_type": "page"
+    },
+    {
+      "page_name": "Pricing",
+      "slug": "/pricing",
+      "meta_title": "Pricing - Master Astrowind",
+      "meta_description": "Pricing page for Master Astrowind theme",
+      "seo_index": true,
+      "status": "published",
+      "page_type": "page"
+    },
+    {
+      "page_name": "Blog",
+      "slug": "/blog",
+      "meta_title": "Blog - Master Astrowind",
+      "meta_description": "Blog listing page for Master Astrowind theme",
+      "seo_index": true,
+      "status": "published",
+      "page_type": "page"
+    },
+    {
+      "page_name": "Privacy Policy",
+      "slug": "/privacy",
+      "meta_title": "Privacy Policy - Master Astrowind",
+      "meta_description": "Privacy policy page for Master Astrowind theme",
+      "seo_index": false,
+      "status": "published",
+      "page_type": "page"
+    },
+    {
+      "page_name": "Terms of Service",
+      "slug": "/terms",
+      "meta_title": "Terms of Service - Master Astrowind",
+      "meta_description": "Terms of service page for Master Astrowind theme",
+      "seo_index": false,
+      "status": "published",
+      "page_type": "page"
+    },
+    {
+      "page_name": "Home - Startup",
+      "slug": "/homes/startup",
+      "meta_title": "Startup Home - Master Astrowind",
+      "meta_description": "Startup home page template",
+      "seo_index": true,
+      "status": "published",
+      "page_type": "page"
+    },
+    {
+      "page_name": "Home - SaaS",
+      "slug": "/homes/saas",
+      "meta_title": "SaaS Home - Master Astrowind",
+      "meta_description": "SaaS home page template",
+      "seo_index": true,
+      "status": "published",
+      "page_type": "page"
+    },
+    {
+      "page_name": "Home - Personal",
+      "slug": "/homes/personal",
+      "meta_title": "Personal Home - Master Astrowind",
+      "meta_description": "Personal home page template",
+      "seo_index": true,
+      "status": "published",
+      "page_type": "page"
+    },
+    {
+      "page_name": "Home - Mobile App",
+      "slug": "/homes/mobile-app",
+      "meta_title": "Mobile App Home - Master Astrowind",
+      "meta_description": "Mobile app home page template",
+      "seo_index": true,
+      "status": "published",
+      "page_type": "page"
+    },
+    {
+      "page_name": "Landing - Sales",
+      "slug": "/landing/sales",
+      "meta_title": "Sales Landing - Master Astrowind",
+      "meta_description": "Sales landing page template",
+      "seo_index": true,
+      "status": "published",
+      "page_type": "page"
+    },
+    {
+      "page_name": "Landing - Product",
+      "slug": "/landing/product",
+      "meta_title": "Product Landing - Master Astrowind",
+      "meta_description": "Product landing page template",
+      "seo_index": true,
+      "status": "published",
+      "page_type": "page"
+    },
+    {
+      "page_name": "Landing - Subscription",
+      "slug": "/landing/subscription",
+      "meta_title": "Subscription Landing - Master Astrowind",
+      "meta_description": "Subscription landing page template",
+      "seo_index": true,
+      "status": "published",
+      "page_type": "page"
+    },
+    {
+      "page_name": "Landing - Lead Generation",
+      "slug": "/landing/lead-generation",
+      "meta_title": "Lead Generation Landing - Master Astrowind",
+      "meta_description": "Lead generation landing page template",
+      "seo_index": true,
+      "status": "published",
+      "page_type": "page"
+    },
+    {
+      "page_name": "Landing - Pre-launch",
+      "slug": "/landing/pre-launch",
+      "meta_title": "Pre-launch Landing - Master Astrowind",
+      "meta_description": "Pre-launch landing page template",
+      "seo_index": true,
+      "status": "published",
+      "page_type": "page"
+    },
+    {
+      "page_name": "Landing - Click Through",
+      "slug": "/landing/click-through",
+      "meta_title": "Click Through Landing - Master Astrowind",
+      "meta_description": "Click through landing page template",
+      "seo_index": true,
+      "status": "published",
+      "page_type": "page"
+    }
+  ]
+}

@@ -1,0 +1,70 @@
+---
+import Layout from '~/layouts/Layout.astro';
+import Header from '~/components/widgets/Header.astro';
+import Footer from '~/components/widgets/Footer.astro';
+import Announcement from '~/components/widgets/Announcement.astro';
+
+import { headerData, footerData } from '~/navigation';
+
+import type { MetaData } from '~/types';
+
+export interface Props {
+  metadata?: MetaData;
+  branding?: {
+    siteName?: string | null;
+    siteTagline?: string | null;
+    logoSrc?: string | null;
+    faviconSrc?: string | null;
+  };
+}
+
+const { metadata, branding: propsBranding } = Astro.props;
+
+// Tenant-aware branding - fetch if not provided via props
+let branding = propsBranding;
+if (!branding) {
+  const tenantId = Astro.request.headers.get('x-tenant-id') || Astro.url.searchParams.get('tenantId') || '';
+  const baseUrl = new URL(Astro.request.url);
+
+  try {
+    const res = await fetch(
+      new URL(`/api/v1/theme/masterastrowind/branding?tenantId=${encodeURIComponent(tenantId)}`, baseUrl),
+      { headers: tenantId ? { 'X-Tenant-Id': tenantId } : undefined }
+    );
+    const json = await res.json();
+    const fetchedBranding = json?.data || null;
+    
+    if (fetchedBranding) {
+      branding = {
+        siteName: fetchedBranding.site_name || 'Master Astrowind',
+        siteTagline: fetchedBranding.site_tagline || 'Free template for creating websites with Astro + Tailwind CSS',
+        logoSrc: fetchedBranding.site_logo || null,
+        faviconSrc: fetchedBranding.site_favicon || null,
+      };
+    }
+  } catch {
+    // Fallback to defaults
+    branding = {
+      siteName: 'Master Astrowind',
+      siteTagline: 'Free template for creating websites with Astro + Tailwind CSS',
+      logoSrc: null,
+      faviconSrc: null,
+    };
+  }
+}
+---
+
+<Layout metadata={metadata} branding={branding}>
+  <slot name="announcement">
+    <Announcement />
+  </slot>
+  <slot name="header">
+    <Header {...headerData} isSticky showRssFeed showToggleTheme logoSrc={branding?.logoSrc} siteName={branding?.siteName} />
+  </slot>
+  <main>
+    <slot />
+  </main>
+  <slot name="footer">
+    <Footer {...footerData} />
+  </slot>
+</Layout>

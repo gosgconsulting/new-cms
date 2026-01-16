@@ -1,0 +1,76 @@
+---
+import PageLayout from '~/layouts/PageLayout.astro';
+import Header from '~/components/widgets/Header.astro';
+
+import { headerData } from '~/navigation';
+import type { MetaData } from '~/types';
+
+export interface Props {
+  metadata?: MetaData;
+  branding?: {
+    siteName?: string | null;
+    siteTagline?: string | null;
+    logoSrc?: string | null;
+    faviconSrc?: string | null;
+  };
+}
+
+const { metadata, branding: propsBranding } = Astro.props;
+
+// Tenant-aware branding - fetch if not provided via props
+let branding = propsBranding;
+if (!branding) {
+  const tenantId = Astro.request.headers.get('x-tenant-id') || Astro.url.searchParams.get('tenantId') || '';
+  const baseUrl = new URL(Astro.request.url);
+
+  try {
+    const res = await fetch(
+      new URL(`/api/v1/theme/masterastrowind/branding?tenantId=${encodeURIComponent(tenantId)}`, baseUrl),
+      { headers: tenantId ? { 'X-Tenant-Id': tenantId } : undefined }
+    );
+    const json = await res.json();
+    const fetchedBranding = json?.data || null;
+    
+    if (fetchedBranding) {
+      branding = {
+        siteName: fetchedBranding.site_name || 'Master Astrowind',
+        siteTagline: fetchedBranding.site_tagline || 'Free template for creating websites with Astro + Tailwind CSS',
+        logoSrc: fetchedBranding.site_logo || null,
+        faviconSrc: fetchedBranding.site_favicon || null,
+      };
+    }
+  } catch {
+    // Fallback to defaults
+    branding = {
+      siteName: 'Master Astrowind',
+      siteTagline: 'Free template for creating websites with Astro + Tailwind CSS',
+      logoSrc: null,
+      faviconSrc: null,
+    };
+  }
+}
+---
+
+<PageLayout metadata={metadata} branding={branding}>
+  <Fragment slot="announcement">
+    <slot name="announcement" />
+  </Fragment>
+  <Fragment slot="header">
+    <slot name="header">
+      <Header
+        links={headerData?.links[2] ? [headerData.links[2]] : undefined}
+        actions={[
+          {
+            text: 'Download',
+            href: 'https://github.com/arthelokyo/astrowind',
+          },
+        ]}
+        showToggleTheme
+        position="right"
+        logoSrc={branding?.logoSrc}
+        siteName={branding?.siteName}
+      />
+    </slot>
+  </Fragment>
+  <slot />
+</PageLayout>

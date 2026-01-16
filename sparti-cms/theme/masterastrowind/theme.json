@@ -1,0 +1,12 @@
+{
+  "slug": "masterastrowind",
+  "name": "Master Astrowind",
+  "version": "1.0.0",
+  "description": "A production-ready Astro theme with Tailwind CSS, fully integrated with tenant-aware branding.",
+  "is_active": true,
+  "author": "Sparti",
+  "category": "base",
+  "tags": ["tenant-aware", "astro", "tailwind", "production-ready", "master"],
+  "preview_image": "assets/images/default.png",
+  "demo_url": "/theme/masterastrowind"
+}
