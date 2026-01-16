@@ -33,12 +33,16 @@ const ShaderPlane = ({ vertexShader, fragmentShader, uniforms }: ShaderPlaneProp
     <mesh ref={meshRef}>
       <planeGeometry args={[2, 2]} />
       <shaderMaterial
-        vertexShader={vertexShader}
-        fragmentShader={fragmentShader}
-        uniforms={uniforms as Record<string, THREE.IUniform>}
-        side={THREE.FrontSide}
-        depthTest={false}
-        depthWrite={false}
+        args={[
+          {
+            vertexShader,
+            fragmentShader,
+            uniforms: uniforms as Record<string, THREE.IUniform>,
+            side: THREE.FrontSide,
+            depthTest: false,
+            depthWrite: false,
+          } as THREE.ShaderMaterialParameters
+        ]}
       />
     </mesh>
   );

@@ -1,0 +1,86 @@
+{
+  "pages": [
+    {
+      "page_name": "Homepage",
+      "slug": "/",
+      "meta_title": "Singapore Business Setup In 24 Hours - ACRA Registered | Professional Business Services",
+      "meta_description": "ACRA-registered filing agents providing complete Singapore company incorporation, professional accounting services, and 100% compliance guarantee. Start your business today with expert guidance.",
+      "seo_index": true,
+      "status": "published",
+      "page_type": "page",
+      "keywords": ["singapore company incorporation", "acra registered", "business setup", "accounting services", "corporate secretary", "compliance guarantee"],
+      "sections": [
+        {
+          "id": "hero",
+          "name": "Hero Section",
+          "description": "Main landing section with value proposition and CTA"
+        },
+        {
+          "id": "services",
+          "name": "Services Section",
+          "description": "Detailed showcase of business services with alternating layouts"
+        },
+        {
+          "id": "testimonials",
+          "name": "Testimonials Section",
+          "description": "Customer reviews and success stories with ratings"
+        },
+        {
+          "id": "faq",
+          "name": "FAQ Section",
+          "description": "Frequently asked questions with collapsible answers"
+        },
+        {
+          "id": "contact",
+          "name": "Contact Section",
+          "description": "Call-to-action and contact form integration"
+        }
+      ]
+    },
+    {
+      "page_name": "About Us",
+      "slug": "/about",
+      "meta_title": "About ACATR - Professional Singapore Business Services",
+      "meta_description": "Learn about our ACRA-registered filing agents and professional business services team dedicated to helping businesses succeed in Singapore.",
+      "seo_index": true,
+      "status": "draft",
+      "page_type": "page"
+    },
+    {
+      "page_name": "Contact",
+      "slug": "/contact",
+      "meta_title": "Contact Us - Singapore Business Setup Experts",
+      "meta_description": "Get in touch with our ACRA-registered filing agents for professional Singapore company incorporation and business services. Free consultation available.",
+      "seo_index": true,
+      "status": "draft",
+      "page_type": "page"
+    },
+    {
+      "page_name": "Thank You",
+      "slug": "/thank-you",
+      "meta_title": "Thank You - ACATR Business Services",
+      "meta_description": "Thank you for contacting ACATR Business Services. We've received your message and will get back to you within 4 hours.",
+      "seo_index": false,
+      "status": "published",
+      "page_type": "page"
+    },
+    {
+      "page_name": "Privacy Policy",
+      "slug": "/privacy-policy",
+      "meta_title": "Privacy Policy - ACATR Business Services",
+      "meta_description": "Privacy policy for ACATR Business Services covering data collection, usage, and protection practices.",
+      "seo_index": false,
+      "status": "draft",
+      "page_type": "legal"
+    },
+    {
+      "page_name": "Terms of Service",
+      "slug": "/terms-conditions",
+      "meta_title": "Terms of Service - ACATR Business Services",
+      "meta_description": "Terms and conditions for ACATR Business Services covering service agreements and legal obligations.",
+      "seo_index": false,
+      "status": "draft",
+      "page_type": "legal"
+    }
+  ]
+}

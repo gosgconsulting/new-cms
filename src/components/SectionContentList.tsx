@@ -34,20 +34,16 @@ const SectionContentList: React.FC<SectionContentListProps> = ({ items, variant 
         const key = `${item.componentId ?? "item"}-${index}`;
         switch (item.type) {
           case "heading": {
-            const HeadingTag = (`h${item.level || 2}`) as keyof JSX.IntrinsicElements;
-            return (
-              <HeadingTag
-                key={key}
-                className={`font-bold text-foreground ${
-                  item.level === 1 ? "text-2xl mb-3" :
-                  item.level === 2 ? "text-xl mb-2" :
-                  item.level === 3 ? "text-lg mb-2" :
-                  "text-base mb-2"
-                }`}
-              >
-                {item.text}
-              </HeadingTag>
-            );
+            const level = Math.min(Math.max(item.level || 2, 1), 6);
+            const tag = (`h${level}`) as keyof JSX.IntrinsicElements;
+            const classes =
+              `font-bold text-foreground ${
+                level === 1 ? "text-2xl mb-3" :
+                level === 2 ? "text-xl mb-2" :
+                level === 3 ? "text-lg mb-2" :
+                "text-base mb-2"
+              }`;
+            return React.createElement(tag, { key, className: classes }, item.text);
           }
           case "paragraph":
             return (

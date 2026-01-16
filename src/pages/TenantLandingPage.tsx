@@ -10,7 +10,7 @@ const GosgConsultingTheme = lazy(() => import('../../sparti-cms/theme/gosgconsul
 const SissonneTheme = lazy(() => import('../../sparti-cms/theme/sissonne'));
 const MasterTheme = lazy(() => import('../../sparti-cms/theme/master'));
 const StorefrontTheme = lazy(() => import('../../sparti-cms/theme/storefront'));
-const STRFitnessTheme = lazy(() => import('../../sparti-cms/theme/strfitness'));
+const StrTheme = lazy(() => import('../../sparti-cms/theme/str'));
 
 /**
  * Map theme slugs to their display names and components
@@ -45,13 +45,9 @@ const themeConfig: Record<string, { name: string; component: React.LazyExoticCom
     name: 'Storefront',
     component: StorefrontTheme
   },
-  'strfitness': {
-    name: 'STR Fitness — 1-on-1 Personal Training',
-    component: STRFitnessTheme
-  },
   'str': {
-    name: 'STR Fitness — 1-on-1 Personal Training',
-    component: STRFitnessTheme
+    name: 'ACATR Business Services',
+    component: StrTheme
   }
 };
 
