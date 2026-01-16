@@ -6,6 +6,34 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+function ensureDir(dirPath) {
+  if (!fs.existsSync(dirPath)) {
+    fs.mkdirSync(dirPath, { recursive: true });
+  }
+}
+
+function copyDirRecursive(src, dest) {
+  if (!fs.existsSync(src)) return;
+  ensureDir(dest);
+
+  // Node 18+ supports fs.cpSync
+  if (typeof fs.cpSync === 'function') {
+    fs.cpSync(src, dest, { recursive: true });
+    return;
+  }
+
+  const entries = fs.readdirSync(src, { withFileTypes: true });
+  for (const entry of entries) {
+    const srcPath = path.join(src, entry.name);
+    const destPath = path.join(dest, entry.name);
+    if (entry.isDirectory()) {
+      copyDirRecursive(srcPath, destPath);
+    } else {
+      fs.copyFileSync(srcPath, destPath);
+    }
+  }
+}
+
 /**
  * Convert folder name to display name
  * e.g., "landingpage" -> "Landing Page"
@@ -1079,7 +1107,22 @@ export async function createTheme(slug, name, description) {
     // Create theme folder
     fs.mkdirSync(themePath, { recursive: true });
     console.log('[testing] Created theme folder:', themePath);
-    
+
+    // Ensure a public asset folder exists for the theme.
+    // Convention: /public/theme/<themeSlug>/assets
+    // This makes it easy to hardcode asset paths during early development and carry assets when duplicating the master theme.
+    const projectPublicDir = path.join(__dirname, '../../public');
+    const themePublicDir = path.join(projectPublicDir, 'theme', slug);
+    const themeAssetsDir = path.join(themePublicDir, 'assets');
+    ensureDir(themeAssetsDir);
+
+    // If master public assets exist and the new theme doesn't have any yet, copy them as a starter.
+    const masterPublicDir = path.join(projectPublicDir, 'theme', 'master');
+    if (fs.existsSync(masterPublicDir)) {
+      // Copy into /public/theme/<slug>
+      copyDirRecursive(masterPublicDir, themePublicDir);
+    }
+
     // Create a basic index.tsx file in the theme folder
     const indexFile = path.join(themePath, 'index.tsx');
     const themeName = name || formatThemeName(slug);
@@ -1092,7 +1135,11 @@ interface TenantLandingProps {
 
 /**
  * Theme: ${themeName}
- * This is a customizable theme component
+ * This is a customizable theme component.
+ *
+ * Asset convention:
+ * - Put assets in /public/theme/${slug}/assets
+ * - Refer to them with: /theme/${slug}/assets/<file>
  */
 const TenantLanding: React.FC<TenantLandingProps> = ({ 
   tenantName = 'Theme', 
@@ -1100,32 +1147,27 @@ const TenantLanding: React.FC<TenantLandingProps> = ({
 }) => {
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 w-full py-6 px-4 md:px-8 bg-background/95 backdrop-blur-md border-b border-border">
         <div className="container mx-auto">
           <div className="flex items-center justify-between">
             <a href={\`/theme/\${tenantSlug}\`} className="flex items-center z-10">
-              <span className="h-12 inline-flex items-center font-bold text-xl">
-                {tenantName}
-              </span>
+              <span className="h-12 inline-flex items-center font-bold text-xl">{tenantName}</span>
             </a>
           </div>
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="pt-24 pb-12">
         <div className="container mx-auto px-4">
           <div className="text-center">
             <h1 className="text-4xl font-bold mb-4">Welcome to {tenantName}</h1>
             <p className="text-muted-foreground text-lg">
-              This is your new theme. Customize it to fit your needs.
+              Theme scaffold created. Add assets under <code className="bg-muted px-1 rounded">/public/theme/${slug}/assets</code>.
             </p>
           </div>
         </div>
       </main>
 
-      {/* Footer */}
       <footer className="border-t border-border py-8 mt-12">
         <div className="container mx-auto px-4 text-center text-muted-foreground">
           <p>&copy; {new Date().getFullYear()} {tenantName}. All rights reserved.</p>
@@ -1140,7 +1182,7 @@ export default TenantLanding;
     
     fs.writeFileSync(indexFile, themeComponent, 'utf8');
     console.log('[testing] Created theme index file:', indexFile);
-    
+
     // Create theme.json config file
     const themeNameFormatted = name || formatThemeName(slug);
     const themeDescription = description || `Theme: ${themeNameFormatted}`;
@@ -1148,14 +1190,16 @@ export default TenantLanding;
       name: themeNameFormatted,
       description: themeDescription,
       version: '1.0.0',
-      is_active: true
+      is_active: true,
+      preview_image: 'assets/preview.svg',
+      demo_url: `/theme/${slug}`
     };
     
     const configWritten = writeThemeConfig(slug, themeConfig);
     if (!configWritten) {
       console.warn(`[testing] Failed to create theme.json for ${slug}, but theme folder was created`);
     }
-    
+
     // Create pages.json file with default homepage
     const pagesConfig = {
       pages: [
@@ -1170,7 +1214,7 @@ export default TenantLanding;
         }
       ]
     };
-    
+
     try {
       const pagesPath = path.join(themePath, 'pages.json');
       const pagesContent = JSON.stringify(pagesConfig, null, 2);
@@ -1179,25 +1223,23 @@ export default TenantLanding;
     } catch (error) {
       console.warn(`[testing] Failed to create pages.json for ${slug}:`, error);
     }
-    
+
     // Create database entry
     const now = new Date().toISOString();
-    
+
     try {
       const result = await query(`
         INSERT INTO themes (id, name, slug, description, created_at, updated_at, is_active)
         VALUES ($1, $2, $3, $4, $5, $6, $7)
         RETURNING id, name, slug, description, created_at, updated_at, is_active
       `, [slug, themeNameFormatted, slug, themeDescription, now, now, true]);
-      
+
       console.log('[testing] Created theme in database:', result.rows[0]);
       return {
         ...result.rows[0],
         folder_created: true
       };
     } catch (dbError) {
-      // If database insert fails, we still created the folder
-      // Return a file-system-only theme object
       console.error('[testing] Failed to create theme in database, but folder was created:', dbError);
       return {
         id: slug,
@@ -1215,4 +1257,3 @@ export default TenantLanding;
     throw error;
   }
 }
-

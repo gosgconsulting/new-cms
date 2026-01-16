@@ -59,25 +59,8 @@ export interface UseThemeSettingsResult {
 
 /**
  * React hook to fetch theme settings from the public API
- * 
- * @param themeSlug - The theme slug (e.g., 'landingpage')
- * @param tenantSlug - Optional tenant slug (if not provided, will use current tenant from context/subdomain)
- * @returns Theme settings, loading state, error state, and refetch function
- * 
- * @example
- * ```tsx
- * const { settings, loading, error } = useThemeSettings('landingpage');
- * 
- * if (loading) return <div>Loading...</div>;
- * if (error) return <div>Error: {error}</div>;
- * 
- * return <div>{settings?.branding.site_name}</div>;
- * ```
  */
-export const useThemeSettings = (
-  themeSlug: string,
-  tenantSlug?: string
-): UseThemeSettingsResult => {
+export const useThemeSettings = (themeSlug: string, tenantSlug?: string): UseThemeSettingsResult => {
   const [settings, setSettings] = useState<ThemeSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -93,8 +76,7 @@ export const useThemeSettings = (
     setError(null);
 
     try {
-      // Build API URL - use public API endpoint
-      const apiUrl = tenantSlug 
+      const apiUrl = tenantSlug
         ? `/api/v1/theme/${themeSlug}/settings?tenantId=${encodeURIComponent(tenantSlug)}`
         : `/api/v1/theme/${themeSlug}/settings`;
 
@@ -102,8 +84,8 @@ export const useThemeSettings = (
         method: 'GET',
         headers: {
           'Content-Type': 'application/json; charset=utf-8',
-          'Accept': 'application/json'
-        }
+          Accept: 'application/json',
+        },
       });
 
       if (!response.ok) {
@@ -116,12 +98,11 @@ export const useThemeSettings = (
         throw new Error(result.error || 'Failed to fetch theme settings');
       }
 
-      // Transform the response to match our interface
       const transformedSettings: ThemeSettings = {
         branding: result.data.branding || {},
         localization: result.data.localization || {},
         styles: result.data.theme || result.data.styles || {},
-        ...result.data // Include any other categories
+        ...result.data,
       };
 
       setSettings(transformedSettings);
@@ -143,8 +124,16 @@ export const useThemeSettings = (
     settings,
     loading,
     error,
-    refetch: fetchSettings
+    refetch: fetchSettings,
   };
+};
+
+type HookOptions = {
+  /**
+   * When false, the hook will not call the API.
+   * Useful for themes that want to start fully hardcoded and only enable CMS later.
+   */
+  enabled?: boolean;
 };
 
 /**
@@ -152,13 +141,23 @@ export const useThemeSettings = (
  */
 export const useThemeBranding = (
   themeSlug: string,
-  tenantId?: string
+  tenantId?: string,
+  options: HookOptions = {}
 ): { branding: ThemeBrandingSettings | null; loading: boolean; error: string | null } => {
+  const enabled = options.enabled ?? true;
+
   const [branding, setBranding] = useState<ThemeBrandingSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!enabled) {
+      setLoading(false);
+      setError(null);
+      setBranding(null);
+      return;
+    }
+
     if (!themeSlug) {
       setError('Theme slug is required');
       setLoading(false);
@@ -168,74 +167,54 @@ export const useThemeBranding = (
     setLoading(true);
     setError(null);
 
-    // First, check if branding settings are already injected in the HTML
-    // Use a small delay to ensure window object and injected scripts are available
     const checkInjectedData = () => {
       if (typeof window !== 'undefined') {
         const injectedBranding = (window as any).__BRANDING_SETTINGS__;
-        console.log('[useThemeBranding] Checking for injected branding:', {
-          exists: !!injectedBranding,
-          type: typeof injectedBranding,
-          keys: injectedBranding && typeof injectedBranding === 'object' ? Object.keys(injectedBranding) : 'N/A'
-        });
-        
-        if (injectedBranding && typeof injectedBranding === 'object' && Object.keys(injectedBranding).length > 0) {
-          console.log('[useThemeBranding] ✅ Using injected branding settings from HTML:', Object.keys(injectedBranding));
+
+        if (
+          injectedBranding &&
+          typeof injectedBranding === 'object' &&
+          Object.keys(injectedBranding).length > 0
+        ) {
           setBranding(injectedBranding);
           setLoading(false);
           return true;
-        } else {
-          console.log('[useThemeBranding] ⚠️ Injected branding not found or empty, will fetch from API');
         }
-      } else {
-        console.log('[useThemeBranding] ⚠️ Window object not available, will fetch from API');
       }
       return false;
     };
 
-    // Check immediately
     if (checkInjectedData()) {
       return;
     }
 
-    // Also check after a small delay (in case script hasn't executed yet)
     const timeoutId = setTimeout(() => {
       if (checkInjectedData()) {
         return;
       }
-      // If still not found, proceed with API call
       proceedWithApiCall();
     }, 100);
 
     const proceedWithApiCall = () => {
       clearTimeout(timeoutId);
 
-      // Get tenant ID from parameter, window object, or use default
-      const effectiveTenantId = tenantId || 
-        (typeof window !== 'undefined' && (window as any).__CMS_TENANT__) || 
-        null;
+      const effectiveTenantId =
+        tenantId || (typeof window !== 'undefined' && (window as any).__CMS_TENANT__) || null;
 
-      // Build API URL with tenant ID in query params
       const apiUrl = effectiveTenantId
         ? `/api/v1/theme/${themeSlug}/branding?tenantId=${encodeURIComponent(effectiveTenantId)}`
-        : `/api/v1/theme/${themeSlug}/branding?tenantId=tenant-gosg`; // Default fallback
-
-      console.log('[useThemeBranding] Fetching branding from API:', apiUrl);
+        : `/api/v1/theme/${themeSlug}/branding`;
 
       fetch(apiUrl, {
         method: 'GET',
         headers: {
-          'Accept': 'application/json'
-          // Don't set Accept-Encoding - let the browser handle it automatically
-        }
+          Accept: 'application/json',
+        },
       })
         .then(async (res) => {
-          console.log('[useThemeBranding] Response status:', res.status);
           const contentType = res.headers.get('content-type') || '';
-          console.log('[useThemeBranding] Response content-type:', contentType);
-          
+
           if (!res.ok) {
-            // Try to get error message from response
             const text = await res.text();
             let errorData;
             try {
@@ -245,22 +224,16 @@ export const useThemeBranding = (
             }
             throw new Error(errorData.error || `Failed to fetch branding: ${res.statusText}`);
           }
-          
-          // Check if response is JSON
+
           if (!contentType.includes('application/json')) {
             const text = await res.text();
             console.error('[useThemeBranding] Non-JSON response:', text.substring(0, 200));
             throw new Error(`Expected JSON but received ${contentType}`);
           }
-          
-          // Use .json() directly - it handles decompression automatically
-          const result = await res.json();
-          console.log('[useThemeBranding] Response data:', result);
-          
-          return result;
+
+          return res.json();
         })
-        .then(result => {
-          // Handle response format: { success: true, data: {...} } or direct branding object
+        .then((result) => {
           let brandingData;
           if (result.success && result.data) {
             brandingData = result.data;
@@ -269,10 +242,10 @@ export const useThemeBranding = (
           } else {
             brandingData = result;
           }
-          
+
           setBranding(brandingData || {});
         })
-        .catch(err => {
+        .catch((err) => {
           const errorMessage = err instanceof Error ? err.message : 'Failed to fetch branding';
           console.error('[useThemeBranding] Error:', errorMessage, err);
           setError(errorMessage);
@@ -281,11 +254,10 @@ export const useThemeBranding = (
         .finally(() => setLoading(false));
     };
 
-    // If not found immediately, proceed with API call after delay
     if (!checkInjectedData()) {
       proceedWithApiCall();
     }
-  }, [themeSlug, tenantId]);
+  }, [themeSlug, tenantId, enabled]);
 
   return { branding, loading, error };
 };
@@ -295,13 +267,23 @@ export const useThemeBranding = (
  */
 export const useThemeStyles = (
   themeSlug: string,
-  tenantSlug?: string
+  tenantSlug?: string,
+  options: HookOptions = {}
 ): { styles: ThemeStyleSettings | null; loading: boolean; error: string | null } => {
+  const enabled = options.enabled ?? true;
+
   const [styles, setStyles] = useState<ThemeStyleSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!enabled) {
+      setLoading(false);
+      setError(null);
+      setStyles(null);
+      return;
+    }
+
     if (!themeSlug) {
       setError('Theme slug is required');
       setLoading(false);
@@ -311,7 +293,7 @@ export const useThemeStyles = (
     setLoading(true);
     setError(null);
 
-    const apiUrl = tenantSlug 
+    const apiUrl = tenantSlug
       ? `/api/v1/theme/${themeSlug}/styles?tenantId=${encodeURIComponent(tenantSlug)}`
       : `/api/v1/theme/${themeSlug}/styles`;
 
@@ -319,26 +301,25 @@ export const useThemeStyles = (
       method: 'GET',
       headers: {
         'Content-Type': 'application/json; charset=utf-8',
-        'Accept': 'application/json'
-      }
+        Accept: 'application/json',
+      },
     })
-      .then(res => {
+      .then((res) => {
         if (!res.ok) throw new Error(`Failed to fetch styles: ${res.statusText}`);
         return res.json();
       })
-      .then(result => {
+      .then((result) => {
         if (!result.success) throw new Error(result.error || 'Failed to fetch styles');
         setStyles(result.data || {});
       })
-      .catch(err => {
+      .catch((err) => {
         const errorMessage = err instanceof Error ? err.message : 'Failed to fetch styles';
         console.error('[useThemeStyles] Error:', errorMessage);
         setError(errorMessage);
         setStyles(null);
       })
       .finally(() => setLoading(false));
-  }, [themeSlug, tenantSlug]);
+  }, [themeSlug, tenantSlug, enabled]);
 
   return { styles, loading, error };
 };
-

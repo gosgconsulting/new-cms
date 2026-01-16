@@ -18,8 +18,8 @@ const BLOG_POSTS = [
     excerpt: 'A clean starting point for tenant-aware sites. This post is a placeholder you can replace from CMS later.',
     body: [
       'This is a minimal blog page intended to verify routing and future CMS wiring.',
-      'Replace this static content with CMS-driven content when ready.'
-    ]
+      'Replace this static content with CMS-driven content when ready.',
+    ],
   },
   {
     slug: 'migrations-fast',
@@ -27,9 +27,9 @@ const BLOG_POSTS = [
     excerpt: 'How branding + styles are loaded through the public API, keeping themes reusable across tenants.',
     body: [
       'The Master theme loads branding (name/logo/favicon) and styles (colors/typography) via the public API.',
-      'That makes it a good base for migrations: you can keep UI consistent and swap tenant identity cleanly.'
-    ]
-  }
+      'That makes it a good base for migrations: you can keep UI consistent and swap tenant identity cleanly.',
+    ],
+  },
 ] as const;
 
 const SHOP_PRODUCTS = [
@@ -37,14 +37,14 @@ const SHOP_PRODUCTS = [
     slug: 'starter-kit',
     name: 'Starter Kit',
     price: '$29',
-    description: 'A simple placeholder product to validate /shop routing and page structure.'
+    description: 'A simple placeholder product to validate /shop routing and page structure.',
   },
   {
     slug: 'pro-kit',
     name: 'Pro Kit',
     price: '$99',
-    description: 'Another placeholder product. Replace with real products when you connect a store.'
-  }
+    description: 'Another placeholder product. Replace with real products when you connect a store.',
+  },
 ] as const;
 
 function normalizeSlug(input?: string) {
@@ -67,15 +67,16 @@ function resolvePage(pageSlug?: string): { key: PageKey; param?: string } {
 /**
  * Master Theme
  * Minimal, tenant-aware base theme intended for duplication/migrations.
- * - Uses useThemeBranding/useThemeStyles with explicit tenantId when available
- * - No hardcoded tenant IDs or assets
- * - Simple pages: Home, Blog, Shop
+ *
+ * Asset convention:
+ * - Put assets in /public/theme/<themeSlug>/assets
+ * - Refer to them with: /theme/<themeSlug>/assets/<file>
  */
 const MasterTheme: React.FC<TenantLandingProps> = ({
   tenantName = 'Master Theme',
   tenantSlug = 'master',
   tenantId,
-  pageSlug
+  pageSlug,
 }) => {
   // IMPORTANT: hooks must be declared unconditionally (before any early returns)
   const [contactOpen, setContactOpen] = useState(false);
@@ -91,20 +92,28 @@ const MasterTheme: React.FC<TenantLandingProps> = ({
     return null;
   }, [tenantId]);
 
-  // Tenant-aware branding and style settings
+  // If no tenant is set, run fully hardcoded (no API/DB dependency).
+  const cmsEnabled = !!effectiveTenantId;
+
+  // Tenant-aware branding and style settings (optional)
   const { branding, loading: brandingLoading, error: brandingError } = useThemeBranding(
     tenantSlug,
-    effectiveTenantId ?? undefined
+    effectiveTenantId ?? undefined,
+    { enabled: cmsEnabled }
   );
   const { loading: stylesLoading, error: stylesError } = useThemeStyles(
     tenantSlug,
-    effectiveTenantId ?? undefined
+    effectiveTenantId ?? undefined,
+    { enabled: cmsEnabled }
   );
 
   // Derived presentation values with safe fallbacks
   const siteName = branding?.site_name || tenantName;
   const siteTagline = branding?.site_tagline || 'A tenant-aware base theme';
   const logoSrc = branding?.site_logo || null;
+
+  const baseUrl = `/theme/${tenantSlug}`;
+  const assetUrl = (file: string) => `${baseUrl}/assets/${file}`;
 
   // Optional favicon application
   useEffect(() => {
@@ -120,8 +129,8 @@ const MasterTheme: React.FC<TenantLandingProps> = ({
     link.href = favicon;
   }, [branding?.site_favicon]);
 
-  // Loading state
-  if (brandingLoading || stylesLoading) {
+  // Loading state (only when CMS fetch is enabled)
+  if (cmsEnabled && (brandingLoading || stylesLoading)) {
     return (
       <div className="min-h-screen theme-bg flex items-center justify-center">
         <div className="text-center">
@@ -132,13 +141,10 @@ const MasterTheme: React.FC<TenantLandingProps> = ({
     );
   }
 
-  // Proceed even if branding/styles errors occur (use fallbacks)
   if (brandingError || stylesError) {
     if (brandingError) console.warn('[master-theme] Branding load error:', brandingError);
     if (stylesError) console.warn('[master-theme] Styles load error:', stylesError);
   }
-
-  const baseUrl = `/theme/${tenantSlug}`;
 
   const NavLink = ({ href, label }: { href: string; label: string }) => {
     const active = normalizeSlug(pageSlug) === normalizeSlug(href.replace(baseUrl + '/', ''));
@@ -175,23 +181,25 @@ const MasterTheme: React.FC<TenantLandingProps> = ({
             >
               Go to CMS
             </a>
-            <a
-              href={`${baseUrl}/blog`}
-              className="px-4 py-2 rounded-md border border-border hover:bg-muted text-sm"
-            >
+            <a href={`${baseUrl}/blog`} className="px-4 py-2 rounded-md border border-border hover:bg-muted text-sm">
               Blog
             </a>
-            <a
-              href={`${baseUrl}/shop`}
-              className="px-4 py-2 rounded-md border border-border hover:bg-muted text-sm"
-            >
+            <a href={`${baseUrl}/shop`} className="px-4 py-2 rounded-md border border-border hover:bg-muted text-sm">
               Shop
             </a>
           </div>
-          {effectiveTenantId && (
-            <p className="mt-4 text-xs text-muted-foreground">Tenant ID: {effectiveTenantId}</p>
+
+          {!cmsEnabled && (
+            <p className="mt-4 text-xs text-muted-foreground">
+              Running in hardcoded mode (no tenant selected → no CMS API calls).
+            </p>
           )}
-          {stylesError && (
+
+          {effectiveTenantId && (
+            <p className="mt-2 text-xs text-muted-foreground">Tenant ID: {effectiveTenantId}</p>
+          )}
+
+          {cmsEnabled && stylesError && (
             <p className="mt-2 text-xs text-destructive">
               Styles could not be loaded for this tenant/theme (showing defaults).
             </p>
@@ -200,13 +208,13 @@ const MasterTheme: React.FC<TenantLandingProps> = ({
 
         <div className="rounded-2xl border border-border bg-card p-6">
           <div className="flex items-center justify-between">
-            <p className="text-sm font-medium">Master theme preview</p>
-            <span className="text-xs text-muted-foreground">/theme/master</span>
+            <p className="text-sm font-medium">Theme assets preview</p>
+            <span className="text-xs text-muted-foreground">{baseUrl}</span>
           </div>
           <div className="mt-4 rounded-xl overflow-hidden border border-border bg-background">
             <img
-              src="/theme/master/assets/hero.svg"
-              alt="Master theme illustration"
+              src={assetUrl('hero.svg')}
+              alt="Theme illustration"
               className="w-full h-auto"
               onError={(e) => {
                 (e.target as HTMLImageElement).style.display = 'none';
@@ -214,9 +222,9 @@ const MasterTheme: React.FC<TenantLandingProps> = ({
             />
           </div>
           <ul className="mt-4 text-sm text-muted-foreground space-y-1">
-            <li>• Branding via public API (site name, logo, favicon)</li>
-            <li>• Theme styles via public API (colors, typography)</li>
-            <li>• Simple pages: /, /blog, /shop</li>
+            <li>• Assets: /public/theme/{tenantSlug}/assets</li>
+            <li>• Pages: /, /blog, /shop</li>
+            <li>• CMS branding/styles are optional and can be enabled later</li>
           </ul>
         </div>
       </div>
