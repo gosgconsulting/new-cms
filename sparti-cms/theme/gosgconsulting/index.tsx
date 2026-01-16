@@ -245,7 +245,7 @@ const GOSGContent: React.FC<TenantLandingProps> = ({
               "Keyword-led topics and outlines",
               "SEO-optimized content"
             ],
-            image: "/assets/seo/blog-articles.svg"
+            image: "/assets/seo/content-that-ranks.svg"
           },
           {
             id: "backlinks",
@@ -256,7 +256,7 @@ const GOSGContent: React.FC<TenantLandingProps> = ({
               "Relevant placements from trusted sites",
               "Natural anchor strategy"
             ],
-            image: "/assets/seo/backlinks.svg"
+            image: "/assets/seo/authority-that-grows.svg"
           },
           {
             id: "monthly-report",
@@ -267,7 +267,7 @@ const GOSGContent: React.FC<TenantLandingProps> = ({
               "Insights and recommendations",
               "Next‑month plan"
             ],
-            image: "/assets/seo/monthly-report.svg"
+            image: "/assets/seo/data-you-trust.svg"
           }
         ]
       }
