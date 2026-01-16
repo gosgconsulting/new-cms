@@ -142,6 +142,7 @@ const SyntheticHero: React.FC<HeroProps> = ({
   const paragraphRef = useRef<HTMLParagraphElement | null>(null);
   const ctaRef = useRef<HTMLDivElement | null>(null);
   const microRef = useRef<HTMLUListElement | null>(null);
+  const canvasContainerRef = useRef<HTMLDivElement | null>(null);
 
   const shaderUniforms = useMemo(
     () => ({
@@ -213,8 +214,12 @@ const SyntheticHero: React.FC<HeroProps> = ({
 
   return (
     <section ref={sectionRef} className="relative flex items-center justify-center min-h-screen overflow-hidden">
-      <div className="absolute inset-0 z-0">
-        <Canvas>
+      <div ref={canvasContainerRef} className="absolute inset-0 z-0">
+        <Canvas
+          className="w-full h-full"
+          eventSource={canvasContainerRef.current ?? undefined}
+          eventPrefix="client"
+        >
           <ShaderPlane vertexShader={vertexShader} fragmentShader={fragmentShader} uniforms={shaderUniforms} />
         </Canvas>
       </div>
