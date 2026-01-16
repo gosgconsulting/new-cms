@@ -10,31 +10,28 @@
       "page_type": "page",
       "keywords": ["digital marketing", "SEO", "SEM", "social media ads", "website design", "graphic design", "Singapore", "full-stack"],
       "sections": [
-        {
-          "id": "hero",
-          "name": "Advanced Hero Section",
-          "description": "Main landing section with animated value proposition, logo, and marketing badges"
-        },
-        {
-          "id": "challenge",
-          "name": "Challenge Section",
-          "description": "Problem/solution layout with animated timeline and pain points"
-        },
-        {
-          "id": "about",
-          "name": "Animated About Section",
-          "description": "Vision into reality section with feature highlights"
-        },
-        {
-          "id": "pricing",
-          "name": "Pricing Section",
-          "description": "Comprehensive pricing plans with features and CTAs"
-        },
-        {
-          "id": "services",
-          "name": "Services Gallery",
-          "description": "Gallery showcase of all digital marketing services"
-        }
+        { "id": "hero", "name": "Advanced Hero Section", "description": "Main landing section with animated value proposition, logo, and marketing badges" },
+        { "id": "challenge", "name": "Challenge Section", "description": "Problem/solution layout with animated timeline and pain points" },
+        { "id": "about", "name": "Animated About Section", "description": "Vision into reality section with feature highlights" },
+        { "id": "pricing", "name": "Pricing Section", "description": "Comprehensive pricing plans with features and CTAs" },
+        { "id": "services", "name": "Services Gallery", "description": "Gallery showcase of all digital marketing services" }
+      ]
+    },
+    {
+      "page_name": "SEO",
+      "slug": "/seo",
+      "meta_title": "GO SG Consulting - Full-Stack Digital Growth Solution",
+      "meta_description": "Helping brands grow their revenue and leads through comprehensive digital marketing services including SEO, SEM, Social Media Ads, Website Design, and Graphic Design.",
+      "seo_index": true,
+      "status": "published",
+      "page_type": "page",
+      "keywords": ["digital marketing", "SEO", "SEM", "social media ads", "website design", "graphic design", "Singapore", "full-stack"],
+      "sections": [
+        { "id": "hero", "name": "Advanced Hero Section", "description": "Main landing section with animated value proposition, logo, and marketing badges" },
+        { "id": "challenge", "name": "Challenge Section", "description": "Problem/solution layout with animated timeline and pain points" },
+        { "id": "about", "name": "Animated About Section", "description": "Vision into reality section with feature highlights" },
+        { "id": "pricing", "name": "Pricing Section", "description": "Comprehensive pricing plans with features and CTAs" },
+        { "id": "services", "name": "Services Gallery", "description": "Gallery showcase of all digital marketing services" }
       ]
     },
     {

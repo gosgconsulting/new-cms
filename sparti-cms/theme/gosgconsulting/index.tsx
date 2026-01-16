@@ -311,6 +311,9 @@ const GOSGTheme: React.FC<TenantLandingProps> = ({
       case '':
       case undefined:
         return <GOSGContent tenantName={tenantName} tenantSlug={tenantSlug} />;
+      case 'seo':
+        // NEW: exact copy of homepage at /seo
+        return <GOSGContent tenantName={tenantName} tenantSlug={tenantSlug} />;
       case 'thank-you':
         return <ThankYouPage tenantName={tenantName} tenantSlug={tenantSlug} tenantId={undefined} />;
       case 'shop':
