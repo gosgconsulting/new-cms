@@ -10,12 +10,12 @@ import FlowbiteFAQSection from "@/libraries/flowbite/components/FlowbiteFAQSecti
 import FlowbiteCTASection from "@/libraries/flowbite/components/FlowbiteCTASection";
 import { initFlowbiteTheme } from "@/utils/flowbiteThemeManager";
 import { useThemeBranding } from "../../hooks/useThemeSettings";
-import Header from "./components/Header";
-import Footer from "./components/Footer";
-import ContactFormModal from "./components/ContactFormModal";
-import { ThankYouPage } from "./components/ThankYouPage";
-import PrivacyPolicyPage from "./components/PrivacyPolicyPage";
-import TermsAndConditionsPage from "./components/TermsAndConditionsPage";
+import Header from "./components/layout/Header";
+import Footer from "./components/layout/Footer";
+import ContactFormModal from "./components/modals/ContactFormModal";
+import { ThankYouPage } from "./pages/ThankYouPage";
+import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
+import TermsAndConditionsPage from "./pages/TermsAndConditionsPage";
 import "./theme.css";
 
 // Helper function to adjust color brightness

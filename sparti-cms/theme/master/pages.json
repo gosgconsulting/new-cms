@@ -1,19 +1,60 @@
 {
   "pages": [
-    { "id": "home", "name": "Home", "slug": "", "component": "Homepage" },
-    { "id": "blog", "name": "Blog", "slug": "blog", "component": "Blog" },
-    { "id": "thank-you", "name": "Thank You", "slug": "thank-you", "component": "ThankYouPage" },
     {
-      "id": "privacy-policy",
-      "name": "Privacy Policy",
-      "slug": "privacy-policy",
-      "component": "PrivacyPolicyPage"
+      "page_name": "Homepage",
+      "slug": "/",
+      "meta_title": "Master Theme — Reference Implementation",
+      "meta_description": "Reference theme showcasing best-practice structure, CMS integration patterns, and a deployable front-end layout.",
+      "seo_index": true,
+      "status": "published",
+      "page_type": "page",
+      "keywords": ["cms", "theme", "template", "reference", "landing page"],
+      "sections": [
+        { "id": "hero", "name": "Hero", "description": "Top value proposition + primary CTA" },
+        { "id": "challenge", "name": "Pain Points", "description": "Problem framing and key bullets" },
+        { "id": "about", "name": "About", "description": "Positioning + credibility" },
+        { "id": "services", "name": "Services", "description": "What's included / feature grid" },
+        { "id": "testimonials", "name": "Testimonials", "description": "Social proof" },
+        { "id": "faq", "name": "FAQ", "description": "Frequently asked questions" },
+        { "id": "contact", "name": "Contact", "description": "CTA section + contact modal" }
+      ]
     },
     {
-      "id": "terms-and-conditions",
-      "name": "Terms & Conditions",
-      "slug": "terms-and-conditions",
-      "component": "TermsAndConditionsPage"
+      "page_name": "Blog",
+      "slug": "/blog",
+      "meta_title": "Blog — Master Theme",
+      "meta_description": "Sample blog index page (reference implementation).",
+      "seo_index": true,
+      "status": "published",
+      "page_type": "blog_index",
+      "keywords": ["blog", "articles", "updates"]
+    },
+    {
+      "page_name": "Thank You",
+      "slug": "/thank-you",
+      "meta_title": "Thank You — Master Theme",
+      "meta_description": "Confirmation page after form submission.",
+      "seo_index": false,
+      "status": "published",
+      "page_type": "page"
+    },
+    {
+      "page_name": "Privacy Policy",
+      "slug": "/privacy-policy",
+      "meta_title": "Privacy Policy — Master Theme",
+      "meta_description": "Privacy policy for the Master Theme reference site.",
+      "seo_index": false,
+      "status": "published",
+      "page_type": "legal"
+    },
+    {
+      "page_name": "Terms & Conditions",
+      "slug": "/terms-and-conditions",
+      "meta_title": "Terms & Conditions — Master Theme",
+      "meta_description": "Terms and conditions for the Master Theme reference site.",
+      "seo_index": false,
+      "status": "published",
+      "page_type": "legal"
     }
   ]
 }

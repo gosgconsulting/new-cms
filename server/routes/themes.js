@@ -1,10 +1,174 @@
 import express from 'express';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+import multer from 'multer';
 import { authenticateUser } from '../middleware/auth.js';
 import { syncThemesFromFileSystem, getAllThemes, getThemeBySlug, getThemesFromFileSystem, createTheme, syncThemePages, getDefaultLayoutForTheme, readThemePages } from '../../sparti-cms/services/themeSync.js';
 import { query } from '../../sparti-cms/db/index.js';
 import { generateThemeApiKey } from '../../sparti-cms/db/tenant-management.js';
 
 const router = express.Router();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+function ensureDir(dirPath) {
+  if (!fs.existsSync(dirPath)) {
+    fs.mkdirSync(dirPath, { recursive: true });
+  }
+}
+
+function getThemeAssetsDirs(themeSlug) {
+  const projectRoot = path.join(__dirname, '..', '..');
+
+  const themeAssetsDir = path.join(projectRoot, 'sparti-cms', 'theme', themeSlug, 'assets');
+  const publicAssetsDir = path.join(projectRoot, 'public', 'theme', themeSlug, 'assets');
+
+  return { themeAssetsDir, publicAssetsDir };
+}
+
+function listFilesRecursive(baseDir) {
+  const results = [];
+  if (!fs.existsSync(baseDir)) return results;
+
+  const walk = (dir, prefix = '') => {
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
+    for (const entry of entries) {
+      if (entry.name.startsWith('.')) continue;
+      const abs = path.join(dir, entry.name);
+      const rel = prefix ? `${prefix}/${entry.name}` : entry.name;
+      if (entry.isDirectory()) {
+        walk(abs, rel);
+      } else {
+        results.push(rel);
+      }
+    }
+  };
+
+  walk(baseDir);
+  return results;
+}
+
+// Upload handler for theme assets
+const themeAssetsUpload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => {
+      try {
+        const themeSlug = req.params.themeSlug;
+        const { themeAssetsDir, publicAssetsDir } = getThemeAssetsDirs(themeSlug);
+        ensureDir(themeAssetsDir);
+        ensureDir(publicAssetsDir);
+        cb(null, themeAssetsDir);
+      } catch (e) {
+        cb(e);
+      }
+    },
+    filename: (req, file, cb) => {
+      const original = file.originalname || 'file';
+      const ext = path.extname(original);
+      const base = path
+        .basename(original, ext)
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '')
+        .slice(0, 60);
+
+      const unique = `${Date.now()}-${Math.round(Math.random() * 1e6)}`;
+      cb(null, `${base || 'asset'}-${unique}${ext.toLowerCase()}`);
+    },
+  }),
+  limits: {
+    fileSize: 15 * 1024 * 1024,
+  },
+});
+
+/**
+ * GET /api/themes/:themeSlug/assets
+ * List static assets for a theme.
+ *
+ * Returns URLs like: /theme/:themeSlug/assets/<file>
+ */
+router.get('/:themeSlug/assets', authenticateUser, async (req, res) => {
+  try {
+    if (!req.user?.is_super_admin) {
+      return res.status(403).json({ success: false, error: 'Forbidden' });
+    }
+
+    const themeSlug = req.params.themeSlug;
+    const { themeAssetsDir, publicAssetsDir } = getThemeAssetsDirs(themeSlug);
+
+    // Prefer real theme folder, but fall back to public folder.
+    const baseDir = fs.existsSync(themeAssetsDir) ? themeAssetsDir : publicAssetsDir;
+
+    const files = listFilesRecursive(baseDir);
+
+    const assets = files.map((filePath) => ({
+      path: filePath,
+      url: `/theme/${themeSlug}/assets/${filePath}`,
+    }));
+
+    return res.json({ success: true, theme: themeSlug, assets });
+  } catch (error) {
+    console.error('[testing] Error listing theme assets:', error);
+    return res.status(500).json({ success: false, error: 'Failed to list theme assets' });
+  }
+});
+
+/**
+ * POST /api/themes/:themeSlug/assets/upload
+ * Uploads a file into the theme assets folder.
+ *
+ * Writes to:
+ * - sparti-cms/theme/:themeSlug/assets (server + production)
+ * - public/theme/:themeSlug/assets (vite dev + fallback)
+ */
+router.post(
+  '/:themeSlug/assets/upload',
+  authenticateUser,
+  (req, res, next) => {
+    if (!req.user?.is_super_admin) {
+      return res.status(403).json({ success: false, error: 'Forbidden' });
+    }
+    return next();
+  },
+  themeAssetsUpload.single('file'),
+  async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ success: false, error: 'No file uploaded' });
+      }
+
+      const themeSlug = req.params.themeSlug;
+      const { themeAssetsDir, publicAssetsDir } = getThemeAssetsDirs(themeSlug);
+      ensureDir(themeAssetsDir);
+      ensureDir(publicAssetsDir);
+
+      // Copy to public folder so Vite dev can serve it.
+      const srcPath = path.join(themeAssetsDir, req.file.filename);
+      const destPath = path.join(publicAssetsDir, req.file.filename);
+      try {
+        fs.copyFileSync(srcPath, destPath);
+      } catch (copyErr) {
+        console.warn('[testing] Could not copy uploaded theme asset into public folder:', copyErr);
+      }
+
+      const url = `/theme/${themeSlug}/assets/${req.file.filename}`;
+
+      return res.status(201).json({
+        success: true,
+        theme: themeSlug,
+        filename: req.file.filename,
+        originalName: req.file.originalname,
+        url,
+      });
+    } catch (error) {
+      console.error('[testing] Error uploading theme asset:', error);
+      return res.status(500).json({ success: false, error: 'Failed to upload theme asset' });
+    }
+  }
+);
 
 /**
  * GET /api/themes
@@ -583,4 +747,3 @@ router.put('/:id', authenticateUser, async (req, res) => {
 });
 
 export default router;
-

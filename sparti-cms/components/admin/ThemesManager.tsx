@@ -12,7 +12,8 @@ import {
   Eye,
   FileCode,
   X,
-  Zap
+  Zap,
+  Image as ImageIcon
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -39,6 +40,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../auth/AuthProvider';
 import { api } from '../../utils/api';
 import { useNavigate } from 'react-router-dom';
+import ThemeAssetsDialog from './ThemeAssetsDialog';
 
 interface Theme {
   id: string;
@@ -82,6 +84,7 @@ const ThemesManager: React.FC = () => {
   });
   const [filterType, setFilterType] = useState<'all' | 'template' | 'custom'>('all');
   const { toast } = useToast();
+  const [assetsThemeSlug, setAssetsThemeSlug] = useState<string | null>(null);
 
   // Fetch themes from API
   const { data: themesData = [], isLoading: themesLoading, refetch: refetchThemes } = useQuery<Theme[]>({
@@ -446,6 +449,11 @@ const ThemesManager: React.FC = () => {
 
   return (
     <div className="p-6 space-y-6">
+      <ThemeAssetsDialog
+        open={!!assetsThemeSlug}
+        onOpenChange={(open) => setAssetsThemeSlug(open ? assetsThemeSlug : null)}
+        themeSlug={assetsThemeSlug || 'master'}
+      />
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -617,7 +625,7 @@ const ThemesManager: React.FC = () => {
                     </span>
                   )}
                 </div>
-                <div className="flex items-center gap-2 pt-2 border-t">
+                <div className="flex items-center gap-2 pt-2 border-t flex-wrap">
                   <Button
                     variant="outline"
                     size="sm"
@@ -635,6 +643,16 @@ const ThemesManager: React.FC = () => {
                   >
                     <Zap className="h-4 w-4 mr-2" />
                     Activate
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setAssetsThemeSlug(theme.slug)}
+                    className="flex-1"
+                    title="Manage theme assets"
+                  >
+                    <ImageIcon className="h-4 w-4 mr-2" />
+                    Assets
                   </Button>
                   <Button
                     variant="outline"

@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo } from 'react';
-import Header from './Header';
-import Footer from './Footer';
+import Header from '../components/layout/Header';
+import Footer from '../components/layout/Footer';
 
 interface ThankYouPageProps {
   tenantName?: string;
@@ -13,7 +13,6 @@ const WHATSAPP_PHONE = '6580246850';
 export const ThankYouPage: React.FC<ThankYouPageProps> = ({
   tenantName = 'Master Template',
   tenantSlug = 'master',
-  tenantId
 }) => {
   const searchParams = useMemo(() => {
     if (typeof window === 'undefined') return new URLSearchParams();

@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { ArrowLeft, ArrowRight, Loader2, MessageCircle, Send } from "lucide-react";
-import { getTenantId } from "../../../utils/tenantConfig";
+import { getTenantId } from "../../../../utils/tenantConfig";
 
 type ContactFormModalProps = {
   isOpen: boolean;
@@ -215,9 +215,7 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
                   <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-gray-900">
                     1. Let's start with your details
                   </h2>
-                  <p className="text-sm text-gray-600">
-                    Name and email are required.
-                  </p>
+                  <p className="text-sm text-gray-600">Name and email are required.</p>
                 </div>
 
                 <div className="space-y-4">
@@ -293,7 +291,11 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
                   >
                     <ArrowLeft className="h-4 w-4 mr-2" /> Back
                   </button>
-                  <button type="button" onClick={goNext} className="btn-cta rounded-full px-7 py-3 flex items-center">
+                  <button
+                    type="button"
+                    onClick={goNext}
+                    className="btn-cta rounded-full px-7 py-3 flex items-center"
+                  >
                     Next <ArrowRight className="h-4 w-4 ml-2" />
                   </button>
                 </div>
