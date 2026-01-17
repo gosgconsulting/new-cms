@@ -59,7 +59,7 @@ const FlowbiteContentSection: React.FC<FlowbiteContentSectionProps> = ({
   const variant = (props as any).variant as string | undefined;
 
   const title = getHeading("title") || (props as any).title || "";
-  const badge = getText("badge") || (props as any).badge || "About us";
+  const badge = getText("badge") || (props as any).badge || "";
   const button = getButton("button");
 
   const paragraphs = useMemo(() => {
@@ -118,9 +118,11 @@ const FlowbiteContentSection: React.FC<FlowbiteContentSectionProps> = ({
           <div className="mx-auto max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
             {/* Left */}
             <div>
-              <Reveal direction="up" delayMs={0}>
-                <span className="label-section">{badge}</span>
-              </Reveal>
+              {badge ? (
+                <Reveal direction="up" delayMs={0}>
+                  <span className="label-section">{badge}</span>
+                </Reveal>
+              ) : null}
 
               {title ? (
                 <Reveal direction="up" delayMs={80}>

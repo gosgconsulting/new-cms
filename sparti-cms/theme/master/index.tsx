@@ -325,7 +325,7 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
     type: "flowbite-content-section",
     props: {
       variant: "about",
-      badge: "About us",
+      badge: "",
       imageSrc: `/theme/${tenantSlug}/assets/placeholder.svg`,
       reviewLabel: "5 Star",
       reviewSub: "Review",
@@ -356,11 +356,6 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
     type: "flowbite-whats-included-section",
     props: {},
     items: [
-      {
-        key: "badge",
-        type: "text",
-        content: "Services",
-      },
       {
         key: "title",
         type: "heading",
