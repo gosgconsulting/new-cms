@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, Image as ImageIcon, User } from "lucide-react";
+import { Calendar, Clock, User } from "lucide-react";
 import { BLOG_CATEGORIES, BLOG_POSTS, type BlogCategory, type BlogPost } from "../../data/blog";
 
 function formatDate(iso: string) {
