@@ -33,16 +33,17 @@ router.use('/api', (req, res, next) => {
   if (req.method === 'OPTIONS') {
     return next();
   }
+  // IMPORTANT: Inside a router mounted at '/api', req.path is relative (e.g., '/auth/login')
   // Skip access key authentication for the verify-access-key endpoint
-  if (req.path === '/api/auth/verify-access-key') {
+  if (req.path === '/auth/verify-access-key') {
     return next();
   }
   // Skip access key authentication for login and register endpoints
-  if (req.path === '/api/auth/login' || req.path === '/api/auth/register') {
+  if (req.path === '/auth/login' || req.path === '/auth/register') {
     return next();
   }
   // Skip access key authentication for v1 routes (they use tenant API key authentication)
-  if (req.path.startsWith('/api/v1')) {
+  if (req.path.startsWith('/v1')) {
     return next();
   }
   return authenticateWithAccessKey(req, res, next);
