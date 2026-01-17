@@ -5,12 +5,12 @@ import { Button } from "@/components/ui/button";
 import { ThemeLink } from "../ThemeLink";
 import ShoppingBag, { type CartItem } from "./ShoppingBag";
 
-import logoSrc from "../../../../../lovable-ecom-main/public/LINEA-1.svg";
+import logoSrc from "../../assets/LINEA-1.svg";
 
-import pantheonImage from "../../../../../lovable-ecom-main/src/assets/pantheon.jpg";
-import eclipseImage from "../../../../../lovable-ecom-main/src/assets/eclipse.jpg";
-import haloImage from "../../../../../lovable-ecom-main/src/assets/halo.jpg";
-import foundersImage from "../../../../../lovable-ecom-main/src/assets/founders.png";
+import pantheonImage from "../../assets/pantheon.jpg";
+import eclipseImage from "../../assets/eclipse.jpg";
+import haloImage from "../../assets/halo.jpg";
+import foundersImage from "../../assets/founders.png";
 
 const Navigation = () => {
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);

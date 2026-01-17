@@ -1,0 +1,29 @@
+{
+  "pages": [
+    {
+      "page_name": "Homepage",
+      "slug": "/",
+      "meta_title": "Hotel Adina — Luxury Rooms & Suites",
+      "meta_description": "Experience luxury and comfort at Hotel Adina. Browse our selection of premium rooms and suites. Book your perfect stay with flexible check-in options.",
+      "seo_index": true,
+      "status": "published",
+      "page_type": "page",
+      "keywords": ["hotel", "luxury rooms", "suites", "accommodation", "booking", "hotel adina"],
+      "sections": [
+        { "id": "hero", "name": "Hero Slider", "description": "Full-screen image carousel with booking CTA" },
+        { "id": "booking", "name": "Booking Form", "description": "Check-in, check-out, and guest selection" },
+        { "id": "rooms", "name": "Room Listings", "description": "Available rooms and suites grid" }
+      ]
+    },
+    {
+      "page_name": "Room Details",
+      "slug": "/room/:id",
+      "meta_title": "Room Details — Hotel Adina",
+      "meta_description": "View detailed information about our luxury rooms, including amenities, pricing, and availability.",
+      "seo_index": true,
+      "status": "published",
+      "page_type": "dynamic",
+      "keywords": ["room details", "hotel room", "amenities", "booking", "accommodation"]
+    }
+  ]
+}

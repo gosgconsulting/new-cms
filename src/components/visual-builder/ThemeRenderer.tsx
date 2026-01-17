@@ -26,6 +26,7 @@ const LandingPageTheme = lazy(() => import('../../../sparti-cms/theme/landingpag
 const SpartiSEOLandingTheme = lazy(() => import('../../../sparti-cms/theme/sparti-seo-landing'));
 const GosgConsultingTheme = lazy(() => import('../../../sparti-cms/theme/gosgconsulting'));
 const CustomTheme = lazy(() => import('../../../sparti-cms/theme/custom'));
+const HotelTheme = lazy(() => import('../../../sparti-cms/theme/hotel'));
 
 /**
  * Map theme slugs to their display names and components
@@ -47,6 +48,10 @@ const themeConfig: Record<string, { name: string; component: React.LazyExoticCom
   'custom': {
     name: 'Custom',
     component: CustomTheme
+  },
+  'hotel': {
+    name: 'Hotel Adina',
+    component: HotelTheme
   }
 };
 

@@ -1,4 +1,4 @@
-import logoSrc from "../../../../lovable-ecom-main/public/Linea_Jewelry_Inc-2.svg";
+import logoSrc from "../../assets/Linea_Jewelry_Inc-2.svg";
 import { useThemeBasePath, themeHref } from "../ThemeLink";
 
 const Footer = () => {

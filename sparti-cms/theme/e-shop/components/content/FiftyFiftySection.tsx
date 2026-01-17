@@ -1,7 +1,7 @@
 import { ThemeLink } from "../ThemeLink";
 
-import haloImage from "../../../../../lovable-ecom-main/src/assets/halo.jpg";
-import eclipseImage from "../../../../../lovable-ecom-main/src/assets/eclipse.jpg";
+import haloImage from "../../assets/halo.jpg";
+import eclipseImage from "../../assets/eclipse.jpg";
 
 const FiftyFiftySection = () => {
   return (

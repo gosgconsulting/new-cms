@@ -1,0 +1,23 @@
+{
+  "name": "Hotel Booking Theme",
+  "description": "Interactive hotel booking theme with room listings, filtering, and reservation system. Features a hero slider, room search with guest count filters, and detailed room views with booking functionality.",
+  "version": "1.0.0",
+  "author": "GOSG",
+  "is_active": true,
+  "category": "hospitality",
+  "tags": ["hotel", "booking", "rooms", "hospitality", "reservation"],
+  "designSystem": "custom",
+  "designSystemTheme": "hotel",
+  "features": [
+    "Room listings with filtering by guest count",
+    "Interactive booking form with date pickers",
+    "Room details with facilities showcase",
+    "Hero image slider",
+    "Responsive design with mobile optimization",
+    "Custom hotel-themed styling (gold accent)",
+    "Real-time room availability filtering"
+  ],
+  "preview_image": "assets/preview.svg",
+  "demo_url": "/theme/hotel",
+  "documentation_url": "/docs/themes/hotel"
+}

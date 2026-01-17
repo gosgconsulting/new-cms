@@ -1,7 +1,7 @@
 import { ThemeLink } from "../ThemeLink";
 
-import pantheonImage from "../../../../../lovable-ecom-main/src/assets/pantheon.jpg";
-import obliqueImage from "../../../../../lovable-ecom-main/src/assets/oblique.jpg";
+import pantheonImage from "../../assets/pantheon.jpg";
+import obliqueImage from "../../assets/oblique.jpg";
 
 const OneThirdTwoThirdsSection = () => {
   return (

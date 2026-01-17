@@ -1,0 +1,359 @@
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Barlow:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Gilda+Display&display=swap');
+
+/* Hotel Theme Custom Styles */
+/* Note: Tailwind CSS is already loaded globally via src/index.css */
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 1.5rem;
+}
+
+/* Browser Main Scrollbar */
+html::-webkit-scrollbar {
+  width: 8px;
+}
+
+html::-webkit-scrollbar-thumb {
+  border-radius: 2px;
+  background-color: var(--brand-accent, #a37d4c);
+}
+
+html::-webkit-scrollbar-track {
+  background-color: #ffffff;
+}
+
+/* Base styles */
+body {
+  font-family: 'Barlow', sans-serif;
+  color: var(--brand-primary, #0a0a0a);
+}
+
+input::placeholder {
+  color: var(--brand-primary, #0a0a0a);
+}
+
+/* Font families */
+.font-primary {
+  font-family: 'Gilda Display', serif;
+}
+
+.font-secondary {
+  font-family: 'Barlow', sans-serif;
+}
+
+.font-tertiary {
+  font-family: 'Barlow Condensed', sans-serif;
+}
+
+/* Typography */
+.h2 {
+  font-family: 'Gilda Display', serif;
+  font-size: 45px;
+  margin-bottom: 1rem;
+}
+
+.h3 {
+  font-family: 'Gilda Display', serif;
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  margin-bottom: 0.5rem;
+}
+
+/* Buttons */
+.btn {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 15px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: white;
+  flex: 1;
+  transition: all 0.3s;
+  padding-left: 2rem;
+  padding-right: 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.btn-sm {
+  height: 48px;
+}
+
+.btn-lg {
+  height: 60px;
+}
+
+.btn-primary {
+  background-color: var(--brand-accent, #a37d4c);
+}
+
+.btn-primary:hover {
+  background-color: var(--brand-accent-dark, #967142);
+}
+
+.btn-secondary {
+  background-color: var(--brand-primary, #0a0a0a);
+}
+
+.btn-secondary:hover {
+  background-color: var(--brand-accent, #a37d4c);
+}
+
+.btn-white {
+  background-color: white;
+  color: #0a0a0a;
+}
+
+/* Custom accent color utilities */
+.text-accent {
+  color: var(--brand-accent, #a37d4c);
+}
+
+.text-accent-hover {
+  color: var(--brand-accent-dark, #967142);
+}
+
+.bg-accent {
+  background-color: var(--brand-accent, #a37d4c);
+}
+
+.bg-accent\/20 {
+  background-color: rgba(163, 125, 76, 0.2);
+}
+
+.hover\:bg-accent:hover {
+  background-color: var(--brand-accent, #a37d4c);
+}
+
+.hover\:text-accent:hover {
+  color: var(--brand-accent, #a37d4c);
+}
+
+.text-primary {
+  color: var(--brand-primary, #0a0a0a);
+}
+
+.bg-primary {
+  background-color: var(--brand-primary, #0a0a0a);
+}
+
+.hover\:bg-primary:hover {
+  background-color: var(--brand-primary, #0a0a0a);
+}
+
+/* Room background image */
+.bg-room {
+  background-image: url('/theme/hotel/assets/rooms/1-lg.png');
+}
+
+/*
+ * Layout parity with the original "Hotel-Booking-Interactive-Landing--React-Frontend-main".
+ * That project uses a Tailwind config with:
+ * - container padding: 15px
+ * - breakpoints: sm=640, md=768, lg=960, xl=1140
+ * Our app's Tailwind config differs globally, so we recreate those rules only within the hotel theme.
+ */
+.theme-hotel .container {
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 15px;
+  padding-right: 15px;
+}
+
+@media (min-width: 640px) {
+  .theme-hotel .container {
+    max-width: 640px;
+  }
+}
+
+@media (min-width: 768px) {
+  .theme-hotel .container {
+    max-width: 768px;
+  }
+}
+
+@media (min-width: 960px) {
+  .theme-hotel .container {
+    max-width: 960px;
+  }
+}
+
+@media (min-width: 1140px) {
+  .theme-hotel .container {
+    max-width: 1140px;
+  }
+}
+
+/*
+ * Tailwind "lg:" utilities in the original theme start at 960px.
+ * Our Tailwind build uses a different lg breakpoint, so we add a small compatibility layer that
+ * applies the key hotel-theme lg: styles starting at 960px.
+ */
+@media (min-width: 960px) {
+  .theme-hotel .lg\:flex-row {
+    flex-direction: row;
+  }
+
+  .theme-hotel .lg\:justify-between {
+    justify-content: space-between;
+  }
+
+  .theme-hotel .lg\:gap-y-0 {
+    row-gap: 0;
+  }
+
+  .theme-hotel .lg\:gap-x-8 {
+    column-gap: 2rem;
+  }
+
+  .theme-hotel .lg\:absolute {
+    position: absolute;
+  }
+
+  .theme-hotel .lg\:left-0 {
+    left: 0;
+  }
+
+  .theme-hotel .lg\:right-0 {
+    right: 0;
+  }
+
+  .theme-hotel .lg\:p-0 {
+    padding: 0;
+  }
+
+  .theme-hotel .lg\:-top-12 {
+    top: -3rem;
+  }
+
+  .theme-hotel .lg\:z-30 {
+    z-index: 30;
+  }
+
+  .theme-hotel .lg\:shadow-xl {
+    box-shadow:
+      0 20px 25px -5px rgb(0 0 0 / 0.1),
+      0 8px 10px -6px rgb(0 0 0 / 0.1);
+  }
+
+  .theme-hotel .lg\:h-\[70px\] {
+    height: 70px;
+  }
+
+  .theme-hotel .lg\:h-\[860px\] {
+    height: 860px;
+  }
+
+  .theme-hotel .lg\:text-\[68px\] {
+    font-size: 68px;
+  }
+
+  .theme-hotel .lg\:px-0 {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .theme-hotel .lg\:grid-cols-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .theme-hotel .lg\:max-w-none {
+    max-width: none;
+  }
+
+  .theme-hotel .lg\:mx-0 {
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  .theme-hotel .lg\:mb-6 {
+    margin-bottom: 1.5rem;
+  }
+
+  .theme-hotel .lg\:gap-x-8 {
+    column-gap: 2rem;
+  }
+
+  .theme-hotel .lg\:w-\[60\%\] {
+    width: 60%;
+  }
+
+  .theme-hotel .lg\:w-\[40\%\] {
+    width: 40%;
+  }
+}
+
+/* Datepicker styling (copied from the original project) */
+.react-datepicker {
+  background: white;
+  border: none;
+  border-radius: 0;
+  font-family: 'Barlow';
+  border: 1px solid #aa8453;
+  font-size: 0.9rem;
+}
+
+.react-datepicker__header {
+  border: #aa8453;
+  color: #fff;
+  padding: 0;
+}
+
+.react-datepicker-wrapper {
+  padding: 0 2rem;
+  height: 100%;
+  display: flex;
+  background: white;
+}
+
+.react-datepicker-popper {
+  padding-top: 0;
+}
+
+.react-datepicker-popper[data-placement^='bottom'] {
+  padding-top: 0;
+}
+
+.react-datepicker__triangle {
+  display: none;
+}
+
+.react-datepicker__current-month {
+  background: #aa8453;
+  color: white;
+  padding: 0.3rem 0;
+}
+
+.react-datepicker__navigation {
+  top: 5px;
+}
+
+.react-datepicker__navigation-icon::before {
+  border-color: #fff;
+}
+
+.react-datepicker__input-container input {
+  outline: none;
+  background: none;
+}
+
+.react-datepicker__day--selected,
+.react-datepicker__day--keyboard-selected {
+  background: #aa8453;
+  border-radius: 0;
+}
+
+.react-datepicker__day--selected:hover {
+  background: #906d40;
+}
+
+.react-datepicker__current-month {
+  font-weight: 500;
+}
+
+.react-datepicker__day:hover {
+  border-radius: 0;
+}

@@ -1,4 +1,4 @@
-import foundersImage from "../../../../../lovable-ecom-main/src/assets/founders.png";
+import foundersImage from "../../assets/founders.png";
 import { ArrowRight } from "lucide-react";
 import { ThemeLink } from "../ThemeLink";
 

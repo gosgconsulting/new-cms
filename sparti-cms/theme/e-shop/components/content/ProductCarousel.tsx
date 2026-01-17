@@ -2,12 +2,12 @@ import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carouse
 import { Card, CardContent } from "@/components/ui/card";
 import { ThemeLink } from "../ThemeLink";
 
-import pantheonImage from "../../../../../lovable-ecom-main/src/assets/pantheon.jpg";
-import eclipseImage from "../../../../../lovable-ecom-main/src/assets/eclipse.jpg";
-import haloImage from "../../../../../lovable-ecom-main/src/assets/halo.jpg";
-import obliqueImage from "../../../../../lovable-ecom-main/src/assets/oblique.jpg";
-import lintelImage from "../../../../../lovable-ecom-main/src/assets/lintel.jpg";
-import shadowlineImage from "../../../../../lovable-ecom-main/src/assets/shadowline.jpg";
+import pantheonImage from "../../assets/pantheon.jpg";
+import eclipseImage from "../../assets/eclipse.jpg";
+import haloImage from "../../assets/halo.jpg";
+import obliqueImage from "../../assets/oblique.jpg";
+import lintelImage from "../../assets/lintel.jpg";
+import shadowlineImage from "../../assets/shadowline.jpg";
 
 interface Product {
   id: number;

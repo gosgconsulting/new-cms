@@ -1,7 +1,7 @@
 import { ChevronLeft } from "lucide-react";
 import { ThemeLink } from "../ThemeLink";
 
-import logoSrc from "../../../../../lovable-ecom-main/public/LINEA-1.svg";
+import logoSrc from "../../assets/LINEA-1.svg";
 
 const CheckoutHeader = () => {
   return (

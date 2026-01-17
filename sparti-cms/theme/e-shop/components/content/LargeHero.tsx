@@ -1,4 +1,4 @@
-import shadowlineHero from "../../../../../lovable-ecom-main/src/assets/shadowline-1.jpg";
+import shadowlineHero from "../../assets/shadowline-1.jpg";
 
 const LargeHero = () => {
   return (

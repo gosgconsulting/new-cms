@@ -22,6 +22,7 @@ const templateRegistry: Record<string, () => Promise<any>> = {
   // Known templates - add more as needed
   master: () => import("../../sparti-cms/theme/master"), // Master theme moved to theme folder
   website: () => import("../../sparti-cms/theme/storefront"), // website template uses storefront theme
+  hotel: () => import("../../sparti-cms/theme/hotel"), // Hotel booking theme
   // Add more templates here:
   // 'templatename': () => import("../../sparti-cms/theme/templatename"),
 };
@@ -77,23 +78,11 @@ export default function TemplateDynamic() {
           console.log(`[testing] Loading template ${templateName} from registry`);
           module = await templateRegistry[templateName]();
         } else {
-          // Fallback: try dynamic import (Vite will need to know about these at build time)
-          console.log(`[testing] Template ${templateName} not in registry, trying dynamic import`);
-          try {
-            // Try importing from templates folder
-            module = await import(`../../sparti-cms/templates/${templateName}/index.tsx`);
-          } catch (firstError) {
-            try {
-              // Try importing folder directly
-              module = await import(`../../sparti-cms/templates/${templateName}`);
-            } catch (secondError) {
-              throw new Error(
-                `Template "${templateName}" not found in registry and dynamic import failed. ` +
-                `Add it to templateRegistry in src/pages/TemplateDynamic.tsx or create it at ` +
-                `sparti-cms/templates/${templateName}/index.tsx`
-              );
-            }
-          }
+          // Template not in registry - must be added to templateRegistry
+          throw new Error(
+            `Template "${templateName}" not found in registry. ` +
+            `Add it to templateRegistry in src/pages/TemplateDynamic.tsx`
+          );
         }
         
         // Check if module has default export
