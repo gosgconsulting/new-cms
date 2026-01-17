@@ -28,7 +28,8 @@ const Footer: React.FC<FooterProps> = ({
   const services = [
     { name: 'Features', sectionId: 'features' },
     { name: 'Services', sectionId: 'services' },
-    { name: 'About', sectionId: 'about' }
+    { name: 'Pricing', sectionId: 'pricing' },
+    { name: 'FAQ', sectionId: 'faq' },
   ];
 
   const contactInfo = [
@@ -63,7 +64,7 @@ const Footer: React.FC<FooterProps> = ({
   ];
 
   return (
-    <footer className="bg-gray-50 border-t border-gray-200">
+    <footer className="bg-[color:var(--brand-background-alt)] dark:bg-slate-950 border-t border-black/10 dark:border-white/10">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-16 max-w-5xl mx-auto">
           {/* Company Info */}
@@ -80,24 +81,24 @@ const Footer: React.FC<FooterProps> = ({
                 }}
               />
             ) : (
-              <h3 className="text-xl font-bold text-gray-900 mb-4">{tenantName}</h3>
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">{tenantName}</h3>
             )}
-            {companyDescription && (
-              <p className="text-sm text-gray-600 leading-relaxed">
+            {companyDescription ? (
+              <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
                 {companyDescription}
               </p>
-            )}
+            ) : null}
           </div>
 
-          {/* Services Links */}
+          {/* Links */}
           <div>
-            <h4 className="font-bold text-lg mb-6 text-gray-900">Quick Links</h4>
+            <h4 className="font-bold text-lg mb-6 text-gray-900 dark:text-white">Quick Links</h4>
             <div className="space-y-3">
               {services.map((service) => (
                 <button
                   key={service.sectionId}
                   onClick={() => scrollToSection(service.sectionId)}
-                  className="block text-sm text-gray-600 hover:text-blue-600 transition-colors text-left"
+                  className="block text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors text-left"
                 >
                   {service.name}
                 </button>
@@ -105,18 +106,18 @@ const Footer: React.FC<FooterProps> = ({
             </div>
           </div>
 
-          {/* Contact Info */}
+          {/* Contact */}
           <div>
-            <h4 className="font-bold text-lg mb-6 text-gray-900">Contact</h4>
+            <h4 className="font-bold text-lg mb-6 text-gray-900 dark:text-white">Contact</h4>
             <div className="space-y-4">
               {contactInfo.map((info, index) => (
                 <div key={index} className="flex items-start gap-3">
-                  <div className="text-gray-600 mt-0.5">
+                  <div className="text-gray-600 dark:text-gray-300 mt-0.5">
                     {info.icon}
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-900">{info.label}</p>
-                    <p className="text-sm text-gray-600">{info.value}</p>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">{info.label}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">{info.value}</p>
                   </div>
                 </div>
               ))}
@@ -124,15 +125,13 @@ const Footer: React.FC<FooterProps> = ({
           </div>
         </div>
 
-        {/* Separator */}
-        <div className="border-t border-gray-200 my-12" />
+        <div className="border-t border-black/10 dark:border-white/10 my-12" />
 
-        {/* Bottom Footer */}
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-          <div className="text-sm text-gray-600">
+          <div className="text-sm text-gray-600 dark:text-gray-300">
             © {new Date().getFullYear()} {tenantName}. All rights reserved.
           </div>
-          <div className="text-sm text-gray-600">
+          <div className="text-sm text-gray-600 dark:text-gray-300">
             Powered by Flowbite Design System
           </div>
         </div>

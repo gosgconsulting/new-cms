@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import type { ComponentSchema, SchemaItem } from "../../../../sparti-cms/types/schema";
+import type { ComponentSchema } from "../../../../sparti-cms/types/schema";
 import FlowbiteSection from "./FlowbiteSection";
 import { Button } from "flowbite-react";
 
@@ -12,9 +12,8 @@ interface FlowbiteCTASectionProps {
 
 /**
  * Flowbite CTA Section Component
- * 
- * Call-to-action section with title, description, and button
- * Following Diora pattern for data extraction
+ *
+ * Revamped background + button styling for light/dark.
  */
 const FlowbiteCTASection: React.FC<FlowbiteCTASectionProps> = ({
   component,
@@ -23,28 +22,26 @@ const FlowbiteCTASection: React.FC<FlowbiteCTASectionProps> = ({
   const props = component.props || {};
   const items = component.items || [];
 
-  // Helper functions
   const getHeading = (key: string, level?: number) => {
     const item = items.find(
-      (i) => i.key?.toLowerCase() === key.toLowerCase() &&
-      i.type === "heading" &&
-      (level === undefined || (i as any).level === level)
+      (i) =>
+        i.key?.toLowerCase() === key.toLowerCase() &&
+        i.type === "heading" &&
+        (level === undefined || (i as any).level === level)
     ) as any;
     return item?.content || "";
   };
 
   const getText = (key: string) => {
     const item = items.find(
-      (i) => i.key?.toLowerCase() === key.toLowerCase() &&
-      typeof (i as any).content === "string"
+      (i) => i.key?.toLowerCase() === key.toLowerCase() && typeof (i as any).content === "string"
     ) as any;
     return item?.content || "";
   };
 
   const getButton = (key: string) => {
     const item = items.find(
-      (i) => i.key?.toLowerCase() === key.toLowerCase() &&
-      i.type === "button"
+      (i) => i.key?.toLowerCase() === key.toLowerCase() && i.type === "button"
     ) as any;
     return {
       content: item?.content || "",
@@ -52,34 +49,39 @@ const FlowbiteCTASection: React.FC<FlowbiteCTASectionProps> = ({
     };
   };
 
-  // Extract data
   const title = getHeading("title") || props.title || "";
   const description = getText("description") || props.description || "";
   const cta = getButton("cta");
 
   return (
-    <section className={`py-20 px-4 bg-gradient-to-br from-blue-600 to-blue-800 ${className}`}>
-      <div className="container mx-auto max-w-4xl">
-        <FlowbiteSection className="text-center text-white">
-          {title && (
-            <h2 className="text-3xl md:text-4xl font-bold mb-6 text-white">
+    <section
+      className={`relative py-20 px-4 overflow-hidden bg-gradient-to-br from-indigo-600 to-violet-600 dark:from-slate-950 dark:via-slate-950 dark:to-slate-900 ${className}`}
+    >
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute -top-40 left-1/2 h-[28rem] w-[48rem] -translate-x-1/2 rounded-full bg-gradient-to-r from-lime-400/20 via-sky-400/10 to-indigo-400/20 blur-3xl" />
+      </div>
+
+      <div className="container mx-auto max-w-4xl relative">
+        <FlowbiteSection className="text-center">
+          {title ? (
+            <h2 className="text-3xl md:text-4xl font-semibold tracking-tight mb-5 text-white">
               {title}
             </h2>
-          )}
-          {description && (
-            <p className="text-lg text-blue-100 mb-8 max-w-2xl mx-auto">
+          ) : null}
+          {description ? (
+            <p className="text-base md:text-lg text-white/80 mb-8 max-w-2xl mx-auto">
               {description}
             </p>
-          )}
-          {cta.content && (
+          ) : null}
+          {cta.content ? (
             <Button
               href={cta.link}
               size="xl"
-              className="bg-white text-blue-600 hover:bg-gray-100"
+              className="!bg-white !text-slate-900 hover:!bg-white/90 dark:!bg-lime-300 dark:!text-slate-950 dark:hover:!bg-lime-200"
             >
               {cta.content}
             </Button>
-          )}
+          ) : null}
         </FlowbiteSection>
       </div>
     </section>
@@ -87,4 +89,3 @@ const FlowbiteCTASection: React.FC<FlowbiteCTASectionProps> = ({
 };
 
 export default FlowbiteCTASection;
-

@@ -3,9 +3,10 @@ import { Sun, Moon } from 'lucide-react';
 
 interface ThemeToggleProps {
   className?: string;
+  size?: 'sm' | 'md';
 }
 
-const ThemeToggle: React.FC<ThemeToggleProps> = ({ className = '' }) => {
+const ThemeToggle: React.FC<ThemeToggleProps> = ({ className = '', size = 'sm' }) => {
   const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
@@ -36,27 +37,29 @@ const ThemeToggle: React.FC<ThemeToggleProps> = ({ className = '' }) => {
     }
   };
 
+  const sizeClasses =
+    size === 'md' ? 'h-10 w-10' : 'h-9 w-9';
+
   return (
     <button
       onClick={toggleTheme}
-      className={`
-        fixed bottom-6 left-6 z-50
-        w-14 h-14 rounded-full
-        flex items-center justify-center
-        bg-brand-primary hover:bg-brand-primary-dark
-        text-white
-        shadow-lg hover:shadow-xl
-        transition-all duration-200
-        focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2
-        ${className}
-      `}
+      className={[
+        'inline-flex items-center justify-center rounded-full border transition-colors',
+        'bg-white/60 hover:bg-white dark:bg-white/5 dark:hover:bg-white/10',
+        'border-black/10 dark:border-white/10',
+        'text-gray-900 dark:text-white',
+        'focus:outline-none focus:ring-2 focus:ring-[color:var(--brand-primary)] focus:ring-offset-2 focus:ring-offset-transparent',
+        sizeClasses,
+        className,
+      ].join(' ')}
       aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
       title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+      type="button"
     >
       {isDark ? (
-        <Sun className="w-6 h-6 text-yellow-300" />
+        <Sun className="h-4 w-4" />
       ) : (
-        <Moon className="w-6 h-6" />
+        <Moon className="h-4 w-4" />
       )}
     </button>
   );

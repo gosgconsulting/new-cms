@@ -1,19 +1,55 @@
 "use client";
 
-import React from "react";
-import type { ComponentSchema, SchemaItem } from "../../../../sparti-cms/types/schema";
-import { Button } from "flowbite-react";
+import React, { useMemo } from "react";
+import type { ComponentSchema } from "../../../../sparti-cms/types/schema";
+import { Star } from "lucide-react";
+import FlowbiteSlider, { type FlowbiteSlide } from "./FlowbiteSlider";
 
 interface FlowbiteHeroSectionProps {
   component: ComponentSchema;
   className?: string;
 }
 
+type SlideInput =
+  | string
+  | { src: string; alt?: string; caption?: string }
+  | { image: { src: string; alt?: string }; caption?: string };
+
+function normalizeSlides(input: unknown): FlowbiteSlide[] {
+  if (!Array.isArray(input)) return [];
+
+  return input
+    .map((s: SlideInput) => {
+      if (typeof s === "string") {
+        return { image: { src: s } };
+      }
+      if (s && typeof s === "object") {
+        if ("image" in s && (s as any).image?.src) {
+          return {
+            image: {
+              src: (s as any).image.src,
+              alt: (s as any).image.alt,
+            },
+            caption: (s as any).caption,
+          };
+        }
+        if ("src" in s && (s as any).src) {
+          return {
+            image: { src: (s as any).src, alt: (s as any).alt },
+            caption: (s as any).caption,
+          };
+        }
+      }
+      return null;
+    })
+    .filter(Boolean) as FlowbiteSlide[];
+}
+
 /**
  * Flowbite Hero Section Component
- * 
- * Hero section with title, description, CTA, and image
- * Following Diora pattern for data extraction
+ *
+ * Revamped hero with optional rating badge + carousel.
+ * Keeps the same data extraction pattern (ComponentSchema items/props).
  */
 const FlowbiteHeroSection: React.FC<FlowbiteHeroSectionProps> = ({
   component,
@@ -22,84 +58,181 @@ const FlowbiteHeroSection: React.FC<FlowbiteHeroSectionProps> = ({
   const props = component.props || {};
   const items = component.items || [];
 
-  // Helper functions
   const getText = (key: string) => {
     const item = items.find(
-      (i) => i.key?.toLowerCase() === key.toLowerCase() &&
-      typeof (i as any).content === "string"
+      (i) => i.key?.toLowerCase() === key.toLowerCase() && typeof (i as any).content === "string"
     ) as any;
     return item?.content || "";
   };
 
-  const getButton = (key: string) => {
+  const getButtonByKeys = (keys: string[]) => {
+    const lower = keys.map((k) => k.toLowerCase());
     const item = items.find(
-      (i) => (i.key?.toLowerCase() === key.toLowerCase() || key === "") &&
-      i.type === "button"
+      (i) => i.type === "button" && (lower.includes(String(i.key || "").toLowerCase()) || lower.includes(""))
     ) as any;
+
     return {
       content: item?.content || "",
       link: item?.link || "#",
     };
   };
 
-  const getImage = (key: string = "image") => {
-    const item = items.find(
-      (i) => i.key?.toLowerCase() === key.toLowerCase() && i.type === "image"
-    ) as any;
-    return item?.src || "";
+  const getImageItems = () => {
+    return items.filter((i) => i.type === "image" && typeof (i as any).src === "string") as any[];
   };
 
-  // Extract data
   const motto = getText("motto") || props.motto || "";
   const title = getText("title") || props.title || "";
   const description = getText("description") || props.description || "";
-  const cta = getButton("cta");
-  const image = getImage("image") || props.image || "";
+
+  const primaryCta = getButtonByKeys(["cta", "primaryCta"]);
+  const secondaryCta = getButtonByKeys(["ctaSecondary", "secondaryCta", "cta2"]);
+
+  const slides = useMemo<FlowbiteSlide[]>(() => {
+    const fromProps = normalizeSlides((props as any).slides);
+    if (fromProps.length > 0) return fromProps;
+
+    const imageItems = getImageItems();
+    const slideImages = imageItems.filter((i) => String(i.key || "").toLowerCase().includes("slide"));
+    const usable = (slideImages.length > 0 ? slideImages : imageItems)
+      .map((i) => ({ image: { src: i.src, alt: i.alt } }))
+      .slice(0, 6);
+
+    if (usable.length > 0) return usable;
+
+    return [
+      { image: { src: "/assets/seo-results-1.png", alt: "Results" } },
+      { image: { src: "/lovable-uploads/d2d7d623-f729-433e-b350-0e40b4a32b91.png", alt: "Preview" } },
+      { image: { src: "/lovable-uploads/d6e7a1ca-229a-4c34-83fc-e9bdf106b683.png", alt: "Preview" } },
+    ];
+  }, [items, props]);
+
+  const highlightedTitle = useMemo(() => {
+    if (!title) return null;
+    const needle = "growth";
+    const idx = title.toLowerCase().lastIndexOf(needle);
+    if (idx === -1) return <>{title}</>;
+
+    const before = title.slice(0, idx);
+    const match = title.slice(idx, idx + needle.length);
+    const after = title.slice(idx + needle.length);
+
+    return (
+      <>
+        {before}
+        <span className="text-lime-400 dark:text-lime-300">{match}</span>
+        {after}
+      </>
+    );
+  }, [title]);
 
   return (
-    <section className={`relative bg-gradient-to-br from-gray-50 to-white py-20 ${className}`}>
-      <div className="container mx-auto px-4">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          {/* Content */}
-          <div className="space-y-6">
-            {motto && (
-              <p className="text-sm font-semibold text-gray-600 uppercase tracking-wide">
-                {motto}
-              </p>
-            )}
-            {title && (
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
-                {title}
-              </h1>
-            )}
-            {description && (
-              <p className="text-lg text-gray-600 leading-relaxed">
-                {description}
-              </p>
-            )}
-            {cta.content && (
-              <div className="pt-4">
-                <Button
-                  href={cta.link}
-                  size="xl"
-                  className="bg-blue-600 hover:bg-blue-700"
-                >
-                  {cta.content}
-                </Button>
-              </div>
-            )}
-          </div>
+    <section
+      className={`relative overflow-hidden bg-white dark:bg-slate-950 py-10 sm:py-14 ${className}`}
+    >
+      {/* Background glow */}
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute -top-40 left-1/2 h-[28rem] w-[48rem] -translate-x-1/2 rounded-full bg-gradient-to-r from-indigo-400/25 via-sky-400/10 to-lime-400/20 blur-3xl dark:from-sky-500/20 dark:via-indigo-500/10 dark:to-lime-400/20" />
+        <div className="absolute -bottom-48 right-[-10rem] h-[26rem] w-[26rem] rounded-full bg-gradient-to-tr from-lime-400/10 via-sky-400/10 to-indigo-400/10 blur-3xl" />
+      </div>
 
-          {/* Image */}
-          {image && (
-            <div className="relative">
-              <img
-                src={image}
-                alt={title || "Hero image"}
-                className="w-full h-auto rounded-lg shadow-xl"
-              />
+      <div className="container mx-auto px-4">
+        <div className="mx-auto max-w-6xl">
+          <div className="rounded-3xl border border-black/10 dark:border-white/10 bg-white/70 dark:bg-white/5 backdrop-blur-sm shadow-[0_20px_80px_rgba(0,0,0,0.08)] dark:shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 p-6 sm:p-10 lg:p-12 items-center">
+              {/* Left: Copy */}
+              <div className="space-y-6">
+                <div className="flex flex-wrap items-center gap-3">
+                  <div className="inline-flex items-center gap-1.5 rounded-full border border-black/10 dark:border-white/10 bg-white/60 dark:bg-white/5 px-3 py-1 text-xs text-gray-700 dark:text-gray-200">
+                    <span className="font-semibold">Clutch</span>
+                    <span className="inline-flex items-center gap-0.5">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <Star key={i} className="h-3.5 w-3.5 text-lime-400" fill="currentColor" />
+                      ))}
+                    </span>
+                    <span className="text-gray-600 dark:text-gray-300">4.9 • 300+ clients</span>
+                  </div>
+                  {motto ? (
+                    <span className="text-xs text-gray-600 dark:text-gray-300">{motto}</span>
+                  ) : null}
+                </div>
+
+                {title ? (
+                  <h1 className="text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight text-gray-900 dark:text-white leading-[1.05]">
+                    {highlightedTitle}
+                  </h1>
+                ) : null}
+
+                {description ? (
+                  <p className="text-base sm:text-lg text-gray-600 dark:text-gray-300 leading-relaxed max-w-xl">
+                    {description}
+                  </p>
+                ) : null}
+
+                {(primaryCta.content || secondaryCta.content) && (
+                  <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                    {primaryCta.content ? (
+                      <a href={primaryCta.link} className="btn-cta w-full sm:w-auto">
+                        {primaryCta.content}
+                      </a>
+                    ) : null}
+                    {secondaryCta.content ? (
+                      <a
+                        href={secondaryCta.link}
+                        className="inline-flex h-12 items-center justify-center rounded-lg border border-black/10 dark:border-white/10 bg-white/60 dark:bg-white/5 px-6 font-semibold text-gray-900 dark:text-white hover:bg-white dark:hover:bg-white/10 transition-colors"
+                      >
+                        {secondaryCta.content}
+                      </a>
+                    ) : null}
+                  </div>
+                )}
+
+                <div className="text-sm text-gray-600 dark:text-gray-300">
+                  <span className="inline-flex items-center gap-2">
+                    <span className="h-2 w-2 rounded-full bg-lime-400" />
+                    <span>2 spots available this week</span>
+                  </span>
+                </div>
+
+                <div className="pt-4">
+                  <p className="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-3">
+                    Trusted by founders worldwide
+                  </p>
+                  <div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-sm font-semibold text-gray-400 dark:text-gray-500">
+                    <span>Horizon</span>
+                    <span>Mindscope</span>
+                    <span>NovoTech</span>
+                    <span>Quantum</span>
+                    <span>SolvorrY</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right: Carousel */}
+              <div className="lg:pl-4">
+                <div className="rounded-2xl border border-black/10 dark:border-white/10 bg-white/40 dark:bg-black/20 p-3 sm:p-4">
+                  <FlowbiteSlider
+                    slides={slides}
+                    options={{
+                      autoplay: true,
+                      intervalMs: 4500,
+                      arrows: true,
+                      dots: true,
+                      loop: true,
+                      pauseOnHover: true,
+                      aspectRatio: "16/9",
+                      overlay: {
+                        enabled: true,
+                        mode: "gradient",
+                        className: "bg-gradient-to-t from-black/40 via-black/10 to-transparent",
+                      },
+                    }}
+                    ariaLabel="Hero preview"
+                  />
+                </div>
+              </div>
             </div>
-          )}
+          </div>
         </div>
       </div>
     </section>
@@ -107,4 +240,3 @@ const FlowbiteHeroSection: React.FC<FlowbiteHeroSectionProps> = ({
 };
 
 export default FlowbiteHeroSection;
-

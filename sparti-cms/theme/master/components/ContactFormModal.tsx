@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { ArrowLeft, ArrowRight, Loader2, MessageCircle, Send, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Loader2, MessageCircle, Send } from "lucide-react";
 import { getTenantId } from "../../../utils/tenantConfig";
 
 type ContactFormModalProps = {
@@ -28,10 +28,20 @@ function getThankYouPath(): string {
   return "/thank-you";
 }
 
-const ContactFormModal: React.FC<ContactFormModalProps> = ({ 
-  isOpen, 
-  onClose, 
-  className = "" 
+const inputClass =
+  "w-full h-11 px-4 rounded-xl border border-gray-300 bg-white text-gray-900 " +
+  "dark:bg-slate-900 dark:text-white dark:border-white/10 " +
+  "focus:ring-2 focus:ring-[color:var(--brand-primary)] focus:border-[color:var(--brand-primary)] disabled:opacity-50";
+
+const textareaClass =
+  "w-full px-4 py-3 rounded-xl border border-gray-300 bg-white text-gray-900 " +
+  "dark:bg-slate-900 dark:text-white dark:border-white/10 " +
+  "focus:ring-2 focus:ring-[color:var(--brand-primary)] focus:border-[color:var(--brand-primary)] disabled:opacity-50";
+
+const ContactFormModal: React.FC<ContactFormModalProps> = ({
+  isOpen,
+  onClose,
+  className = "",
 }) => {
   const [step, setStep] = useState<1 | 2 | 3>(1);
 
@@ -139,7 +149,9 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
 
     try {
       const tenantId = getTenantId();
-      const finalMessage = `${message.trim()}\n\nPreferred contact method: ${method === "whatsapp" ? "WhatsApp" : "Contact form"}`;
+      const finalMessage = `${message.trim()}\n\nPreferred contact method: ${
+        method === "whatsapp" ? "WhatsApp" : "Contact form"
+      }`;
 
       const response = await fetch("/api/form-submissions", {
         method: "POST",
@@ -165,7 +177,6 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
       const thankYouPath = getThankYouPath();
 
       if (method === "whatsapp") {
-        // Redirect to thank-you first (for tracking), then thank-you page redirects to WhatsApp.
         const params = new URLSearchParams({
           via: "whatsapp",
           message,
@@ -173,7 +184,6 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
         });
         window.location.href = `${thankYouPath}?${params.toString()}`;
       } else {
-        // Normal thank-you flow
         window.location.href = thankYouPath;
       }
     } catch (error) {
@@ -192,244 +202,254 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className={`max-w-2xl max-h-[90vh] overflow-y-auto ${className}`}>
+      <DialogContent
+        className={`max-w-2xl max-h-[90vh] overflow-y-auto bg-white dark:bg-slate-950 text-gray-900 dark:text-white border border-black/10 dark:border-white/10 ${className}`}
+      >
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-gray-900">
-              Contact Us
-            </h2>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Contact Us</h2>
           </div>
           <form onSubmit={handleSubmit} className="w-full">
-          {/* Step 1 */}
-          {step === 1 && (
-            <div className="space-y-6">
-              <div className="space-y-2">
-                <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-gray-900">
-                  1. Let's start with your details
-                </h2>
-                <p className="text-sm text-gray-600">Name and email are required.</p>
-              </div>
+            {/* Step 1 */}
+            {step === 1 && (
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-gray-900 dark:text-white">
+                    1. Let's start with your details
+                  </h2>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">
+                    Name and email are required.
+                  </p>
+                </div>
 
-              <div className="space-y-4">
+                <div className="space-y-4">
+                  <div>
+                    <label
+                      htmlFor="name"
+                      className="block text-sm font-medium text-gray-800 dark:text-gray-200 mb-2"
+                    >
+                      Full Name *
+                    </label>
+                    <input
+                      id="name"
+                      type="text"
+                      placeholder="Type your answer here..."
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      disabled={isSubmitting}
+                      className={inputClass}
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="email"
+                      className="block text-sm font-medium text-gray-800 dark:text-gray-200 mb-2"
+                    >
+                      Email *
+                    </label>
+                    <input
+                      id="email"
+                      type="email"
+                      placeholder="Type your answer here..."
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      disabled={isSubmitting}
+                      className={inputClass}
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="phone"
+                      className="block text-sm font-medium text-gray-800 dark:text-gray-200 mb-2"
+                    >
+                      Phone
+                    </label>
+                    <input
+                      id="phone"
+                      type="tel"
+                      placeholder="Type your answer here..."
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      disabled={isSubmitting}
+                      className={inputClass}
+                    />
+                  </div>
+                </div>
+
+                {submitStatus === "error" && errorMessage && (
+                  <div className="rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-400/30 p-4 text-sm">
+                    <p className="font-medium text-red-800 dark:text-red-200">Error</p>
+                    <p className="text-red-600 dark:text-red-200/80 mt-1">{errorMessage}</p>
+                  </div>
+                )}
+
+                <div className="flex items-center justify-between pt-2">
+                  <button
+                    type="button"
+                    disabled
+                    className="rounded-full px-6 py-3 bg-gray-200 text-gray-600 dark:bg-white/10 dark:text-gray-300 opacity-60 cursor-not-allowed flex items-center"
+                  >
+                    <ArrowLeft className="h-4 w-4 mr-2" /> Back
+                  </button>
+                  <button type="button" onClick={goNext} className="btn-cta rounded-full px-7 py-3 flex items-center">
+                    Next <ArrowRight className="h-4 w-4 ml-2" />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 2 */}
+            {step === 2 && (
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-gray-900 dark:text-white">
+                    2. How would you like to contact us?
+                  </h2>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">Choose one option, then continue.</p>
+                </div>
+
+                <div className="grid grid-cols-1 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setMethod("whatsapp")}
+                    className={
+                      "text-left rounded-2xl border p-4 transition-colors " +
+                      (method === "whatsapp"
+                        ? "border-green-500 bg-green-50 dark:bg-green-500/10 dark:border-green-400/40"
+                        : "border-gray-200 bg-white hover:bg-gray-50 dark:bg-white/5 dark:border-white/10 dark:hover:bg-white/10")
+                    }
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-xl bg-green-500 text-white flex items-center justify-center">
+                        <MessageCircle className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <div className="font-semibold text-gray-900 dark:text-white">WhatsApp</div>
+                        <div className="text-xs text-gray-600 dark:text-gray-300">Fastest reply</div>
+                      </div>
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setMethod("form")}
+                    className={
+                      "text-left rounded-2xl border p-4 transition-colors " +
+                      (method === "form"
+                        ? "border-indigo-600 bg-indigo-50 dark:bg-indigo-500/10 dark:border-indigo-400/40"
+                        : "border-gray-200 bg-white hover:bg-gray-50 dark:bg-white/5 dark:border-white/10 dark:hover:bg-white/10")
+                    }
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center">
+                        <Send className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <div className="font-semibold text-gray-900 dark:text-white">Contact form</div>
+                        <div className="text-xs text-gray-600 dark:text-gray-300">Email follow-up</div>
+                      </div>
+                    </div>
+                  </button>
+                </div>
+
+                {submitStatus === "error" && errorMessage && (
+                  <div className="rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-400/30 p-4 text-sm">
+                    <p className="font-medium text-red-800 dark:text-red-200">Error</p>
+                    <p className="text-red-600 dark:text-red-200/80 mt-1">{errorMessage}</p>
+                  </div>
+                )}
+
+                <div className="flex items-center justify-between pt-2">
+                  <button
+                    type="button"
+                    onClick={goBack}
+                    className="rounded-full px-6 py-3 bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-white/10 dark:text-gray-200 dark:hover:bg-white/15 flex items-center"
+                  >
+                    <ArrowLeft className="h-4 w-4 mr-2" /> Back
+                  </button>
+                  <button
+                    type="button"
+                    onClick={goNext}
+                    disabled={!canGoNextFromStep2}
+                    className="btn-cta rounded-full px-7 py-3 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                  >
+                    Next <ArrowRight className="h-4 w-4 ml-2" />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 3 */}
+            {step === 3 && (
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-gray-900 dark:text-white">
+                    3. What can we help you with?
+                  </h2>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">
+                    {method === "whatsapp"
+                      ? "We'll redirect you to WhatsApp after saving your enquiry."
+                      : "We'll save your enquiry and show a confirmation page."}
+                  </p>
+                </div>
+
                 <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-800 mb-2">
-                    Full Name *
+                  <label
+                    htmlFor="message"
+                    className="block text-sm font-medium text-gray-800 dark:text-gray-200 mb-2"
+                  >
+                    Your message *
                   </label>
-                  <input
-                    id="name"
-                    type="text"
-                    placeholder="Type your answer here..."
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
+                  <textarea
+                    id="message"
+                    rows={6}
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
                     disabled={isSubmitting}
-                    className="w-full h-11 px-4 rounded-xl border border-gray-300 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50"
+                    className={textareaClass}
                     required
                   />
                 </div>
 
-                <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-800 mb-2">
-                    Email *
-                  </label>
-                  <input
-                    id="email"
-                    type="email"
-                    placeholder="Type your answer here..."
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    disabled={isSubmitting}
-                    className="w-full h-11 px-4 rounded-xl border border-gray-300 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="phone" className="block text-sm font-medium text-gray-800 mb-2">
-                    Phone
-                  </label>
-                  <input
-                    id="phone"
-                    type="tel"
-                    placeholder="Type your answer here..."
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    disabled={isSubmitting}
-                    className="w-full h-11 px-4 rounded-xl border border-gray-300 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50"
-                  />
-                </div>
-              </div>
-
-              {submitStatus === "error" && errorMessage && (
-                <div className="rounded-xl bg-red-50 border border-red-200 p-4 text-red-800 text-sm">
-                  <p className="font-medium">Error</p>
-                  <p className="text-red-600 mt-1">{errorMessage}</p>
-                </div>
-              )}
-
-              <div className="flex items-center justify-between pt-2">
-                <button
-                  type="button"
-                  disabled
-                  className="rounded-full px-6 py-3 bg-gray-200 text-gray-600 opacity-60 cursor-not-allowed flex items-center"
-                >
-                  <ArrowLeft className="h-4 w-4 mr-2" /> Back
-                </button>
-                <button
-                  type="button"
-                  onClick={goNext}
-                  className="btn-cta rounded-full px-7 py-3 flex items-center"
-                >
-                  Next <ArrowRight className="h-4 w-4 ml-2" />
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Step 2 */}
-          {step === 2 && (
-            <div className="space-y-6">
-              <div className="space-y-2">
-                <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-gray-900">
-                  2. How would you like to contact us?
-                </h2>
-                <p className="text-sm text-gray-600">Choose one option, then continue.</p>
-              </div>
-
-              <div className="grid grid-cols-1 gap-3">
-                <button
-                  type="button"
-                  onClick={() => setMethod("whatsapp")}
-                  className={
-                    "text-left rounded-2xl border p-4 transition-colors " +
-                    (method === "whatsapp"
-                      ? "border-green-500 bg-green-50"
-                      : "border-gray-200 bg-white hover:bg-gray-50")
-                  }
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-xl bg-green-500 text-white flex items-center justify-center">
-                      <MessageCircle className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <div className="font-semibold text-gray-900">WhatsApp</div>
-                      <div className="text-xs text-gray-600">Fastest reply</div>
-                    </div>
+                {submitStatus === "error" && errorMessage && (
+                  <div className="rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-400/30 p-4 text-sm">
+                    <p className="font-medium text-red-800 dark:text-red-200">Error</p>
+                    <p className="text-red-600 dark:text-red-200/80 mt-1">{errorMessage}</p>
                   </div>
-                </button>
+                )}
 
-                <button
-                  type="button"
-                  onClick={() => setMethod("form")}
-                  className={
-                    "text-left rounded-2xl border p-4 transition-colors " +
-                    (method === "form"
-                      ? "border-blue-600 bg-blue-50"
-                      : "border-gray-200 bg-white hover:bg-gray-50")
-                  }
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-xl bg-blue-600 text-white flex items-center justify-center">
-                      <Send className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <div className="font-semibold text-gray-900">Contact form</div>
-                      <div className="text-xs text-gray-600">Email follow-up</div>
-                    </div>
-                  </div>
-                </button>
-              </div>
-
-              {submitStatus === "error" && errorMessage && (
-                <div className="rounded-xl bg-red-50 border border-red-200 p-4 text-red-800 text-sm">
-                  <p className="font-medium">Error</p>
-                  <p className="text-red-600 mt-1">{errorMessage}</p>
+                <div className="flex items-center justify-between pt-2">
+                  <button
+                    type="button"
+                    onClick={goBack}
+                    className="rounded-full px-6 py-3 bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-white/10 dark:text-gray-200 dark:hover:bg-white/15 flex items-center"
+                    disabled={isSubmitting}
+                  >
+                    <ArrowLeft className="h-4 w-4 mr-2" /> Back
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="btn-cta rounded-full px-7 py-3 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        Send <ArrowRight className="h-4 w-4 ml-2" />
+                      </>
+                    )}
+                  </button>
                 </div>
-              )}
-
-              <div className="flex items-center justify-between pt-2">
-                <button
-                  type="button"
-                  onClick={goBack}
-                  className="rounded-full px-6 py-3 bg-gray-200 text-gray-700 hover:bg-gray-300 flex items-center"
-                >
-                  <ArrowLeft className="h-4 w-4 mr-2" /> Back
-                </button>
-                <button
-                  type="button"
-                  onClick={goNext}
-                  disabled={!canGoNextFromStep2}
-                  className="btn-cta rounded-full px-7 py-3 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
-                >
-                  Next <ArrowRight className="h-4 w-4 ml-2" />
-                </button>
               </div>
-            </div>
-          )}
-
-          {/* Step 3 */}
-          {step === 3 && (
-            <div className="space-y-6">
-              <div className="space-y-2">
-                <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-gray-900">
-                  3. What can we help you with?
-                </h2>
-                <p className="text-sm text-gray-600">
-                  {method === "whatsapp"
-                    ? "We'll redirect you to WhatsApp after saving your enquiry."
-                    : "We'll save your enquiry and show a confirmation page."}
-                </p>
-              </div>
-
-              <div>
-                <label htmlFor="message" className="block text-sm font-medium text-gray-800 mb-2">
-                  Your message *
-                </label>
-                <textarea
-                  id="message"
-                  rows={6}
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  disabled={isSubmitting}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-300 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50"
-                  required
-                />
-              </div>
-
-              {submitStatus === "error" && errorMessage && (
-                <div className="rounded-xl bg-red-50 border border-red-200 p-4 text-red-800 text-sm">
-                  <p className="font-medium">Error</p>
-                  <p className="text-red-600 mt-1">{errorMessage}</p>
-                </div>
-              )}
-
-              <div className="flex items-center justify-between pt-2">
-                <button
-                  type="button"
-                  onClick={goBack}
-                  className="rounded-full px-6 py-3 bg-gray-200 text-gray-700 hover:bg-gray-300 flex items-center"
-                  disabled={isSubmitting}
-                >
-                  <ArrowLeft className="h-4 w-4 mr-2" /> Back
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="btn-cta rounded-full px-7 py-3 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Sending...
-                    </>
-                  ) : (
-                    <>
-                      Send <ArrowRight className="h-4 w-4 ml-2" />
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-          )}
+            )}
           </form>
         </div>
       </DialogContent>

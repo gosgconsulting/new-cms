@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import type { ComponentSchema } from "../../../sparti-cms/types/schema";
 import FlowbiteHeroSection from "@/libraries/flowbite/components/FlowbiteHeroSection";
+import FlowbiteFeaturesSection from "@/libraries/flowbite/components/FlowbiteFeaturesSection";
+import FlowbiteTestimonialsSection from "@/libraries/flowbite/components/FlowbiteTestimonialsSection";
 import FlowbitePainPointSection from "@/libraries/flowbite/components/FlowbitePainPointSection";
 import FlowbiteContentSection from "@/libraries/flowbite/components/FlowbiteContentSection";
 import FlowbiteWhatsIncludedSection from "@/libraries/flowbite/components/FlowbiteWhatsIncludedSection";
@@ -14,7 +16,6 @@ import Header from "./components/Header";
 import Footer from "./components/Footer";
 import ContactFormModal from "./components/ContactFormModal";
 import { ThankYouPage } from "./components/ThankYouPage";
-import ThemeToggle from "./components/ThemeToggle";
 import "./theme.css";
 
 // Helper function to adjust color brightness
@@ -37,19 +38,9 @@ interface MasterThemeProps {
 }
 
 /**
- * Master Theme - Landing Page (Based on GOSG Consulting)
- * 
- * A complete landing page template based on gosgconsulting homepage structure,
- * recreated using Flowbite design system components.
- * 
- * Sections:
- * - Hero (with heading prefix/emphasis and CTA)
- * - Challenge/Problem Section (pain points)
- * - About Section
- * - Pricing Section
- * - Services Gallery (What's Included)
- * - FAQ Section
- * - Pre-footer CTA
+ * Master Theme - Landing Page (Flowbite-based)
+ *
+ * Revamped light/dark styles + hero carousel + testimonial slider.
  */
 const MasterTheme: React.FC<MasterThemeProps> = ({
   basePath = "/theme/master",
@@ -63,61 +54,61 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
 
   // Fetch branding colors from database
-  const { branding, loading: brandingLoading } = useThemeBranding("master", tenantId);
+  const { branding } = useThemeBranding("master", tenantId);
 
   // Apply branding colors as CSS variables
   useEffect(() => {
     if (branding) {
       const root = document.documentElement;
-      
-      // Branding object contains color properties directly (e.g., color_primary, color_secondary)
-      // Type assertion to access color properties that may not be in TypeScript interface
       const brandingColors = branding as any;
-      
-      // Apply primary colors
+
       if (brandingColors.color_primary) {
         const primaryColor = String(brandingColors.color_primary);
-        root.style.setProperty('--brand-primary', primaryColor);
-        // Calculate darker shade for hover (reduce lightness by 10%)
+        root.style.setProperty("--brand-primary", primaryColor);
         const darker = adjustColorBrightness(primaryColor, -10);
-        root.style.setProperty('--brand-primary-dark', darker);
-        // Calculate lighter shade for dark mode
+        root.style.setProperty("--brand-primary-dark", darker);
         const lighter = adjustColorBrightness(primaryColor, 20);
-        root.style.setProperty('--brand-primary-light', lighter);
+        root.style.setProperty("--brand-primary-light", lighter);
       }
-      
+
       if (brandingColors.color_secondary) {
         const secondaryColor = String(brandingColors.color_secondary);
-        root.style.setProperty('--brand-secondary', secondaryColor);
+        root.style.setProperty("--brand-secondary", secondaryColor);
         const darker = adjustColorBrightness(secondaryColor, -10);
-        root.style.setProperty('--brand-secondary-dark', darker);
+        root.style.setProperty("--brand-secondary-dark", darker);
         const lighter = adjustColorBrightness(secondaryColor, 20);
-        root.style.setProperty('--brand-secondary-light', lighter);
+        root.style.setProperty("--brand-secondary-light", lighter);
       }
-      
+
       if (brandingColors.color_accent) {
         const accentColor = String(brandingColors.color_accent);
-        root.style.setProperty('--brand-accent', accentColor);
+        root.style.setProperty("--brand-accent", accentColor);
         const darker = adjustColorBrightness(accentColor, -10);
-        root.style.setProperty('--brand-accent-dark', darker);
+        root.style.setProperty("--brand-accent-dark", darker);
         const lighter = adjustColorBrightness(accentColor, 20);
-        root.style.setProperty('--brand-accent-light', lighter);
+        root.style.setProperty("--brand-accent-light", lighter);
       }
-      
+
       if (brandingColors.color_text) {
-        root.style.setProperty('--brand-text', String(brandingColors.color_text));
+        root.style.setProperty("--brand-text", String(brandingColors.color_text));
       }
-      
+
       if (brandingColors.color_background) {
-        root.style.setProperty('--brand-background', String(brandingColors.color_background));
+        root.style.setProperty("--brand-background", String(brandingColors.color_background));
       }
-      
+
       if (brandingColors.color_gradient_start) {
-        root.style.setProperty('--brand-gradient-start', String(brandingColors.color_gradient_start));
+        root.style.setProperty(
+          "--brand-gradient-start",
+          String(brandingColors.color_gradient_start)
+        );
       }
-      
+
       if (brandingColors.color_gradient_end) {
-        root.style.setProperty('--brand-gradient-end', String(brandingColors.color_gradient_end));
+        root.style.setProperty(
+          "--brand-gradient-end",
+          String(brandingColors.color_gradient_end)
+        );
       }
     }
   }, [branding]);
@@ -132,60 +123,200 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
     const handleCTAClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
       const button = target.closest('a[href="#contact"], button');
-      if (button && button.getAttribute('href') === '#contact') {
+      if (button && button.getAttribute("href") === "#contact") {
         e.preventDefault();
         e.stopPropagation();
         setIsContactModalOpen(true);
       }
     };
 
-    document.addEventListener('click', handleCTAClick, true);
+    document.addEventListener("click", handleCTAClick, true);
     return () => {
-      document.removeEventListener('click', handleCTAClick, true);
+      document.removeEventListener("click", handleCTAClick, true);
     };
   }, []);
 
-  // Check if we're on the thank you page
-  const isThankYouPage = location.pathname === '/thank-you' || 
-                         location.pathname.endsWith('/thank-you') ||
-                         location.pathname.includes('/thank-you');
+  const isThankYouPage =
+    location.pathname === "/thank-you" ||
+    location.pathname.endsWith("/thank-you") ||
+    location.pathname.includes("/thank-you");
 
-  // If thank you page, render it
   if (isThankYouPage) {
     return (
-      <ThankYouPage
-        tenantName={tenantName}
-        tenantSlug={tenantSlug}
-        tenantId={tenantId}
-      />
+      <ThankYouPage tenantName={tenantName} tenantSlug={tenantSlug} tenantId={tenantId} />
     );
   }
 
-  // Handler for opening contact modal
   const handleContactClick = () => {
     setIsContactModalOpen(true);
   };
 
-  // Create ComponentSchema for Hero Section (GOSG-style with prefix and emphasis)
   const heroSchema: ComponentSchema = {
     type: "flowbite-hero-section",
-    props: {},
+    props: {
+      slides: [
+        { src: "/assets/seo-results-1.png", alt: "Results" },
+        { src: "/lovable-uploads/d2d7d623-f729-433e-b350-0e40b4a32b91.png", alt: "Preview" },
+        { src: "/lovable-uploads/d6e7a1ca-229a-4c34-83fc-e9bdf106b683.png", alt: "Preview" },
+      ],
+    },
     items: [
+      {
+        key: "motto",
+        type: "text",
+        content: "Unlimited design, one simple plan — built to convert.",
+      },
       {
         key: "title",
         type: "heading",
         level: 1,
-        content: "Turn traffic into revenue with a Full‑Stack Growth Engine",
+        content: "Your Business Needs More Than a Website — It Needs Growth.",
       },
       {
         key: "description",
         type: "text",
-        content: "We handle the full funnel end-to-end: positioning, website conversion, SEO, paid ads, creatives, and tracking—so every channel works together to drive revenue.",
+        content:
+          "We craft high‑performance pages using Flowbite components, strong messaging, and conversion-first UX — so every visit has a clear path to revenue.",
+      },
+      {
+        key: "cta",
+        type: "button",
+        content: "Book an intro call",
+        link: "#contact",
+      },
+      {
+        key: "ctaSecondary",
+        type: "button",
+        content: "View pricing",
+        link: "#pricing",
       },
     ],
   };
 
-  // Create ComponentSchema for Challenge/Problem Section (GOSG-style)
+  const featuresSchema: ComponentSchema = {
+    type: "flowbite-features-section",
+    props: {},
+    items: [
+      {
+        key: "features",
+        type: "array",
+        items: [
+          {
+            key: "f1",
+            type: "feature",
+            items: [
+              { key: "title", type: "heading", level: 3, content: "Conversion-first pages" },
+              {
+                key: "description",
+                type: "text",
+                content: "Clean layout, clear CTA, and persuasive sections that guide users." ,
+              },
+            ],
+          },
+          {
+            key: "f2",
+            type: "feature",
+            items: [
+              { key: "title", type: "heading", level: 3, content: "Fast iteration" },
+              {
+                key: "description",
+                type: "text",
+                content: "Swap sections, copy, and visuals without breaking the system.",
+              },
+            ],
+          },
+          {
+            key: "f3",
+            type: "feature",
+            items: [
+              { key: "title", type: "heading", level: 3, content: "Dark + Light built-in" },
+              {
+                key: "description",
+                type: "text",
+                content: "One theme, two moods — optimized contrast and readable typography.",
+              },
+            ],
+          },
+          {
+            key: "f4",
+            type: "feature",
+            items: [
+              { key: "title", type: "heading", level: 3, content: "Design system consistency" },
+              {
+                key: "description",
+                type: "text",
+                content: "Reusable components keep your site polished and scalable.",
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  };
+
+  const testimonialsSchema: ComponentSchema = {
+    type: "flowbite-testimonials-section",
+    props: {
+      title: "Loved by founders",
+      subtitle: "Short, sharp feedback from teams we've helped convert more visitors.",
+    },
+    items: [
+      {
+        key: "title",
+        type: "heading",
+        level: 2,
+        content: "Loved by founders",
+      },
+      {
+        key: "subtitle",
+        type: "text",
+        content: "Short, sharp feedback from teams we've helped convert more visitors.",
+      },
+      {
+        key: "reviews",
+        type: "array",
+        items: [
+          {
+            key: "r1",
+            type: "review",
+            props: {
+              content: "Our landing page went from 'nice' to 'high converting' in a week. The new hero + sections are super clean.",
+              name: "Sarah C.",
+              title: "Founder",
+            },
+          },
+          {
+            key: "r2",
+            type: "review",
+            props: {
+              content: "Dark mode looks premium, and the slider helped us show proof instantly.",
+              name: "Marcus T.",
+              title: "Marketing Lead",
+            },
+          },
+          {
+            key: "r3",
+            type: "review",
+            props: {
+              content: "We finally have a consistent design system we can iterate on without redoing everything.",
+              name: "Priya S.",
+              title: "Operations",
+            },
+          },
+          {
+            key: "r4",
+            type: "review",
+            props: {
+              content: "The layout feels modern and fast. Great UX on mobile.",
+              name: "David L.",
+              title: "CEO",
+            },
+          },
+        ],
+      },
+    ],
+  };
+
   const challengeSchema: ComponentSchema = {
     type: "flowbite-pain-point-section",
     props: {},
@@ -228,7 +359,6 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
     ],
   };
 
-  // Create ComponentSchema for About Section (simplified)
   const aboutSchema: ComponentSchema = {
     type: "flowbite-content-section",
     props: {},
@@ -242,16 +372,21 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
       {
         key: "content",
         type: "text",
-        content: "We handle the full funnel end-to-end: positioning, website conversion, SEO, paid ads, creatives, and tracking—so every channel works together to drive revenue. Our proven systems generate leads and revenue month after month.",
+        content:
+          "We handle the full funnel end-to-end: positioning, website conversion, SEO, paid ads, creatives, and tracking—so every channel works together to drive revenue. Our proven systems generate leads and revenue month after month.",
       },
     ],
   };
 
-  // Create ComponentSchema for Services Gallery (What's Included - GOSG-style)
   const servicesSchema: ComponentSchema = {
     type: "flowbite-whats-included-section",
     props: {},
     items: [
+      {
+        key: "badge",
+        type: "text",
+        content: "Services",
+      },
       {
         key: "title",
         type: "heading",
@@ -259,118 +394,63 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
         content: "What's included in your growth package",
       },
       {
-        key: "subtitle",
+        key: "description",
         type: "text",
-        content: "A focused breakdown of the core areas driving results, each tailored to your goals and adapted after consultation.",
+        content:
+          "A focused breakdown of the core areas driving results, each tailored to your goals.",
       },
       {
-        key: "service1",
+        key: "features",
         type: "array",
         items: [
           {
-            key: "title",
-            type: "heading",
-            level: 3,
-            content: "Website & Conversion",
-          },
-          {
-            key: "description",
-            type: "text",
-            content: "We design and improve high‑converting landing pages with continuous optimization, A/B testing, and conversion tracking.",
-          },
-          {
-            key: "features",
-            type: "array",
+            key: "s1",
+            type: "feature",
             items: [
-              { key: "f1", type: "text", content: "High-converting landing page" },
-              { key: "f2", type: "text", content: "A/B testing and conversion tracking" },
-              { key: "f3", type: "text", content: "Monthly conversion improvements" },
+              { key: "title", type: "heading", level: 3, content: "Website & Conversion" },
+              {
+                key: "description",
+                type: "text",
+                content:
+                  "High‑converting landing pages, A/B test ideas, and conversion tracking.",
+              },
+            ],
+          },
+          {
+            key: "s2",
+            type: "feature",
+            items: [
+              { key: "title", type: "heading", level: 3, content: "Acquisition" },
+              {
+                key: "description",
+                type: "text",
+                content: "SEM + social ads, plus smart retargeting that doesn't waste spend.",
+              },
+            ],
+          },
+          {
+            key: "s3",
+            type: "feature",
+            items: [
+              { key: "title", type: "heading", level: 3, content: "Creative & Content" },
+              {
+                key: "description",
+                type: "text",
+                content: "Creative assets and copy that match your brand and convert.",
+              },
             ],
           },
         ],
       },
       {
-        key: "service2",
-        type: "array",
-        items: [
-          {
-            key: "title",
-            type: "heading",
-            level: 3,
-            content: "Acquisition",
-          },
-          {
-            key: "description",
-            type: "text",
-            content: "Drive qualified traffic with paid acquisition across search and social, supported by smart retargeting.",
-          },
-          {
-            key: "features",
-            type: "array",
-            items: [
-              { key: "f1", type: "text", content: "SEM (Search Ads)" },
-              { key: "f2", type: "text", content: "Social Ads" },
-              { key: "f3", type: "text", content: "Retargeting" },
-            ],
-          },
-        ],
-      },
-      {
-        key: "service3",
-        type: "array",
-        items: [
-          {
-            key: "title",
-            type: "heading",
-            level: 3,
-            content: "Creative Production",
-          },
-          {
-            key: "description",
-            type: "text",
-            content: "Consistent, branded creative assets that power your ads and social presence, plus copywriting that converts.",
-          },
-          {
-            key: "features",
-            type: "array",
-            items: [
-              { key: "f1", type: "text", content: "Branded creative assets (ads & social)" },
-              { key: "f2", type: "text", content: "Copywriting for conversion" },
-              { key: "f3", type: "text", content: "Design system & brand consistency" },
-            ],
-          },
-        ],
-      },
-      {
-        key: "service4",
-        type: "array",
-        items: [
-          {
-            key: "title",
-            type: "heading",
-            level: 3,
-            content: "SEO",
-          },
-          {
-            key: "description",
-            type: "text",
-            content: "Build compounding organic growth through premium backlinks, SEO content, and ongoing technical checks.",
-          },
-          {
-            key: "features",
-            type: "array",
-            items: [
-              { key: "f1", type: "text", content: "Premium SEO backlinks" },
-              { key: "f2", type: "text", content: "SEO-optimized articles" },
-              { key: "f3", type: "text", content: "Technical SEO checks" },
-            ],
-          },
-        ],
+        key: "cta",
+        type: "button",
+        content: "Get free consultation",
+        link: "#contact",
       },
     ],
   };
 
-  // Create ComponentSchema for FAQ Section (GOSG-style)
   const faqSchema: ComponentSchema = {
     type: "flowbite-faq-section",
     props: {},
@@ -393,7 +473,8 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
           {
             key: "answer",
             type: "text",
-            content: "We handle the full funnel end-to-end: positioning, website conversion, SEO, paid ads, creatives, and tracking—so every channel works together to drive revenue.",
+            content:
+              "We handle the full funnel end-to-end: positioning, website conversion, SEO, paid ads, creatives, and tracking—so every channel works together to drive revenue.",
           },
         ],
       },
@@ -409,7 +490,8 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
           {
             key: "answer",
             type: "text",
-            content: "Paid ads can generate leads quickly, while SEO compounds over time. We'll align the plan to your goals and share clear performance reporting month-to-month.",
+            content:
+              "Paid ads can generate leads quickly, while SEO compounds over time. We'll align the plan to your goals and share clear performance reporting month-to-month.",
           },
         ],
       },
@@ -425,7 +507,8 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
           {
             key: "answer",
             type: "text",
-            content: "Yes. We can optimize your current site for conversions and SEO, or rebuild key pages where needed—without disrupting your brand.",
+            content:
+              "Yes. We can optimize your current site for conversions and SEO, or rebuild key pages where needed—without disrupting your brand.",
           },
         ],
       },
@@ -441,14 +524,14 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
           {
             key: "answer",
             type: "text",
-            content: "Yes. We tailor scopes to your stage—whether you need a consistent lead pipeline, better conversion rates, or a complete growth system.",
+            content:
+              "Yes. We tailor scopes to your stage—whether you need a consistent lead pipeline, better conversion rates, or a complete growth system.",
           },
         ],
       },
     ],
   };
 
-  // Create ComponentSchema for Pre-footer CTA Section (GOSG-style)
   const ctaSchema: ComponentSchema = {
     type: "flowbite-cta-section",
     props: {},
@@ -464,10 +547,15 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
         type: "text",
         content: "Get a clear growth plan tailored to your business in a free strategy call.",
       },
+      {
+        key: "cta",
+        type: "button",
+        content: "Get free consultation",
+        link: "#contact",
+      },
     ],
   };
 
-  // Pricing plans data (GOSG-style)
   const pricingPlans = [
     {
       name: "Growth Package",
@@ -487,86 +575,91 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
   ];
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
-      {/* Header */}
-      <Header 
-        tenantName={tenantName}
-        tenantSlug={tenantSlug}
-        onContactClick={handleContactClick}
-      />
+    <div className="min-h-screen flex flex-col bg-[color:var(--brand-background)]">
+      <Header tenantName={tenantName} tenantSlug={tenantSlug} onContactClick={handleContactClick} />
 
       <main className="flex-1">
-        {/* Hero Section - GOSG-style */}
         <div id="hero">
           <FlowbiteHeroSection component={heroSchema} />
-          {/* Custom CTA button that opens modal */}
-          <div className="container mx-auto px-4 -mt-8 mb-8 text-center">
-            <button
-              onClick={handleContactClick}
-              className="btn-cta px-8 py-6 text-lg"
-            >
-              Get free consultation
-            </button>
-          </div>
         </div>
 
-        {/* Challenge/Problem Section - GOSG-style */}
+        <div id="features" className="scroll-mt-20">
+          <FlowbiteFeaturesSection component={featuresSchema} />
+        </div>
+
         <div id="challenge" className="scroll-mt-20">
           <FlowbitePainPointSection component={challengeSchema} />
         </div>
 
-        {/* About Section */}
+        <div id="services" className="scroll-mt-20">
+          <FlowbiteWhatsIncludedSection component={servicesSchema} />
+        </div>
+
         <div id="about" className="scroll-mt-20">
           <FlowbiteContentSection component={aboutSchema} />
         </div>
 
-        {/* Pricing Section - GOSG-style */}
-        <div id="pricing" className="scroll-mt-20 bg-gray-50 py-20">
+        <div id="testimonials" className="scroll-mt-20">
+          <FlowbiteTestimonialsSection component={testimonialsSchema} />
+        </div>
+
+        <div id="pricing" className="scroll-mt-20 py-20 px-4 bg-[color:var(--brand-background-alt)] dark:bg-slate-900/30">
           <div className="container mx-auto px-4 max-w-6xl">
             <div className="text-center mb-12">
-              <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+              <h2 className="text-4xl md:text-5xl font-semibold tracking-tight text-gray-900 dark:text-white mb-4">
                 Pricing
               </h2>
-              <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-                Tailored growth packages designed to scale your business
+              <p className="text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+                A simple package designed to scale your business.
               </p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {pricingPlans.map((plan, idx) => (
                 <Card
                   key={idx}
-                  className={`relative ${plan.isPopular ? 'ring-2 ring-blue-500 scale-105' : ''}`}
+                  className={`relative border-black/10 dark:border-white/10 bg-white/80 dark:bg-white/5 ${plan.isPopular ? "ring-2 ring-lime-400/60 scale-[1.02]" : ""}`}
                 >
                   {plan.isPopular && (
                     <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                      <span className="bg-blue-500 text-white px-4 py-1 rounded-full text-sm font-semibold">
+                      <span className="bg-lime-300 text-slate-950 px-4 py-1 rounded-full text-sm font-semibold">
                         Most Popular
                       </span>
                     </div>
                   )}
-                  <div className="text-center">
-                    <h3 className="text-2xl font-bold text-gray-900 mb-2">{plan.name}</h3>
-                    <p className="text-gray-600 mb-6">{plan.description}</p>
+                  <div className="text-left">
+                    <h3 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2">
+                      {plan.name}
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-300 mb-6">{plan.description}</p>
                     <div className="mb-6">
-                      <span className="text-4xl font-bold text-gray-900">{plan.price}</span>
+                      <span className="text-4xl font-semibold text-gray-900 dark:text-white">
+                        {plan.price}
+                      </span>
                       {plan.priceDescription && (
-                        <span className="text-gray-600 ml-2">{plan.priceDescription}</span>
+                        <span className="text-gray-600 dark:text-gray-300 ml-2">
+                          {plan.priceDescription}
+                        </span>
                       )}
                     </div>
                     <ul className="text-left space-y-3 mb-8">
                       {plan.features.map((feature, fIdx) => (
                         <li key={fIdx} className="flex items-start">
-                          <svg className="w-5 h-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                          <svg
+                            className="w-5 h-5 text-lime-400 mr-2 mt-0.5 flex-shrink-0"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                              clipRule="evenodd"
+                            />
                           </svg>
-                          <span className="text-gray-700">{feature}</span>
+                          <span className="text-gray-700 dark:text-gray-200">{feature}</span>
                         </li>
                       ))}
                     </ul>
-                    <button
-                      onClick={handleContactClick}
-                      className="btn-cta w-full"
-                    >
+                    <button onClick={handleContactClick} className="btn-cta w-full">
                       Get Started
                     </button>
                   </div>
@@ -576,48 +669,18 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
           </div>
         </div>
 
-        {/* Services Gallery (What's Included) - GOSG-style */}
-        <div id="services" className="scroll-mt-20">
-          <FlowbiteWhatsIncludedSection component={servicesSchema} />
-        </div>
-
-        {/* FAQ Section */}
         <div id="faq" className="scroll-mt-20">
           <FlowbiteFAQSection component={faqSchema} />
         </div>
 
-        {/* Pre-footer CTA Section - GOSG-style */}
         <div id="contact" className="scroll-mt-20">
           <FlowbiteCTASection component={ctaSchema} />
-          {/* Custom CTA button that opens modal */}
-          <div className="bg-brand-gradient pb-16 -mt-8">
-            <div className="container mx-auto px-4 text-center">
-              <button
-                onClick={handleContactClick}
-                className="btn-cta px-8 py-6 text-lg bg-white hover:bg-gray-100"
-                style={{ color: 'var(--brand-primary)' }}
-              >
-                Get free consultation
-              </button>
-            </div>
-          </div>
         </div>
       </main>
 
-      {/* Footer */}
-      <Footer 
-        tenantName={tenantName}
-        tenantSlug={tenantSlug}
-      />
+      <Footer tenantName={tenantName} tenantSlug={tenantSlug} />
 
-      {/* Contact Form Modal */}
-      <ContactFormModal
-        isOpen={isContactModalOpen}
-        onClose={() => setIsContactModalOpen(false)}
-      />
-
-      {/* Theme Toggle - Sticky bottom-left */}
-      <ThemeToggle />
+      <ContactFormModal isOpen={isContactModalOpen} onClose={() => setIsContactModalOpen(false)} />
     </div>
   );
 };
