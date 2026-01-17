@@ -16,14 +16,6 @@ ensureUploadsDir();
 // Routes (includes access key authentication middleware)
 app.use(routes);
 
-// Serve Nail Queen assets from the imported nail-queen-revamp-main folder.
-// This keeps the design identical even if we can't physically move the images in this environment.
-// URLs: /theme/nail-queen/assets/*
-app.use(
-  '/theme/nail-queen/assets',
-  express.static(join(__dirname, '..', 'nail-queen-revamp-main', 'public', 'assets'))
-);
-
 // Serve theme assets from sparti-cms/theme directory
 app.use('/theme', express.static(join(__dirname, '..', 'sparti-cms', 'theme')));
 

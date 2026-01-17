@@ -14,7 +14,6 @@ import {
   Info
 } from 'lucide-react';
 import { Link, useNavigate, useLocation, useParams } from 'react-router-dom';
-import gosgLogo from "@/assets/go-sg-logo-official.png";
 import { useAuth } from '../../sparti-cms/components/auth/AuthProvider';
 
 interface FormData {
@@ -253,7 +252,7 @@ const Auth: React.FC = () => {
           </h1>
           <p className="text-gray-600">
             {isSignUp 
-              ? 'Sign up to get started with GO SG' 
+              ? 'Sign up to get started' 
               : 'Sign in to access your account'
             }
           </p>
