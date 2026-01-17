@@ -10,9 +10,7 @@ const Footer: React.FC<FooterProps> = ({
   tenantName = 'Master Template',
   legalLinks = [
     { label: 'Privacy Policy', href: '/privacy' },
-    { label: 'Terms of Service', href: '/terms' },
-    { label: 'Cookies', href: '/cookies' },
-    { label: 'Imprint', href: '/imprint' },
+    { label: 'Terms & Conditions', href: '/terms' },
   ],
 }) => {
   return (

@@ -19,6 +19,8 @@ import Shop from "./pages/Shop";
 import DemoHero from "./pages/DemoHero";
 import TemplateWebsite from "./pages/TemplateWebsite";
 import TemplateDynamic from "./pages/TemplateDynamic";
+import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
 
 // Component to handle theme sub-routes - checks if it's a known theme
 const ThemeRouteHandler: React.FC = () => {
@@ -185,6 +187,8 @@ const App = () => {
             
             {/* Other routes */}
             <Route path="/auth" element={<Auth />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/terms" element={<Terms />} />
             <Route path="/thank-you" element={<ThankYou />} />
             <Route path="/shop" element={
               <ErrorBoundary>
