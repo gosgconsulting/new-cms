@@ -149,20 +149,20 @@ const FlowbiteHeroSection: React.FC<FlowbiteHeroSectionProps> = ({
             >
               {/* Copy */}
               <div className={showCarousel ? "space-y-6" : "space-y-6 max-w-3xl mx-auto text-center"}>
-                <div className={showCarousel ? "flex flex-wrap items-center gap-3" : "flex flex-wrap items-center justify-center gap-3"}>
-                  <div className="inline-flex items-center gap-1.5 rounded-full border border-black/10 dark:border-white/10 bg-white/60 dark:bg-white/5 px-3 py-1 text-xs text-gray-700 dark:text-gray-200">
-                    <span className="font-semibold">Clutch</span>
-                    <span className="inline-flex items-center gap-0.5">
-                      {Array.from({ length: 5 }).map((_, i) => (
-                        <Star key={i} className="h-3.5 w-3.5 text-lime-400" fill="currentColor" />
-                      ))}
+                {/* Motto pill (replaces Clutch rating badge) */}
+                {motto ? (
+                  <div
+                    className={
+                      showCarousel
+                        ? "flex flex-wrap items-center gap-3"
+                        : "flex flex-wrap items-center justify-center gap-3"
+                    }
+                  >
+                    <span className="inline-flex items-center rounded-full border border-black/10 dark:border-white/10 bg-white/60 dark:bg-white/5 px-4 py-2 text-xs sm:text-sm text-gray-700 dark:text-gray-200">
+                      {motto}
                     </span>
-                    <span className="text-gray-600 dark:text-gray-300">4.9 • 300+ clients</span>
                   </div>
-                  {motto ? (
-                    <span className="text-xs text-gray-600 dark:text-gray-300">{motto}</span>
-                  ) : null}
-                </div>
+                ) : null}
 
                 {title ? (
                   <h1
