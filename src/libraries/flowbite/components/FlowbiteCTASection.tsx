@@ -53,6 +53,16 @@ const FlowbiteCTASection: React.FC<FlowbiteCTASectionProps> = ({
   const description = getText("description") || (props as any).description || "";
   const cta = getButton("cta");
 
+  const ctaVariant = String((props as any).ctaVariant || (props as any).buttonVariant || "light").toLowerCase();
+  const ctaFullWidth = (props as any).ctaFullWidth ?? true;
+
+  const ctaClassName =
+    ctaVariant === "primary"
+      ? "btn-cta"
+      : ctaVariant === "secondary"
+        ? "btn-cta-secondary"
+        : "btn-cta-light";
+
   return (
     <section
       className={[
@@ -84,7 +94,10 @@ const FlowbiteCTASection: React.FC<FlowbiteCTASectionProps> = ({
 
           {cta.content ? (
             <div className="mt-10 flex justify-center">
-              <a href={cta.link} className="btn-cta-light w-full sm:w-auto">
+              <a
+                href={cta.link}
+                className={[ctaClassName, ctaFullWidth ? "w-full sm:w-auto" : "w-auto"].join(" ")}
+              >
                 {cta.content}
               </a>
             </div>
