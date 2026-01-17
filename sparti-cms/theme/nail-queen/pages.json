@@ -1,0 +1,76 @@
+{
+  "pages": [
+    {
+      "page_name": "Homepage",
+      "slug": "/",
+      "meta_title": "Nail Queen",
+      "meta_description": "Nail Queen by Michelle Tran",
+      "seo_index": true,
+      "status": "published",
+      "page_type": "page"
+    },
+    {
+      "page_name": "Pricing",
+      "slug": "/pricing",
+      "meta_title": "Pricing — Nail Queen",
+      "meta_description": "View Nail Queen services and pricing.",
+      "seo_index": true,
+      "status": "published",
+      "page_type": "page"
+    },
+    {
+      "page_name": "Find Us",
+      "slug": "/find-us",
+      "meta_title": "Find Us — Nail Queen",
+      "meta_description": "Find Nail Queen at Far East Plaza, Singapore.",
+      "seo_index": true,
+      "status": "published",
+      "page_type": "page"
+    },
+    {
+      "page_name": "Gallery",
+      "slug": "/gallery",
+      "meta_title": "Gallery — Nail Queen",
+      "meta_description": "See Nail Queen manicures and services gallery.",
+      "seo_index": true,
+      "status": "published",
+      "page_type": "page"
+    },
+    {
+      "page_name": "About",
+      "slug": "/about",
+      "meta_title": "Meet Our Team — Nail Queen",
+      "meta_description": "Meet the Nail Queen team.",
+      "seo_index": true,
+      "status": "published",
+      "page_type": "page"
+    },
+    {
+      "page_name": "Blog",
+      "slug": "/blog",
+      "meta_title": "Blog — Nail Queen",
+      "meta_description": "Nail Queen blog.",
+      "seo_index": true,
+      "status": "published",
+      "page_type": "blog_index"
+    },
+    {
+      "page_name": "Privacy Policy",
+      "slug": "/privacy",
+      "meta_title": "Privacy Policy — Nail Queen",
+      "meta_description": "Nail Queen privacy policy.",
+      "seo_index": false,
+      "status": "published",
+      "page_type": "legal"
+    },
+    {
+      "page_name": "Terms & Conditions",
+      "slug": "/terms",
+      "meta_title": "Terms & Conditions — Nail Queen",
+      "meta_description": "Nail Queen terms and conditions.",
+      "seo_index": false,
+      "status": "published",
+      "page_type": "legal"
+    }
+  ]
+}

@@ -16,44 +16,57 @@ html::-webkit-scrollbar {
 
 html::-webkit-scrollbar-thumb {
   border-radius: 2px;
-  background-color: var(--brand-accent, #a37d4c);
+  background-color: #a37d4c;
 }
 
 html::-webkit-scrollbar-track {
   background-color: #ffffff;
 }
 
-/* Base styles */
-body {
+/*
+  IMPORTANT:
+  The main app defines global brand variables and global styles for .btn-primary/.btn-secondary.
+  The original hotel landing project expects its own palette and utility classes.
+
+  To avoid conflicts, all hotel styling is scoped under .theme-hotel and uses !important where
+  necessary to override global rules.
+*/
+
+.theme-hotel {
+  /* Force the original hotel palette inside this theme */
+  --hotel-primary: #0a0a0a;
+  --hotel-accent: #a37d4c;
+  --hotel-accent-hover: #967142;
+
   font-family: 'Barlow', sans-serif;
-  color: var(--brand-primary, #0a0a0a);
+  color: var(--hotel-primary);
 }
 
-input::placeholder {
-  color: var(--brand-primary, #0a0a0a);
+.theme-hotel input::placeholder {
+  color: var(--hotel-primary);
 }
 
 /* Font families */
-.font-primary {
+.theme-hotel .font-primary {
   font-family: 'Gilda Display', serif;
 }
 
-.font-secondary {
+.theme-hotel .font-secondary {
   font-family: 'Barlow', sans-serif;
 }
 
-.font-tertiary {
+.theme-hotel .font-tertiary {
   font-family: 'Barlow Condensed', sans-serif;
 }
 
 /* Typography */
-.h2 {
+.theme-hotel .h2 {
   font-family: 'Gilda Display', serif;
   font-size: 45px;
   margin-bottom: 1rem;
 }
 
-.h3 {
+.theme-hotel .h3 {
   font-family: 'Gilda Display', serif;
   font-size: 1.5rem;
   font-weight: 600;
@@ -62,7 +75,7 @@ input::placeholder {
 }
 
 /* Buttons */
-.btn {
+.theme-hotel .btn {
   font-family: 'Barlow Condensed', sans-serif;
   font-size: 15px;
   letter-spacing: 3px;
@@ -77,74 +90,77 @@ input::placeholder {
   align-items: center;
 }
 
-.btn-sm {
+.theme-hotel .btn-sm {
   height: 48px;
 }
 
-.btn-lg {
+.theme-hotel .btn-lg {
   height: 60px;
 }
 
-.btn-primary {
-  background-color: var(--brand-accent, #a37d4c);
+/* Override global .btn-primary/.btn-secondary rules (src/index.css) */
+.theme-hotel .btn-primary {
+  background-color: var(--hotel-accent) !important;
+  color: white !important;
 }
 
-.btn-primary:hover {
-  background-color: var(--brand-accent-dark, #967142);
+.theme-hotel .btn-primary:hover {
+  background-color: var(--hotel-accent-hover) !important;
 }
 
-.btn-secondary {
-  background-color: var(--brand-primary, #0a0a0a);
+.theme-hotel .btn-secondary {
+  background-color: var(--hotel-primary) !important;
+  color: white !important;
 }
 
-.btn-secondary:hover {
-  background-color: var(--brand-accent, #a37d4c);
+.theme-hotel .btn-secondary:hover {
+  background-color: var(--hotel-accent) !important;
 }
 
-.btn-white {
-  background-color: white;
-  color: #0a0a0a;
+.theme-hotel .btn-white {
+  background-color: white !important;
+  color: #0a0a0a !important;
 }
 
 /* Custom accent color utilities */
-.text-accent {
-  color: var(--brand-accent, #a37d4c);
+.theme-hotel .text-accent {
+  color: var(--hotel-accent) !important;
 }
 
-.text-accent-hover {
-  color: var(--brand-accent-dark, #967142);
+.theme-hotel .text-accent-hover {
+  color: var(--hotel-accent-hover) !important;
 }
 
-.bg-accent {
-  background-color: var(--brand-accent, #a37d4c);
+.theme-hotel .bg-accent {
+  background-color: var(--hotel-accent) !important;
 }
 
-.bg-accent\/20 {
-  background-color: rgba(163, 125, 76, 0.2);
+.theme-hotel .bg-accent\/20 {
+  background-color: rgba(163, 125, 76, 0.2) !important;
 }
 
-.hover\:bg-accent:hover {
-  background-color: var(--brand-accent, #a37d4c);
+.theme-hotel .hover\:bg-accent:hover {
+  background-color: var(--hotel-accent) !important;
 }
 
-.hover\:text-accent:hover {
-  color: var(--brand-accent, #a37d4c);
+.theme-hotel .hover\:text-accent:hover {
+  color: var(--hotel-accent) !important;
 }
 
-.text-primary {
-  color: var(--brand-primary, #0a0a0a);
+.theme-hotel .text-primary {
+  color: var(--hotel-primary) !important;
 }
 
-.bg-primary {
-  background-color: var(--brand-primary, #0a0a0a);
+.theme-hotel .bg-primary {
+  background-color: var(--hotel-primary) !important;
 }
 
-.hover\:bg-primary:hover {
-  background-color: var(--brand-primary, #0a0a0a);
+.theme-hotel .hover\:bg-primary:hover {
+  background-color: var(--hotel-primary) !important;
 }
 
 /* Room background image */
-.bg-room {
+.theme-hotel .bg-room {
   background-image: url('/theme/hotel/assets/rooms/1-lg.png');
 }
 
@@ -273,10 +289,6 @@ input::placeholder {
     margin-bottom: 1.5rem;
   }
 
-  .theme-hotel .lg\:gap-x-8 {
-    column-gap: 2rem;
-  }
-
   .theme-hotel .lg\:w-\[60\%\] {
     width: 60%;
   }
@@ -287,7 +299,7 @@ input::placeholder {
 }
 
 /* Datepicker styling (copied from the original project) */
-.react-datepicker {
+.theme-hotel .react-datepicker {
   background: white;
   border: none;
   border-radius: 0;
@@ -296,64 +308,67 @@ input::placeholder {
   font-size: 0.9rem;
 }
 
-.react-datepicker__header {
+.theme-hotel .react-datepicker__header {
   border: #aa8453;
   color: #fff;
   padding: 0;
 }
 
-.react-datepicker-wrapper {
+.theme-hotel .react-datepicker-wrapper {
   padding: 0 2rem;
   height: 100%;
   display: flex;
   background: white;
 }
 
-.react-datepicker-popper {
+.theme-hotel .react-datepicker-popper {
   padding-top: 0;
 }
 
-.react-datepicker-popper[data-placement^='bottom'] {
+.theme-hotel .react-datepicker-popper[data-placement^='bottom'] {
   padding-top: 0;
 }
 
-.react-datepicker__triangle {
+.theme-hotel .react-datepicker__triangle {
   display: none;
 }
 
-.react-datepicker__current-month {
+.theme-hotel .react-datepicker__current-month {
   background: #aa8453;
   color: white;
   padding: 0.3rem 0;
 }
 
-.react-datepicker__navigation {
+.theme-hotel .react-datepicker__navigation {
   top: 5px;
 }
 
-.react-datepicker__navigation-icon::before {
+.theme-hotel .react-datepicker__navigation-icon::before {
   border-color: #fff;
 }
 
-.react-datepicker__input-container input {
-  outline: none;
-  background: none;
+/* Prevent global input/button styling from affecting the date fields */
+.theme-hotel .react-datepicker__input-container input {
+  outline: none !important;
+  background: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
 }
 
-.react-datepicker__day--selected,
-.react-datepicker__day--keyboard-selected {
+.theme-hotel .react-datepicker__day--selected,
+.theme-hotel .react-datepicker__day--keyboard-selected {
   background: #aa8453;
   border-radius: 0;
 }
 
-.react-datepicker__day--selected:hover {
+.theme-hotel .react-datepicker__day--selected:hover {
   background: #906d40;
 }
 
-.react-datepicker__current-month {
+.theme-hotel .react-datepicker__current-month {
   font-weight: 500;
 }
 
-.react-datepicker__day:hover {
+.theme-hotel .react-datepicker__day:hover {
   border-radius: 0;
 }

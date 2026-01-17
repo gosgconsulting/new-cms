@@ -1,0 +1,56 @@
+/* Nail Queen Theme Styles */
+
+@import "tailwindcss";
+
+@layer base {
+  /*
+    Scoped variables so this theme doesn't affect the rest of the CMS.
+    Tailwind color tokens (bg-background, text-foreground, bg-nail-queen-brown, etc.)
+    resolve through these CSS variables.
+  */
+  .nail-queen-theme {
+    --background: 0 8% 90%;
+    --foreground: 0 0% 0%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 0%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 0%;
+
+    --primary: 39 33% 25%;
+    --primary-foreground: 0 0% 98%;
+
+    --secondary: 39 20% 90%;
+    --secondary-foreground: 39 33% 25%;
+
+    --muted: 39 20% 90%;
+    --muted-foreground: 39 15% 45%;
+
+    --accent: 39 20% 90%;
+    --accent-foreground: 39 33% 25%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 39 20% 85%;
+    --input: 39 20% 85%;
+    --ring: 39 33% 25%;
+
+    --radius: 0.5rem;
+
+    /* Nail Queen specific colors */
+    --nail-queen-beige: 39 33% 95%;
+    --nail-queen-beige-light: 39 20% 97%;
+    --nail-queen-brown: 39 33% 25%;
+    --nail-queen-brown-light: 39 33% 70%;
+  }
+
+  .nail-queen-theme * {
+    @apply border-border;
+  }
+
+  .nail-queen-theme {
+    @apply bg-background text-foreground;
+  }
+}

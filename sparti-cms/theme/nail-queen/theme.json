@@ -1,0 +1,18 @@
+{
+  "name": "Nail Queen",
+  "description": "Nail Queen website theme (migrated into Sparti CMS theme structure).",
+  "version": "1.0.0",
+  "author": "Nail Queen",
+  "is_active": true,
+  "category": "business",
+  "tags": ["nail-queen", "salon"],
+  "designSystem": "shadcn",
+  "features": [
+    "Multi-page marketing site",
+    "Nail Queen brand styling",
+    "Responsive layout",
+    "WhatsApp chat link"
+  ],
+  "preview_image": "assets/preview.svg",
+  "demo_url": "/theme/nail-queen"
+}
