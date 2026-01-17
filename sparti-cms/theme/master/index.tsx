@@ -603,8 +603,16 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
           <FlowbiteTestimonialsSection component={testimonialsSchema} />
         </div>
 
-        <div id="pricing" className="scroll-mt-20 py-20 px-4 bg-[color:var(--brand-background-alt)] dark:bg-slate-900/30">
-          <div className="container mx-auto px-4 max-w-6xl">
+        <div
+          id="pricing"
+          className="scroll-mt-20 relative overflow-hidden py-20 px-4"
+        >
+          <div className="pointer-events-none absolute inset-0">
+            <div className="absolute -top-40 left-1/2 h-[22rem] w-[44rem] -translate-x-1/2 rounded-full bg-gradient-to-r from-indigo-400/12 via-sky-400/10 to-lime-400/12 blur-3xl" />
+            <div className="absolute -bottom-56 right-[-12rem] h-[28rem] w-[28rem] rounded-full bg-gradient-to-tr from-lime-400/10 via-sky-400/10 to-indigo-400/10 blur-3xl" />
+          </div>
+
+          <div className="container mx-auto px-4 max-w-6xl relative">
             <div className="text-center mb-12">
               <h2 className="text-4xl md:text-5xl font-semibold tracking-tight text-gray-900 dark:text-white mb-4">
                 Pricing
@@ -613,11 +621,12 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
                 A simple package designed to scale your business.
               </p>
             </div>
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {pricingPlans.map((plan, idx) => (
-                <Card
+                <div
                   key={idx}
-                  className={`relative border-black/10 dark:border-white/10 bg-white/80 dark:bg-white/5 ${plan.isPopular ? "ring-2 ring-lime-400/60 scale-[1.02]" : ""}`}
+                  className={`relative rounded-3xl border border-black/10 dark:border-white/10 bg-white/70 dark:bg-white/5 backdrop-blur-sm p-8 shadow-[0_20px_80px_rgba(0,0,0,0.08)] dark:shadow-[0_20px_80px_rgba(0,0,0,0.45)] ${plan.isPopular ? "ring-2 ring-lime-400/60" : ""}`}
                 >
                   {plan.isPopular && (
                     <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
@@ -626,11 +635,13 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
                       </span>
                     </div>
                   )}
+
                   <div className="text-left">
                     <h3 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2">
                       {plan.name}
                     </h3>
                     <p className="text-gray-600 dark:text-gray-300 mb-6">{plan.description}</p>
+
                     <div className="mb-6">
                       <span className="text-4xl font-semibold text-gray-900 dark:text-white">
                         {plan.price}
@@ -641,6 +652,7 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
                         </span>
                       )}
                     </div>
+
                     <ul className="text-left space-y-3 mb-8">
                       {plan.features.map((feature, fIdx) => (
                         <li key={fIdx} className="flex items-start">
@@ -659,11 +671,12 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
                         </li>
                       ))}
                     </ul>
+
                     <button onClick={handleContactClick} className="btn-cta w-full">
                       Get Started
                     </button>
                   </div>
-                </Card>
+                </div>
               ))}
             </div>
           </div>

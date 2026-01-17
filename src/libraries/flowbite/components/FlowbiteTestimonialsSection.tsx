@@ -3,7 +3,6 @@
 import React, { useMemo, useRef } from "react";
 import type { ComponentSchema } from "../../../../sparti-cms/types/schema";
 import FlowbiteSection from "./FlowbiteSection";
-import { Card } from "flowbite-react";
 
 interface FlowbiteTestimonialsSectionProps {
   component: ComponentSchema;
@@ -13,7 +12,8 @@ interface FlowbiteTestimonialsSectionProps {
 /**
  * Flowbite Testimonials Section Component
  *
- * Revamped into a scroll-snap carousel (works as a slider) with light/dark styling.
+ * Revamped into a scroll-snap carousel (works as a slider) with glass cards
+ * matching the Master theme hero styling.
  */
 const FlowbiteTestimonialsSection: React.FC<FlowbiteTestimonialsSectionProps> = ({
   component,
@@ -48,15 +48,19 @@ const FlowbiteTestimonialsSection: React.FC<FlowbiteTestimonialsSectionProps> = 
     return Array.isArray(arr?.items) ? (arr.items as any[]) : [];
   };
 
-  const title = getHeading("title") || props.title || "What our clients say";
+  const title = getHeading("title") || (props as any).title || "What our clients say";
   const subtitle =
     getHeading("subtitle", 3) ||
     getText("subtitle") ||
-    props.subtitle ||
-    "See what our customers have to say about our services and results.";
+    (props as any).subtitle ||
+    "Short feedback from teams we've helped convert more visitors.";
 
   let testimonials =
-    getArray("testimonials") || getArray("reviews") || (props as any).testimonials || (props as any).reviews || [];
+    getArray("testimonials") ||
+    getArray("reviews") ||
+    (props as any).testimonials ||
+    (props as any).reviews ||
+    [];
 
   if (testimonials.length === 0) {
     const reviewItems = items.filter((i: any) => i.type === "review");
@@ -67,7 +71,6 @@ const FlowbiteTestimonialsSection: React.FC<FlowbiteTestimonialsSectionProps> = 
             text: item.props.content || item.props.text || "",
             name: item.props.name || "",
             role: item.props.title || item.props.role || "",
-            rating: item.props.rating || 5,
             image: item.props.image || "",
           };
         }
@@ -75,7 +78,6 @@ const FlowbiteTestimonialsSection: React.FC<FlowbiteTestimonialsSectionProps> = 
           text: item.content || item.text || "",
           name: item.name || item.author || "",
           role: item.role || item.position || "",
-          rating: item.rating || 5,
           image: item.image || item.src || "",
         };
       });
@@ -99,9 +101,9 @@ const FlowbiteTestimonialsSection: React.FC<FlowbiteTestimonialsSectionProps> = 
       const image = testimonial.image || testimonial.avatar || "";
 
       return (
-        <Card
+        <div
           key={index}
-          className="snap-start min-w-[280px] md:min-w-[360px] border-black/10 dark:border-white/10 bg-white/80 dark:bg-white/5"
+          className="snap-start min-w-[280px] md:min-w-[360px] rounded-2xl border border-black/10 dark:border-white/10 bg-white/70 dark:bg-white/5 backdrop-blur-sm p-6 shadow-[0_10px_40px_rgba(0,0,0,0.06)] dark:shadow-[0_10px_40px_rgba(0,0,0,0.35)]"
         >
           {text ? (
             <p className="text-gray-700 dark:text-gray-200 mb-5 italic leading-relaxed">
@@ -115,58 +117,58 @@ const FlowbiteTestimonialsSection: React.FC<FlowbiteTestimonialsSectionProps> = 
               <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500/20 to-lime-400/20 border border-black/10 dark:border-white/10" />
             )}
             <div>
-              {name ? (
-                <p className="font-semibold text-gray-900 dark:text-white">{name}</p>
-              ) : null}
-              {role ? (
-                <p className="text-sm text-gray-600 dark:text-gray-300">{role}</p>
-              ) : null}
+              {name ? <p className="font-semibold text-gray-900 dark:text-white">{name}</p> : null}
+              {role ? <p className="text-sm text-gray-600 dark:text-gray-300">{role}</p> : null}
             </div>
           </div>
-        </Card>
+        </div>
       );
     });
   }, [testimonials]);
 
   return (
-    <section
-      className={`py-20 px-4 bg-transparent ${className}`}
-    >
-      <div className="container mx-auto">
-        <div className="flex items-end justify-between gap-4 mb-10">
-          <FlowbiteSection title={title} subtitle={subtitle} />
-          {hasMany ? (
-            <div className="hidden md:flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => handleScroll("prev")}
-                className="h-10 w-10 rounded-full border border-black/10 dark:border-white/10 bg-white/70 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 transition-colors"
-                aria-label="Previous testimonials"
-              >
-                ‹
-              </button>
-              <button
-                type="button"
-                onClick={() => handleScroll("next")}
-                className="h-10 w-10 rounded-full border border-black/10 dark:border-white/10 bg-white/70 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 transition-colors"
-                aria-label="Next testimonials"
-              >
-                ›
-              </button>
-            </div>
-          ) : null}
-        </div>
+    <section className={`relative overflow-hidden py-20 px-4 ${className}`}>
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute -top-40 left-1/2 h-[22rem] w-[44rem] -translate-x-1/2 rounded-full bg-gradient-to-r from-indigo-400/12 via-sky-400/10 to-lime-400/12 blur-3xl" />
+      </div>
 
-        {testimonials.length > 0 ? (
-          <div
-            ref={scrollerRef}
-            className="flex gap-4 overflow-x-auto pb-2 snap-x snap-mandatory scroll-px-4 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-          >
-            {cards}
+      <div className="container mx-auto relative">
+        <div className="mx-auto max-w-6xl">
+          <div className="flex items-end justify-between gap-4 mb-10">
+            <FlowbiteSection title={title} subtitle={subtitle} />
+            {hasMany ? (
+              <div className="hidden md:flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleScroll("prev")}
+                  className="h-10 w-10 rounded-full border border-black/10 dark:border-white/10 bg-white/70 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 transition-colors"
+                  aria-label="Previous testimonials"
+                >
+                  ‹
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleScroll("next")}
+                  className="h-10 w-10 rounded-full border border-black/10 dark:border-white/10 bg-white/70 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 transition-colors"
+                  aria-label="Next testimonials"
+                >
+                  ›
+                </button>
+              </div>
+            ) : null}
           </div>
-        ) : (
-          <p className="text-center text-gray-500 dark:text-gray-400">No testimonials available.</p>
-        )}
+
+          {testimonials.length > 0 ? (
+            <div
+              ref={scrollerRef}
+              className="flex gap-4 overflow-x-auto pb-2 snap-x snap-mandatory scroll-px-4 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              {cards}
+            </div>
+          ) : (
+            <p className="text-center text-gray-500 dark:text-gray-400">No testimonials available.</p>
+          )}
+        </div>
       </div>
     </section>
   );

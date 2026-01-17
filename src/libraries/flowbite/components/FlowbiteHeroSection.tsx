@@ -128,7 +128,7 @@ const FlowbiteHeroSection: React.FC<FlowbiteHeroSectionProps> = ({
 
   return (
     <section
-      className={`relative overflow-hidden bg-white dark:bg-slate-950 py-10 sm:py-14 ${className}`}
+      className={`relative overflow-hidden bg-[color:var(--brand-background)] py-10 sm:py-14 ${className}`}
     >
       {/* Background glow */}
       <div className="pointer-events-none absolute inset-0">

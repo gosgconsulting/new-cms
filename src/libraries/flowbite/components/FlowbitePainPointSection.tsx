@@ -1,20 +1,30 @@
 "use client";
 
-import React from "react";
-import type { ComponentSchema, SchemaItem } from "../../../../sparti-cms/types/schema";
+import React, { useMemo } from "react";
+import type { ComponentSchema } from "../../../../sparti-cms/types/schema";
 import FlowbiteSection from "./FlowbiteSection";
-import { Card } from "flowbite-react";
+import { AlertTriangle, BarChart3, CircleX, Sparkles } from "lucide-react";
 
 interface FlowbitePainPointSectionProps {
   component: ComponentSchema;
   className?: string;
 }
 
+type PainPoint = { text: string; icon?: string };
+
+function pickIcon(name?: string) {
+  const key = String(name || "").toLowerCase();
+  if (key.includes("spark")) return Sparkles;
+  if (key.includes("bar") || key.includes("chart")) return BarChart3;
+  if (key === "x" || key.includes("close") || key.includes("times")) return CircleX;
+  return AlertTriangle;
+}
+
 /**
  * Flowbite Pain Point Section Component
- * 
- * Displays pain points/problems section with icons
- * Following Diora pattern for data extraction
+ *
+ * Revamped to match the Master theme hero styling and to support the schema
+ * used by /theme/master (keys: hint, heading, bullets).
  */
 const FlowbitePainPointSection: React.FC<FlowbitePainPointSectionProps> = ({
   component,
@@ -23,20 +33,16 @@ const FlowbitePainPointSection: React.FC<FlowbitePainPointSectionProps> = ({
   const props = component.props || {};
   const items = component.items || [];
 
-  // Helper functions following Diora pattern
   const getText = (key: string) => {
     const item = items.find(
-      (i) => i.key?.toLowerCase() === key.toLowerCase() && 
-      typeof (i as any).content === "string"
+      (i) => i.key?.toLowerCase() === key.toLowerCase() && typeof (i as any).content === "string"
     ) as any;
     return item?.content || "";
   };
 
-  const getHeading = (key: string, level?: number) => {
+  const getHeading = (key: string) => {
     const item = items.find(
-      (i) => i.key?.toLowerCase() === key.toLowerCase() &&
-      i.type === "heading" &&
-      (level === undefined || (i as any).level === level)
+      (i) => i.key?.toLowerCase() === key.toLowerCase() && i.type === "heading"
     ) as any;
     return item?.content || "";
   };
@@ -48,119 +54,88 @@ const FlowbitePainPointSection: React.FC<FlowbitePainPointSectionProps> = ({
     return Array.isArray(arr?.items) ? (arr.items as any[]) : [];
   };
 
-  // Extract data
-  const title = getHeading("title") || props.title || "You Invest... But Nothing Happens?";
-  const subtitle = getText("subtitle") || props.subtitle || "You have a website but it's not generating clicks?";
-  const painPoints = getArray("painPoints") || props.painPoints || [
-    { icon: "X", text: "Organic traffic stuck at 0" },
-    { icon: "Click", text: "No clicks, no leads, no sales" },
-    { icon: "Chart", text: "Competitors ranking above you" }
-  ];
+  const title =
+    getHeading("heading") ||
+    getHeading("title") ||
+    (props as any).heading ||
+    (props as any).title ||
+    "Your marketing should be generating leads.";
 
-  // Icon mapping - returns SVG icon component
-  const getIcon = (iconName: string) => {
-    const icon = iconName?.toLowerCase();
-    if (icon === "x" || icon === "close") {
-      return (props: React.SVGProps<SVGSVGElement>) => (
-        <svg
-          {...props}
-          className={["w-5 h-5", props.className].filter(Boolean).join(" ")}
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      );
-    }
-    if (icon === "click" || icon === "cursor") {
-      return (props: React.SVGProps<SVGSVGElement>) => (
-        <svg
-          {...props}
-          className={["w-5 h-5", props.className].filter(Boolean).join(" ")}
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" />
-        </svg>
-      );
-    }
-    if (icon === "chart" || icon === "bar") {
-      return (props: React.SVGProps<SVGSVGElement>) => (
-        <svg
-          {...props}
-          className={["w-5 h-5", props.className].filter(Boolean).join(" ")}
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-        </svg>
-      );
-    }
-    return (props: React.SVGProps<SVGSVGElement>) => (
-      <svg
-        {...props}
-        className={["w-5 h-5", props.className].filter(Boolean).join(" ")}
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-      </svg>
-    );
-  };
+  const subtitle =
+    getText("hint") ||
+    getText("subtitle") ||
+    (props as any).hint ||
+    (props as any).subtitle ||
+    "If you're not getting consistent leads, something in the funnel is broken.";
+
+  const points = useMemo<PainPoint[]>(() => {
+    const raw =
+      getArray("bullets") ||
+      getArray("painPoints") ||
+      (props as any).bullets ||
+      (props as any).painPoints ||
+      (props as any).items ||
+      [];
+
+    if (!Array.isArray(raw)) return [];
+
+    return raw
+      .map((p: any) => {
+        const text = p?.text || p?.content || p?.title || p?.label || "";
+        const icon = p?.icon || p?.iconName || p?.type || "";
+        return text ? { text, icon } : null;
+      })
+      .filter(Boolean) as PainPoint[];
+  }, [items, props]);
 
   return (
-    <section className={`py-20 px-4 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 relative overflow-hidden ${className}`}>
-      <div className="container mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          {/* Left Side - Visual/Icon */}
-          <div className="relative flex items-center justify-center">
-            <div className="relative w-80 h-80 md:w-96 md:h-96">
-              <div className="absolute inset-0 rounded-full border-2 border-white/10"></div>
-              <div className="absolute inset-4 rounded-full border border-white/5"></div>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <svg className="w-24 h-24 text-red-400/80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
-              </div>
+    <section className={`relative overflow-hidden py-20 px-4 ${className}`}>
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute -top-48 right-[-10rem] h-[26rem] w-[26rem] rounded-full bg-gradient-to-tr from-indigo-400/15 via-sky-400/10 to-lime-400/15 blur-3xl" />
+        <div className="absolute -bottom-48 left-[-10rem] h-[26rem] w-[26rem] rounded-full bg-gradient-to-tr from-lime-400/10 via-sky-400/10 to-indigo-400/10 blur-3xl" />
+      </div>
+
+      <div className="container mx-auto relative">
+        <div className="mx-auto max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+          <div className="rounded-3xl border border-black/10 dark:border-white/10 bg-white/70 dark:bg-white/5 backdrop-blur-sm p-8 md:p-10 shadow-[0_20px_80px_rgba(0,0,0,0.08)] dark:shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
+            <div className="inline-flex items-center gap-2 rounded-full border border-black/10 dark:border-white/10 bg-white/60 dark:bg-white/5 px-3 py-1 text-xs text-gray-700 dark:text-gray-200">
+              <span className="h-2 w-2 rounded-full bg-lime-400" />
+              <span>{subtitle}</span>
             </div>
-          </div>
 
-          {/* Right Side - Content */}
-          <div className="space-y-8">
-            {subtitle && (
-              <span className="inline-block px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-white/70 text-sm border border-white/20">
-                {subtitle}
-              </span>
-            )}
-
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight">
+            <h2 className="mt-5 text-3xl md:text-4xl font-semibold tracking-tight text-gray-900 dark:text-white leading-tight">
               {title}
             </h2>
 
-            <div className="space-y-4">
-              {painPoints.map((point: any, index: number) => {
-                const Icon = getIcon(point.icon || point.iconName || "");
-                const text = point.text || point.title || point.content || "";
+            <p className="mt-4 text-base text-gray-600 dark:text-gray-300 leading-relaxed">
+              We identify the bottleneck, fix the messaging, and align every section to one goal: conversions.
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            {points.length > 0 ? (
+              points.map((p, index) => {
+                const Icon = pickIcon(p.icon);
 
                 return (
-                  <Card
+                  <div
                     key={index}
-                    className="bg-white/5 backdrop-blur-sm border border-white/10 hover:bg-white/10 transition-all duration-300"
+                    className="rounded-2xl border border-black/10 dark:border-white/10 bg-white/70 dark:bg-white/5 backdrop-blur-sm p-5 shadow-[0_10px_40px_rgba(0,0,0,0.06)] dark:shadow-[0_10px_40px_rgba(0,0,0,0.35)]"
                   >
-                    <div className="flex items-center gap-4">
-                      <div className="flex-shrink-0 w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center">
-                        <Icon className="w-5 h-5 text-red-400" />
+                    <div className="flex items-start gap-4">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-black/10 dark:border-white/10 bg-gradient-to-br from-red-500/15 to-orange-500/10">
+                        <Icon className="h-5 w-5 text-red-500 dark:text-red-400" />
                       </div>
-                      <span className="text-white text-lg">{text}</span>
+                      <p className="text-base text-gray-800 dark:text-gray-100 leading-relaxed">
+                        {p.text}
+                      </p>
                     </div>
-                  </Card>
+                  </div>
                 );
-              })}
-            </div>
+              })
+            ) : (
+              <p className="text-gray-500 dark:text-gray-400">No items to display.</p>
+            )}
           </div>
         </div>
       </div>
