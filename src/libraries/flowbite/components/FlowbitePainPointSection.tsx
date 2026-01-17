@@ -98,8 +98,8 @@ const FlowbitePainPointSection: React.FC<FlowbitePainPointSectionProps> = ({
       <div className="container mx-auto relative">
         <div className="mx-auto max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
           <div className="rounded-3xl border border-black/10 dark:border-white/10 bg-white/70 dark:bg-white/5 backdrop-blur-sm p-8 md:p-10 shadow-[0_20px_80px_rgba(0,0,0,0.08)] dark:shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
-            <div className="inline-flex items-center gap-2 rounded-full border border-black/10 dark:border-white/10 bg-white/60 dark:bg-white/5 px-3 py-1 text-xs text-gray-700 dark:text-gray-200">
-              <span className="h-2 w-2 rounded-full bg-lime-400" />
+            <div className="inline-flex items-center gap-2 badge-neutral text-xs">
+              <span className="h-2 w-2 rounded-full bg-brand-primary" />
               <span>{subtitle}</span>
             </div>
 
@@ -123,8 +123,8 @@ const FlowbitePainPointSection: React.FC<FlowbitePainPointSectionProps> = ({
                     className="rounded-2xl border border-black/10 dark:border-white/10 bg-white/70 dark:bg-white/5 backdrop-blur-sm p-5 shadow-[0_10px_40px_rgba(0,0,0,0.06)] dark:shadow-[0_10px_40px_rgba(0,0,0,0.35)]"
                   >
                     <div className="flex items-start gap-4">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-black/10 dark:border-white/10 bg-gradient-to-br from-red-500/15 to-orange-500/10">
-                        <Icon className="h-5 w-5 text-red-500 dark:text-red-400" />
+                      <div className="icon-container-accent h-10 w-10">
+                        <Icon className="h-5 w-5" />
                       </div>
                       <p className="text-base text-gray-800 dark:text-gray-100 leading-relaxed">
                         {p.text}

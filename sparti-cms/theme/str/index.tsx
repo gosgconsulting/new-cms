@@ -405,6 +405,114 @@ const STRTheme: React.FC<TenantLandingProps> = ({
         </div>
       </section>
 
+      {/* Programmes Section */}
+      <section id="programmes" className="py-16 sm:py-20 px-4 sm:px-6 lg:px-8 bg-background">
+        <div className="container mx-auto max-w-6xl">
+          <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-start">
+            {/* Left Column - Big Title */}
+            <div className="flex flex-col justify-center">
+              <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold uppercase text-foreground leading-tight mb-6">
+                OUR PROGRAMMES
+              </h2>
+              <p className="text-lg md:text-xl text-foreground/80 leading-relaxed max-w-xl mb-8">
+                Discover our comprehensive range of fitness and wellness programmes designed to help you achieve your goals, from personal training to group classes and rehabilitation.
+              </p>
+              {/* Programmes Image */}
+              <div className="w-full max-w-xl">
+                <img 
+                  src={STR_ASSETS.images.programmes}
+                  alt="STR Fitness Gym Facilities - Rowing Machines, Training Area, and Weightlifting Equipment"
+                  className="w-full h-auto rounded-lg object-cover shadow-lg"
+                  onError={(e) => {
+                    // Fallback if image not found
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Right Column - Accordion */}
+            <div className="space-y-0">
+              {programmes.map((programme, index) => {
+                const isActive = activeProgramme === index;
+                return (
+                  <div key={index} className="relative mb-1">
+                    {/* Active State - White Background with Orange Accent */}
+                    {isActive ? (
+                      <div className="relative bg-white rounded-2xl p-6 shadow-lg overflow-hidden">
+                        {/* Orange Accent on Top and Left - Irregular/Tilted Shape */}
+                        <div className="absolute top-0 left-0 w-3 h-full bg-[#E48D2A]"></div>
+                        <div 
+                          className="absolute top-0 left-0 w-full h-2 bg-[#E48D2A]"
+                          style={{ clipPath: 'polygon(0 0, 100% 0, 95% 100%, 0 100%)' }}
+                        ></div>
+                        
+                        <div className="flex items-center justify-between pl-6">
+                          <h3 className="text-2xl md:text-3xl font-bold text-black uppercase">
+                            {programme.title}
+                          </h3>
+                          <button
+                            onClick={() => setActiveProgramme(activeProgramme === index ? -1 : index)}
+                            className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center flex-shrink-0 hover:bg-gray-700 transition-colors"
+                            aria-label={`Toggle ${programme.title}`}
+                          >
+                            <ChevronUp className="h-4 w-4 text-white" />
+                          </button>
+                        </div>
+                        
+                        {/* Expanded Content */}
+                        <div className="mt-6 pl-6">
+                          <p className="text-black/70 text-base leading-relaxed mb-6">
+                            {programme.description}
+                            {programme.content && (
+                              <>
+                                <br /><br />
+                                <span className="text-black/60 text-sm">{programme.content}</span>
+                              </>
+                            )}
+                          </p>
+                          {/* CTA Button */}
+                          <Button
+                            className="bg-[#E00000] text-white hover:bg-[#E00000]/90 font-bold uppercase px-6 py-3 rounded-lg text-sm transition-all duration-300 hover:scale-105"
+                            onClick={() => setIsContactModalOpen(true)}
+                          >
+                            GET STARTED
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      /* Inactive State - Dark Gray Background */
+                      <div className="relative">
+                        <div className="flex items-center justify-between py-5 px-6 bg-gray-800/60 rounded-lg hover:bg-gray-800/70 transition-colors cursor-pointer" onClick={() => setActiveProgramme(index)}>
+                          <h3 className="text-lg md:text-xl font-medium text-gray-400 uppercase">
+                            {programme.title}
+                          </h3>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActiveProgramme(index);
+                            }}
+                            className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center flex-shrink-0 hover:bg-gray-700 transition-colors"
+                            aria-label={`Open ${programme.title}`}
+                          >
+                            <ChevronUp className="h-4 w-4 text-white rotate-180" />
+                          </button>
+                        </div>
+                        {/* Separator Line */}
+                        {index < programmes.length - 1 && (
+                          <div className="h-px bg-gray-700/50 mt-1"></div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Gallery Section */}
       <section id="gallery" className="py-16 sm:py-20 px-4 sm:px-6 lg:px-8 bg-background">
         <div className="container mx-auto max-w-7xl">

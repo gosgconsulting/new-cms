@@ -140,7 +140,7 @@ const FlowbiteFAQSection: React.FC<FlowbiteFAQSectionProps> = ({
                       <span className="text-left text-xl sm:text-2xl font-medium text-slate-900 dark:text-white">
                         {item.question}
                       </span>
-                      <span className="flex h-11 w-11 items-center justify-center rounded-full bg-amber-500 text-slate-950 shrink-0">
+                      <span className="icon-container-primary h-11 w-11 rounded-full shrink-0">
                         <Plus className="h-5 w-5 group-data-[state=open]:hidden" />
                         <Minus className="h-5 w-5 hidden group-data-[state=open]:block" />
                       </span>

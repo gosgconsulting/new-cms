@@ -291,7 +291,7 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
                   <button
                     type="button"
                     disabled
-                    className="rounded-full px-6 py-3 bg-gray-200 text-gray-600 dark:bg-white/10 dark:text-gray-300 opacity-60 cursor-not-allowed flex items-center"
+                    className="btn-cta-secondary rounded-full px-6 py-3 opacity-60 cursor-not-allowed flex items-center"
                   >
                     <ArrowLeft className="h-4 w-4 mr-2" /> Back
                   </button>
@@ -319,12 +319,12 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
                     className={
                       "text-left rounded-2xl border p-4 transition-colors " +
                       (method === "whatsapp"
-                        ? "border-green-500 bg-green-50 dark:bg-green-500/10 dark:border-green-400/40"
+                        ? "border-brand-accent bg-brand-accent/10 dark:bg-brand-accent/10 dark:border-brand-accent/40"
                         : "border-gray-200 bg-white hover:bg-gray-50 dark:bg-white/5 dark:border-white/10 dark:hover:bg-white/10")
                     }
                   >
                     <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-xl bg-green-500 text-white flex items-center justify-center">
+                      <div className="icon-container-accent h-10 w-10 rounded-xl">
                         <MessageCircle className="h-5 w-5" />
                       </div>
                       <div>
@@ -340,12 +340,12 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
                     className={
                       "text-left rounded-2xl border p-4 transition-colors " +
                       (method === "form"
-                        ? "border-indigo-600 bg-indigo-50 dark:bg-indigo-500/10 dark:border-indigo-400/40"
+                        ? "border-brand-primary bg-brand-primary/10 dark:bg-brand-primary/10 dark:border-brand-primary/40"
                         : "border-gray-200 bg-white hover:bg-gray-50 dark:bg-white/5 dark:border-white/10 dark:hover:bg-white/10")
                     }
                   >
                     <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center">
+                      <div className="icon-container-primary h-10 w-10 rounded-xl">
                         <Send className="h-5 w-5" />
                       </div>
                       <div>
@@ -367,7 +367,7 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
                   <button
                     type="button"
                     onClick={goBack}
-                    className="rounded-full px-6 py-3 bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-white/10 dark:text-gray-200 dark:hover:bg-white/15 flex items-center"
+                    className="btn-cta-secondary rounded-full px-6 py-3 flex items-center"
                   >
                     <ArrowLeft className="h-4 w-4 mr-2" /> Back
                   </button>
@@ -426,7 +426,7 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
                   <button
                     type="button"
                     onClick={goBack}
-                    className="rounded-full px-6 py-3 bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-white/10 dark:text-gray-200 dark:hover:bg-white/15 flex items-center"
+                    className="btn-cta-secondary rounded-full px-6 py-3 flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
                     disabled={isSubmitting}
                   >
                     <ArrowLeft className="h-4 w-4 mr-2" /> Back

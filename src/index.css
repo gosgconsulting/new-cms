@@ -162,6 +162,16 @@
   .footer-dark-text {
     color: var(--footer-dark-text) !important;
   }
+
+  /* Global link cursor - ensure all links show pointer on hover */
+  a {
+    cursor: pointer;
+  }
+
+  /* Also ensure buttons have pointer cursor */
+  button {
+    cursor: pointer;
+  }
 }
 
 /* Glass morphism effects */

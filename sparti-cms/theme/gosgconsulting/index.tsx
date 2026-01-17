@@ -356,7 +356,7 @@ const GOSGContent: React.FC<TenantLandingProps> = ({
   const pageData = pageSlug === 'seo' ? seoData : homepageData;
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col w-full max-w-full overflow-x-hidden">
       {/* SEO metadata */}
       <SEOHead meta={pageData.meta} favicon={faviconSrc || undefined} />
       
@@ -369,7 +369,7 @@ const GOSGContent: React.FC<TenantLandingProps> = ({
       />
       
       {/* Main content: Dynamic page rendering */}
-      <main className="flex-grow">
+      <main className="flex-grow w-full">
         <DynamicPageRenderer
           schema={pageData}
           onContactClick={handleContactClick}

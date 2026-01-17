@@ -78,7 +78,9 @@
 }
 
 @layer components {
-  /* Standardized CTA Button - Single Style */
+  /* Standardized CTA Buttons */
+  
+  /* Primary CTA Button */
   .btn-cta {
     height: 3rem;
     padding-left: 1.5rem;
@@ -107,6 +109,170 @@
     box-shadow: var(--shadow-sm);
   }
 
+  /* Secondary CTA Button - Transparent with border */
+  .btn-cta-secondary {
+    height: 3rem;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    background-color: transparent;
+    color: var(--brand-text);
+    border: 1px solid var(--border-color);
+    transition: all 0.2s ease;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .btn-cta-secondary:hover {
+    background-color: var(--bg-secondary);
+    border-color: var(--border-color-dark);
+    color: var(--brand-primary);
+  }
+
+  .dark .btn-cta-secondary {
+    color: var(--text-primary);
+    border-color: rgba(255, 255, 255, 0.12);
+  }
+
+  .dark .btn-cta-secondary:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.18);
+    color: var(--brand-primary);
+  }
+
+  /* Light CTA Button - For use on gradient/dark backgrounds */
+  .btn-cta-light {
+    height: 3rem;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    background-color: rgba(255, 255, 255, 0.15);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(8px);
+    transition: all 0.2s ease;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .btn-cta-light:hover {
+    background-color: rgba(255, 255, 255, 0.25);
+    border-color: rgba(255, 255, 255, 0.3);
+  }
+
+  /* Badge Components */
+  
+  /* Primary Badge - Uses brand primary color */
+  .badge-primary {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 9999px;
+    background-color: var(--brand-primary);
+    color: #0b1223;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+
+  .dark .badge-primary {
+    background-color: var(--brand-primary);
+    color: #0b1223;
+  }
+
+  /* Neutral Badge - Subtle background */
+  .badge-neutral {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 9999px;
+    border: 1px solid var(--border-color);
+    background-color: rgba(255, 255, 255, 0.6);
+    color: var(--brand-text);
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+
+  .dark .badge-neutral {
+    border-color: rgba(255, 255, 255, 0.12);
+    background-color: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+  }
+
+  /* Accent Badge - Uses brand accent color */
+  .badge-accent {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 9999px;
+    background-color: var(--brand-accent);
+    color: white;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+
+  .dark .badge-accent {
+    background-color: var(--brand-accent);
+    color: white;
+  }
+
+  /* Icon Containers */
+  
+  /* Primary Icon Container */
+  .icon-container-primary {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.75rem;
+    background-color: var(--brand-primary);
+    color: #0b1223;
+    transition: all 0.2s ease;
+  }
+
+  .dark .icon-container-primary {
+    background-color: var(--brand-primary);
+    color: #0b1223;
+  }
+
+  /* Accent Icon Container */
+  .icon-container-accent {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.75rem;
+    background-color: var(--brand-accent);
+    color: white;
+    transition: all 0.2s ease;
+  }
+
+  .dark .icon-container-accent {
+    background-color: var(--brand-accent);
+    color: white;
+  }
+
+  /* Neutral Icon Container */
+  .icon-container-neutral {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.75rem;
+    border: 1px solid var(--border-color);
+    background-color: rgba(255, 255, 255, 0.6);
+    color: var(--brand-text);
+    transition: all 0.2s ease;
+  }
+
+  .dark .icon-container-neutral {
+    border-color: rgba(255, 255, 255, 0.12);
+    background-color: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+  }
+
   /* Text helpers */
   .text-on-dark {
     color: white;
@@ -130,7 +296,45 @@
 }
 
 @layer utilities {
+  /* Brand Gradient */
   .bg-brand-gradient {
     background: linear-gradient(to right, var(--brand-gradient-start), var(--brand-gradient-end));
+  }
+
+  /* Brand Color Utilities */
+  .bg-brand-primary {
+    background-color: var(--brand-primary);
+  }
+
+  .bg-brand-secondary {
+    background-color: var(--brand-secondary);
+  }
+
+  .bg-brand-accent {
+    background-color: var(--brand-accent);
+  }
+
+  .text-brand-primary {
+    color: var(--brand-primary);
+  }
+
+  .text-brand-secondary {
+    color: var(--brand-secondary);
+  }
+
+  .text-brand-accent {
+    color: var(--brand-accent);
+  }
+
+  .border-brand-primary {
+    border-color: var(--brand-primary);
+  }
+
+  .border-brand-secondary {
+    border-color: var(--brand-secondary);
+  }
+
+  .border-brand-accent {
+    border-color: var(--brand-accent);
   }
 }

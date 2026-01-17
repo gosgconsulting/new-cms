@@ -1,8 +1,6 @@
 /* GO SG Consulting Theme Styles */
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
 @layer base {
   :root {
@@ -108,6 +106,16 @@
     font-weight: var(--font-body-weight);
     color: var(--brand-text);
     background-color: var(--brand-background);
+    /* Ensure body doesn't cause layout issues */
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+
+  html {
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
   }
 
   /* Apply global typography to headings */
@@ -141,6 +149,59 @@
   /* Footer text styling for dark backgrounds */
   .footer-dark-text {
     color: var(--footer-dark-text) !important;
+  }
+
+  /* Ensure container class works properly for desktop layout */
+  /* Tailwind's container class should handle this, but we ensure it works */
+  .container {
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  @media (min-width: 640px) {
+    .container {
+      max-width: 640px;
+    }
+  }
+
+  @media (min-width: 768px) {
+    .container {
+      max-width: 768px;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .container {
+      max-width: 1024px;
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .container {
+      max-width: 1280px;
+    }
+  }
+
+  @media (min-width: 1536px) {
+    .container {
+      max-width: 1536px;
+    }
+  }
+
+  /* Ensure sections don't overflow on desktop */
+  section {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  /* Ensure main content area has proper constraints */
+  main {
+    width: 100%;
+    max-width: 100%;
   }
 }
 

@@ -122,7 +122,7 @@ const FlowbiteHeroSection: React.FC<FlowbiteHeroSectionProps> = ({
     return (
       <>
         {before}
-        <span className="text-lime-400 dark:text-lime-300">{match}</span>
+        <span className="text-brand-primary">{match}</span>
         {after}
       </>
     );
@@ -158,7 +158,7 @@ const FlowbiteHeroSection: React.FC<FlowbiteHeroSectionProps> = ({
                         : "flex flex-wrap items-center justify-center gap-3"
                     }
                   >
-                    <span className="inline-flex items-center rounded-full border border-black/10 dark:border-white/10 bg-white/60 dark:bg-white/5 px-4 py-2 text-xs sm:text-sm text-gray-700 dark:text-gray-200">
+                    <span className="badge-neutral text-xs sm:text-sm">
                       {motto}
                     </span>
                   </div>
@@ -196,7 +196,7 @@ const FlowbiteHeroSection: React.FC<FlowbiteHeroSectionProps> = ({
                     {secondaryCta.content ? (
                       <a
                         href={secondaryCta.link}
-                        className="inline-flex h-12 items-center justify-center rounded-lg border border-black/10 dark:border-white/10 bg-white/60 dark:bg-white/5 px-6 font-semibold text-gray-900 dark:text-white hover:bg-white dark:hover:bg-white/10 transition-colors"
+                        className="btn-cta-secondary w-full sm:w-auto"
                       >
                         {secondaryCta.content}
                       </a>
@@ -206,7 +206,7 @@ const FlowbiteHeroSection: React.FC<FlowbiteHeroSectionProps> = ({
 
                 <div className={showCarousel ? "text-sm text-gray-600 dark:text-gray-300" : "text-sm text-gray-600 dark:text-gray-300 flex justify-center"}>
                   <span className="inline-flex items-center gap-2">
-                    <span className="h-2 w-2 rounded-full bg-lime-400" />
+                    <span className="h-2 w-2 rounded-full bg-brand-primary" />
                     <span>2 spots available this week</span>
                   </span>
                 </div>

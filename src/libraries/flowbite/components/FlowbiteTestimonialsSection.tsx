@@ -242,7 +242,7 @@ const FlowbiteTestimonialsSection: React.FC<FlowbiteTestimonialsSectionProps> = 
         >
           <div className="flex items-start gap-4">
             {/* Initials-only avatar */}
-            <div className="h-14 w-14 rounded-full bg-rose-600 text-white flex items-center justify-center text-lg font-semibold">
+            <div className="icon-container-accent h-14 w-14 rounded-full text-lg font-semibold">
               {initials}
             </div>
 
@@ -307,7 +307,7 @@ const FlowbiteTestimonialsSection: React.FC<FlowbiteTestimonialsSectionProps> = 
                       className={[
                         "h-2 rounded-full transition-all cursor-pointer",
                         isActive
-                          ? "w-14 bg-amber-500"
+                          ? "w-14 bg-brand-primary"
                           : "w-6 bg-slate-300 dark:bg-slate-600 hover:bg-slate-400 dark:hover:bg-slate-500",
                       ].join(" ")}
                       aria-label={`Go to reviews page ${idx + 1}`}

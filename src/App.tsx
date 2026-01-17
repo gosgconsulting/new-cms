@@ -149,6 +149,12 @@ const App = () => {
                 <ThemeRouteHandler />
               </ErrorBoundary>
             } />
+            {/* Theme exact match (homepage) - must come before catch-all */}
+            <Route path="/theme/:tenantSlug" element={
+              <ErrorBoundary>
+                <TenantLandingPage />
+              </ErrorBoundary>
+            } />
             {/* Theme sub-routes (e.g., /thank-you) */}
             <Route path="/theme/:tenantSlug/:pageSlug" element={
               <ErrorBoundary>
@@ -157,11 +163,6 @@ const App = () => {
             } />
             {/* Theme nested routes (e.g., /booking/classes) - catch-all for paths with more than 2 segments */}
             <Route path="/theme/:tenantSlug/*" element={
-              <ErrorBoundary>
-                <TenantLandingPage />
-              </ErrorBoundary>
-            } />
-            <Route path="/theme/:tenantSlug" element={
               <ErrorBoundary>
                 <TenantLandingPage />
               </ErrorBoundary>

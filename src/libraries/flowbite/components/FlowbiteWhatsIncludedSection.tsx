@@ -121,7 +121,7 @@ const FlowbiteWhatsIncludedSection: React.FC<FlowbiteWhatsIncludedProps> = ({
           <div className="mx-auto max-w-4xl rounded-3xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-900 shadow-[0_20px_80px_rgba(0,0,0,0.10)] dark:shadow-[0_20px_80px_rgba(0,0,0,0.55)] p-8 sm:p-10 md:p-12">
             {badge ? (
               <div className="flex justify-center">
-                <span className="inline-flex items-center rounded-full bg-lime-200/70 text-slate-900 dark:bg-lime-400/15 dark:text-lime-200 px-5 py-2 text-xs font-semibold uppercase tracking-wider">
+                <span className="badge-primary text-xs font-semibold uppercase tracking-wider">
                   {badge}
                 </span>
               </div>
@@ -131,7 +131,7 @@ const FlowbiteWhatsIncludedSection: React.FC<FlowbiteWhatsIncludedProps> = ({
               <h3 className="text-3xl md:text-4xl font-semibold tracking-tight text-slate-900 dark:text-white">
                 Join the growth package
               </h3>
-              <p className="mt-3 text-lg text-lime-700 dark:text-lime-200/90">
+              <p className="mt-3 text-lg text-slate-700 dark:text-slate-200">
                 Be contacted to learn about scope, timelines, and onboarding options.
               </p>
             </div>
@@ -141,7 +141,7 @@ const FlowbiteWhatsIncludedSection: React.FC<FlowbiteWhatsIncludedProps> = ({
               <div className="mt-10 space-y-5">
                 {features.map((f, idx) => (
                   <div key={idx} className="flex items-start gap-4">
-                    <div className="mt-1 flex h-6 w-6 items-center justify-center rounded-full bg-lime-200/70 text-lime-800 dark:bg-lime-400/15 dark:text-lime-200">
+                    <div className="icon-container-primary mt-1 h-6 w-6 rounded-full">
                       <Check className="h-4 w-4" />
                     </div>
                     <p className="text-base sm:text-lg text-slate-700 dark:text-slate-200 leading-relaxed">
@@ -156,9 +156,9 @@ const FlowbiteWhatsIncludedSection: React.FC<FlowbiteWhatsIncludedProps> = ({
             ) : null}
 
             {/* Highlight callout */}
-            <div className="mt-10 rounded-2xl border border-lime-300/60 dark:border-lime-400/20 bg-lime-50 dark:bg-lime-400/5 p-6">
+            <div className="mt-10 rounded-2xl border border-brand-primary/30 bg-white/60 dark:bg-white/5 p-6">
               <div className="flex items-start gap-4">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-lime-200/80 text-lime-800 dark:bg-lime-400/15 dark:text-lime-200">
+                <div className="icon-container-primary h-10 w-10 rounded-full">
                   <Clock3 className="h-5 w-5" />
                 </div>
                 <div>

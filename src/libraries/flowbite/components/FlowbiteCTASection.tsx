@@ -84,7 +84,7 @@ const FlowbiteCTASection: React.FC<FlowbiteCTASectionProps> = ({
             <div className="mt-10 flex justify-center">
               <a
                 href={cta.link}
-                className="inline-flex items-center justify-center h-12 px-8 rounded-full bg-white/15 hover:bg-white/20 text-white font-semibold border border-white/20 backdrop-blur transition-colors"
+                className="btn-cta-light rounded-full px-8"
               >
                 {cta.content}
               </a>

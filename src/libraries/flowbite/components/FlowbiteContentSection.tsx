@@ -113,7 +113,7 @@ const FlowbiteContentSection: React.FC<FlowbiteContentSectionProps> = ({
           <div className="mx-auto max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
             {/* Left */}
             <div>
-              <span className="inline-flex items-center rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-200 px-4 py-2 text-sm font-medium">
+              <span className="badge-primary text-sm">
                 {badge}
               </span>
 
@@ -156,7 +156,7 @@ const FlowbiteContentSection: React.FC<FlowbiteContentSectionProps> = ({
               {/* Floating review pill */}
               <div className="absolute left-6 top-6 rounded-2xl border border-black/10 dark:border-white/10 bg-white/90 dark:bg-slate-900/80 backdrop-blur px-4 py-3 shadow-[0_12px_40px_rgba(0,0,0,0.12)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.45)]">
                 <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-full bg-indigo-100 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-200 flex items-center justify-center">
+                  <div className="icon-container-primary h-10 w-10 rounded-full">
                     <Star className="h-5 w-5" />
                   </div>
                   <div>
