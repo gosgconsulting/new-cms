@@ -1,3 +1,4 @@
+import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -6,6 +7,10 @@ import { BrowserRouter, Routes, Route, Navigate, useParams, useLocation } from "
 import AdminTopBar from "@/components/AdminTopBar";
 import { useSEO } from "@/hooks/useSEO";
 import { AuthProvider } from "../sparti-cms/components/auth/AuthProvider";
+import ErrorBoundary from "./components/ErrorBoundary";
+import EmbedPagesManager from "../sparti-cms/components/embed/EmbedPagesManager";
+import ThemeAdminRedirect from "./components/ThemeAdminRedirect";
+import SuperAdminRoute from "../sparti-cms/components/auth/SuperAdminRoute";
 import NotFound from "./pages/NotFound";
 import Admin from "./pages/Admin";
 import Auth from "./pages/Auth";
@@ -21,6 +26,9 @@ import TemplateWebsite from "./pages/TemplateWebsite";
 import TemplateDynamic from "./pages/TemplateDynamic";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
+import DesignSystems from "./pages/DesignSystems";
+import Kanban from "./pages/Kanban";
+import FeatureKanban from "./pages/FeatureKanban";
 
 // Component to handle theme sub-routes - checks if it's a known theme
 const ThemeRouteHandler: React.FC = () => {
@@ -44,13 +52,6 @@ const MasterAliasRoute: React.FC = () => {
   const rest = location.pathname.replace(/^\/master/, "");
   return <Navigate to={`/theme/master${rest}${location.search}${location.hash}`} replace />;
 };
-import ErrorBoundary from "./components/ErrorBoundary";
-import EmbedPagesManager from "../sparti-cms/components/embed/EmbedPagesManager";
-import ThemeAdminRedirect from "./components/ThemeAdminRedirect";
-import DesignSystems from "./pages/DesignSystems";
-import Kanban from "./pages/Kanban";
-import FeatureKanban from "./pages/FeatureKanban";
-import SuperAdminRoute from "../sparti-cms/components/auth/SuperAdminRoute";
 
 const queryClient = new QueryClient();
 

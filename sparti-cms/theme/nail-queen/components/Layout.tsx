@@ -36,7 +36,7 @@ export function Layout({ basePath, children }: LayoutProps) {
     <div className="min-h-screen bg-background">
       <SocialMediaSticky />
 
-      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-border bg-white shadow-sm">
+      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-[hsl(var(--border))] bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <Link to={joinPath(basePath, "")} className="flex items-center space-x-2">
