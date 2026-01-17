@@ -1,0 +1,24 @@
+{
+  "name": "Master Template",
+  "description": "A reference template theme that demonstrates the standard structure, database integration patterns, and Flowbite design system integration for all themes. Use this as a starting point when creating new themes.",
+  "version": "1.0.0",
+  "author": "GOSG",
+  "is_active": true,
+  "category": "template",
+  "tags": ["template"],
+  "designSystem": "flowbite",
+  "designSystemTheme": "default",
+  "features": [
+    "Reference implementation for theme structure",
+    "Database integration patterns",
+    "Flowbite design system integration",
+    "29 pre-built Flowbite components",
+    "5 Flowbite themes available",
+    "Standard component structure",
+    "Responsive layout",
+    "Template for new themes"
+  ],
+  "preview_image": "assets/preview.jpg",
+  "demo_url": "/theme/master",
+  "documentation_url": "/docs/themes/master"
+}

@@ -6,7 +6,7 @@
   "author": "GOSG",
   "is_active": true,
   "category": "business",
-  "tags": ["business", "services", "professional", "incorporation", "accounting", "corporate"],
+  "tags": ["custom", "business", "services", "professional", "incorporation", "accounting", "corporate"],
   "preview_image": "assets/hero-business.jpg",
   "demo_url": "/theme/str",
   "documentation_url": "/docs/themes/acatr-business-services"

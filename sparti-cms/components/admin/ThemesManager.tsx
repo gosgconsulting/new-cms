@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Palette, 
   Plus, 
@@ -45,6 +45,7 @@ interface Theme {
   name: string;
   slug: string;
   description?: string;
+  tags?: string[];
   is_active?: boolean;
   created_at?: string;
   updated_at?: string;
@@ -67,14 +68,19 @@ const ThemesManager: React.FC = () => {
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [showAddThemeModal, setShowAddThemeModal] = useState(false);
   const [showActivateModal, setShowActivateModal] = useState(false);
+  const [showEditTagsModal, setShowEditTagsModal] = useState(false);
   const [selectedThemeForActivation, setSelectedThemeForActivation] = useState<Theme | null>(null);
+  const [selectedThemeForTags, setSelectedThemeForTags] = useState<Theme | null>(null);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [selectedTenantId, setSelectedTenantId] = useState<string>('');
   const [isActivating, setIsActivating] = useState(false);
+  const [isUpdatingTags, setIsUpdatingTags] = useState(false);
   const [newTheme, setNewTheme] = useState({
     slug: '',
     name: '',
     description: ''
   });
+  const [filterType, setFilterType] = useState<'all' | 'template' | 'custom'>('all');
   const { toast } = useToast();
 
   // Fetch themes from API
@@ -117,6 +123,18 @@ const ThemesManager: React.FC = () => {
     },
     enabled: !!user?.is_super_admin || showActivateModal,
   });
+
+  // Filter themes based on selected filter type
+  const filteredThemes = useMemo(() => {
+    if (filterType === 'all') return themes;
+    if (filterType === 'template') {
+      return themes.filter(theme => theme.tags?.includes('template'));
+    }
+    if (filterType === 'custom') {
+      return themes.filter(theme => theme.tags?.includes('custom'));
+    }
+    return themes;
+  }, [themes, filterType]);
 
   useEffect(() => {
     if (themesData) {
@@ -215,6 +233,61 @@ const ThemesManager: React.FC = () => {
     setSelectedThemeForActivation(theme);
     setSelectedTenantId('');
     setShowActivateModal(true);
+  };
+
+  // Handle edit tags - opens dialog to edit theme tags
+  const handleEditTags = (theme: Theme) => {
+    setSelectedThemeForTags(theme);
+    setSelectedTags(theme.tags || []);
+    setShowEditTagsModal(true);
+  };
+
+  // Handle tag toggle
+  const handleTagToggle = (tag: string) => {
+    setSelectedTags(prev => {
+      if (prev.includes(tag)) {
+        return prev.filter(t => t !== tag);
+      } else {
+        return [...prev, tag];
+      }
+    });
+  };
+
+  // Confirm tags update
+  const handleConfirmTagsUpdate = async () => {
+    if (!selectedThemeForTags) return;
+
+    setIsUpdatingTags(true);
+    try {
+      const response = await api.put(`/api/themes/${selectedThemeForTags.id}`, {
+        tags: selectedTags,
+      });
+
+      if (response.ok) {
+        const updatedTheme = await response.json();
+        toast({
+          title: 'Tags Updated',
+          description: `Tags for "${selectedThemeForTags.name}" have been updated`,
+        });
+        setShowEditTagsModal(false);
+        setSelectedThemeForTags(null);
+        setSelectedTags([]);
+        // Refetch themes to update the list
+        refetchThemes();
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update tags');
+      }
+    } catch (error: any) {
+      console.error('Error updating tags:', error);
+      toast({
+        title: 'Update Failed',
+        description: error.message || 'Failed to update tags',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsUpdatingTags(false);
+    }
   };
 
   // Confirm theme activation
@@ -441,8 +514,44 @@ const ThemesManager: React.FC = () => {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {themes.map((theme) => (
+        <>
+          {/* Filter Tabs */}
+          <div className="flex gap-2 mb-4">
+            <Button 
+              variant={filterType === 'all' ? 'default' : 'outline'} 
+              onClick={() => setFilterType('all')}
+              size="sm"
+            >
+              All
+            </Button>
+            <Button 
+              variant={filterType === 'template' ? 'default' : 'outline'} 
+              onClick={() => setFilterType('template')}
+              size="sm"
+            >
+              Template
+            </Button>
+            <Button 
+              variant={filterType === 'custom' ? 'default' : 'outline'} 
+              onClick={() => setFilterType('custom')}
+              size="sm"
+            >
+              Custom
+            </Button>
+          </div>
+
+          {/* Theme Grid */}
+          {filteredThemes.length === 0 ? (
+            <Card>
+              <CardContent className="text-center py-8">
+                <p className="text-muted-foreground">
+                  No themes found for filter: <strong>{filterType}</strong>
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {filteredThemes.map((theme) => (
             <Card key={theme.id} className="hover:shadow-md transition-shadow">
               <CardHeader>
                 <div className="flex items-start justify-between">
@@ -470,6 +579,28 @@ const ThemesManager: React.FC = () => {
                     <p className="text-sm text-muted-foreground mt-1">
                       {theme.description}
                     </p>
+                  </div>
+                )}
+                {/* Tags Display */}
+                {theme.tags && theme.tags.length > 0 && (
+                  <div>
+                    <Label className="text-xs text-muted-foreground mb-1">Tags</Label>
+                    <div className="flex items-center gap-1 flex-wrap">
+                      {theme.tags.map((tag: string) => (
+                        <span
+                          key={tag}
+                          className={`text-xs px-2 py-1 rounded ${
+                            tag === 'template'
+                              ? 'bg-blue-100 text-blue-800'
+                              : tag === 'custom'
+                              ? 'bg-purple-100 text-purple-800'
+                              : 'bg-gray-100 text-gray-800'
+                          }`}
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
                   </div>
                 )}
                 <div className="flex items-center gap-2 flex-wrap">
@@ -519,11 +650,23 @@ const ThemesManager: React.FC = () => {
                     <Folder className="h-4 w-4 mr-2" />
                     Folder
                   </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleEditTags(theme)}
+                    className="flex-1"
+                    title="Edit tags"
+                  >
+                    <Edit className="h-4 w-4 mr-2" />
+                    Tags
+                  </Button>
                 </div>
               </CardContent>
             </Card>
-          ))}
-        </div>
+              ))}
+            </div>
+          )}
+        </>
       )}
 
       {/* Info Card */}
@@ -633,6 +776,102 @@ const ThemesManager: React.FC = () => {
                 <>
                   <Zap className="h-4 w-4 mr-2" />
                   Activate Theme
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Tags Modal */}
+      <Dialog open={showEditTagsModal} onOpenChange={setShowEditTagsModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Theme Tags</DialogTitle>
+            <DialogDescription>
+              Select tags for "{selectedThemeForTags?.name}". Tags help categorize and filter themes.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <Label className="mb-2 block">Available Tags</Label>
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="tag-custom"
+                    checked={selectedTags.includes('custom')}
+                    onChange={() => handleTagToggle('custom')}
+                    className="rounded border-gray-300"
+                  />
+                  <Label htmlFor="tag-custom" className="cursor-pointer">
+                    <span className="px-2 py-1 rounded bg-purple-100 text-purple-800 text-xs">Custom</span>
+                    <span className="ml-2 text-sm text-muted-foreground">- Custom themes created for specific use cases</span>
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="tag-template"
+                    checked={selectedTags.includes('template')}
+                    onChange={() => handleTagToggle('template')}
+                    className="rounded border-gray-300"
+                  />
+                  <Label htmlFor="tag-template" className="cursor-pointer">
+                    <span className="px-2 py-1 rounded bg-blue-100 text-blue-800 text-xs">Template</span>
+                    <span className="ml-2 text-sm text-muted-foreground">- Template themes for creating new themes</span>
+                  </Label>
+                </div>
+              </div>
+            </div>
+            {selectedTags.length > 0 && (
+              <div>
+                <Label className="mb-2 block">Selected Tags</Label>
+                <div className="flex flex-wrap gap-2">
+                  {selectedTags.map((tag) => (
+                    <span
+                      key={tag}
+                      className={`text-xs px-2 py-1 rounded ${
+                        tag === 'template'
+                          ? 'bg-blue-100 text-blue-800'
+                          : tag === 'custom'
+                          ? 'bg-purple-100 text-purple-800'
+                          : 'bg-gray-100 text-gray-800'
+                      }`}
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowEditTagsModal(false);
+                setSelectedThemeForTags(null);
+                setSelectedTags([]);
+              }}
+              disabled={isUpdatingTags}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleConfirmTagsUpdate}
+              disabled={isUpdatingTags}
+              className="bg-brandPurple hover:bg-brandPurple/90"
+            >
+              {isUpdatingTags ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Updating...
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                  Update Tags
                 </>
               )}
             </Button>

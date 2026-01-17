@@ -18,13 +18,14 @@ import ThankYou from "./pages/ThankYou";
 import Shop from "./pages/Shop";
 import DemoHero from "./pages/DemoHero";
 import TemplateWebsite from "./pages/TemplateWebsite";
+import TemplateDynamic from "./pages/TemplateDynamic";
 
 // Component to handle theme sub-routes - checks if it's a known theme
 const ThemeRouteHandler: React.FC = () => {
   const { tenantSlug } = useParams<{ tenantSlug: string }>();
   
   // Known themes that handle their own routing
-  const knownThemes = ['sissonne', 'landingpage', 'sparti-seo-landing', 'gosgconsulting', 'gosgconsulting.com', 'storefront', 'strfitness', 'str'];
+  const knownThemes = ['sissonne', 'landingpage', 'sparti-seo-landing', 'gosgconsulting', 'gosgconsulting.com', 'storefront', 'str'];
   
   if (tenantSlug && knownThemes.includes(tenantSlug)) {
     // Route to theme component which handles sub-routes
@@ -37,7 +38,7 @@ const ThemeRouteHandler: React.FC = () => {
 import ErrorBoundary from "./components/ErrorBoundary";
 import EmbedPagesManager from "../sparti-cms/components/embed/EmbedPagesManager";
 import ThemeAdminRedirect from "./components/ThemeAdminRedirect";
-import ComponentsViewer from "./pages/ComponentsViewer";
+import DesignSystems from "./pages/DesignSystems";
 import Kanban from "./pages/Kanban";
 import FeatureKanban from "./pages/FeatureKanban";
 import SuperAdminRoute from "../sparti-cms/components/auth/SuperAdminRoute";
@@ -98,20 +99,21 @@ const App = () => {
             {/* Public dashboard route - no authentication required */}
             <Route path="/dashboard/*" element={<PublicDashboard />} />
 
-            {/* Template namespace routes */}
+            {/* Template namespace routes - Dynamic template handler */}
+            {/* Handles /theme/template/{templateName} and /theme/template/{templateName}/* */}
             <Route
-              path="/theme/template/website"
+              path="/theme/template/:templateName"
               element={
                 <ErrorBoundary>
-                  <TemplateWebsite />
+                  <TemplateDynamic />
                 </ErrorBoundary>
               }
             />
             <Route
-              path="/theme/template/website/*"
+              path="/theme/template/:templateName/*"
               element={
                 <ErrorBoundary>
-                  <TemplateWebsite />
+                  <TemplateDynamic />
                 </ErrorBoundary>
               }
             />
@@ -190,7 +192,9 @@ const App = () => {
               </ErrorBoundary>
             } />
             <Route path="/database-viewer" element={<DatabaseViewer />} />
-            <Route path="/components-viewer" element={<ComponentsViewer />} />
+            <Route path="/design-systems" element={<DesignSystems />} />
+            {/* Back-compat redirect */}
+            <Route path="/components-viewer" element={<Navigate to="/design-systems" replace />} />
             <Route path="/dev" element={
               <ErrorBoundary>
                 <SuperAdminRoute>

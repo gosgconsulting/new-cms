@@ -5,7 +5,7 @@
   "author": "GOSG",
   "is_active": true,
   "category": "ecommerce",
-  "tags": ["store", "shop", "ecommerce", "products"],
+  "tags": ["custom", "store", "shop", "ecommerce", "products"],
   "features": [
     "Simple homepage with product cards",
     "Shop page listing products",

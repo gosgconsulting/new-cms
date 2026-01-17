@@ -500,7 +500,7 @@ router.put('/:id', authenticateUser, async (req, res) => {
     }
 
     const { id } = req.params;
-    const { name, description, is_active } = req.body;
+    const { name, description, is_active, tags } = req.body;
 
     // Build update query dynamically
     const updates = [];
@@ -522,6 +522,11 @@ router.put('/:id', authenticateUser, async (req, res) => {
       values.push(is_active);
     }
 
+    if (tags !== undefined) {
+      updates.push(`tags = $${paramIndex++}`);
+      values.push(Array.isArray(tags) ? tags : [tags]);
+    }
+
     if (updates.length === 0) {
       return res.status(400).json({
         success: false,
@@ -532,12 +537,28 @@ router.put('/:id', authenticateUser, async (req, res) => {
     updates.push(`updated_at = NOW()`);
     values.push(id);
 
-    const result = await query(`
-      UPDATE themes
-      SET ${updates.join(', ')}
-      WHERE id = $${paramIndex} OR slug = $${paramIndex}
-      RETURNING id, name, slug, description, created_at, updated_at, is_active
-    `, values);
+    // Try to return tags if column exists
+    let result;
+    try {
+      result = await query(`
+        UPDATE themes
+        SET ${updates.join(', ')}
+        WHERE id = $${paramIndex} OR slug = $${paramIndex}
+        RETURNING id, name, slug, description, created_at, updated_at, is_active, tags
+      `, values);
+    } catch (tagsError) {
+      // If tags column doesn't exist, return without it
+      if (tagsError.message?.includes('column "tags"') || tagsError.code === '42703') {
+        result = await query(`
+          UPDATE themes
+          SET ${updates.join(', ')}
+          WHERE id = $${paramIndex} OR slug = $${paramIndex}
+          RETURNING id, name, slug, description, created_at, updated_at, is_active
+        `, values);
+      } else {
+        throw tagsError;
+      }
+    }
 
     if (result.rows.length === 0) {
       return res.status(404).json({

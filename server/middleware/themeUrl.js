@@ -50,17 +50,41 @@ export const extractThemeFromUrl = async (req, res, next) => {
     req.themeSlug = themeSlug;
     req.themeTenants = tenantsResult.rows || [];
     
-    // If a user is authenticated, filter to only their tenant if they're not a super admin
+    // If a user is authenticated, validate tenant-theme relationship
     if (req.user && !req.user.is_super_admin) {
-      // Filter tenants to only include the user's tenant
-      req.themeTenants = req.themeTenants.filter(
-        tenant => tenant.id === req.user.tenant_id
-      );
-      
-      // If user has a tenant_id, set it as the primary tenant for this request
-      if (req.user.tenant_id && req.themeTenants.length > 0) {
+      // For non-super-admin users, validate that their tenant uses this theme
+      if (req.user.tenant_id) {
+        // Check if user's tenant uses the requested theme
+        const userTenantUsesTheme = req.themeTenants.some(
+          tenant => tenant.id === req.user.tenant_id
+        );
+        
+        if (!userTenantUsesTheme) {
+          // User's tenant doesn't use this theme - access denied
+          return res.status(403).json({
+            success: false,
+            error: 'Access denied',
+            message: 'Your tenant does not use this theme. You can only access themes assigned to your tenant.',
+            code: 'TENANT_THEME_MISMATCH'
+          });
+        }
+        
+        // User's tenant uses this theme - set it as the primary tenant
+        const userTenant = req.themeTenants.find(
+          tenant => tenant.id === req.user.tenant_id
+        );
         req.tenantId = req.user.tenant_id;
-        req.tenant = req.themeTenants[0];
+        req.tenant = userTenant;
+        // Filter to only show user's tenant
+        req.themeTenants = [userTenant];
+      } else {
+        // User has no tenant_id - this shouldn't happen for non-super-admins, but deny access
+        return res.status(403).json({
+          success: false,
+          error: 'Access denied',
+          message: 'Your account is not associated with a tenant.',
+          code: 'NO_TENANT_ASSOCIATED'
+        });
       }
     } else if (req.themeTenants.length > 0) {
       // For super admins or unauthenticated users, use the first tenant as default

@@ -1,60 +1,74 @@
 /**
  * Library Registry
- * Centralized configuration for design libraries
+ *
+ * Registry of available design systems with metadata providers.
+ * Design systems are now dynamically discovered and rendered.
  */
 
-import FlowbiteLibrary from "../components/visual-builder/FlowbiteLibrary";
-import ACATRLibrary from "../components/visual-builder/ACATRLibrary";
-import GOSGConsultingLibrary from "../components/visual-builder/GOSGConsultingLibrary";
-import SpartiLibrary from "../components/visual-builder/SpartiLibrary";
-import type { ComponentType } from "react";
+import {
+  getFlowbiteMetadata,
+  getDaisyUIMetadata,
+  getFlyonUIMetadata,
+  getHyperUIMetadata,
+  getPrelineMetadata,
+  getTailgridsMetadata,
+  getUIMainMetadata,
+} from "./designSystemProviders";
+import type { DesignSystemMetadata } from "./designSystemMetadata";
 
 export interface LibraryConfig {
   id: string;
   label: string;
   available: boolean;
-  component?: ComponentType;
+  getMetadata: () => DesignSystemMetadata;
 }
 
 /**
- * Registry of all available design libraries
+ * Registry of available design systems
  */
 export const libraryRegistry: LibraryConfig[] = [
   {
     id: "flowbite",
     label: "Flowbite",
     available: true,
-    component: FlowbiteLibrary,
+    getMetadata: getFlowbiteMetadata,
   },
   {
-    id: "acatr",
-    label: "ACATR",
+    id: "daisyui",
+    label: "DaisyUI",
     available: true,
-    component: ACATRLibrary,
+    getMetadata: getDaisyUIMetadata,
   },
   {
-    id: "gosgconsulting",
-    label: "GO SG CONSULTING",
+    id: "flyonui",
+    label: "FlyonUI",
     available: true,
-    component: GOSGConsultingLibrary,
+    getMetadata: getFlyonUIMetadata,
   },
   {
-    id: "sparti",
-    label: "Sparti",
+    id: "hyperui",
+    label: "HyperUI",
     available: true,
-    component: SpartiLibrary,
+    getMetadata: getHyperUIMetadata,
   },
-  // Future libraries (enable once implemented):
-  // {
-  //   id: "landingpage",
-  //   label: "Landing Page",
-  //   available: false,
-  // },
-  // {
-  //   id: "custom",
-  //   label: "Custom",
-  //   available: false,
-  // },
+  {
+    id: "preline",
+    label: "Preline",
+    available: true,
+    getMetadata: getPrelineMetadata,
+  },
+  {
+    id: "tailgrids",
+    label: "Tailgrids",
+    available: true,
+    getMetadata: getTailgridsMetadata,
+  },
+  {
+    id: "ui-main",
+    label: "UI Main",
+    available: true,
+    getMetadata: getUIMainMetadata,
+  },
 ];
 
 /**
@@ -78,4 +92,3 @@ export function getDefaultLibraryId(): string {
   const available = getAvailableLibraries();
   return available.length > 0 ? available[0].id : "flowbite";
 }
-

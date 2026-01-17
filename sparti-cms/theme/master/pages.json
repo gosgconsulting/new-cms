@@ -1,0 +1,6 @@
+{
+  "pages": [
+    { "id": "home", "name": "Home", "slug": "", "component": "Homepage" },
+    { "id": "thank-you", "name": "Thank You", "slug": "thank-you", "component": "ThankYouPage" }
+  ]
+}

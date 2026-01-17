@@ -30,15 +30,26 @@ const router = express.Router();
 // Async error handler wrapper
 const asyncHandler = (fn) => (req, res, next) => {
   Promise.resolve(fn(req, res, next)).catch((error) => {
+    console.error('[testing] ========== UNHANDLED ASYNC ERROR ==========');
     console.error('[testing] Unhandled async error in route handler:', error);
+    console.error('[testing] Error type:', error?.constructor?.name || 'Unknown');
+    console.error('[testing] Error message:', error?.message);
+    console.error('[testing] Error code:', error?.code || 'N/A');
     console.error('[testing] Error stack:', error?.stack);
+    console.error('[testing] Request path:', req.path);
+    console.error('[testing] Request method:', req.method);
+    console.error('[testing] ============================================');
+    
     if (!res.headersSent) {
       res.status(500).json({
         success: false,
         error: 'Internal server error',
-        message: error?.message || 'An unexpected error occurred. Please try again.',
-        diagnostic: '/health/database'
+        message: 'Server error. Please try again in a moment.',
+        diagnostic: '/health/database',
+        errorCode: error?.code
       });
+    } else {
+      console.error('[testing] Response already sent, cannot send error response');
     }
   });
 };
@@ -142,6 +153,12 @@ router.post('/auth/login', asyncHandler(async (req, res) => {
       console.log('[testing] No tenantId provided in headers/query; login will be unscoped (super admins allowed, tenant users must match by email only)');
     }
 
+    // Capture theme slug from query or header for theme-scoped login
+    const requestedThemeSlug = req.query.themeSlug || req.headers['x-theme-slug'] || req.headers['X-Theme-Slug'] || null;
+    if (requestedThemeSlug) {
+      console.log('[testing] Requested theme for login:', requestedThemeSlug);
+    }
+
     // Step 3: Check if users table exists
     console.log('[testing] Step 3: Checking if users table exists...');
     try {
@@ -240,6 +257,7 @@ router.post('/auth/login', asyncHandler(async (req, res) => {
     try {
       if (requestedTenantId) {
         // Restrict to requested tenant unless super admin
+        console.log('[testing] Querying with tenant filter:', requestedTenantId);
         userResult = await query(
           `SELECT id, first_name, last_name, email, password_hash, role, is_active, status,
            tenant_id, COALESCE(is_super_admin, false) as is_super_admin
@@ -250,6 +268,7 @@ router.post('/auth/login', asyncHandler(async (req, res) => {
         );
       } else {
         // No tenant provided: allow super admins or any matching email (legacy behavior)
+        console.log('[testing] Querying without tenant filter');
         userResult = await query(
           `SELECT id, first_name, last_name, email, password_hash, role, is_active, status,
            tenant_id, COALESCE(is_super_admin, false) as is_super_admin
@@ -261,6 +280,12 @@ router.post('/auth/login', asyncHandler(async (req, res) => {
       }
       console.log('[testing] User query completed, found', userResult.rows.length, 'user(s)');
     } catch (queryError) {
+      console.error('[testing] ========== USER QUERY ERROR ==========');
+      console.error('[testing] Query error type:', queryError?.constructor?.name);
+      console.error('[testing] Query error message:', queryError?.message);
+      console.error('[testing] Query error code:', queryError?.code);
+      console.error('[testing] Query error stack:', queryError?.stack);
+      console.error('[testing] =======================================');
       console.error('[testing] Database query error during login:', queryError);
       console.error('[testing] Query error details:', {
         code: queryError?.code,
@@ -396,6 +421,38 @@ router.post('/auth/login', asyncHandler(async (req, res) => {
       });
     }
 
+    // Step 7.5: Validate theme-tenant relationship if theme context provided
+    if (requestedThemeSlug && !user.is_super_admin && user.tenant_id) {
+      console.log('[testing] Validating theme-tenant relationship...');
+      try {
+        // Check if user's tenant uses the requested theme
+        const tenantThemeCheck = await query(`
+          SELECT id, name, slug, theme_id
+          FROM tenants
+          WHERE id = $1 AND theme_id = $2
+          LIMIT 1
+        `, [user.tenant_id, requestedThemeSlug]);
+
+        if (tenantThemeCheck.rows.length === 0) {
+          console.log('[testing] User tenant does not use requested theme');
+          return res.status(403).json({
+            success: false,
+            error: 'Access denied',
+            message: 'Your tenant does not use this theme. You can only access themes assigned to your tenant.',
+            code: 'TENANT_THEME_MISMATCH'
+          });
+        }
+        console.log('[testing] Theme-tenant relationship validated successfully');
+      } catch (themeCheckError) {
+        console.error('[testing] Error validating theme-tenant relationship:', themeCheckError);
+        return res.status(500).json({
+          success: false,
+          error: 'Theme validation failed',
+          message: 'Unable to verify theme access. Please try again later.'
+        });
+      }
+    }
+
     // Step 8: Create JWT token
     console.log('[testing] Step 8: Creating JWT token...');
     // For super admins, use requested tenantId if provided to set a default context; otherwise null
@@ -407,7 +464,9 @@ router.post('/auth/login', asyncHandler(async (req, res) => {
       email: user.email,
       role: user.role,
       tenant_id: tenantId,
-      is_super_admin: user.is_super_admin || false
+      is_super_admin: user.is_super_admin || false,
+      // Include theme context in token if provided (for downstream validation)
+      themeSlug: requestedThemeSlug || null
     };
     
     // Check if JWT_SECRET is available
@@ -541,15 +600,25 @@ router.post('/auth/login', asyncHandler(async (req, res) => {
     // Generic error - but include more details in development
     const errorMessage = process.env.NODE_ENV === 'development' 
       ? `Login failed: ${error?.message || 'Unknown error'} (Code: ${error?.code || 'N/A'})`
-      : 'Login failed. Please try again.';
+      : 'Server error. Please try again in a moment.';
     
-    res.status(500).json({
-      success: false,
-      error: errorMessage,
-      message: errorMessage,
-      diagnostic: '/health/database',
-      errorCode: error?.code
-    });
+    // Log full error details for debugging
+    console.error('[testing] ========== UNHANDLED LOGIN ERROR ==========');
+    console.error('[testing] Error type:', error?.constructor?.name || 'Unknown');
+    console.error('[testing] Error message:', error?.message);
+    console.error('[testing] Error code:', error?.code || 'N/A');
+    console.error('[testing] Error stack:', error?.stack);
+    console.error('[testing] ===========================================');
+    
+    if (!res.headersSent) {
+      res.status(500).json({
+        success: false,
+        error: errorMessage,
+        message: errorMessage,
+        diagnostic: '/health/database',
+        errorCode: error?.code
+      });
+    }
   }
 }));
 

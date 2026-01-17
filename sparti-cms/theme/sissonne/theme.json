@@ -5,7 +5,7 @@
   "author": "GOSG",
   "is_active": true,
   "category": "education",
-  "tags": ["dance", "ballet", "academy", "education", "performing-arts", "dance-school"],
+  "tags": ["custom", "dance", "ballet", "academy", "education", "performing-arts", "dance-school"],
   "features": [
     "Elegant dance academy design",
     "Multi-page architecture with React Router",

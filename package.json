@@ -42,6 +42,10 @@
     "mcp:setup": "npm run mcp:build && npm run mcp:start",
     "mcp:test": "node scripts/tests/test-mcp-connection.js",
     "mcp:status": "node scripts/mcp/check-mcp-status.js",
+    "mcp:tags:verify": "node scripts/mcp/manage-theme-tags.js verify",
+    "mcp:tags:sync": "node scripts/mcp/manage-theme-tags.js sync",
+    "mcp:tags:list": "node scripts/mcp/manage-theme-tags.js list",
+    "mcp:tags:migrate": "node scripts/mcp/add-theme-tags-column.js",
     "test:contact": "node scripts/tests/test-contact-form.js",
     "test:form": "node scripts/tests/test-form-submission.js",
     "mcp:fix": "node scripts/setup/fix-database-viewer.js",
@@ -193,6 +197,7 @@
     "nodemon": "^3.1.11",
     "postcss": "^8.4.35",
     "tailwindcss": "^4.1.14",
+    "daisyui": "^5.5.14",
     "typescript": "^5.2.2",
     "typescript-eslint": "^8.0.1",
     "vite": "^5.1.4"

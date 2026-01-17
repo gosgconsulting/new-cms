@@ -8,8 +8,8 @@ const __dirname = path.dirname(__filename);
 
 const EXCLUDED_THEME_SLUGS = new Set([
   // Internal namespaces / removed legacy/base themes
-  'template',
-  'master',
+  'template',  // Keep excluded - old namespace
+  // 'master',  // Remove - now a normal theme
   'masterastrowind',
 ]);
 
@@ -306,6 +306,7 @@ export function getThemesFromFileSystem() {
           description: config.description || `Theme: ${config.name}`,
           version: config.version,
           author: config.author,
+          tags: config.tags || [],
           is_active: config.is_active !== undefined ? config.is_active : true,
           from_filesystem: true
         };
@@ -391,6 +392,7 @@ export async function syncThemesFromFileSystem() {
         // Use metadata from theme.json if available, otherwise fallback to folder name
         const themeName = config?.name || formatThemeName(themeSlug);
         const themeDescription = config?.description || `Theme: ${themeName}`;
+        const themeTags = config?.tags || [];
         const isActive = config?.is_active !== undefined ? config.is_active : true;
         const now = new Date().toISOString();
 
@@ -399,11 +401,22 @@ export async function syncThemesFromFileSystem() {
         if (existingTheme.rows.length > 0) {
           // Theme exists, update with metadata from theme.json
           themeDbId = existingTheme.rows[0].id;
-          await query(`
-            UPDATE themes
-            SET name = $1, description = $2, updated_at = $3, is_active = $4
-            WHERE slug = $5 OR id = $5
-          `, [themeName, themeDescription, now, isActive, themeSlug]);
+          // Check if tags column exists in database
+          const hasTagsColumn = existingTheme.rows[0].tags !== undefined;
+          
+          if (hasTagsColumn) {
+            await query(`
+              UPDATE themes
+              SET name = $1, description = $2, updated_at = $3, is_active = $4, tags = $5
+              WHERE slug = $6 OR id = $6
+            `, [themeName, themeDescription, now, isActive, themeTags, themeSlug]);
+          } else {
+            await query(`
+              UPDATE themes
+              SET name = $1, description = $2, updated_at = $3, is_active = $4
+              WHERE slug = $5 OR id = $5
+            `, [themeName, themeDescription, now, isActive, themeSlug]);
+          }
           
           results.push({
             slug: themeSlug,
@@ -416,18 +429,41 @@ export async function syncThemesFromFileSystem() {
         } else {
           // Theme doesn't exist, create new record with metadata from theme.json
           themeDbId = themeSlug; // Use slug as ID
-          await query(`
-            INSERT INTO themes (id, name, slug, description, created_at, updated_at, is_active)
-            VALUES ($1, $2, $3, $4, $5, $6, $7)
-          `, [
-            themeDbId,
-            themeName,
-            themeSlug,
-            themeDescription,
-            now,
-            now,
-            isActive
-          ]);
+          
+          // Try to insert with tags column (if it exists)
+          try {
+            await query(`
+              INSERT INTO themes (id, name, slug, description, created_at, updated_at, is_active, tags)
+              VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            `, [
+              themeDbId,
+              themeName,
+              themeSlug,
+              themeDescription,
+              now,
+              now,
+              isActive,
+              themeTags
+            ]);
+          } catch (tagsError) {
+            // If tags column doesn't exist, insert without it
+            if (tagsError.message?.includes('column "tags"') || tagsError.code === '42703') {
+              await query(`
+                INSERT INTO themes (id, name, slug, description, created_at, updated_at, is_active)
+                VALUES ($1, $2, $3, $4, $5, $6, $7)
+              `, [
+                themeDbId,
+                themeName,
+                themeSlug,
+                themeDescription,
+                now,
+                now,
+                isActive
+              ]);
+            } else {
+              throw tagsError;
+            }
+          }
           
           results.push({
             slug: themeSlug,
@@ -518,14 +554,32 @@ export async function syncThemesFromFileSystem() {
  */
 export async function getAllThemes() {
   try {
-    const result = await query(`
-      SELECT id, name, slug, description, created_at, updated_at, is_active
-      FROM themes
-      WHERE is_active = true
-        AND slug NOT IN ('template', 'master', 'masterastrowind')
-        AND id NOT IN ('template', 'master', 'masterastrowind')
-      ORDER BY name ASC
-    `);
+    // Try to select with tags column first
+    let result;
+    try {
+      result = await query(`
+        SELECT id, name, slug, description, created_at, updated_at, is_active, tags
+        FROM themes
+        WHERE is_active = true
+          AND slug NOT IN ('template', 'masterastrowind')
+          AND id NOT IN ('template', 'masterastrowind')
+        ORDER BY name ASC
+      `);
+    } catch (tagsError) {
+      // If tags column doesn't exist, select without it
+      if (tagsError.message?.includes('column "tags"') || tagsError.code === '42703') {
+        result = await query(`
+          SELECT id, name, slug, description, created_at, updated_at, is_active
+          FROM themes
+          WHERE is_active = true
+            AND slug NOT IN ('template', 'masterastrowind')
+            AND id NOT IN ('template', 'masterastrowind')
+          ORDER BY name ASC
+        `);
+      } else {
+        throw tagsError;
+      }
+    }
     
     return result.rows;
   } catch (error) {

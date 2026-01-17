@@ -218,9 +218,9 @@ const IntegrationsTab: React.FC<IntegrationsTabProps> = ({ currentTenantId, curr
             </div>
           )}
           
-          {/* Components Integration */}
+          {/* Design Systems */}
           <ComponentsIntegration
-            onViewClick={() => navigate('/components-viewer')}
+            onViewClick={() => navigate('/design-systems')}
           />
           
           {/* Google Translation Integration */}

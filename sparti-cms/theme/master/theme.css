@@ -1,0 +1,16 @@
+/* Master Template Theme Styles */
+
+/* This theme uses Flowbite design system */
+/* Flowbite styles are loaded automatically via the design system loader */
+/* Customize this file to add theme-specific overrides */
+
+/* Flowbite theme compatibility */
+/* The Flowbite theme is initialized in the component via initFlowbiteTheme() */
+/* Available themes: default, minimal, enterprise, playful, mono */
+
+/* Custom theme overrides can be added here */
+/* Example:
+.master-theme-custom {
+  --flowbite-primary: #your-color;
+}
+*/
