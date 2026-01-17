@@ -107,6 +107,8 @@ const FlowbiteCTASection: React.FC<FlowbiteCTASectionProps> = ({
         ? "btn-cta-secondary"
         : "btn-cta-light";
 
+  const shouldUseGlow = ctaVariant !== "light";
+
   return (
     <section
       ref={sectionRef as any}
@@ -166,9 +168,11 @@ const FlowbiteCTASection: React.FC<FlowbiteCTASectionProps> = ({
                   href={cta.link}
                   className={[
                     ctaClassName,
-                    "master-cta-glow",
+                    shouldUseGlow ? "master-cta-glow" : "",
                     ctaFullWidth ? "w-full sm:w-auto" : "w-auto",
-                  ].join(" ")}
+                  ]
+                    .filter(Boolean)
+                    .join(" ")}
                 >
                   {cta.content}
                 </a>

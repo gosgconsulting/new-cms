@@ -125,30 +125,31 @@
     color: var(--brand-secondary-dark);
   }
 
-  /* Light (for final CTA / dark backgrounds): white button w/ primary text; hover subtly inverts */
+  /* Light (for final CTA / dark backgrounds): white-outline, no brand color fill */
   .btn-cta-light {
     height: 3rem;
     padding-left: 1.5rem;
     padding-right: 1.5rem;
     border-radius: 0.75rem;
     font-weight: 800;
-    background-color: rgba(255, 255, 255, 0.96);
-    color: var(--brand-primary-dark);
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    backdrop-filter: blur(12px);
-    transition: background-color 0.2s ease, color 0.2s ease, transform 0.18s ease, box-shadow 0.2s ease;
+    background-color: transparent;
+    color: rgba(15, 23, 42, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    transition: background-color 0.2s ease, transform 0.18s ease, box-shadow 0.2s ease,
+      border-color 0.2s ease;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    box-shadow: var(--shadow-2);
+    box-shadow: 0 10px 34px -18px rgba(2, 6, 23, 0.35);
   }
 
   .btn-cta-light:hover {
-    background-color: var(--brand-primary);
-    color: white;
-    transform: translateY(-1px) scale(1.03);
-    box-shadow: var(--shadow-3);
+    background-color: rgba(255, 255, 255, 0.92);
+    border-color: rgba(255, 255, 255, 1);
+    transform: translateY(-1px);
+    box-shadow: 0 18px 60px -24px rgba(2, 6, 23, 0.42);
   }
 
   /* Ghost/Text (utility) */
