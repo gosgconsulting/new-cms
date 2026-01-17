@@ -508,6 +508,10 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
           <FlowbitePainPointSection component={challengeSchema} />
         </div>
 
+        <div id="about" className="scroll-mt-20">
+          <FlowbiteContentSection component={aboutSchema} />
+        </div>
+
         <div id="services" className="scroll-mt-20">
           <FlowbiteWhatsIncludedSection component={servicesSchema} />
         </div>
