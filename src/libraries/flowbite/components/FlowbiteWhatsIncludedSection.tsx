@@ -97,7 +97,7 @@ const FlowbiteWhatsIncludedSection: React.FC<FlowbiteWhatsIncludedProps> = ({
       ref={sectionRef as any}
       className={[
         "py-24 px-4",
-        "bg-[color:var(--brand-background)] dark:bg-[#0a0a0a]",
+        "bg-[color:var(--bg-secondary)]",
         className,
       ].join(" ")}
     >
@@ -108,14 +108,14 @@ const FlowbiteWhatsIncludedSection: React.FC<FlowbiteWhatsIncludedProps> = ({
             <div className="text-center mb-12">
               {title ? (
                 <Reveal direction="up">
-                  <h2 className="text-4xl md:text-5xl font-semibold tracking-tight text-gray-900 dark:text-white">
+                  <h2 className="text-4xl md:text-5xl font-semibold tracking-tight text-[color:var(--text-primary)]">
                     {title}
                   </h2>
                 </Reveal>
               ) : null}
               {description ? (
                 <Reveal direction="up" delayMs={90}>
-                  <p className="mt-4 text-lg text-gray-700 dark:text-gray-300 max-w-3xl mx-auto">
+                  <p className="mt-4 text-lg text-[color:var(--text-secondary)] max-w-3xl mx-auto">
                     {description}
                   </p>
                 </Reveal>
@@ -125,18 +125,18 @@ const FlowbiteWhatsIncludedSection: React.FC<FlowbiteWhatsIncludedProps> = ({
 
           {/* Main card */}
           <Reveal direction="up" delayMs={140}>
-            <div className="mx-auto max-w-4xl rounded-3xl border border-black/10 dark:border-white/15 bg-white dark:bg-[#1a1a1a] shadow-[0_20px_80px_rgba(0,0,0,0.10)] dark:shadow-[0_20px_80px_rgba(0,0,0,0.7)] p-8 sm:p-10 md:p-12">
+            <div className="mx-auto max-w-4xl rounded-3xl border border-[color:var(--border-color)] bg-white shadow-[var(--shadow-3)] p-8 sm:p-10 md:p-12">
               {badge ? (
                 <div className="flex justify-center">
-                  <span className="badge-neutral text-xs font-semibold uppercase tracking-wider">{badge}</span>
+                  <span className="label-section">{badge}</span>
                 </div>
               ) : null}
 
               <div className="text-center mt-6">
-                <h3 className="text-3xl md:text-4xl font-semibold tracking-tight text-gray-900 dark:text-white">
+                <h3 className="text-3xl md:text-4xl font-semibold tracking-tight text-[color:var(--text-primary)]">
                   Join the growth package
                 </h3>
-                <p className="mt-3 text-lg text-gray-700 dark:text-gray-300">
+                <p className="mt-3 text-lg text-[color:var(--text-secondary)]">
                   Be contacted to learn about scope, timelines, and onboarding options.
                 </p>
               </div>
@@ -149,9 +149,9 @@ const FlowbiteWhatsIncludedSection: React.FC<FlowbiteWhatsIncludedProps> = ({
 
                     return (
                       <Reveal key={idx} direction="up" delayMs={220 + idx * 120}>
-                        <div className="group rounded-2xl px-3 py-3 transition-colors hover:bg-slate-50 dark:hover:bg-white/5">
+                        <div className="group rounded-2xl px-3 py-3 transition-colors hover:bg-[color:var(--bg-secondary)]">
                           <div className="flex items-start gap-4">
-                            <div className="icon-container-primary mt-1 h-6 w-6 rounded-full transition-transform duration-200 group-hover:scale-110">
+                            <div className="icon-container-secondary mt-1 h-6 w-6 rounded-full transition-transform duration-200 group-hover:scale-110">
                               <Check
                                 className="h-4 w-4 animate-master-draw"
                                 style={{
@@ -161,11 +161,11 @@ const FlowbiteWhatsIncludedSection: React.FC<FlowbiteWhatsIncludedProps> = ({
                                 }}
                               />
                             </div>
-                            <p className="text-base sm:text-lg text-gray-700 dark:text-gray-300 leading-relaxed">
+                            <p className="text-base sm:text-lg text-[color:var(--text-secondary)] leading-relaxed">
                               {f.title ? (
-                                <span className="font-semibold text-gray-900 dark:text-white">{f.title}: </span>
+                                <span className="font-semibold text-[color:var(--text-primary)]">{f.title}: </span>
                               ) : null}
-                              <span className="text-gray-700 dark:text-gray-300">{f.description}</span>
+                              <span className="text-[color:var(--text-secondary)]">{f.description}</span>
                             </p>
                           </div>
                         </div>
@@ -175,16 +175,22 @@ const FlowbiteWhatsIncludedSection: React.FC<FlowbiteWhatsIncludedProps> = ({
                 </div>
               ) : null}
 
-              {/* Highlight callout */}
+              {/* Highlight callout (accent/utility only) */}
               <Reveal direction="up" delayMs={260 + features.length * 90}>
-                <div className="mt-10 rounded-2xl border border-brand-primary/30 dark:border-brand-primary/20 bg-white/60 dark:bg-[#1a1a1a] p-6">
+                <div
+                  className="mt-10 rounded-2xl p-6"
+                  style={{
+                    background: "color-mix(in srgb, var(--brand-accent) 10%, white)",
+                    border: "1px solid color-mix(in srgb, var(--brand-accent) 22%, transparent)",
+                  }}
+                >
                   <div className="flex items-start gap-4">
                     <div className="flex items-center justify-center h-10 w-10">
-                      <Clock3 className="h-6 w-6 text-brand-primary" />
+                      <Clock3 className="h-6 w-6 text-[color:var(--brand-accent-dark)]" />
                     </div>
                     <div>
-                      <p className="font-semibold text-gray-900 dark:text-white">{calloutTitle}</p>
-                      <p className="mt-1 text-gray-700 dark:text-gray-300 leading-relaxed">{calloutText}</p>
+                      <p className="font-semibold text-[color:var(--text-primary)]">{calloutTitle}</p>
+                      <p className="mt-1 text-[color:var(--text-secondary)] leading-relaxed">{calloutText}</p>
                     </div>
                   </div>
                 </div>

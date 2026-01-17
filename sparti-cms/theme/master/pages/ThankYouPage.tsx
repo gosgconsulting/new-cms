@@ -6,6 +6,7 @@ interface ThankYouPageProps {
   tenantName?: string;
   tenantSlug?: string;
   tenantId?: string;
+  basePath?: string;
 }
 
 const WHATSAPP_PHONE = '6580246850';
@@ -13,6 +14,7 @@ const WHATSAPP_PHONE = '6580246850';
 export const ThankYouPage: React.FC<ThankYouPageProps> = ({
   tenantName = 'Master Template',
   tenantSlug = 'master',
+  basePath,
 }) => {
   const searchParams = useMemo(() => {
     if (typeof window === 'undefined') return new URLSearchParams();
@@ -38,11 +40,13 @@ export const ThankYouPage: React.FC<ThankYouPageProps> = ({
 
   const handleGoHome = () => {
     const currentPath = window.location.pathname;
-    const basePath = currentPath.replace(/\/thank-you$/, '');
-    if (!basePath || basePath === '/') {
+    const inferredBasePath = currentPath.replace(/\/thank-you$/, '');
+    const resolvedBasePath = basePath || inferredBasePath;
+
+    if (!resolvedBasePath || resolvedBasePath === '/') {
       window.location.href = '/';
     } else {
-      window.location.href = basePath;
+      window.location.href = resolvedBasePath;
     }
   };
 
@@ -52,7 +56,7 @@ export const ThankYouPage: React.FC<ThankYouPageProps> = ({
     children,
   }) => (
     <div className="min-h-screen bg-(--brand-background)">
-      <Header tenantName={tenantName} tenantSlug={tenantSlug} />
+      <Header tenantName={tenantName} tenantSlug={tenantSlug} basePath={basePath} />
 
       <main className="container mx-auto px-4 py-16">
         <div className="max-w-2xl mx-auto">
@@ -66,7 +70,7 @@ export const ThankYouPage: React.FC<ThankYouPageProps> = ({
         </div>
       </main>
 
-      <Footer tenantName={tenantName} tenantSlug={tenantSlug} />
+      <Footer tenantName={tenantName} tenantSlug={tenantSlug} basePath={basePath} />
     </div>
   );
 

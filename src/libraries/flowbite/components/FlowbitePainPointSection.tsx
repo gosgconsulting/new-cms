@@ -88,23 +88,38 @@ const FlowbitePainPointSection: React.FC<FlowbitePainPointSectionProps> = ({
   }, [items, props]);
 
   return (
-    <section className={`relative overflow-hidden py-20 px-4 bg-slate-50 ${className}`}>
+    <section
+      className={`relative overflow-hidden py-20 px-4 bg-[color:var(--bg-secondary)] ${className}`}
+    >
+      {/* Subtle secondary tint (support + rhythm) */}
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -top-48 right-[-10rem] h-[26rem] w-[26rem] rounded-full bg-gradient-to-tr from-indigo-400/15 via-sky-400/10 to-lime-400/15 blur-3xl animate-master-float" />
-        <div className="absolute -bottom-48 left-[-10rem] h-[26rem] w-[26rem] rounded-full bg-gradient-to-tr from-lime-400/10 via-sky-400/10 to-indigo-400/10 blur-3xl animate-master-float" />
+        <div
+          className="absolute -top-48 right-[-10rem] h-[26rem] w-[26rem] rounded-full blur-3xl animate-master-float"
+          style={{
+            background:
+              "radial-gradient(closest-side, color-mix(in srgb, var(--brand-secondary) 10%, transparent), transparent 70%)",
+          }}
+        />
+        <div
+          className="absolute -bottom-52 left-[-12rem] h-[26rem] w-[26rem] rounded-full blur-3xl animate-master-float"
+          style={{
+            background:
+              "radial-gradient(closest-side, color-mix(in srgb, var(--brand-secondary) 7%, transparent), transparent 72%)",
+          }}
+        />
       </div>
 
       <div className="container mx-auto relative">
         <div className="mx-auto max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
           <Reveal direction="left">
-            <div className="rounded-3xl border border-black/10 bg-white p-8 md:p-10 shadow-[0_20px_80px_rgba(0,0,0,0.08)]">
+            <div className="rounded-3xl border border-[color:var(--border-color)] bg-white p-8 md:p-10 shadow-[var(--shadow-2)]">
               <div className="badge-neutral text-xs">{subtitle}</div>
 
-              <h2 className="mt-5 text-3xl md:text-4xl font-semibold tracking-tight text-gray-900 leading-tight">
+              <h2 className="mt-5 text-3xl md:text-4xl font-semibold tracking-tight text-[color:var(--text-primary)] leading-tight">
                 {title}
               </h2>
 
-              <p className="mt-4 text-base text-gray-700 leading-relaxed">
+              <p className="mt-4 text-base text-[color:var(--text-secondary)] leading-relaxed">
                 We identify the bottleneck, fix the messaging, and align every section to one goal: conversions.
               </p>
             </div>
@@ -118,19 +133,29 @@ const FlowbitePainPointSection: React.FC<FlowbitePainPointSectionProps> = ({
 
                 return (
                   <Reveal key={index} direction={direction} delayMs={index * 120}>
-                    <div className="group rounded-2xl border border-black/10 bg-white p-5 shadow-[0_10px_40px_rgba(0,0,0,0.06)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_22px_70px_rgba(0,0,0,0.14)] hover:border-brand-primary/40">
+                    <div
+                      className={
+                        "group rounded-2xl border border-[color:var(--border-color)] bg-white p-5 shadow-[var(--shadow-1)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[var(--shadow-2)]"
+                      }
+                      style={{
+                        // On hover, keep it subtle: no primary block colors.
+                        borderColor: "var(--border-color)",
+                      }}
+                    >
                       <div className="flex items-start gap-4">
-                        <div className="icon-container-accent h-10 w-10 transition-transform duration-300 group-hover:scale-110">
+                        <div className="icon-container-secondary h-10 w-10 rounded-xl transition-transform duration-300 group-hover:scale-110">
                           <Icon className="h-5 w-5" />
                         </div>
-                        <p className="text-base text-gray-700 leading-relaxed">{p.text}</p>
+                        <p className="text-base text-[color:var(--text-secondary)] leading-relaxed">
+                          {p.text}
+                        </p>
                       </div>
                     </div>
                   </Reveal>
                 );
               })
             ) : (
-              <p className="text-gray-500">No items to display.</p>
+              <p className="text-[color:var(--text-muted)]">No items to display.</p>
             )}
           </div>
         </div>

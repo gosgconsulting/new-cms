@@ -147,18 +147,36 @@ const FlowbiteHeroSection: React.FC<FlowbiteHeroSectionProps> = ({
 
   return (
     <section
-      className={`relative overflow-hidden bg-[color:var(--brand-background)] dark:bg-[#0a0a0a] py-10 sm:py-14 ${className}`}
+      className={`relative overflow-hidden bg-[color:var(--bg-primary)] py-10 sm:py-14 ${className}`}
     >
-      {/* Background glow + subtle motion */}
+      {/* Background: Neutral Light + Primary tint (5–8% opacity) */}
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute inset-0 bg-brand-gradient-animated opacity-[0.08]" />
-        <div className="absolute -top-40 left-1/2 h-[28rem] w-[48rem] -translate-x-1/2 rounded-full bg-gradient-to-r from-indigo-400/25 via-sky-400/10 to-lime-400/20 blur-3xl dark:from-sky-500/20 dark:via-indigo-500/10 dark:to-lime-400/20 animate-master-float" />
-        <div className="absolute -bottom-48 right-[-10rem] h-[26rem] w-[26rem] rounded-full bg-gradient-to-tr from-lime-400/10 via-sky-400/10 to-indigo-400/10 blur-3xl animate-master-float" />
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(180deg, color-mix(in srgb, var(--brand-primary) 8%, transparent), transparent 55%)",
+          }}
+        />
+        <div
+          className="absolute -top-44 left-1/2 h-[28rem] w-[48rem] -translate-x-1/2 rounded-full blur-3xl animate-master-float"
+          style={{
+            background:
+              "radial-gradient(closest-side, color-mix(in srgb, var(--brand-primary) 10%, transparent), transparent 70%)",
+          }}
+        />
+        <div
+          className="absolute -bottom-52 right-[-12rem] h-[26rem] w-[26rem] rounded-full blur-3xl animate-master-float"
+          style={{
+            background:
+              "radial-gradient(closest-side, color-mix(in srgb, var(--brand-primary) 7%, transparent), transparent 72%)",
+          }}
+        />
       </div>
 
       <div className="container mx-auto px-4">
         <div className="mx-auto max-w-6xl">
-          <div className="rounded-3xl border border-black/10 dark:border-white/15 bg-white dark:bg-[#1a1a1a] shadow-[0_20px_80px_rgba(0,0,0,0.08)] dark:shadow-[0_20px_80px_rgba(0,0,0,0.7)]">
+          <div className="rounded-3xl border border-[color:var(--border-color)] bg-white shadow-[var(--shadow-3)]">
             <div
               className={[
                 showCarousel ? "grid grid-cols-1 lg:grid-cols-2" : "grid grid-cols-1",
@@ -191,7 +209,7 @@ const FlowbiteHeroSection: React.FC<FlowbiteHeroSectionProps> = ({
                 {title ? (
                   <h1
                     className={[
-                      "text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight text-gray-900 dark:text-white leading-[1.05]",
+                      "text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight text-[color:var(--text-primary)] leading-[1.05]",
                       showCarousel ? "" : "mx-auto",
                       "transition-all duration-600 ease-out",
                       enterBase,
@@ -205,7 +223,7 @@ const FlowbiteHeroSection: React.FC<FlowbiteHeroSectionProps> = ({
                 {description ? (
                   <p
                     className={[
-                      "text-base sm:text-lg text-gray-700 dark:text-gray-300 leading-relaxed",
+                      "text-base sm:text-lg text-[color:var(--text-secondary)] leading-relaxed",
                       showCarousel ? "max-w-xl" : "max-w-2xl mx-auto",
                       "transition-all duration-600 ease-out",
                       enterBase,
@@ -243,8 +261,11 @@ const FlowbiteHeroSection: React.FC<FlowbiteHeroSectionProps> = ({
 
               {/* Right: Carousel */}
               {showCarousel && slides.length > 0 ? (
-                <div className={"lg:pl-4 transition-all duration-600 ease-out " + enterBase} style={{ transitionDelay: "220ms" }}>
-                  <div className="rounded-2xl border border-black/10 dark:border-white/15 bg-white/40 dark:bg-[#1a1a1a]/60 p-3 sm:p-4">
+                <div
+                  className={"lg:pl-4 transition-all duration-600 ease-out " + enterBase}
+                  style={{ transitionDelay: "220ms" }}
+                >
+                  <div className="rounded-2xl border border-[color:var(--border-color)] bg-white/60 p-3 sm:p-4">
                     <FlowbiteSlider
                       slides={slides}
                       options={{
@@ -258,7 +279,8 @@ const FlowbiteHeroSection: React.FC<FlowbiteHeroSectionProps> = ({
                         overlay: {
                           enabled: true,
                           mode: "gradient",
-                          className: "bg-gradient-to-t from-black/40 via-black/10 to-transparent",
+                          className:
+                            "bg-gradient-to-t from-black/45 via-black/10 to-transparent",
                         },
                       }}
                       ariaLabel="Hero preview"
@@ -274,10 +296,10 @@ const FlowbiteHeroSection: React.FC<FlowbiteHeroSectionProps> = ({
             <div className="mt-8 flex justify-center">
               <a
                 href="#challenge"
-                className="group inline-flex items-center gap-2 text-gray-700/80 hover:text-gray-900 dark:text-gray-300/80 dark:hover:text-white transition-colors"
+                className="group inline-flex items-center gap-2 text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)] transition-colors"
                 aria-label="Scroll to next section"
               >
-                <span className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-black/10 dark:border-white/15 bg-white/70 dark:bg-[#1a1a1a]/70 backdrop-blur animate-scroll-cue">
+                <span className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[color:var(--border-color)] bg-white/70 backdrop-blur animate-scroll-cue">
                   <ChevronDown className="h-5 w-5" />
                 </span>
               </a>

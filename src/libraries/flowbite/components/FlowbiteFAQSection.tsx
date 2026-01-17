@@ -123,7 +123,7 @@ const FlowbiteFAQSection: React.FC<FlowbiteFAQSectionProps> = ({
 
   return (
     <section
-      className={`relative overflow-hidden py-20 px-4 bg-[color:var(--brand-background)] dark:bg-[#0a0a0a] ${className}`}
+      className={`relative overflow-hidden py-20 px-4 bg-[color:var(--bg-primary)] ${className}`}
     >
       <div className="container mx-auto relative">
         <div className="mx-auto max-w-5xl">
@@ -137,20 +137,20 @@ const FlowbiteFAQSection: React.FC<FlowbiteFAQSectionProps> = ({
                 <Reveal key={index} direction="up" delayMs={80 + index * 90}>
                   <AccordionItem
                     value={`item-${index}`}
-                    className="border-none rounded-2xl bg-gray-100 dark:bg-[#1a1a1a] px-5 sm:px-7 transition-shadow data-[state=open]:shadow-[0_18px_70px_rgba(0,0,0,0.10)]"
+                    className="rounded-2xl border border-[color:var(--border-color)] bg-[color:color-mix(in srgb, var(--bg-secondary) 55%, white)] px-5 sm:px-7 transition-shadow data-[state=open]:shadow-[var(--shadow-2)]"
                   >
                     <AccordionTrigger className="group no-underline hover:no-underline py-6 [&>svg]:hidden cursor-pointer">
                       <div className="flex w-full items-center justify-between gap-6">
-                        <span className="text-left text-xl sm:text-2xl font-semibold text-gray-900 dark:text-white">
+                        <span className="text-left text-xl sm:text-2xl font-semibold text-[color:var(--text-primary)]">
                           {item.question}
                         </span>
-                        <span className="icon-container-primary h-11 w-11 rounded-full shrink-0 transition-colors duration-200 group-data-[state=open]:bg-white group-data-[state=open]:text-brand-primary">
+                        <span className="icon-container-secondary h-11 w-11 rounded-full shrink-0 transition-colors duration-200 group-data-[state=open]:bg-white group-data-[state=open]:text-[color:var(--brand-secondary)]">
                           <Plus className="h-5 w-5 transition-transform duration-300 group-data-[state=open]:rotate-45" />
                         </span>
                       </div>
                     </AccordionTrigger>
                     <AccordionContent className="pb-6">
-                      <p className="text-base sm:text-lg text-gray-700 dark:text-gray-300 leading-relaxed">
+                      <p className="text-base sm:text-lg text-[color:var(--text-secondary)] leading-relaxed">
                         {item.answer}
                       </p>
                     </AccordionContent>
@@ -159,7 +159,7 @@ const FlowbiteFAQSection: React.FC<FlowbiteFAQSectionProps> = ({
               ))}
             </Accordion>
           ) : (
-            <p className="text-center text-gray-500 dark:text-gray-400">No FAQ items available.</p>
+            <p className="text-center text-[color:var(--text-muted)]">No FAQ items available.</p>
           )}
         </div>
       </div>

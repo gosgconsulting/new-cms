@@ -151,7 +151,7 @@ const FlowbiteTestimonialsSection: React.FC<FlowbiteTestimonialsSectionProps> = 
   return (
     <section
       ref={sectionRef as any}
-      className={`py-20 px-4 bg-[color:var(--brand-background)] dark:bg-[#0a0a0a] ${className}`}
+      className={`py-20 px-4 bg-[color:var(--bg-secondary)] ${className}`}
     >
       <div className="container mx-auto">
         <div className="mx-auto max-w-6xl">
@@ -198,29 +198,29 @@ const FlowbiteTestimonialsSection: React.FC<FlowbiteTestimonialsSectionProps> = 
                             return (
                               <div
                                 key={idx}
-                                className="group rounded-3xl border border-black/10 dark:border-white/15 bg-white dark:bg-[#1a1a1a] p-7 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_26px_90px_rgba(0,0,0,0.16)] hover:scale-[1.02]"
+                                className="group rounded-3xl border border-[color:var(--border-color)] bg-white p-7 transition-all duration-300 hover:-translate-y-1 hover:shadow-[var(--shadow-3)] hover:scale-[1.01]"
                               >
                                 <div className="flex items-start gap-4">
-                                  {/* Initials-only avatar */}
-                                  <div className="icon-container-accent h-14 w-14 rounded-full text-lg font-semibold transition-transform duration-200 group-hover:scale-105">
+                                  {/* Initials-only avatar (secondary tint) */}
+                                  <div className="icon-container-secondary h-14 w-14 rounded-full text-lg font-semibold transition-transform duration-200 group-hover:scale-105">
                                     {initials}
                                   </div>
 
                                   <div className="min-w-0 flex-1">
-                                    <p className="text-lg font-semibold text-gray-900 dark:text-white leading-tight">
+                                    <p className="text-lg font-semibold text-[color:var(--text-primary)] leading-tight">
                                       {name}
                                     </p>
                                     {industry ? (
-                                      <p className="text-sm text-gray-600 dark:text-gray-400">{industry}</p>
+                                      <p className="text-sm text-[color:var(--text-muted)]">{industry}</p>
                                     ) : null}
 
-                                    {/* Stars */}
+                                    {/* Stars (accent micro-moment) */}
                                     <div className="mt-2 flex items-center gap-1">
                                       {Array.from({ length: 5 }).map((__, sIdx) => (
                                         <Star
                                           key={sIdx}
                                           className={
-                                            "h-4 w-4 fill-[color:var(--brand-primary)] text-[color:var(--brand-primary)] " +
+                                            "h-4 w-4 fill-[color:var(--brand-accent)] text-[color:var(--brand-accent)] " +
                                             (sectionInView ? "animate-master-star-shimmer" : "")
                                           }
                                           style={{
@@ -234,7 +234,7 @@ const FlowbiteTestimonialsSection: React.FC<FlowbiteTestimonialsSectionProps> = 
                                 </div>
 
                                 {text ? (
-                                  <p className="mt-5 text-base leading-relaxed text-gray-900 dark:text-gray-300">
+                                  <p className="mt-5 text-base leading-relaxed text-[color:var(--text-secondary)]">
                                     {text}
                                   </p>
                                 ) : null}
@@ -260,8 +260,8 @@ const FlowbiteTestimonialsSection: React.FC<FlowbiteTestimonialsSectionProps> = 
                       className={[
                         "h-2 rounded-full transition-all cursor-pointer",
                         isActive
-                          ? "w-14 bg-brand-primary"
-                          : "w-6 bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500",
+                          ? "w-14 bg-brand-secondary"
+                          : "w-6 bg-[color:var(--border-color-strong)] hover:bg-[color:var(--border-color-strong)]",
                       ].join(" ")}
                       aria-label={`Go to reviews page ${idx + 1}`}
                     />
@@ -270,7 +270,7 @@ const FlowbiteTestimonialsSection: React.FC<FlowbiteTestimonialsSectionProps> = 
               </div>
             </>
           ) : (
-            <p className="text-center text-gray-600 dark:text-gray-400">No testimonials available.</p>
+            <p className="text-center text-[color:var(--text-muted)]">No testimonials available.</p>
           )}
         </div>
       </div>

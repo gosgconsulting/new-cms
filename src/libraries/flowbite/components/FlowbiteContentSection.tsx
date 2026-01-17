@@ -112,23 +112,19 @@ const FlowbiteContentSection: React.FC<FlowbiteContentSectionProps> = ({
 
     return (
       <section
-        className={`relative overflow-hidden py-20 px-4 bg-[color:var(--brand-background)] dark:bg-[#0a0a0a] ${className}`}
+        className={`relative overflow-hidden py-20 px-4 bg-[color:var(--bg-primary)] ${className}`}
       >
-        <div className="pointer-events-none absolute inset-0">
-          <div className="absolute -top-40 left-1/2 h-[22rem] w-[44rem] -translate-x-1/2 rounded-full bg-gradient-to-r from-indigo-400/12 via-sky-400/10 to-lime-400/12 blur-3xl animate-master-float" />
-        </div>
-
         <div className="container mx-auto relative">
           <div className="mx-auto max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
             {/* Left */}
             <div>
               <Reveal direction="up" delayMs={0}>
-                <span className="badge-neutral text-sm">{badge}</span>
+                <span className="label-section">{badge}</span>
               </Reveal>
 
               {title ? (
                 <Reveal direction="up" delayMs={80}>
-                  <h2 className="mt-5 text-4xl md:text-5xl font-semibold tracking-tight text-gray-900 dark:text-white leading-tight">
+                  <h2 className="mt-5 text-4xl md:text-5xl font-semibold tracking-tight text-[color:var(--text-primary)] leading-tight">
                     {title}
                   </h2>
                 </Reveal>
@@ -138,7 +134,7 @@ const FlowbiteContentSection: React.FC<FlowbiteContentSectionProps> = ({
                 <div className="mt-5 space-y-4">
                   {paragraphs.map((text, index) => (
                     <Reveal key={index} direction="up" delayMs={160 + index * 90}>
-                      <p className="text-base md:text-lg leading-relaxed text-gray-700 dark:text-gray-300">
+                      <p className="text-base md:text-lg leading-relaxed text-[color:var(--text-secondary)]">
                         {text}
                       </p>
                     </Reveal>
@@ -160,7 +156,7 @@ const FlowbiteContentSection: React.FC<FlowbiteContentSectionProps> = ({
             {/* Right */}
             <div className="relative">
               <Reveal direction="right" fromScaleClass="scale-95">
-                <div className="rounded-[2rem] overflow-hidden border border-black/10 dark:border-white/15 bg-white dark:bg-[#1a1a1a] shadow-[0_20px_80px_rgba(0,0,0,0.10)] dark:shadow-[0_20px_80px_rgba(0,0,0,0.7)]">
+                <div className="rounded-[2rem] overflow-hidden bg-white shadow-[var(--shadow-3)]">
                   <img
                     src={imageSrc}
                     alt="About us"
@@ -174,19 +170,19 @@ const FlowbiteContentSection: React.FC<FlowbiteContentSectionProps> = ({
               <div
                 ref={reviewRef}
                 className={
-                  "absolute left-6 top-6 rounded-2xl border border-black/10 dark:border-white/15 bg-white/90 dark:bg-[#1a1a1a]/90 backdrop-blur px-4 py-3 shadow-[0_12px_40px_rgba(0,0,0,0.12)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.5)] " +
+                  "absolute left-6 top-6 rounded-2xl border border-[color:var(--border-color)] bg-white/90 backdrop-blur px-4 py-3 shadow-[var(--shadow-2)] " +
                   (reviewInView ? "animate-master-pop" : "opacity-0")
                 }
               >
                 <div className="flex items-center gap-3">
-                  <div className="icon-container-primary h-10 w-10 rounded-full">
+                  <div className="icon-container-secondary h-10 w-10 rounded-full">
                     <Star className="h-5 w-5" />
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-900 dark:text-white leading-tight">
+                    <p className="font-semibold text-[color:var(--text-primary)] leading-tight">
                       {reviewLabel}
                     </p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 leading-tight">
+                    <p className="text-sm text-[color:var(--text-secondary)] leading-tight">
                       {reviewSub}
                     </p>
                   </div>
@@ -201,16 +197,12 @@ const FlowbiteContentSection: React.FC<FlowbiteContentSectionProps> = ({
 
   // Default content card
   return (
-    <section className={`relative overflow-hidden py-20 px-4 bg-[color:var(--brand-background)] dark:bg-[#0a0a0a] ${className}`}>
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -top-48 right-[-10rem] h-[22rem] w-[30rem] rounded-full bg-gradient-to-tr from-indigo-400/12 via-sky-400/8 to-lime-400/12 blur-3xl animate-master-float" />
-      </div>
-
+    <section className={`relative overflow-hidden py-20 px-4 bg-[color:var(--bg-primary)] ${className}`}>
       <div className="container mx-auto relative">
         <Reveal direction="up">
-          <div className="mx-auto max-w-4xl rounded-3xl border border-black/10 dark:border-white/15 bg-white dark:bg-[#1a1a1a] p-8 md:p-10 shadow-[0_20px_80px_rgba(0,0,0,0.08)] dark:shadow-[0_20px_80px_rgba(0,0,0,0.7)]">
+          <div className="mx-auto max-w-4xl rounded-3xl border border-[color:var(--border-color)] bg-white p-8 md:p-10 shadow-[var(--shadow-2)]">
             {title ? (
-              <h2 className="text-3xl md:text-4xl font-semibold tracking-tight text-gray-900 dark:text-white">
+              <h2 className="text-3xl md:text-4xl font-semibold tracking-tight text-[color:var(--text-primary)]">
                 {title}
               </h2>
             ) : null}
@@ -218,7 +210,7 @@ const FlowbiteContentSection: React.FC<FlowbiteContentSectionProps> = ({
             {paragraphs.length > 0 ? (
               <div className="space-y-4 mt-6">
                 {paragraphs.map((text, index) => (
-                  <p key={index} className="text-base leading-relaxed text-gray-700 dark:text-gray-300">
+                  <p key={index} className="text-base leading-relaxed text-[color:var(--text-secondary)]">
                     {text}
                   </p>
                 ))}

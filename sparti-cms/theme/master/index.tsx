@@ -16,6 +16,8 @@ import ContactFormModal from "./components/modals/ContactFormModal";
 import { ThankYouPage } from "./pages/ThankYouPage";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 import TermsAndConditionsPage from "./pages/TermsAndConditionsPage";
+import BlogListPage from "./pages/blog/BlogListPage";
+import BlogPostPage from "./pages/blog/BlogPostPage";
 import "./theme.css";
 
 // Helper function to adjust color brightness
@@ -46,14 +48,16 @@ const normalizeSlug = (slug?: string) => {
 };
 
 /**
- * Master Theme - Landing Page (Flowbite-based)
+ * Master Theme
+ *
+ * This theme is meant to be the best-practice reference implementation for:
+ * - folder structure
+ * - CMS connection patterns
+ * - deployable front-end theme output
  *
  * Asset convention:
  * - Put hard-coded assets under: sparti-cms/theme/master/assets
  * - Reference them as: /theme/master/assets/<file>
- *
- * DB / uploaded media:
- * - Media Manager uploads return URLs like /uploads/... which can also be used anywhere an image URL is expected.
  */
 const MasterTheme: React.FC<MasterThemeProps> = ({
   basePath = "/theme/master",
@@ -153,7 +157,8 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
   }, []);
 
   const normalizedPageSlug = normalizeSlug(pageSlug);
-  const topLevelSlug = normalizedPageSlug.split("/")[0];
+  const slugParts = normalizedPageSlug.split("/").filter(Boolean);
+  const topLevelSlug = slugParts[0] || "";
 
   const isThankYouPage =
     topLevelSlug === "thank-you" ||
@@ -167,7 +172,12 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
 
   if (isThankYouPage) {
     return (
-      <ThankYouPage tenantName={tenantName} tenantSlug={tenantSlug} tenantId={tenantId} />
+      <ThankYouPage
+        tenantName={tenantName}
+        tenantSlug={tenantSlug}
+        tenantId={tenantId}
+        basePath={basePath}
+      />
     );
   }
 
@@ -525,6 +535,13 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
   };
 
   const renderMain = () => {
+    if (topLevelSlug === "blog") {
+      if (slugParts.length === 1) {
+        return <BlogListPage basePath={basePath} />;
+      }
+      return <BlogPostPage basePath={basePath} slug={slugParts[1] || ""} />;
+    }
+
     if (topLevelSlug === "privacy-policy") {
       return <PrivacyPolicyPage tenantName={tenantName} />;
     }
@@ -568,7 +585,12 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
 
   return (
     <div className="min-h-screen flex flex-col bg-(--brand-background)">
-      <Header tenantName={tenantName} tenantSlug={tenantSlug} onContactClick={handleContactClick} />
+      <Header
+        tenantName={tenantName}
+        tenantSlug={tenantSlug}
+        basePath={basePath}
+        onContactClick={handleContactClick}
+      />
 
       <main className="flex-1">{renderMain()}</main>
 
