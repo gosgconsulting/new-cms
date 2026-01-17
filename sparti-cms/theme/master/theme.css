@@ -38,6 +38,13 @@
     --brand-gradient-start: var(--brand-secondary);
     --brand-gradient-end: var(--brand-primary);
 
+    /* CTA "light" (on gradient/dark backgrounds) — brand-safe, non-primary */
+    --brand-cta-light-bg: rgba(255, 255, 255, 0.78);
+    --brand-cta-light-bg-hover: rgba(255, 255, 255, 1);
+    --brand-cta-light-border: rgba(255, 255, 255, 0.9);
+    --brand-cta-light-border-hover: rgba(255, 255, 255, 1);
+    --brand-cta-light-text: rgba(15, 23, 42, 0.95);
+
     /* Derived neutrals (opacity-based) */
     --text-primary: var(--brand-text); /* 100% */
     --text-secondary: color-mix(in srgb, var(--brand-text) 85%, transparent); /* ~85% */
@@ -132,9 +139,9 @@
     padding-right: 1.5rem;
     border-radius: 0.75rem;
     font-weight: 800;
-    background-color: rgba(255, 255, 255, 0.78);
-    color: rgba(15, 23, 42, 0.95);
-    border: 1px solid rgba(255, 255, 255, 0.9);
+    background-color: var(--brand-cta-light-bg);
+    color: var(--brand-cta-light-text);
+    border: 1px solid var(--brand-cta-light-border);
     backdrop-filter: blur(10px);
     transition: background-color 0.2s ease, transform 0.18s ease, box-shadow 0.2s ease,
       border-color 0.2s ease;
@@ -146,8 +153,8 @@
   }
 
   .btn-cta-light:hover {
-    background-color: rgba(255, 255, 255, 1);
-    border-color: rgba(255, 255, 255, 1);
+    background-color: var(--brand-cta-light-bg-hover);
+    border-color: var(--brand-cta-light-border-hover);
     transform: translateY(-1px);
     box-shadow: 0 18px 60px -24px rgba(2, 6, 23, 0.42);
   }
