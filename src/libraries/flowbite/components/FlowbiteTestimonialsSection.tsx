@@ -4,6 +4,8 @@ import React, { useMemo, useRef, useState } from "react";
 import type { ComponentSchema } from "../../../../sparti-cms/types/schema";
 import FlowbiteSection from "./FlowbiteSection";
 import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
+import { Star } from "lucide-react";
+import { useInViewOnce } from "../hooks/useInViewOnce";
 
 interface FlowbiteTestimonialsSectionProps {
   component: ComponentSchema;
@@ -23,8 +25,7 @@ function initialsFromName(name: string) {
 /**
  * Flowbite Testimonials Section Component
  *
- * Styled to match the provided reference cards (avatar + Google badge, stars, verified check).
- * Includes light/dark versions via Tailwind `dark:` classes.
+ * Adds carousel motion easing, card hover lift, and a subtle star shimmer on viewport entry.
  */
 const FlowbiteTestimonialsSection: React.FC<FlowbiteTestimonialsSectionProps> = ({
   component,
@@ -32,6 +33,11 @@ const FlowbiteTestimonialsSection: React.FC<FlowbiteTestimonialsSectionProps> = 
 }) => {
   const props = component.props || {};
   const items = component.items || [];
+
+  const { ref: sectionRef, inView: sectionInView } = useInViewOnce<HTMLElement>({
+    rootMargin: "0px 0px -15% 0px",
+    threshold: 0.15,
+  });
 
   const carouselRef = useRef<any>(null);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -143,7 +149,10 @@ const FlowbiteTestimonialsSection: React.FC<FlowbiteTestimonialsSectionProps> = 
   const pageCount = Math.max(1, Math.ceil(testimonials.length / pageSize));
 
   return (
-    <section className={`py-20 px-4 bg-[color:var(--brand-background)] dark:bg-[#0a0a0a] ${className}`}>
+    <section
+      ref={sectionRef as any}
+      className={`py-20 px-4 bg-[color:var(--brand-background)] dark:bg-[#0a0a0a] ${className}`}
+    >
       <div className="container mx-auto">
         <div className="mx-auto max-w-6xl">
           <FlowbiteSection title={title} subtitle={subtitle} className="text-center mb-10" />
@@ -151,36 +160,49 @@ const FlowbiteTestimonialsSection: React.FC<FlowbiteTestimonialsSectionProps> = 
           {testimonials.length > 0 ? (
             <>
               <Carousel
-                opts={{ align: 'start', loop: true, slidesToScroll: 1 }}
+                opts={{ align: "start", loop: true, slidesToScroll: 1 }}
                 className="w-full"
                 setApi={(api) => {
                   if (api) {
                     carouselRef.current = api;
                     setActiveIndex(api.selectedScrollSnap());
-                    api.on('select', () => setActiveIndex(api.selectedScrollSnap()));
+                    api.on("select", () => setActiveIndex(api.selectedScrollSnap()));
                   }
                 }}
               >
-                <CarouselContent className="-ml-4 md:-ml-6">
+                <CarouselContent className="-ml-4 md:-ml-6 transition-transform duration-700 ease-out">
                   {Array.from({ length: pageCount }).map((_, slideIndex) => {
-                    const slideTestimonials = testimonials.slice(slideIndex * pageSize, slideIndex * pageSize + pageSize);
+                    const slideTestimonials = testimonials.slice(
+                      slideIndex * pageSize,
+                      slideIndex * pageSize + pageSize
+                    );
+                    const isActive = slideIndex === activeIndex;
+
                     return (
                       <CarouselItem key={slideIndex} className="pl-4 md:pl-6 basis-full">
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div
+                          className={
+                            "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 " +
+                            (isActive ? "animate-master-slide-in" : "")
+                          }
+                        >
                           {slideTestimonials.map((testimonial: any, idx: number) => {
                             const text = testimonial.text || testimonial.content || testimonial.message || "";
-                            const name = testimonial.name || testimonial.author || `Client ${slideIndex * pageSize + idx + 1}`;
+                            const name =
+                              testimonial.name ||
+                              testimonial.author ||
+                              `Client ${slideIndex * pageSize + idx + 1}`;
                             const industry = testimonial.industry || testimonial.role || testimonial.position || "";
                             const initials = initialsFromName(name);
 
                             return (
                               <div
                                 key={idx}
-                                className="rounded-3xl border border-black/10 dark:border-white/15 bg-white dark:bg-[#1a1a1a] p-7"
+                                className="group rounded-3xl border border-black/10 dark:border-white/15 bg-white dark:bg-[#1a1a1a] p-7 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_26px_90px_rgba(0,0,0,0.16)] hover:scale-[1.02]"
                               >
                                 <div className="flex items-start gap-4">
                                   {/* Initials-only avatar */}
-                                  <div className="icon-container-accent h-14 w-14 rounded-full text-lg font-semibold">
+                                  <div className="icon-container-accent h-14 w-14 rounded-full text-lg font-semibold transition-transform duration-200 group-hover:scale-105">
                                     {initials}
                                   </div>
 
@@ -191,6 +213,23 @@ const FlowbiteTestimonialsSection: React.FC<FlowbiteTestimonialsSectionProps> = 
                                     {industry ? (
                                       <p className="text-sm text-gray-600 dark:text-gray-400">{industry}</p>
                                     ) : null}
+
+                                    {/* Stars */}
+                                    <div className="mt-2 flex items-center gap-1">
+                                      {Array.from({ length: 5 }).map((__, sIdx) => (
+                                        <Star
+                                          key={sIdx}
+                                          className={
+                                            "h-4 w-4 fill-[color:var(--brand-primary)] text-[color:var(--brand-primary)] " +
+                                            (sectionInView ? "animate-master-star-shimmer" : "")
+                                          }
+                                          style={{
+                                            animationDelay: `${80 + sIdx * 70}ms`,
+                                            animationDuration: "900ms",
+                                          }}
+                                        />
+                                      ))}
+                                    </div>
                                   </div>
                                 </div>
 

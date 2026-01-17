@@ -9,7 +9,8 @@ import {
   AccordionTrigger,
   AccordionContent,
 } from "../../../components/ui/accordion";
-import { Minus, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
+import Reveal from "./Reveal";
 
 interface FlowbiteFAQSectionProps {
   component: ComponentSchema;
@@ -29,8 +30,9 @@ function extractQAFromArrayItems(arrItems: any[]): FAQItem | null {
 /**
  * Flowbite FAQ Section Component
  *
- * Styled to match the provided reference (rounded dark blocks with + / - circle).
- * Includes light + dark variants automatically.
+ * Adds scroll reveal and micro-interactions:
+ * - smooth accordion height animation (already provided by the shared Accordion component)
+ * - plus icon rotates + changes color on open
  */
 const FlowbiteFAQSection: React.FC<FlowbiteFAQSectionProps> = ({
   component,
@@ -120,38 +122,40 @@ const FlowbiteFAQSection: React.FC<FlowbiteFAQSectionProps> = ({
   }, [items, props]);
 
   return (
-    <section className={`relative overflow-hidden py-20 px-4 bg-[color:var(--brand-background)] dark:bg-[#0a0a0a] ${className}`}>
+    <section
+      className={`relative overflow-hidden py-20 px-4 bg-[color:var(--brand-background)] dark:bg-[#0a0a0a] ${className}`}
+    >
       <div className="container mx-auto relative">
         <div className="mx-auto max-w-5xl">
-          <FlowbiteSection title={title} subtitle={subtitle} className="mb-10" />
+          <Reveal direction="up">
+            <FlowbiteSection title={title} subtitle={subtitle} className="mb-10" />
+          </Reveal>
 
           {faqItems.length > 0 ? (
             <Accordion type="single" collapsible className="space-y-4">
               {faqItems.map((item, index) => (
-                <AccordionItem
-                  key={index}
-                  value={`item-${index}`}
-                  className="border-none rounded-2xl bg-gray-100 dark:bg-[#1a1a1a] px-5 sm:px-7"
-                >
-                  <AccordionTrigger
-                    className="group no-underline hover:no-underline py-6 [&>svg]:hidden cursor-pointer"
+                <Reveal key={index} direction="up" delayMs={80 + index * 90}>
+                  <AccordionItem
+                    value={`item-${index}`}
+                    className="border-none rounded-2xl bg-gray-100 dark:bg-[#1a1a1a] px-5 sm:px-7 transition-shadow data-[state=open]:shadow-[0_18px_70px_rgba(0,0,0,0.10)]"
                   >
-                    <div className="flex w-full items-center justify-between gap-6">
-                      <span className="text-left text-xl sm:text-2xl font-semibold text-gray-900 dark:text-white">
-                        {item.question}
-                      </span>
-                      <span className="icon-container-primary h-11 w-11 rounded-full shrink-0">
-                        <Plus className="h-5 w-5 group-data-[state=open]:hidden" />
-                        <Minus className="h-5 w-5 hidden group-data-[state=open]:block" />
-                      </span>
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent className="pb-6">
-                    <p className="text-base sm:text-lg text-gray-700 dark:text-gray-300 leading-relaxed">
-                      {item.answer}
-                    </p>
-                  </AccordionContent>
-                </AccordionItem>
+                    <AccordionTrigger className="group no-underline hover:no-underline py-6 [&>svg]:hidden cursor-pointer">
+                      <div className="flex w-full items-center justify-between gap-6">
+                        <span className="text-left text-xl sm:text-2xl font-semibold text-gray-900 dark:text-white">
+                          {item.question}
+                        </span>
+                        <span className="icon-container-primary h-11 w-11 rounded-full shrink-0 transition-colors duration-200 group-data-[state=open]:bg-white group-data-[state=open]:text-brand-primary">
+                          <Plus className="h-5 w-5 transition-transform duration-300 group-data-[state=open]:rotate-45" />
+                        </span>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="pb-6">
+                      <p className="text-base sm:text-lg text-gray-700 dark:text-gray-300 leading-relaxed">
+                        {item.answer}
+                      </p>
+                    </AccordionContent>
+                  </AccordionItem>
+                </Reveal>
               ))}
             </Accordion>
           ) : (
