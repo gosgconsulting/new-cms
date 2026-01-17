@@ -162,6 +162,71 @@ const FlowbiteTestimonialsSection: React.FC<FlowbiteTestimonialsSectionProps> = 
     setActiveIndex(page);
   };
 
+  // Drag-to-scroll state (mouse/touch)
+  const dragging = useRef({ isDown: false, startX: 0, scrollLeft: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+
+  const onMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    dragging.current.isDown = true;
+    dragging.current.startX = e.pageX - el.offsetLeft;
+    dragging.current.scrollLeft = el.scrollLeft;
+    setIsDragging(true);
+  };
+
+  const onMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const el = scrollerRef.current;
+    if (!el || !dragging.current.isDown) return;
+    e.preventDefault();
+    const x = e.pageX - el.offsetLeft;
+    const walk = x - dragging.current.startX;
+    el.scrollLeft = dragging.current.scrollLeft - walk;
+  };
+
+  const endMouseDrag = () => {
+    if (dragging.current.isDown) {
+      dragging.current.isDown = false;
+      setIsDragging(false);
+    }
+  };
+
+  const onTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    const touch = e.touches[0];
+    dragging.current.isDown = true;
+    dragging.current.startX = touch.pageX - el.offsetLeft;
+    dragging.current.scrollLeft = el.scrollLeft;
+    setIsDragging(true);
+  };
+
+  const onTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    const el = scrollerRef.current;
+    if (!el || !dragging.current.isDown) return;
+    const touch = e.touches[0];
+    const x = touch.pageX - el.offsetLeft;
+    const walk = x - dragging.current.startX;
+    el.scrollLeft = dragging.current.scrollLeft - walk;
+  };
+
+  const endTouchDrag = () => {
+    if (dragging.current.isDown) {
+      dragging.current.isDown = false;
+      setIsDragging(false);
+    }
+  };
+
+  const onWheel = (e: React.WheelEvent<HTMLDivElement>) => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    // Convert vertical wheel to horizontal scroll for this slider
+    if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+      e.preventDefault();
+      el.scrollLeft += e.deltaY;
+    }
+  };
+
   const cards = useMemo(() => {
     return testimonials.map((testimonial: any, index: number) => {
       const text = testimonial.text || testimonial.content || testimonial.message || "";
@@ -212,7 +277,20 @@ const FlowbiteTestimonialsSection: React.FC<FlowbiteTestimonialsSectionProps> = 
               <div
                 ref={scrollerRef}
                 onScroll={handleScroll}
-                className="flex gap-6 overflow-x-auto pb-2 snap-x snap-mandatory scroll-px-4 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                onMouseDown={onMouseDown}
+                onMouseMove={onMouseMove}
+                onMouseUp={endMouseDrag}
+                onMouseLeave={endMouseDrag}
+                onTouchStart={onTouchStart}
+                onTouchMove={onTouchMove}
+                onTouchEnd={endTouchDrag}
+                onWheel={onWheel}
+                className={[
+                  "flex gap-6 overflow-x-auto pb-2 snap-x snap-mandatory scroll-px-4",
+                  "[-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+                  "select-none",
+                  isDragging ? "cursor-grabbing" : "cursor-grab",
+                ].join(" ")}
               >
                 {cards}
               </div>
