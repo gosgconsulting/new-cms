@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import type { ComponentSchema } from "../../../../sparti-cms/types/schema";
 import FlowbiteSlider, { type FlowbiteSlide } from "./FlowbiteSlider";
 import { ChevronDown } from "lucide-react";
+import SectionLabel from "./SectionLabel";
 
 interface FlowbiteHeroSectionProps {
   component: ComponentSchema;
@@ -194,15 +195,15 @@ const FlowbiteHeroSection: React.FC<FlowbiteHeroSectionProps> = ({
                         : "flex flex-wrap items-center justify-center gap-3"
                     }
                   >
-                    <span
+                    <SectionLabel
                       className={[
-                        "badge-neutral text-xs sm:text-sm transition-all duration-500 ease-out",
+                        "text-xs sm:text-sm transition-all duration-500 ease-out",
                         enterBase,
                       ].join(" ")}
                       style={{ transitionDelay: "60ms" }}
                     >
                       {motto}
-                    </span>
+                    </SectionLabel>
                   </div>
                 ) : null}
 

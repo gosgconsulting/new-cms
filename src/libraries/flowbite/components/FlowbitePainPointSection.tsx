@@ -4,6 +4,7 @@ import React, { useMemo } from "react";
 import type { ComponentSchema } from "../../../../sparti-cms/types/schema";
 import { AlertTriangle, BarChart3, CircleX, Sparkles } from "lucide-react";
 import Reveal from "./Reveal";
+import SectionLabel from "./SectionLabel";
 
 interface FlowbitePainPointSectionProps {
   component: ComponentSchema;
@@ -113,7 +114,7 @@ const FlowbitePainPointSection: React.FC<FlowbitePainPointSectionProps> = ({
         <div className="mx-auto max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
           <Reveal direction="left">
             <div className="rounded-3xl border border-[color:var(--border-color)] bg-white p-8 md:p-10 shadow-[var(--shadow-2)]">
-              <div className="badge-neutral text-xs">{subtitle}</div>
+              <SectionLabel className="text-xs">{subtitle}</SectionLabel>
 
               <h2 className="mt-5 text-3xl md:text-4xl font-semibold tracking-tight text-[color:var(--text-primary)] leading-tight">
                 {title}

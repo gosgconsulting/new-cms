@@ -5,6 +5,7 @@ import type { ComponentSchema } from "../../../../sparti-cms/types/schema";
 import { Star } from "lucide-react";
 import Reveal from "./Reveal";
 import { useInViewOnce } from "../hooks/useInViewOnce";
+import SectionLabel from "./SectionLabel";
 
 interface FlowbiteContentSectionProps {
   component: ComponentSchema;
@@ -120,7 +121,7 @@ const FlowbiteContentSection: React.FC<FlowbiteContentSectionProps> = ({
             <div>
               {badge ? (
                 <Reveal direction="up" delayMs={0}>
-                  <span className="label-section">{badge}</span>
+                  <SectionLabel>{badge}</SectionLabel>
                 </Reveal>
               ) : null}
 
