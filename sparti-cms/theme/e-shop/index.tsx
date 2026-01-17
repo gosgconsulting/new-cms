@@ -41,7 +41,7 @@ const EShopTheme: React.FC<EShopThemeProps> = ({
 
   const renderPage = () => {
     if (!current) {
-      return <IndexPage tenantName={tenantName} />;
+      return <IndexPage />;
     }
 
     if (current.startsWith("category/")) {
