@@ -45,6 +45,24 @@
     --brand-background: #FFFFFF;
     --brand-text: #333333;
 
+    /* Cross-theme semantic variables (used by Flowbite + theme components) */
+    --bg-primary: var(--brand-background);
+    --bg-secondary: #f8fafc;
+
+    --text-primary: var(--brand-text);
+    --text-secondary: color-mix(in srgb, var(--brand-text) 85%, transparent);
+    --text-muted: color-mix(in srgb, var(--brand-text) 60%, transparent);
+
+    --border-color: color-mix(in srgb, var(--brand-text) 12%, transparent);
+    --border-color-strong: color-mix(in srgb, var(--brand-text) 18%, transparent);
+
+    --tint-secondary: color-mix(in srgb, var(--brand-secondary) 12%, white);
+    --tint-accent: color-mix(in srgb, var(--brand-accent) 12%, white);
+
+    --shadow-1: 0 1px 2px 0 rgb(2 6 23 / 0.06);
+    --shadow-2: 0 10px 40px -18px rgb(2 6 23 / 0.22);
+    --shadow-3: 0 24px 80px -24px rgb(2 6 23 / 0.28);
+
     /* Enhanced color variables for advanced styling */
     --gradient-start: #9b87f5;
     --gradient-end: #7E69AB;
