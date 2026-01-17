@@ -120,7 +120,7 @@ const Blog: React.FC<BlogProps> = ({
           <div className="container mx-auto">
             <div className="flex flex-col lg:flex-row gap-8">
               {/* Sidebar */}
-              <aside className="lg:w-64 flex-shrink-0">
+              <aside className="lg:w-64 shrink-0">
                 <div className="bg-card rounded-lg border p-6 sticky top-8">
                   <h3 className="text-lg font-semibold mb-4">Categories</h3>
                   <ScrollArea className="h-[400px]">

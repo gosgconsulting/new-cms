@@ -108,7 +108,7 @@ const FAQSection: React.FC<FAQSectionProps> = ({
                 <div className="px-6">
                   <AccordionTrigger className="text-left font-semibold text-lg py-6 hover:no-underline hover:text-primary transition-colors">
                     <div className="flex items-center gap-3">
-                      <div className="w-2 h-2 bg-primary rounded-full flex-shrink-0"></div>
+                      <div className="w-2 h-2 bg-primary rounded-full shrink-0"></div>
                       <span>{faq.question}</span>
                     </div>
                   </AccordionTrigger>

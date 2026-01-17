@@ -82,3 +82,26 @@ export function getFlowbiteMetadata(): DesignSystemMetadata {
   };
 }
 
+// Minimal Daisy UI metadata to satisfy backward compatibility imports
+export function getDaisyUIMetadata(): DesignSystemMetadata {
+  // We don't have Daisy UI components wired yet; return a basic descriptor.
+  return {
+    id: "daisyui",
+    label: "DaisyUI",
+    description: "Placeholder metadata for DaisyUI (no components registered).",
+    components: [],
+    getThemes: () => [],
+    applyTheme: (_themeId: string) => {},
+    getComponentPreview: (_schema: ComponentSchema) => null as any,
+    getSectionComponent: () => null as any,
+    techStack: {
+      cssFrameworks: ["tailwindcss", "daisyui"],
+      jsLibraries: ["react"],
+      tailwindPlugins: ["daisyui"],
+    },
+    styles: {},
+    styleConfig: { setupFolder: "", cssFiles: [] },
+    loadStyles: async () => {},
+    unloadStyles: () => {},
+  };
+}

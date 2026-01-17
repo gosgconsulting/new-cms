@@ -125,7 +125,7 @@ export const ContactFormDialog: React.FC<ContactFormSidebarProps> = ({
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="p-6 border-b flex-shrink-0">
+          <div className="p-6 border-b shrink-0">
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-2xl font-bold">Contact Us</h2>
               <button

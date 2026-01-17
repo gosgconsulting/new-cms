@@ -221,7 +221,7 @@ const ServicesSection: React.FC<ServicesSectionProps> = ({
                   <div className="grid sm:grid-cols-2 gap-3">
                     {service.features.map((feature, featureIndex) => (
                       <div key={featureIndex} className="flex items-center gap-2">
-                        <div className="w-1.5 h-1.5 bg-primary rounded-full flex-shrink-0" />
+                        <div className="w-1.5 h-1.5 bg-primary rounded-full shrink-0" />
                         <span className="text-sm text-foreground">{feature}</span>
                       </div>
                     ))}

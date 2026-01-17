@@ -138,19 +138,19 @@ export const ThankYouPage: React.FC<ThankYouPageProps> = ({
             <h2 className="text-lg font-semibold mb-4 text-violet-900">What happens next?</h2>
             <ul className="space-y-3 text-slate-700">
               <li className="flex items-start gap-3">
-                <svg className="w-5 h-5 text-brandPurple mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 text-brandPurple mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 <span>Our digital marketing experts will review your inquiry</span>
               </li>
               <li className="flex items-start gap-3">
-                <svg className="w-5 h-5 text-brandPurple mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 text-brandPurple mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 <span>We'll respond via email or phone soon</span>
               </li>
               <li className="flex items-start gap-3">
-                <svg className="w-5 h-5 text-brandPurple mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 text-brandPurple mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 <span>We'll provide expert guidance on your digital marketing needs</span>
