@@ -43,6 +43,13 @@ export default defineConfig(({ mode }) => {
         target: 'http://localhost:4173',
         changeOrigin: true,
         secure: false,
+      },
+      // Allow frontend dev server to load theme assets directly from the backend.
+      // Needed for themes whose assets are served by Express (e.g. Nail Queen imported assets).
+      '/theme': {
+        target: 'http://localhost:4173',
+        changeOrigin: true,
+        secure: false,
       }
     }
   },
