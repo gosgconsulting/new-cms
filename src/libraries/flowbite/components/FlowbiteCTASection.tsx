@@ -116,16 +116,26 @@ const FlowbiteCTASection: React.FC<FlowbiteCTASectionProps> = ({
         className,
       ].join(" ")}
     >
-      {/* subtle vignette/glow */}
+      {/* Brand-safe glow (primary + secondary at low saturation) */}
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute inset-0 bg-gradient-to-r from-black/20 via-transparent to-black/20" />
         <div
-          className="absolute -top-24 left-[-10rem] h-[26rem] w-[26rem] rounded-full bg-fuchsia-500/25 blur-3xl"
-          style={{ transform: "translate3d(0, var(--master-parallax-bg-1, 0px), 0)" }}
+          className="absolute -top-24 left-[-10rem] h-[26rem] w-[26rem] rounded-full blur-3xl"
+          style={{
+            transform: "translate3d(0, var(--master-parallax-bg-1, 0px), 0)",
+            background:
+              "radial-gradient(closest-side, color-mix(in srgb, var(--brand-primary) 30%, transparent), transparent 65%)",
+            opacity: 0.6,
+          }}
         />
         <div
-          className="absolute -bottom-32 right-[-10rem] h-[28rem] w-[28rem] rounded-full bg-violet-500/25 blur-3xl"
-          style={{ transform: "translate3d(0, var(--master-parallax-bg-2, 0px), 0)" }}
+          className="absolute -bottom-32 right-[-10rem] h-[28rem] w-[28rem] rounded-full blur-3xl"
+          style={{
+            transform: "translate3d(0, var(--master-parallax-bg-2, 0px), 0)",
+            background:
+              "radial-gradient(closest-side, color-mix(in srgb, var(--brand-secondary) 28%, transparent), transparent 66%)",
+            opacity: 0.55,
+          }}
         />
       </div>
 

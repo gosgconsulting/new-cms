@@ -509,8 +509,8 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
   const ctaSchema: ComponentSchema = {
     type: "flowbite-cta-section",
     props: {
-      // Use the master theme's standard CTA styling (green button) and keep it a normal size
-      ctaVariant: "primary",
+      // Final CTA: white button with primary text on a brand gradient background
+      ctaVariant: "light",
       ctaFullWidth: false,
     },
     items: [
