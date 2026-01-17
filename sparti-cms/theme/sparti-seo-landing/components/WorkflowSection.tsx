@@ -176,7 +176,7 @@ const WorkflowSection: React.FC<WorkflowSectionProps> = ({
 
           {/* Flow Arrow */}
           <div className="flex justify-center mb-16">
-            <div className="w-12 h-12 bg-gradient-to-br from-primary/20 to-accent/20 rounded-full flex items-center justify-center glass border border-primary/30 animate-bounce-in">
+            <div className="w-12 h-12 bg-linear-to-br from-primary/20 to-accent/20 rounded-full flex items-center justify-center glass border border-primary/30 animate-bounce-in">
               <svg className="w-6 h-6 text-primary animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
               </svg>
@@ -190,7 +190,7 @@ const WorkflowSection: React.FC<WorkflowSectionProps> = ({
               <div className="absolute inset-0 bg-gradient-to-br from-success/10 to-primary/5 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-all duration-700" />
               <Card className="relative p-8 glass bg-card/80 border-border/50 rounded-3xl hover:border-success/30 transition-all duration-500 hover-scale">
                 <div className="flex items-center gap-4 mb-6">
-                  <div className="w-12 h-12 bg-gradient-to-br from-success/20 to-success/10 rounded-2xl flex items-center justify-center">
+                  <div className="w-12 h-12 bg-linear-to-br from-success/20 to-success/10 rounded-2xl flex items-center justify-center">
                     <svg className="w-6 h-6 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
                     </svg>
@@ -209,9 +209,9 @@ const WorkflowSection: React.FC<WorkflowSectionProps> = ({
                     <span className="ml-2 text-sm text-muted-foreground">Search Results</span>
                   </div>
                   <div className="space-y-3">
-                    <div className="h-4 bg-gradient-to-r from-primary/20 to-transparent rounded" />
-                    <div className="h-3 bg-gradient-to-r from-muted/40 to-transparent rounded w-3/4" />
-                    <div className="h-3 bg-gradient-to-r from-muted/30 to-transparent rounded w-1/2" />
+                    <div className="h-4 bg-linear-to-r from-primary/20 to-transparent rounded" />
+                    <div className="h-3 bg-linear-to-r from-muted/40 to-transparent rounded w-3/4" />
+                    <div className="h-3 bg-linear-to-r from-muted/30 to-transparent rounded w-1/2" />
                   </div>
                 </div>
               </Card>
@@ -222,7 +222,7 @@ const WorkflowSection: React.FC<WorkflowSectionProps> = ({
               <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-accent/5 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-all duration-700" />
               <Card className="relative p-8 glass bg-card/80 border-border/50 rounded-3xl hover:border-primary/30 transition-all duration-500 hover-scale">
                 <div className="flex items-center gap-4 mb-6">
-                  <div className="w-12 h-12 bg-gradient-to-br from-primary/20 to-primary/10 rounded-2xl flex items-center justify-center">
+                  <div className="w-12 h-12 bg-linear-to-br from-primary/20 to-primary/10 rounded-2xl flex items-center justify-center">
                     <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                     </svg>
@@ -243,9 +243,9 @@ const WorkflowSection: React.FC<WorkflowSectionProps> = ({
                     <span className="text-sm font-medium">AI Assistant</span>
                   </div>
                   <div className="space-y-3">
-                    <div className="h-4 bg-gradient-to-r from-primary/20 to-transparent rounded" />
-                    <div className="h-3 bg-gradient-to-r from-accent/30 to-transparent rounded w-5/6" />
-                    <div className="h-3 bg-gradient-to-r from-muted/20 to-transparent rounded w-2/3" />
+                    <div className="h-4 bg-linear-to-r from-primary/20 to-transparent rounded" />
+                    <div className="h-3 bg-linear-to-r from-accent/30 to-transparent rounded w-5/6" />
+                    <div className="h-3 bg-linear-to-r from-muted/20 to-transparent rounded w-2/3" />
                   </div>
                 </div>
               </Card>
@@ -280,7 +280,7 @@ const WorkflowSection: React.FC<WorkflowSectionProps> = ({
             
             {/* Keywords Interface with Carousel */}
             <div className="relative">
-              <Card className="p-6 bg-gradient-to-br from-card/80 to-background/50 glass border-border/50">
+              <Card className="p-6 bg-linear-to-br from-card/80 to-background/50 glass border-border/50">
                 <ImageCarousel 
                   images={defaultKeywordImages}
                   interval={4000}
@@ -298,7 +298,7 @@ const WorkflowSection: React.FC<WorkflowSectionProps> = ({
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             {/* Topics Research Carousel */}
             <div className="relative order-2 lg:order-1">
-              <Card className="p-6 bg-gradient-to-br from-card/80 to-background/50 glass border-border/50">
+              <Card className="p-6 bg-linear-to-br from-card/80 to-background/50 glass border-border/50">
                 <ImageCarousel 
                   images={defaultTopicsImages}
                   interval={3500}
@@ -311,7 +311,7 @@ const WorkflowSection: React.FC<WorkflowSectionProps> = ({
             <div className="space-y-6 order-1 lg:order-2">
               <h2 className="text-3xl md:text-4xl font-bold">
                 Find topics based on{" "}
-                <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                <span className="bg-linear-to-r from-primary to-accent bg-clip-text text-transparent">
                   real google search results
                 </span>
               </h2>
@@ -336,7 +336,7 @@ const WorkflowSection: React.FC<WorkflowSectionProps> = ({
             <div className="space-y-6">
               <h2 className="text-3xl md:text-4xl font-bold">
                 Generate Images for your{" "}
-                <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                <span className="bg-linear-to-r from-primary to-accent bg-clip-text text-transparent">
                   blog articles and preview
                 </span>
               </h2>
@@ -367,7 +367,7 @@ const WorkflowSection: React.FC<WorkflowSectionProps> = ({
             
             {/* Image Generation Carousel */}
             <div className="relative">
-              <Card className="p-6 bg-gradient-to-br from-card/80 to-background/50 glass border-border/50">
+              <Card className="p-6 bg-linear-to-br from-card/80 to-background/50 glass border-border/50">
                 <ImageCarousel 
                   images={defaultImageGenerationImages}
                   interval={4000}

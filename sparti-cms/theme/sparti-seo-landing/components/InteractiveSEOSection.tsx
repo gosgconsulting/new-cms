@@ -115,7 +115,7 @@ export const InteractiveSEOSection: React.FC<InteractiveSEOSectionProps> = ({
               Quick Article Generation
             </Badge>
             
-            <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-foreground via-primary to-accent bg-clip-text text-transparent">
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-linear-to-r from-foreground via-primary to-accent bg-clip-text text-transparent">
               Get your first article in 2 minutes
             </h2>
             
@@ -136,7 +136,7 @@ export const InteractiveSEOSection: React.FC<InteractiveSEOSectionProps> = ({
               {/* Progress Line */}
               <div className="absolute left-0 top-0 w-1 bg-border/30 rounded-full h-full">
                 <div 
-                  className="absolute left-0 top-0 w-1 bg-gradient-to-b from-primary to-accent rounded-full origin-top transition-all duration-1000"
+                  className="absolute left-0 top-0 w-1 bg-linear-to-b from-primary to-accent rounded-full origin-top transition-all duration-1000"
                   style={{ 
                     height: `${((activeFeature + 1) / seoFeatures.length) * 100}%`
                   }}

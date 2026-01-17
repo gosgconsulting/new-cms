@@ -119,11 +119,11 @@ const TestimonialsSection: React.FC = () => {
   const thirdColumn = testimonials.slice(6, 9);
 
   return (
-    <section className="bg-gradient-to-b from-background to-card/20 py-20 relative overflow-hidden">
+    <section className="bg-linear-to-b from-background to-card/20 py-20 relative overflow-hidden">
       {/* Background Elements */}
       <div className="absolute inset-0 opacity-30">
-        <div className="absolute top-20 left-1/4 w-72 h-72 bg-gradient-to-r from-primary/10 to-transparent rounded-full blur-3xl animate-pulse animation-delay-1000" />
-        <div className="absolute bottom-20 right-1/4 w-64 h-64 bg-gradient-to-l from-accent/10 to-transparent rounded-full blur-3xl animate-pulse animation-delay-2000" />
+        <div className="absolute top-20 left-1/4 w-72 h-72 bg-linear-to-r from-primary/10 to-transparent rounded-full blur-3xl animate-pulse animation-delay-1000" />
+        <div className="absolute bottom-20 right-1/4 w-64 h-64 bg-linear-to-l from-accent/10 to-transparent rounded-full blur-3xl animate-pulse animation-delay-2000" />
       </div>
 
       <div className="container z-10 mx-auto px-6">
@@ -134,7 +134,7 @@ const TestimonialsSection: React.FC = () => {
             </div>
           </div>
 
-          <h2 className="text-4xl md:text-5xl font-bold tracking-tight mt-6 bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent text-center">
+          <h2 className="text-4xl md:text-5xl font-bold tracking-tight mt-6 bg-linear-to-r from-foreground to-primary bg-clip-text text-transparent text-center">
             What our users say
           </h2>
           <p className="text-center mt-6 opacity-75 text-lg text-muted-foreground max-w-lg">

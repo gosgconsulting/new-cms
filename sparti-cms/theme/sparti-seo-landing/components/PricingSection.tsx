@@ -61,7 +61,7 @@ const PricingSection: React.FC<PricingSectionProps> = ({ onGetStarted }) => {
   };
 
   return (
-    <section className="py-20 px-6 bg-gradient-to-b from-card/20 to-background">
+    <section className="py-20 px-6 bg-linear-to-b from-card/20 to-background">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
@@ -71,7 +71,7 @@ const PricingSection: React.FC<PricingSectionProps> = ({ onGetStarted }) => {
             </svg>
             Choose Your Plan
           </Badge>
-          <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-foreground via-primary to-accent bg-clip-text text-transparent">
+          <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-linear-to-r from-foreground via-primary to-accent bg-clip-text text-transparent">
             Simple, Transparent Pricing
           </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
@@ -127,7 +127,7 @@ const PricingSection: React.FC<PricingSectionProps> = ({ onGetStarted }) => {
               )}
               
               {/* Highlight Border */}
-              <div className={`absolute ${plan.popular ? 'top-8' : 'top-0'} left-0 right-0 h-1 bg-gradient-to-r from-primary to-primary/70`} />
+              <div className={`absolute ${plan.popular ? 'top-8' : 'top-0'} left-0 right-0 h-1 bg-linear-to-r from-primary to-primary/70`} />
               
               <CardHeader className={`text-center pb-6 ${plan.popular ? 'pt-12' : ''}`}>
                 <CardTitle className="text-2xl mb-2">{plan.name}</CardTitle>
@@ -170,7 +170,7 @@ const PricingSection: React.FC<PricingSectionProps> = ({ onGetStarted }) => {
                     size="lg" 
                     className={`w-full px-8 py-6 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover-scale ${
                       plan.popular 
-                        ? 'bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70' 
+                        ? 'bg-linear-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70' 
                         : 'bg-primary hover:bg-primary/90'
                     }`}
                     onClick={handleGetStarted}

@@ -29,9 +29,9 @@ const HeroSection: React.FC<HeroSectionProps> = ({
     <section className="relative py-20 px-6 text-center overflow-hidden">
       {/* Background Chat Visualization */}
       <div className="absolute inset-0 opacity-20">
-        <div className="absolute top-20 left-10 w-64 h-32 bg-gradient-to-r from-primary/10 to-accent/10 rounded-2xl blur-xl animate-pulse" />
-        <div className="absolute top-40 right-20 w-48 h-24 bg-gradient-to-l from-success/10 to-primary/10 rounded-2xl blur-lg animate-pulse animation-delay-1000" />
-        <div className="absolute bottom-32 left-1/4 w-56 h-28 bg-gradient-to-r from-accent/10 to-warning/10 rounded-2xl blur-xl animate-pulse animation-delay-2000" />
+        <div className="absolute top-20 left-10 w-64 h-32 bg-linear-to-r from-primary/10 to-accent/10 rounded-2xl blur-xl animate-pulse" />
+        <div className="absolute top-40 right-20 w-48 h-24 bg-linear-to-l from-success/10 to-primary/10 rounded-2xl blur-lg animate-pulse animation-delay-1000" />
+        <div className="absolute bottom-32 left-1/4 w-56 h-28 bg-linear-to-r from-accent/10 to-warning/10 rounded-2xl blur-xl animate-pulse animation-delay-2000" />
         
         {/* Organic Traffic Growth Lines */}
         <svg className="absolute inset-0 w-full h-full" viewBox="0 0 1200 800" fill="none">
@@ -55,7 +55,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
         {/* Floating SEO Icons */}
         <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
           {/* Top Left - Search Icon */}
-          <div className="absolute top-0 left-0 lg:left-20 w-16 h-16 bg-gradient-to-br from-primary/20 to-primary/10 rounded-2xl glass border border-primary/20 flex items-center justify-center animate-float shadow-lg">
+          <div className="absolute top-0 left-0 lg:left-20 w-16 h-16 bg-linear-to-br from-primary/20 to-primary/10 rounded-2xl glass border border-primary/20 flex items-center justify-center animate-float shadow-lg">
             <svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
@@ -69,14 +69,14 @@ const HeroSection: React.FC<HeroSectionProps> = ({
           </div>
           
           {/* Left Middle - Target */}
-          <div className="absolute top-1/2 left-0 lg:left-10 w-12 h-12 bg-gradient-to-br from-accent/20 to-accent/10 rounded-xl glass border border-accent/20 flex items-center justify-center animate-float animation-delay-2000 shadow-lg">
+          <div className="absolute top-1/2 left-0 lg:left-10 w-12 h-12 bg-linear-to-br from-accent/20 to-accent/10 rounded-xl glass border border-accent/20 flex items-center justify-center animate-float animation-delay-2000 shadow-lg">
             <svg className="w-6 h-6 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm0 10c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z" />
             </svg>
           </div>
           
           {/* Right Middle - Trending Up */}
-          <div className="absolute top-1/2 right-0 lg:right-10 w-18 h-18 bg-gradient-to-br from-warning/20 to-warning/10 rounded-2xl glass border border-warning/20 flex items-center justify-center animate-float animation-delay-500 shadow-lg">
+          <div className="absolute top-1/2 right-0 lg:right-10 w-18 h-18 bg-linear-to-br from-warning/20 to-warning/10 rounded-2xl glass border border-warning/20 flex items-center justify-center animate-float animation-delay-500 shadow-lg">
             <svg className="w-9 h-9 text-warning" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
             </svg>
@@ -90,7 +90,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
           </div>
           
           {/* Bottom Right - FileText */}
-          <div className="absolute bottom-10 right-0 lg:right-32 w-13 h-13 bg-gradient-to-br from-success/25 to-primary/15 rounded-xl glass border border-success/25 flex items-center justify-center animate-float animation-delay-3000 shadow-lg">
+          <div className="absolute bottom-10 right-0 lg:right-32 w-13 h-13 bg-linear-to-br from-success/25 to-primary/15 rounded-xl glass border border-success/25 flex items-center justify-center animate-float animation-delay-3000 shadow-lg">
             <svg className="w-7 h-7 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
@@ -109,7 +109,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
           <h1 className="text-5xl md:text-7xl font-bold mb-6 gradient-text leading-tight">
             Research, Write & Rank
             <br />
-            <span className="bg-gradient-to-r from-primary via-accent to-warning bg-clip-text text-transparent">
+            <span className="bg-linear-to-r from-primary via-accent to-warning bg-clip-text text-transparent">
               on Complete Autopilot
             </span>
           </h1>
@@ -123,7 +123,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
             <Button 
               onClick={handleGetStarted} 
               size="lg"
-              className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-primary-foreground px-8 py-4 text-lg shadow-xl hover:shadow-2xl transition-all duration-300 hover-scale"
+              className="bg-linear-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-primary-foreground px-8 py-4 text-lg shadow-xl hover:shadow-2xl transition-all duration-300 hover-scale"
             >
               Start Growing Traffic
               <svg className="ml-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -134,7 +134,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
 
           {/* Search Volume Chart */}
           <div className="max-w-md mx-auto">
-            <Card className="p-6 bg-gradient-to-br from-card/80 to-background/50 glass border-border/50">
+            <Card className="p-6 bg-linear-to-br from-card/80 to-background/50 glass border-border/50">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-semibold">Search Volume</h3>
                 <span className="text-sm text-success font-medium">High</span>
