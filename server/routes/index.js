@@ -85,6 +85,15 @@ router.use('/theme/master', (req, res) => {
   return res.status(404).send('Not Found');
 });
 
+// Block /theme/template (root only). Template previews live under /theme/template/*
+router.use('/theme/template', (req, res, next) => {
+  // When mounted at /theme/template, req.path is '' or '/' for the root.
+  if (req.path === '' || req.path === '/') {
+    return res.status(404).send('Not Found');
+  }
+  return next();
+});
+
 // All themes: React SPA
 router.use('/theme', themeRoutes);
 

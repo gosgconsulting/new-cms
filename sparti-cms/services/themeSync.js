@@ -7,7 +7,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const EXCLUDED_THEME_SLUGS = new Set([
-  // Removed legacy/base themes
+  // Internal namespaces / removed legacy/base themes
+  'template',
   'master',
   'masterastrowind',
 ]);
@@ -521,8 +522,8 @@ export async function getAllThemes() {
       SELECT id, name, slug, description, created_at, updated_at, is_active
       FROM themes
       WHERE is_active = true
-        AND slug NOT IN ('master', 'masterastrowind')
-        AND id NOT IN ('master', 'masterastrowind')
+        AND slug NOT IN ('template', 'master', 'masterastrowind')
+        AND id NOT IN ('template', 'master', 'masterastrowind')
       ORDER BY name ASC
     `);
     

@@ -17,6 +17,7 @@ import TenantPage from "./pages/TenantPage";
 import ThankYou from "./pages/ThankYou";
 import Shop from "./pages/Shop";
 import DemoHero from "./pages/DemoHero";
+import TemplateWebsite from "./pages/TemplateWebsite";
 
 // Component to handle theme sub-routes - checks if it's a known theme
 const ThemeRouteHandler: React.FC = () => {
@@ -96,6 +97,24 @@ const App = () => {
             
             {/* Public dashboard route - no authentication required */}
             <Route path="/dashboard/*" element={<PublicDashboard />} />
+
+            {/* Template namespace routes */}
+            <Route
+              path="/theme/template/website"
+              element={
+                <ErrorBoundary>
+                  <TemplateWebsite />
+                </ErrorBoundary>
+              }
+            />
+            <Route
+              path="/theme/template/website/*"
+              element={
+                <ErrorBoundary>
+                  <TemplateWebsite />
+                </ErrorBoundary>
+              }
+            />
             
             {/* Blog routes */}
             {/* CMS-level blog routes */}
