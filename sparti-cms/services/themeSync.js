@@ -7,7 +7,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const EXCLUDED_THEME_SLUGS = new Set([
-  // Removed legacy theme
+  // Removed legacy/base themes
+  'master',
   'masterastrowind',
 ]);
 
@@ -366,9 +367,7 @@ export async function syncThemesFromFileSystem() {
           existingTheme = await query(`
             SELECT id, name, slug, updated_at
             FROM themes
-            WHERE (slug = $1 OR id = $1)
-              AND slug != 'masterastrowind'
-              AND id != 'masterastrowind'
+            WHERE slug = $1 OR id = $1
           `, [themeSlug]);
         } catch (dbError) {
           // If database table doesn't exist, skip database operations
@@ -402,9 +401,7 @@ export async function syncThemesFromFileSystem() {
           await query(`
             UPDATE themes
             SET name = $1, description = $2, updated_at = $3, is_active = $4
-            WHERE (slug = $5 OR id = $5)
-              AND slug != 'masterastrowind'
-              AND id != 'masterastrowind'
+            WHERE slug = $5 OR id = $5
           `, [themeName, themeDescription, now, isActive, themeSlug]);
           
           results.push({
@@ -524,8 +521,8 @@ export async function getAllThemes() {
       SELECT id, name, slug, description, created_at, updated_at, is_active
       FROM themes
       WHERE is_active = true
-        AND slug != 'masterastrowind'
-        AND id != 'masterastrowind'
+        AND slug NOT IN ('master', 'masterastrowind')
+        AND id NOT IN ('master', 'masterastrowind')
       ORDER BY name ASC
     `);
     
@@ -1092,6 +1089,10 @@ export async function createTheme(slug, name, description) {
     // Validate slug (must be valid folder name)
     if (!slug || !/^[a-z0-9-]+$/.test(slug)) {
       throw new Error('Invalid slug. Slug must contain only lowercase letters, numbers, and hyphens.');
+    }
+
+    if (EXCLUDED_THEME_SLUGS.has(slug)) {
+      throw new Error(`Theme slug "${slug}" is reserved.`);
     }
     
     const themePath = path.join(themesDir, slug);

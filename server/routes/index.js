@@ -80,7 +80,12 @@ router.use('/api', docsRoutes);
 // Theme admin/auth routes (must come before general theme routes)
 router.use('/theme', themeAdminRoutes);
 
-// All themes (including /theme/master): React SPA
+// Block removed legacy theme
+router.use('/theme/master', (req, res) => {
+  return res.status(404).send('Not Found');
+});
+
+// All themes: React SPA
 router.use('/theme', themeRoutes);
 
 // Dynamic robots.txt route - serves different content based on deployment type

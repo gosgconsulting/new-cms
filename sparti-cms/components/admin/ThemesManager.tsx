@@ -373,26 +373,6 @@ const ThemesManager: React.FC = () => {
 
   return (
     <div className="p-6 space-y-6">
-      {/* Master Theme helper banner */}
-      <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-          <div>
-            <h3 className="text-sm font-semibold text-blue-900">Master Theme</h3>
-            <p className="text-sm text-blue-800">
-              Use the Master Theme as a clean, tenant-aware base for migrations. It loads branding/styles via public API with the selected tenant.
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <a
-              href="/theme/master"
-              className="inline-flex items-center px-3 py-2 rounded-md border border-blue-300 text-blue-900 text-sm hover:bg-blue-100"
-            >
-              Preview
-            </a>
-          </div>
-        </div>
-      </div>
-
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -589,10 +569,7 @@ const ThemesManager: React.FC = () => {
                   <AlertCircle className="h-4 w-4" />
                   <AlertTitle>No Tenants Found</AlertTitle>
                   <AlertDescription>
-                    No tenants available. Please create a tenant first, or run the demo tenant script:
-                    <code className="block mt-2 bg-muted px-2 py-1 rounded text-xs">
-                      node scripts/setup/create-demo-tenant.js
-                    </code>
+                    No tenants available. Please create a tenant first.
                   </AlertDescription>
                 </Alert>
               ) : (

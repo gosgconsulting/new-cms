@@ -1,5 +1,5 @@
 import React, { lazy, Suspense, useMemo } from 'react';
-import { useParams, Routes, Route, useLocation } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom';
 import { AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
@@ -8,7 +8,6 @@ const LandingPageTheme = lazy(() => import('../../sparti-cms/theme/landingpage')
 const SpartiSEOLandingTheme = lazy(() => import('../../sparti-cms/theme/sparti-seo-landing'));
 const GosgConsultingTheme = lazy(() => import('../../sparti-cms/theme/gosgconsulting'));
 const SissonneTheme = lazy(() => import('../../sparti-cms/theme/sissonne'));
-const MasterTheme = lazy(() => import('../../sparti-cms/theme/master'));
 const StorefrontTheme = lazy(() => import('../../sparti-cms/theme/storefront'));
 const StrTheme = lazy(() => import('../../sparti-cms/theme/str'));
 const OptimalConsultingTheme = lazy(() => import('../../sparti-cms/theme/optimalconsulting'));
@@ -37,10 +36,6 @@ const themeConfig: Record<string, { name: string; component: React.LazyExoticCom
   'sissonne': {
     name: 'Sissonne Dance Academy',
     component: SissonneTheme
-  },
-  'master': {
-    name: 'Master Theme',
-    component: MasterTheme
   },
   'storefront': {
     name: 'Storefront',

@@ -50,8 +50,7 @@ const getThemeSlug = (): string => {
 const themeNames: Record<string, string> = {
   'landingpage': 'ACATR Business Services',
   'sparti-seo-landing': 'Sparti SEO Landing',
-  'gosgconsulting': 'GO SG Consulting',
-  'master': 'Master Theme'
+  'gosgconsulting': 'GO SG Consulting'
 };
 
 // Dynamic theme import based on slug
@@ -63,8 +62,6 @@ const loadTheme = (slug: string) => {
       return lazy(() => import('../sparti-cms/theme/sparti-seo-landing'));
     case 'gosgconsulting':
       return lazy(() => import('../sparti-cms/theme/gosgconsulting'));
-    case 'master':
-      return lazy(() => import('../sparti-cms/theme/master'));
     default:
       return lazy(() => import('../sparti-cms/theme/landingpage'));
   }
@@ -88,11 +85,6 @@ const App = () => {
   const tenantId = typeof window !== 'undefined' 
     ? ((window as any).__CMS_TENANT__ || undefined)
     : undefined;
-  
-  // Get branding settings from window variable (if set by server)
-  const brandingSettings = typeof window !== 'undefined'
-    ? ((window as any).__BRANDING_SETTINGS__ || null)
-    : null;
 
   return (
     <QueryClientProvider client={queryClient}>

@@ -43,13 +43,6 @@ export default defineConfig(({ mode }) => {
         target: 'http://localhost:4173',
         changeOrigin: true,
         secure: false,
-      },
-      // In dev, serve the Master theme via the backend (Astro SSR/middleware) instead of the React SPA.
-      // This ensures /theme/master/* uses the prebuilt Astro pages when available.
-      '/theme/master': {
-        target: 'http://localhost:4173',
-        changeOrigin: true,
-        secure: false,
       }
     }
   },
