@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import type { ComponentSchema } from "../../../../sparti-cms/types/schema";
-import { Star } from "lucide-react";
 import FlowbiteSlider, { type FlowbiteSlide } from "./FlowbiteSlider";
+import { ChevronDown } from "lucide-react";
 
 interface FlowbiteHeroSectionProps {
   component: ComponentSchema;
@@ -48,8 +48,7 @@ function normalizeSlides(input: unknown): FlowbiteSlide[] {
 /**
  * Flowbite Hero Section Component
  *
- * Revamped hero with optional rating badge + carousel.
- * Keeps the same data extraction pattern (ComponentSchema items/props).
+ * Revamped hero with optional carousel + subtle entrance animations.
  */
 const FlowbiteHeroSection: React.FC<FlowbiteHeroSectionProps> = ({
   component,
@@ -57,6 +56,20 @@ const FlowbiteHeroSection: React.FC<FlowbiteHeroSectionProps> = ({
 }) => {
   const props = component.props || {};
   const items = component.items || [];
+
+  const [mounted, setMounted] = useState(false);
+  const [showScrollCue, setShowScrollCue] = useState(true);
+
+  useEffect(() => {
+    setMounted(true);
+
+    const onScroll = () => {
+      if (window.scrollY > 20) setShowScrollCue(false);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   const showCarousel = (props as any).showCarousel !== false;
 
@@ -128,14 +141,19 @@ const FlowbiteHeroSection: React.FC<FlowbiteHeroSectionProps> = ({
     );
   }, [title]);
 
+  const enterBase = mounted
+    ? "opacity-100 translate-y-0"
+    : "opacity-0 translate-y-3";
+
   return (
     <section
       className={`relative overflow-hidden bg-[color:var(--brand-background)] dark:bg-[#0a0a0a] py-10 sm:py-14 ${className}`}
     >
-      {/* Background glow */}
+      {/* Background glow + subtle motion */}
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -top-40 left-1/2 h-[28rem] w-[48rem] -translate-x-1/2 rounded-full bg-gradient-to-r from-indigo-400/25 via-sky-400/10 to-lime-400/20 blur-3xl dark:from-sky-500/20 dark:via-indigo-500/10 dark:to-lime-400/20" />
-        <div className="absolute -bottom-48 right-[-10rem] h-[26rem] w-[26rem] rounded-full bg-gradient-to-tr from-lime-400/10 via-sky-400/10 to-indigo-400/10 blur-3xl" />
+        <div className="absolute inset-0 bg-brand-gradient-animated opacity-[0.08]" />
+        <div className="absolute -top-40 left-1/2 h-[28rem] w-[48rem] -translate-x-1/2 rounded-full bg-gradient-to-r from-indigo-400/25 via-sky-400/10 to-lime-400/20 blur-3xl dark:from-sky-500/20 dark:via-indigo-500/10 dark:to-lime-400/20 animate-master-float" />
+        <div className="absolute -bottom-48 right-[-10rem] h-[26rem] w-[26rem] rounded-full bg-gradient-to-tr from-lime-400/10 via-sky-400/10 to-indigo-400/10 blur-3xl animate-master-float" />
       </div>
 
       <div className="container mx-auto px-4">
@@ -149,7 +167,7 @@ const FlowbiteHeroSection: React.FC<FlowbiteHeroSectionProps> = ({
             >
               {/* Copy */}
               <div className={showCarousel ? "space-y-6" : "space-y-6 max-w-3xl mx-auto text-center"}>
-                {/* Motto pill (replaces Clutch rating badge) */}
+                {/* Motto pill */}
                 {motto ? (
                   <div
                     className={
@@ -158,7 +176,13 @@ const FlowbiteHeroSection: React.FC<FlowbiteHeroSectionProps> = ({
                         : "flex flex-wrap items-center justify-center gap-3"
                     }
                   >
-                    <span className="badge-neutral text-xs sm:text-sm">
+                    <span
+                      className={[
+                        "badge-neutral text-xs sm:text-sm transition-all duration-500 ease-out",
+                        enterBase,
+                      ].join(" ")}
+                      style={{ transitionDelay: "60ms" }}
+                    >
                       {motto}
                     </span>
                   </div>
@@ -169,7 +193,10 @@ const FlowbiteHeroSection: React.FC<FlowbiteHeroSectionProps> = ({
                     className={[
                       "text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight text-gray-900 dark:text-white leading-[1.05]",
                       showCarousel ? "" : "mx-auto",
+                      "transition-all duration-600 ease-out",
+                      enterBase,
                     ].join(" ")}
+                    style={{ transitionDelay: "120ms" }}
                   >
                     {highlightedTitle}
                   </h1>
@@ -180,24 +207,33 @@ const FlowbiteHeroSection: React.FC<FlowbiteHeroSectionProps> = ({
                     className={[
                       "text-base sm:text-lg text-gray-700 dark:text-gray-300 leading-relaxed",
                       showCarousel ? "max-w-xl" : "max-w-2xl mx-auto",
+                      "transition-all duration-600 ease-out",
+                      enterBase,
                     ].join(" ")}
+                    style={{ transitionDelay: "200ms" }}
                   >
                     {description}
                   </p>
                 ) : null}
 
                 {(primaryCta.content || secondaryCta.content) && (
-                  <div className={showCarousel ? "flex flex-col sm:flex-row gap-3 pt-2" : "flex flex-col sm:flex-row gap-3 pt-2 justify-center"}>
+                  <div
+                    className={[
+                      showCarousel
+                        ? "flex flex-col sm:flex-row gap-3 pt-2"
+                        : "flex flex-col sm:flex-row gap-3 pt-2 justify-center",
+                      "transition-all duration-600 ease-out",
+                      enterBase,
+                    ].join(" ")}
+                    style={{ transitionDelay: "280ms" }}
+                  >
                     {primaryCta.content ? (
                       <a href={primaryCta.link} className="btn-cta w-full sm:w-auto">
                         {primaryCta.content}
                       </a>
                     ) : null}
                     {secondaryCta.content ? (
-                      <a
-                        href={secondaryCta.link}
-                        className="btn-cta-secondary w-full sm:w-auto"
-                      >
+                      <a href={secondaryCta.link} className="btn-cta-secondary w-full sm:w-auto">
                         {secondaryCta.content}
                       </a>
                     ) : null}
@@ -207,7 +243,7 @@ const FlowbiteHeroSection: React.FC<FlowbiteHeroSectionProps> = ({
 
               {/* Right: Carousel */}
               {showCarousel && slides.length > 0 ? (
-                <div className="lg:pl-4">
+                <div className={"lg:pl-4 transition-all duration-600 ease-out " + enterBase} style={{ transitionDelay: "220ms" }}>
                   <div className="rounded-2xl border border-black/10 dark:border-white/15 bg-white/40 dark:bg-[#1a1a1a]/60 p-3 sm:p-4">
                     <FlowbiteSlider
                       slides={slides}
@@ -232,6 +268,21 @@ const FlowbiteHeroSection: React.FC<FlowbiteHeroSectionProps> = ({
               ) : null}
             </div>
           </div>
+
+          {/* Directional cue */}
+          {showScrollCue ? (
+            <div className="mt-8 flex justify-center">
+              <a
+                href="#challenge"
+                className="group inline-flex items-center gap-2 text-gray-700/80 hover:text-gray-900 dark:text-gray-300/80 dark:hover:text-white transition-colors"
+                aria-label="Scroll to next section"
+              >
+                <span className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-black/10 dark:border-white/15 bg-white/70 dark:bg-[#1a1a1a]/70 backdrop-blur animate-scroll-cue">
+                  <ChevronDown className="h-5 w-5" />
+                </span>
+              </a>
+            </div>
+          ) : null}
         </div>
       </div>
     </section>

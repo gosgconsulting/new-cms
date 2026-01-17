@@ -2,8 +2,8 @@
 
 import React, { useMemo } from "react";
 import type { ComponentSchema } from "../../../../sparti-cms/types/schema";
-import FlowbiteSection from "./FlowbiteSection";
 import { AlertTriangle, BarChart3, CircleX, Sparkles } from "lucide-react";
+import Reveal from "./Reveal";
 
 interface FlowbitePainPointSectionProps {
   component: ComponentSchema;
@@ -23,8 +23,7 @@ function pickIcon(name?: string) {
 /**
  * Flowbite Pain Point Section Component
  *
- * Revamped to match the Master theme hero styling and to support the schema
- * used by /theme/master (keys: hint, heading, bullets).
+ * Adds scroll-triggered stagger reveals and subtle hover micro-interactions.
  */
 const FlowbitePainPointSection: React.FC<FlowbitePainPointSectionProps> = ({
   component,
@@ -91,45 +90,43 @@ const FlowbitePainPointSection: React.FC<FlowbitePainPointSectionProps> = ({
   return (
     <section className={`relative overflow-hidden py-20 px-4 bg-slate-50 ${className}`}>
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -top-48 right-[-10rem] h-[26rem] w-[26rem] rounded-full bg-gradient-to-tr from-indigo-400/15 via-sky-400/10 to-lime-400/15 blur-3xl" />
-        <div className="absolute -bottom-48 left-[-10rem] h-[26rem] w-[26rem] rounded-full bg-gradient-to-tr from-lime-400/10 via-sky-400/10 to-indigo-400/10 blur-3xl" />
+        <div className="absolute -top-48 right-[-10rem] h-[26rem] w-[26rem] rounded-full bg-gradient-to-tr from-indigo-400/15 via-sky-400/10 to-lime-400/15 blur-3xl animate-master-float" />
+        <div className="absolute -bottom-48 left-[-10rem] h-[26rem] w-[26rem] rounded-full bg-gradient-to-tr from-lime-400/10 via-sky-400/10 to-indigo-400/10 blur-3xl animate-master-float" />
       </div>
 
       <div className="container mx-auto relative">
         <div className="mx-auto max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-          <div className="rounded-3xl border border-black/10 bg-white p-8 md:p-10 shadow-[0_20px_80px_rgba(0,0,0,0.08)]">
-            <div className="badge-neutral text-xs">
-              {subtitle}
+          <Reveal direction="left">
+            <div className="rounded-3xl border border-black/10 bg-white p-8 md:p-10 shadow-[0_20px_80px_rgba(0,0,0,0.08)]">
+              <div className="badge-neutral text-xs">{subtitle}</div>
+
+              <h2 className="mt-5 text-3xl md:text-4xl font-semibold tracking-tight text-gray-900 leading-tight">
+                {title}
+              </h2>
+
+              <p className="mt-4 text-base text-gray-700 leading-relaxed">
+                We identify the bottleneck, fix the messaging, and align every section to one goal: conversions.
+              </p>
             </div>
-
-            <h2 className="mt-5 text-3xl md:text-4xl font-semibold tracking-tight text-gray-900 leading-tight">
-              {title}
-            </h2>
-
-            <p className="mt-4 text-base text-gray-700 leading-relaxed">
-              We identify the bottleneck, fix the messaging, and align every section to one goal: conversions.
-            </p>
-          </div>
+          </Reveal>
 
           <div className="space-y-4">
             {points.length > 0 ? (
               points.map((p, index) => {
                 const Icon = pickIcon(p.icon);
+                const direction = index % 2 === 0 ? "right" : "left";
 
                 return (
-                  <div
-                    key={index}
-                    className="rounded-2xl border border-black/10 bg-white p-5 shadow-[0_10px_40px_rgba(0,0,0,0.06)]"
-                  >
-                    <div className="flex items-start gap-4">
-                      <div className="icon-container-accent h-10 w-10">
-                        <Icon className="h-5 w-5" />
+                  <Reveal key={index} direction={direction} delayMs={index * 120}>
+                    <div className="group rounded-2xl border border-black/10 bg-white p-5 shadow-[0_10px_40px_rgba(0,0,0,0.06)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_22px_70px_rgba(0,0,0,0.14)] hover:border-brand-primary/40">
+                      <div className="flex items-start gap-4">
+                        <div className="icon-container-accent h-10 w-10 transition-transform duration-300 group-hover:scale-110">
+                          <Icon className="h-5 w-5" />
+                        </div>
+                        <p className="text-base text-gray-700 leading-relaxed">{p.text}</p>
                       </div>
-                      <p className="text-base text-gray-700 leading-relaxed">
-                        {p.text}
-                      </p>
                     </div>
-                  </div>
+                  </Reveal>
                 );
               })
             ) : (
