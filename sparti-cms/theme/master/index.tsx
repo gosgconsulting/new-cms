@@ -567,16 +567,16 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
           <FlowbiteHeroSection component={heroSchema} />
         </div>
 
+        <div id="challenge" className="scroll-mt-20">
+          <FlowbitePainPointSection component={challengeSchema} />
+        </div>
+
         <div id="features" className="scroll-mt-20">
           <FlowbiteFeaturesSection component={featuresSchema} />
         </div>
 
         <div id="services" className="scroll-mt-20">
           <FlowbiteWhatsIncludedSection component={servicesSchema} />
-        </div>
-
-        <div id="challenge" className="scroll-mt-20">
-          <FlowbitePainPointSection component={challengeSchema} />
         </div>
 
         <div id="about" className="scroll-mt-20">
