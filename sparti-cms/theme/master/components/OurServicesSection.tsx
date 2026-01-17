@@ -44,7 +44,6 @@ const OurServicesSection: React.FC<OurServicesSectionProps> = ({ themeSlug }) =>
         <div className="grid md:grid-cols-2 gap-10 md:gap-12 items-start">
           {/* Left column */}
           <div className="flex flex-col justify-center">
-            <p className="label-section mb-4">Our services</p>
             <h2 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-(--text-primary) leading-[1.05]">
               Our services
             </h2>

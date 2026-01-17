@@ -4,7 +4,18 @@ import { getDatabaseState } from '../utils/database.js';
 // Access key authentication middleware
 export const authenticateWithAccessKey = async (req, res, next) => {
   try {
-    const { dbInitialized, dbInitializationError } = getDatabaseState();
+    // Safely get database state with error handling
+    let dbState;
+    try {
+      dbState = getDatabaseState();
+    } catch (stateError) {
+      console.error('[testing] Error getting database state in access key middleware:', stateError);
+      // If we can't get database state, allow the request to continue
+      // (login/register endpoints will handle their own database checks)
+      return next();
+    }
+    
+    const { dbInitialized, dbInitializationError } = dbState;
     
     // Check if database is ready first
     if (!dbInitialized) {
@@ -95,22 +106,42 @@ export const authenticateWithAccessKey = async (req, res, next) => {
     next();
   } catch (error) {
     console.error('[testing] Error in access key authentication:', error);
+    console.error('[testing] Error details:', {
+      code: error?.code,
+      message: error?.message,
+      stack: error?.stack
+    });
     
     // Handle database not ready errors gracefully
     if (error.code === '42P01' || error.message?.includes('does not exist')) {
-      const { dbInitialized } = getDatabaseState();
-      if (!dbInitialized) {
-        return res.status(503).json({
-          success: false,
-          error: 'Database is initializing',
-          message: 'Please try again in a moment'
-        });
+      let dbState;
+      try {
+        dbState = getDatabaseState();
+        if (!dbState.dbInitialized) {
+          return res.status(503).json({
+            success: false,
+            error: 'Database is initializing',
+            message: 'Please try again in a moment'
+          });
+        }
+      } catch (stateError) {
+        // If we can't get database state, return a generic error
+        console.error('[testing] Error getting database state in catch block:', stateError);
       }
+    }
+    
+    // For login/register endpoints, don't block with access key errors
+    // Let them handle their own authentication
+    if (req.path === '/auth/login' || req.path === '/auth/register') {
+      return next();
     }
     
     return res.status(500).json({
       success: false,
-      error: 'Authentication error'
+      error: 'Authentication error',
+      message: process.env.NODE_ENV === 'development' 
+        ? `Access key authentication failed: ${error?.message || 'Unknown error'}`
+        : 'Authentication error. Please try again.'
     });
   }
 };

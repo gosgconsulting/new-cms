@@ -41,12 +41,19 @@ const asyncHandler = (fn) => (req, res, next) => {
     console.error('[testing] ============================================');
     
     if (!res.headersSent) {
+      // Provide better error messages in development mode
+      const isDevelopment = process.env.NODE_ENV === 'development' || process.env.NODE_ENV !== 'production';
+      const errorMessage = isDevelopment && error?.message
+        ? `Server error: ${error.message}${error?.code ? ` (Code: ${error.code})` : ''}`
+        : 'Server error. Please try again in a moment.';
+      
       res.status(500).json({
         success: false,
-        error: 'Internal server error',
-        message: 'Server error. Please try again in a moment.',
+        error: errorMessage,
+        message: errorMessage,
         diagnostic: '/health/database',
-        errorCode: error?.code
+        errorCode: error?.code,
+        ...(isDevelopment && error?.stack ? { stack: error.stack } : {})
       });
     } else {
       console.error('[testing] Response already sent, cannot send error response');
@@ -597,11 +604,6 @@ router.post('/auth/login', asyncHandler(async (req, res) => {
       });
     }
     
-    // Generic error - but include more details in development
-    const errorMessage = process.env.NODE_ENV === 'development' 
-      ? `Login failed: ${error?.message || 'Unknown error'} (Code: ${error?.code || 'N/A'})`
-      : 'Server error. Please try again in a moment.';
-    
     // Log full error details for debugging
     console.error('[testing] ========== UNHANDLED LOGIN ERROR ==========');
     console.error('[testing] Error type:', error?.constructor?.name || 'Unknown');
@@ -610,13 +612,21 @@ router.post('/auth/login', asyncHandler(async (req, res) => {
     console.error('[testing] Error stack:', error?.stack);
     console.error('[testing] ===========================================');
     
+    // Generic error - but include more details in development
+    // Always show detailed error in development, or if error message is available
+    const isDevelopment = process.env.NODE_ENV === 'development' || process.env.NODE_ENV !== 'production';
+    const errorMessage = isDevelopment && error?.message
+      ? `Login failed: ${error.message}${error?.code ? ` (Code: ${error.code})` : ''}`
+      : error?.message || 'Server error. Please try again in a moment.';
+    
     if (!res.headersSent) {
       res.status(500).json({
         success: false,
         error: errorMessage,
         message: errorMessage,
         diagnostic: '/health/database',
-        errorCode: error?.code
+        errorCode: error?.code,
+        ...(isDevelopment && error?.stack ? { stack: error.stack } : {})
       });
     }
   }

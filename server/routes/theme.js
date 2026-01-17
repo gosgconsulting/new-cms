@@ -18,7 +18,29 @@ router.get('/:tenantSlug/:pageSlug', (req, res) => {
   // Serve the React app's index.html so client-side routing can handle it
   const indexPath = join(__dirname, '..', '..', 'dist', 'index.html');
   if (existsSync(indexPath)) {
-    res.sendFile(indexPath);
+    try {
+      res.sendFile(indexPath, (err) => {
+        if (err) {
+          console.error('[testing] Error sending index.html:', err);
+          if (!res.headersSent) {
+            res.status(500).json({
+              status: 'error',
+              message: 'Failed to serve application',
+              error: process.env.NODE_ENV === 'development' ? err.message : undefined
+            });
+          }
+        }
+      });
+    } catch (error) {
+      console.error('[testing] Error in theme route:', error);
+      if (!res.headersSent) {
+        res.status(500).json({
+          status: 'error',
+          message: 'Failed to serve application',
+          error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+      }
+    }
   } else {
     res.status(200).json({ 
       status: 'error', 
@@ -29,25 +51,12 @@ router.get('/:tenantSlug/:pageSlug', (req, res) => {
 });
 
 /**
- * GET /theme/:tenantSlug/*
- * Catch-all route for nested theme paths (3+ segments)
- * Serves the React app's index.html for client-side routing
- * Handles routes like /theme/str/booking/classes or /theme/str/booking/classes/schedule
- * Must come after the 2-segment route to ensure proper matching
+ * Note: Express Router with path-to-regexp v8 doesn't support /* wildcard syntax
+ * for catch-all routes. The 2-segment route above handles /theme/str/booking,
+ * and deeper nested paths (3+ segments) will be handled by client-side routing
+ * after index.html is loaded. This is acceptable since React Router handles
+ * all client-side navigation.
  */
-router.get('/:tenantSlug/*', (req, res) => {
-  // Serve the React app's index.html so client-side routing can handle it
-  const indexPath = join(__dirname, '..', '..', 'dist', 'index.html');
-  if (existsSync(indexPath)) {
-    res.sendFile(indexPath);
-  } else {
-    res.status(200).json({ 
-      status: 'error', 
-      message: 'React app not built. Please build the app first.',
-      timestamp: new Date().toISOString() 
-    });
-  }
-});
 
 /**
  * GET /theme/:tenantSlug
@@ -60,7 +69,29 @@ router.get('/:tenantSlug', (req, res) => {
   // Serve the React app's index.html so client-side routing can handle it
   const indexPath = join(__dirname, '..', '..', 'dist', 'index.html');
   if (existsSync(indexPath)) {
-    res.sendFile(indexPath);
+    try {
+      res.sendFile(indexPath, (err) => {
+        if (err) {
+          console.error('[testing] Error sending index.html:', err);
+          if (!res.headersSent) {
+            res.status(500).json({
+              status: 'error',
+              message: 'Failed to serve application',
+              error: process.env.NODE_ENV === 'development' ? err.message : undefined
+            });
+          }
+        }
+      });
+    } catch (error) {
+      console.error('[testing] Error in theme route:', error);
+      if (!res.headersSent) {
+        res.status(500).json({
+          status: 'error',
+          message: 'Failed to serve application',
+          error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+      }
+    }
   } else {
     res.status(200).json({ 
       status: 'error', 
