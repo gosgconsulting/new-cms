@@ -305,7 +305,7 @@ const FlowbiteTestimonialsSection: React.FC<FlowbiteTestimonialsSectionProps> = 
                       type="button"
                       onClick={() => scrollToPage(idx)}
                       className={[
-                        "h-2 rounded-full transition-all",
+                        "h-2 rounded-full transition-all cursor-pointer",
                         isActive
                           ? "w-14 bg-amber-500"
                           : "w-6 bg-slate-300 dark:bg-slate-600 hover:bg-slate-400 dark:hover:bg-slate-500",

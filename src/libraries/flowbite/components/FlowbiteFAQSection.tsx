@@ -134,7 +134,7 @@ const FlowbiteFAQSection: React.FC<FlowbiteFAQSectionProps> = ({
                   className="border-none rounded-2xl bg-slate-100 dark:bg-slate-800/70 px-5 sm:px-7"
                 >
                   <AccordionTrigger
-                    className="group no-underline hover:no-underline py-6 [&>svg]:hidden"
+                    className="group no-underline hover:no-underline py-6 [&>svg]:hidden cursor-pointer"
                   >
                     <div className="flex w-full items-center justify-between gap-6">
                       <span className="text-left text-xl sm:text-2xl font-medium text-slate-900 dark:text-white">
