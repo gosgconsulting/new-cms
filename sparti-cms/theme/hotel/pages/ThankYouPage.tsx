@@ -70,7 +70,7 @@ export const ThankYouPage: React.FC<ThankYouPageProps> = ({
         </div>
       </main>
 
-      <Footer tenantName={tenantName} tenantSlug={tenantSlug} basePath={basePath} />
+      <Footer tenantName={tenantName} tenantSlug={tenantSlug} />
     </div>
   );
 
