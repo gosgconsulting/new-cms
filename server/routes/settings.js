@@ -22,8 +22,8 @@ router.get('/branding', authenticateUser, async (req, res) => {
   try {
     // Get tenant ID from req.tenantId (set by auth middleware), query parameter, user context, or default
     const tenantId = req.tenantId || req.query.tenantId || req.user?.tenant_id || 'tenant-gosg';
-    // Get theme ID from query parameter (optional for backward compatibility)
-    const themeId = req.query.themeId || null;
+    // Get theme ID from req.themeSlug (set by theme middleware), query parameter, or null
+    const themeId = req.themeSlug || req.query.themeId || null;
     console.log(`[testing] API: Getting branding settings for tenant: ${tenantId}, theme: ${themeId}`);
     const settings = await getBrandingSettings(tenantId, themeId);
     res.json(settings);
@@ -38,8 +38,8 @@ router.post('/branding', authenticateUser, async (req, res) => {
   try {
     // Get tenant ID from req.tenantId (set by auth middleware), query parameter, user context, or default
     const tenantId = req.tenantId || req.query.tenantId || req.user?.tenant_id || 'tenant-gosg';
-    // Get theme ID from query parameter or request body (optional for backward compatibility)
-    const themeId = req.query.themeId || req.body.themeId || null;
+    // Get theme ID from req.themeSlug (set by theme middleware), query parameter, request body, or null
+    const themeId = req.themeSlug || req.query.themeId || req.body.themeId || null;
     
     if (!tenantId) {
       return res.status(400).json({ error: 'Tenant ID is required to update branding settings' });

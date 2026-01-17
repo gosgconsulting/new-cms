@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Button } from 'flowbite-react';
 
 interface HeaderProps {
   tenantName?: string;
@@ -45,7 +44,7 @@ const Header: React.FC<HeaderProps> = ({
   ];
 
   return (
-    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 border-b border-gray-200">
+    <header className="sticky top-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:supports-[backdrop-filter]:bg-gray-900/60 border-b border-gray-200 dark:border-gray-700">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -63,12 +62,12 @@ const Header: React.FC<HeaderProps> = ({
                     // Show text fallback
                     const parent = target.parentElement;
                     if (parent) {
-                      parent.innerHTML = `<span class="h-8 inline-flex items-center font-bold text-xl text-gray-900">${tenantName}</span>`;
+                      parent.innerHTML = `<span class="h-8 inline-flex items-center font-bold text-xl text-on-light">${tenantName}</span>`;
                     }
                   }}
                 />
               ) : (
-                <span className="h-8 inline-flex items-center font-bold text-xl text-gray-900">
+                <span className="h-8 inline-flex items-center font-bold text-xl text-on-light">
                   {tenantName}
                 </span>
               )}
@@ -81,7 +80,7 @@ const Header: React.FC<HeaderProps> = ({
               <button
                 key={item.sectionId}
                 onClick={() => scrollToSection(item.sectionId)}
-                className="text-sm text-gray-600 hover:text-blue-600 transition-colors"
+                className="text-sm text-on-light hover:text-brand-primary transition-colors interactive"
               >
                 {item.label}
               </button>
@@ -90,17 +89,17 @@ const Header: React.FC<HeaderProps> = ({
 
           {/* Contact Button */}
           <div className="hidden md:flex items-center">
-            <Button
+            <button
               onClick={onContactClick}
-              className="bg-blue-600 hover:bg-blue-700"
+              className="btn-cta"
             >
               Contact Us
-            </Button>
+            </button>
           </div>
 
           {/* Mobile Menu Button */}
           <button
-            className="md:hidden p-2 text-gray-600 hover:text-gray-900"
+            className="md:hidden p-2 text-on-light hover:text-brand-primary transition-colors interactive"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             aria-label="Toggle menu"
           >
@@ -118,26 +117,26 @@ const Header: React.FC<HeaderProps> = ({
 
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
-          <div className="md:hidden pb-4 border-t border-gray-200 mt-2 pt-4">
+          <div className="md:hidden pb-4 border-t border-gray-200 dark:border-gray-700 mt-2 pt-4">
             <nav className="flex flex-col space-y-3">
               {navItems.map((item) => (
                 <button
                   key={item.sectionId}
                   onClick={() => scrollToSection(item.sectionId)}
-                  className="text-left text-sm text-gray-600 hover:text-blue-600 transition-colors py-2"
+                  className="text-left text-sm text-on-light hover:text-brand-primary transition-colors py-2 interactive"
                 >
                   {item.label}
                 </button>
               ))}
-              <Button
+              <button
                 onClick={() => {
                   if (onContactClick) onContactClick();
                   setIsMobileMenuOpen(false);
                 }}
-                className="bg-blue-600 hover:bg-blue-700 mt-2"
+                className="btn-cta mt-2"
               >
                 Contact Us
-              </Button>
+              </button>
             </nav>
           </div>
         )}

@@ -5,14 +5,18 @@ import ProtectedRoute from './auth/ProtectedRoute';
 import CMSDashboard from './admin/CMSDashboard';
 import EmbedPagesManager from './embed/EmbedPagesManager';
 
-export const SpartiCMS: React.FC = () => {
+interface SpartiCMSProps {
+  themeSlug?: string;
+}
+
+export const SpartiCMS: React.FC<SpartiCMSProps> = ({ themeSlug }) => {
   return (
     <CMSSettingsProvider>
       <Routes>
         {/* Root path shows dashboard for authenticated users */}
         <Route path="/" element={
           <ProtectedRoute>
-            <CMSDashboard />
+            <CMSDashboard themeSlug={themeSlug} />
           </ProtectedRoute>
         } />
         

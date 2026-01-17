@@ -1,16 +1,208 @@
 /* Master Template Theme Styles */
 
-/* This theme uses Flowbite design system */
-/* Flowbite styles are loaded automatically via the design system loader */
-/* Customize this file to add theme-specific overrides */
+@import "tailwindcss";
 
-/* Flowbite theme compatibility */
-/* The Flowbite theme is initialized in the component via initFlowbiteTheme() */
-/* Available themes: default, minimal, enterprise, playful, mono */
+@layer base {
+  :root {
+    /* Brand Colors - Default values (will be overridden by database values) */
+    --brand-primary: #3B82F6;
+    --brand-primary-dark: #2563EB;
+    --brand-primary-light: #60A5FA;
+    --brand-secondary: #8B5CF6;
+    --brand-secondary-dark: #7C3AED;
+    --brand-secondary-light: #A78BFA;
+    --brand-accent: #F59E0B;
+    --brand-accent-dark: #D97706;
+    --brand-accent-light: #FBBF24;
+    --brand-text: #1F2937;
+    --brand-text-light: #6B7280;
+    --brand-background: #FFFFFF;
+    --brand-background-alt: #F9FAFB;
+    --brand-gradient-start: #3B82F6;
+    --brand-gradient-end: #8B5CF6;
 
-/* Custom theme overrides can be added here */
-/* Example:
-.master-theme-custom {
-  --flowbite-primary: #your-color;
+    /* Text Colors */
+    --text-primary: #1F2937;
+    --text-secondary: #6B7280;
+    --text-muted: #9CA3AF;
+
+    /* Background Colors */
+    --bg-primary: #FFFFFF;
+    --bg-secondary: #F9FAFB;
+    --bg-muted: #F3F4F6;
+
+    /* Border Colors */
+    --border-color: #E5E7EB;
+    --border-color-dark: #D1D5DB;
+
+    /* Shadow */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+  }
+
+  .dark {
+    /* Dark Mode - Adapted brand colors (lighter shades for better contrast) */
+    --brand-primary: #60A5FA;
+    --brand-primary-dark: #3B82F6;
+    --brand-primary-light: #93C5FD;
+    --brand-secondary: #A78BFA;
+    --brand-secondary-dark: #8B5CF6;
+    --brand-secondary-light: #C4B5FD;
+    --brand-accent: #FBBF24;
+    --brand-accent-dark: #F59E0B;
+    --brand-accent-light: #FCD34D;
+    --brand-text: #F9FAFB;
+    --brand-text-light: #D1D5DB;
+    --brand-background: #111827;
+    --brand-background-alt: #1F2937;
+    --brand-gradient-start: #60A5FA;
+    --brand-gradient-end: #A78BFA;
+
+    /* Text Colors - Light for dark backgrounds */
+    --text-primary: #F9FAFB;
+    --text-secondary: #D1D5DB;
+    --text-muted: #9CA3AF;
+
+    /* Background Colors - Dark */
+    --bg-primary: #111827;
+    --bg-secondary: #1F2937;
+    --bg-muted: #374151;
+
+    /* Border Colors - Lighter for visibility */
+    --border-color: #374151;
+    --border-color-dark: #4B5563;
+  }
+
+  body {
+    background-color: var(--brand-background);
+    color: var(--brand-text);
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
 }
-*/
+
+@layer components {
+  /* Standardized CTA Button - Single Style */
+  .btn-cta {
+    height: 3rem; /* h-12 equivalent */
+    padding-left: 1.5rem; /* px-6 equivalent */
+    padding-right: 1.5rem;
+    border-radius: 0.5rem; /* rounded-lg equivalent */
+    font-weight: 600; /* font-semibold equivalent */
+    background-color: var(--brand-primary);
+    color: white;
+    transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-md);
+  }
+
+  .btn-cta:hover {
+    background-color: var(--brand-primary-dark);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .btn-cta:active {
+    transform: translateY(0);
+    box-shadow: var(--shadow-sm);
+  }
+
+  /* Dark mode button adjustments */
+  .dark .btn-cta {
+    background-color: var(--brand-primary);
+  }
+
+  .dark .btn-cta:hover {
+    background-color: var(--brand-primary-light);
+  }
+
+  /* Text on dark backgrounds */
+  .text-on-dark {
+    color: white;
+  }
+
+  .dark .text-on-dark {
+    color: var(--text-primary);
+  }
+
+  /* Text on light backgrounds */
+  .text-on-light {
+    color: var(--brand-text);
+  }
+
+  .dark .text-on-light {
+    color: var(--text-primary);
+  }
+
+  /* Hover rules for links */
+  a {
+    transition: color 0.2s ease;
+  }
+
+  a:hover {
+    color: var(--brand-primary);
+  }
+
+  .dark a:hover {
+    color: var(--brand-primary-light);
+  }
+
+  /* Hover rules for interactive elements */
+  [role="button"],
+  button:not(.btn-cta),
+  .interactive {
+    transition: color 0.2s ease, background-color 0.2s ease;
+  }
+
+  [role="button"]:hover,
+  button:not(.btn-cta):hover,
+  .interactive:hover {
+    color: var(--brand-primary);
+  }
+
+  .dark [role="button"]:hover,
+  .dark button:not(.btn-cta):hover,
+  .dark .interactive:hover {
+    color: var(--brand-primary-light);
+  }
+}
+
+@layer utilities {
+  /* Brand color utilities */
+  .bg-brand-primary {
+    background-color: var(--brand-primary);
+  }
+
+  .bg-brand-secondary {
+    background-color: var(--brand-secondary);
+  }
+
+  .bg-brand-accent {
+    background-color: var(--brand-accent);
+  }
+
+  .text-brand-primary {
+    color: var(--brand-primary);
+  }
+
+  .text-brand-secondary {
+    color: var(--brand-secondary);
+  }
+
+  .text-brand-accent {
+    color: var(--brand-accent);
+  }
+
+  .border-brand-primary {
+    border-color: var(--brand-primary);
+  }
+
+  /* Gradient utilities */
+  .bg-brand-gradient {
+    background: linear-gradient(to right, var(--brand-gradient-start), var(--brand-gradient-end));
+  }
+}

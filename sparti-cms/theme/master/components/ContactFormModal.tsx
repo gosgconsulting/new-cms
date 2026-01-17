@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import { Button } from "flowbite-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { ArrowLeft, ArrowRight, Loader2, MessageCircle, Send, X } from "lucide-react";
 import { getTenantId } from "../../../utils/tenantConfig";
@@ -268,20 +267,20 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
               )}
 
               <div className="flex items-center justify-between pt-2">
-                <Button
+                <button
                   type="button"
                   disabled
-                  className="rounded-full px-6 py-3 bg-gray-200 text-gray-600 opacity-60 cursor-not-allowed"
+                  className="rounded-full px-6 py-3 bg-gray-200 text-gray-600 opacity-60 cursor-not-allowed flex items-center"
                 >
                   <ArrowLeft className="h-4 w-4 mr-2" /> Back
-                </Button>
-                <Button
+                </button>
+                <button
                   type="button"
                   onClick={goNext}
-                  className="rounded-full bg-blue-600 hover:bg-blue-700 text-white px-7 py-3"
+                  className="btn-cta rounded-full px-7 py-3 flex items-center"
                 >
                   Next <ArrowRight className="h-4 w-4 ml-2" />
-                </Button>
+                </button>
               </div>
             </div>
           )}
@@ -348,21 +347,21 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
               )}
 
               <div className="flex items-center justify-between pt-2">
-                <Button
+                <button
                   type="button"
                   onClick={goBack}
-                  className="rounded-full px-6 py-3 bg-gray-200 text-gray-700 hover:bg-gray-300"
+                  className="rounded-full px-6 py-3 bg-gray-200 text-gray-700 hover:bg-gray-300 flex items-center"
                 >
                   <ArrowLeft className="h-4 w-4 mr-2" /> Back
-                </Button>
-                <Button
+                </button>
+                <button
                   type="button"
                   onClick={goNext}
                   disabled={!canGoNextFromStep2}
-                  className="rounded-full bg-blue-600 hover:bg-blue-700 text-white px-7 py-3 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="btn-cta rounded-full px-7 py-3 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
                 >
                   Next <ArrowRight className="h-4 w-4 ml-2" />
-                </Button>
+                </button>
               </div>
             </div>
           )}
@@ -404,18 +403,18 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
               )}
 
               <div className="flex items-center justify-between pt-2">
-                <Button
+                <button
                   type="button"
                   onClick={goBack}
-                  className="rounded-full px-6 py-3 bg-gray-200 text-gray-700 hover:bg-gray-300"
+                  className="rounded-full px-6 py-3 bg-gray-200 text-gray-700 hover:bg-gray-300 flex items-center"
                   disabled={isSubmitting}
                 >
                   <ArrowLeft className="h-4 w-4 mr-2" /> Back
-                </Button>
-                <Button
+                </button>
+                <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="rounded-full bg-blue-600 hover:bg-blue-700 text-white px-7 py-3 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="btn-cta rounded-full px-7 py-3 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
                 >
                   {isSubmitting ? (
                     <>
@@ -427,7 +426,7 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
                       Send <ArrowRight className="h-4 w-4 ml-2" />
                     </>
                   )}
-                </Button>
+                </button>
               </div>
             </div>
           )}

@@ -209,9 +209,10 @@ const SettingsManager: React.FC<SettingsManagerProps> = ({ currentTenantId }) =>
 
 interface CMSDashboardProps {
   hideSidebar?: boolean;
+  themeSlug?: string;
 }
 
-const CMSDashboard: React.FC<CMSDashboardProps> = ({ hideSidebar = false }) => {
+const CMSDashboard: React.FC<CMSDashboardProps> = ({ hideSidebar = false, themeSlug }) => {
   const [activeTab, setActiveTab] = useState<string>('pages');
   const [mode, setMode] = useState<'cms' | 'shop'>('cms');
   const [crmExpanded, setCrmExpanded] = useState<boolean>(false);
@@ -241,17 +242,24 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({ hideSidebar = false }) => {
   };
 
   // Fetch all tenants (returns full tenant data including database and API keys)
-  // For super admins: returns all tenants
+  // For super admins: returns all tenants (filtered by theme if themeSlug provided)
   // For regular users: returns their single tenant if currentTenantId is set
   const { data: tenants = [] } = useQuery<Tenant[]>({
-    queryKey: ['tenants'],
+    queryKey: ['tenants', themeSlug],
     queryFn: async () => {
       try {
-        const response = await api.get(`/api/tenants`);
+        // If themeSlug is provided, fetch tenants filtered by theme
+        const endpoint = themeSlug 
+          ? `/api/tenants/by-theme/${themeSlug}`
+          : `/api/tenants`;
+        
+        const response = await api.get(endpoint);
         if (response.ok) {
           const data = await response.json();
+          // Handle both array response (from /api/tenants) and object with tenants property (from /api/tenants/by-theme/:themeId)
+          const tenantsList = Array.isArray(data) ? data : (data.tenants || []);
           // Add isDevelopment flag based on tenant id
-          return data.map((t: any) => ({
+          return tenantsList.map((t: any) => ({
             ...t,
             isDevelopment: t.id === 'tenant-dev' || !!t.isDevelopment,
           }));
@@ -268,9 +276,19 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({ hideSidebar = false }) => {
   });
 
   // Automatically set currentThemeId based on tenant's theme_id when tenant changes
-  // This runs after tenants are loaded and when currentTenantId changes
+  // If themeSlug is provided (theme context), use it instead
+  // This runs after tenants are loaded and when currentTenantId or themeSlug changes
   useEffect(() => {
     try {
+      // If themeSlug is provided, use it directly (theme-scoped admin)
+      if (themeSlug) {
+        console.log(`[testing] Setting theme from themeSlug prop: ${themeSlug}`);
+        setCurrentThemeId(themeSlug);
+        localStorage.setItem('sparti-current-theme-id', themeSlug);
+        return;
+      }
+      
+      // Otherwise, use tenant's theme_id
       if (currentTenantId && Array.isArray(tenants) && tenants.length > 0) {
         const currentTenant = tenants.find(t => t && t.id === currentTenantId);
         if (currentTenant) {
@@ -296,7 +314,7 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({ hideSidebar = false }) => {
       setCurrentThemeId('custom');
       localStorage.setItem('sparti-current-theme-id', 'custom');
     }
-  }, [currentTenantId, tenants]);
+  }, [currentTenantId, tenants, themeSlug]);
 
   // Auto-fetch and store tenant API key when tenant is selected
   useEffect(() => {

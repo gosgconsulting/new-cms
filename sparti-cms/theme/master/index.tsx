@@ -7,13 +7,25 @@ import FlowbiteContentSection from "@/libraries/flowbite/components/FlowbiteCont
 import FlowbiteWhatsIncludedSection from "@/libraries/flowbite/components/FlowbiteWhatsIncludedSection";
 import FlowbiteFAQSection from "@/libraries/flowbite/components/FlowbiteFAQSection";
 import FlowbiteCTASection from "@/libraries/flowbite/components/FlowbiteCTASection";
-import { Card, Button } from "flowbite-react";
+import { Card } from "flowbite-react";
 import { initFlowbiteTheme } from "@/utils/flowbiteThemeManager";
+import { useThemeBranding } from "../../hooks/useThemeSettings";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import ContactFormModal from "./components/ContactFormModal";
 import { ThankYouPage } from "./components/ThankYouPage";
+import ThemeToggle from "./components/ThemeToggle";
 import "./theme.css";
+
+// Helper function to adjust color brightness
+const adjustColorBrightness = (hex: string, percent: number): string => {
+  const num = parseInt(hex.replace("#", ""), 16);
+  const amt = Math.round(2.55 * percent);
+  const R = Math.min(255, Math.max(0, (num >> 16) + amt));
+  const G = Math.min(255, Math.max(0, ((num >> 8) & 0x00FF) + amt));
+  const B = Math.min(255, Math.max(0, (num & 0x0000FF) + amt));
+  return "#" + (0x1000000 + R * 0x10000 + G * 0x100 + B).toString(16).slice(1);
+};
 
 interface MasterThemeProps {
   basePath?: string;
@@ -49,6 +61,66 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
 }) => {
   const location = useLocation();
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
+
+  // Fetch branding colors from database
+  const { branding, loading: brandingLoading } = useThemeBranding("master", tenantId);
+
+  // Apply branding colors as CSS variables
+  useEffect(() => {
+    if (branding) {
+      const root = document.documentElement;
+      
+      // Branding object contains color properties directly (e.g., color_primary, color_secondary)
+      // Type assertion to access color properties that may not be in TypeScript interface
+      const brandingColors = branding as any;
+      
+      // Apply primary colors
+      if (brandingColors.color_primary) {
+        const primaryColor = String(brandingColors.color_primary);
+        root.style.setProperty('--brand-primary', primaryColor);
+        // Calculate darker shade for hover (reduce lightness by 10%)
+        const darker = adjustColorBrightness(primaryColor, -10);
+        root.style.setProperty('--brand-primary-dark', darker);
+        // Calculate lighter shade for dark mode
+        const lighter = adjustColorBrightness(primaryColor, 20);
+        root.style.setProperty('--brand-primary-light', lighter);
+      }
+      
+      if (brandingColors.color_secondary) {
+        const secondaryColor = String(brandingColors.color_secondary);
+        root.style.setProperty('--brand-secondary', secondaryColor);
+        const darker = adjustColorBrightness(secondaryColor, -10);
+        root.style.setProperty('--brand-secondary-dark', darker);
+        const lighter = adjustColorBrightness(secondaryColor, 20);
+        root.style.setProperty('--brand-secondary-light', lighter);
+      }
+      
+      if (brandingColors.color_accent) {
+        const accentColor = String(brandingColors.color_accent);
+        root.style.setProperty('--brand-accent', accentColor);
+        const darker = adjustColorBrightness(accentColor, -10);
+        root.style.setProperty('--brand-accent-dark', darker);
+        const lighter = adjustColorBrightness(accentColor, 20);
+        root.style.setProperty('--brand-accent-light', lighter);
+      }
+      
+      if (brandingColors.color_text) {
+        root.style.setProperty('--brand-text', String(brandingColors.color_text));
+      }
+      
+      if (brandingColors.color_background) {
+        root.style.setProperty('--brand-background', String(brandingColors.color_background));
+      }
+      
+      if (brandingColors.color_gradient_start) {
+        root.style.setProperty('--brand-gradient-start', String(brandingColors.color_gradient_start));
+      }
+      
+      if (brandingColors.color_gradient_end) {
+        root.style.setProperty('--brand-gradient-end', String(brandingColors.color_gradient_end));
+      }
+    }
+  }, [branding]);
 
   // Initialize Flowbite theme on mount
   useEffect(() => {
@@ -429,13 +501,12 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
           <FlowbiteHeroSection component={heroSchema} />
           {/* Custom CTA button that opens modal */}
           <div className="container mx-auto px-4 -mt-8 mb-8 text-center">
-            <Button
+            <button
               onClick={handleContactClick}
-              size="xl"
-              className="bg-gradient-to-r from-purple-500 to-teal-500 hover:from-purple-600 hover:to-teal-600 text-white font-medium px-8 py-6 text-lg rounded-2xl"
+              className="btn-cta px-8 py-6 text-lg"
             >
               Get free consultation
-            </Button>
+            </button>
           </div>
         </div>
 
@@ -492,12 +563,12 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
                         </li>
                       ))}
                     </ul>
-                    <Button
+                    <button
                       onClick={handleContactClick}
-                      className={`w-full ${plan.isPopular ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-200 text-gray-800 hover:bg-gray-300'}`}
+                      className="btn-cta w-full"
                     >
                       Get Started
-                    </Button>
+                    </button>
                   </div>
                 </Card>
               ))}
@@ -519,15 +590,15 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
         <div id="contact" className="scroll-mt-20">
           <FlowbiteCTASection component={ctaSchema} />
           {/* Custom CTA button that opens modal */}
-          <div className="bg-gradient-to-br from-blue-600 to-blue-800 pb-16 -mt-8">
+          <div className="bg-brand-gradient pb-16 -mt-8">
             <div className="container mx-auto px-4 text-center">
-              <Button
+              <button
                 onClick={handleContactClick}
-                size="xl"
-                className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-6 text-lg font-semibold rounded-2xl shadow-lg"
+                className="btn-cta px-8 py-6 text-lg bg-white hover:bg-gray-100"
+                style={{ color: 'var(--brand-primary)' }}
               >
                 Get free consultation
-              </Button>
+              </button>
             </div>
           </div>
         </div>
@@ -544,6 +615,9 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
         isOpen={isContactModalOpen}
         onClose={() => setIsContactModalOpen(false)}
       />
+
+      {/* Theme Toggle - Sticky bottom-left */}
+      <ThemeToggle />
     </div>
   );
 };

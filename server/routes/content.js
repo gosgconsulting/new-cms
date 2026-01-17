@@ -48,7 +48,8 @@ const router = express.Router();
 // Get all pages
 router.get('/pages/all', authenticateUser, async (req, res) => {
   try {
-    const { themeId } = req.query;
+    // Get theme ID from req.themeSlug (set by theme middleware), query parameter, or null
+    const themeId = req.themeSlug || req.query.themeId || null;
     // Fix tenant ID detection - check multiple sources
     const tenantId = req.tenantId || req.query.tenantId || req.headers['x-tenant-id'] || (req.user?.tenant_id);
     

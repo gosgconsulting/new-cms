@@ -82,82 +82,26 @@ const Auth: React.FC = () => {
     setMessage(null);
 
     try {
-      const result = await signIn(formData.email, formData.password);
+      // Pass themeSlug to signIn for backend validation
+      // The backend will validate that user's tenant uses the requested theme
+      const result = await signIn(
+        formData.email, 
+        formData.password,
+        isThemeAuth ? themeSlug : undefined
+      );
       
       if (result.success) {
-        // If in theme context, verify user's tenant uses this theme
-        if (isThemeAuth && themeSlug) {
-          try {
-            // In development, use relative URLs to leverage Vite proxy
-            const API_BASE_URL = import.meta.env.DEV 
-              ? '' // Use relative URLs in development (Vite proxy handles /api)
-              : (import.meta.env.VITE_API_BASE_URL || 'http://localhost:4173');
-            const response = await fetch(`${API_BASE_URL}/api/tenants/by-theme/${themeSlug}`, {
-              headers: {
-                'Authorization': `Bearer ${localStorage.getItem('sparti-user-session') ? JSON.parse(localStorage.getItem('sparti-user-session') || '{}').token : ''}`,
-                'Content-Type': 'application/json',
-              },
-            });
-            
-            if (response.ok) {
-              const data = await response.json();
-              // Check if user's tenant is in the list (or if user is super admin)
-              const userSession = localStorage.getItem('sparti-user-session');
-              if (userSession) {
-                const sessionData = JSON.parse(userSession);
-                const userTenantId = sessionData.tenant_id;
-                const isSuperAdmin = sessionData.is_super_admin;
-                
-                // Super admins can access any theme
-                if (isSuperAdmin || !userTenantId || data.tenants?.some((t: any) => t.id === userTenantId)) {
-                  setMessage({ type: 'success', text: 'Login successful! Redirecting...' });
-                  setTimeout(() => {
-                    navigate(from, { replace: true });
-                  }, 1000);
-                } else {
-                  setMessage({ 
-                    type: 'error', 
-                    text: 'Access denied. Your tenant does not use this theme.' 
-                  });
-                  setLoading(false);
-                  return;
-                }
-              } else {
-                // No session data, proceed normally
-                setMessage({ type: 'success', text: 'Login successful! Redirecting...' });
-                setTimeout(() => {
-                  navigate(from, { replace: true });
-                }, 1000);
-              }
-            } else {
-              // If API fails, allow access for now (graceful degradation)
-              setMessage({ type: 'success', text: 'Login successful! Redirecting...' });
-              setTimeout(() => {
-                navigate(from, { replace: true });
-              }, 1000);
-            }
-          } catch (error) {
-            console.error('Theme validation error:', error);
-            // On error, allow access (graceful degradation)
-            setMessage({ type: 'success', text: 'Login successful! Redirecting...' });
-            setTimeout(() => {
-              navigate(from, { replace: true });
-            }, 1000);
-          }
-        } else {
-          // Not in theme context, proceed normally
-          setMessage({ type: 'success', text: 'Login successful! Redirecting...' });
-          setTimeout(() => {
-            navigate(from, { replace: true });
-          }, 1000);
-        }
+        setMessage({ type: 'success', text: 'Login successful! Redirecting...' });
+        setTimeout(() => {
+          navigate(from, { replace: true });
+        }, 1000);
       } else {
         setMessage({ type: 'error', text: result.error || 'Login failed' });
+        setLoading(false);
       }
     } catch (error) {
       console.error('Login error:', error);
       setMessage({ type: 'error', text: 'Login failed. Please try again.' });
-    } finally {
       setLoading(false);
     }
   };

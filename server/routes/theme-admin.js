@@ -6,7 +6,8 @@ const router = express.Router();
 /**
  * GET /theme/:themeSlug/admin
  * Serves the admin page with theme context
- * If user is not authenticated, they will be redirected by client-side routing
+ * extractThemeFromUrl middleware will validate tenant-theme relationship if user is authenticated
+ * If user is not authenticated, client-side ThemeAdmin component will redirect to auth
  */
 router.get('/:themeSlug/admin', extractThemeFromUrl, (req, res) => {
   const themeSlug = req.params.themeSlug;
@@ -35,6 +36,7 @@ router.get('/:themeSlug/admin', extractThemeFromUrl, (req, res) => {
 /**
  * GET /theme/:themeSlug/auth
  * Serves the auth page with theme context
+ * No authentication required - this is the login page
  * The actual auth page is handled by client-side React routing
  */
 router.get('/:themeSlug/auth', extractThemeFromUrl, (req, res) => {

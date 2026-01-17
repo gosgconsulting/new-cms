@@ -13,7 +13,7 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
-  signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  signIn: (email: string, password: string, themeSlug?: string) => Promise<{ success: boolean; error?: string }>;
   signInWithAccessKey: (accessKey: string) => Promise<{ success: boolean; error?: string }>;
   signOut: () => void;
   loading: boolean;
@@ -142,13 +142,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }, []);
 
-  const signIn = useCallback(async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
+  const signIn = useCallback(async (email: string, password: string, themeSlug?: string): Promise<{ success: boolean; error?: string }> => {
     try {
       // In development, use relative URLs to leverage Vite proxy
       const API_BASE_URL = import.meta.env.DEV 
         ? '' // Use relative URLs in development (Vite proxy handles /api)
         : (import.meta.env.VITE_API_BASE_URL || 'http://localhost:4173');
-      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+      
+      // Include themeSlug in query string if provided (for backend validation)
+      const loginUrl = themeSlug
+        ? `${API_BASE_URL}/api/auth/login?themeSlug=${encodeURIComponent(themeSlug)}`
+        : `${API_BASE_URL}/api/auth/login`;
+      
+      const response = await fetch(loginUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
