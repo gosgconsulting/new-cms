@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, User } from "lucide-react";
+import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { BLOG_POSTS } from "../../data/blog";
 
 function formatDate(iso: string) {
@@ -29,9 +29,32 @@ type CmsPost = {
   content?: string;
   created_at?: string;
   published_at?: string;
+  featured_image?: string | null;
   categories?: Array<{ name: string }>;
   tags?: Array<{ name: string }>;
 };
+
+function getHeroImage(post: any): { src: string; alt: string } | null {
+  const title = String(post?.title || "");
+
+  // Static demo posts
+  if (post?.featuredImage?.src) {
+    return {
+      src: String(post.featuredImage.src),
+      alt: String(post.featuredImage.alt || title || "Blog post hero image"),
+    };
+  }
+
+  // CMS posts
+  if (post?.featured_image) {
+    return {
+      src: String(post.featured_image),
+      alt: title || "Blog post hero image",
+    };
+  }
+
+  return null;
+}
 
 export default function BlogPostPage({
   basePath,
@@ -106,117 +129,114 @@ export default function BlogPostPage({
   }
 
   const publishedAt =
-    (post as any).publishedAt || (post as any).published_at || (post as any).created_at || new Date().toISOString();
-  const category =
-    (post as any).category || (post as any).categories?.[0]?.name || "General";
+    (post as any).publishedAt ||
+    (post as any).published_at ||
+    (post as any).created_at ||
+    new Date().toISOString();
+
+  const category = (post as any).category || (post as any).categories?.[0]?.name || "General";
   const authorName = (post as any).author?.name || "Team";
   const readTimeMinutes =
     (post as any).readTimeMinutes || estimateReadTimeMinutes((post as any).content || (post as any).excerpt || "");
 
+  const heroImage = getHeroImage(post);
+
   return (
     <div className="bg-(--brand-background)">
-      <section className="border-b border-black/10 bg-(--brand-background-alt)">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-10">
-          <div className="max-w-3xl">
-            <a
-              href={blogIndexUrl(basePath)}
-              className="inline-flex items-center text-sm font-semibold text-slate-900 hover:underline"
-            >
-              ← Back to blog
-            </a>
-
-            <div className="mt-6 flex flex-wrap items-center gap-3">
-              <Badge className="bg-white/90 text-slate-900 hover:bg-white/95 border border-black/10">
-                {category}
-              </Badge>
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-slate-500">
-                <span className="inline-flex items-center gap-1">
-                  <Calendar className="h-3.5 w-3.5" />
-                  {formatDate(publishedAt)}
-                </span>
-                <span className="inline-flex items-center gap-1">
-                  <Clock className="h-3.5 w-3.5" />
-                  {readTimeMinutes} min read
-                </span>
-                <span className="inline-flex items-center gap-1">
-                  <User className="h-3.5 w-3.5" />
-                  {authorName}
-                </span>
-              </div>
+      {/* 1) Hero image (editorial, no overlays) */}
+      {heroImage ? (
+        <section className="mx-auto w-full max-w-5xl px-4 sm:px-6 lg:px-8">
+          <div className="mt-14 sm:mt-16 mb-8 sm:mb-10">
+            <div className="overflow-hidden rounded-xl border border-black/10 bg-(--brand-background-alt) shadow-[var(--shadow-1)]">
+              <AspectRatio ratio={16 / 9}>
+                <img
+                  src={heroImage.src}
+                  alt={heroImage.alt}
+                  className="h-full w-full object-cover"
+                  loading="eager"
+                />
+              </AspectRatio>
             </div>
-
-            <h1 className="mt-4 text-3xl sm:text-4xl font-bold tracking-tight text-slate-900">
-              {(post as any).title}
-            </h1>
-            {(post as any).excerpt && <p className="mt-3 text-base text-slate-600">{(post as any).excerpt}</p>}
           </div>
-        </div>
-      </section>
+        </section>
+      ) : (
+        <div className="mt-14 sm:mt-16" />
+      )}
 
-      <section className="container mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <article className="max-w-3xl">
-          {"featuredImage" in (post as any) && (post as any).featuredImage && (
-            <div className="overflow-hidden rounded-2xl border border-black/10 bg-white shadow-[var(--shadow-sm)]">
-              <img
-                src={(post as any).featuredImage.src}
-                alt={(post as any).featuredImage.alt}
-                className="w-full object-cover max-h-[420px]"
-                loading="lazy"
-              />
+      <section className="mx-auto w-full max-w-2xl px-4 sm:px-6 lg:px-8 pb-14">
+        {/* 2) Post metadata (before title) */}
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-xs text-slate-500">
+          <Badge className="rounded-full bg-slate-100 text-slate-700 hover:bg-slate-100 border border-slate-200 font-normal">
+            {category}
+          </Badge>
+          <span>{formatDate(publishedAt)}</span>
+          <span aria-hidden="true">·</span>
+          <span>{readTimeMinutes} min read</span>
+          <span aria-hidden="true">·</span>
+          <span>{authorName}</span>
+        </div>
+
+        {/* 3) Post title */}
+        <h1 className="mt-3 text-3xl sm:text-4xl font-semibold tracking-tight text-slate-900">
+          {(post as any).title}
+        </h1>
+
+        {/* 4) Intro paragraph */}
+        {(post as any).excerpt ? (
+          <p className="mt-4 text-lg leading-8 text-slate-600">{(post as any).excerpt}</p>
+        ) : null}
+
+        {/* 5) Main content */}
+        <article className="mt-10">
+          {cmsPost?.content ? (
+            <div
+              className="prose prose-slate max-w-none"
+              dangerouslySetInnerHTML={{ __html: cmsPost.content }}
+            />
+          ) : (
+            <div className="prose prose-slate max-w-none">
+              {((staticPost as any)?.content || []).map((block: any, idx: number) => {
+                if (block.type === "h2") {
+                  return <h2 key={idx}>{block.text}</h2>;
+                }
+
+                if (block.type === "ul") {
+                  return (
+                    <ul key={idx}>
+                      {block.items.map((item: string, i: number) => (
+                        <li key={i}>{item}</li>
+                      ))}
+                    </ul>
+                  );
+                }
+
+                if (block.type === "quote") {
+                  return (
+                    <blockquote key={idx}>
+                      <p>"{block.text}"</p>
+                    </blockquote>
+                  );
+                }
+
+                return <p key={idx}>{block.text}</p>;
+              })}
+
+              {(!staticPost?.content || staticPost.content.length === 0) && (
+                <p>
+                  This is a sample post. Add content blocks to <code>sparti-cms/theme/master/data/blog.ts</code> to
+                  expand it.
+                </p>
+              )}
             </div>
           )}
-
-          <div className="mt-8 space-y-6 text-slate-700 leading-7">
-            {cmsPost?.content ? (
-              <div
-                className="prose prose-slate max-w-none"
-                dangerouslySetInnerHTML={{ __html: cmsPost.content }}
-              />
-            ) : (
-              <>
-                {((staticPost as any)?.content || []).map((block: any, idx: number) => {
-                  if (block.type === "h2") {
-                    return (
-                      <h2 key={idx} className="text-xl font-bold tracking-tight text-slate-900">
-                        {block.text}
-                      </h2>
-                    );
-                  }
-
-                  if (block.type === "ul") {
-                    return (
-                      <ul key={idx} className="list-disc pl-6 space-y-2">
-                        {block.items.map((item: string, i: number) => (
-                          <li key={i}>{item}</li>
-                        ))}
-                      </ul>
-                    );
-                  }
-
-                  if (block.type === "quote") {
-                    return (
-                      <blockquote
-                        key={idx}
-                        className="rounded-2xl border border-black/10 bg-white p-5 text-slate-900 shadow-[var(--shadow-sm)]"
-                      >
-                        <p className="font-medium">"{block.text}"</p>
-                      </blockquote>
-                    );
-                  }
-
-                  return <p key={idx}>{block.text}</p>;
-                })}
-
-                {(!staticPost?.content || staticPost.content.length === 0) && (
-                  <p>
-                    This is a sample post. Add content blocks to <code>sparti-cms/theme/master/data/blog.ts</code> to
-                    expand it.
-                  </p>
-                )}
-              </>
-            )}
-          </div>
         </article>
+
+        {/* Back link (kept out of the editorial flow above) */}
+        <div className="mt-12">
+          <a href={blogIndexUrl(basePath)} className="btn-cta-ghost">
+            ← Back to blog
+          </a>
+        </div>
       </section>
     </div>
   );
