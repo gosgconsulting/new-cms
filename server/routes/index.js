@@ -25,7 +25,6 @@ import mediaRoutes from './media.js';
 import docsRoutes from './docs.js';
 import woocommerceSyncRoutes from './woocommerce-sync.js';
 import masterAstroRoutes from './master-astro.js';
-import masterastrowindAstroRoutes from './masterastrowind-astro.js';
 
 const router = express.Router();
 
@@ -82,9 +81,8 @@ router.use('/api', docsRoutes);
 // Theme admin/auth routes (must come before general theme routes)
 router.use('/theme', themeAdminRoutes);
 
-// Master themes: Astro SSR (must come before React SPA theme routes)
+// Master theme: Astro SSR (must come before React SPA theme routes)
 router.use('/theme/master', masterAstroRoutes);
-router.use('/theme/masterastrowind', masterastrowindAstroRoutes);
 
 // All other themes: React SPA
 router.use('/theme', themeRoutes);

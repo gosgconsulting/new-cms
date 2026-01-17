@@ -6,6 +6,11 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+const EXCLUDED_THEME_SLUGS = new Set([
+  // Removed legacy theme
+  'masterastrowind',
+]);
+
 function ensureDir(dirPath) {
   if (!fs.existsSync(dirPath)) {
     fs.mkdirSync(dirPath, { recursive: true });
@@ -277,7 +282,8 @@ export function getThemesFromFileSystem() {
     // Read theme folders
     const themeFolders = fs.readdirSync(themesDir, { withFileTypes: true })
       .filter(dirent => dirent.isDirectory())
-      .map(dirent => dirent.name);
+      .map(dirent => dirent.name)
+      .filter(slug => !EXCLUDED_THEME_SLUGS.has(slug));
 
     if (themeFolders.length === 0) {
       console.log('[testing] No theme folders found in:', themesDir);
@@ -339,7 +345,8 @@ export async function syncThemesFromFileSystem() {
     // Read theme folders
     const themeFolders = fs.readdirSync(themesDir, { withFileTypes: true })
       .filter(dirent => dirent.isDirectory())
-      .map(dirent => dirent.name);
+      .map(dirent => dirent.name)
+      .filter(slug => !EXCLUDED_THEME_SLUGS.has(slug));
 
     if (themeFolders.length === 0) {
       console.log('[testing] No theme folders found in:', themesDir);
@@ -359,7 +366,9 @@ export async function syncThemesFromFileSystem() {
           existingTheme = await query(`
             SELECT id, name, slug, updated_at
             FROM themes
-            WHERE slug = $1 OR id = $1
+            WHERE (slug = $1 OR id = $1)
+              AND slug != 'masterastrowind'
+              AND id != 'masterastrowind'
           `, [themeSlug]);
         } catch (dbError) {
           // If database table doesn't exist, skip database operations
@@ -393,7 +402,9 @@ export async function syncThemesFromFileSystem() {
           await query(`
             UPDATE themes
             SET name = $1, description = $2, updated_at = $3, is_active = $4
-            WHERE slug = $5 OR id = $5
+            WHERE (slug = $5 OR id = $5)
+              AND slug != 'masterastrowind'
+              AND id != 'masterastrowind'
           `, [themeName, themeDescription, now, isActive, themeSlug]);
           
           results.push({
@@ -513,6 +524,8 @@ export async function getAllThemes() {
       SELECT id, name, slug, description, created_at, updated_at, is_active
       FROM themes
       WHERE is_active = true
+        AND slug != 'masterastrowind'
+        AND id != 'masterastrowind'
       ORDER BY name ASC
     `);
     
@@ -991,7 +1004,9 @@ export async function syncDemoTenantPagesFromFileSystem(themeSlug = null) {
     }
     
     let totalCreated = 0;
-    const themes = themeSlug ? [{ slug: themeSlug }] : getThemesFromFileSystem();
+    const themes = themeSlug
+      ? [{ slug: themeSlug }]
+      : getThemesFromFileSystem().filter(t => !EXCLUDED_THEME_SLUGS.has(t.slug));
     
     console.log(`[testing] Syncing pages for demo tenant from ${themes.length} theme(s)`);
     
