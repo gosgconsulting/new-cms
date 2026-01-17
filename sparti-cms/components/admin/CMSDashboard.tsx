@@ -188,7 +188,7 @@ const SettingsManager: React.FC<SettingsManagerProps> = ({ currentTenantId }) =>
                 ? 'text-brandPurple border-b-2 border-brandPurple bg-brandPurple/5' 
                 : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'}`}
             >
-              Styles
+              Brand Setup
             </button>
             <button 
               onClick={() => setActiveSettingsTab('code')}

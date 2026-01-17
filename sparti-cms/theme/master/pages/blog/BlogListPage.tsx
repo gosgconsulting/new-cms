@@ -29,14 +29,7 @@ function BlogCard({ post, basePath }: { post: BlogPost; basePath: string }) {
             loading="lazy"
           />
         ) : (
-          <div className="h-44 w-full bg-brand-gradient-animated">
-            <div className="flex h-full w-full items-center justify-center">
-              <div className="flex items-center gap-2 rounded-xl bg-white/90 px-3 py-2 text-sm font-medium text-slate-900 shadow">
-                <ImageIcon className="h-4 w-4" />
-                <span>No featured image</span>
-              </div>
-            </div>
-          </div>
+          <div className="h-44 w-full bg-brand-gradient-animated" />
         )}
 
         <div className="absolute left-4 top-4">
@@ -89,22 +82,20 @@ export default function BlogListPage({ basePath }: { basePath: string }) {
       <section className="border-b border-black/10 bg-(--brand-background-alt)">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white/70 px-4 py-2 text-sm text-slate-700">
-              <span className="h-2 w-2 rounded-full bg-(--brand-primary)" />
-              Articles & updates
-            </div>
-            <h1 className="mt-4 text-3xl sm:text-4xl font-bold tracking-tight text-slate-900">
-              Blog
-            </h1>
+            <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900">Blog</h1>
             <p className="mt-3 text-base text-slate-600">
               Simple, practical posts about conversion, SEO, design and product.
             </p>
 
             <div className="mt-6">
               <Tabs value={category} onValueChange={(v) => setCategory(v as any)}>
-                <TabsList className="flex flex-wrap justify-start">
+                <TabsList className="flex h-auto flex-wrap justify-start gap-2 bg-transparent p-0 text-slate-600">
                   {BLOG_CATEGORIES.map((c) => (
-                    <TabsTrigger key={c.value} value={c.value} className="text-sm">
+                    <TabsTrigger
+                      key={c.value}
+                      value={c.value}
+                      className="rounded-full border border-black/10 bg-white/70 px-4 py-2 text-sm text-slate-700 shadow-none data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-none"
+                    >
                       {c.label}
                     </TabsTrigger>
                   ))}
