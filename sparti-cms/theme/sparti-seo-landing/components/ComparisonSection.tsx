@@ -38,7 +38,7 @@ const ComparisonSection: React.FC<ComparisonSectionProps> = ({ onGetStarted }) =
   ];
 
   return (
-    <section className="py-20 px-6 bg-gradient-to-br from-card/20 to-background">
+    <section className="py-20 px-6 bg-linear-to-br from-card/20 to-background">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
@@ -55,7 +55,7 @@ const ComparisonSection: React.FC<ComparisonSectionProps> = ({ onGetStarted }) =
             <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-accent/5 opacity-50" />
             <div className="relative z-10">
               <div className="flex items-center gap-3 mb-8">
-                <div className="w-10 h-10 bg-gradient-to-br from-primary/20 to-primary/10 rounded-lg flex items-center justify-center">
+                <div className="w-10 h-10 bg-linear-to-br from-primary/20 to-primary/10 rounded-lg flex items-center justify-center">
                   <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                   </svg>
@@ -79,11 +79,11 @@ const ComparisonSection: React.FC<ComparisonSectionProps> = ({ onGetStarted }) =
           </Card>
 
           {/* Generic AI (Right Column) */}
-          <Card className="p-8 bg-gradient-to-br from-card/80 to-background/50 glass border-border/50 relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-muted/5 to-muted/10 opacity-50" />
+          <Card className="p-8 bg-linear-to-br from-card/80 to-background/50 glass border-border/50 relative overflow-hidden">
+            <div className="absolute inset-0 bg-linear-to-br from-muted/5 to-muted/10 opacity-50" />
             <div className="relative z-10">
               <div className="flex items-center gap-3 mb-8">
-                <div className="w-10 h-10 bg-gradient-to-br from-muted/20 to-muted/10 rounded-lg flex items-center justify-center">
+                <div className="w-10 h-10 bg-linear-to-br from-muted/20 to-muted/10 rounded-lg flex items-center justify-center">
                   <svg className="w-5 h-5 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                   </svg>

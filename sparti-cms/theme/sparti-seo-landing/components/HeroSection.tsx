@@ -141,7 +141,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
               </div>
               
               {/* Chart Area */}
-              <div className="h-24 bg-gradient-to-t from-primary/5 to-transparent rounded-lg p-3 relative overflow-hidden mb-4">
+              <div className="h-24 bg-linear-to-t from-primary/5 to-transparent rounded-lg p-3 relative overflow-hidden mb-4">
                 <svg viewBox="0 0 400 80" className="w-full h-full">
                   <defs>
                     <linearGradient id="volumeGradient" x1="0%" y1="0%" x2="0%" y2="100%">
