@@ -164,8 +164,8 @@ const FlowbiteTestimonialsSection: React.FC<FlowbiteTestimonialsSectionProps> = 
               <div className="h-14 w-14 rounded-full bg-rose-600 text-white flex items-center justify-center text-lg font-semibold">
                 {initials}
               </div>
-              <div className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-white border border-black/10 flex items-center justify-center">
-                <span className="text-xs font-bold text-slate-900">G</span>
+              <div className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-white dark:bg-slate-900 border border-black/10 dark:border-white/10 flex items-center justify-center">
+                <span className="text-xs font-bold text-slate-900 dark:text-white">G</span>
               </div>
             </div>
 
@@ -180,11 +180,7 @@ const FlowbiteTestimonialsSection: React.FC<FlowbiteTestimonialsSectionProps> = 
           <div className="mt-5 flex items-center gap-3">
             <div className="flex items-center gap-1">
               {Array.from({ length: 5 }).map((_, i) => (
-                <Star
-                  key={i}
-                  className="h-5 w-5 text-amber-400"
-                  fill="currentColor"
-                />
+                <Star key={i} className="h-5 w-5 text-amber-400" fill="currentColor" />
               ))}
             </div>
             <div className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-purple-600 text-white">
@@ -216,7 +212,7 @@ const FlowbiteTestimonialsSection: React.FC<FlowbiteTestimonialsSectionProps> = 
             {cards}
           </div>
 
-          <div className="flex items-center justify-center gap-2 mt-2">
+          <div className="flex items-center justify-center gap-3 mt-2">
             {testimonials.map((_: any, idx: number) => {
               const isActive = idx === activeIndex;
               return (
@@ -226,7 +222,9 @@ const FlowbiteTestimonialsSection: React.FC<FlowbiteTestimonialsSectionProps> = 
                   onClick={() => scrollToIndex(idx)}
                   className={[
                     "h-2 rounded-full transition-all",
-                    isActive ? "w-10 bg-rose-600" : "w-2 bg-slate-300 dark:bg-slate-600",
+                    isActive
+                      ? "w-14 bg-amber-500"
+                      : "w-6 bg-slate-300 dark:bg-slate-600 hover:bg-slate-400 dark:hover:bg-slate-500",
                   ].join(" ")}
                   aria-label={`Go to review ${idx + 1}`}
                 />
