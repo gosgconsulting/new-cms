@@ -16,8 +16,6 @@ import ContactFormModal from "./components/ContactFormModal";
 import { ThankYouPage } from "./components/ThankYouPage";
 import PrivacyPolicyPage from "./components/PrivacyPolicyPage";
 import TermsAndConditionsPage from "./components/TermsAndConditionsPage";
-import BlogListPage from "./components/blog/BlogListPage";
-import BlogPostPage from "./components/blog/BlogPostPage";
 import "./theme.css";
 
 // Helper function to adjust color brightness
@@ -50,10 +48,15 @@ const normalizeSlug = (slug?: string) => {
 /**
  * Master Theme - Landing Page (Flowbite-based)
  *
- * Revamped light/dark styles + hero carousel + testimonial slider.
+ * Asset convention:
+ * - Put hard-coded assets under: sparti-cms/theme/master/assets
+ * - Reference them as: /theme/master/assets/<file>
+ *
+ * DB / uploaded media:
+ * - Media Manager uploads return URLs like /uploads/... which can also be used anywhere an image URL is expected.
  */
 const MasterTheme: React.FC<MasterThemeProps> = ({
-  basePath,
+  basePath = "/theme/master",
   pageSlug,
   tenantName = "Master Template",
   tenantSlug = "master",
@@ -62,8 +65,6 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
 }) => {
   const location = useLocation();
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
-
-  const resolvedBasePath = basePath || `/theme/${tenantSlug}`;
 
   // Fetch branding colors from database
   const { branding } = useThemeBranding("master", tenantId);
@@ -152,8 +153,7 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
   }, []);
 
   const normalizedPageSlug = normalizeSlug(pageSlug);
-  const slugParts = normalizedPageSlug.split("/").filter(Boolean);
-  const topLevelSlug = slugParts[0];
+  const topLevelSlug = normalizedPageSlug.split("/")[0];
 
   const isThankYouPage =
     topLevelSlug === "thank-you" ||
@@ -316,7 +316,7 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
     props: {
       variant: "about",
       badge: "About us",
-      imageSrc: "/assets/gregoire-liao.png",
+      imageSrc: `/theme/${tenantSlug}/assets/placeholder.svg`,
       reviewLabel: "5 Star",
       reviewSub: "Review",
     },
@@ -525,15 +525,6 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
   };
 
   const renderMain = () => {
-    if (topLevelSlug === "blog") {
-      const postSlug = slugParts[1];
-      return postSlug ? (
-        <BlogPostPage basePath={resolvedBasePath} slug={postSlug} />
-      ) : (
-        <BlogListPage basePath={resolvedBasePath} />
-      );
-    }
-
     if (topLevelSlug === "privacy-policy") {
       return <PrivacyPolicyPage tenantName={tenantName} />;
     }
@@ -577,16 +568,11 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
 
   return (
     <div className="min-h-screen flex flex-col bg-(--brand-background)">
-      <Header
-        tenantName={tenantName}
-        tenantSlug={tenantSlug}
-        basePath={resolvedBasePath}
-        onContactClick={handleContactClick}
-      />
+      <Header tenantName={tenantName} tenantSlug={tenantSlug} onContactClick={handleContactClick} />
 
       <main className="flex-1">{renderMain()}</main>
 
-      <Footer tenantName={tenantName} tenantSlug={tenantSlug} basePath={resolvedBasePath} />
+      <Footer tenantName={tenantName} tenantSlug={tenantSlug} basePath={basePath} />
 
       <ContactFormModal isOpen={isContactModalOpen} onClose={() => setIsContactModalOpen(false)} />
     </div>

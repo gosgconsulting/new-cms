@@ -1,21 +1,36 @@
-import React from 'react';
+import React from "react";
 
 interface HeaderProps {
   tenantName?: string;
   tenantSlug?: string;
   logoSrc?: string;
+  basePath?: string;
   onContactClick?: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ 
-  tenantName = 'Master Template', 
-  tenantSlug = 'master',
+const normalizePath = (p: string) => p.replace(/\/+$/, "");
+
+const Header: React.FC<HeaderProps> = ({
+  tenantName = "Master Template",
+  tenantSlug = "master",
   logoSrc,
-  onContactClick
+  basePath,
+  onContactClick,
 }) => {
+  const resolvedBasePath = basePath || `/theme/${tenantSlug}`;
+
   const handleLogoClick = (e: React.MouseEvent) => {
     e.preventDefault();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    const current = normalizePath(window.location.pathname);
+    const home = normalizePath(resolvedBasePath);
+
+    if (current === home) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+
+    window.location.href = home;
   };
 
   return (
@@ -24,16 +39,19 @@ const Header: React.FC<HeaderProps> = ({
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center gap-3">
-            <button onClick={handleLogoClick} className="cursor-pointer bg-transparent border-none">
+            <button
+              onClick={handleLogoClick}
+              className="cursor-pointer bg-transparent border-none"
+            >
               {logoSrc ? (
-                <img 
-                  src={logoSrc} 
-                  alt={tenantName} 
-                  className="h-8 w-auto" 
+                <img
+                  src={logoSrc}
+                  alt={tenantName}
+                  className="h-8 w-auto"
                   loading="eager"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
-                    target.style.display = 'none';
+                    target.style.display = "none";
                     const parent = target.parentElement;
                     if (parent) {
                       parent.innerHTML = `<span class="h-8 inline-flex items-center font-bold text-xl text-gray-900">${tenantName}</span>`;
@@ -47,6 +65,19 @@ const Header: React.FC<HeaderProps> = ({
               )}
             </button>
           </div>
+
+          {/* Simple nav */}
+          <nav className="hidden md:flex items-center gap-6 text-sm font-semibold text-slate-700">
+            <a href={resolvedBasePath} className="hover:text-slate-900 transition-colors">
+              Home
+            </a>
+            <a
+              href={`${normalizePath(resolvedBasePath)}/blog`}
+              className="hover:text-slate-900 transition-colors"
+            >
+              Blog
+            </a>
+          </nav>
 
           {/* Contact Button */}
           <div className="flex items-center gap-3">

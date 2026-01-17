@@ -1,6 +1,7 @@
 {
   "pages": [
     { "id": "home", "name": "Home", "slug": "", "component": "Homepage" },
+    { "id": "blog", "name": "Blog", "slug": "blog", "component": "Blog" },
     { "id": "thank-you", "name": "Thank You", "slug": "thank-you", "component": "ThankYouPage" },
     {
       "id": "privacy-policy",
