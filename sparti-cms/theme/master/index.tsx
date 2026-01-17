@@ -57,7 +57,7 @@ const normalizeSlug = (slug?: string) => {
  *
  * Asset convention:
  * - Put hard-coded assets under: sparti-cms/theme/master/assets
- * - Reference them as: /theme/master/assets/<file>
+ * - Reference them as: /theme/<themeSlug>/assets/<file>
  */
 const MasterTheme: React.FC<MasterThemeProps> = ({
   basePath = "/theme/master",
@@ -70,8 +70,12 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
   const location = useLocation();
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
 
+  // NOTE: Use the current theme slug (tenantSlug) so this theme can be duplicated
+  // without having to hunt for hardcoded "master" references.
+  const themeSlug = tenantSlug || "master";
+
   // Fetch branding colors from database
-  const { branding } = useThemeBranding("master", tenantId);
+  const { branding } = useThemeBranding(themeSlug, tenantId);
 
   // Apply branding colors as CSS variables
   useEffect(() => {
@@ -174,7 +178,7 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
     return (
       <ThankYouPage
         tenantName={tenantName}
-        tenantSlug={tenantSlug}
+        tenantSlug={themeSlug}
         tenantId={tenantId}
         basePath={basePath}
       />
@@ -325,8 +329,8 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
     type: "flowbite-content-section",
     props: {
       variant: "about",
-      badge: "",
-      imageSrc: `/theme/${tenantSlug}/assets/placeholder.svg`,
+      badge: "About us",
+      imageSrc: `/theme/${themeSlug}/assets/placeholder.svg`,
       reviewLabel: "5 Star",
       reviewSub: "Review",
     },
@@ -356,6 +360,11 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
     type: "flowbite-whats-included-section",
     props: {},
     items: [
+      {
+        key: "badge",
+        type: "text",
+        content: "Services",
+      },
       {
         key: "title",
         type: "heading",
@@ -504,8 +513,8 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
   const ctaSchema: ComponentSchema = {
     type: "flowbite-cta-section",
     props: {
-      // Final CTA: white button with primary text on a brand gradient background
-      ctaVariant: "light",
+      // Use the master theme's standard CTA styling (green button) and keep it a normal size
+      ctaVariant: "primary",
       ctaFullWidth: false,
     },
     items: [
@@ -582,16 +591,21 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
     <div className="min-h-screen flex flex-col bg-(--brand-background)">
       <Header
         tenantName={tenantName}
-        tenantSlug={tenantSlug}
+        tenantSlug={themeSlug}
         basePath={basePath}
         onContactClick={handleContactClick}
       />
 
       <main className="flex-1">{renderMain()}</main>
 
-      <Footer tenantName={tenantName} tenantSlug={tenantSlug} basePath={basePath} />
+      <Footer tenantName={tenantName} tenantSlug={themeSlug} basePath={basePath} />
 
-      <ContactFormModal isOpen={isContactModalOpen} onClose={() => setIsContactModalOpen(false)} />
+      <ContactFormModal
+        isOpen={isContactModalOpen}
+        onClose={() => setIsContactModalOpen(false)}
+        tenantName={tenantName}
+        themeSlug={themeSlug}
+      />
     </div>
   );
 };

@@ -16,9 +16,9 @@
     */
 
     /* Brand colors */
-    --brand-primary: #a3e635; /* lime */
-    --brand-primary-dark: #84cc16;
-    --brand-primary-light: #bef264;
+    --brand-primary: #2a5b45; /* deep green */
+    --brand-primary-dark: color-mix(in srgb, var(--brand-primary) 85%, black);
+    --brand-primary-light: color-mix(in srgb, var(--brand-primary) 78%, white);
 
     --brand-secondary: #4f46e5; /* indigo */
     --brand-secondary-dark: #4338ca;
