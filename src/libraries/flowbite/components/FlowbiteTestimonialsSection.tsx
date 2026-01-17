@@ -3,7 +3,6 @@
 import React, { useMemo, useRef, useState } from "react";
 import type { ComponentSchema } from "../../../../sparti-cms/types/schema";
 import FlowbiteSection from "./FlowbiteSection";
-import { BadgeCheck, Star } from "lucide-react";
 
 interface FlowbiteTestimonialsSectionProps {
   component: ComponentSchema;
@@ -18,12 +17,6 @@ function initialsFromName(name: string) {
   const a = parts[0]?.[0] || "";
   const b = parts[1]?.[0] || parts[0]?.[1] || "";
   return (a + b).toUpperCase();
-}
-
-function formatFallbackDate(index: number) {
-  // Simple deterministic dates similar to the screenshot
-  const day = 17 - index;
-  return `${day} January 2026`;
 }
 
 /**
@@ -102,89 +95,99 @@ const FlowbiteTestimonialsSection: React.FC<FlowbiteTestimonialsSectionProps> = 
     }
   }
 
-  // Dummy fallback (requested)
+  // Dummy fallback reviews with industries
   if (testimonials.length === 0) {
     testimonials = [
       {
         name: "Melissa K.",
-        date: "17 January 2026",
+        industry: "Fitness",
         text:
           "The coaches are knowledgeable and supportive, making every workout feel focused, effective, and perfectly aligned with my fitness goals.",
       },
       {
         name: "Daniel R.",
-        date: "16 January 2026",
+        industry: "E‑commerce",
         text:
           "Training here feels structured and motivating, with clear guidance that helps me stay consistent and see real progress over time.",
       },
       {
         name: "Jonathan P.",
-        date: "14 January 2026",
+        industry: "B2B SaaS",
         text:
           "The programs are well-designed and challenging, pushing me to improve while still feeling safe and properly coached.",
       },
+      {
+        name: "Amelia S.",
+        industry: "Hospitality",
+        text:
+          "Clear strategy and supportive coaching helped us streamline operations and improve guest experience across the board.",
+      },
+      {
+        name: "Noah T.",
+        industry: "Healthcare",
+        text:
+          "Practical, measured improvements that compound—our team finally sees consistent growth.",
+      },
+      {
+        name: "Sofia M.",
+        industry: "Retail",
+        text:
+          "We now have a system that turns attention into sales. The difference is obvious in our weekly numbers.",
+      },
     ];
   }
+
+  // Page-based navigation: groups of 3
+  const pageSize = 3;
+  const pageCount = Math.max(1, Math.ceil(testimonials.length / pageSize));
 
   const handleScroll = () => {
     const el = scrollerRef.current;
     if (!el) return;
     const first = el.children[0] as HTMLElement | undefined;
     if (!first) return;
-
-    const cardWidth = first.getBoundingClientRect().width;
-    if (!cardWidth) return;
-
-    const idx = Math.round(el.scrollLeft / (cardWidth + 24)); // 24 ~ gap-6
-    setActiveIndex(Math.max(0, Math.min(testimonials.length - 1, idx)));
+    const approxGap = 24; // gap-6
+    const cw = first.getBoundingClientRect().width + approxGap;
+    const indexApprox = Math.round(el.scrollLeft / cw);
+    const page = Math.max(0, Math.min(pageCount - 1, Math.floor(indexApprox / pageSize)));
+    setActiveIndex(page);
   };
 
-  const scrollToIndex = (idx: number) => {
+  const scrollToPage = (page: number) => {
     const el = scrollerRef.current;
     if (!el) return;
-    const child = el.children[idx] as HTMLElement | undefined;
-    if (!child) return;
-    el.scrollTo({ left: child.offsetLeft, behavior: "smooth" });
+    const firstChild = el.children[page * pageSize] as HTMLElement | undefined;
+    if (!firstChild) return;
+    el.scrollTo({ left: firstChild.offsetLeft, behavior: "smooth" });
+    setActiveIndex(page);
   };
 
   const cards = useMemo(() => {
     return testimonials.map((testimonial: any, index: number) => {
       const text = testimonial.text || testimonial.content || testimonial.message || "";
       const name = testimonial.name || testimonial.author || `Client ${index + 1}`;
-      const date = testimonial.date || formatFallbackDate(index);
+      const industry = testimonial.industry || testimonial.role || testimonial.position || "";
+
       const initials = initialsFromName(name);
 
       return (
         <div
           key={index}
-          className="snap-start min-w-[280px] md:min-w-[360px] lg:min-w-[380px] rounded-3xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-900 p-7 shadow-[0_18px_60px_rgba(0,0,0,0.18)] dark:shadow-[0_18px_60px_rgba(0,0,0,0.55)]"
+          className="snap-start min-w-[280px] md:min-w-[360px] lg:min-w-[380px] rounded-3xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-900 p-7 shadow-[0_18px_60px_rgba(0,0,0,0.12)] dark:shadow-[0_18px_60px_rgba(0,0,0,0.55)]"
         >
           <div className="flex items-start gap-4">
-            <div className="relative">
-              <div className="h-14 w-14 rounded-full bg-rose-600 text-white flex items-center justify-center text-lg font-semibold">
-                {initials}
-              </div>
-              <div className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-white dark:bg-slate-900 border border-black/10 dark:border-white/10 flex items-center justify-center">
-                <span className="text-xs font-bold text-slate-900 dark:text-white">G</span>
-              </div>
+            {/* Initials-only avatar */}
+            <div className="h-14 w-14 rounded-full bg-rose-600 text-white flex items-center justify-center text-lg font-semibold">
+              {initials}
             </div>
 
             <div className="min-w-0 flex-1">
               <p className="text-lg font-semibold text-gray-900 dark:text-white leading-tight">
                 {name}
               </p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">{date}</p>
-            </div>
-          </div>
-
-          <div className="mt-5 flex items-center gap-3">
-            <div className="flex items-center gap-1">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Star key={i} className="h-5 w-5 text-amber-400" fill="currentColor" />
-              ))}
-            </div>
-            <div className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-purple-600 text-white">
-              <BadgeCheck className="h-4 w-4" />
+              {industry ? (
+                <p className="text-sm text-gray-500 dark:text-gray-400">{industry}</p>
+              ) : null}
             </div>
           </div>
 
@@ -199,38 +202,45 @@ const FlowbiteTestimonialsSection: React.FC<FlowbiteTestimonialsSectionProps> = 
   }, [testimonials]);
 
   return (
-    <section className={`relative overflow-hidden py-20 px-4 ${className}`}>
-      <div className="container mx-auto relative">
+    <section className={`py-20 px-4 bg-transparent ${className}`}>
+      <div className="container mx-auto">
         <div className="mx-auto max-w-6xl">
           <FlowbiteSection title={title} subtitle={subtitle} className="text-center mb-10" />
 
-          <div
-            ref={scrollerRef}
-            onScroll={handleScroll}
-            className="flex gap-6 overflow-x-auto pb-6 snap-x snap-mandatory scroll-px-4 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-          >
-            {cards}
-          </div>
+          {testimonials.length > 0 ? (
+            <>
+              <div
+                ref={scrollerRef}
+                onScroll={handleScroll}
+                className="flex gap-6 overflow-x-auto pb-2 snap-x snap-mandatory scroll-px-4 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              >
+                {cards}
+              </div>
 
-          <div className="flex items-center justify-center gap-3 mt-2">
-            {testimonials.map((_: any, idx: number) => {
-              const isActive = idx === activeIndex;
-              return (
-                <button
-                  key={idx}
-                  type="button"
-                  onClick={() => scrollToIndex(idx)}
-                  className={[
-                    "h-2 rounded-full transition-all",
-                    isActive
-                      ? "w-14 bg-amber-500"
-                      : "w-6 bg-slate-300 dark:bg-slate-600 hover:bg-slate-400 dark:hover:bg-slate-500",
-                  ].join(" ")}
-                  aria-label={`Go to review ${idx + 1}`}
-                />
-              );
-            })}
-          </div>
+              {/* Page (group of 3) bar indicators */}
+              <div className="flex items-center justify-center gap-3 mt-4">
+                {Array.from({ length: pageCount }).map((_, idx) => {
+                  const isActive = idx === activeIndex;
+                  return (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => scrollToPage(idx)}
+                      className={[
+                        "h-2 rounded-full transition-all",
+                        isActive
+                          ? "w-14 bg-amber-500"
+                          : "w-6 bg-slate-300 dark:bg-slate-600 hover:bg-slate-400 dark:hover:bg-slate-500",
+                      ].join(" ")}
+                      aria-label={`Go to reviews page ${idx + 1}`}
+                    />
+                  );
+                })}
+              </div>
+            </>
+          ) : (
+            <p className="text-center text-gray-500 dark:text-gray-400">No testimonials available.</p>
+          )}
         </div>
       </div>
     </section>
