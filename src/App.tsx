@@ -37,6 +37,13 @@ const ThemeRouteHandler: React.FC = () => {
   // Otherwise, use TenantPage for database-driven pages
   return <TenantPage />;
 };
+
+// Simple alias route: /master/* -> /theme/master/*
+const MasterAliasRoute: React.FC = () => {
+  const location = useLocation();
+  const rest = location.pathname.replace(/^\/master/, "");
+  return <Navigate to={`/theme/master${rest}${location.search}${location.hash}`} replace />;
+};
 import ErrorBoundary from "./components/ErrorBoundary";
 import EmbedPagesManager from "../sparti-cms/components/embed/EmbedPagesManager";
 import ThemeAdminRedirect from "./components/ThemeAdminRedirect";
@@ -94,6 +101,9 @@ const App = () => {
                 <Navigate to="/admin" replace />
               )
             } />
+
+            {/* Alias master theme without /theme prefix */}
+            <Route path="/master/*" element={<MasterAliasRoute />} />
             
             {/* Admin routes */}
             <Route path="/admin/*" element={<Admin />} />
