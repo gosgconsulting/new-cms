@@ -1,19 +1,36 @@
 "use client";
 
-import React, { useMemo, useRef } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import type { ComponentSchema } from "../../../../sparti-cms/types/schema";
 import FlowbiteSection from "./FlowbiteSection";
+import { BadgeCheck, Star } from "lucide-react";
 
 interface FlowbiteTestimonialsSectionProps {
   component: ComponentSchema;
   className?: string;
 }
 
+function initialsFromName(name: string) {
+  const parts = name
+    .split(" ")
+    .map((p) => p.trim())
+    .filter(Boolean);
+  const a = parts[0]?.[0] || "";
+  const b = parts[1]?.[0] || parts[0]?.[1] || "";
+  return (a + b).toUpperCase();
+}
+
+function formatFallbackDate(index: number) {
+  // Simple deterministic dates similar to the screenshot
+  const day = 17 - index;
+  return `${day} January 2026`;
+}
+
 /**
  * Flowbite Testimonials Section Component
  *
- * Revamped into a scroll-snap carousel (works as a slider) with glass cards
- * matching the Master theme hero styling.
+ * Styled to match the provided reference cards (avatar + Google badge, stars, verified check).
+ * Includes light/dark versions via Tailwind `dark:` classes.
  */
 const FlowbiteTestimonialsSection: React.FC<FlowbiteTestimonialsSectionProps> = ({
   component,
@@ -23,6 +40,7 @@ const FlowbiteTestimonialsSection: React.FC<FlowbiteTestimonialsSectionProps> = 
   const items = component.items || [];
 
   const scrollerRef = useRef<HTMLDivElement>(null);
+  const [activeIndex, setActiveIndex] = useState(0);
 
   const getHeading = (key: string, level?: number) => {
     const item = items.find(
@@ -48,12 +66,12 @@ const FlowbiteTestimonialsSection: React.FC<FlowbiteTestimonialsSectionProps> = 
     return Array.isArray(arr?.items) ? (arr.items as any[]) : [];
   };
 
-  const title = getHeading("title") || (props as any).title || "What our clients say";
+  const title = getHeading("title") || (props as any).title || "Reviews";
   const subtitle =
     getHeading("subtitle", 3) ||
     getText("subtitle") ||
     (props as any).subtitle ||
-    "Short feedback from teams we've helped convert more visitors.";
+    "Real feedback from real people.";
 
   let testimonials =
     getArray("testimonials") ||
@@ -71,56 +89,114 @@ const FlowbiteTestimonialsSection: React.FC<FlowbiteTestimonialsSectionProps> = 
             text: item.props.content || item.props.text || "",
             name: item.props.name || "",
             role: item.props.title || item.props.role || "",
-            image: item.props.image || "",
+            date: item.props.date || "",
           };
         }
         return {
           text: item.content || item.text || "",
           name: item.name || item.author || "",
           role: item.role || item.position || "",
-          image: item.image || item.src || "",
+          date: item.date || "",
         };
       });
     }
   }
 
-  const hasMany = testimonials.length > 2;
+  // Dummy fallback (requested)
+  if (testimonials.length === 0) {
+    testimonials = [
+      {
+        name: "Melissa K.",
+        date: "17 January 2026",
+        text:
+          "The coaches are knowledgeable and supportive, making every workout feel focused, effective, and perfectly aligned with my fitness goals.",
+      },
+      {
+        name: "Daniel R.",
+        date: "16 January 2026",
+        text:
+          "Training here feels structured and motivating, with clear guidance that helps me stay consistent and see real progress over time.",
+      },
+      {
+        name: "Jonathan P.",
+        date: "14 January 2026",
+        text:
+          "The programs are well-designed and challenging, pushing me to improve while still feeling safe and properly coached.",
+      },
+    ];
+  }
 
-  const handleScroll = (dir: "prev" | "next") => {
+  const handleScroll = () => {
     const el = scrollerRef.current;
     if (!el) return;
-    const amount = Math.max(260, Math.floor(el.clientWidth * 0.85));
-    el.scrollBy({ left: dir === "next" ? amount : -amount, behavior: "smooth" });
+    const first = el.children[0] as HTMLElement | undefined;
+    if (!first) return;
+
+    const cardWidth = first.getBoundingClientRect().width;
+    if (!cardWidth) return;
+
+    const idx = Math.round(el.scrollLeft / (cardWidth + 24)); // 24 ~ gap-6
+    setActiveIndex(Math.max(0, Math.min(testimonials.length - 1, idx)));
+  };
+
+  const scrollToIndex = (idx: number) => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    const child = el.children[idx] as HTMLElement | undefined;
+    if (!child) return;
+    el.scrollTo({ left: child.offsetLeft, behavior: "smooth" });
   };
 
   const cards = useMemo(() => {
     return testimonials.map((testimonial: any, index: number) => {
       const text = testimonial.text || testimonial.content || testimonial.message || "";
-      const name = testimonial.name || testimonial.author || "";
-      const role = testimonial.role || testimonial.position || "";
-      const image = testimonial.image || testimonial.avatar || "";
+      const name = testimonial.name || testimonial.author || `Client ${index + 1}`;
+      const date = testimonial.date || formatFallbackDate(index);
+      const initials = initialsFromName(name);
 
       return (
         <div
           key={index}
-          className="snap-start min-w-[280px] md:min-w-[360px] rounded-2xl border border-black/10 dark:border-white/10 bg-white/70 dark:bg-white/5 backdrop-blur-sm p-6 shadow-[0_10px_40px_rgba(0,0,0,0.06)] dark:shadow-[0_10px_40px_rgba(0,0,0,0.35)]"
+          className="snap-start min-w-[280px] md:min-w-[360px] lg:min-w-[380px] rounded-3xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-900 p-7 shadow-[0_18px_60px_rgba(0,0,0,0.18)] dark:shadow-[0_18px_60px_rgba(0,0,0,0.55)]"
         >
-          {text ? (
-            <p className="text-gray-700 dark:text-gray-200 mb-5 italic leading-relaxed">
-              "{text}"
-            </p>
-          ) : null}
-          <div className="flex items-center gap-4">
-            {image ? (
-              <img src={image} alt={name} className="w-12 h-12 rounded-full object-cover" />
-            ) : (
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500/20 to-lime-400/20 border border-black/10 dark:border-white/10" />
-            )}
-            <div>
-              {name ? <p className="font-semibold text-gray-900 dark:text-white">{name}</p> : null}
-              {role ? <p className="text-sm text-gray-600 dark:text-gray-300">{role}</p> : null}
+          <div className="flex items-start gap-4">
+            <div className="relative">
+              <div className="h-14 w-14 rounded-full bg-rose-600 text-white flex items-center justify-center text-lg font-semibold">
+                {initials}
+              </div>
+              <div className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-white border border-black/10 flex items-center justify-center">
+                <span className="text-xs font-bold text-slate-900">G</span>
+              </div>
+            </div>
+
+            <div className="min-w-0 flex-1">
+              <p className="text-lg font-semibold text-gray-900 dark:text-white leading-tight">
+                {name}
+              </p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{date}</p>
             </div>
           </div>
+
+          <div className="mt-5 flex items-center gap-3">
+            <div className="flex items-center gap-1">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Star
+                  key={i}
+                  className="h-5 w-5 text-amber-400"
+                  fill="currentColor"
+                />
+              ))}
+            </div>
+            <div className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-purple-600 text-white">
+              <BadgeCheck className="h-4 w-4" />
+            </div>
+          </div>
+
+          {text ? (
+            <p className="mt-5 text-[17px] leading-relaxed text-slate-700 dark:text-slate-200">
+              {text}
+            </p>
+          ) : null}
         </div>
       );
     });
@@ -128,46 +204,35 @@ const FlowbiteTestimonialsSection: React.FC<FlowbiteTestimonialsSectionProps> = 
 
   return (
     <section className={`relative overflow-hidden py-20 px-4 ${className}`}>
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -top-40 left-1/2 h-[22rem] w-[44rem] -translate-x-1/2 rounded-full bg-gradient-to-r from-indigo-400/12 via-sky-400/10 to-lime-400/12 blur-3xl" />
-      </div>
-
       <div className="container mx-auto relative">
         <div className="mx-auto max-w-6xl">
-          <div className="flex items-end justify-between gap-4 mb-10">
-            <FlowbiteSection title={title} subtitle={subtitle} />
-            {hasMany ? (
-              <div className="hidden md:flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => handleScroll("prev")}
-                  className="h-10 w-10 rounded-full border border-black/10 dark:border-white/10 bg-white/70 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 transition-colors"
-                  aria-label="Previous testimonials"
-                >
-                  ‹
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleScroll("next")}
-                  className="h-10 w-10 rounded-full border border-black/10 dark:border-white/10 bg-white/70 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 transition-colors"
-                  aria-label="Next testimonials"
-                >
-                  ›
-                </button>
-              </div>
-            ) : null}
+          <FlowbiteSection title={title} subtitle={subtitle} className="text-center mb-10" />
+
+          <div
+            ref={scrollerRef}
+            onScroll={handleScroll}
+            className="flex gap-6 overflow-x-auto pb-6 snap-x snap-mandatory scroll-px-4 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          >
+            {cards}
           </div>
 
-          {testimonials.length > 0 ? (
-            <div
-              ref={scrollerRef}
-              className="flex gap-4 overflow-x-auto pb-2 snap-x snap-mandatory scroll-px-4 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-            >
-              {cards}
-            </div>
-          ) : (
-            <p className="text-center text-gray-500 dark:text-gray-400">No testimonials available.</p>
-          )}
+          <div className="flex items-center justify-center gap-2 mt-2">
+            {testimonials.map((_: any, idx: number) => {
+              const isActive = idx === activeIndex;
+              return (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => scrollToIndex(idx)}
+                  className={[
+                    "h-2 rounded-full transition-all",
+                    isActive ? "w-10 bg-rose-600" : "w-2 bg-slate-300 dark:bg-slate-600",
+                  ].join(" ")}
+                  aria-label={`Go to review ${idx + 1}`}
+                />
+              );
+            })}
+          </div>
         </div>
       </div>
     </section>
