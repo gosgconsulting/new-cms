@@ -87,6 +87,13 @@ const config = {
         brandGold: 'hsl(var(--brand-gold))',
         brandPurple: 'hsl(var(--brand-purple))',
         starYellow: '#FACC15',
+        // Nail Queen palette (scoped via .nail-queen-theme CSS variables)
+        'nail-queen': {
+          beige: 'hsl(var(--nail-queen-beige))',
+          'beige-light': 'hsl(var(--nail-queen-beige-light))',
+          brown: 'hsl(var(--nail-queen-brown))',
+          'brown-light': 'hsl(var(--nail-queen-brown-light))',
+        },
         dance: {
           pink: 'hsl(var(--dance-gold))',
           rose: 'hsl(var(--dance-rose))',
