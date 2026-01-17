@@ -120,7 +120,7 @@ const FlowbiteFAQSection: React.FC<FlowbiteFAQSectionProps> = ({
   }, [items, props]);
 
   return (
-    <section className={`relative overflow-hidden py-20 px-4 ${className}`}>
+    <section className={`relative overflow-hidden py-20 px-4 bg-[color:var(--brand-background)] dark:bg-[#0a0a0a] ${className}`}>
       <div className="container mx-auto relative">
         <div className="mx-auto max-w-5xl">
           <FlowbiteSection title={title} subtitle={subtitle} className="mb-10" />
@@ -131,13 +131,13 @@ const FlowbiteFAQSection: React.FC<FlowbiteFAQSectionProps> = ({
                 <AccordionItem
                   key={index}
                   value={`item-${index}`}
-                  className="border-none rounded-2xl bg-slate-100 dark:bg-slate-800/70 px-5 sm:px-7"
+                  className="border-none rounded-2xl bg-gray-100 dark:bg-[#1a1a1a] px-5 sm:px-7"
                 >
                   <AccordionTrigger
                     className="group no-underline hover:no-underline py-6 [&>svg]:hidden cursor-pointer"
                   >
                     <div className="flex w-full items-center justify-between gap-6">
-                      <span className="text-left text-xl sm:text-2xl font-medium text-slate-900 dark:text-white">
+                      <span className="text-left text-xl sm:text-2xl font-semibold text-gray-900 dark:text-white">
                         {item.question}
                       </span>
                       <span className="icon-container-primary h-11 w-11 rounded-full shrink-0">
@@ -147,7 +147,7 @@ const FlowbiteFAQSection: React.FC<FlowbiteFAQSectionProps> = ({
                     </div>
                   </AccordionTrigger>
                   <AccordionContent className="pb-6">
-                    <p className="text-base sm:text-lg text-slate-600 dark:text-slate-200 leading-relaxed">
+                    <p className="text-base sm:text-lg text-gray-700 dark:text-gray-300 leading-relaxed">
                       {item.answer}
                     </p>
                   </AccordionContent>

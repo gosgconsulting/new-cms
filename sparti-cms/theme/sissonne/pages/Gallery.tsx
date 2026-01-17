@@ -175,7 +175,7 @@ export default function Gallery() {
                     setSelectedCategory(category.id);
                     setCurrentIndex(0);
                   }}
-                  className={`flex-shrink-0 px-6 py-3 rounded-full font-medium transition-all duration-300 whitespace-nowrap ${
+                  className={`shrink-0 px-6 py-3 rounded-full font-medium transition-all duration-300 whitespace-nowrap ${
                     selectedCategory === category.id
                       ? "bg-dance-pink text-dance-white shadow-lg transform scale-105"
                       : "bg-dance-gray-100 text-dance-gray-800 hover:bg-dance-gray-200"
@@ -250,7 +250,7 @@ export default function Gallery() {
                   )}
 
                   {/* Image Overlay Info */}
-                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-dance-black/80 to-transparent p-6 pointer-events-none">
+                  <div className="absolute bottom-0 left-0 right-0 bg-linear-to-t from-dance-black/80 to-transparent p-6 pointer-events-none">
                     <div className="flex items-center justify-between">
                       <div>
                         <h3 className="text-2xl md:text-3xl font-bold text-dance-white mb-2">
@@ -280,7 +280,7 @@ export default function Gallery() {
                     {filteredItems.map((item, index) => (
                       <div
                         key={item.id}
-                        className={`flex-shrink-0 relative rounded-lg overflow-hidden transition-all duration-300 cursor-pointer group ${
+                        className={`shrink-0 relative rounded-lg overflow-hidden transition-all duration-300 cursor-pointer group ${
                           index === currentIndex
                             ? "ring-3 ring-dance-pink transform scale-105"
                             : "opacity-70 hover:opacity-100"

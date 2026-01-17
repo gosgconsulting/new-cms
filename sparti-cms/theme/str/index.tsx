@@ -269,7 +269,7 @@ const STRTheme: React.FC<TenantLandingProps> = ({
 
       {/* Sticky Header - appears after scrolling on homepage */}
       {isHomepage && isScrolled && (
-        <header className="sticky top-0 z-[60] bg-background/95 backdrop-blur-sm border-b border-border transition-opacity duration-300">
+        <header className="sticky top-0 z-60 bg-background/95 backdrop-blur-sm border-b border-border transition-opacity duration-300">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex h-20 items-center justify-between">
               <div className="flex items-center space-x-2">
@@ -372,31 +372,31 @@ const STRTheme: React.FC<TenantLandingProps> = ({
             </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="bg-white rounded-3xl p-6 shadow-2xl h-full flex flex-col">
-                <div className="w-12 h-12 rounded-full bg-[#E48D2A] flex items-center justify-center mb-4 flex-shrink-0">
+                <div className="w-12 h-12 rounded-full bg-[#E48D2A] flex items-center justify-center mb-4 shrink-0">
                   <Wrench className="h-6 w-6 text-white" />
                 </div>
                 <h3 className="text-xl font-bold uppercase text-black mb-3">EXPERT COACHING</h3>
-                <p className="text-black/80 text-sm leading-relaxed flex-grow">
+                <p className="text-black/80 text-sm leading-relaxed grow">
                   Train With Experienced Coaches Who Guide Every Workout With Proper Form And Purpose.
                 </p>
               </div>
 
               <div className="bg-white rounded-3xl p-6 shadow-2xl h-full flex flex-col">
-                <div className="w-12 h-12 rounded-full bg-[#E48D2A] flex items-center justify-center mb-4 flex-shrink-0">
+                <div className="w-12 h-12 rounded-full bg-[#E48D2A] flex items-center justify-center mb-4 shrink-0">
                   <Award className="h-6 w-6 text-white" />
                 </div>
                 <h3 className="text-xl font-bold text-black mb-3">Structured Programs</h3>
-                <p className="text-black/80 text-sm leading-relaxed flex-grow">
+                <p className="text-black/80 text-sm leading-relaxed grow">
                   Follow Proven Training Programs Designed To Deliver Real, Measurable Results.
                 </p>
               </div>
 
               <div className="bg-white rounded-3xl p-6 shadow-2xl h-full flex flex-col">
-                <div className="w-12 h-12 rounded-full bg-[#E48D2A] flex items-center justify-center mb-4 flex-shrink-0">
+                <div className="w-12 h-12 rounded-full bg-[#E48D2A] flex items-center justify-center mb-4 shrink-0">
                   <Users className="h-6 w-6 text-white" />
                 </div>
                 <h3 className="text-xl font-bold uppercase text-black mb-3">SUPPORTIVE COMMUNITY</h3>
-                <p className="text-black/80 text-sm leading-relaxed flex-grow">
+                <p className="text-black/80 text-sm leading-relaxed grow">
                   Train In A Motivating Environment That Helps You Stay Consistent And Reach Your Goals.
                 </p>
               </div>
@@ -454,7 +454,7 @@ const STRTheme: React.FC<TenantLandingProps> = ({
                           </h3>
                           <button
                             onClick={() => setActiveProgramme(activeProgramme === index ? -1 : index)}
-                            className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center flex-shrink-0 hover:bg-gray-700 transition-colors"
+                            className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center shrink-0 hover:bg-gray-700 transition-colors"
                             aria-label={`Toggle ${programme.title}`}
                           >
                             <ChevronUp className="h-4 w-4 text-white" />
@@ -493,7 +493,7 @@ const STRTheme: React.FC<TenantLandingProps> = ({
                               e.stopPropagation();
                               setActiveProgramme(index);
                             }}
-                            className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center flex-shrink-0 hover:bg-gray-700 transition-colors"
+                            className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center shrink-0 hover:bg-gray-700 transition-colors"
                             aria-label={`Open ${programme.title}`}
                           >
                             <ChevronUp className="h-4 w-4 text-white rotate-180" />
@@ -662,7 +662,7 @@ const STRTheme: React.FC<TenantLandingProps> = ({
                               return (
                                 <div key={globalIndex} className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-200 h-full flex flex-col">
                                   <div className="flex items-start gap-4 mb-4">
-                                    <div className="relative flex-shrink-0">
+                                    <div className="relative shrink-0">
                                       {testimonial.profilePhotoUrl ? (
                                         <img
                                           src={testimonial.profilePhotoUrl}
@@ -713,7 +713,7 @@ const STRTheme: React.FC<TenantLandingProps> = ({
                                     </div>
                                   </div>
 
-                                  <p className="text-gray-700 mb-4 leading-relaxed text-sm flex-grow">
+                                  <p className="text-gray-700 mb-4 leading-relaxed text-sm grow">
                                     {testimonial.quote.length > 150 ? (
                                       <>
                                         {testimonial.quote.substring(0, 150)}...{' '}
@@ -776,13 +776,13 @@ const STRTheme: React.FC<TenantLandingProps> = ({
               { name: 'Jacqueline', role: 'Group Class Coach', description: 'Jacqueline is a passionate fitness trainer dedicated to helping others feel strong, confident, and empowered through movement. While she works as an HR professional by day, her true energy comes from the world of fitness—especially spin and pilates. She believes fitness should be fun, approachable, and inclusive, regardless of experience level. Her mission is to create a supportive space where members are encouraged to grow, challenge themselves, and celebrate progress.', image: '/theme/str/assets/team/Jacqueline-e1744082763597.jpeg' },
             ].map((member, index) => (
               <div key={index} className="relative rounded-2xl overflow-hidden transition-all duration-300 border border-gray-700/50 flex flex-col h-full">
-                <div className="relative h-64 md:h-72 overflow-hidden flex-shrink-0">
+                <div className="relative h-64 md:h-72 overflow-hidden shrink-0">
                   <img src={member.image} alt={member.name} className="w-full h-full object-cover" loading="lazy" />
                 </div>
-                <div className="bg-background p-6 flex flex-col flex-grow">
+                <div className="bg-background p-6 flex flex-col grow">
                   <h3 className="text-2xl font-bold uppercase text-foreground mb-2">{member.name.toUpperCase()}</h3>
                   <p className="text-[#A0A0A0] text-sm font-medium mb-3">{member.role}</p>
-                  <p className="text-muted-foreground text-sm leading-relaxed flex-grow">
+                  <p className="text-muted-foreground text-sm leading-relaxed grow">
                     {member.description}
                   </p>
                 </div>

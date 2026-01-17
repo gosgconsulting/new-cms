@@ -96,7 +96,7 @@ const FlowbiteWhatIsSEOSection: React.FC<FlowbiteWhatIsSEOSectionProps> = ({
   };
 
   return (
-    <section className={`py-20 px-4 bg-white ${className}`}>
+    <section className={`py-20 px-4 bg-[color:var(--brand-background)] dark:bg-[#0a0a0a] ${className}`}>
       <div className="container mx-auto">
         <FlowbiteSection 
           title={title}
@@ -119,12 +119,12 @@ const FlowbiteWhatIsSEOSection: React.FC<FlowbiteWhatIsSEOSectionProps> = ({
                       <Icon className="w-7 h-7 text-primary" />
                     </div>
                     {serviceTitle && (
-                      <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
                         {serviceTitle}
                       </h3>
                     )}
                     {serviceDescription && (
-                      <p className="text-gray-600 text-sm leading-relaxed">
+                      <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed">
                         {serviceDescription}
                       </p>
                     )}
@@ -133,7 +133,7 @@ const FlowbiteWhatIsSEOSection: React.FC<FlowbiteWhatIsSEOSectionProps> = ({
               })}
             </div>
           ) : (
-            <p className="text-center text-gray-500">No services available.</p>
+            <p className="text-center text-gray-600 dark:text-gray-400">No services available.</p>
           )}
         </FlowbiteSection>
       </div>

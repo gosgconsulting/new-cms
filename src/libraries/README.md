@@ -1,68 +1,58 @@
-# Design Systems Architecture
+# Flowbite Design System
 
 ## 📋 Overview
 
-This folder contains reusable design system implementations that can be easily installed and integrated into theme websites. Design systems provide a consistent set of components, styles, and patterns that can be used across multiple tenant themes.
+This folder contains the **Flowbite** design system implementation - a comprehensive, production-ready component library that powers all theme websites in the CMS. Flowbite provides a consistent set of 29 components, styles, and patterns used across all tenant themes.
 
-**Purpose**: Create a modular, reusable architecture where design systems can be easily migrated from reference implementations, configured, and used by `/theme` websites without duplicating code.
+**Purpose**: Provide a single, unified design system that can be easily configured and used by `/theme` websites without duplicating code. By consolidating to Flowbite only, we ensure consistency, easier maintenance, and a clearer development path.
 
 ---
 
 ## 🏗️ Architecture
 
-### Two-Tier Structure
+### Single Design System Structure
 
-The design system architecture follows a two-tier structure:
+The architecture is now simplified with Flowbite as the sole design system:
 
 ```
 src/libraries/
-├── {design-system}/          # ✅ Active Design Systems
-│   └── components/           # Migrated, CMS-integrated components
-│
-└── setups/                   # 📚 Reference/Setup Folders
-    └── {design-system}-*/    # Original design system source code
+└── flowbite/                 # ✅ Flowbite Design System
+    └── components/           # 29 CMS-integrated components
 ```
 
-#### Active Design Systems (`src/libraries/{name}/`)
-- **Status**: Implemented, registered, and ready to use
+#### Flowbite Components (`src/libraries/flowbite/components/`)
+- **Status**: Production-ready, fully implemented
 - **Purpose**: CMS-integrated components that work with our schema system
-- **Structure**: Migrated components that accept `ComponentSchema` from CMS
-- **Example**: `src/libraries/flowbite/components/` - 29 active components
-
-#### Setup Folders (`src/libraries/setups/`)
-- **Status**: Reference implementations (not directly used)
-- **Purpose**: Original design system source code to be migrated/adapted
-- **Structure**: Each setup folder contains the original design system code with its own structure
-- **Usage**: Reference for migration - extract and adapt components to work with CMS schema
+- **Count**: 29 comprehensive components covering all use cases
+- **Structure**: Components accept `ComponentSchema` from CMS
 
 ### Architecture Flow
 
 ```mermaid
 graph LR
-    A[Setup Folders<br/>Original Design System Code] -->|Migration Process| B[Active Design Systems<br/>CMS-Integrated Components]
-    B -->|Registered in| C[Library Registry]
-    B -->|Used by| D[Theme Websites]
-    C -->|Provides| E[Component Library Reference]
-    D -->|Renders via| F[CMS Schema]
-    F -->|Feeds data to| B
+    A[Flowbite Components] -->|Registered in| B[Library Registry]
+    A -->|Used by| C[Theme Websites]
+    B -->|Provides| D[Component Reference]
+    C -->|Renders via| E[CMS Schema]
+    E -->|Feeds data to| A
 ```
 
 ---
 
-## 🔄 Migration Workflow
+## 🔄 Component Pattern
 
-### Understanding the Migration Process
+### Understanding Flowbite Components
 
-Each design system in the `setups/` folder contains its own code structure and patterns. The migration process transforms these original components into CMS-integrated components that:
+All Flowbite components follow a consistent, CMS-integrated pattern that:
 
 1. **Accept CMS Schema**: Components receive `ComponentSchema` instead of direct props
 2. **Extract Data**: Use helper functions to extract data from schema items/props
-3. **Render with Design System**: Use the design system's UI components (e.g., `flowbite-react`, `daisyui`)
+3. **Render with Flowbite**: Use Flowbite's UI components (`flowbite-react`)
 4. **Follow Standard Pattern**: All components follow the same structure for consistency
 
-### Migration Transformation
+### Component Transformation Example
 
-**Before (Original Design System Component):**
+**Before (Standard React Component):**
 ```typescript
 // Original component from setup folder
 interface HeroProps {
@@ -83,7 +73,7 @@ const Hero: React.FC<HeroProps> = ({ title, description, buttonText, buttonLink 
 };
 ```
 
-**After (Migrated CMS-Integrated Component):**
+**After (Flowbite CMS-Integrated Component):**
 ```typescript
 // Migrated component in active design system
 import type { ComponentSchema } from "../../../../sparti-cms/types/schema";
@@ -126,9 +116,9 @@ const FlowbiteHeroSection: React.FC<FlowbiteHeroSectionProps> = ({
 
 ---
 
-## 📐 Component Pattern
+## 📐 Flowbite Component Standard
 
-All design system components must follow this standard pattern for consistency and CMS integration.
+All Flowbite components follow this standard pattern for consistency and CMS integration.
 
 ### Required Structure
 
@@ -137,24 +127,23 @@ All design system components must follow this standard pattern for consistency a
 
 import React from "react";
 import type { ComponentSchema } from "../../../../sparti-cms/types/schema";
-import DesignSystemSection from "./DesignSystemSection";
-// Import design system UI components
-// import { Button, Card } from "design-system-react";
+import FlowbiteSection from "./FlowbiteSection";
+import { Button, Card } from "flowbite-react";
 
-interface DesignSystemComponentProps {
+interface FlowbiteComponentProps {
   component: ComponentSchema;  // Required: CMS schema
   className?: string;          // Optional: Additional styling
 }
 
 /**
- * Design System Component Name
+ * Flowbite Component Name
  * 
  * Description of what this component does
  * 
  * @param component - Component schema from CMS
  * @param className - Additional CSS classes
  */
-const DesignSystemComponent: React.FC<DesignSystemComponentProps> = ({
+const FlowbiteComponent: React.FC<FlowbiteComponentProps> = ({
   component,
   className = "",
 }) => {
@@ -194,15 +183,15 @@ const DesignSystemComponent: React.FC<DesignSystemComponentProps> = ({
   const description = getText("description");
   // ... more data extraction
 
-  // 4. Render using design system components
+  // 4. Render using Flowbite components
   return (
-    <DesignSystemSection className={className}>
-      {/* Component content using design system UI */}
-    </DesignSystemSection>
+    <FlowbiteSection className={className}>
+      {/* Component content using Flowbite UI */}
+    </FlowbiteSection>
   );
 };
 
-export default DesignSystemComponent;
+export default FlowbiteComponent;
 ```
 
 ### Helper Functions Pattern
@@ -255,9 +244,9 @@ const DesignSystemSection: React.FC<DesignSystemSectionProps> = ({
 
 ---
 
-## 🚀 Step-by-Step: Migrating a Design System
+## 🚀 Creating New Flowbite Components
 
-This guide walks you through migrating **DaisyUI** from the setup folder to an active design system. Follow the same pattern for any other design system.
+This guide walks you through creating a new Flowbite component following the established pattern.
 
 ### Prerequisites
 
@@ -590,69 +579,74 @@ initDaisyUITheme('light');
 
 ### Library Registry
 
-Design systems are registered in `src/config/libraryRegistry.ts`:
+Flowbite is registered in `src/config/libraryRegistry.ts`:
 
 ```typescript
 export interface LibraryConfig {
   id: string;
   label: string;
   available: boolean;
-  component?: ComponentType;  // Reference page component
+  getMetadata: () => DesignSystemMetadata;
 }
-```
 
-This registry makes design systems available throughout the application.
+export const libraryRegistry: LibraryConfig[] = [
+  {
+    id: "flowbite",
+    label: "Flowbite",
+    available: true,
+    getMetadata: getFlowbiteMetadata,
+  },
+];
+```
 
 ### Component Key Mapper
 
-Components can be mapped to schema keys in `src/utils/componentKeyMapper.ts`:
+Flowbite components are mapped to schema keys in `src/utils/componentKeyMapper.ts`:
 
 ```typescript
 const LIBRARY_MAPPINGS: Record<string, Record<string, string>> = {
   flowbite: {
     header: "header",
     footer: "footer",
+    hero: "hero",
+    features: "features",
     // ... more mappings
-  },
-  daisyui: {
-    // Add DaisyUI-specific mappings
   },
 };
 ```
 
 ### Theme Integration
 
-Themes in `sparti-cms/theme/{theme-name}/` can import and use design system components:
+Themes in `sparti-cms/theme/{theme-name}/` import and use Flowbite components:
 
 ```typescript
 // sparti-cms/theme/my-theme/index.tsx
 import FlowbiteHeroSection from '@/libraries/flowbite/components/FlowbiteHeroSection';
-import DaisyUIHeroSection from '@/libraries/daisyui/components/DaisyUIHeroSection';
+import FlowbiteFeaturesSection from '@/libraries/flowbite/components/FlowbiteFeaturesSection';
 
 // Use in theme component
 <FlowbiteHeroSection component={heroSchema} />
-<DaisyUIHeroSection component={heroSchema} />
+<FlowbiteFeaturesSection component={featuresSchema} />
 ```
 
 ### Styling System
 
-Design system styles are organized in `src/styles/{design-system}/`:
+Flowbite styles are organized in `src/styles/flowbite/`:
 
 ```
-src/styles/
-├── flowbite/
-│   ├── default.css
-│   ├── minimal.css
-│   └── ...
-└── daisyui/
-    └── default.css
+src/styles/flowbite/
+├── default.css      # Default Flowbite theme
+├── minimal.css      # Minimal theme
+├── enterprise.css   # Enterprise theme
+├── playful.css      # Playful theme
+└── mono.css         # Monochrome theme
 ```
 
-Themes can override design system styles in their `theme.css`:
+Themes can override Flowbite styles in their `theme.css`:
 
 ```css
 /* sparti-cms/theme/my-theme/theme.css */
-/* Override design system styles */
+/* Override Flowbite styles */
 .btn-primary {
   @apply bg-purple-600 hover:bg-purple-700;
 }
@@ -660,37 +654,30 @@ Themes can override design system styles in their `theme.css`:
 
 ---
 
-## ✅ Migration Checklist
+## ✅ Component Creation Checklist
 
-When migrating a design system, ensure you complete:
+When creating a new Flowbite component, ensure you:
 
-- [ ] Review setup folder structure and identify components to migrate
-- [ ] Install npm package and verify in `package.json`
-- [ ] Configure Tailwind config (plugin + content paths)
-- [ ] Create folder structure (`src/libraries/{name}/components/`)
-- [ ] Create base Section component
-- [ ] Migrate at least 5-10 core components (Hero, Header, Footer, Section, Card, etc.)
-- [ ] Create theme manager (if design system supports themes)
-- [ ] Create library reference page component
-- [ ] Register in `libraryRegistry.ts`
-- [ ] Add styles in `src/styles/{name}/` (if needed)
-- [ ] Initialize in `main.tsx` (if needed)
-- [ ] Test components with sample schema data
+- [ ] Review existing Flowbite components for pattern consistency
+- [ ] Create component file in `src/libraries/flowbite/components/`
+- [ ] Follow the standard ComponentSchema pattern
+- [ ] Implement all required helper functions (getText, getButton, getImage, etc.)
+- [ ] Use FlowbiteSection wrapper where appropriate
+- [ ] Add component to FLOWBITE_COMPONENT_FILES in `designSystemProviders.ts`
+- [ ] Test component with sample schema data
 - [ ] Test integration in a theme
 - [ ] Document component props and expected schema structure
 
 ---
 
-## 📚 Reference: Current Design Systems
+## 📚 Flowbite Design System Reference
 
-### Flowbite ✅
+### Component Library
 
 - **Location**: `src/libraries/flowbite/`
-- **Components**: 29 components
+- **Components**: 29 production-ready components
 - **Themes**: 5 themes (default, minimal, enterprise, playful, mono)
-- **Setup Reference**: `src/libraries/setups/flowbite-react-main/`
 - **Documentation**: `docs/development/flowbite-component-creation-sop.md`
-- **Pattern**: Reference implementation for migration workflow
 
 **Key Files:**
 - Base component: `src/libraries/flowbite/components/FlowbiteSection.tsx`
@@ -698,25 +685,41 @@ When migrating a design system, ensure you complete:
 - Theme manager: `src/utils/flowbiteThemeManager.ts`
 - Library page: `src/components/visual-builder/FlowbiteLibrary.tsx`
 
+### Available Components (29)
+
+**Core Components:**
+- FlowbiteHeroSection, FlowbiteFeaturesSection, FlowbiteCTASection
+- FlowbiteFAQSection, FlowbiteTestimonialsSection, FlowbiteContentSection
+
+**Blog Components:**
+- FlowbiteBlogGrid, FlowbiteBlogHero, FlowbiteBlogSidebar
+
+**Product/Service Components:**
+- FlowbiteProductGrid, FlowbiteProductSection, FlowbiteServicesGrid, FlowbiteShowcase
+
+**SEO/Marketing Components:**
+- FlowbiteSEOResultsSection, FlowbiteWhatIsSEOSection, FlowbiteWhatsIncludedSection
+- FlowbiteWhyChooseUsSection, FlowbitePainPointSection
+
+**Social/Review Components:**
+- FlowbiteReviews, FlowbiteSocialMedia
+
+**Other Components:**
+- FlowbiteNewsletter, FlowbitePageTitle, FlowbiteVideoSection, FlowbiteContent, FlowbiteSlider
+- FlowbiteHeader, FlowbiteFooter, FlowbiteSection (base), FlowbiteAdminDashboardShell
+
 ---
 
 ## 🎨 Best Practices
-
-### Migration Best Practices
-
-1. **Start with Core Components**: Migrate Hero, Header, Footer, Section first
-2. **Follow the Pattern**: Use Flowbite components as reference for structure
-3. **Extract Reusable Helpers**: Create shared helper functions if needed
-4. **Test Incrementally**: Test each migrated component before moving to the next
-5. **Document Schema**: Document what schema structure each component expects
 
 ### Component Structure Standards
 
 1. **Consistency**: All components follow the same pattern
 2. **Schema-Driven**: Accept `ComponentSchema` from CMS
 3. **Type Safety**: Use TypeScript interfaces for all props
-4. **Reusability**: Create base components (like `Section`) that can be reused
-5. **Accessibility**: Follow design system's accessibility guidelines
+4. **Reusability**: Use FlowbiteSection wrapper for consistent layout
+5. **Accessibility**: Follow Flowbite's accessibility guidelines
+6. **Theming**: Support all 5 Flowbite themes (default, minimal, enterprise, playful, mono)
 
 ### Code Quality
 
@@ -729,28 +732,28 @@ When migrating a design system, ensure you complete:
 
 ## 🐛 Troubleshooting
 
-### Design System Not Appearing
-
-- **Check registry**: Verify it's registered in `libraryRegistry.ts`
-- **Check availability**: Ensure `available: true` in registry
-- **Verify imports**: Check component import paths are correct
-
-### Styles Not Loading
-
-- **Tailwind config**: Verify plugin is added and content paths include design system files
-- **CSS imports**: Check if CSS needs to be imported in `main.tsx` or component files
-- **Theme conflicts**: Check for conflicting styles in theme CSS
-
 ### Components Not Rendering
 
 - **Schema structure**: Verify `ComponentSchema` structure matches component expectations
 - **Data extraction**: Check helper functions are extracting data correctly
 - **Console errors**: Check browser console for TypeScript or runtime errors
-- **Package installation**: Verify design system package is installed in `package.json`
+- **Flowbite installation**: Verify `flowbite` and `flowbite-react` are installed in `package.json`
 
-### Migration Issues
+### Styles Not Loading
 
-- **Component structure**: Compare with Flowbite components to ensure pattern is followed
+- **Tailwind config**: Verify Flowbite plugin is added and content paths include Flowbite files
+- **Theme loading**: Check that the correct theme CSS is being loaded
+- **Theme conflicts**: Check for conflicting styles in theme CSS
+
+### Theme Issues
+
+- **Theme manager**: Verify `flowbiteThemeManager.ts` is working correctly
+- **Theme files**: Ensure theme CSS files exist in `src/styles/flowbite/`
+- **Theme switching**: Test theme switching functionality in the UI
+
+### Component Structure Issues
+
+- **Pattern compliance**: Compare with existing Flowbite components to ensure pattern is followed
 - **Helper functions**: Verify helper functions match the standard pattern
 - **Type errors**: Check TypeScript types match expected schema structure
 
@@ -758,26 +761,29 @@ When migrating a design system, ensure you complete:
 
 ## 📖 Additional Resources
 
-- **Flowbite Setup Guide**: `docs/development/flowbite-component-creation-sop.md`
+- **Flowbite Documentation**: `docs/development/flowbite-component-creation-sop.md`
+- **Flowbite Official Docs**: https://flowbite-react.com/
 - **Theme System**: `sparti-cms/theme/README.md`
 - **Library Registry**: `src/config/libraryRegistry.ts`
 - **Component Key Mapper**: `src/utils/componentKeyMapper.ts`
-- **Design Systems Page**: `/design-systems` route in app
+- **Component Preview**: `/design-systems` route in app
 
 ---
 
 ## 🤝 Contributing
 
-When migrating a new design system:
+When creating a new Flowbite component:
 
-1. Follow the step-by-step migration guide above
-2. Create at least 5-10 core components (Hero, Section, Header, Footer, Card, etc.)
+1. Follow the standard component pattern (see Component Pattern section)
+2. Reference existing Flowbite components for consistency
 3. Test with sample schema data
 4. Test integration in a theme
-5. Update this README with your design system details
-6. Document component schemas and expected props
+5. Add to FLOWBITE_COMPONENT_FILES list
+6. Document component props and expected schema structure
+7. Update this README if adding new categories of components
 
 ---
 
-**Last Updated**: 2025-01-27  
+**Last Updated**: 2026-01-18  
+**Design System**: Flowbite (consolidated from 7 systems to 1)  
 **Maintained By**: Development Team

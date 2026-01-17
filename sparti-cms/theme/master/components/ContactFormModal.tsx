@@ -30,13 +30,11 @@ function getThankYouPath(): string {
 
 const inputClass =
   "w-full h-11 px-4 rounded-xl border border-gray-300 bg-white text-gray-900 " +
-  "dark:bg-slate-900 dark:text-white dark:border-white/10 " +
-  "focus:ring-2 focus:ring-[color:var(--brand-primary)] focus:border-[color:var(--brand-primary)] disabled:opacity-50";
+  "focus:ring-2 focus:ring-(--brand-primary) focus:border-(--brand-primary) disabled:opacity-50";
 
 const textareaClass =
   "w-full px-4 py-3 rounded-xl border border-gray-300 bg-white text-gray-900 " +
-  "dark:bg-slate-900 dark:text-white dark:border-white/10 " +
-  "focus:ring-2 focus:ring-[color:var(--brand-primary)] focus:border-[color:var(--brand-primary)] disabled:opacity-50";
+  "focus:ring-2 focus:ring-(--brand-primary) focus:border-(--brand-primary) disabled:opacity-50";
 
 const ContactFormModal: React.FC<ContactFormModalProps> = ({
   isOpen,
@@ -203,21 +201,21 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent
-        className={`max-w-2xl max-h-[90vh] overflow-y-auto bg-white dark:bg-slate-950 text-gray-900 dark:text-white border border-black/10 dark:border-white/10 ${className}`}
+        className={`max-w-2xl max-h-[90vh] overflow-y-auto bg-white text-gray-900 border border-black/10 ${className}`}
       >
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Contact Us</h2>
+            <h2 className="text-xl font-semibold text-gray-900">Contact Us</h2>
           </div>
           <form onSubmit={handleSubmit} className="w-full">
             {/* Step 1 */}
             {step === 1 && (
               <div className="space-y-6">
                 <div className="space-y-2">
-                  <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-gray-900 dark:text-white">
+                  <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-gray-900">
                     1. Let's start with your details
                   </h2>
-                  <p className="text-sm text-gray-600 dark:text-gray-300">
+                  <p className="text-sm text-gray-600">
                     Name and email are required.
                   </p>
                 </div>
@@ -226,7 +224,7 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
                   <div>
                     <label
                       htmlFor="name"
-                      className="block text-sm font-medium text-gray-800 dark:text-gray-200 mb-2"
+                      className="block text-sm font-medium text-gray-800 mb-2"
                     >
                       Full Name *
                     </label>
@@ -245,7 +243,7 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
                   <div>
                     <label
                       htmlFor="email"
-                      className="block text-sm font-medium text-gray-800 dark:text-gray-200 mb-2"
+                      className="block text-sm font-medium text-gray-800 mb-2"
                     >
                       Email *
                     </label>
@@ -264,7 +262,7 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
                   <div>
                     <label
                       htmlFor="phone"
-                      className="block text-sm font-medium text-gray-800 dark:text-gray-200 mb-2"
+                      className="block text-sm font-medium text-gray-800 mb-2"
                     >
                       Phone
                     </label>
@@ -281,9 +279,9 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
                 </div>
 
                 {submitStatus === "error" && errorMessage && (
-                  <div className="rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-400/30 p-4 text-sm">
-                    <p className="font-medium text-red-800 dark:text-red-200">Error</p>
-                    <p className="text-red-600 dark:text-red-200/80 mt-1">{errorMessage}</p>
+                  <div className="rounded-xl bg-red-50 border border-red-200 p-4 text-sm">
+                    <p className="font-medium text-red-800">Error</p>
+                    <p className="text-red-600 mt-1">{errorMessage}</p>
                   </div>
                 )}
 
@@ -306,10 +304,10 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
             {step === 2 && (
               <div className="space-y-6">
                 <div className="space-y-2">
-                  <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-gray-900 dark:text-white">
+                  <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-gray-900">
                     2. How would you like to contact us?
                   </h2>
-                  <p className="text-sm text-gray-600 dark:text-gray-300">Choose one option, then continue.</p>
+                  <p className="text-sm text-gray-600">Choose one option, then continue.</p>
                 </div>
 
                 <div className="grid grid-cols-1 gap-3">
@@ -319,8 +317,8 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
                     className={
                       "text-left rounded-2xl border p-4 transition-colors " +
                       (method === "whatsapp"
-                        ? "border-brand-accent bg-brand-accent/10 dark:bg-brand-accent/10 dark:border-brand-accent/40"
-                        : "border-gray-200 bg-white hover:bg-gray-50 dark:bg-white/5 dark:border-white/10 dark:hover:bg-white/10")
+                        ? "border-brand-accent bg-brand-accent/10"
+                        : "border-gray-200 bg-white hover:bg-gray-50")
                     }
                   >
                     <div className="flex items-center gap-3">
@@ -328,8 +326,8 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
                         <MessageCircle className="h-5 w-5" />
                       </div>
                       <div>
-                        <div className="font-semibold text-gray-900 dark:text-white">WhatsApp</div>
-                        <div className="text-xs text-gray-600 dark:text-gray-300">Fastest reply</div>
+                        <div className="font-semibold text-gray-900">WhatsApp</div>
+                        <div className="text-xs text-gray-600">Fastest reply</div>
                       </div>
                     </div>
                   </button>
@@ -340,8 +338,8 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
                     className={
                       "text-left rounded-2xl border p-4 transition-colors " +
                       (method === "form"
-                        ? "border-brand-primary bg-brand-primary/10 dark:bg-brand-primary/10 dark:border-brand-primary/40"
-                        : "border-gray-200 bg-white hover:bg-gray-50 dark:bg-white/5 dark:border-white/10 dark:hover:bg-white/10")
+                        ? "border-brand-primary bg-brand-primary/10"
+                        : "border-gray-200 bg-white hover:bg-gray-50")
                     }
                   >
                     <div className="flex items-center gap-3">
@@ -349,17 +347,17 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
                         <Send className="h-5 w-5" />
                       </div>
                       <div>
-                        <div className="font-semibold text-gray-900 dark:text-white">Contact form</div>
-                        <div className="text-xs text-gray-600 dark:text-gray-300">Email follow-up</div>
+                        <div className="font-semibold text-gray-900">Contact form</div>
+                        <div className="text-xs text-gray-600">Email follow-up</div>
                       </div>
                     </div>
                   </button>
                 </div>
 
                 {submitStatus === "error" && errorMessage && (
-                  <div className="rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-400/30 p-4 text-sm">
-                    <p className="font-medium text-red-800 dark:text-red-200">Error</p>
-                    <p className="text-red-600 dark:text-red-200/80 mt-1">{errorMessage}</p>
+                  <div className="rounded-xl bg-red-50 border border-red-200 p-4 text-sm">
+                    <p className="font-medium text-red-800">Error</p>
+                    <p className="text-red-600 mt-1">{errorMessage}</p>
                   </div>
                 )}
 
@@ -387,10 +385,10 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
             {step === 3 && (
               <div className="space-y-6">
                 <div className="space-y-2">
-                  <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-gray-900 dark:text-white">
+                  <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-gray-900">
                     3. What can we help you with?
                   </h2>
-                  <p className="text-sm text-gray-600 dark:text-gray-300">
+                  <p className="text-sm text-gray-600">
                     {method === "whatsapp"
                       ? "We'll redirect you to WhatsApp after saving your enquiry."
                       : "We'll save your enquiry and show a confirmation page."}
@@ -400,7 +398,7 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
                 <div>
                   <label
                     htmlFor="message"
-                    className="block text-sm font-medium text-gray-800 dark:text-gray-200 mb-2"
+                    className="block text-sm font-medium text-gray-800 mb-2"
                   >
                     Your message *
                   </label>
@@ -416,9 +414,9 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
                 </div>
 
                 {submitStatus === "error" && errorMessage && (
-                  <div className="rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-400/30 p-4 text-sm">
-                    <p className="font-medium text-red-800 dark:text-red-200">Error</p>
-                    <p className="text-red-600 dark:text-red-200/80 mt-1">{errorMessage}</p>
+                  <div className="rounded-xl bg-red-50 border border-red-200 p-4 text-sm">
+                    <p className="font-medium text-red-800">Error</p>
+                    <p className="text-red-600 mt-1">{errorMessage}</p>
                   </div>
                 )}
 

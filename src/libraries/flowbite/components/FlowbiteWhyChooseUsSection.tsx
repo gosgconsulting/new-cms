@@ -67,7 +67,7 @@ const FlowbiteWhyChooseUsSection: React.FC<FlowbiteWhyChooseUsSectionProps> = ({
   const cta = getButton("cta");
 
   return (
-    <section className={`py-20 px-4 bg-gray-50 ${className}`}>
+    <section className={`py-20 px-4 bg-[color:var(--brand-background)] dark:bg-[#0a0a0a] ${className}`}>
       <div className="container mx-auto">
         <FlowbiteSection className="mb-12">
           {badge && (
@@ -77,12 +77,12 @@ const FlowbiteWhyChooseUsSection: React.FC<FlowbiteWhyChooseUsSectionProps> = ({
           )}
           {title && (
             <h2 
-              className="text-3xl font-bold text-gray-900 text-center mb-4"
+              className="text-3xl font-bold text-gray-900 dark:text-white text-center mb-4"
               dangerouslySetInnerHTML={{ __html: title }}
             />
           )}
           {description && (
-            <p className="text-lg text-gray-600 text-center mb-12">{description}</p>
+            <p className="text-lg text-gray-700 dark:text-gray-300 text-center mb-12">{description}</p>
           )}
 
           {/* Reasons Grid */}
@@ -100,19 +100,19 @@ const FlowbiteWhyChooseUsSection: React.FC<FlowbiteWhyChooseUsSectionProps> = ({
                 return (
                   <Card key={index} className="text-center h-full">
                     {reasonTitle && (
-                      <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                      <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
                         {reasonTitle}
                       </h3>
                     )}
                     {reasonDesc && (
-                      <p className="text-gray-600">{reasonDesc}</p>
+                      <p className="text-gray-700 dark:text-gray-300">{reasonDesc}</p>
                     )}
                   </Card>
                 );
               })}
             </div>
           ) : (
-            <p className="text-gray-500 text-center">No reasons to display</p>
+            <p className="text-gray-600 dark:text-gray-400 text-center">No reasons to display</p>
           )}
 
           {/* CTA */}

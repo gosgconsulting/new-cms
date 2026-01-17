@@ -145,20 +145,20 @@ const FlowbiteFeaturesSection: React.FC<FlowbiteFeaturesSectionProps> = ({
     return (
       <div
         key={index}
-        className="snap-start min-w-[280px] md:min-w-[360px] rounded-3xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-900 p-8 shadow-[0_18px_60px_rgba(0,0,0,0.12)] dark:shadow-[0_18px_60px_rgba(0,0,0,0.55)]"
+        className="snap-start min-w-[280px] md:min-w-[360px] rounded-3xl border border-black/10 dark:border-white/15 bg-white dark:bg-[#1a1a1a] p-8 shadow-[0_18px_60px_rgba(0,0,0,0.12)] dark:shadow-[0_18px_60px_rgba(0,0,0,0.55)]"
       >
         <div className={`h-16 w-16 rounded-full flex items-center justify-center ${bg}`}>
           <Icon className="h-7 w-7" />
         </div>
 
         {feature.title ? (
-          <h3 className="mt-6 text-2xl font-semibold text-slate-900 dark:text-white">
+          <h3 className="mt-6 text-2xl font-semibold text-gray-900 dark:text-white">
             {feature.title}
           </h3>
         ) : null}
 
         {feature.description ? (
-          <p className="mt-3 text-base leading-relaxed text-slate-600 dark:text-slate-200">
+          <p className="mt-3 text-base leading-relaxed text-gray-700 dark:text-gray-300">
             {feature.description}
           </p>
         ) : null}
@@ -170,7 +170,7 @@ const FlowbiteFeaturesSection: React.FC<FlowbiteFeaturesSectionProps> = ({
   const isGrid = features.length <= 3;
 
   return (
-    <section className={`relative overflow-hidden py-20 px-4 ${className}`}>
+    <section className={`relative overflow-hidden py-20 px-4 bg-[color:var(--brand-background)] dark:bg-[#0a0a0a] ${className}`}>
       <div className="container mx-auto relative">
         <div className="mx-auto max-w-6xl">
           <FlowbiteSection title={title} subtitle={subtitle} className="text-center mb-12" />

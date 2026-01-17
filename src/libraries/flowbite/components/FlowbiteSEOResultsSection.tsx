@@ -87,13 +87,13 @@ const FlowbiteSEOResultsSection: React.FC<FlowbiteSEOResultsSectionProps> = ({
                         />
                       )}
                       {result.title && (
-                        <h3 className="text-2xl font-bold mb-2">{result.title}</h3>
+                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">{result.title}</h3>
                       )}
                       {result.metric && (
                         <p className="text-xl text-primary font-semibold mb-2">{result.metric}</p>
                       )}
                       {result.description && (
-                        <p className="text-gray-600">{result.description}</p>
+                        <p className="text-gray-700 dark:text-gray-300">{result.description}</p>
                       )}
                     </div>
                   </div>

@@ -104,7 +104,7 @@ const FlowbiteContentSection: React.FC<FlowbiteContentSectionProps> = ({
     const reviewSub = (props as any).reviewSub || "Review";
 
     return (
-      <section className={`relative overflow-hidden py-20 px-4 ${className}`}>
+      <section className={`relative overflow-hidden py-20 px-4 bg-[color:var(--brand-background)] dark:bg-[#0a0a0a] ${className}`}>
         <div className="pointer-events-none absolute inset-0">
           <div className="absolute -top-40 left-1/2 h-[22rem] w-[44rem] -translate-x-1/2 rounded-full bg-gradient-to-r from-indigo-400/12 via-sky-400/10 to-lime-400/12 blur-3xl" />
         </div>
@@ -113,12 +113,12 @@ const FlowbiteContentSection: React.FC<FlowbiteContentSectionProps> = ({
           <div className="mx-auto max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
             {/* Left */}
             <div>
-              <span className="badge-primary text-sm">
+              <span className="badge-neutral text-sm">
                 {badge}
               </span>
 
               {title ? (
-                <h2 className="mt-5 text-4xl md:text-5xl font-semibold tracking-tight text-slate-900 dark:text-white leading-tight">
+                <h2 className="mt-5 text-4xl md:text-5xl font-semibold tracking-tight text-gray-900 dark:text-white leading-tight">
                   {title}
                 </h2>
               ) : null}
@@ -126,7 +126,7 @@ const FlowbiteContentSection: React.FC<FlowbiteContentSectionProps> = ({
               {paragraphs.length > 0 ? (
                 <div className="mt-5 space-y-4">
                   {paragraphs.map((text, index) => (
-                    <p key={index} className="text-base md:text-lg leading-relaxed text-slate-600 dark:text-slate-200">
+                    <p key={index} className="text-base md:text-lg leading-relaxed text-gray-700 dark:text-gray-300">
                       {text}
                     </p>
                   ))}
@@ -144,7 +144,7 @@ const FlowbiteContentSection: React.FC<FlowbiteContentSectionProps> = ({
 
             {/* Right */}
             <div className="relative">
-              <div className="rounded-[2rem] overflow-hidden border border-black/10 dark:border-white/10 bg-white/60 dark:bg-white/5 shadow-[0_20px_80px_rgba(0,0,0,0.10)] dark:shadow-[0_20px_80px_rgba(0,0,0,0.55)]">
+              <div className="rounded-[2rem] overflow-hidden border border-black/10 dark:border-white/15 bg-white dark:bg-[#1a1a1a] shadow-[0_20px_80px_rgba(0,0,0,0.10)] dark:shadow-[0_20px_80px_rgba(0,0,0,0.7)]">
                 <img
                   src={imageSrc}
                   alt="About us"
@@ -154,14 +154,14 @@ const FlowbiteContentSection: React.FC<FlowbiteContentSectionProps> = ({
               </div>
 
               {/* Floating review pill */}
-              <div className="absolute left-6 top-6 rounded-2xl border border-black/10 dark:border-white/10 bg-white/90 dark:bg-slate-900/80 backdrop-blur px-4 py-3 shadow-[0_12px_40px_rgba(0,0,0,0.12)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.45)]">
+              <div className="absolute left-6 top-6 rounded-2xl border border-black/10 dark:border-white/15 bg-white/90 dark:bg-[#1a1a1a]/90 backdrop-blur px-4 py-3 shadow-[0_12px_40px_rgba(0,0,0,0.12)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.5)]">
                 <div className="flex items-center gap-3">
                   <div className="icon-container-primary h-10 w-10 rounded-full">
                     <Star className="h-5 w-5" />
                   </div>
                   <div>
-                    <p className="font-semibold text-slate-900 dark:text-white leading-tight">{reviewLabel}</p>
-                    <p className="text-sm text-slate-600 dark:text-slate-300 leading-tight">{reviewSub}</p>
+                    <p className="font-semibold text-gray-900 dark:text-white leading-tight">{reviewLabel}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 leading-tight">{reviewSub}</p>
                   </div>
                 </div>
               </div>
@@ -174,13 +174,13 @@ const FlowbiteContentSection: React.FC<FlowbiteContentSectionProps> = ({
 
   // Default content card
   return (
-    <section className={`relative overflow-hidden py-20 px-4 ${className}`}>
+    <section className={`relative overflow-hidden py-20 px-4 bg-[color:var(--brand-background)] dark:bg-[#0a0a0a] ${className}`}>
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute -top-48 right-[-10rem] h-[22rem] w-[30rem] rounded-full bg-gradient-to-tr from-indigo-400/12 via-sky-400/8 to-lime-400/12 blur-3xl" />
       </div>
 
       <div className="container mx-auto relative">
-        <div className="mx-auto max-w-4xl rounded-3xl border border-black/10 dark:border-white/10 bg-white/70 dark:bg-white/5 backdrop-blur-sm p-8 md:p-10 shadow-[0_20px_80px_rgba(0,0,0,0.08)] dark:shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
+        <div className="mx-auto max-w-4xl rounded-3xl border border-black/10 dark:border-white/15 bg-white dark:bg-[#1a1a1a] p-8 md:p-10 shadow-[0_20px_80px_rgba(0,0,0,0.08)] dark:shadow-[0_20px_80px_rgba(0,0,0,0.7)]">
           {title ? (
             <h2 className="text-3xl md:text-4xl font-semibold tracking-tight text-gray-900 dark:text-white">
               {title}
@@ -190,7 +190,7 @@ const FlowbiteContentSection: React.FC<FlowbiteContentSectionProps> = ({
           {paragraphs.length > 0 ? (
             <div className="space-y-4 mt-6">
               {paragraphs.map((text, index) => (
-                <p key={index} className="text-base leading-relaxed text-gray-700 dark:text-gray-200">
+                <p key={index} className="text-base leading-relaxed text-gray-700 dark:text-gray-300">
                   {text}
                 </p>
               ))}

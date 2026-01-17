@@ -369,7 +369,7 @@ const GOSGContent: React.FC<TenantLandingProps> = ({
       />
       
       {/* Main content: Dynamic page rendering */}
-      <main className="flex-grow w-full">
+      <main className="grow w-full">
         <DynamicPageRenderer
           schema={pageData}
           onContactClick={handleContactClick}
@@ -578,7 +578,7 @@ const ShopPageLayout: React.FC<ShopPageLayoutProps> = ({
         logoSrc={logoSrc}
         onContactClick={handleContactClick}
       />
-      <main className="flex-grow">
+      <main className="grow">
         {children}
       </main>
       <Footer 

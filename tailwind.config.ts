@@ -1,14 +1,12 @@
 import type { Config } from "tailwindcss";
 import flowbitePlugin from "flowbite/plugin";
-import daisyui from "daisyui";
 
 const config: Config = {
   content: [
     "./index.html",
     "./src/**/*.{ts,tsx}",
     "./sparti-cms/**/*.{ts,tsx}",
-    "./node_modules/flowbite/**/*.js",
-    "./node_modules/daisyui/**/*.{js,ts,jsx,tsx}"
+    "./node_modules/flowbite/**/*.js"
   ],
   theme: {
     extend: {
@@ -152,15 +150,8 @@ const config: Config = {
   },
   plugins: [
     require("tailwindcss-animate"),
-    flowbitePlugin,
-    daisyui
+    flowbitePlugin
   ],
-  daisyui: {
-    themes: ["light", "dark", "cupcake", "bumblebee", "emerald", "corporate", "synthwave", "retro", "cyberpunk", "valentine", "halloween", "garden", "forest", "aqua", "lofi", "pastel", "fantasy", "wireframe", "black", "luxury", "dracula", "cmyk", "autumn", "business", "acid", "lemonade", "night", "coffee", "winter"],
-    base: true,
-    styled: true,
-    utils: true,
-  },
 };
 
 export default config;

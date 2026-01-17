@@ -41,39 +41,9 @@
     --shadow-lg: 0 24px 80px -24px rgb(0 0 0 / 0.22);
   }
 
-  .dark {
-    --brand-primary: #a3e635;
-    --brand-primary-dark: #84cc16;
-    --brand-primary-light: #bef264;
-    --brand-secondary: #60a5fa;
-    --brand-secondary-dark: #3b82f6;
-    --brand-secondary-light: #93c5fd;
-    --brand-accent: #22c55e;
-    --brand-accent-dark: #16a34a;
-    --brand-accent-light: #4ade80;
-    --brand-text: #f8fafc;
-    --brand-text-light: #cbd5e1;
-    --brand-background: #050a14; /* dark navy */
-    --brand-background-alt: #0b1223;
-    --brand-gradient-start: #0ea5e9;
-    --brand-gradient-end: #a3e635;
-
-    --text-primary: #f8fafc;
-    --text-secondary: #cbd5e1;
-    --text-muted: #94a3b8;
-
-    --bg-primary: #050a14;
-    --bg-secondary: #0b1223;
-    --bg-muted: #111827;
-
-    --border-color: rgba(255, 255, 255, 0.12);
-    --border-color-dark: rgba(255, 255, 255, 0.18);
-  }
-
   body {
     background-color: var(--brand-background);
     color: var(--brand-text);
-    transition: background-color 0.3s ease, color 0.3s ease;
   }
 }
 
@@ -132,38 +102,29 @@
     color: var(--brand-primary);
   }
 
-  .dark .btn-cta-secondary {
-    color: var(--text-primary);
-    border-color: rgba(255, 255, 255, 0.12);
-  }
-
-  .dark .btn-cta-secondary:hover {
-    background-color: rgba(255, 255, 255, 0.05);
-    border-color: rgba(255, 255, 255, 0.18);
-    color: var(--brand-primary);
-  }
-
   /* Light CTA Button - For use on gradient/dark backgrounds */
   .btn-cta-light {
     height: 3rem;
     padding-left: 1.5rem;
     padding-right: 1.5rem;
     border-radius: 0.75rem;
-    font-weight: 600;
-    background-color: rgba(255, 255, 255, 0.15);
-    color: white;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(8px);
+    font-weight: 700;
+    background-color: rgba(255, 255, 255, 0.95);
+    color: #4f46e5;
+    border: none;
+    backdrop-filter: blur(12px);
     transition: all 0.2s ease;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    box-shadow: 0 4px 18px -8px rgba(0, 0, 0, 0.3);
   }
 
   .btn-cta-light:hover {
-    background-color: rgba(255, 255, 255, 0.25);
-    border-color: rgba(255, 255, 255, 0.3);
+    background-color: rgba(255, 255, 255, 1);
+    box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.4);
+    transform: translateY(-1px);
   }
 
   /* Badge Components */
@@ -180,11 +141,6 @@
     font-weight: 600;
   }
 
-  .dark .badge-primary {
-    background-color: var(--brand-primary);
-    color: #0b1223;
-  }
-
   /* Neutral Badge - Subtle background */
   .badge-neutral {
     display: inline-flex;
@@ -198,12 +154,6 @@
     font-weight: 500;
   }
 
-  .dark .badge-neutral {
-    border-color: rgba(255, 255, 255, 0.12);
-    background-color: rgba(255, 255, 255, 0.05);
-    color: var(--text-primary);
-  }
-
   /* Accent Badge - Uses brand accent color */
   .badge-accent {
     display: inline-flex;
@@ -214,11 +164,6 @@
     padding: 0.5rem 1rem;
     font-size: 0.875rem;
     font-weight: 600;
-  }
-
-  .dark .badge-accent {
-    background-color: var(--brand-accent);
-    color: white;
   }
 
   /* Icon Containers */
@@ -234,11 +179,6 @@
     transition: all 0.2s ease;
   }
 
-  .dark .icon-container-primary {
-    background-color: var(--brand-primary);
-    color: #0b1223;
-  }
-
   /* Accent Icon Container */
   .icon-container-accent {
     display: flex;
@@ -248,11 +188,6 @@
     background-color: var(--brand-accent);
     color: white;
     transition: all 0.2s ease;
-  }
-
-  .dark .icon-container-accent {
-    background-color: var(--brand-accent);
-    color: white;
   }
 
   /* Neutral Icon Container */
@@ -267,27 +202,13 @@
     transition: all 0.2s ease;
   }
 
-  .dark .icon-container-neutral {
-    border-color: rgba(255, 255, 255, 0.12);
-    background-color: rgba(255, 255, 255, 0.05);
-    color: var(--text-primary);
-  }
-
   /* Text helpers */
   .text-on-dark {
     color: white;
   }
 
-  .dark .text-on-dark {
-    color: var(--text-primary);
-  }
-
   .text-on-light {
     color: var(--brand-text);
-  }
-
-  .dark .text-on-light {
-    color: var(--text-primary);
   }
 
   a {

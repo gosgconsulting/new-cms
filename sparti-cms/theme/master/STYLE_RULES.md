@@ -13,11 +13,13 @@ This document defines the design system rules and style guidelines for the Maste
 
 ## Button Standardization
 
-### Single CTA Style
+### CTA Button Variants
 
-**All buttons in the master theme must use the single CTA style.** There are no button variants - only one standardized CTA button style.
+The master theme provides three standardized CTA button variants for different use cases.
 
-#### Standard CTA Button
+#### Primary CTA Button (`.btn-cta`)
+
+The main call-to-action button used throughout the theme.
 
 ```tsx
 <button className="btn-cta">
@@ -25,59 +27,105 @@ This document defines the design system rules and style guidelines for the Maste
 </button>
 ```
 
-#### Button Specifications
+**Specifications:**
+- **Height**: `3rem` (48px)
+- **Padding**: `1.5rem` horizontal
+- **Border Radius**: `0.75rem`
+- **Font Weight**: `700` (bold)
+- **Background**: `var(--brand-primary)` (lime green by default)
+- **Text Color**: `#0b1223` (dark navy)
+- **Hover**: Lighter shade of primary color, slight lift, larger shadow
+- **Transition**: Smooth transitions for all interactive states
 
-- **Height**: `h-12` (48px)
-- **Padding**: `px-6` (horizontal padding)
-- **Border Radius**: `rounded-lg`
-- **Font Weight**: `font-semibold`
-- **Background**: Uses `--brand-primary` CSS variable
-- **Text Color**: White (`text-white`)
-- **Hover**: Darker shade of primary color (`--brand-primary-dark`)
-- **Transition**: `transition-colors duration-200`
-- **Shadow**: Medium shadow on default, large on hover
+#### Secondary CTA Button (`.btn-cta-secondary`)
 
-#### Button Classes
+Used for secondary actions or alongside primary buttons.
 
-The `.btn-cta` class is defined in `theme.css` and includes:
-- Base styling (height, padding, border radius)
-- Brand primary color background
-- White text color
-- Hover effects (darker shade, slight lift, larger shadow)
-- Active state (pressed effect)
+```tsx
+<button className="btn-cta-secondary">
+  Secondary Action
+</button>
+```
+
+**Specifications:**
+- **Height**: `3rem` (48px)
+- **Padding**: `1.5rem` horizontal
+- **Border Radius**: `0.75rem`
+- **Font Weight**: `600` (semi-bold)
+- **Background**: Transparent
+- **Border**: `1px solid var(--border-color)`
+- **Text Color**: `var(--brand-text)` (adapts to dark mode)
+- **Hover**: Subtle background tint, brand primary text color
+
+#### Light CTA Button (`.btn-cta-light`)
+
+Specifically designed for use on gradient or dark backgrounds.
+
+```tsx
+<button className="btn-cta-light">
+  Get Started
+</button>
+```
+
+**Specifications:**
+- **Height**: `3rem` (48px)
+- **Padding**: `1.5rem` horizontal
+- **Border Radius**: `0.75rem`
+- **Font Weight**: `700` (bold)
+- **Background**: `rgba(255, 255, 255, 0.95)` (near-solid white) with backdrop blur (12px)
+- **Border**: None
+- **Text Color**: Indigo (`#4f46e5` - brand-secondary)
+- **Shadow**: Subtle shadow for depth
+- **Hover**: Full opacity white, slight lift animation
 
 #### Usage Examples
 
 ```tsx
-// Standard CTA button
+// Primary CTA button
 <button className="btn-cta" onClick={handleClick}>
   Get Started
 </button>
 
+// Secondary button next to primary
+<div className="flex gap-3">
+  <button className="btn-cta">Primary Action</button>
+  <button className="btn-cta-secondary">Learn More</button>
+</div>
+
+// Light button on gradient background
+<section className="bg-brand-gradient">
+  <button className="btn-cta-light">Get Free Consultation</button>
+</section>
+
 // Full-width button
-<button className="btn-cta w-full" onClick={handleClick}>
+<button className="btn-cta w-full">
   Contact Us
 </button>
 
-// Button with custom padding
-<button className="btn-cta px-8 py-6 text-lg" onClick={handleClick}>
-  Get Free Consultation
+// Rounded button variant
+<button className="btn-cta rounded-full px-8">
+  Subscribe
 </button>
 ```
+
+#### Button Selection Guide
+
+- **Primary (`.btn-cta`)**: Main conversion actions (sign up, buy, contact)
+- **Secondary (`.btn-cta-secondary`)**: Supporting actions (learn more, back, cancel)
+- **Light (`.btn-cta-light`)**: Actions on dark/gradient backgrounds (CTA sections)
 
 #### Prohibited Button Styles
 
 ❌ **DO NOT USE:**
-- Gradient buttons
-- Outline buttons
-- Ghost buttons
-- Secondary button variants
-- Different button colors (except white on gradient backgrounds)
+- Custom gradient buttons
+- Hard-coded color buttons
+- Inconsistent sizing or padding
+- Non-standard hover effects
 
 ✅ **ALWAYS USE:**
-- Single `.btn-cta` class
-- Brand primary color
-- White text
+- One of the three documented button classes
+- Brand color variables
+- Consistent sizing
 
 ## Branding Colors
 
@@ -140,35 +188,105 @@ If branding colors are not available from the database, default colors are used:
 
 The master theme includes a dark/light mode toggle component (`ThemeToggle`) that is positioned sticky at the bottom-left of the page.
 
-### Color Adaptations
+### Dark Mode Best Practices
 
-In dark mode, brand colors are automatically adapted for better contrast:
+The master theme uses a near-black background system for dark mode, ensuring smooth scrolling and professional aesthetics.
 
-- **Primary Color**: Lighter shade in dark mode (20% brighter)
-- **Background**: Dark color (`#111827` - Gray-900)
-- **Text**: Light color (`#F9FAFB` - Gray-50)
-- **Borders**: Lighter borders for visibility
+#### Background System
 
-### Dark Mode Classes
+**Color Palette:**
+- **Main Background**: `#0a0a0a` (near-black) - Used for section backgrounds
+- **Alternative Background**: `#141414` (slightly lighter) - Used for header/footer
+- **Card Background**: `#1a1a1a` (elevated surfaces) - Used for cards, modals, and elevated content
 
-Use Tailwind's `dark:` prefix for dark mode styles:
-
+**Implementation:**
 ```tsx
-<div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white">
-  Content adapts to theme
-</div>
+// Section with consistent background
+<section className="bg-(--brand-background) dark:bg-[#0a0a0a]">
+  {/* Card with elevated background */}
+  <div className="bg-white dark:bg-[#1a1a1a]">
+    Content
+  </div>
+</section>
 ```
+
+#### Typography Standards
+
+**Text Colors:**
+- **Headings**: `text-gray-900 dark:text-white` - Pure white for maximum contrast
+- **Body Text**: `text-gray-700 dark:text-gray-300` - Light gray (#e5e5e5)
+- **Secondary Text**: `text-gray-600 dark:text-gray-400` - Muted gray (#a3a3a3)
+
+**Font Weights:**
+- **H1-H3**: `font-semibold` (600)
+- **Body**: Regular (400)
+
+**Implementation:**
+```tsx
+// Heading
+<h2 className="text-gray-900 dark:text-white font-semibold">
+  Section Title
+</h2>
+
+// Body text
+<p className="text-gray-700 dark:text-gray-300">
+  Body content with proper contrast
+</p>
+
+// Supporting text
+<span className="text-gray-600 dark:text-gray-400">
+  Caption or label
+</span>
+```
+
+#### Border & Shadow Standards
+
+**Borders:**
+- Light mode: `border-black/10`
+- Dark mode: `border-white/15`
+
+**Shadows:**
+- Cards: `shadow-[0_20px_80px_rgba(0,0,0,0.08)] dark:shadow-[0_20px_80px_rgba(0,0,0,0.7)]`
+- Small elements: `shadow-[0_10px_40px_rgba(0,0,0,0.06)] dark:shadow-[0_10px_40px_rgba(0,0,0,0.5)]`
 
 ### CSS Variables in Dark Mode
 
-All CSS variables are automatically adjusted in dark mode via the `.dark` class on the document root:
+All CSS variables are automatically adjusted in dark mode:
 
 ```css
 .dark {
-  --brand-primary: /* Lighter shade */;
-  --brand-background: /* Dark background */;
-  --text-primary: /* Light text */;
+  /* Near-black backgrounds */
+  --brand-background: #0a0a0a;
+  --brand-background-alt: #141414;
+  --bg-muted: #1a1a1a;
+  
+  /* High-contrast text */
+  --text-primary: #ffffff;
+  --text-secondary: #e5e5e5;
+  --text-muted: #a3a3a3;
+  
+  /* Visible borders */
+  --border-color: rgba(255, 255, 255, 0.15);
+  --border-color-dark: rgba(255, 255, 255, 0.25);
 }
+```
+
+### Component Background Requirements
+
+**All sections MUST have explicit backgrounds** for smooth scrolling:
+
+✅ **Correct:**
+```tsx
+<section className="bg-(--brand-background) dark:bg-[#0a0a0a]">
+  Content
+</section>
+```
+
+❌ **Incorrect:**
+```tsx
+<section className="bg-transparent">
+  Content
+</section>
 ```
 
 ## Hover Rules
@@ -235,19 +353,130 @@ Follow the standard spacing scale:
 
 ### Typography
 
-- **Page Title (H1)**: `text-4xl md:text-5xl lg:text-6xl font-bold`
-- **Section Title (H2)**: `text-3xl md:text-4xl lg:text-5xl font-bold`
-- **Subsection Title (H3)**: `text-2xl md:text-3xl font-bold`
-- **Body Text**: `text-base md:text-lg`
+**Heading Sizes:**
+- **Page Title (H1)**: `text-4xl sm:text-5xl lg:text-6xl font-semibold`
+- **Section Title (H2)**: `text-3xl md:text-4xl lg:text-5xl font-semibold`
+- **Subsection Title (H3)**: `text-2xl md:text-3xl font-semibold`
+
+**Body Text Sizes:**
+- **Large Body**: `text-base md:text-lg`
+- **Standard Body**: `text-base`
 - **Small Text**: `text-sm`
 
-### Text Colors
+### Text Color System
 
-- **Primary Text**: `text-on-light` (adapts to theme)
-- **Secondary Text**: `text-on-light` with opacity
-- **Muted Text**: Use muted color utilities
+**Quick Reference Table:**
+
+| Element Type | Light Mode | Dark Mode | Usage |
+|-------------|-----------|-----------|-------|
+| Headings (H1-H3) | `text-gray-900` | `dark:text-white` | Main titles, section headers |
+| Body Text | `text-gray-700` | `dark:text-gray-300` | Paragraphs, main content |
+| Secondary Text | `text-gray-600` | `dark:text-gray-400` | Captions, labels, metadata |
+| Muted/Placeholder | `text-gray-500` | `dark:text-gray-400` | Empty states, placeholders |
+
+**Standardized Color Palette:**
+- **Headings (H1-H3)**: `text-gray-900 dark:text-white` - Maximum contrast
+- **Body Text**: `text-gray-700 dark:text-gray-300` - High readability
+- **Secondary/Caption**: `text-gray-600 dark:text-gray-400` - Supporting text
+- **Muted/Placeholder**: `text-gray-500 dark:text-gray-400` - Empty states
+
+**Complete Examples:**
+
+```tsx
+// Page heading
+<h1 className="text-4xl sm:text-5xl lg:text-6xl font-semibold text-gray-900 dark:text-white">
+  Main Page Title
+</h1>
+
+// Section heading
+<h2 className="text-3xl md:text-4xl font-semibold text-gray-900 dark:text-white">
+  Section Title
+</h2>
+
+// Subsection heading
+<h3 className="text-2xl md:text-3xl font-semibold text-gray-900 dark:text-white">
+  Subsection Title
+</h3>
+
+// Body text
+<p className="text-base md:text-lg text-gray-700 dark:text-gray-300 leading-relaxed">
+  Main paragraph content with proper contrast for readability in both modes.
+</p>
+
+// Supporting text
+<span className="text-sm text-gray-600 dark:text-gray-400">
+  Caption, label, or metadata
+</span>
+
+// Empty state
+<p className="text-gray-600 dark:text-gray-400">
+  No items to display
+</p>
+```
+
+**NEVER use:**
+- `text-gray-700` without `dark:text-gray-300`
+- `text-gray-600` without `dark:text-gray-400`
+- `text-gray-900` without `dark:text-white`
+- `text-slate-*` classes (use `text-gray-*` instead)
 
 ## Component Patterns
+
+### Badges
+
+The theme provides three standardized badge components:
+
+```tsx
+// Primary Badge - Uses brand primary color
+<span className="badge-primary">
+  Featured
+</span>
+
+// Neutral Badge - Subtle, for metadata
+<span className="badge-neutral">
+  About us
+</span>
+
+// Accent Badge - Uses brand accent color
+<span className="badge-accent">
+  New
+</span>
+```
+
+**Badge Specifications:**
+- **Display**: Inline-flex with centered items
+- **Border Radius**: Full (pill shape)
+- **Padding**: `0.5rem 1rem`
+- **Font Size**: `0.875rem` (14px)
+- **Font Weight**: Primary/Accent: `600`, Neutral: `500`
+- All badges adapt automatically to dark mode
+
+### Icon Containers
+
+Standardized containers for icons and decorative elements:
+
+```tsx
+// Primary Icon Container - Brand primary color
+<div className="icon-container-primary h-10 w-10 rounded-xl">
+  <Icon className="h-5 w-5" />
+</div>
+
+// Accent Icon Container - Brand accent color
+<div className="icon-container-accent h-12 w-12 rounded-full">
+  <Icon className="h-6 w-6" />
+</div>
+
+// Neutral Icon Container - Subtle background
+<div className="icon-container-neutral h-8 w-8 rounded-lg">
+  <Icon className="h-4 w-4" />
+</div>
+```
+
+**Icon Container Specifications:**
+- **Display**: Flex with centered items
+- **Border Radius**: Customizable (`rounded-lg`, `rounded-xl`, `rounded-full`)
+- **Size**: Set via utility classes (`h-8 w-8`, `h-10 w-10`, etc.)
+- All containers adapt automatically to dark mode
 
 ### Cards
 
@@ -281,32 +510,121 @@ Follow the standard spacing scale:
     <h2 className="text-3xl font-bold text-white mb-4">
       Ready to Get Started?
     </h2>
-    <button className="btn-cta px-8 py-6 text-lg">
+    <button className="btn-cta-light rounded-full px-8">
       Get Free Consultation
     </button>
   </div>
 </div>
 ```
 
+## Component Design Checklist
+
+When creating or modifying any component, verify ALL of the following:
+
+- [ ] **Section Background**: `bg-(--brand-background)`
+- [ ] **All Headings**: `text-gray-900`
+- [ ] **All Body Text**: `text-gray-700`
+- [ ] **All Secondary Text**: `text-gray-600`
+- [ ] **Card Backgrounds**: `bg-white`
+- [ ] **Borders**: `border-black/10`
+- [ ] **NO `text-slate-*` classes** (use `text-gray-*` instead)
+- [ ] **Consistent styling throughout**
+
+### Example Component Template
+
+```tsx
+<section className="py-20 px-4 bg-(--brand-background)">
+  <div className="container mx-auto">
+    <div className="rounded-3xl border border-black/10 bg-white p-8">
+      <h2 className="text-3xl font-semibold text-gray-900">
+        Section Title
+      </h2>
+      <p className="mt-4 text-base text-gray-700">
+        Body content with proper contrast
+      </p>
+      <span className="text-sm text-gray-600">
+        Supporting text
+      </span>
+    </div>
+  </div>
+</section>
+```
+
+## Common Styling Mistakes
+
+### ❌ Using Slate Instead of Gray
+
+**BAD:** Inconsistent with design system
+```tsx
+<h3 className="text-slate-900">Title</h3>
+<p className="text-slate-600">Text</p>
+```
+
+**GOOD:** Uses standardized gray scale
+```tsx
+<h3 className="text-gray-900">Title</h3>
+<p className="text-gray-700">Text</p>
+```
+
+### ❌ Missing Section Backgrounds
+
+**BAD:** Transparent sections break smooth scrolling
+```tsx
+<section className="py-20 px-4">
+```
+
+**GOOD:** Explicit background for consistency
+```tsx
+<section className="py-20 px-4 bg-(--brand-background)">
+```
+
+### ❌ Inconsistent Text Colors
+
+**BAD:** Using different shades randomly
+```tsx
+<h3 className="text-gray-800">Title</h3>
+<p className="text-gray-500">Body</p>
+```
+
+**GOOD:** Following standardized palette
+```tsx
+<h3 className="text-gray-900">Title</h3>
+<p className="text-gray-700">Body</p>
+```
+
 ## Best Practices
 
 ### DO
 
-✅ Always use `.btn-cta` for all buttons
-✅ Use CSS variables for brand colors
+✅ Use the standardized button classes (`.btn-cta`, `.btn-cta-secondary`, `.btn-cta-light`)
+✅ Use CSS variables for brand colors (`var(--brand-primary)`, etc.)
+✅ **Always add dark mode classes to ALL text elements**
 ✅ Test in both light and dark modes
-✅ Use semantic color classes (`text-on-light`, `bg-brand-primary`)
+✅ Use semantic component classes (`.badge-primary`, `.icon-container-accent`)
 ✅ Follow spacing and typography scales
 ✅ Add hover states to interactive elements
+✅ Use brand color utilities (`.bg-brand-primary`, `.text-brand-accent`)
+✅ Add explicit backgrounds to all sections (`bg-(--brand-background) dark:bg-[#0a0a0a]`)
+✅ Use standardized text colors (`text-gray-900 dark:text-white`, `text-gray-700 dark:text-gray-300`)
+✅ Use consistent border opacity (`border-white/15` in dark mode)
+✅ Use `bg-[#1a1a1a]` for card backgrounds in dark mode
+✅ **Complete the Component Design Checklist for every new component**
 
 ### DON'T
 
-❌ Don't create custom button styles
-❌ Don't hardcode colors (use CSS variables)
-❌ Don't forget dark mode adaptations
-❌ Don't use multiple button variants
+❌ Don't create custom button styles outside the three variants
+❌ Don't hardcode colors (rose, amber, indigo, lime, etc.)
+❌ **Don't forget dark mode adaptations on ANY text element**
 ❌ Don't skip hover states
 ❌ Don't use arbitrary color values
+❌ Don't mix different badge/icon styling patterns
+❌ Don't use component-specific colors that don't respect branding
+❌ Don't use `bg-transparent` on sections (breaks smooth scrolling)
+❌ Don't use navy blues or other non-black backgrounds in dark mode
+❌ Don't use inconsistent text colors (stick to gray-900/white, gray-700/gray-300, gray-600/gray-400)
+❌ Don't use `bg-white/5` or other very low opacity backgrounds in dark mode
+❌ **Don't use `text-slate-*` classes anywhere (use `text-gray-*` instead)**
+❌ Don't use `text-gray-*` without the corresponding `dark:` class
 
 ## Reference
 

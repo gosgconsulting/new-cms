@@ -85,7 +85,7 @@ const FlowbiteShowcase: React.FC<FlowbiteShowcaseProps> = ({
     return (
       <FlowbiteSection title={title || undefined} className={className}>
         <div className="text-center py-12">
-          <p className="text-gray-500">No showcase items to display.</p>
+          <p className="text-gray-600 dark:text-gray-400">No showcase items to display.</p>
         </div>
       </FlowbiteSection>
     );
@@ -118,12 +118,12 @@ const FlowbiteShowcase: React.FC<FlowbiteShowcaseProps> = ({
               )}
               <div className="p-4">
                 {itemTitle && (
-                  <h3 className="text-xl font-bold mb-3 group-hover:text-primary transition-colors">
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3 group-hover:text-primary transition-colors">
                     {itemTitle}
                   </h3>
                 )}
                 {itemDescription && (
-                  <p className="text-gray-600 text-sm mb-3">{itemDescription}</p>
+                  <p className="text-gray-700 dark:text-gray-300 text-sm mb-3">{itemDescription}</p>
                 )}
                 <div className="flex items-center text-primary font-medium group-hover:underline">
                   View more

@@ -224,7 +224,7 @@ export default function Index() {
                           key={index}
                           className="flex items-center space-x-3"
                         >
-                          <CheckCircle className="h-5 w-5 text-dance-gray-600 flex-shrink-0" />
+                          <CheckCircle className="h-5 w-5 text-dance-gray-600 shrink-0" />
                           <span className="font-body font-light text-dance-gray-700">
                             {feature}
                           </span>
@@ -238,7 +238,7 @@ export default function Index() {
                   </div>
 
                   <div className="relative group">
-                    <div className="aspect-square bg-gradient-to-br from-dance-pink/20 to-dance-purple/20 rounded-3xl flex items-center justify-center">
+                    <div className="aspect-square bg-linear-to-br from-dance-pink/20 to-dance-purple/20 rounded-3xl flex items-center justify-center">
                       <img
                         src={program.image}
                         alt={`${program.name} program`}

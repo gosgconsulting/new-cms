@@ -69,7 +69,7 @@ const FlowbiteBlogGrid: React.FC<FlowbiteBlogGridProps> = ({
         className={className}
       >
         <div className="text-center py-12">
-          <p className="text-gray-500 text-lg">No blog posts available.</p>
+          <p className="text-gray-600 dark:text-gray-400 text-lg">No blog posts available.</p>
         </div>
       </FlowbiteSection>
     );
@@ -111,7 +111,7 @@ const FlowbiteBlogGrid: React.FC<FlowbiteBlogGridProps> = ({
               </div>
               
               <div className="p-6">
-                <div className="flex items-center text-sm text-gray-500 mb-3">
+                <div className="flex items-center text-sm text-gray-600 dark:text-gray-400 mb-3">
                   {postDate && (
                     <>
                       <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -130,12 +130,12 @@ const FlowbiteBlogGrid: React.FC<FlowbiteBlogGridProps> = ({
                   )}
                 </div>
                 
-                <h3 className="text-xl font-bold mb-3 line-clamp-2 group-hover:text-primary transition-colors duration-300">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3 line-clamp-2 group-hover:text-primary transition-colors duration-300">
                   {postTitle}
                 </h3>
 
                 {postExcerpt && (
-                  <p className="text-gray-600 line-clamp-3 mb-4">
+                  <p className="text-gray-700 dark:text-gray-300 line-clamp-3 mb-4">
                     {postExcerpt}
                   </p>
                 )}

@@ -3,6 +3,7 @@
 import React, { useMemo, useRef, useState } from "react";
 import type { ComponentSchema } from "../../../../sparti-cms/types/schema";
 import FlowbiteSection from "./FlowbiteSection";
+import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 
 interface FlowbiteTestimonialsSectionProps {
   component: ComponentSchema;
@@ -32,7 +33,7 @@ const FlowbiteTestimonialsSection: React.FC<FlowbiteTestimonialsSectionProps> = 
   const props = component.props || {};
   const items = component.items || [];
 
-  const scrollerRef = useRef<HTMLDivElement>(null);
+  const carouselRef = useRef<any>(null);
   const [activeIndex, setActiveIndex] = useState(0);
 
   const getHeading = (key: string, level?: number) => {
@@ -141,174 +142,87 @@ const FlowbiteTestimonialsSection: React.FC<FlowbiteTestimonialsSectionProps> = 
   const pageSize = 3;
   const pageCount = Math.max(1, Math.ceil(testimonials.length / pageSize));
 
-  const handleScroll = () => {
-    const el = scrollerRef.current;
-    if (!el) return;
-    const first = el.children[0] as HTMLElement | undefined;
-    if (!first) return;
-    const approxGap = 24; // gap-6
-    const cw = first.getBoundingClientRect().width + approxGap;
-    const indexApprox = Math.round(el.scrollLeft / cw);
-    const page = Math.max(0, Math.min(pageCount - 1, Math.floor(indexApprox / pageSize)));
-    setActiveIndex(page);
-  };
-
-  const scrollToPage = (page: number) => {
-    const el = scrollerRef.current;
-    if (!el) return;
-    const firstChild = el.children[page * pageSize] as HTMLElement | undefined;
-    if (!firstChild) return;
-    el.scrollTo({ left: firstChild.offsetLeft, behavior: "smooth" });
-    setActiveIndex(page);
-  };
-
-  // Drag-to-scroll state (mouse/touch)
-  const dragging = useRef({ isDown: false, startX: 0, scrollLeft: 0 });
-  const [isDragging, setIsDragging] = useState(false);
-
-  const onMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-    const el = scrollerRef.current;
-    if (!el) return;
-    dragging.current.isDown = true;
-    dragging.current.startX = e.pageX - el.offsetLeft;
-    dragging.current.scrollLeft = el.scrollLeft;
-    setIsDragging(true);
-  };
-
-  const onMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const el = scrollerRef.current;
-    if (!el || !dragging.current.isDown) return;
-    e.preventDefault();
-    const x = e.pageX - el.offsetLeft;
-    const walk = x - dragging.current.startX;
-    el.scrollLeft = dragging.current.scrollLeft - walk;
-  };
-
-  const endMouseDrag = () => {
-    if (dragging.current.isDown) {
-      dragging.current.isDown = false;
-      setIsDragging(false);
-    }
-  };
-
-  const onTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
-    const el = scrollerRef.current;
-    if (!el) return;
-    const touch = e.touches[0];
-    dragging.current.isDown = true;
-    dragging.current.startX = touch.pageX - el.offsetLeft;
-    dragging.current.scrollLeft = el.scrollLeft;
-    setIsDragging(true);
-  };
-
-  const onTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
-    const el = scrollerRef.current;
-    if (!el || !dragging.current.isDown) return;
-    const touch = e.touches[0];
-    const x = touch.pageX - el.offsetLeft;
-    const walk = x - dragging.current.startX;
-    el.scrollLeft = dragging.current.scrollLeft - walk;
-  };
-
-  const endTouchDrag = () => {
-    if (dragging.current.isDown) {
-      dragging.current.isDown = false;
-      setIsDragging(false);
-    }
-  };
-
-  const onWheel = (e: React.WheelEvent<HTMLDivElement>) => {
-    const el = scrollerRef.current;
-    if (!el) return;
-    // Convert vertical wheel to horizontal scroll for this slider
-    if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
-      e.preventDefault();
-      el.scrollLeft += e.deltaY;
-    }
-  };
-
-  const cards = useMemo(() => {
-    return testimonials.map((testimonial: any, index: number) => {
-      const text = testimonial.text || testimonial.content || testimonial.message || "";
-      const name = testimonial.name || testimonial.author || `Client ${index + 1}`;
-      const industry = testimonial.industry || testimonial.role || testimonial.position || "";
-
-      const initials = initialsFromName(name);
-
-      return (
-        <div
-          key={index}
-          className="snap-start min-w-[280px] md:min-w-[360px] lg:min-w-[380px] rounded-3xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-900 p-7 shadow-[0_18px_60px_rgba(0,0,0,0.12)] dark:shadow-[0_18px_60px_rgba(0,0,0,0.55)]"
-        >
-          <div className="flex items-start gap-4">
-            {/* Initials-only avatar */}
-            <div className="icon-container-accent h-14 w-14 rounded-full text-lg font-semibold">
-              {initials}
-            </div>
-
-            <div className="min-w-0 flex-1">
-              <p className="text-lg font-semibold text-gray-900 dark:text-white leading-tight">
-                {name}
-              </p>
-              {industry ? (
-                <p className="text-sm text-gray-500 dark:text-gray-400">{industry}</p>
-              ) : null}
-            </div>
-          </div>
-
-          {text ? (
-            <p className="mt-5 text-[17px] leading-relaxed text-slate-700 dark:text-slate-200">
-              {text}
-            </p>
-          ) : null}
-        </div>
-      );
-    });
-  }, [testimonials]);
-
   return (
-    <section className={`py-20 px-4 bg-transparent ${className}`}>
+    <section className={`py-20 px-4 bg-[color:var(--brand-background)] dark:bg-[#0a0a0a] ${className}`}>
       <div className="container mx-auto">
         <div className="mx-auto max-w-6xl">
           <FlowbiteSection title={title} subtitle={subtitle} className="text-center mb-10" />
 
           {testimonials.length > 0 ? (
             <>
-              <div
-                ref={scrollerRef}
-                onScroll={handleScroll}
-                onMouseDown={onMouseDown}
-                onMouseMove={onMouseMove}
-                onMouseUp={endMouseDrag}
-                onMouseLeave={endMouseDrag}
-                onTouchStart={onTouchStart}
-                onTouchMove={onTouchMove}
-                onTouchEnd={endTouchDrag}
-                onWheel={onWheel}
-                className={[
-                  "flex gap-6 overflow-x-auto pb-2 snap-x snap-mandatory scroll-px-4",
-                  "[-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
-                  "select-none",
-                  isDragging ? "cursor-grabbing" : "cursor-grab",
-                ].join(" ")}
+              <Carousel
+                opts={{ align: 'start', loop: true, slidesToScroll: 1 }}
+                className="w-full"
+                setApi={(api) => {
+                  if (api) {
+                    carouselRef.current = api;
+                    setActiveIndex(api.selectedScrollSnap());
+                    api.on('select', () => setActiveIndex(api.selectedScrollSnap()));
+                  }
+                }}
               >
-                {cards}
-              </div>
+                <CarouselContent className="-ml-4 md:-ml-6">
+                  {Array.from({ length: pageCount }).map((_, slideIndex) => {
+                    const slideTestimonials = testimonials.slice(slideIndex * pageSize, slideIndex * pageSize + pageSize);
+                    return (
+                      <CarouselItem key={slideIndex} className="pl-4 md:pl-6 basis-full">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                          {slideTestimonials.map((testimonial: any, idx: number) => {
+                            const text = testimonial.text || testimonial.content || testimonial.message || "";
+                            const name = testimonial.name || testimonial.author || `Client ${slideIndex * pageSize + idx + 1}`;
+                            const industry = testimonial.industry || testimonial.role || testimonial.position || "";
+                            const initials = initialsFromName(name);
+
+                            return (
+                              <div
+                                key={idx}
+                                className="rounded-3xl border border-black/10 dark:border-white/15 bg-white dark:bg-[#1a1a1a] p-7"
+                              >
+                                <div className="flex items-start gap-4">
+                                  {/* Initials-only avatar */}
+                                  <div className="icon-container-accent h-14 w-14 rounded-full text-lg font-semibold">
+                                    {initials}
+                                  </div>
+
+                                  <div className="min-w-0 flex-1">
+                                    <p className="text-lg font-semibold text-gray-900 dark:text-white leading-tight">
+                                      {name}
+                                    </p>
+                                    {industry ? (
+                                      <p className="text-sm text-gray-600 dark:text-gray-400">{industry}</p>
+                                    ) : null}
+                                  </div>
+                                </div>
+
+                                {text ? (
+                                  <p className="mt-5 text-base leading-relaxed text-gray-900 dark:text-gray-300">
+                                    {text}
+                                  </p>
+                                ) : null}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </CarouselItem>
+                    );
+                  })}
+                </CarouselContent>
+              </Carousel>
 
               {/* Page (group of 3) bar indicators */}
-              <div className="flex items-center justify-center gap-3 mt-4">
+              <div className="flex items-center justify-center gap-3 mt-6">
                 {Array.from({ length: pageCount }).map((_, idx) => {
                   const isActive = idx === activeIndex;
                   return (
                     <button
                       key={idx}
                       type="button"
-                      onClick={() => scrollToPage(idx)}
+                      onClick={() => carouselRef.current?.scrollTo(idx)}
                       className={[
                         "h-2 rounded-full transition-all cursor-pointer",
                         isActive
                           ? "w-14 bg-brand-primary"
-                          : "w-6 bg-slate-300 dark:bg-slate-600 hover:bg-slate-400 dark:hover:bg-slate-500",
+                          : "w-6 bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500",
                       ].join(" ")}
                       aria-label={`Go to reviews page ${idx + 1}`}
                     />
@@ -317,7 +231,7 @@ const FlowbiteTestimonialsSection: React.FC<FlowbiteTestimonialsSectionProps> = 
               </div>
             </>
           ) : (
-            <p className="text-center text-gray-500 dark:text-gray-400">No testimonials available.</p>
+            <p className="text-center text-gray-600 dark:text-gray-400">No testimonials available.</p>
           )}
         </div>
       </div>

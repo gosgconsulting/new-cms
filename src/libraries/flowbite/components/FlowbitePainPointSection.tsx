@@ -89,7 +89,7 @@ const FlowbitePainPointSection: React.FC<FlowbitePainPointSectionProps> = ({
   }, [items, props]);
 
   return (
-    <section className={`relative overflow-hidden py-20 px-4 ${className}`}>
+    <section className={`relative overflow-hidden py-20 px-4 bg-slate-50 ${className}`}>
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute -top-48 right-[-10rem] h-[26rem] w-[26rem] rounded-full bg-gradient-to-tr from-indigo-400/15 via-sky-400/10 to-lime-400/15 blur-3xl" />
         <div className="absolute -bottom-48 left-[-10rem] h-[26rem] w-[26rem] rounded-full bg-gradient-to-tr from-lime-400/10 via-sky-400/10 to-indigo-400/10 blur-3xl" />
@@ -97,17 +97,16 @@ const FlowbitePainPointSection: React.FC<FlowbitePainPointSectionProps> = ({
 
       <div className="container mx-auto relative">
         <div className="mx-auto max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-          <div className="rounded-3xl border border-black/10 dark:border-white/10 bg-white/70 dark:bg-white/5 backdrop-blur-sm p-8 md:p-10 shadow-[0_20px_80px_rgba(0,0,0,0.08)] dark:shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
-            <div className="inline-flex items-center gap-2 badge-neutral text-xs">
-              <span className="h-2 w-2 rounded-full bg-brand-primary" />
-              <span>{subtitle}</span>
+          <div className="rounded-3xl border border-black/10 bg-white p-8 md:p-10 shadow-[0_20px_80px_rgba(0,0,0,0.08)]">
+            <div className="badge-neutral text-xs">
+              {subtitle}
             </div>
 
-            <h2 className="mt-5 text-3xl md:text-4xl font-semibold tracking-tight text-gray-900 dark:text-white leading-tight">
+            <h2 className="mt-5 text-3xl md:text-4xl font-semibold tracking-tight text-gray-900 leading-tight">
               {title}
             </h2>
 
-            <p className="mt-4 text-base text-gray-600 dark:text-gray-300 leading-relaxed">
+            <p className="mt-4 text-base text-gray-700 leading-relaxed">
               We identify the bottleneck, fix the messaging, and align every section to one goal: conversions.
             </p>
           </div>
@@ -120,13 +119,13 @@ const FlowbitePainPointSection: React.FC<FlowbitePainPointSectionProps> = ({
                 return (
                   <div
                     key={index}
-                    className="rounded-2xl border border-black/10 dark:border-white/10 bg-white/70 dark:bg-white/5 backdrop-blur-sm p-5 shadow-[0_10px_40px_rgba(0,0,0,0.06)] dark:shadow-[0_10px_40px_rgba(0,0,0,0.35)]"
+                    className="rounded-2xl border border-black/10 bg-white p-5 shadow-[0_10px_40px_rgba(0,0,0,0.06)]"
                   >
                     <div className="flex items-start gap-4">
                       <div className="icon-container-accent h-10 w-10">
                         <Icon className="h-5 w-5" />
                       </div>
-                      <p className="text-base text-gray-800 dark:text-gray-100 leading-relaxed">
+                      <p className="text-base text-gray-700 leading-relaxed">
                         {p.text}
                       </p>
                     </div>
@@ -134,7 +133,7 @@ const FlowbitePainPointSection: React.FC<FlowbitePainPointSectionProps> = ({
                 );
               })
             ) : (
-              <p className="text-gray-500 dark:text-gray-400">No items to display.</p>
+              <p className="text-gray-500">No items to display.</p>
             )}
           </div>
         </div>

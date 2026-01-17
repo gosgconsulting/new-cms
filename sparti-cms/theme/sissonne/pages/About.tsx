@@ -62,7 +62,7 @@ export default function About() {
   return (
     <div className="bg-background">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-dance-black via-stage-drama to-dance-black py-24">
+      <section className="relative bg-linear-to-br from-dance-black via-stage-drama to-dance-black py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h1 className="text-3xl md:text-4xl font-heading font-bold text-dance-white mb-6">
@@ -136,7 +136,7 @@ export default function About() {
             </div>
 
             <div className="relative">
-              <div className="aspect-square bg-gradient-to-br from-dance-pink/20 to-dance-purple/20 rounded-3xl overflow-hidden">
+              <div className="aspect-square bg-linear-to-br from-dance-pink/20 to-dance-purple/20 rounded-3xl overflow-hidden">
                 <img
                   src="https://images.pexels.com/photos/8923183/pexels-photo-8923183.jpeg"
                   alt="Sissonne Dance Academy History"
@@ -249,19 +249,19 @@ export default function About() {
               </p>
               <div className="space-y-3">
                 <div className="flex items-center space-x-3 justify-center lg:justify-start">
-                  <CheckCircle className="h-5 w-5 text-dance-gray-600 flex-shrink-0" />
+                  <CheckCircle className="h-5 w-5 text-dance-gray-600 shrink-0" />
                   <span className="text-dance-gray-700">
                     Excellence in dance education
                   </span>
                 </div>
                 <div className="flex items-center space-x-3 justify-center lg:justify-start">
-                  <CheckCircle className="h-5 w-5 text-dance-gray-600 flex-shrink-0" />
+                  <CheckCircle className="h-5 w-5 text-dance-gray-600 shrink-0" />
                   <span className="text-dance-gray-700">
                     Character development through dance
                   </span>
                 </div>
                 <div className="flex items-center space-x-3 justify-center lg:justify-start">
-                  <CheckCircle className="h-5 w-5 text-dance-gray-600 flex-shrink-0" />
+                  <CheckCircle className="h-5 w-5 text-dance-gray-600 shrink-0" />
                   <span className="text-dance-gray-700">
                     Inclusive and supportive environment
                   </span>
@@ -285,19 +285,19 @@ export default function About() {
               </p>
               <div className="space-y-3">
                 <div className="flex items-center space-x-3 justify-center lg:justify-start">
-                  <CheckCircle className="h-5 w-5 text-dance-gray-600 flex-shrink-0" />
+                  <CheckCircle className="h-5 w-5 text-dance-gray-600 shrink-0" />
                   <span className="text-dance-gray-700">
                     Regional leader in dance education
                   </span>
                 </div>
                 <div className="flex items-center space-x-3 justify-center lg:justify-start">
-                  <CheckCircle className="h-5 w-5 text-dance-gray-600 flex-shrink-0" />
+                  <CheckCircle className="h-5 w-5 text-dance-gray-600 shrink-0" />
                   <span className="text-dance-gray-700">
                     International recognition and partnerships
                   </span>
                 </div>
                 <div className="flex items-center space-x-3 justify-center lg:justify-start">
-                  <CheckCircle className="h-5 w-5 text-dance-gray-600 flex-shrink-0" />
+                  <CheckCircle className="h-5 w-5 text-dance-gray-600 shrink-0" />
                   <span className="text-dance-gray-700">
                     Alumni success in dance and life
                   </span>
@@ -393,7 +393,7 @@ export default function About() {
       </section>
 
       {/* Call to Action */}
-      <section className="py-20 bg-gradient-to-br from-dance-pink via-dance-rose to-dance-purple">
+      <section className="py-20 bg-linear-to-br from-dance-pink via-dance-rose to-dance-purple">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl md:text-4xl font-handwriting font-medium text-dance-black mb-6">
             Join The Sissonne Family

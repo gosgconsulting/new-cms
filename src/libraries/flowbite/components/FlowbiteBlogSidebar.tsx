@@ -73,8 +73,8 @@ const FlowbiteBlogSidebar: React.FC<FlowbiteBlogSidebarProps> = ({
                 key={index}
                 className={`w-full text-left px-4 py-2.5 rounded-md transition-colors ${
                   isActive
-                    ? "bg-gray-100 text-gray-900 font-medium"
-                    : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                    ? "bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white font-medium"
+                    : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white"
                 }`}
               >
                 {categoryName}

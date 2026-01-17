@@ -95,7 +95,7 @@ const FlowbiteWhatsIncludedSection: React.FC<FlowbiteWhatsIncludedProps> = ({
     <section
       className={[
         "py-24 px-4",
-        "bg-[#faf8f2] dark:bg-slate-950",
+        "bg-[color:var(--brand-background)] dark:bg-[#0a0a0a]",
         className,
       ].join(" ")}
     >
@@ -105,12 +105,12 @@ const FlowbiteWhatsIncludedSection: React.FC<FlowbiteWhatsIncludedProps> = ({
           {(title || description) ? (
             <div className="text-center mb-12">
               {title ? (
-                <h2 className="text-4xl md:text-5xl font-semibold tracking-tight text-slate-900 dark:text-white">
+                <h2 className="text-4xl md:text-5xl font-semibold tracking-tight text-gray-900 dark:text-white">
                   {title}
                 </h2>
               ) : null}
               {description ? (
-                <p className="mt-4 text-lg text-slate-600 dark:text-slate-200 max-w-3xl mx-auto">
+                <p className="mt-4 text-lg text-gray-700 dark:text-gray-300 max-w-3xl mx-auto">
                   {description}
                 </p>
               ) : null}
@@ -118,20 +118,20 @@ const FlowbiteWhatsIncludedSection: React.FC<FlowbiteWhatsIncludedProps> = ({
           ) : null}
 
           {/* Main card */}
-          <div className="mx-auto max-w-4xl rounded-3xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-900 shadow-[0_20px_80px_rgba(0,0,0,0.10)] dark:shadow-[0_20px_80px_rgba(0,0,0,0.55)] p-8 sm:p-10 md:p-12">
+          <div className="mx-auto max-w-4xl rounded-3xl border border-black/10 dark:border-white/15 bg-white dark:bg-[#1a1a1a] shadow-[0_20px_80px_rgba(0,0,0,0.10)] dark:shadow-[0_20px_80px_rgba(0,0,0,0.7)] p-8 sm:p-10 md:p-12">
             {badge ? (
               <div className="flex justify-center">
-                <span className="badge-primary text-xs font-semibold uppercase tracking-wider">
+                <span className="badge-neutral text-xs font-semibold uppercase tracking-wider">
                   {badge}
                 </span>
               </div>
             ) : null}
 
             <div className="text-center mt-6">
-              <h3 className="text-3xl md:text-4xl font-semibold tracking-tight text-slate-900 dark:text-white">
+              <h3 className="text-3xl md:text-4xl font-semibold tracking-tight text-gray-900 dark:text-white">
                 Join the growth package
               </h3>
-              <p className="mt-3 text-lg text-slate-700 dark:text-slate-200">
+              <p className="mt-3 text-lg text-gray-700 dark:text-gray-300">
                 Be contacted to learn about scope, timelines, and onboarding options.
               </p>
             </div>
@@ -144,11 +144,11 @@ const FlowbiteWhatsIncludedSection: React.FC<FlowbiteWhatsIncludedProps> = ({
                     <div className="icon-container-primary mt-1 h-6 w-6 rounded-full">
                       <Check className="h-4 w-4" />
                     </div>
-                    <p className="text-base sm:text-lg text-slate-700 dark:text-slate-200 leading-relaxed">
+                    <p className="text-base sm:text-lg text-gray-700 dark:text-gray-300 leading-relaxed">
                       {f.title ? (
-                        <span className="font-semibold text-slate-900 dark:text-white">{f.title}: </span>
+                        <span className="font-semibold text-gray-900 dark:text-white">{f.title}: </span>
                       ) : null}
-                      <span className="text-slate-600 dark:text-slate-200">{f.description}</span>
+                      <span className="text-gray-700 dark:text-gray-300">{f.description}</span>
                     </p>
                   </div>
                 ))}
@@ -156,14 +156,14 @@ const FlowbiteWhatsIncludedSection: React.FC<FlowbiteWhatsIncludedProps> = ({
             ) : null}
 
             {/* Highlight callout */}
-            <div className="mt-10 rounded-2xl border border-brand-primary/30 bg-white/60 dark:bg-white/5 p-6">
+            <div className="mt-10 rounded-2xl border border-brand-primary/30 dark:border-brand-primary/20 bg-white/60 dark:bg-[#1a1a1a] p-6">
               <div className="flex items-start gap-4">
-                <div className="icon-container-primary h-10 w-10 rounded-full">
-                  <Clock3 className="h-5 w-5" />
+                <div className="flex items-center justify-center h-10 w-10">
+                  <Clock3 className="h-6 w-6 text-brand-primary" />
                 </div>
                 <div>
-                  <p className="font-semibold text-slate-900 dark:text-white">{calloutTitle}</p>
-                  <p className="mt-1 text-slate-600 dark:text-slate-200 leading-relaxed">{calloutText}</p>
+                  <p className="font-semibold text-gray-900 dark:text-white">{calloutTitle}</p>
+                  <p className="mt-1 text-gray-700 dark:text-gray-300 leading-relaxed">{calloutText}</p>
                 </div>
               </div>
             </div>

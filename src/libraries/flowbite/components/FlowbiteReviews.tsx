@@ -110,14 +110,14 @@ const FlowbiteReviews: React.FC<FlowbiteReviewsProps> = ({
                   </div>
                 )}
                 {content && (
-                  <p className="text-gray-700">{content}</p>
+                  <p className="text-gray-700 dark:text-gray-300">{content}</p>
                 )}
                 <div className="flex items-center justify-between pt-2 border-t">
                   {name && (
-                    <p className="font-semibold text-gray-900">{name}</p>
+                    <p className="font-semibold text-gray-900 dark:text-white">{name}</p>
                   )}
                   {time && (
-                    <p className="text-sm text-gray-500">{time}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">{time}</p>
                   )}
                 </div>
               </div>

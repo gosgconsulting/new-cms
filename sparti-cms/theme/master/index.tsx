@@ -216,7 +216,7 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
             key: "r2",
             type: "review",
             props: {
-              content: "Dark mode looks premium, and the slider helped us show proof instantly.",
+              content: "The design looks premium, and the slider helped us show proof instantly.",
               name: "Marcus T.",
               title: "Marketing Lead",
             },
@@ -496,7 +496,7 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[color:var(--brand-background)]">
+    <div className="min-h-screen flex flex-col bg-(--brand-background)">
       <Header tenantName={tenantName} tenantSlug={tenantSlug} onContactClick={handleContactClick} />
 
       <main className="flex-1">

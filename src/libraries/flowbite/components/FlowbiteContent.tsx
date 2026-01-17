@@ -68,7 +68,7 @@ const FlowbiteContent: React.FC<FlowbiteContentProps> = ({
         >
           {finalContent && (
             <div 
-              className="text-gray-700 leading-relaxed"
+              className="text-gray-700 dark:text-gray-300 leading-relaxed"
               dangerouslySetInnerHTML={{ __html: finalContent }}
             />
           )}

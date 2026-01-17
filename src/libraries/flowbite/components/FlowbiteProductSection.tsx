@@ -127,32 +127,32 @@ const FlowbiteProductSection: React.FC<FlowbiteProductSectionProps> = ({
           {/* Product Information */}
           <div className="space-y-6">
             {title && (
-              <h2 className="text-3xl font-bold text-gray-900">{title}</h2>
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-white">{title}</h2>
             )}
             
             {descriptions.map((desc, index) => (
-              <p key={index} className="text-gray-600 leading-relaxed">
+              <p key={index} className="text-gray-700 dark:text-gray-300 leading-relaxed">
                 {desc}
               </p>
             ))}
 
             {price && (
               <div 
-                className="text-2xl font-bold text-gray-900"
+                className="text-2xl font-bold text-gray-900 dark:text-white"
                 dangerouslySetInnerHTML={{ __html: price }}
               />
             )}
 
             {dimensions && (
-              <p className="text-lg text-gray-700 font-medium">{dimensions}</p>
+              <p className="text-lg text-gray-700 dark:text-gray-300 font-medium">{dimensions}</p>
             )}
 
             {featureItems.length > 0 && (
               <div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
                   Caractéristiques principales
                 </h3>
-                <ul className="list-disc list-inside space-y-2 text-gray-600">
+                <ul className="list-disc list-inside space-y-2 text-gray-700 dark:text-gray-300">
                   {featureItems.map((item, index) => (
                     <li key={index}>{item}</li>
                   ))}
@@ -174,7 +174,7 @@ const FlowbiteProductSection: React.FC<FlowbiteProductSectionProps> = ({
 
             {deliveryItems.length > 0 && (
               <div className="pt-4 border-t border-gray-200">
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-700 dark:text-gray-300">
                   {deliveryItems.join(" • ")}
                 </p>
               </div>

@@ -193,7 +193,7 @@ export default function Lora() {
                           key={index}
                           className="flex items-center space-x-3"
                         >
-                          <CheckCircle className="h-5 w-5 text-dance-gray-600 flex-shrink-0" />
+                          <CheckCircle className="h-5 w-5 text-dance-gray-600 shrink-0" />
                           <span className="font-body font-light text-dance-gray-700">
                             {feature}
                           </span>
@@ -207,7 +207,7 @@ export default function Lora() {
                   </div>
 
                   <div className="relative">
-                    <div className="aspect-square bg-gradient-to-br from-dance-pink/20 to-dance-purple/20 rounded-3xl flex items-center justify-center">
+                    <div className="aspect-square bg-linear-to-br from-dance-pink/20 to-dance-purple/20 rounded-3xl flex items-center justify-center">
                       <img
                         src={program.image}
                         alt={`${program.name} program`}
@@ -232,7 +232,7 @@ export default function Lora() {
       <GallerySlider />
 
       {/* Trial Class CTA Section */}
-      <section className="py-20 bg-gradient-to-br from-dance-gray-50 to-dance-white">
+      <section className="py-20 bg-linear-to-br from-dance-gray-50 to-dance-white">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2
@@ -385,7 +385,7 @@ export default function Lora() {
               </a>
               <a
                 href="#"
-                className="bg-gradient-to-r from-purple-500 to-pink-500 text-white p-4 rounded-full hover:from-purple-600 hover:to-pink-600 transition-colors duration-300"
+                className="bg-linear-to-r from-purple-500 to-pink-500 text-white p-4 rounded-full hover:from-purple-600 hover:to-pink-600 transition-colors duration-300"
               >
                 <svg
                   className="h-6 w-6"

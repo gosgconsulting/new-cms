@@ -24,12 +24,12 @@ const FlowbiteSection: React.FC<FlowbiteSectionProps> = ({
       {(title || subtitle) && (
         <div className="flex flex-col gap-2">
           {title ? (
-            <h2 className="text-2xl md:text-3xl font-semibold tracking-tight text-gray-900 dark:text-white">
+            <h2 className="text-3xl md:text-4xl font-semibold tracking-tight text-gray-900 dark:text-white">
               {title}
             </h2>
           ) : null}
           {subtitle ? (
-            <p className="text-sm md:text-base text-gray-600 dark:text-gray-300">
+            <p className="text-base md:text-lg text-gray-700 dark:text-gray-300">
               {subtitle}
             </p>
           ) : null}

@@ -94,10 +94,10 @@ const FlowbiteServicesGrid: React.FC<FlowbiteServicesGridProps> = ({
                 </div>
               )}
               {heading && (
-                <h3 className="text-lg font-semibold mb-2">{heading}</h3>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">{heading}</h3>
               )}
               {description && (
-                <p className="text-gray-600 text-sm">{description}</p>
+                <p className="text-gray-700 dark:text-gray-300 text-sm">{description}</p>
               )}
             </Card>
           );

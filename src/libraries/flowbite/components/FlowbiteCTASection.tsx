@@ -75,7 +75,7 @@ const FlowbiteCTASection: React.FC<FlowbiteCTASectionProps> = ({
             </h2>
           ) : null}
           {description ? (
-            <p className="mt-4 text-lg text-white/80 max-w-3xl mx-auto">
+            <p className="mt-4 text-lg text-white/90 max-w-3xl mx-auto">
               {description}
             </p>
           ) : null}

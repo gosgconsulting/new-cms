@@ -112,7 +112,7 @@ function PricingCard({
 
   return (
     <div
-      className="relative hover:bg-white/[0.04] transition-all duration-300 group rounded-2xl p-6 flex flex-col w-full max-w-md sm:max-w-lg"
+      className="relative hover:bg-white/4 transition-all duration-300 group rounded-2xl p-6 flex flex-col w-full max-w-md sm:max-w-lg"
       style={cardStyle}
     >
       <style>{`@keyframes rotate { to { transform: translate(-50%, -50%) rotate(360deg); } }`}</style>
@@ -121,7 +121,7 @@ function PricingCard({
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <div
-            className={`h-10 w-10 rounded-xl border border-white/20 bg-gradient-to-br ${iconBgClass} flex items-center justify-center`}
+            className={`h-10 w-10 rounded-xl border border-white/20 bg-linear-to-br ${iconBgClass} flex items-center justify-center`}
           >
             {icon}
           </div>
@@ -150,14 +150,14 @@ function PricingCard({
       </div>
 
       {/* Scrollable content area */}
-      <div className="flex-grow mb-4">
+      <div className="grow mb-4">
         <ScrollArea className="h-auto max-h-[420px]">
           <div className="space-y-4 text-sm text-neutral-300 pr-4">
             <h4 className="text-white font-semibold text-base">What's included</h4>
             <ul className="space-y-2 ml-2">
               {(features as string[]).map((item, idx) => (
                 <li key={idx} className="flex items-start gap-2">
-                  <div className="flex items-center justify-center w-3 h-3 bg-violet-500 rounded-full mt-1 flex-shrink-0">
+                  <div className="flex items-center justify-center w-3 h-3 bg-violet-500 rounded-full mt-1 shrink-0">
                     <div className="w-1 h-1 bg-white rounded-full"></div>
                   </div>
                   <span className="text-neutral-300">{item}</span>
@@ -177,7 +177,7 @@ function PricingCard({
       <div className="mt-auto">
         <Button 
           onClick={onButtonClick}
-          className="w-full h-12 bg-white rounded-xl !font-bold hover:bg-gray-100 transition-colors border-0 shadow-sm"
+          className="w-full h-12 bg-white rounded-xl font-bold! hover:bg-gray-100 transition-colors border-0 shadow-sm"
           style={{ color: '#000000', fontWeight: '700', fontSize: '17px' }}
         >
           {buttonText}
@@ -248,7 +248,7 @@ const PricingPage: React.FC<PricingPageProps> = ({ items = [], onContactClick })
     "A single, comprehensive plan with all services included. We tailor the scope after a consultation to fit your goals and stage.";
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-b from-slate-800 via-slate-700 to-indigo-800 flex flex-col items-center justify-center p-8 relative">
+    <div className="min-h-screen w-full bg-linear-to-b from-slate-800 via-slate-700 to-indigo-800 flex flex-col items-center justify-center p-8 relative">
       <div className="text-center mb-10">
         <h1 className="text-4xl sm:text-5xl font-bold text-white tracking-tight">
           {pageTitle}

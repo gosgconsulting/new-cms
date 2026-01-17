@@ -7,12 +7,6 @@
 
 import {
   getFlowbiteMetadata,
-  getDaisyUIMetadata,
-  getFlyonUIMetadata,
-  getHyperUIMetadata,
-  getPrelineMetadata,
-  getTailgridsMetadata,
-  getUIMainMetadata,
 } from "./designSystemProviders";
 import type { DesignSystemMetadata } from "./designSystemMetadata";
 
@@ -32,42 +26,6 @@ export const libraryRegistry: LibraryConfig[] = [
     label: "Flowbite",
     available: true,
     getMetadata: getFlowbiteMetadata,
-  },
-  {
-    id: "daisyui",
-    label: "DaisyUI",
-    available: true,
-    getMetadata: getDaisyUIMetadata,
-  },
-  {
-    id: "flyonui",
-    label: "FlyonUI",
-    available: true,
-    getMetadata: getFlyonUIMetadata,
-  },
-  {
-    id: "hyperui",
-    label: "HyperUI",
-    available: true,
-    getMetadata: getHyperUIMetadata,
-  },
-  {
-    id: "preline",
-    label: "Preline",
-    available: true,
-    getMetadata: getPrelineMetadata,
-  },
-  {
-    id: "tailgrids",
-    label: "Tailgrids",
-    available: true,
-    getMetadata: getTailgridsMetadata,
-  },
-  {
-    id: "ui-main",
-    label: "UI Main",
-    available: true,
-    getMetadata: getUIMainMetadata,
   },
 ];
 

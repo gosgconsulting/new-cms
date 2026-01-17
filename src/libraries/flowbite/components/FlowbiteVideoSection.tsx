@@ -53,14 +53,14 @@ const FlowbiteVideoSection: React.FC<FlowbiteVideoSectionProps> = ({
   const videoUrl = getEmbed("video") || props.videoUrl || "";
 
   return (
-    <section className={`py-20 px-4 bg-white ${className}`}>
+    <section className={`py-20 px-4 bg-[color:var(--brand-background)] dark:bg-[#0a0a0a] ${className}`}>
       <div className="container mx-auto max-w-4xl">
         <FlowbiteSection 
           title={title}
           className="text-center mb-12"
         >
           {description && (
-            <p className="text-lg text-gray-600 mb-8">{description}</p>
+            <p className="text-lg text-gray-700 dark:text-gray-300 mb-8">{description}</p>
           )}
           
           {videoUrl && (

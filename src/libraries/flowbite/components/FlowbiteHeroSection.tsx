@@ -130,7 +130,7 @@ const FlowbiteHeroSection: React.FC<FlowbiteHeroSectionProps> = ({
 
   return (
     <section
-      className={`relative overflow-hidden bg-[color:var(--brand-background)] py-10 sm:py-14 ${className}`}
+      className={`relative overflow-hidden bg-[color:var(--brand-background)] dark:bg-[#0a0a0a] py-10 sm:py-14 ${className}`}
     >
       {/* Background glow */}
       <div className="pointer-events-none absolute inset-0">
@@ -140,7 +140,7 @@ const FlowbiteHeroSection: React.FC<FlowbiteHeroSectionProps> = ({
 
       <div className="container mx-auto px-4">
         <div className="mx-auto max-w-6xl">
-          <div className="rounded-3xl border border-black/10 dark:border-white/10 bg-white/70 dark:bg-white/5 backdrop-blur-sm shadow-[0_20px_80px_rgba(0,0,0,0.08)] dark:shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
+          <div className="rounded-3xl border border-black/10 dark:border-white/15 bg-white dark:bg-[#1a1a1a] shadow-[0_20px_80px_rgba(0,0,0,0.08)] dark:shadow-[0_20px_80px_rgba(0,0,0,0.7)]">
             <div
               className={[
                 showCarousel ? "grid grid-cols-1 lg:grid-cols-2" : "grid grid-cols-1",
@@ -178,7 +178,7 @@ const FlowbiteHeroSection: React.FC<FlowbiteHeroSectionProps> = ({
                 {description ? (
                   <p
                     className={[
-                      "text-base sm:text-lg text-gray-600 dark:text-gray-300 leading-relaxed",
+                      "text-base sm:text-lg text-gray-700 dark:text-gray-300 leading-relaxed",
                       showCarousel ? "max-w-xl" : "max-w-2xl mx-auto",
                     ].join(" ")}
                   >
@@ -203,19 +203,12 @@ const FlowbiteHeroSection: React.FC<FlowbiteHeroSectionProps> = ({
                     ) : null}
                   </div>
                 )}
-
-                <div className={showCarousel ? "text-sm text-gray-600 dark:text-gray-300" : "text-sm text-gray-600 dark:text-gray-300 flex justify-center"}>
-                  <span className="inline-flex items-center gap-2">
-                    <span className="h-2 w-2 rounded-full bg-brand-primary" />
-                    <span>2 spots available this week</span>
-                  </span>
-                </div>
               </div>
 
               {/* Right: Carousel */}
               {showCarousel && slides.length > 0 ? (
                 <div className="lg:pl-4">
-                  <div className="rounded-2xl border border-black/10 dark:border-white/10 bg-white/40 dark:bg-black/20 p-3 sm:p-4">
+                  <div className="rounded-2xl border border-black/10 dark:border-white/15 bg-white/40 dark:bg-[#1a1a1a]/60 p-3 sm:p-4">
                     <FlowbiteSlider
                       slides={slides}
                       options={{

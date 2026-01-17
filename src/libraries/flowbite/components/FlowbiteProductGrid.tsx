@@ -88,12 +88,12 @@ const FlowbiteProductGrid: React.FC<FlowbiteProductGridProps> = ({
                   </div>
                   <div className="p-4">
                     {productTitle && (
-                      <h3 className="font-semibold text-lg mb-2 group-hover:text-primary transition-colors">
+                      <h3 className="font-semibold text-lg text-gray-900 dark:text-white mb-2 group-hover:text-primary transition-colors">
                         {productTitle}
                       </h3>
                     )}
                     {productDescription && (
-                      <p className="text-gray-600 text-sm mb-2 line-clamp-2">{productDescription}</p>
+                      <p className="text-gray-700 dark:text-gray-300 text-sm mb-2 line-clamp-2">{productDescription}</p>
                     )}
                     {productPrice && (
                       <p className="text-lg font-bold text-primary">{productPrice}</p>
@@ -105,7 +105,7 @@ const FlowbiteProductGrid: React.FC<FlowbiteProductGridProps> = ({
           })}
         </div>
       ) : (
-        <div className="mt-8 text-center text-gray-500">
+        <div className="mt-8 text-center text-gray-600 dark:text-gray-400">
           <p>No products to display. Products will be loaded from e-commerce API.</p>
         </div>
       )}

@@ -54,16 +54,16 @@ const FlowbiteSocialMedia: React.FC<FlowbiteSocialMediaProps> = ({
       <div className="text-center py-12">
         {instagramHandle ? (
           <div className="space-y-4">
-            <p className="text-gray-600">
+            <p className="text-gray-700 dark:text-gray-300">
               Follow us on Instagram: <a href={`https://instagram.com/${instagramHandle}`} className="text-primary hover:underline" target="_blank" rel="noopener noreferrer">@{instagramHandle}</a>
             </p>
             {/* Instagram feed would be embedded here via Instagram API or embed */}
             <div className="mt-8 p-8 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-500">Instagram feed will be embedded here</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Instagram feed will be embedded here</p>
             </div>
           </div>
         ) : (
-          <p className="text-gray-500">Instagram feed placeholder</p>
+          <p className="text-gray-600 dark:text-gray-400">Instagram feed placeholder</p>
         )}
       </div>
     </FlowbiteSection>

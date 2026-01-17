@@ -313,7 +313,7 @@ const PersonalTrainingPage: React.FC<TenantLandingProps> = ({
     <div className="str-theme min-h-screen bg-background text-foreground">
       {/* Sticky Header - appears after scrolling */}
       {isScrolled && (
-        <header className="sticky top-0 z-[60] bg-background/95 backdrop-blur-sm border-b border-border transition-opacity duration-300">
+        <header className="sticky top-0 z-60 bg-background/95 backdrop-blur-sm border-b border-border transition-opacity duration-300">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex h-20 items-center justify-between">
               {/* Logo */}
@@ -446,33 +446,33 @@ const PersonalTrainingPage: React.FC<TenantLandingProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {/* 1-on-1 Expert Coaching Card */}
               <div className="bg-white rounded-3xl p-6 shadow-2xl h-full flex flex-col">
-                <div className="w-12 h-12 rounded-full bg-[#E48D2A] flex items-center justify-center mb-4 flex-shrink-0">
+                <div className="w-12 h-12 rounded-full bg-[#E48D2A] flex items-center justify-center mb-4 shrink-0">
                   <Wrench className="h-6 w-6 text-white" />
                 </div>
                 <h3 className="text-xl font-bold uppercase text-black mb-3">1‑ON‑1 EXPERT COACHING</h3>
-                <p className="text-black/80 text-sm leading-relaxed flex-grow">
+                <p className="text-black/80 text-sm leading-relaxed grow">
                   Work directly with experienced coaches who provide undivided attention, real‑time form correction, and personalized guidance every single session. No distractions, no waiting—just you and your coach.
                 </p>
               </div>
 
               {/* Personalized Training Plans Card */}
               <div className="bg-white rounded-3xl p-6 shadow-2xl h-full flex flex-col">
-                <div className="w-12 h-12 rounded-full bg-[#E48D2A] flex items-center justify-center mb-4 flex-shrink-0">
+                <div className="w-12 h-12 rounded-full bg-[#E48D2A] flex items-center justify-center mb-4 shrink-0">
                   <Award className="h-6 w-6 text-white" />
                 </div>
                 <h3 className="text-xl font-bold uppercase text-black mb-3">PERSONALIZED TRAINING PLANS</h3>
-                <p className="text-black/80 text-sm leading-relaxed flex-grow">
+                <p className="text-black/80 text-sm leading-relaxed grow">
                   Every program starts with a comprehensive assessment. Your training plan is built specifically for your body, your goals, and your schedule—not a one‑size‑fits‑all template.
                 </p>
               </div>
 
               {/* Individual Attention Card */}
               <div className="bg-white rounded-3xl p-6 shadow-2xl h-full flex flex-col">
-                <div className="w-12 h-12 rounded-full bg-[#E48D2A] flex items-center justify-center mb-4 flex-shrink-0">
+                <div className="w-12 h-12 rounded-full bg-[#E48D2A] flex items-center justify-center mb-4 shrink-0">
                   <Users className="h-6 w-6 text-white" />
                 </div>
                 <h3 className="text-xl font-bold uppercase text-black mb-3">DEDICATED SUPPORT</h3>
-                <p className="text-black/80 text-sm leading-relaxed flex-grow">
+                <p className="text-black/80 text-sm leading-relaxed grow">
                   Your coach tracks your progress, adjusts your program in real‑time, and provides the accountability you need to stay consistent. Every session is focused entirely on your success.
                 </p>
               </div>
@@ -530,7 +530,7 @@ const PersonalTrainingPage: React.FC<TenantLandingProps> = ({
                           </h3>
                           <button
                             onClick={() => setActiveProgramme(activeProgramme === index ? -1 : index)}
-                            className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center flex-shrink-0 hover:bg-gray-700 transition-colors"
+                            className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center shrink-0 hover:bg-gray-700 transition-colors"
                             aria-label={`Toggle ${programme.title}`}
                           >
                             <ChevronUp className="h-4 w-4 text-white" />
@@ -569,7 +569,7 @@ const PersonalTrainingPage: React.FC<TenantLandingProps> = ({
                               e.stopPropagation();
                               setActiveProgramme(index);
                             }}
-                            className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center flex-shrink-0 hover:bg-gray-700 transition-colors"
+                            className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center shrink-0 hover:bg-gray-700 transition-colors"
                             aria-label={`Open ${programme.title}`}
                           >
                             <ChevronUp className="h-4 w-4 text-white rotate-180" />
@@ -690,7 +690,7 @@ const PersonalTrainingPage: React.FC<TenantLandingProps> = ({
             {placeInfo && placeInfo.rating > 0 && (
               <div className="flex items-center gap-4 mb-8 p-4 bg-white/5 rounded-2xl border border-white/10 backdrop-blur-sm">
                 {/* Google Logo */}
-                <div className="flex-shrink-0">
+                <div className="shrink-0">
                   <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
                     <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
@@ -774,7 +774,7 @@ const PersonalTrainingPage: React.FC<TenantLandingProps> = ({
                                 >
                                   {/* Avatar with Google Logo */}
                                   <div className="flex items-start gap-4 mb-4">
-                                    <div className="relative flex-shrink-0">
+                                            <div className="relative shrink-0">
                                       {testimonial.profilePhotoUrl ? (
                                         <img
                                           src={testimonial.profilePhotoUrl}
@@ -836,7 +836,7 @@ const PersonalTrainingPage: React.FC<TenantLandingProps> = ({
                                   </div>
 
                                   {/* Review Text */}
-                                  <p className="text-gray-700 mb-4 leading-relaxed text-sm flex-grow">
+                                  <p className="text-gray-700 mb-4 leading-relaxed text-sm grow">
                                     {testimonial.quote.length > 150 ? (
                                       <>
                                         {testimonial.quote.substring(0, 150)}...{' '}
@@ -904,7 +904,7 @@ const PersonalTrainingPage: React.FC<TenantLandingProps> = ({
             {teamMembers.map((member, index) => (
               <div key={index} className="relative rounded-2xl overflow-hidden transition-all duration-300 border border-gray-700/50 flex flex-col h-full">
                 {/* Image Area - Fixed Height */}
-                <div className="relative h-64 md:h-72 overflow-hidden flex-shrink-0">
+                <div className="relative h-64 md:h-72 overflow-hidden shrink-0">
                   <img
                     src={member.image}
                     alt={member.name}
@@ -914,10 +914,10 @@ const PersonalTrainingPage: React.FC<TenantLandingProps> = ({
                 </div>
 
                 {/* Dark Panel - Bottom Section with Flex Grow */}
-                <div className="bg-background p-6 flex flex-col flex-grow">
+                <div className="bg-background p-6 flex flex-col grow">
                   <h3 className="text-2xl font-bold uppercase text-foreground mb-2">{member.name.toUpperCase()}</h3>
                   <p className="text-[#A0A0A0] text-sm font-medium mb-3">{member.role}</p>
-                  <p className="text-muted-foreground text-sm leading-relaxed flex-grow">
+                  <p className="text-muted-foreground text-sm leading-relaxed grow">
                     {member.description}
                   </p>
                 </div>
