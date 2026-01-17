@@ -13,7 +13,7 @@ const sampleProduct = {
 const Product: React.FC = () => {
   return (
     <div className="w-full">
-      <section className="py-16 px-4 bg-gradient-to-br from-primary/5 to-secondary/5">
+      <section className="py-16 px-4 bg-linear-to-br from-primary/5 to-secondary/5">
         <div className="container mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
             <div className="rounded-lg border overflow-hidden bg-card">

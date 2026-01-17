@@ -10,7 +10,7 @@ const products = [
 const Homepage: React.FC = () => {
   return (
     <div className="w-full">
-      <section className="py-16 px-4 bg-gradient-to-br from-primary/5 to-secondary/5">
+      <section className="py-16 px-4 bg-linear-to-br from-primary/5 to-secondary/5">
         <div className="container mx-auto text-center">
           <h1 className="text-3xl md:text-4xl font-bold mb-3">Storefront</h1>
           <p className="text-muted-foreground text-lg md:text-xl max-w-2xl mx-auto">
