@@ -9,11 +9,12 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 /**
- * GET /theme/:tenantSlug
+ * GET /theme/:tenantSlug/:pageSlug
  * Serves the React app's index.html for client-side routing
- * The actual landing page is rendered by React on the client side
+ * The actual page is rendered by React on the client side
+ * This route handles 2-segment paths like /theme/str/booking
  */
-router.get('/:tenantSlug', (req, res) => {
+router.get('/:tenantSlug/:pageSlug', (req, res) => {
   // Serve the React app's index.html so client-side routing can handle it
   const indexPath = join(__dirname, '..', '..', 'dist', 'index.html');
   if (existsSync(indexPath)) {
@@ -28,11 +29,34 @@ router.get('/:tenantSlug', (req, res) => {
 });
 
 /**
- * GET /theme/:tenantSlug/:pageSlug
+ * GET /theme/:tenantSlug/*
+ * Catch-all route for nested theme paths (3+ segments)
  * Serves the React app's index.html for client-side routing
- * The actual page is rendered by React on the client side
+ * Handles routes like /theme/str/booking/classes or /theme/str/booking/classes/schedule
+ * Must come after the 2-segment route to ensure proper matching
  */
-router.get('/:tenantSlug/:pageSlug', (req, res) => {
+router.get('/:tenantSlug/*', (req, res) => {
+  // Serve the React app's index.html so client-side routing can handle it
+  const indexPath = join(__dirname, '..', '..', 'dist', 'index.html');
+  if (existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    res.status(200).json({ 
+      status: 'error', 
+      message: 'React app not built. Please build the app first.',
+      timestamp: new Date().toISOString() 
+    });
+  }
+});
+
+/**
+ * GET /theme/:tenantSlug
+ * Serves the React app's index.html for client-side routing
+ * The actual landing page is rendered by React on the client side
+ * This route handles 1-segment paths like /theme/str
+ * Must come last to avoid matching longer paths
+ */
+router.get('/:tenantSlug', (req, res) => {
   // Serve the React app's index.html so client-side routing can handle it
   const indexPath = join(__dirname, '..', '..', 'dist', 'index.html');
   if (existsSync(indexPath)) {
