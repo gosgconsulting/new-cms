@@ -32,7 +32,9 @@ const FlowbiteCTASection: React.FC<FlowbiteCTASectionProps> = ({
 
   const getText = (key: string) => {
     const item = items.find(
-      (i) => i.key?.toLowerCase() === key.toLowerCase() && typeof (i as any).content === "string"
+      (i) =>
+        i.key?.toLowerCase() === key.toLowerCase() &&
+        typeof (i as any).content === "string"
     ) as any;
     return item?.content || "";
   };
@@ -82,10 +84,7 @@ const FlowbiteCTASection: React.FC<FlowbiteCTASectionProps> = ({
 
           {cta.content ? (
             <div className="mt-10 flex justify-center">
-              <a
-                href={cta.link}
-                className="btn-cta-light rounded-full px-8"
-              >
+              <a href={cta.link} className="btn-cta-light w-full sm:w-auto">
                 {cta.content}
               </a>
             </div>
