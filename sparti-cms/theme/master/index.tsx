@@ -188,6 +188,18 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
     props: {},
     items: [
       {
+        key: "title",
+        type: "heading",
+        level: 2,
+        content: "Our solution",
+      },
+      {
+        key: "subtitle",
+        type: "text",
+        content:
+          "A complete growth package designed to fix the bottlenecks above and turn attention into leads.",
+      },
+      {
         key: "features",
         type: "array",
         items: [
@@ -195,12 +207,12 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
             key: "f1",
             type: "feature",
             items: [
-              { key: "title", type: "heading", level: 3, content: "Expert guidance" },
+              { key: "title", type: "heading", level: 3, content: "Website & conversion" },
               {
                 key: "description",
                 type: "text",
                 content:
-                  "Clear strategy, clean sections, and a persuasive flow that makes decisions easy.",
+                  "High-converting sections, clear CTAs, and tracking so you know what works.",
               },
               { key: "icon", type: "text", content: "clock" },
             ],
@@ -209,12 +221,12 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
             key: "f2",
             type: "feature",
             items: [
-              { key: "title", type: "heading", level: 3, content: "Structured conversion flow" },
+              { key: "title", type: "heading", level: 3, content: "Acquisition & ads" },
               {
                 key: "description",
                 type: "text",
                 content:
-                  "Each section has a purpose: build trust, answer objections, and drive action.",
+                  "Smart SEM + social campaigns, plus retargeting that doesn't waste spend.",
               },
               { key: "icon", type: "text", content: "users" },
             ],
@@ -223,12 +235,12 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
             key: "f3",
             type: "feature",
             items: [
-              { key: "title", type: "heading", level: 3, content: "Calm, premium design" },
+              { key: "title", type: "heading", level: 3, content: "Content & creative" },
               {
                 key: "description",
                 type: "text",
                 content:
-                  "Beautiful light + dark modes with strong contrast and consistent spacing.",
+                  "Copy and assets that match your brand and move prospects to action.",
               },
               { key: "icon", type: "text", content: "heart" },
             ],
