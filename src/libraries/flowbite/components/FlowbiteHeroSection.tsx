@@ -210,22 +210,9 @@ const FlowbiteHeroSection: React.FC<FlowbiteHeroSectionProps> = ({
                     <span>2 spots available this week</span>
                   </span>
                 </div>
-
-                <div className={showCarousel ? "pt-4" : "pt-4"}>
-                  <p className="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-3">
-                    Trusted by founders worldwide
-                  </p>
-                  <div className={showCarousel ? "flex flex-wrap items-center gap-x-8 gap-y-3 text-sm font-semibold text-gray-400 dark:text-gray-500" : "flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm font-semibold text-gray-400 dark:text-gray-500"}>
-                    <span>Horizon</span>
-                    <span>Mindscope</span>
-                    <span>NovoTech</span>
-                    <span>Quantum</span>
-                    <span>SolvorrY</span>
-                  </div>
-                </div>
               </div>
 
-              {/* Carousel */}
+              {/* Right: Carousel */}
               {showCarousel && slides.length > 0 ? (
                 <div className="lg:pl-4">
                   <div className="rounded-2xl border border-black/10 dark:border-white/10 bg-white/40 dark:bg-black/20 p-3 sm:p-4">
