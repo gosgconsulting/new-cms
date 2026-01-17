@@ -195,48 +195,42 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
             key: "f1",
             type: "feature",
             items: [
-              { key: "title", type: "heading", level: 3, content: "Conversion-first pages" },
+              { key: "title", type: "heading", level: 3, content: "Expert guidance" },
               {
                 key: "description",
                 type: "text",
-                content: "Clean layout, clear CTA, and persuasive sections that guide users." ,
+                content:
+                  "Clear strategy, clean sections, and a persuasive flow that makes decisions easy.",
               },
+              { key: "icon", type: "text", content: "clock" },
             ],
           },
           {
             key: "f2",
             type: "feature",
             items: [
-              { key: "title", type: "heading", level: 3, content: "Fast iteration" },
+              { key: "title", type: "heading", level: 3, content: "Structured conversion flow" },
               {
                 key: "description",
                 type: "text",
-                content: "Swap sections, copy, and visuals without breaking the system.",
+                content:
+                  "Each section has a purpose: build trust, answer objections, and drive action.",
               },
+              { key: "icon", type: "text", content: "users" },
             ],
           },
           {
             key: "f3",
             type: "feature",
             items: [
-              { key: "title", type: "heading", level: 3, content: "Dark + Light built-in" },
+              { key: "title", type: "heading", level: 3, content: "Calm, premium design" },
               {
                 key: "description",
                 type: "text",
-                content: "One theme, two moods — optimized contrast and readable typography.",
+                content:
+                  "Beautiful light + dark modes with strong contrast and consistent spacing.",
               },
-            ],
-          },
-          {
-            key: "f4",
-            type: "feature",
-            items: [
-              { key: "title", type: "heading", level: 3, content: "Design system consistency" },
-              {
-                key: "description",
-                type: "text",
-                content: "Reusable components keep your site polished and scalable.",
-              },
+              { key: "icon", type: "text", content: "heart" },
             ],
           },
         ],

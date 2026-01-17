@@ -3,18 +3,38 @@
 import React, { useMemo } from "react";
 import type { ComponentSchema } from "../../../../sparti-cms/types/schema";
 import FlowbiteSection from "./FlowbiteSection";
+import { Clock, Heart, Users } from "lucide-react";
 
 interface FlowbiteFeaturesSectionProps {
   component: ComponentSchema;
   className?: string;
 }
 
-type Feature = { title: string; description: string };
+type Feature = { title: string; description: string; icon?: string };
+
+function iconForFeature(icon: string | undefined, index: number) {
+  const key = String(icon || "").toLowerCase();
+  if (key.includes("time") || key.includes("clock")) return Clock;
+  if (key.includes("heart") || key.includes("care")) return Heart;
+  if (key.includes("user") || key.includes("community") || key.includes("team")) return Users;
+
+  return [Clock, Users, Heart][index % 3];
+}
+
+function iconBgForIndex(index: number) {
+  // pastel backgrounds like the reference
+  const bgs = [
+    "bg-rose-100 dark:bg-rose-500/15 text-rose-700 dark:text-rose-300",
+    "bg-amber-100 dark:bg-amber-500/15 text-amber-700 dark:text-amber-300",
+    "bg-lime-100 dark:bg-lime-500/15 text-lime-700 dark:text-lime-300",
+  ];
+  return bgs[index % bgs.length];
+}
 
 /**
  * Flowbite Features Section Component
  *
- * Revamped to match the Master theme hero styling (soft glows + glass cards).
+ * Updated to match the provided 3-card reference style (icon circle, headline, text).
  */
 const FlowbiteFeaturesSection: React.FC<FlowbiteFeaturesSectionProps> = ({
   component,
@@ -48,7 +68,7 @@ const FlowbiteFeaturesSection: React.FC<FlowbiteFeaturesSectionProps> = ({
   const subtitle =
     getText("subtitle") ||
     (props as any).subtitle ||
-    "A conversion-first structure with consistent sections and beautiful light/dark styling.";
+    "A simple structure designed to guide visitors from interest to action.";
 
   const features = useMemo<Feature[]>(() => {
     const featuresArray = getArray("features");
@@ -65,10 +85,13 @@ const FlowbiteFeaturesSection: React.FC<FlowbiteFeaturesSectionProps> = ({
           const descItem = featureItems.find(
             (item: any) => item.key?.toLowerCase() === "description" || item.type === "text"
           );
+          const iconItem = featureItems.find((item: any) => item.key?.toLowerCase() === "icon");
+
           if (titleItem || descItem) {
             out.push({
               title: titleItem?.content || "",
               description: descItem?.content || "",
+              icon: iconItem?.content || iconItem?.icon,
             });
           }
         }
@@ -85,14 +108,18 @@ const FlowbiteFeaturesSection: React.FC<FlowbiteFeaturesSectionProps> = ({
         const descItem = featureItems.find(
           (item: any) => item.key?.toLowerCase() === "description" || item.type === "text"
         );
+        const iconItem = featureItems.find((item: any) => item.key?.toLowerCase() === "icon");
+
         out.push({
           title: titleItem?.content || (feature as any).title || "",
           description: descItem?.content || (feature as any).description || "",
+          icon: iconItem?.content || (feature as any).icon,
         });
       } else {
         out.push({
           title: (feature as any).title || "",
           description: (feature as any).description || "",
+          icon: (feature as any).icon,
         });
       }
     }
@@ -100,44 +127,43 @@ const FlowbiteFeaturesSection: React.FC<FlowbiteFeaturesSectionProps> = ({
     return out;
   }, [items]);
 
+  const topThree = features.slice(0, 3);
+
   return (
     <section className={`relative overflow-hidden py-20 px-4 ${className}`}>
-      {/* Soft background glows */}
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -top-40 left-1/2 h-[22rem] w-[44rem] -translate-x-1/2 rounded-full bg-gradient-to-r from-indigo-400/15 via-sky-400/10 to-lime-400/15 blur-3xl" />
-        <div className="absolute -bottom-48 left-[-8rem] h-[20rem] w-[20rem] rounded-full bg-gradient-to-tr from-lime-400/10 via-sky-400/10 to-indigo-400/10 blur-3xl" />
-      </div>
-
       <div className="container mx-auto relative">
         <div className="mx-auto max-w-6xl">
           <FlowbiteSection title={title} subtitle={subtitle} className="text-center mb-12" />
 
-          {features.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {features.map((feature, index) => (
-                <div
-                  key={index}
-                  className="group h-full rounded-2xl border border-black/10 dark:border-white/10 bg-white/70 dark:bg-white/5 backdrop-blur-sm p-6 shadow-[0_10px_40px_rgba(0,0,0,0.06)] dark:shadow-[0_10px_40px_rgba(0,0,0,0.35)] hover:-translate-y-0.5 transition-all"
-                >
-                  <div className="flex items-start gap-4">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-black/10 dark:border-white/10 bg-gradient-to-br from-indigo-500/10 to-lime-400/15 text-gray-900 dark:text-white font-semibold">
-                      {index + 1}
+          {topThree.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {topThree.map((feature, index) => {
+                const Icon = iconForFeature(feature.icon, index);
+                const bg = iconBgForIndex(index);
+
+                return (
+                  <div
+                    key={index}
+                    className="rounded-3xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-900 p-8 shadow-[0_18px_60px_rgba(0,0,0,0.12)] dark:shadow-[0_18px_60px_rgba(0,0,0,0.55)]"
+                  >
+                    <div className={`h-16 w-16 rounded-full flex items-center justify-center ${bg}`}>
+                      <Icon className="h-7 w-7" />
                     </div>
-                    <div className="min-w-0">
-                      {feature.title ? (
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
-                          {feature.title}
-                        </h3>
-                      ) : null}
-                      {feature.description ? (
-                        <p className="text-sm leading-relaxed text-gray-600 dark:text-gray-300">
-                          {feature.description}
-                        </p>
-                      ) : null}
-                    </div>
+
+                    {feature.title ? (
+                      <h3 className="mt-6 text-2xl font-semibold text-slate-900 dark:text-white">
+                        {feature.title}
+                      </h3>
+                    ) : null}
+
+                    {feature.description ? (
+                      <p className="mt-3 text-base leading-relaxed text-slate-600 dark:text-slate-200">
+                        {feature.description}
+                      </p>
+                    ) : null}
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           ) : (
             <p className="text-gray-500 dark:text-gray-400 text-center">No features to display</p>
