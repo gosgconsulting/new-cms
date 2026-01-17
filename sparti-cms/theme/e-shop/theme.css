@@ -1,0 +1,127 @@
+/* E-shop theme styles (ported from lovable-ecom-main) */
+
+/* Scope all variables + helpers to the theme root to avoid impacting other themes */
+.eshop-theme {
+  /* Core neutral palette */
+  --background: 0 0% 100%;
+  --foreground: 0 0% 9%;
+
+  /* Status bar */
+  --status-bar: 0 0% 0%;
+  --status-bar-foreground: 0 0% 100%;
+
+  /* Navigation */
+  --nav-background: 0 0% 100%;
+  --nav-foreground: 0 0% 20%;
+  --nav-hover: 0 0% 5%;
+
+  /* Interactive elements */
+  --primary: 0 0% 9%;
+  --primary-foreground: 0 0% 98%;
+  --primary-hover: 0 0% 15%;
+
+  /* Subtle elements */
+  --secondary: 0 0% 96%;
+  --secondary-foreground: 0 0% 20%;
+
+  --muted: 0 0% 96%;
+  --muted-foreground: 0 0% 45%;
+
+  --accent: 0 0% 96%;
+  --accent-foreground: 0 0% 9%;
+
+  --border: 0 0% 90%;
+  --input: 0 0% 90%;
+  --ring: 0 0% 9%;
+
+  /* Cards and surfaces */
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 9%;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 9%;
+
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 98%;
+
+  --radius: 0.375rem;
+
+  /* Transitions */
+  --transition-smooth: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-bounce: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.eshop-theme.dark {
+  --background: 0 0% 9%;
+  --foreground: 0 0% 98%;
+
+  --status-bar: 0 0% 0%;
+  --status-bar-foreground: 0 0% 100%;
+
+  --nav-background: 0 0% 9%;
+  --nav-foreground: 0 0% 80%;
+  --nav-hover: 0 0% 95%;
+
+  --primary: 0 0% 98%;
+  --primary-foreground: 0 0% 9%;
+  --primary-hover: 0 0% 90%;
+
+  --secondary: 0 0% 15%;
+  --secondary-foreground: 0 0% 80%;
+
+  --muted: 0 0% 15%;
+  --muted-foreground: 0 0% 60%;
+
+  --accent: 0 0% 15%;
+  --accent-foreground: 0 0% 98%;
+
+  --border: 0 0% 20%;
+  --input: 0 0% 20%;
+  --ring: 0 0% 98%;
+
+  --card: 0 0% 9%;
+  --card-foreground: 0 0% 98%;
+
+  --popover: 0 0% 9%;
+  --popover-foreground: 0 0% 98%;
+
+  --destructive: 0 62% 50%;
+  --destructive-foreground: 0 0% 98%;
+}
+
+/* Custom utility-like classes used by the migrated components */
+.eshop-theme .bg-nav {
+  background-color: hsl(var(--nav-background));
+}
+.eshop-theme .text-nav-foreground {
+  color: hsl(var(--nav-foreground));
+}
+.eshop-theme .text-nav-hover {
+  color: hsl(var(--nav-hover));
+}
+
+@keyframes eshop-slide-in-right {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes eshop-slide-in {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.eshop-theme .animate-slide-in-right {
+  animation: eshop-slide-in-right 0.3s ease-out;
+}
+
+.eshop-theme .animate-slide-in {
+  animation: eshop-slide-in 0.3s ease-out;
+}

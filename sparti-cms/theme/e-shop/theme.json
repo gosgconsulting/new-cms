@@ -1,0 +1,20 @@
+{
+  "name": "E-shop",
+  "description": "E-commerce theme based on the Master Template and migrated from lovable-ecom-main (Linea).",
+  "version": "1.0.0",
+  "author": "GOSG",
+  "is_active": true,
+  "category": "ecommerce",
+  "tags": ["custom", "shop", "ecommerce", "linea"],
+  "features": [
+    "Homepage with editorial + product sections",
+    "Category listing page",
+    "Product detail page",
+    "Checkout page",
+    "About pages",
+    "Privacy policy and terms pages"
+  ],
+  "preview_image": "assets/preview.svg",
+  "demo_url": "/theme/e-shop",
+  "documentation_url": "/docs/themes/e-shop"
+}
