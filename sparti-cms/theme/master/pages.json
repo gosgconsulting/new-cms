@@ -1,6 +1,18 @@
 {
   "pages": [
     { "id": "home", "name": "Home", "slug": "", "component": "Homepage" },
-    { "id": "thank-you", "name": "Thank You", "slug": "thank-you", "component": "ThankYouPage" }
+    { "id": "thank-you", "name": "Thank You", "slug": "thank-you", "component": "ThankYouPage" },
+    {
+      "id": "privacy-policy",
+      "name": "Privacy Policy",
+      "slug": "privacy-policy",
+      "component": "PrivacyPolicyPage"
+    },
+    {
+      "id": "terms-and-conditions",
+      "name": "Terms & Conditions",
+      "slug": "terms-and-conditions",
+      "component": "TermsAndConditionsPage"
+    }
   ]
 }

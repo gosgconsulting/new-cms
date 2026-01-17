@@ -14,6 +14,8 @@ import Header from "./components/Header";
 import Footer from "./components/Footer";
 import ContactFormModal from "./components/ContactFormModal";
 import { ThankYouPage } from "./components/ThankYouPage";
+import PrivacyPolicyPage from "./components/PrivacyPolicyPage";
+import TermsAndConditionsPage from "./components/TermsAndConditionsPage";
 import "./theme.css";
 
 // Helper function to adjust color brightness
@@ -21,8 +23,8 @@ const adjustColorBrightness = (hex: string, percent: number): string => {
   const num = parseInt(hex.replace("#", ""), 16);
   const amt = Math.round(2.55 * percent);
   const R = Math.min(255, Math.max(0, (num >> 16) + amt));
-  const G = Math.min(255, Math.max(0, ((num >> 8) & 0x00FF) + amt));
-  const B = Math.min(255, Math.max(0, (num & 0x0000FF) + amt));
+  const G = Math.min(255, Math.max(0, ((num >> 8) & 0x00ff) + amt));
+  const B = Math.min(255, Math.max(0, (num & 0x0000ff) + amt));
   return "#" + (0x1000000 + R * 0x10000 + G * 0x100 + B).toString(16).slice(1);
 };
 
@@ -34,6 +36,14 @@ interface MasterThemeProps {
   tenantId?: string;
   designSystemTheme?: "default" | "minimal" | "enterprise" | "playful" | "mono";
 }
+
+const normalizeSlug = (slug?: string) => {
+  if (!slug) return "";
+  return String(slug)
+    .split("?")[0]
+    .replace(/^\/+/, "")
+    .replace(/\/+$/, "");
+};
 
 /**
  * Master Theme - Landing Page (Flowbite-based)
@@ -92,7 +102,10 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
       }
 
       if (brandingColors.color_background) {
-        root.style.setProperty("--brand-background", String(brandingColors.color_background));
+        root.style.setProperty(
+          "--brand-background",
+          String(brandingColors.color_background)
+        );
       }
 
       if (brandingColors.color_gradient_start) {
@@ -134,10 +147,18 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
     };
   }, []);
 
+  const normalizedPageSlug = normalizeSlug(pageSlug);
+  const topLevelSlug = normalizedPageSlug.split("/")[0];
+
   const isThankYouPage =
+    topLevelSlug === "thank-you" ||
     location.pathname === "/thank-you" ||
     location.pathname.endsWith("/thank-you") ||
     location.pathname.includes("/thank-you");
+
+  const handleContactClick = () => {
+    setIsContactModalOpen(true);
+  };
 
   if (isThankYouPage) {
     return (
@@ -145,10 +166,7 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
     );
   }
 
-  const handleContactClick = () => {
-    setIsContactModalOpen(true);
-  };
-
+  // Landing page schemas
   const heroSchema: ComponentSchema = {
     type: "flowbite-hero-section",
     props: {
@@ -207,7 +225,8 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
             key: "r1",
             type: "review",
             props: {
-              content: "Our landing page went from 'nice' to 'high converting' in a week. The new hero + sections are super clean.",
+              content:
+                "Our landing page went from 'nice' to 'high converting' in a week. The new hero + sections are super clean.",
               name: "Sarah C.",
               title: "Founder",
             },
@@ -225,7 +244,8 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
             key: "r3",
             type: "review",
             props: {
-              content: "We finally have a consistent design system we can iterate on without redoing everything.",
+              content:
+                "We finally have a consistent design system we can iterate on without redoing everything.",
               name: "Priya S.",
               title: "Operations",
             },
@@ -495,11 +515,17 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
     ],
   };
 
-  return (
-    <div className="min-h-screen flex flex-col bg-(--brand-background)">
-      <Header tenantName={tenantName} tenantSlug={tenantSlug} onContactClick={handleContactClick} />
+  const renderMain = () => {
+    if (topLevelSlug === "privacy-policy") {
+      return <PrivacyPolicyPage tenantName={tenantName} />;
+    }
 
-      <main className="flex-1">
+    if (topLevelSlug === "terms-and-conditions" || topLevelSlug === "terms") {
+      return <TermsAndConditionsPage tenantName={tenantName} />;
+    }
+
+    return (
+      <>
         <div id="hero">
           <FlowbiteHeroSection component={heroSchema} />
         </div>
@@ -527,9 +553,17 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
         <div id="contact" className="scroll-mt-20">
           <FlowbiteCTASection component={ctaSchema} />
         </div>
-      </main>
+      </>
+    );
+  };
 
-      <Footer tenantName={tenantName} tenantSlug={tenantSlug} />
+  return (
+    <div className="min-h-screen flex flex-col bg-(--brand-background)">
+      <Header tenantName={tenantName} tenantSlug={tenantSlug} onContactClick={handleContactClick} />
+
+      <main className="flex-1">{renderMain()}</main>
+
+      <Footer tenantName={tenantName} tenantSlug={tenantSlug} basePath={basePath} />
 
       <ContactFormModal isOpen={isContactModalOpen} onClose={() => setIsContactModalOpen(false)} />
     </div>
