@@ -16,6 +16,8 @@ import ContactFormModal from "./components/ContactFormModal";
 import { ThankYouPage } from "./components/ThankYouPage";
 import PrivacyPolicyPage from "./components/PrivacyPolicyPage";
 import TermsAndConditionsPage from "./components/TermsAndConditionsPage";
+import BlogListPage from "./components/blog/BlogListPage";
+import BlogPostPage from "./components/blog/BlogPostPage";
 import "./theme.css";
 
 // Helper function to adjust color brightness
@@ -51,7 +53,7 @@ const normalizeSlug = (slug?: string) => {
  * Revamped light/dark styles + hero carousel + testimonial slider.
  */
 const MasterTheme: React.FC<MasterThemeProps> = ({
-  basePath = "/theme/master",
+  basePath,
   pageSlug,
   tenantName = "Master Template",
   tenantSlug = "master",
@@ -60,6 +62,8 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
 }) => {
   const location = useLocation();
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
+
+  const resolvedBasePath = basePath || `/theme/${tenantSlug}`;
 
   // Fetch branding colors from database
   const { branding } = useThemeBranding("master", tenantId);
@@ -148,7 +152,8 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
   }, []);
 
   const normalizedPageSlug = normalizeSlug(pageSlug);
-  const topLevelSlug = normalizedPageSlug.split("/")[0];
+  const slugParts = normalizedPageSlug.split("/").filter(Boolean);
+  const topLevelSlug = slugParts[0];
 
   const isThankYouPage =
     topLevelSlug === "thank-you" ||
@@ -520,6 +525,15 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
   };
 
   const renderMain = () => {
+    if (topLevelSlug === "blog") {
+      const postSlug = slugParts[1];
+      return postSlug ? (
+        <BlogPostPage basePath={resolvedBasePath} slug={postSlug} />
+      ) : (
+        <BlogListPage basePath={resolvedBasePath} />
+      );
+    }
+
     if (topLevelSlug === "privacy-policy") {
       return <PrivacyPolicyPage tenantName={tenantName} />;
     }
@@ -563,11 +577,16 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
 
   return (
     <div className="min-h-screen flex flex-col bg-(--brand-background)">
-      <Header tenantName={tenantName} tenantSlug={tenantSlug} onContactClick={handleContactClick} />
+      <Header
+        tenantName={tenantName}
+        tenantSlug={tenantSlug}
+        basePath={resolvedBasePath}
+        onContactClick={handleContactClick}
+      />
 
       <main className="flex-1">{renderMain()}</main>
 
-      <Footer tenantName={tenantName} tenantSlug={tenantSlug} basePath={basePath} />
+      <Footer tenantName={tenantName} tenantSlug={tenantSlug} basePath={resolvedBasePath} />
 
       <ContactFormModal isOpen={isContactModalOpen} onClose={() => setIsContactModalOpen(false)} />
     </div>

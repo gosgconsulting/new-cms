@@ -144,23 +144,34 @@ const FlowbiteWhatsIncludedSection: React.FC<FlowbiteWhatsIncludedProps> = ({
               {/* Checklist */}
               {features.length > 0 ? (
                 <div className="mt-10 space-y-3">
-                  {features.map((f, idx) => (
-                    <Reveal key={idx} direction="up" delayMs={220 + idx * 90}>
-                      <div className="group rounded-2xl px-3 py-3 transition-colors hover:bg-slate-50 dark:hover:bg-white/5">
-                        <div className="flex items-start gap-4">
-                          <div className="icon-container-primary mt-1 h-6 w-6 rounded-full transition-transform duration-200 group-hover:scale-110">
-                            <Check className="h-4 w-4" />
+                  {features.map((f, idx) => {
+                    const drawDelay = 220 + idx * 90 + 40;
+
+                    return (
+                      <Reveal key={idx} direction="up" delayMs={220 + idx * 120}>
+                        <div className="group rounded-2xl px-3 py-3 transition-colors hover:bg-slate-50 dark:hover:bg-white/5">
+                          <div className="flex items-start gap-4">
+                            <div className="icon-container-primary mt-1 h-6 w-6 rounded-full transition-transform duration-200 group-hover:scale-110">
+                              <Check
+                                className="h-4 w-4 animate-master-draw"
+                                style={{
+                                  // Delay the line-draw so it starts roughly when this row reveals.
+                                  // (We use a CSS var so the animation applies to the icon paths.)
+                                  ["--master-draw-delay" as any]: `${drawDelay}ms`,
+                                }}
+                              />
+                            </div>
+                            <p className="text-base sm:text-lg text-gray-700 dark:text-gray-300 leading-relaxed">
+                              {f.title ? (
+                                <span className="font-semibold text-gray-900 dark:text-white">{f.title}: </span>
+                              ) : null}
+                              <span className="text-gray-700 dark:text-gray-300">{f.description}</span>
+                            </p>
                           </div>
-                          <p className="text-base sm:text-lg text-gray-700 dark:text-gray-300 leading-relaxed">
-                            {f.title ? (
-                              <span className="font-semibold text-gray-900 dark:text-white">{f.title}: </span>
-                            ) : null}
-                            <span className="text-gray-700 dark:text-gray-300">{f.description}</span>
-                          </p>
                         </div>
-                      </div>
-                    </Reveal>
-                  ))}
+                      </Reveal>
+                    );
+                  })}
                 </div>
               ) : null}
 

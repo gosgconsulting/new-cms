@@ -81,11 +81,6 @@ router.use('/api', docsRoutes);
 // Theme admin/auth routes (must come before general theme routes)
 router.use('/theme', themeAdminRoutes);
 
-// Block removed legacy theme
-router.use('/theme/master', (req, res) => {
-  return res.status(404).send('Not Found');
-});
-
 // Block /theme/template (root only). Template previews live under /theme/template/*
 router.use('/theme/template', (req, res, next) => {
   // When mounted at /theme/template, req.path is '' or '/' for the root.

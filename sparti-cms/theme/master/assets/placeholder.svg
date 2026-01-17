@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450" viewBox="0 0 800 450">
+  <rect width="800" height="450" fill="#f3f4f6" />
+  <rect x="40" y="40" width="720" height="370" rx="16" fill="#ffffff" stroke="#e5e7eb" />
+  <path d="M200 320 L330 220 L430 300 L520 250 L620 320" fill="none" stroke="#9ca3af" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" />
+  <circle cx="290" cy="190" r="22" fill="#9ca3af" />
+  <text x="400" y="120" text-anchor="middle" font-family="ui-sans-serif, system-ui" font-size="28" fill="#6b7280">master / placeholder</text>
+  <text x="400" y="160" text-anchor="middle" font-family="ui-sans-serif, system-ui" font-size="16" fill="#9ca3af">/theme/master/assets/placeholder.svg</text>
+</svg>

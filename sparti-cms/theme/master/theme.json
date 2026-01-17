@@ -18,7 +18,7 @@
     "Responsive layout",
     "Template for new themes"
   ],
-  "preview_image": "assets/preview.jpg",
+  "preview_image": "assets/preview.svg",
   "demo_url": "/theme/master",
   "documentation_url": "/docs/themes/master"
 }
