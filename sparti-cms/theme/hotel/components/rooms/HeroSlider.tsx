@@ -32,11 +32,11 @@ const HeroSlider: React.FC = () => {
             <button className="btn btn-lg btn-primary mx-auto">{btnNext}</button>
           </div>
 
-          <div className="absolute top-0 w-full h-full">
+          <div className="absolute inset-0">
             <img className="object-cover h-full w-full" src={bg} alt="slider" />
           </div>
 
-          <div className="absolute w-full h-full bg-black/70" />
+          <div className="absolute inset-0 bg-black/70" />
         </SwiperSlide>
       ))}
     </Swiper>

@@ -32,7 +32,7 @@ const RoomDetailsPage: React.FC<RoomDetailsPageProps> = ({ roomId }) => {
       <ScrollToTop />
 
       <div className="bg-room h-[560px] relative flex justify-center items-center bg-cover bg-center">
-        <div className="absolute w-full h-full bg-black/70" />
+        <div className="absolute inset-0 bg-black/70" />
         <h1 className="text-6xl text-white z-20 font-primary text-center">
           {name} Details
         </h1>
