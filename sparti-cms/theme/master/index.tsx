@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import type { ComponentSchema } from "../../../sparti-cms/types/schema";
 import FlowbiteHeroSection from "@/libraries/flowbite/components/FlowbiteHeroSection";
-import FlowbiteFeaturesSection from "@/libraries/flowbite/components/FlowbiteFeaturesSection";
 import FlowbiteTestimonialsSection from "@/libraries/flowbite/components/FlowbiteTestimonialsSection";
 import FlowbitePainPointSection from "@/libraries/flowbite/components/FlowbitePainPointSection";
 import FlowbiteContentSection from "@/libraries/flowbite/components/FlowbiteContentSection";
@@ -182,73 +181,6 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
     ],
   };
 
-  const featuresSchema: ComponentSchema = {
-    type: "flowbite-features-section",
-    props: {},
-    items: [
-      {
-        key: "title",
-        type: "heading",
-        level: 2,
-        content: "Our solution",
-      },
-      {
-        key: "subtitle",
-        type: "text",
-        content:
-          "A complete growth package designed to fix the bottlenecks above and turn attention into leads.",
-      },
-      {
-        key: "features",
-        type: "array",
-        items: [
-          {
-            key: "f1",
-            type: "feature",
-            items: [
-              { key: "title", type: "heading", level: 3, content: "Website & conversion" },
-              {
-                key: "description",
-                type: "text",
-                content:
-                  "High-converting sections, clear CTAs, and tracking so you know what works.",
-              },
-              { key: "icon", type: "text", content: "clock" },
-            ],
-          },
-          {
-            key: "f2",
-            type: "feature",
-            items: [
-              { key: "title", type: "heading", level: 3, content: "Acquisition & ads" },
-              {
-                key: "description",
-                type: "text",
-                content:
-                  "Smart SEM + social campaigns, plus retargeting that doesn't waste spend.",
-              },
-              { key: "icon", type: "text", content: "users" },
-            ],
-          },
-          {
-            key: "f3",
-            type: "feature",
-            items: [
-              { key: "title", type: "heading", level: 3, content: "Content & creative" },
-              {
-                key: "description",
-                type: "text",
-                content:
-                  "Copy and assets that match your brand and move prospects to action.",
-              },
-              { key: "icon", type: "text", content: "heart" },
-            ],
-          },
-        ],
-      },
-    ],
-  };
-
   const testimonialsSchema: ComponentSchema = {
     type: "flowbite-testimonials-section",
     props: {
@@ -398,7 +330,7 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
         key: "title",
         type: "heading",
         level: 2,
-        content: "What's included in your growth package",
+        content: "Increase your revenue with a full‑stack growth package",
       },
       {
         key: "description",
@@ -574,10 +506,6 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
 
         <div id="challenge" className="scroll-mt-20">
           <FlowbitePainPointSection component={challengeSchema} />
-        </div>
-
-        <div id="features" className="scroll-mt-20">
-          <FlowbiteFeaturesSection component={featuresSchema} />
         </div>
 
         <div id="services" className="scroll-mt-20">

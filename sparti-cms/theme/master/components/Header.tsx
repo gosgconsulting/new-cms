@@ -36,7 +36,6 @@ const Header: React.FC<HeaderProps> = ({
   };
 
   const navItems = [
-    { label: "Features", sectionId: "features" },
     { label: "Services", sectionId: "services" },
     { label: "Testimonials", sectionId: "testimonials" },
     { label: "FAQ", sectionId: "faq" }
