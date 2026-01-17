@@ -9,7 +9,6 @@ import FlowbiteContentSection from "@/libraries/flowbite/components/FlowbiteCont
 import FlowbiteWhatsIncludedSection from "@/libraries/flowbite/components/FlowbiteWhatsIncludedSection";
 import FlowbiteFAQSection from "@/libraries/flowbite/components/FlowbiteFAQSection";
 import FlowbiteCTASection from "@/libraries/flowbite/components/FlowbiteCTASection";
-import { Card } from "flowbite-react";
 import { initFlowbiteTheme } from "@/utils/flowbiteThemeManager";
 import { useThemeBranding } from "../../hooks/useThemeSettings";
 import Header from "./components/Header";
@@ -564,24 +563,6 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
     ],
   };
 
-  const pricingPlans = [
-    {
-      name: "Growth Package",
-      description: "Full-stack growth solution",
-      price: "Custom",
-      priceDescription: "Tailored to your needs",
-      features: [
-        "Website & Conversion optimization",
-        "Paid acquisition (SEM & Social Ads)",
-        "Creative production & copywriting",
-        "SEO content & backlinks",
-        "Monthly performance reports",
-        "Dedicated account manager",
-      ],
-      isPopular: true,
-    },
-  ];
-
   return (
     <div className="min-h-screen flex flex-col bg-[color:var(--brand-background)]">
       <Header tenantName={tenantName} tenantSlug={tenantSlug} onContactClick={handleContactClick} />
@@ -609,85 +590,6 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
 
         <div id="testimonials" className="scroll-mt-20">
           <FlowbiteTestimonialsSection component={testimonialsSchema} />
-        </div>
-
-        <div
-          id="pricing"
-          className="scroll-mt-20 relative overflow-hidden py-20 px-4"
-        >
-          <div className="pointer-events-none absolute inset-0">
-            <div className="absolute -top-40 left-1/2 h-[22rem] w-[44rem] -translate-x-1/2 rounded-full bg-gradient-to-r from-indigo-400/12 via-sky-400/10 to-lime-400/12 blur-3xl" />
-            <div className="absolute -bottom-56 right-[-12rem] h-[28rem] w-[28rem] rounded-full bg-gradient-to-tr from-lime-400/10 via-sky-400/10 to-indigo-400/10 blur-3xl" />
-          </div>
-
-          <div className="container mx-auto px-4 max-w-6xl relative">
-            <div className="text-center mb-12">
-              <h2 className="text-4xl md:text-5xl font-semibold tracking-tight text-gray-900 dark:text-white mb-4">
-                Pricing
-              </h2>
-              <p className="text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-                A simple package designed to scale your business.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {pricingPlans.map((plan, idx) => (
-                <div
-                  key={idx}
-                  className={`relative rounded-3xl border border-black/10 dark:border-white/10 bg-white/70 dark:bg-white/5 backdrop-blur-sm p-8 shadow-[0_20px_80px_rgba(0,0,0,0.08)] dark:shadow-[0_20px_80px_rgba(0,0,0,0.45)] ${plan.isPopular ? "ring-2 ring-lime-400/60" : ""}`}
-                >
-                  {plan.isPopular && (
-                    <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                      <span className="bg-lime-300 text-slate-950 px-4 py-1 rounded-full text-sm font-semibold">
-                        Most Popular
-                      </span>
-                    </div>
-                  )}
-
-                  <div className="text-left">
-                    <h3 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2">
-                      {plan.name}
-                    </h3>
-                    <p className="text-gray-600 dark:text-gray-300 mb-6">{plan.description}</p>
-
-                    <div className="mb-6">
-                      <span className="text-4xl font-semibold text-gray-900 dark:text-white">
-                        {plan.price}
-                      </span>
-                      {plan.priceDescription && (
-                        <span className="text-gray-600 dark:text-gray-300 ml-2">
-                          {plan.priceDescription}
-                        </span>
-                      )}
-                    </div>
-
-                    <ul className="text-left space-y-3 mb-8">
-                      {plan.features.map((feature, fIdx) => (
-                        <li key={fIdx} className="flex items-start">
-                          <svg
-                            className="w-5 h-5 text-lime-400 mr-2 mt-0.5 flex-shrink-0"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
-                          <span className="text-gray-700 dark:text-gray-200">{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
-
-                    <button onClick={handleContactClick} className="btn-cta w-full">
-                      Get Started
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
 
         <div id="faq" className="scroll-mt-20">

@@ -28,7 +28,6 @@ const Footer: React.FC<FooterProps> = ({
   const services = [
     { name: 'Features', sectionId: 'features' },
     { name: 'Services', sectionId: 'services' },
-    { name: 'Pricing', sectionId: 'pricing' },
     { name: 'FAQ', sectionId: 'faq' },
   ];
 
