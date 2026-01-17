@@ -24,7 +24,6 @@ import shopRoutes from './shop.js';
 import mediaRoutes from './media.js';
 import docsRoutes from './docs.js';
 import woocommerceSyncRoutes from './woocommerce-sync.js';
-import masterAstroRoutes from './master-astro.js';
 
 const router = express.Router();
 
@@ -81,10 +80,7 @@ router.use('/api', docsRoutes);
 // Theme admin/auth routes (must come before general theme routes)
 router.use('/theme', themeAdminRoutes);
 
-// Master theme: Astro SSR (must come before React SPA theme routes)
-router.use('/theme/master', masterAstroRoutes);
-
-// All other themes: React SPA
+// All themes (including /theme/master): React SPA
 router.use('/theme', themeRoutes);
 
 // Dynamic robots.txt route - serves different content based on deployment type
