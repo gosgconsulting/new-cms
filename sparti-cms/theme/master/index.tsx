@@ -345,7 +345,13 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
 
   const aboutSchema: ComponentSchema = {
     type: "flowbite-content-section",
-    props: {},
+    props: {
+      variant: "about",
+      badge: "About us",
+      imageSrc: "/assets/gregoire-liao.png",
+      reviewLabel: "5 Star",
+      reviewSub: "Review",
+    },
     items: [
       {
         key: "title",
@@ -357,7 +363,13 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
         key: "content",
         type: "text",
         content:
-          "We handle the full funnel end-to-end: positioning, website conversion, SEO, paid ads, creatives, and tracking—so every channel works together to drive revenue. Our proven systems generate leads and revenue month after month.",
+          "We handle the full funnel end-to-end: positioning, website conversion, SEO, paid ads, creatives, and tracking—so every channel works together to drive revenue.\n\nOur proven systems generate leads and revenue month after month, while you stay focused on running the business.",
+      },
+      {
+        key: "button",
+        type: "button",
+        content: "Get Started",
+        link: "#contact",
       },
     ],
   };

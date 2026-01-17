@@ -2,6 +2,7 @@
 
 import React, { useMemo } from "react";
 import type { ComponentSchema } from "../../../../sparti-cms/types/schema";
+import { Star } from "lucide-react";
 
 interface FlowbiteContentSectionProps {
   component: ComponentSchema;
@@ -11,8 +12,9 @@ interface FlowbiteContentSectionProps {
 /**
  * Flowbite Content Section Component
  *
- * Revamped to render as a clean content card on top of the theme background.
- * Also fixed to support a single text item (key: "content") as used by /theme/master.
+ * Supports:
+ * - default "content" card (existing behavior)
+ * - variant="about" (new About Us layout)
  */
 const FlowbiteContentSection: React.FC<FlowbiteContentSectionProps> = ({
   component,
@@ -52,7 +54,10 @@ const FlowbiteContentSection: React.FC<FlowbiteContentSectionProps> = ({
     };
   };
 
+  const variant = (props as any).variant as string | undefined;
+
   const title = getHeading("title") || (props as any).title || "";
+  const badge = getText("badge") || (props as any).badge || "About us";
   const button = getButton("button");
 
   const paragraphs = useMemo(() => {
@@ -88,6 +93,86 @@ const FlowbiteContentSection: React.FC<FlowbiteContentSectionProps> = ({
     return [];
   }, [items, props]);
 
+  if (variant === "about") {
+    const imageSrc =
+      (props as any).imageSrc ||
+      (props as any).image?.src ||
+      (props as any).image ||
+      "/assets/gregoire-liao.png";
+
+    const reviewLabel = (props as any).reviewLabel || "5 Star";
+    const reviewSub = (props as any).reviewSub || "Review";
+
+    return (
+      <section className={`relative overflow-hidden py-20 px-4 ${className}`}>
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute -top-40 left-1/2 h-[22rem] w-[44rem] -translate-x-1/2 rounded-full bg-gradient-to-r from-indigo-400/12 via-sky-400/10 to-lime-400/12 blur-3xl" />
+        </div>
+
+        <div className="container mx-auto relative">
+          <div className="mx-auto max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+            {/* Left */}
+            <div>
+              <span className="inline-flex items-center rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-200 px-4 py-2 text-sm font-medium">
+                {badge}
+              </span>
+
+              {title ? (
+                <h2 className="mt-5 text-4xl md:text-5xl font-semibold tracking-tight text-slate-900 dark:text-white leading-tight">
+                  {title}
+                </h2>
+              ) : null}
+
+              {paragraphs.length > 0 ? (
+                <div className="mt-5 space-y-4">
+                  {paragraphs.map((text, index) => (
+                    <p key={index} className="text-base md:text-lg leading-relaxed text-slate-600 dark:text-slate-200">
+                      {text}
+                    </p>
+                  ))}
+                </div>
+              ) : null}
+
+              {button.content ? (
+                <div className="mt-8">
+                  <a href={button.link} className="btn-cta">
+                    {button.content}
+                  </a>
+                </div>
+              ) : null}
+            </div>
+
+            {/* Right */}
+            <div className="relative">
+              <div className="rounded-[2rem] overflow-hidden border border-black/10 dark:border-white/10 bg-white/60 dark:bg-white/5 shadow-[0_20px_80px_rgba(0,0,0,0.10)] dark:shadow-[0_20px_80px_rgba(0,0,0,0.55)]">
+                <img
+                  src={imageSrc}
+                  alt="About us"
+                  className="w-full h-[360px] md:h-[420px] object-cover"
+                  loading="lazy"
+                />
+              </div>
+
+              {/* Floating review pill */}
+              <div className="absolute left-6 top-6 rounded-2xl border border-black/10 dark:border-white/10 bg-white/90 dark:bg-slate-900/80 backdrop-blur px-4 py-3 shadow-[0_12px_40px_rgba(0,0,0,0.12)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.45)]">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-indigo-100 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-200 flex items-center justify-center">
+                    <Star className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-slate-900 dark:text-white leading-tight">{reviewLabel}</p>
+                    <p className="text-sm text-slate-600 dark:text-slate-300 leading-tight">{reviewSub}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // Default content card
   return (
     <section className={`relative overflow-hidden py-20 px-4 ${className}`}>
       <div className="pointer-events-none absolute inset-0">
