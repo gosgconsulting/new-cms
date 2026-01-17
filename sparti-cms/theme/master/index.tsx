@@ -5,7 +5,6 @@ import FlowbiteHeroSection from "@/libraries/flowbite/components/FlowbiteHeroSec
 import FlowbiteTestimonialsSection from "@/libraries/flowbite/components/FlowbiteTestimonialsSection";
 import FlowbitePainPointSection from "@/libraries/flowbite/components/FlowbitePainPointSection";
 import FlowbiteContentSection from "@/libraries/flowbite/components/FlowbiteContentSection";
-import FlowbiteWhatsIncludedSection from "@/libraries/flowbite/components/FlowbiteWhatsIncludedSection";
 import FlowbiteFAQSection from "@/libraries/flowbite/components/FlowbiteFAQSection";
 import FlowbiteCTASection from "@/libraries/flowbite/components/FlowbiteCTASection";
 import { initFlowbiteTheme } from "@/utils/flowbiteThemeManager";
@@ -13,6 +12,7 @@ import { useThemeBranding } from "../../hooks/useThemeSettings";
 import Header from "./components/layout/Header";
 import Footer from "./components/layout/Footer";
 import ContactFormModal from "./components/modals/ContactFormModal";
+import OurServicesSection from "./components/OurServicesSection";
 import { ThankYouPage } from "./pages/ThankYouPage";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 import TermsAndConditionsPage from "./pages/TermsAndConditionsPage";
@@ -356,79 +356,6 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
     ],
   };
 
-  const servicesSchema: ComponentSchema = {
-    type: "flowbite-whats-included-section",
-    props: {},
-    items: [
-      {
-        key: "badge",
-        type: "text",
-        content: "Services",
-      },
-      {
-        key: "title",
-        type: "heading",
-        level: 2,
-        content: "Increase your revenue with a full‑stack growth package",
-      },
-      {
-        key: "description",
-        type: "text",
-        content:
-          "A focused breakdown of the core areas driving results, each tailored to your goals.",
-      },
-      {
-        key: "features",
-        type: "array",
-        items: [
-          {
-            key: "s1",
-            type: "feature",
-            items: [
-              { key: "title", type: "heading", level: 3, content: "Website & Conversion" },
-              {
-                key: "description",
-                type: "text",
-                content:
-                  "High‑converting landing pages, A/B test ideas, and conversion tracking.",
-              },
-            ],
-          },
-          {
-            key: "s2",
-            type: "feature",
-            items: [
-              { key: "title", type: "heading", level: 3, content: "Acquisition" },
-              {
-                key: "description",
-                type: "text",
-                content: "SEM + social ads, plus smart retargeting that doesn't waste spend.",
-              },
-            ],
-          },
-          {
-            key: "s3",
-            type: "feature",
-            items: [
-              { key: "title", type: "heading", level: 3, content: "Creative & Content" },
-              {
-                key: "description",
-                type: "text",
-                content: "Creative assets and copy that match your brand and convert.",
-              },
-            ],
-          },
-        ],
-      },
-      {
-        key: "cta",
-        type: "button",
-        content: "Get free consultation",
-        link: "#contact",
-      },
-    ],
-  };
-
   const faqSchema: ComponentSchema = {
     type: "flowbite-faq-section",
     props: {},
@@ -574,12 +501,12 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
           <FlowbiteContentSection component={aboutSchema} />
         </div>
 
-        <div id="services" className="scroll-mt-20">
-          <FlowbiteWhatsIncludedSection component={servicesSchema} />
-        </div>
-
         <div id="testimonials" className="scroll-mt-20">
           <FlowbiteTestimonialsSection component={testimonialsSchema} />
+        </div>
+
+        <div id="services" className="scroll-mt-20">
+          <OurServicesSection themeSlug={themeSlug} />
         </div>
 
         <div id="faq" className="scroll-mt-20">

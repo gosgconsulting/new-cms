@@ -13,8 +13,8 @@
         { "id": "hero", "name": "Hero", "description": "Top value proposition + primary CTA" },
         { "id": "challenge", "name": "Pain Points", "description": "Problem framing and key bullets" },
         { "id": "about", "name": "About", "description": "Positioning + credibility" },
-        { "id": "services", "name": "Services", "description": "What's included / feature grid" },
         { "id": "testimonials", "name": "Testimonials", "description": "Social proof" },
+        { "id": "services", "name": "Our services", "description": "STR-inspired expandable services list" },
         { "id": "faq", "name": "FAQ", "description": "Frequently asked questions" },
         { "id": "contact", "name": "Contact", "description": "CTA section + contact modal" }
       ]

@@ -311,9 +311,9 @@ const PersonalTrainingPage: React.FC<TenantLandingProps> = ({
 
   return (
     <div className="str-theme min-h-screen bg-background text-foreground">
-      {/* Sticky Header - appears after scrolling */}
+      {/* Header - appears after scrolling */}
       {isScrolled && (
-        <header className="sticky top-0 z-60 bg-background/95 backdrop-blur-sm border-b border-border transition-opacity duration-300">
+        <header className="z-60 bg-background/95 backdrop-blur-sm border-b border-border transition-opacity duration-300">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex h-20 items-center justify-between">
               {/* Logo */}

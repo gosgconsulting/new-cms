@@ -201,7 +201,7 @@ const STRTheme: React.FC<TenantLandingProps> = ({
     <div className="str-theme min-h-screen bg-background text-foreground">
       {/* Header - only render for non-homepage pages */}
       {!isHomepage && (
-        <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
+        <header className="z-50 bg-background/95 backdrop-blur-sm border-b border-border">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex h-20 items-center justify-between">
               <div className="flex items-center space-x-2">
@@ -267,9 +267,9 @@ const STRTheme: React.FC<TenantLandingProps> = ({
         </header>
       )}
 
-      {/* Sticky Header - appears after scrolling on homepage */}
+      {/* Header - appears after scrolling on homepage */}
       {isHomepage && isScrolled && (
-        <header className="sticky top-0 z-60 bg-background/95 backdrop-blur-sm border-b border-border transition-opacity duration-300">
+        <header className="z-60 bg-background/95 backdrop-blur-sm border-b border-border transition-opacity duration-300">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex h-20 items-center justify-between">
               <div className="flex items-center space-x-2">
