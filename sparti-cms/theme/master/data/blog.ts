@@ -1,4 +1,4 @@
-export type BlogCategory = "Growth" | "SEO" | "Design" | "Product";
+export type BlogCategory = string;
 
 export type BlogContentBlock =
   | { type: "p"; text: string }
@@ -29,7 +29,7 @@ export const BLOG_POSTS: BlogPost[] = [
     slug: "conversion-first-homepage",
     title: "Conversion-first homepage: a simple checklist",
     excerpt:
-      "A clean layout is not enough. Here’s the short checklist we use to turn traffic into leads.",
+      "A clean layout is not enough. Here's the short checklist we use to turn traffic into leads.",
     category: "Growth",
     publishedAt: "2026-01-10",
     readTimeMinutes: 6,
@@ -41,7 +41,7 @@ export const BLOG_POSTS: BlogPost[] = [
     content: [
       {
         type: "p",
-        text: "Most websites fail for one reason: they don’t tell visitors what to do next. This post is a simple, practical checklist you can apply in one afternoon.",
+        text: "Most websites fail for one reason: they don't tell visitors what to do next. This post is a simple, practical checklist you can apply in one afternoon.",
       },
       { type: "h2", text: "1) One clear promise" },
       {
@@ -60,17 +60,17 @@ export const BLOG_POSTS: BlogPost[] = [
           "Use one primary CTA",
           "Keep forms short",
           "Explain what happens after clicking",
-          "Show pricing ranges or a clear ‘starting from’",
+          "Show pricing ranges or a clear 'starting from'",
         ],
       },
       {
         type: "quote",
-        text: "If visitors can’t repeat your offer in one sentence, the page is too complicated.",
+        text: "If visitors can't repeat your offer in one sentence, the page is too complicated.",
       },
       { type: "h2", text: "4) Make the next step obvious" },
       {
         type: "p",
-        text: "End each section with a small prompt: ‘Book a call’, ‘Get a quote’, or ‘See plans’. Consistency beats cleverness.",
+        text: "End each section with a small prompt: 'Book a call', 'Get a quote', or 'See plans'. Consistency beats cleverness.",
       },
     ],
   },
@@ -88,7 +88,7 @@ export const BLOG_POSTS: BlogPost[] = [
     slug: "design-system-in-3-rules",
     title: "A tiny design system in 3 rules",
     excerpt:
-      "Consistency doesn’t require a huge design system. Start with these three rules and scale later.",
+      "Consistency doesn't require a huge design system. Start with these three rules and scale later.",
     category: "Design",
     publishedAt: "2025-11-30",
     readTimeMinutes: 4,

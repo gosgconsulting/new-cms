@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Clock, User } from "lucide-react";
@@ -12,6 +12,41 @@ function formatDate(iso: string) {
 function postUrl(basePath: string, slug: string) {
   const base = basePath.replace(/\/+$/, "");
   return `${base}/blog/${slug}`;
+}
+
+function estimateReadTimeMinutes(htmlOrText: string) {
+  const text = String(htmlOrText || "")
+    .replace(/<[^>]*>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  const words = text ? text.split(" ").length : 0;
+  return Math.max(1, Math.round(words / 200));
+}
+
+type CmsPost = {
+  slug: string;
+  title: string;
+  excerpt?: string;
+  content?: string;
+  created_at?: string;
+  published_at?: string;
+  categories?: Array<{ name: string }>;
+  tags?: Array<{ name: string }>;
+};
+
+function toThemePost(p: CmsPost): BlogPost {
+  const publishedAt = p.published_at || p.created_at || new Date().toISOString();
+  const category = p.categories?.[0]?.name || "General";
+
+  return {
+    slug: p.slug,
+    title: p.title || "Untitled",
+    excerpt: p.excerpt || "",
+    category,
+    publishedAt,
+    readTimeMinutes: estimateReadTimeMinutes(p.content || p.excerpt || ""),
+    author: { name: "Team" },
+  };
 }
 
 function BlogCard({ post, basePath }: { post: BlogPost; basePath: string }) {
@@ -70,12 +105,75 @@ function BlogCard({ post, basePath }: { post: BlogPost; basePath: string }) {
   );
 }
 
-export default function BlogListPage({ basePath }: { basePath: string }) {
+export default function BlogListPage({ basePath, tenantId }: { basePath: string; tenantId?: string }) {
   const [category, setCategory] = useState<"all" | BlogCategory>("all");
+  const [posts, setPosts] = useState<BlogPost[]>(BLOG_POSTS);
+  const [categories, setCategories] = useState(BLOG_CATEGORIES);
+
+  useEffect(() => {
+    const effectiveTenantId =
+      tenantId || (typeof window !== "undefined" ? (window as any).__CMS_TENANT__ : undefined);
+
+    if (!effectiveTenantId) {
+      setPosts(BLOG_POSTS);
+      setCategories(BLOG_CATEGORIES);
+      return;
+    }
+
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const res = await fetch(
+          `/api/v1/blog/posts?tenantId=${encodeURIComponent(effectiveTenantId)}&limit=30`,
+          { headers: { Accept: "application/json" } }
+        );
+
+        if (!res.ok) {
+          throw new Error(`Failed to fetch posts (${res.status})`);
+        }
+
+        const json = await res.json();
+        const rows: CmsPost[] = Array.isArray(json?.data) ? json.data : [];
+        const mapped = rows.map(toThemePost);
+
+        if (cancelled) return;
+
+        if (mapped.length > 0) {
+          setPosts(mapped);
+
+          const seen = new Set<string>();
+          const dynamicCategories: Array<{ label: string; value: "all" | BlogCategory }> = [
+            { label: "All", value: "all" },
+          ];
+
+          for (const p of mapped) {
+            const key = String(p.category || "").trim();
+            if (!key || seen.has(key)) continue;
+            seen.add(key);
+            dynamicCategories.push({ label: key, value: key });
+          }
+
+          setCategories(dynamicCategories);
+        } else {
+          setPosts(BLOG_POSTS);
+          setCategories(BLOG_CATEGORIES);
+        }
+      } catch {
+        if (cancelled) return;
+        setPosts(BLOG_POSTS);
+        setCategories(BLOG_CATEGORIES);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [tenantId]);
 
   const filtered = useMemo(() => {
-    return BLOG_POSTS.filter((p) => (category === "all" ? true : p.category === category));
-  }, [category]);
+    return posts.filter((p) => (category === "all" ? true : p.category === category));
+  }, [category, posts]);
 
   return (
     <div className="bg-(--brand-background)">
@@ -90,7 +188,7 @@ export default function BlogListPage({ basePath }: { basePath: string }) {
             <div className="mt-6">
               <Tabs value={category} onValueChange={(v) => setCategory(v as any)}>
                 <TabsList className="flex h-auto flex-wrap justify-start gap-2 bg-transparent p-0 text-slate-600">
-                  {BLOG_CATEGORIES.map((c) => (
+                  {categories.map((c) => (
                     <TabsTrigger
                       key={c.value}
                       value={c.value}

@@ -541,9 +541,15 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
   const renderMain = () => {
     if (topLevelSlug === "blog") {
       if (slugParts.length === 1) {
-        return <BlogListPage basePath={basePath} />;
+        return <BlogListPage basePath={basePath} tenantId={tenantId} />;
       }
-      return <BlogPostPage basePath={basePath} slug={slugParts[1] || ""} />;
+      return (
+        <BlogPostPage
+          basePath={basePath}
+          slug={slugParts[1] || ""}
+          tenantId={tenantId}
+        />
+      );
     }
 
     if (topLevelSlug === "privacy-policy") {

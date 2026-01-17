@@ -27,7 +27,7 @@ const ThemeRouteHandler: React.FC = () => {
   const { tenantSlug } = useParams<{ tenantSlug: string }>();
   
   // Known themes that handle their own routing
-  const knownThemes = ['sissonne', 'landingpage', 'sparti-seo-landing', 'gosgconsulting', 'gosgconsulting.com', 'storefront', 'str'];
+  const knownThemes = ['sissonne', 'landingpage', 'sparti-seo-landing', 'gosgconsulting', 'gosgconsulting.com', 'storefront', 'str', 'optimalconsulting', 'master'];
   
   if (tenantSlug && knownThemes.includes(tenantSlug)) {
     // Route to theme component which handles sub-routes
