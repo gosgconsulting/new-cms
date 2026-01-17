@@ -102,18 +102,18 @@ const WorkflowSection: React.FC<WorkflowSectionProps> = ({
   return (
     <>
       {/* SEO Workflow Section - "SEO is more important than ever" */}
-      <section className="relative py-24 px-6 overflow-hidden bg-gradient-to-b from-background via-card/30 to-background">
+      <section className="relative py-24 px-6 overflow-hidden bg-linear-to-b from-background via-card/30 to-background">
         {/* Background Pattern */}
         <div className="absolute inset-0 opacity-40">
-          <div className="absolute top-20 left-1/4 w-96 h-96 bg-gradient-to-r from-primary/5 to-transparent rounded-full blur-3xl animate-pulse animation-delay-1000" />
-          <div className="absolute bottom-20 right-1/4 w-80 h-80 bg-gradient-to-l from-accent/5 to-transparent rounded-full blur-3xl animate-pulse animation-delay-2000" />
+          <div className="absolute top-20 left-1/4 w-96 h-96 bg-linear-to-r from-primary/5 to-transparent rounded-full blur-3xl animate-pulse animation-delay-1000" />
+          <div className="absolute bottom-20 right-1/4 w-80 h-80 bg-linear-to-l from-accent/5 to-transparent rounded-full blur-3xl animate-pulse animation-delay-2000" />
         </div>
 
         <div className="max-w-6xl mx-auto relative z-10">
           {/* Section Header */}
           <div className="text-center mb-20">
             <h2 className="text-4xl md:text-6xl font-bold mb-6">
-              <span className="bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
+              <span className="bg-linear-to-r from-foreground to-primary bg-clip-text text-transparent">
                 SEO is more important
               </span>
               <br />
@@ -130,7 +130,7 @@ const WorkflowSection: React.FC<WorkflowSectionProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
             {/* Blog Management */}
             <div className="group relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-transparent rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-all duration-700" />
+              <div className="absolute inset-0 bg-linear-to-r from-primary/10 to-transparent rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-all duration-700" />
               <Card className="relative p-8 text-center glass bg-card/80 border-border/50 rounded-3xl hover:border-primary/30 transition-all duration-500 hover-scale hover:shadow-2xl">
                 <div className="w-16 h-16 mx-auto mb-6 bg-gradient-to-br from-primary/20 to-primary/10 rounded-2xl flex items-center justify-center glass border border-primary/20">
                   <svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -139,7 +139,7 @@ const WorkflowSection: React.FC<WorkflowSectionProps> = ({
                 </div>
                 <h3 className="text-xl font-semibold mb-2">Blog Management</h3>
                 <p className="text-muted-foreground mb-4">Automate</p>
-                <div className="w-12 h-1 bg-gradient-to-r from-primary to-accent rounded-full mx-auto" />
+                <div className="w-12 h-1 bg-linear-to-r from-primary to-accent rounded-full mx-auto" />
               </Card>
             </div>
 
@@ -147,20 +147,20 @@ const WorkflowSection: React.FC<WorkflowSectionProps> = ({
             <div className="group relative">
               <div className="absolute inset-0 bg-gradient-to-r from-accent/10 to-transparent rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-all duration-700" />
               <Card className="relative p-8 text-center glass bg-card/80 border-border/50 rounded-3xl hover:border-accent/30 transition-all duration-500 hover-scale hover:shadow-2xl">
-                <div className="w-16 h-16 mx-auto mb-6 bg-gradient-to-br from-accent/20 to-accent/10 rounded-2xl flex items-center justify-center glass border border-accent/20">
+                <div className="w-16 h-16 mx-auto mb-6 bg-linear-to-br from-accent/20 to-accent/10 rounded-2xl flex items-center justify-center glass border border-accent/20">
                   <svg className="w-8 h-8 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
                 </div>
                 <h3 className="text-xl font-semibold mb-2">Daily SEO Articles</h3>
                 <p className="text-muted-foreground mb-4">Publish</p>
-                <div className="w-12 h-1 bg-gradient-to-r from-accent to-warning rounded-full mx-auto" />
+                <div className="w-12 h-1 bg-linear-to-r from-accent to-warning rounded-full mx-auto" />
               </Card>
             </div>
 
             {/* Schedule Feature */}
             <div className="group relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-warning/10 to-transparent rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-all duration-700" />
+              <div className="absolute inset-0 bg-linear-to-r from-warning/10 to-transparent rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-all duration-700" />
               <Card className="relative p-8 text-center glass bg-card/80 border-border/50 rounded-3xl hover:border-warning/30 transition-all duration-500 hover-scale hover:shadow-2xl">
                 <div className="w-16 h-16 mx-auto mb-6 bg-gradient-to-br from-warning/20 to-warning/10 rounded-2xl flex items-center justify-center glass border border-warning/20">
                   <svg className="w-8 h-8 text-warning" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -169,7 +169,7 @@ const WorkflowSection: React.FC<WorkflowSectionProps> = ({
                 </div>
                 <h3 className="text-xl font-semibold mb-2">Auto Schedule</h3>
                 <p className="text-muted-foreground mb-4">Grow</p>
-                <div className="w-12 h-1 bg-gradient-to-r from-warning to-success rounded-full mx-auto" />
+                <div className="w-12 h-1 bg-linear-to-r from-warning to-success rounded-full mx-auto" />
               </Card>
             </div>
           </div>
@@ -351,7 +351,7 @@ const WorkflowSection: React.FC<WorkflowSectionProps> = ({
                   "Professional featured images"
                 ].map((feature, index) => (
                   <div key={index} className="flex items-center gap-3">
-                    <svg className="h-5 w-5 text-success flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="h-5 w-5 text-success shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
                     <span>{feature}</span>
@@ -399,7 +399,7 @@ const WorkflowSection: React.FC<WorkflowSectionProps> = ({
                   "Competitor analysis automation"
                 ].map((feature, index) => (
                   <div key={index} className="flex items-center gap-3">
-                    <svg className="h-5 w-5 text-success flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="h-5 w-5 text-success shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
                     <span>{feature}</span>

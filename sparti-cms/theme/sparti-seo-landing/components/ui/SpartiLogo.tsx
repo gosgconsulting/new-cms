@@ -50,7 +50,7 @@ const SpartiLogo: React.FC<SpartiLogoProps> = ({
       />
       {showText && (
         <span 
-          className={`font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent ${textSizeClasses[size]} hidden`}
+          className={`font-bold bg-linear-to-r from-primary to-accent bg-clip-text text-transparent ${textSizeClasses[size]} hidden`}
           style={{ display: 'none' }}
         >
           Sparti

@@ -58,7 +58,7 @@ const TenantLanding: React.FC<TenantLandingProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-card">
+    <div className="min-h-screen bg-linear-to-br from-background via-background to-card">
       {/* Navigation */}
       <nav className="w-full py-4 px-6 border-b border-border/50 glass bg-background/80">
         <div className="max-w-7xl mx-auto flex items-center justify-between">

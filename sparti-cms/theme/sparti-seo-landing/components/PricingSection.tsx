@@ -156,7 +156,7 @@ const PricingSection: React.FC<PricingSectionProps> = ({ onGetStarted }) => {
                 <div className="space-y-3">
                   {plan.features.slice(1).map((feature, index) => (
                     <div key={index} className="flex items-center gap-3">
-                      <svg className="h-5 w-5 text-success flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="h-5 w-5 text-success shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                       </svg>
                       <span className="text-sm">{feature}</span>

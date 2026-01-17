@@ -93,7 +93,7 @@ export function HeroSlider() {
           <div className="absolute inset-0 bg-black/20"></div>
 
           {/* Additional Gradient for Text Readability */}
-          <div className="absolute inset-0 bg-gradient-to-br from-dance-black/30 via-transparent to-dance-black/30"></div>
+          <div className="absolute inset-0 bg-linear-to-br from-dance-black/30 via-transparent to-dance-black/30"></div>
         </div>
       ))}
 

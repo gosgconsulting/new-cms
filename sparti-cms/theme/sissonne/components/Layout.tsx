@@ -182,7 +182,7 @@ export function Layout({ children, tenantSlug = 'sissonne' }: LayoutProps) {
                 </p>
                 <div className="space-y-3">
                   <div className="flex items-center space-x-3">
-                    <MapPin className="h-5 w-5 text-dance-pink flex-shrink-0" />
+                    <MapPin className="h-5 w-5 text-dance-pink shrink-0" />
                     <span className="text-dance-gray-200">
                       123 Orchard Road, #05-01
                       <br />

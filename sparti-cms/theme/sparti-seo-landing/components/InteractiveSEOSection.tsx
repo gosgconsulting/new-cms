@@ -157,7 +157,7 @@ export const InteractiveSEOSection: React.FC<InteractiveSEOSectionProps> = ({
                     }`}>
                       {/* Header */}
                       <div className="p-6 flex items-center gap-4">
-                        <div className={`p-3 rounded-xl flex-shrink-0 transition-all duration-300 ${
+                        <div className={`p-3 rounded-xl shrink-0 transition-all duration-300 ${
                           activeFeature === index 
                             ? 'bg-primary/20 text-primary' 
                             : 'bg-muted/50 text-muted-foreground'

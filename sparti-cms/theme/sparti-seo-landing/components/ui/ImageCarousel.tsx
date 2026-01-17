@@ -34,7 +34,7 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({
         style={{ transform: `translateX(-${currentIndex * 100}%)` }}
       >
         {images.map((image, index) => (
-          <div key={index} className="w-full flex-shrink-0">
+          <div key={index} className="w-full shrink-0">
             <img 
               src={image.src} 
               alt={image.alt} 

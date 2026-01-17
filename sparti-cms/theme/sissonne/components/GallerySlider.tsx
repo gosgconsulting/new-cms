@@ -207,7 +207,7 @@ export function GallerySlider() {
 
                     {/* Text overlay - always visible for center image, hidden on hover */}
                     {isCenter && (
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent pointer-events-none opacity-100 group-hover:opacity-0 transition-opacity duration-300">
+                      <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/30 to-transparent pointer-events-none opacity-100 group-hover:opacity-0 transition-opacity duration-300">
                         <div className="absolute bottom-6 left-6 right-6 transform transition-all duration-500">
                           <h3 className="text-2xl font-heading font-bold text-white mb-2 transform translate-y-0 transition-transform duration-500">
                             {imageData.title}
