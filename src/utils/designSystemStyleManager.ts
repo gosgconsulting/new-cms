@@ -14,6 +14,9 @@ import {
 
 let activeDesignSystemId: string | null = null;
 
+// Export the prefix for use in other modules
+export const STYLE_ELEMENT_PREFIX = "design-system-styles-";
+
 /**
  * Load styles for a design system
  * 
@@ -84,21 +87,6 @@ export async function switchDesignSystem(
 export function isDesignSystemLoaded(designSystemId: string): boolean {
   return areStylesLoaded(designSystemId) && activeDesignSystemId === designSystemId;
 }
-
-/**
- * Clear all loaded design system styles
- */
-export function clearAllDesignSystemStyles(): void {
-  // Remove all style elements with our prefix
-  const styleElements = document.querySelectorAll(
-    `style[id^="${STYLE_ELEMENT_PREFIX}"]`
-  );
-  styleElements.forEach((el) => el.remove());
-  activeDesignSystemId = null;
-}
-
-// Export the prefix for use in other modules  
-export const STYLE_ELEMENT_PREFIX = "design-system-styles-";
 
 /**
  * Clear all loaded design system styles

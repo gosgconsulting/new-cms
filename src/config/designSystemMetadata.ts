@@ -1,4 +1,4 @@
-import type { ComponentSchema } from "../../../sparti-cms/types/schema";
+import type { ComponentSchema } from "../../sparti-cms/types/schema";
 import type { ReactNode, ComponentType } from "react";
 
 /**

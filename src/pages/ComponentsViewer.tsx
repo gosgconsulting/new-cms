@@ -10,7 +10,7 @@ const ComponentsViewer: React.FC = () => {
   const [view, setView] = useState<"libraries" | "components">("libraries");
 
   const currentLibrary = libraryRegistry.find((lib) => lib.id === libraryId);
-  const LibraryComponent = currentLibrary?.component;
+  const metadata = useMemo(() => currentLibrary?.getMetadata(), [currentLibrary]);
 
   return (
     <div className="flex flex-col" style={{ minHeight: "calc(100vh - 80px)" }}>
@@ -45,12 +45,20 @@ const ComponentsViewer: React.FC = () => {
       {/* Content */}
       <div className="flex-1">
         {view === "libraries" ? (
-          LibraryComponent ? (
-            <LibraryComponent />
-          ) : (
-            <div className="p-6 text-sm text-gray-500">
-              This design library is not available yet.
+          metadata ? (
+            <div className="p-6 space-y-3">
+              <div>
+                <h1 className="text-xl font-semibold">{metadata.label}</h1>
+                <p className="text-sm text-gray-600">
+                  {metadata.description || `Component library for ${metadata.label}`}
+                </p>
+              </div>
+              <div className="text-sm text-gray-600">
+                Components: <span className="font-medium text-gray-900">{metadata.components.length}</span>
+              </div>
             </div>
+          ) : (
+            <div className="p-6 text-sm text-gray-500">This design library is not available yet.</div>
           )
         ) : (
           <MasterComponentsViewer libraryId={libraryId} />
