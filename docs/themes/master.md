@@ -4,14 +4,14 @@ This document describes the **Master Theme** and why it exists.
 
 ## Purpose
 
-The Master Theme is a **best-practice reference** for:
+The Master Theme is the project's **best-practice reference** for:
 
 - theme folder structure
 - theme routing (`pageSlug` → pages)
 - CMS integration patterns (branding/settings, media URLs)
 - deployable, production-ready theme code
 
-If you are building a new theme and you want a full, working example (not just a minimal scaffold), start from the Master Theme.
+If you are building a new theme, the intended workflow is to **duplicate** the Master Theme folder and then replace content/assets.
 
 ## Where it lives
 
@@ -28,8 +28,8 @@ If you are building a new theme and you want a full, working example (not just a
 
 ### Assets
 
-- Static assets live in `sparti-cms/theme/master/assets/`
-- Served at `/theme/master/assets/<file>`
+- Static assets live in `sparti-cms/theme/<themeSlug>/assets/`
+- Served at `/theme/<themeSlug>/assets/<file>`
 
 Uploaded assets (Media Library) are served from `/uploads/...` and should be treated as runtime content.
 
@@ -39,17 +39,13 @@ Uploaded assets (Media Library) are served from `/uploads/...` and should be tre
 
 Page-level components live in `sparti-cms/theme/master/pages/`.
 
-## Recommended structure for child themes
+## Duplication checklist
 
-When duplicating the Master Theme into a child theme, keep this structure and only change:
+When duplicating `sparti-cms/theme/master/` into a new theme folder:
 
-- content/copy
-- assets
-- component styling
-- theme metadata (`theme.json`)
-- SEO/page metadata (`pages.json`)
+- Update `theme.json` (name/description/tags/demo_url)
+- Update `pages.json` SEO metadata
+- Replace assets in `assets/`
+- Update copy/content in `index.tsx` and page components
 
-Avoid:
-
-- mixing page components into `components/`
-- hardcoding color values (use CSS vars driven from DB where possible)
+The theme runtime avoids hardcoding the string `master` and uses the passed `tenantSlug` for theme-specific behavior.

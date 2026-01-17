@@ -1,10 +1,12 @@
 # Master Theme (`sparti-cms/theme/master`)
 
-This theme is the **reference implementation** for how a theme should be structured so it:
+This theme is the **master reference** you can **duplicate 1:1** to create new themes.
+
+It is structured so it:
 
 - works cleanly with the **Sparti CMS** (pages, settings, uploads)
 - stays **deployable** as a normal front-end theme
-- is easy to **duplicate** into child themes (copy folder, replace content)
+- is easy to duplicate without hunting for internal wiring
 
 ## What this theme demonstrates
 
@@ -14,7 +16,7 @@ This theme is the **reference implementation** for how a theme should be structu
   - `pages/` = route-level pages
   - `data/` = local seed / sample data
   - `assets/` = static theme assets (checked into git)
-- **Branding from DB** via `useThemeBranding()` → applied as CSS variables.
+- **Branding from DB** via `useThemeBranding(themeSlug)` → applied as CSS variables.
 - A **contact modal** that submits to `/api/form-submissions` and supports WhatsApp redirect.
 
 ## Folder structure
@@ -29,18 +31,18 @@ sparti-cms/theme/master/
   pages/                  # Route-level pages
     blog/                 # Blog index + blog post pages
   index.tsx               # Theme entry (REQUIRED)
-  pages.json              # Theme page definitions (REQUIRED)
+  pages.json              # Page definitions (REQUIRED)
   theme.json              # Theme metadata (REQUIRED)
   theme.css               # Theme styles (RECOMMENDED)
-  STYLE_RULES.md          # Styling conventions for child themes
+  STYLE_RULES.md          # Styling conventions for duplication
 ```
 
 ## Asset conventions
 
 ### Static (git) assets
 
-- Put static assets in: `sparti-cms/theme/master/assets/`
-- They are served at: `/theme/master/assets/<file>`
+- Put static assets in: `sparti-cms/theme/<themeSlug>/assets/`
+- They are served at: `/theme/<themeSlug>/assets/<file>`
 
 Example:
 
@@ -60,30 +62,42 @@ Those URLs can be used anywhere an image URL is expected.
 
 The theme routes based on `pageSlug`:
 
-- `/theme/master/` → Homepage
-- `/theme/master/blog` → Blog list
-- `/theme/master/blog/:slug` → Blog post
-- `/theme/master/privacy-policy` → Legal page
-- `/theme/master/terms-and-conditions` → Legal page
-- `/theme/master/thank-you` → Thank you page
+- `/theme/<themeSlug>/` → Homepage
+- `/theme/<themeSlug>/blog` → Blog list
+- `/theme/<themeSlug>/blog/:slug` → Blog post
+- `/theme/<themeSlug>/privacy-policy` → Legal page
+- `/theme/<themeSlug>/terms-and-conditions` → Legal page
+- `/theme/<themeSlug>/thank-you` → Thank you page
 
-> Source of truth for **registered pages** is `pages.json`.
+> Source of truth for registered pages is `pages.json`.
 
-## Duplicating into a child theme
+## How to duplicate this theme (1:1)
 
-1. Copy the folder `sparti-cms/theme/master` → `sparti-cms/theme/<your-theme-slug>`
-2. Update:
-   - `theme.json` (name, description, tags, demo_url)
-   - `pages.json` (SEO metadata)
-   - `assets/` (logos/images)
-3. Update the entry component:
-   - `index.tsx` (branding hook argument + hardcoded copy)
+When you duplicate this folder into a new theme slug, you should update these files:
+
+1. `theme.json`
+   - `name`, `description`, `tags`, `demo_url`, `documentation_url`
+2. `pages.json`
+   - SEO metadata (`meta_title`, `meta_description`, keywords)
+3. `assets/`
+   - replace placeholder assets with your brand assets
+
+### Important note about slugs
+
+This theme avoids hardcoding the string `master` in its runtime logic.
+It uses the `tenantSlug` prop as the effective theme slug for:
+
+- branding fetches
+- asset URL building
+- form submission names
+
+So after duplication, most of the time you only need to adjust **metadata** + **copy/content**.
 
 ## Notes
 
 - Keep page-level components in `pages/`.
 - Keep reusable pieces in `components/`.
-- Prefer **CSS variables + Tailwind** over hardcoded colors.
+- Prefer CSS variables + Tailwind over hardcoded colors.
 
 See also:
 - `sparti-cms/theme/master/STYLE_RULES.md`

@@ -9,6 +9,8 @@ type ContactFormModalProps = {
   isOpen: boolean;
   onClose: () => void;
   className?: string;
+  tenantName?: string;
+  themeSlug?: string;
 };
 
 type ContactMethod = "form" | "whatsapp";
@@ -40,6 +42,8 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
   isOpen,
   onClose,
   className = "",
+  tenantName = "Website",
+  themeSlug = "theme",
 }) => {
   const [step, setStep] = useState<1 | 2 | 3>(1);
 
@@ -156,7 +160,7 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           form_id: "contact-modal-steps",
-          form_name: "Contact Modal Form (Steps) - Master Template",
+          form_name: `Contact Modal Form (Steps) - ${tenantName} (${themeSlug})`,
           name,
           email,
           phone: phone || null,
