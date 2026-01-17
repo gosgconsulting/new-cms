@@ -58,6 +58,8 @@ const FlowbiteHeroSection: React.FC<FlowbiteHeroSectionProps> = ({
   const props = component.props || {};
   const items = component.items || [];
 
+  const showCarousel = (props as any).showCarousel !== false;
+
   const getText = (key: string) => {
     const item = items.find(
       (i) => i.key?.toLowerCase() === key.toLowerCase() && typeof (i as any).content === "string"
@@ -68,7 +70,9 @@ const FlowbiteHeroSection: React.FC<FlowbiteHeroSectionProps> = ({
   const getButtonByKeys = (keys: string[]) => {
     const lower = keys.map((k) => k.toLowerCase());
     const item = items.find(
-      (i) => i.type === "button" && (lower.includes(String(i.key || "").toLowerCase()) || lower.includes(""))
+      (i) =>
+        i.type === "button" &&
+        (lower.includes(String(i.key || "").toLowerCase()) || lower.includes(""))
     ) as any;
 
     return {
@@ -89,6 +93,8 @@ const FlowbiteHeroSection: React.FC<FlowbiteHeroSectionProps> = ({
   const secondaryCta = getButtonByKeys(["ctaSecondary", "secondaryCta", "cta2"]);
 
   const slides = useMemo<FlowbiteSlide[]>(() => {
+    if (!showCarousel) return [];
+
     const fromProps = normalizeSlides((props as any).slides);
     if (fromProps.length > 0) return fromProps;
 
@@ -100,12 +106,8 @@ const FlowbiteHeroSection: React.FC<FlowbiteHeroSectionProps> = ({
 
     if (usable.length > 0) return usable;
 
-    return [
-      { image: { src: "/assets/seo-results-1.png", alt: "Results" } },
-      { image: { src: "/lovable-uploads/d2d7d623-f729-433e-b350-0e40b4a32b91.png", alt: "Preview" } },
-      { image: { src: "/lovable-uploads/d6e7a1ca-229a-4c34-83fc-e9bdf106b683.png", alt: "Preview" } },
-    ];
-  }, [items, props]);
+    return [];
+  }, [items, props, showCarousel]);
 
   const highlightedTitle = useMemo(() => {
     if (!title) return null;
@@ -139,10 +141,15 @@ const FlowbiteHeroSection: React.FC<FlowbiteHeroSectionProps> = ({
       <div className="container mx-auto px-4">
         <div className="mx-auto max-w-6xl">
           <div className="rounded-3xl border border-black/10 dark:border-white/10 bg-white/70 dark:bg-white/5 backdrop-blur-sm shadow-[0_20px_80px_rgba(0,0,0,0.08)] dark:shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 p-6 sm:p-10 lg:p-12 items-center">
-              {/* Left: Copy */}
-              <div className="space-y-6">
-                <div className="flex flex-wrap items-center gap-3">
+            <div
+              className={[
+                showCarousel ? "grid grid-cols-1 lg:grid-cols-2" : "grid grid-cols-1",
+                "gap-10 p-6 sm:p-10 lg:p-12 items-center",
+              ].join(" ")}
+            >
+              {/* Copy */}
+              <div className={showCarousel ? "space-y-6" : "space-y-6 max-w-3xl mx-auto text-center"}>
+                <div className={showCarousel ? "flex flex-wrap items-center gap-3" : "flex flex-wrap items-center justify-center gap-3"}>
                   <div className="inline-flex items-center gap-1.5 rounded-full border border-black/10 dark:border-white/10 bg-white/60 dark:bg-white/5 px-3 py-1 text-xs text-gray-700 dark:text-gray-200">
                     <span className="font-semibold">Clutch</span>
                     <span className="inline-flex items-center gap-0.5">
@@ -158,19 +165,29 @@ const FlowbiteHeroSection: React.FC<FlowbiteHeroSectionProps> = ({
                 </div>
 
                 {title ? (
-                  <h1 className="text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight text-gray-900 dark:text-white leading-[1.05]">
+                  <h1
+                    className={[
+                      "text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight text-gray-900 dark:text-white leading-[1.05]",
+                      showCarousel ? "" : "mx-auto",
+                    ].join(" ")}
+                  >
                     {highlightedTitle}
                   </h1>
                 ) : null}
 
                 {description ? (
-                  <p className="text-base sm:text-lg text-gray-600 dark:text-gray-300 leading-relaxed max-w-xl">
+                  <p
+                    className={[
+                      "text-base sm:text-lg text-gray-600 dark:text-gray-300 leading-relaxed",
+                      showCarousel ? "max-w-xl" : "max-w-2xl mx-auto",
+                    ].join(" ")}
+                  >
                     {description}
                   </p>
                 ) : null}
 
                 {(primaryCta.content || secondaryCta.content) && (
-                  <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                  <div className={showCarousel ? "flex flex-col sm:flex-row gap-3 pt-2" : "flex flex-col sm:flex-row gap-3 pt-2 justify-center"}>
                     {primaryCta.content ? (
                       <a href={primaryCta.link} className="btn-cta w-full sm:w-auto">
                         {primaryCta.content}
@@ -187,18 +204,18 @@ const FlowbiteHeroSection: React.FC<FlowbiteHeroSectionProps> = ({
                   </div>
                 )}
 
-                <div className="text-sm text-gray-600 dark:text-gray-300">
+                <div className={showCarousel ? "text-sm text-gray-600 dark:text-gray-300" : "text-sm text-gray-600 dark:text-gray-300 flex justify-center"}>
                   <span className="inline-flex items-center gap-2">
                     <span className="h-2 w-2 rounded-full bg-lime-400" />
                     <span>2 spots available this week</span>
                   </span>
                 </div>
 
-                <div className="pt-4">
+                <div className={showCarousel ? "pt-4" : "pt-4"}>
                   <p className="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-3">
                     Trusted by founders worldwide
                   </p>
-                  <div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-sm font-semibold text-gray-400 dark:text-gray-500">
+                  <div className={showCarousel ? "flex flex-wrap items-center gap-x-8 gap-y-3 text-sm font-semibold text-gray-400 dark:text-gray-500" : "flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm font-semibold text-gray-400 dark:text-gray-500"}>
                     <span>Horizon</span>
                     <span>Mindscope</span>
                     <span>NovoTech</span>
@@ -208,29 +225,31 @@ const FlowbiteHeroSection: React.FC<FlowbiteHeroSectionProps> = ({
                 </div>
               </div>
 
-              {/* Right: Carousel */}
-              <div className="lg:pl-4">
-                <div className="rounded-2xl border border-black/10 dark:border-white/10 bg-white/40 dark:bg-black/20 p-3 sm:p-4">
-                  <FlowbiteSlider
-                    slides={slides}
-                    options={{
-                      autoplay: true,
-                      intervalMs: 4500,
-                      arrows: true,
-                      dots: true,
-                      loop: true,
-                      pauseOnHover: true,
-                      aspectRatio: "16/9",
-                      overlay: {
-                        enabled: true,
-                        mode: "gradient",
-                        className: "bg-gradient-to-t from-black/40 via-black/10 to-transparent",
-                      },
-                    }}
-                    ariaLabel="Hero preview"
-                  />
+              {/* Carousel */}
+              {showCarousel && slides.length > 0 ? (
+                <div className="lg:pl-4">
+                  <div className="rounded-2xl border border-black/10 dark:border-white/10 bg-white/40 dark:bg-black/20 p-3 sm:p-4">
+                    <FlowbiteSlider
+                      slides={slides}
+                      options={{
+                        autoplay: true,
+                        intervalMs: 4500,
+                        arrows: true,
+                        dots: true,
+                        loop: true,
+                        pauseOnHover: true,
+                        aspectRatio: "16/9",
+                        overlay: {
+                          enabled: true,
+                          mode: "gradient",
+                          className: "bg-gradient-to-t from-black/40 via-black/10 to-transparent",
+                        },
+                      }}
+                      ariaLabel="Hero preview"
+                    />
+                  </div>
                 </div>
-              </div>
+              ) : null}
             </div>
           </div>
         </div>

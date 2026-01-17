@@ -154,11 +154,7 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
   const heroSchema: ComponentSchema = {
     type: "flowbite-hero-section",
     props: {
-      slides: [
-        { src: "/assets/seo-results-1.png", alt: "Results" },
-        { src: "/lovable-uploads/d2d7d623-f729-433e-b350-0e40b4a32b91.png", alt: "Preview" },
-        { src: "/lovable-uploads/d6e7a1ca-229a-4c34-83fc-e9bdf106b683.png", alt: "Preview" },
-      ],
+      showCarousel: false,
     },
     items: [
       {
@@ -183,12 +179,6 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
         type: "button",
         content: "Book an intro call",
         link: "#contact",
-      },
-      {
-        key: "ctaSecondary",
-        type: "button",
-        content: "View pricing",
-        link: "#pricing",
       },
     ],
   };
