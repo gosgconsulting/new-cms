@@ -1,9 +1,64 @@
-:root {
-  /* Visual hints; actual colors come from styles loaded via the CMS */
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    /* Optimal Consulting Brand Colors */
+    --brand-primary: #145598;
+    --brand-primary-dark: #0f3f6f;
+    --brand-primary-light: #1a6bb8;
+    
+    --brand-secondary: #4ED1CE;
+    --brand-secondary-dark: #3db8b5;
+    --brand-secondary-light: #6dd9d6;
+    
+    /* Header colors */
+    --header-bg: #145598;
+    --header-text: #ffffff;
+    
+    /* Tailwind CSS variables for theme integration */
+    --background: 0 0% 100%;
+    --foreground: 210 100% 12%;
+    /* Convert #145598 to HSL: hsl(210, 76%, 33%) */
+    --primary: 210 76% 33%;
+    --primary-foreground: 0 0% 100%;
+    
+    /* Card and surface colors */
+    --card: 0 0% 100%;
+    --card-foreground: 210 100% 12%;
+    --border: 210 50% 85%;
+    --muted: 210 50% 90%;
+    --muted-foreground: 210 50% 40%;
+  }
 }
+
 .theme-bg {
   background-color: hsl(var(--background));
 }
+
 .theme-primary-border {
   border-color: hsl(var(--primary));
+}
+
+/* Optimal Consulting Header Styles */
+.optimal-header {
+  background-color: var(--header-bg) !important;
+  color: var(--header-text) !important;
+}
+
+.optimal-header a,
+.optimal-header p,
+.optimal-header span {
+  color: var(--header-text) !important;
+}
+
+.optimal-header .text-muted-foreground {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.optimal-header .hover\:text-foreground:hover {
+  color: var(--header-text) !important;
+}
+
+.optimal-header .hover\:bg-muted\/60:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
 }

@@ -40,25 +40,25 @@ const SERVICES: Array<{
   {
     key: 'assessments',
     title: 'Assessments',
-    description: 'Evidence-based psychometrics and leadership diagnostics for selection and development.',
+    description: 'Explore world-class psychometric assessment tools to gain insights into your current and to-be talent.',
     benefit: 'Make faster, higher-confidence talent decisions with predictive insight.',
-    metric: 'Up to 3× faster shortlisting',
+    metric: 'World-class tools',
     icon: <BarChart3 className="h-5 w-5" />,
   },
   {
     key: 'academy',
     title: 'Academy',
-    description: 'Capability building for leaders, HR teams, and internal coaches—across Asia.',
+    description: 'Equip your organisation with the skills to administer assessment tools, interpret profiling outcomes and bridge performance gaps with development intervention programmes.',
     benefit: 'Scale leadership standards with consistent assessment language and tools.',
-    metric: '90%+ participant satisfaction',
+    metric: 'Build expertise',
     icon: <Users className="h-5 w-5" />,
   },
   {
     key: 'consulting',
-    title: 'Consulting Services',
-    description: 'Strategic workforce and leadership optimisation—aligned to business priorities.',
+    title: 'Services',
+    description: 'Entrust the prediction of leadership potential and succession readiness for your organisation to our trained and experienced consultants.',
     benefit: 'Link leadership behaviours to outcomes with pragmatic, data-driven roadmaps.',
-    metric: 'Measured uplift in bench strength',
+    metric: 'Expert consultants',
     icon: <Briefcase className="h-5 w-5" />,
   },
 ];
@@ -322,10 +322,23 @@ const OptimalConsultingTheme: React.FC<TenantLandingProps> = ({
   const siteName = branding?.site_name || tenantName;
   const siteTagline =
     branding?.site_tagline || 'Strategic leadership and talent optimisation across Asia.';
-  const logoSrc = branding?.site_logo || null;
 
   const baseUrl = `/theme/${tenantSlug}`;
   const assetUrl = (file: string) => `${baseUrl}/assets/${file}`;
+  
+  // Use logo from branding or default to white logo asset
+  const logoSrc = branding?.site_logo || assetUrl('logo-white.svg');
+
+  // Set brand colors as CSS variables
+  useEffect(() => {
+    const root = document.documentElement;
+    root.style.setProperty('--brand-primary', '#145598');
+    root.style.setProperty('--brand-secondary', '#4ED1CE');
+    root.style.setProperty('--brand-primary-dark', '#0f3f6f');
+    root.style.setProperty('--brand-primary-light', '#1a6bb8');
+    root.style.setProperty('--brand-secondary-dark', '#3db8b5');
+    root.style.setProperty('--brand-secondary-light', '#6dd9d6');
+  }, []);
 
   // Handle #contact hash by opening the modal
   useEffect(() => {
@@ -365,12 +378,30 @@ const OptimalConsultingTheme: React.FC<TenantLandingProps> = ({
             </div>
 
             <h1 className="mt-4 text-4xl md:text-5xl font-semibold tracking-tight">
-              Predict, Develop &amp; Elevate Your Leadership Pipeline
+              Developing Leaders, Optimising Performance
             </h1>
             <p className="mt-4 text-base md:text-lg text-muted-foreground max-w-xl">
-              {siteName} helps organisational leaders make talent decisions with validated assessments,
-              scalable capability building, and pragmatic consulting—so you can strengthen succession
-              and improve performance outcomes.
+              We deliver comprehensive consulting services aimed at transforming talent into strategic impact and translating organisational strategy into success.
+            </p>
+            <p className="mt-4 text-sm text-muted-foreground max-w-xl">
+              {siteName} has been partnering clients across the globe since 2002 to deliver people solutions for businesses, with a focus on:
+            </p>
+            <ul className="mt-3 space-y-2 text-sm text-muted-foreground max-w-xl">
+              <li className="flex gap-2">
+                <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                <span>Assessments and Prediction of Leadership Potential and Succession Readiness</span>
+              </li>
+              <li className="flex gap-2">
+                <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                <span>Talent and Leadership Development Interventions</span>
+              </li>
+              <li className="flex gap-2">
+                <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                <span>High-performing Team Assessments and Development Interventions</span>
+              </li>
+            </ul>
+            <p className="mt-4 text-sm text-muted-foreground max-w-xl">
+              We are headquartered in Singapore, with a physical presence in Kuala Lumpur, Hong Kong, Shanghai and Tokyo.
             </p>
 
             <div className="mt-6 flex flex-wrap gap-3">
@@ -443,7 +474,7 @@ const OptimalConsultingTheme: React.FC<TenantLandingProps> = ({
               <div key={s.key} className="rounded-2xl border border-border bg-card p-6">
                 <div className="flex items-center justify-between">
                   <div className="inline-flex items-center gap-2 text-sm font-medium">
-                    <span className="text-primary">{s.icon}</span>
+                    <span style={{ color: '#145598' }}>{s.icon}</span>
                     {s.title}
                   </div>
                   <span className="text-xs rounded-full border border-border px-2 py-1 text-muted-foreground">
@@ -537,12 +568,13 @@ const OptimalConsultingTheme: React.FC<TenantLandingProps> = ({
             </div>
           </div>
 
-          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
             {[
-              { stat: '4,500+', label: 'Assessments delivered', icon: <BarChart3 className="h-4 w-4" /> },
-              { stat: '1,200+', label: 'High potentials assessed', icon: <Users className="h-4 w-4" /> },
-              { stat: '350+', label: 'Licensed users certified', icon: <Building2 className="h-4 w-4" /> },
-              { stat: '12', label: 'Markets supported across Asia', icon: <Globe className="h-4 w-4" /> },
+              { stat: '38', label: 'Served across locations', icon: <Globe className="h-4 w-4" /> },
+              { stat: '3,000+', label: 'Certified licensed users', icon: <Users className="h-4 w-4" /> },
+              { stat: '7,000+', label: 'Predicted high potentials', icon: <BarChart3 className="h-4 w-4" /> },
+              { stat: '70,000+', label: 'Assessed professionals', icon: <Building2 className="h-4 w-4" /> },
+              { stat: '100,000+', label: 'Delivered assessments', icon: <BarChart3 className="h-4 w-4" /> },
             ].map((m) => (
               <div key={m.label} className="rounded-2xl border border-border bg-card p-6">
                 <div className="flex items-center justify-between text-muted-foreground">
@@ -555,6 +587,11 @@ const OptimalConsultingTheme: React.FC<TenantLandingProps> = ({
                 <p className="mt-2 text-sm text-muted-foreground">{m.label}</p>
               </div>
             ))}
+          </div>
+          <div className="mt-8 rounded-2xl border border-border bg-card p-6">
+            <p className="text-sm text-muted-foreground">
+              In 2022, Optimal celebrated twenty years of predicting leadership potential and delivering talent development interventions across Asia.
+            </p>
           </div>
         </div>
       </section>
@@ -961,19 +998,19 @@ const OptimalConsultingTheme: React.FC<TenantLandingProps> = ({
   return (
     <div className="min-h-screen theme-bg text-foreground flex flex-col">
       {/* Header */}
-      <header className="sticky top-0 z-40 w-full border-b border-border bg-background/90 backdrop-blur">
+      <header className="optimal-header sticky top-0 z-40 w-full border-b border-white/10" style={{ backgroundColor: '#145598' }}>
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
           <a href={baseUrl} className="flex items-center gap-3 min-w-0">
             {logoSrc ? (
               <img src={logoSrc} alt={siteName} className="h-8 w-auto" />
             ) : (
-              <div className="h-8 w-8 rounded bg-primary/10 flex items-center justify-center text-primary font-bold">
-                {siteName.substring(0, 1)}
+              <div className="h-8 px-3 flex items-center justify-center text-white font-bold text-lg">
+                optimal
               </div>
             )}
             <div className="hidden sm:block min-w-0">
-              <p className="font-medium truncate">{siteName}</p>
-              <p className="text-xs text-muted-foreground truncate">{siteTagline}</p>
+              <p className="font-medium truncate text-white">{siteName}</p>
+              <p className="text-xs truncate" style={{ color: 'rgba(255, 255, 255, 0.8)' }}>{siteTagline}</p>
             </div>
           </a>
 
@@ -982,7 +1019,7 @@ const OptimalConsultingTheme: React.FC<TenantLandingProps> = ({
               <a
                 key={l.href}
                 href={l.href}
-                className="text-sm px-3 py-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                className="text-sm px-3 py-2 rounded-md text-white/80 hover:text-white hover:bg-white/10 transition-colors"
               >
                 {l.label}
               </a>
@@ -990,12 +1027,12 @@ const OptimalConsultingTheme: React.FC<TenantLandingProps> = ({
           </nav>
 
           <div className="flex items-center gap-2">
-            <Button asChild variant="outline" className="hidden sm:inline-flex">
+            <Button asChild variant="outline" className="hidden sm:inline-flex border-white/20 text-white hover:bg-white/10 hover:text-white">
               <a href={assetUrl('optimal-consulting-brochure.pdf')} download>
                 <Download className="mr-2 h-4 w-4" /> Brochure
               </a>
             </Button>
-            <Button onClick={() => setContactOpen(true)}>
+            <Button onClick={() => setContactOpen(true)} style={{ backgroundColor: '#4ED1CE', color: '#145598' }} className="hover:opacity-90">
               Book consultation
             </Button>
           </div>
