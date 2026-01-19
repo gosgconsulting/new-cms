@@ -1,1074 +1,592 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import './theme.css';
-import { useThemeBranding, useThemeStyles } from '../../hooks/useThemeSettings';
-import {
-  ArrowRight,
-  BarChart3,
-  BookOpen,
-  Briefcase,
-  Building2,
-  CheckCircle2,
-  Download,
-  Globe,
-  ShieldCheck,
-  Sparkles,
-  Users,
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+import React, { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
+import type { ComponentSchema } from "../../../sparti-cms/types/schema";
+import FlowbiteHeroSection from "@/libraries/flowbite/components/FlowbiteHeroSection";
+import FlowbiteTestimonialsSection from "@/libraries/flowbite/components/FlowbiteTestimonialsSection";
+import FlowbitePainPointSection from "@/libraries/flowbite/components/FlowbitePainPointSection";
+import FlowbiteContentSection from "@/libraries/flowbite/components/FlowbiteContentSection";
+import FlowbiteWhatsIncludedSection from "@/libraries/flowbite/components/FlowbiteWhatsIncludedSection";
+import FlowbiteFAQSection from "@/libraries/flowbite/components/FlowbiteFAQSection";
+import FlowbiteCTASection from "@/libraries/flowbite/components/FlowbiteCTASection";
+import { initFlowbiteTheme } from "@/utils/flowbiteThemeManager";
+import { useThemeBranding } from "../../hooks/useThemeSettings";
+import Header from "./components/Header";
+import Footer from "../master/components/layout/Footer";
+import ContactFormModal from "../master/components/modals/ContactFormModal";
+import OurServicesSection from "../master/components/OurServicesSection";
+import { ThankYouPage } from "../master/pages/ThankYouPage";
+import PrivacyPolicyPage from "../master/pages/PrivacyPolicyPage";
+import TermsAndConditionsPage from "../master/pages/TermsAndConditionsPage";
+import BlogListPage from "../master/pages/blog/BlogListPage";
+import BlogPostPage from "../master/pages/blog/BlogPostPage";
+import "./theme.css";
 
-interface TenantLandingProps {
+// Helper function to adjust color brightness
+const adjustColorBrightness = (hex: string, percent: number): string => {
+  const num = parseInt(hex.replace("#", ""), 16);
+  const amt = Math.round(2.55 * percent);
+  const R = Math.min(255, Math.max(0, (num >> 16) + amt));
+  const G = Math.min(255, Math.max(0, ((num >> 8) & 0x00ff) + amt));
+  const B = Math.min(255, Math.max(0, (num & 0x0000ff) + amt));
+  return "#" + (0x1000000 + R * 0x10000 + G * 0x100 + B).toString(16).slice(1);
+};
+
+interface OptimalConsultingThemeProps {
+  basePath?: string;
+  pageSlug?: string;
   tenantName?: string;
   tenantSlug?: string;
-  tenantId?: string | null;
-  pageSlug?: string;
+  tenantId?: string;
+  designSystemTheme?: "default" | "minimal" | "enterprise" | "playful" | "mono";
 }
 
-type PageKey = 'home' | 'blog' | 'blogPost' | 'shop' | 'product' | 'service';
-
-type ServiceKey = 'assessments' | 'academy' | 'consulting';
-
-const SERVICES: Array<{
-  key: ServiceKey;
-  title: string;
-  description: string;
-  benefit: string;
-  metric: string;
-  icon: React.ReactNode;
-}> = [
-  {
-    key: 'assessments',
-    title: 'Assessments',
-    description: 'Explore world-class psychometric assessment tools to gain insights into your current and to-be talent.',
-    benefit: 'Make faster, higher-confidence talent decisions with predictive insight.',
-    metric: 'World-class tools',
-    icon: <BarChart3 className="h-5 w-5" />,
-  },
-  {
-    key: 'academy',
-    title: 'Academy',
-    description: 'Equip your organisation with the skills to administer assessment tools, interpret profiling outcomes and bridge performance gaps with development intervention programmes.',
-    benefit: 'Scale leadership standards with consistent assessment language and tools.',
-    metric: 'Build expertise',
-    icon: <Users className="h-5 w-5" />,
-  },
-  {
-    key: 'consulting',
-    title: 'Services',
-    description: 'Entrust the prediction of leadership potential and succession readiness for your organisation to our trained and experienced consultants.',
-    benefit: 'Link leadership behaviours to outcomes with pragmatic, data-driven roadmaps.',
-    metric: 'Expert consultants',
-    icon: <Briefcase className="h-5 w-5" />,
-  },
-];
-
-const PARTNERS = [
-  {
-    name: 'Hogan',
-    logo: 'partner-hogan.svg',
-    note: 'Leadership potential, derailers, and values for robust selection and development decisions.',
-  },
-  {
-    name: 'Mosaic',
-    logo: 'partner-mosaic.svg',
-    note: 'Competency-based frameworks and analytics to standardise leadership behaviours at scale.',
-  },
-  {
-    name: 'SMG',
-    logo: 'partner-smg.svg',
-    note: 'Regional delivery expertise and enabling tools for consistent rollout across Asia.',
-  },
-];
-
-const RESOURCES = [
-  {
-    title: 'Optimal Consulting – Brochure',
-    description: 'Overview of services, methodology, and delivery model.',
-    file: 'optimal-consulting-brochure.pdf',
-  },
-  {
-    title: 'Whitepaper: Building a Predictable Leadership Pipeline',
-    description: 'Practical steps for measuring potential and accelerating readiness.',
-    file: 'leadership-pipeline-whitepaper.pdf',
-  },
-  {
-    title: 'Talent Optimisation Playbook (Executive Summary)',
-    description: 'A quick guide to align talent strategy with business outcomes.',
-    file: 'talent-optimisation-playbook.pdf',
-  },
-];
-
-function normalizeSlug(input?: string) {
-  return (input || '').replace(/^\/+/, '').trim();
-}
-
-function resolvePage(pageSlug?: string): { key: PageKey; param?: string } {
-  const slug = normalizeSlug(pageSlug);
-  if (!slug) return { key: 'home' };
-
-  if (slug === 'blog') return { key: 'blog' };
-  if (slug.startsWith('blog/')) return { key: 'blogPost', param: slug.slice('blog/'.length) };
-
-  if (slug === 'shop') return { key: 'shop' };
-  if (slug.startsWith('shop/')) return { key: 'product', param: slug.slice('shop/'.length) };
-
-  if (slug.startsWith('services/')) {
-    const serviceKey = slug.slice('services/'.length) as ServiceKey;
-    return { key: 'service', param: serviceKey };
-  }
-
-  return { key: 'home' };
-}
-
-function useLeadForm(opts: { themeSlug: string; tenantId?: string | null }) {
-  const [submitting, setSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState<'idle' | 'success' | 'error'>('idle');
-
-  const submit = async (payload: {
-    name: string;
-    email: string;
-    company?: string;
-    phone?: string;
-    message?: string;
-  }) => {
-    setSubmitting(true);
-    setSubmitted('idle');
-
-    try {
-      const res = await fetch('/api/form-submissions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          form_id: `${opts.themeSlug}-consultation`,
-          form_name: 'Consultation Request',
-          tenant_id: opts.tenantId ?? undefined,
-          ...payload,
-        }),
-      });
-
-      if (!res.ok) throw new Error('Request failed');
-      setSubmitted('success');
-    } catch {
-      setSubmitted('error');
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  return { submitting, submitted, submit };
-}
-
-function LeadForm({
-  themeSlug,
-  tenantId,
-  variant = 'full',
-}: {
-  themeSlug: string;
-  tenantId?: string | null;
-  variant?: 'full' | 'compact';
-}) {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [company, setCompany] = useState('');
-  const [phone, setPhone] = useState('');
-  const [message, setMessage] = useState('');
-
-  const { submitting, submitted, submit } = useLeadForm({ themeSlug, tenantId });
-
-  const onSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    await submit({ name, email, company, phone, message });
-  };
-
-  const showAllFields = variant === 'full';
-
-  return (
-    <form onSubmit={onSubmit} className="grid gap-3">
-      <div className="grid gap-3 sm:grid-cols-2">
-        <div className="grid gap-1.5">
-          <label className="text-sm font-medium">Name</label>
-          <Input value={name} onChange={(e) => setName(e.target.value)} required placeholder="Your full name" />
-        </div>
-        <div className="grid gap-1.5">
-          <label className="text-sm font-medium">Work Email</label>
-          <Input
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            type="email"
-            placeholder="name@company.com"
-          />
-        </div>
-      </div>
-
-      {showAllFields && (
-        <div className="grid gap-3 sm:grid-cols-2">
-          <div className="grid gap-1.5">
-            <label className="text-sm font-medium">Company</label>
-            <Input value={company} onChange={(e) => setCompany(e.target.value)} placeholder="Organisation" />
-          </div>
-          <div className="grid gap-1.5">
-            <label className="text-sm font-medium">Phone (optional)</label>
-            <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+65 …" />
-          </div>
-        </div>
-      )}
-
-      {showAllFields && (
-        <div className="grid gap-1.5">
-          <label className="text-sm font-medium">What are you trying to achieve?</label>
-          <Textarea
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            placeholder="E.g., identify high potentials, accelerate readiness, strengthen succession…"
-            rows={4}
-          />
-        </div>
-      )}
-
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        <Button type="submit" disabled={submitting} className="min-w-[160px]">
-          {submitting ? 'Sending…' : 'Request a consultation'}
-        </Button>
-        <p className="text-xs text-muted-foreground">
-          We reply within 1–2 business days.
-        </p>
-      </div>
-
-      {submitted === 'success' && (
-        <p className="text-sm text-green-600">Thanks—your request has been sent.</p>
-      )}
-      {submitted === 'error' && (
-        <p className="text-sm text-destructive">Something went wrong. Please try again.</p>
-      )}
-    </form>
-  );
-}
-
-const BLOG_POSTS = [
-  {
-    slug: 'predictable-pipeline',
-    title: 'Predictable leadership pipelines: what to measure',
-    excerpt: 'A data-driven approach to assessing potential, readiness, and fit—without slowing hiring.',
-    body: [
-      'Decision-makers need a reliable way to identify and develop future leaders. The most effective systems combine validated assessment data with structured development pathways.',
-      'Optimal Consulting helps HR leaders operationalise this with clear success profiles, consistent psychometrics, and scalable enablement via our Academy.'
-    ],
-  },
-  {
-    slug: 'high-potential',
-    title: 'High potential is not high performance',
-    excerpt: 'How to differentiate potential from performance and reduce costly promotion risks.',
-    body: [
-      'High performance today does not always translate to success at the next level. Predictive indicators (motives, interpersonal style, derailers) provide additional clarity.',
-      'We use proven tools and a pragmatic methodology to help organisations reduce risk while accelerating development.'
-    ],
-  },
-] as const;
-
-const SHOP_PRODUCTS = [
-  {
-    slug: 'discovery-session',
-    name: 'Discovery Session',
-    price: 'SGD 0',
-    description: 'A complimentary 30-minute scoping call to understand your outcomes and constraints.',
-  },
-  {
-    slug: 'leadership-diagnostic',
-    name: 'Leadership Diagnostic (Pilot)',
-    price: 'From SGD 8,000',
-    description: 'A small cohort pilot assessment + insights report to validate your success profile.',
-  },
-  {
-    slug: 'academy-certification',
-    name: 'HR Certification (2-day)',
-    price: 'From SGD 3,500',
-    description: 'Enable internal HR teams to interpret assessment outputs and coach effectively.',
-  },
-] as const;
+const normalizeSlug = (slug?: string) => {
+  if (!slug) return "";
+  return String(slug)
+    .split("?")[0]
+    .replace(/^\/+/, "")
+    .replace(/\/+$/, "");
+};
 
 /**
  * Optimal Consulting Theme
- * Landing page geared to convert organisational decision-makers.
+ * Based on Master theme structure with Optimal Consulting content
  */
-const OptimalConsultingTheme: React.FC<TenantLandingProps> = ({
-  tenantName = 'Optimal Consulting',
-  tenantSlug = 'optimalconsulting',
-  tenantId,
+const OptimalConsultingTheme: React.FC<OptimalConsultingThemeProps> = ({
+  basePath = "/theme/optimalconsulting",
   pageSlug,
+  tenantName = "Optimal Consulting",
+  tenantSlug = "optimalconsulting",
+  tenantId,
+  designSystemTheme = "default",
 }) => {
-  // IMPORTANT: hooks must be declared unconditionally
-  const [contactOpen, setContactOpen] = useState(false);
+  const location = useLocation();
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
 
-  const page = useMemo(() => resolvePage(pageSlug), [pageSlug]);
+  const themeSlug = tenantSlug || "optimalconsulting";
 
-  const effectiveTenantId = useMemo(() => {
-    if (tenantId) return tenantId;
-    if (typeof window !== 'undefined' && (window as any).__CMS_TENANT__) return (window as any).__CMS_TENANT__;
-    return null;
-  }, [tenantId]);
+  // Fetch branding colors from database
+  const { branding } = useThemeBranding(themeSlug, tenantId);
 
-  // Hardcoded-first mode unless tenant id exists
-  const cmsEnabled = !!effectiveTenantId;
-
-  const { branding, loading: brandingLoading } = useThemeBranding(tenantSlug, effectiveTenantId ?? undefined, {
-    enabled: cmsEnabled,
-  });
-  const { loading: stylesLoading } = useThemeStyles(tenantSlug, effectiveTenantId ?? undefined, {
-    enabled: cmsEnabled,
-  });
-
-  const siteName = branding?.site_name || tenantName;
-  const siteTagline =
-    branding?.site_tagline || 'Strategic leadership and talent optimisation across Asia.';
-
-  const baseUrl = `/theme/${tenantSlug}`;
-  const assetUrl = (file: string) => `${baseUrl}/assets/${file}`;
-  
-  // Use logo from branding or default to white logo asset
-  const logoSrc = branding?.site_logo || assetUrl('logo-white.svg');
-
-  // Set brand colors as CSS variables
+  // Set Optimal Consulting brand colors
   useEffect(() => {
     const root = document.documentElement;
-    root.style.setProperty('--brand-primary', '#145598');
-    root.style.setProperty('--brand-secondary', '#4ED1CE');
-    root.style.setProperty('--brand-primary-dark', '#0f3f6f');
-    root.style.setProperty('--brand-primary-light', '#1a6bb8');
-    root.style.setProperty('--brand-secondary-dark', '#3db8b5');
-    root.style.setProperty('--brand-secondary-light', '#6dd9d6');
-  }, []);
+    root.style.setProperty("--brand-primary", "#145598");
+    root.style.setProperty("--brand-secondary", "#4ED1CE");
+    root.style.setProperty("--brand-primary-dark", adjustColorBrightness("#145598", -10));
+    root.style.setProperty("--brand-primary-light", adjustColorBrightness("#145598", 20));
+    root.style.setProperty("--brand-secondary-dark", adjustColorBrightness("#4ED1CE", -10));
+    root.style.setProperty("--brand-secondary-light", adjustColorBrightness("#4ED1CE", 20));
+    
+    // Override with DB branding if available
+    if (branding) {
+      const brandingColors = branding as any;
+      if (brandingColors.color_primary) {
+        const primaryColor = String(brandingColors.color_primary);
+        root.style.setProperty("--brand-primary", primaryColor);
+        root.style.setProperty("--brand-primary-dark", adjustColorBrightness(primaryColor, -10));
+        root.style.setProperty("--brand-primary-light", adjustColorBrightness(primaryColor, 20));
+      }
+      if (brandingColors.color_secondary) {
+        const secondaryColor = String(brandingColors.color_secondary);
+        root.style.setProperty("--brand-secondary", secondaryColor);
+        root.style.setProperty("--brand-secondary-dark", adjustColorBrightness(secondaryColor, -10));
+        root.style.setProperty("--brand-secondary-light", adjustColorBrightness(secondaryColor, 20));
+      }
+    }
+  }, [branding]);
 
-  // Handle #contact hash by opening the modal
+  // Initialize Flowbite theme on mount
   useEffect(() => {
-    const openFromHash = () => {
-      if (typeof window === 'undefined') return;
-      if (window.location.hash === '#contact') {
-        setContactOpen(true);
+    initFlowbiteTheme(designSystemTheme);
+  }, [designSystemTheme]);
+
+  // Intercept CTA button clicks to open contact modal
+  useEffect(() => {
+    const handleCTAClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      const button = target.closest('a[href="#contact"], button');
+      if (button && button.getAttribute("href") === "#contact") {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsContactModalOpen(true);
       }
     };
 
-    openFromHash();
-    window.addEventListener('hashchange', openFromHash);
-    return () => window.removeEventListener('hashchange', openFromHash);
+    document.addEventListener("click", handleCTAClick, true);
+    return () => {
+      document.removeEventListener("click", handleCTAClick, true);
+    };
   }, []);
 
-  if (cmsEnabled && (brandingLoading || stylesLoading)) {
+  const normalizedPageSlug = normalizeSlug(pageSlug);
+  const slugParts = normalizedPageSlug.split("/").filter(Boolean);
+  const topLevelSlug = slugParts[0] || "";
+
+  const isThankYouPage =
+    topLevelSlug === "thank-you" ||
+    location.pathname === "/thank-you" ||
+    location.pathname.endsWith("/thank-you") ||
+    location.pathname.includes("/thank-you");
+
+  const handleContactClick = () => {
+    setIsContactModalOpen(true);
+  };
+
+  if (isThankYouPage) {
     return (
-      <div className="min-h-screen theme-bg flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto mb-4 theme-primary-border" />
-          <p className="text-muted-foreground">Loading…</p>
-        </div>
-      </div>
+      <ThankYouPage
+        tenantName={tenantName}
+        tenantSlug={themeSlug}
+        tenantId={tenantId}
+        basePath={basePath}
+      />
     );
   }
 
-  const HomeLanding = () => (
-    <div>
-      {/* 1) HERO */}
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-primary/10 via-transparent to-transparent" />
-        <div className="max-w-6xl mx-auto px-4 py-16 lg:py-20 grid gap-10 lg:grid-cols-2 lg:items-center">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-border bg-background/60 px-3 py-1 text-xs text-muted-foreground">
-              <Sparkles className="h-4 w-4" />
-              Singapore HQ • Asia delivery
-            </div>
+  // Optimal Consulting Landing page schemas
+  const heroSchema: ComponentSchema = {
+    type: "flowbite-hero-section",
+    props: {
+      showCarousel: false,
+    },
+    items: [
+      {
+        key: "motto",
+        type: "text",
+        content: "Singapore HQ • Asia delivery",
+      },
+      {
+        key: "title",
+        type: "heading",
+        level: 1,
+        content: "Developing Leaders, Optimising Performance",
+      },
+      {
+        key: "description",
+        type: "text",
+        content:
+          "We deliver comprehensive consulting services aimed at transforming talent into strategic impact and translating organisational strategy into success. Optimal Consulting has been partnering clients across the globe since 2002 to deliver people solutions for businesses, with a focus on: Assessments and Prediction of Leadership Potential and Succession Readiness, Talent and Leadership Development Interventions, and High-performing Team Assessments and Development Interventions.",
+      },
+      {
+        key: "cta",
+        type: "button",
+        content: "Book consultation",
+        link: "#contact",
+      },
+    ],
+  };
 
-            <h1 className="mt-4 text-4xl md:text-5xl font-semibold tracking-tight">
-              Developing Leaders, Optimising Performance
-            </h1>
-            <p className="mt-4 text-base md:text-lg text-muted-foreground max-w-xl">
-              We deliver comprehensive consulting services aimed at transforming talent into strategic impact and translating organisational strategy into success.
-            </p>
-            <p className="mt-4 text-sm text-muted-foreground max-w-xl">
-              {siteName} has been partnering clients across the globe since 2002 to deliver people solutions for businesses, with a focus on:
-            </p>
-            <ul className="mt-3 space-y-2 text-sm text-muted-foreground max-w-xl">
-              <li className="flex gap-2">
-                <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                <span>Assessments and Prediction of Leadership Potential and Succession Readiness</span>
-              </li>
-              <li className="flex gap-2">
-                <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                <span>Talent and Leadership Development Interventions</span>
-              </li>
-              <li className="flex gap-2">
-                <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                <span>High-performing Team Assessments and Development Interventions</span>
-              </li>
-            </ul>
-            <p className="mt-4 text-sm text-muted-foreground max-w-xl">
-              We are headquartered in Singapore, with a physical presence in Kuala Lumpur, Hong Kong, Shanghai and Tokyo.
-            </p>
+  const testimonialsSchema: ComponentSchema = {
+    type: "flowbite-testimonials-section",
+    props: {
+      title: "Client impact",
+      subtitle: "Specific outcomes—clear signals—credible decisions.",
+    },
+    items: [
+      {
+        key: "title",
+        type: "heading",
+        level: 2,
+        content: "Client impact",
+      },
+      {
+        key: "subtitle",
+        type: "text",
+        content: "Specific outcomes—clear signals—credible decisions.",
+      },
+      {
+        key: "reviews",
+        type: "array",
+        items: [
+          {
+            key: "r1",
+            type: "review",
+            props: {
+              content:
+                "We reduced promotion risk by introducing validated potential indicators and a calibrated success profile for critical roles.",
+              name: "Regional HR Director",
+              title: "Financial Services",
+            },
+          },
+          {
+            key: "r2",
+            type: "review",
+            props: {
+              content:
+                "The Academy enabled our HR team to interpret assessment outputs consistently and coach leaders with confidence.",
+              name: "Head of Talent",
+              title: "Technology",
+            },
+          },
+          {
+            key: "r3",
+            type: "review",
+            props: {
+              content:
+                "We aligned leadership behaviours to strategy and built a practical pipeline plan that business leaders could sponsor.",
+              name: "Chief People Officer",
+              title: "Consumer",
+            },
+          },
+        ],
+      },
+    ],
+  };
 
-            <div className="mt-6 flex flex-wrap gap-3">
-              <Button asChild className="min-w-[200px]">
-                <a href={`${baseUrl}#contact`}>
-                  Book consultation <ArrowRight className="ml-2 h-4 w-4" />
-                </a>
-              </Button>
-              <Button asChild variant="outline" className="min-w-[200px]">
-                <a href={assetUrl('optimal-consulting-brochure.pdf')} download>
-                  <Download className="mr-2 h-4 w-4" /> Download brochure
-                </a>
-              </Button>
-            </div>
+  const challengeSchema: ComponentSchema = {
+    type: "flowbite-pain-point-section",
+    props: {},
+    items: [
+      {
+        key: "hint",
+        type: "text",
+        content: "Need to make better talent decisions?",
+      },
+      {
+        key: "heading",
+        type: "heading",
+        level: 2,
+        content: "Your Leadership Pipeline Needs Predictable Outcomes",
+      },
+      {
+        key: "bullets",
+        type: "array",
+        items: [
+          {
+            key: "b1",
+            type: "text",
+            content: "Promotion risks are costly and hard to predict",
+            icon: "x",
+          },
+          {
+            key: "b2",
+            type: "text",
+            content: "Succession planning lacks data-driven insights",
+            icon: "sparkles",
+          },
+          {
+            key: "b3",
+            type: "text",
+            content: "Leadership development needs measurable impact",
+            icon: "barChart3",
+          },
+        ],
+      },
+    ],
+  };
 
-            <div className="mt-6 grid gap-3 sm:grid-cols-3">
-              <div className="rounded-xl border border-border bg-card p-4">
-                <p className="text-xs text-muted-foreground">For</p>
-                <p className="mt-1 font-medium">HR Leaders</p>
-              </div>
-              <div className="rounded-xl border border-border bg-card p-4">
-                <p className="text-xs text-muted-foreground">For</p>
-                <p className="mt-1 font-medium">Executives</p>
-              </div>
-              <div className="rounded-xl border border-border bg-card p-4">
-                <p className="text-xs text-muted-foreground">For</p>
-                <p className="mt-1 font-medium">Talent Teams</p>
-              </div>
-            </div>
-          </div>
+  const aboutSchema: ComponentSchema = {
+    type: "flowbite-content-section",
+    props: {
+      variant: "about",
+      badge: "About us",
+      imageSrc: `/theme/${themeSlug}/assets/placeholder.svg`,
+      reviewLabel: "20+ Years",
+      reviewSub: "Experience",
+    },
+    items: [
+      {
+        key: "title",
+        type: "heading",
+        level: 2,
+        content: "We Are Your Strategic Talent Partner",
+      },
+      {
+        key: "content",
+        type: "text",
+        content:
+          "Optimal Consulting has been partnering clients across the globe since 2002 to deliver people solutions for businesses. We are headquartered in Singapore, with a physical presence in Kuala Lumpur, Hong Kong, Shanghai and Tokyo.\n\nWe help organisational leaders make talent decisions with validated assessments, scalable capability building, and pragmatic consulting—so you can strengthen succession and improve performance outcomes.",
+      },
+      {
+        key: "button",
+        type: "button",
+        content: "Learn more",
+        link: "#contact",
+      },
+    ],
+  };
 
-          <div className="relative">
-            <div className="absolute -inset-6 rounded-3xl bg-gradient-to-tr from-primary/20 to-transparent blur-2xl" />
-            <div className="relative rounded-2xl border border-border bg-card overflow-hidden">
-              <img
-                src={assetUrl('hero-illustration.svg')}
-                alt="Leadership development illustration"
-                className="w-full h-auto"
-              />
-            </div>
-            <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground">
-              <span className="inline-flex items-center gap-2">
-                <ShieldCheck className="h-4 w-4" /> Data-driven, evidence-based
-              </span>
-              <span className="inline-flex items-center gap-2">
-                <Globe className="h-4 w-4" /> Regional presence
-              </span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 2) WHAT WE DO */}
-      <section id="what-we-do" className="border-t border-border bg-background">
-        <div className="max-w-6xl mx-auto px-4 py-14">
-          <div className="flex items-end justify-between gap-6 flex-wrap">
-            <div>
-              <h2 className="text-2xl md:text-3xl font-semibold">What we do</h2>
-              <p className="mt-2 text-muted-foreground max-w-2xl">
-                Three connected offerings to assess potential, build capability, and deliver outcomes.
-              </p>
-            </div>
-            <Button asChild variant="outline">
-              <a href={`${baseUrl}/services/assessments`}>Explore services</a>
-            </Button>
-          </div>
-
-          <div className="mt-8 grid gap-4 lg:grid-cols-3">
-            {SERVICES.map((s) => (
-              <div key={s.key} className="rounded-2xl border border-border bg-card p-6">
-                <div className="flex items-center justify-between">
-                  <div className="inline-flex items-center gap-2 text-sm font-medium">
-                    <span style={{ color: '#145598' }}>{s.icon}</span>
-                    {s.title}
-                  </div>
-                  <span className="text-xs rounded-full border border-border px-2 py-1 text-muted-foreground">
-                    {s.metric}
-                  </span>
-                </div>
-                <p className="mt-4 text-sm text-muted-foreground">{s.description}</p>
-                <p className="mt-3 text-sm">
-                  <span className="font-medium">Benefit:</span> {s.benefit}
-                </p>
-                <div className="mt-5">
-                  <a
-                    href={`${baseUrl}/services/${s.key}`}
-                    className="inline-flex items-center text-sm font-medium text-primary hover:underline"
-                  >
-                    View details <ArrowRight className="ml-2 h-4 w-4" />
-                  </a>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* 3) WHY CHOOSE US */}
-      <section id="why" className="border-t border-border bg-muted/20">
-        <div className="max-w-6xl mx-auto px-4 py-14">
-          <h2 className="text-2xl md:text-3xl font-semibold">Why choose us</h2>
-          <p className="mt-2 text-muted-foreground max-w-2xl">
-            Modern consulting—people-centric and data-led—built for regional execution.
-          </p>
-
-          <div className="mt-8 grid gap-4 md:grid-cols-2">
-            <div className="rounded-2xl border border-border bg-card p-6">
-              <div className="flex items-start gap-3">
-                <BarChart3 className="h-5 w-5 text-primary mt-0.5" />
-                <div>
-                  <p className="font-medium">Data-driven tools</p>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    Predictive assessments and structured diagnostics to reduce decision risk.
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="rounded-2xl border border-border bg-card p-6">
-              <div className="flex items-start gap-3">
-                <ShieldCheck className="h-5 w-5 text-primary mt-0.5" />
-                <div>
-                  <p className="font-medium">Global psychometrics partners</p>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    Licensed tools and best-practice methodology to ensure defensible decisions.
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="rounded-2xl border border-border bg-card p-6">
-              <div className="flex items-start gap-3">
-                <Globe className="h-5 w-5 text-primary mt-0.5" />
-                <div>
-                  <p className="font-medium">Regional presence</p>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    Singapore HQ with delivery capability across Asia for consistent rollout.
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="rounded-2xl border border-border bg-card p-6">
-              <div className="flex items-start gap-3">
-                <CheckCircle2 className="h-5 w-5 text-primary mt-0.5" />
-                <div>
-                  <p className="font-medium">Proven methodology</p>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    Clear success profiles, calibrated decision standards, and scalable enablement.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 4) IMPACT METRICS */}
-      <section id="impact" className="border-t border-border bg-background">
-        <div className="max-w-6xl mx-auto px-4 py-14">
-          <div className="flex items-end justify-between gap-6 flex-wrap">
-            <div>
-              <h2 className="text-2xl md:text-3xl font-semibold">By the numbers</h2>
-              <p className="mt-2 text-muted-foreground max-w-2xl">
-                Credibility you can reference in the boardroom.
-              </p>
-            </div>
-          </div>
-
-          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-            {[
-              { stat: '38', label: 'Served across locations', icon: <Globe className="h-4 w-4" /> },
-              { stat: '3,000+', label: 'Certified licensed users', icon: <Users className="h-4 w-4" /> },
-              { stat: '7,000+', label: 'Predicted high potentials', icon: <BarChart3 className="h-4 w-4" /> },
-              { stat: '70,000+', label: 'Assessed professionals', icon: <Building2 className="h-4 w-4" /> },
-              { stat: '100,000+', label: 'Delivered assessments', icon: <BarChart3 className="h-4 w-4" /> },
-            ].map((m) => (
-              <div key={m.label} className="rounded-2xl border border-border bg-card p-6">
-                <div className="flex items-center justify-between text-muted-foreground">
-                  <span className="inline-flex items-center gap-2 text-xs">
-                    {m.icon}
-                    Impact
-                  </span>
-                </div>
-                <p className="mt-4 text-3xl font-semibold tracking-tight">{m.stat}</p>
-                <p className="mt-2 text-sm text-muted-foreground">{m.label}</p>
-              </div>
-            ))}
-          </div>
-          <div className="mt-8 rounded-2xl border border-border bg-card p-6">
-            <p className="text-sm text-muted-foreground">
-              In 2022, Optimal celebrated twenty years of predicting leadership potential and delivering talent development interventions across Asia.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* 5) STRATEGIC PARTNERS */}
-      <section id="partners" className="border-t border-border bg-muted/20">
-        <div className="max-w-6xl mx-auto px-4 py-14">
-          <h2 className="text-2xl md:text-3xl font-semibold">Strategic partners</h2>
-          <p className="mt-2 text-muted-foreground max-w-2xl">
-            We collaborate with trusted assessment and enablement partners to deliver robust outcomes.
-          </p>
-
-          <div className="mt-8 grid gap-4 md:grid-cols-3">
-            {PARTNERS.map((p) => (
-              <div key={p.name} className="rounded-2xl border border-border bg-card p-6">
-                <img src={assetUrl(p.logo)} alt={`${p.name} logo`} className="h-8 w-auto" />
-                <p className="mt-4 text-sm text-muted-foreground">{p.note}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* 6) TESTIMONIALS */}
-      <section id="testimonials" className="border-t border-border bg-background">
-        <div className="max-w-6xl mx-auto px-4 py-14">
-          <div className="flex items-end justify-between gap-6 flex-wrap">
-            <div>
-              <h2 className="text-2xl md:text-3xl font-semibold">Client impact</h2>
-              <p className="mt-2 text-muted-foreground max-w-2xl">
-                Specific outcomes—clear signals—credible decisions.
-              </p>
-            </div>
-            <Button asChild variant="outline">
-              <a href={`${baseUrl}/blog`}>
-                <BookOpen className="mr-2 h-4 w-4" /> Insights
-              </a>
-            </Button>
-          </div>
-
-          <div className="mt-8 grid gap-4 md:grid-cols-3">
-            {[
+  const servicesSchema: ComponentSchema = {
+    type: "flowbite-whats-included-section",
+    props: {},
+    items: [
+      {
+        key: "badge",
+        type: "text",
+        content: "Business Units",
+      },
+      {
+        key: "title",
+        type: "heading",
+        level: 2,
+        content: "Three connected offerings to assess potential, build capability, and deliver outcomes",
+      },
+      {
+        key: "description",
+        type: "text",
+        content:
+          "A focused breakdown of our core services, each tailored to your talent and leadership goals.",
+      },
+      {
+        key: "features",
+        type: "array",
+        items: [
+          {
+            key: "s1",
+            type: "feature",
+            items: [
               {
-                quote:
-                  'We reduced promotion risk by introducing validated potential indicators and a calibrated success profile for critical roles.',
-                by: 'Regional HR Director, Financial Services',
+                key: "title",
+                type: "heading",
+                level: 3,
+                content: "Assessments",
               },
               {
-                quote:
-                  'The Academy enabled our HR team to interpret assessment outputs consistently and coach leaders with confidence.',
-                by: 'Head of Talent, Technology',
+                key: "description",
+                type: "text",
+                content:
+                  "Explore world-class psychometric assessment tools to gain insights into your current and to-be talent.",
+              },
+            ],
+          },
+          {
+            key: "s2",
+            type: "feature",
+            items: [
+              {
+                key: "title",
+                type: "heading",
+                level: 3,
+                content: "Academy",
               },
               {
-                quote:
-                  'We aligned leadership behaviours to strategy and built a practical pipeline plan that business leaders could sponsor.',
-                by: 'Chief People Officer, Consumer',
+                key: "description",
+                type: "text",
+                content:
+                  "Equip your organisation with the skills to administer assessment tools, interpret profiling outcomes and bridge performance gaps with development intervention programmes.",
               },
-            ].map((t, idx) => (
-              <div key={idx} className="rounded-2xl border border-border bg-card p-6">
-                <p className="text-sm leading-6">“{t.quote}”</p>
-                <p className="mt-4 text-xs text-muted-foreground">— {t.by}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+            ],
+          },
+          {
+            key: "s3",
+            type: "feature",
+            items: [
+              {
+                key: "title",
+                type: "heading",
+                level: 3,
+                content: "Services",
+              },
+              {
+                key: "description",
+                type: "text",
+                content:
+                  "Entrust the prediction of leadership potential and succession readiness for your organisation to our trained and experienced consultants.",
+              },
+            ],
+          },
+        ],
+      },
+      {
+        key: "cta",
+        type: "button",
+        content: "Explore services",
+        link: "#contact",
+      },
+    ],
+  };
 
-      {/* 7) RESOURCES */}
-      <section id="resources" className="border-t border-border bg-muted/20">
-        <div className="max-w-6xl mx-auto px-4 py-14">
-          <h2 className="text-2xl md:text-3xl font-semibold">Featured resources</h2>
-          <p className="mt-2 text-muted-foreground max-w-2xl">
-            Practical, board-ready materials you can share internally.
-          </p>
+  const faqSchema: ComponentSchema = {
+    type: "flowbite-faq-section",
+    props: {},
+    items: [
+      {
+        key: "title",
+        type: "heading",
+        level: 2,
+        content: "Frequently Asked Questions",
+      },
+      {
+        key: "faqItems",
+        type: "array",
+        items: [
+          {
+            key: "question",
+            type: "text",
+            content: "What services does Optimal Consulting offer?",
+          },
+          {
+            key: "answer",
+            type: "text",
+            content:
+              "We offer three main services: Assessments (psychometric tools for talent insights), Academy (training to administer assessments and interpret outcomes), and Services (consulting for leadership potential prediction and succession readiness).",
+          },
+        ],
+      },
+      {
+        key: "faq1",
+        type: "array",
+        items: [
+          {
+            key: "question",
+            type: "text",
+            content: "Where does Optimal Consulting operate?",
+          },
+          {
+            key: "answer",
+            type: "text",
+            content:
+              "We are headquartered in Singapore, with a physical presence in Kuala Lumpur, Hong Kong, Shanghai and Tokyo. We serve clients across 38 locations globally.",
+          },
+        ],
+      },
+      {
+        key: "faq2",
+        type: "array",
+        items: [
+          {
+            key: "question",
+            type: "text",
+            content: "How long has Optimal Consulting been in business?",
+          },
+          {
+            key: "answer",
+            type: "text",
+            content:
+              "Optimal Consulting has been partnering clients across the globe since 2002. In 2022, we celebrated twenty years of predicting leadership potential and delivering talent development interventions across Asia.",
+          },
+        ],
+      },
+      {
+        key: "faq3",
+        type: "array",
+        items: [
+          {
+            key: "question",
+            type: "text",
+            content: "What results can I expect?",
+          },
+          {
+            key: "answer",
+            type: "text",
+            content:
+              "We have assessed over 70,000 professionals, predicted over 7,000 high potentials, certified over 3,000 licensed users, and delivered over 100,000 assessments. Our data-driven approach helps reduce promotion risk and accelerate leadership development.",
+          },
+        ],
+      },
+    ],
+  };
 
-          <div className="mt-8 grid gap-4 md:grid-cols-3">
-            {RESOURCES.map((r) => (
-              <div key={r.file} className="rounded-2xl border border-border bg-card p-6 flex flex-col">
-                <p className="font-medium">{r.title}</p>
-                <p className="mt-2 text-sm text-muted-foreground flex-1">{r.description}</p>
-                <div className="mt-5">
-                  <a
-                    href={assetUrl(r.file)}
-                    download
-                    className="inline-flex items-center text-sm font-medium text-primary hover:underline"
-                  >
-                    <Download className="mr-2 h-4 w-4" /> Download PDF
-                  </a>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+  const ctaSchema: ComponentSchema = {
+    type: "flowbite-cta-section",
+    props: {
+      ctaVariant: "primary",
+      ctaFullWidth: false,
+    },
+    items: [
+      {
+        key: "title",
+        type: "heading",
+        level: 2,
+        content: "Ready to partner with us?",
+      },
+      {
+        key: "description",
+        type: "text",
+        content:
+          "Tell us what you're trying to achieve. We'll propose a practical approach—assessment, academy enablement, and/or consulting—aligned to your context.",
+      },
+      {
+        key: "cta",
+        type: "button",
+        content: "Book consultation",
+        link: "#contact",
+      },
+    ],
+  };
 
-      {/* 8) CTA / CONTACT */}
-      <section id="contact" className="border-t border-border bg-background">
-        <div className="max-w-6xl mx-auto px-4 py-14 grid gap-8 lg:grid-cols-2">
-          <div>
-            <h2 className="text-2xl md:text-3xl font-semibold">Ready to partner with us?</h2>
-            <p className="mt-2 text-muted-foreground max-w-xl">
-              Tell us what you’re trying to achieve. We’ll propose a practical approach—assessment,
-              academy enablement, and/or consulting—aligned to your context.
-            </p>
-
-            <div className="mt-6 rounded-2xl border border-border bg-card p-6">
-              <p className="text-sm font-medium">What you’ll get</p>
-              <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
-                {[
-                  'A short discovery call with a consultant',
-                  'A recommended scope and timeline',
-                  'A clear view of expected outcomes and metrics',
-                ].map((x) => (
-                  <li key={x} className="flex gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary mt-0.5" />
-                    <span>{x}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-border bg-card p-6">
-            <LeadForm themeSlug={tenantSlug} tenantId={effectiveTenantId} />
-          </div>
-        </div>
-      </section>
-
-      {/* 9) FOOTER */}
-      <footer className="border-t border-border bg-background">
-        <div className="max-w-6xl mx-auto px-4 py-10 grid gap-8 md:grid-cols-3">
-          <div>
-            <div className="flex items-center gap-3">
-              {logoSrc ? (
-                <img src={logoSrc} alt={siteName} className="h-8 w-auto" />
-              ) : (
-                <div className="h-8 w-8 rounded bg-primary/10 flex items-center justify-center text-primary font-bold">
-                  {siteName.substring(0, 1)}
-                </div>
-              )}
-              <div>
-                <p className="font-medium">{siteName}</p>
-                <p className="text-xs text-muted-foreground">{siteTagline}</p>
-              </div>
-            </div>
-            <p className="mt-4 text-sm text-muted-foreground">
-              Strategic leadership and talent optimisation consulting firm headquartered in Singapore with a presence across Asia.
-            </p>
-          </div>
-
-          <div>
-            <p className="font-medium">Offices</p>
-            <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
-              <li>Singapore</li>
-              <li>Kuala Lumpur</li>
-              <li>Hong Kong</li>
-              <li>Shanghai</li>
-              <li>Tokyo</li>
-            </ul>
-          </div>
-
-          <div>
-            <p className="font-medium">Contact</p>
-            <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
-              <li>
-                <a className="hover:underline" href="mailto:hello@optimalconsulting.com">
-                  hello@optimalconsulting.com
-                </a>
-              </li>
-              <li>
-                <a className="hover:underline" href="tel:+6560000000">
-                  +65 6000 0000
-                </a>
-              </li>
-              <li className="flex items-center gap-2">
-                <Building2 className="h-4 w-4" /> Singapore HQ
-              </li>
-            </ul>
-
-            <div className="mt-6 flex flex-wrap gap-4 text-sm">
-              <a className="text-muted-foreground hover:text-foreground" href="/privacy-policy">
-                Privacy
-              </a>
-              <a className="text-muted-foreground hover:text-foreground" href="/terms-conditions">
-                Terms
-              </a>
-              <a className="text-muted-foreground hover:text-foreground" href="https://www.linkedin.com" target="_blank" rel="noreferrer">
-                LinkedIn
-              </a>
-            </div>
-          </div>
-        </div>
-
-        <div className="max-w-6xl mx-auto px-4 pb-8 text-xs text-muted-foreground">
-          © {new Date().getFullYear()} {siteName}. All rights reserved.
-        </div>
-      </footer>
-    </div>
-  );
-
-  const BlogList = () => (
-    <section>
-      <div className="max-w-4xl mx-auto px-4 py-12">
-        <h1 className="text-3xl font-semibold">Insights</h1>
-        <p className="mt-2 text-muted-foreground">Short, practical perspectives for leaders and HR teams.</p>
-
-        <div className="mt-8 grid gap-4">
-          {BLOG_POSTS.map((post) => (
-            <a
-              key={post.slug}
-              href={`${baseUrl}/blog/${post.slug}`}
-              className="block rounded-2xl border border-border bg-card p-6 hover:bg-muted/40 transition-colors"
-            >
-              <div className="flex items-center justify-between gap-4">
-                <h2 className="text-lg font-medium">{post.title}</h2>
-                <ArrowRight className="h-4 w-4 text-muted-foreground" />
-              </div>
-              <p className="mt-2 text-sm text-muted-foreground">{post.excerpt}</p>
-            </a>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-
-  const BlogPost = ({ slug }: { slug: string }) => {
-    const post = BLOG_POSTS.find((p) => p.slug === slug);
-    if (!post) {
+  const renderMain = () => {
+    if (topLevelSlug === "blog") {
+      if (slugParts.length === 1) {
+        return <BlogListPage basePath={basePath} tenantId={tenantId} />;
+      }
       return (
-        <section>
-          <div className="max-w-4xl mx-auto px-4 py-12">
-            <h1 className="text-2xl font-semibold">Post not found</h1>
-            <p className="mt-2 text-muted-foreground">No post with slug: {slug}</p>
-            <a className="inline-block mt-6 text-sm underline" href={`${baseUrl}/blog`}>
-              Back to Insights
-            </a>
-          </div>
-        </section>
+        <BlogPostPage
+          basePath={basePath}
+          slug={slugParts[1] || ""}
+          tenantId={tenantId}
+        />
       );
     }
 
-    return (
-      <section>
-        <div className="max-w-4xl mx-auto px-4 py-12">
-          <a className="text-sm text-muted-foreground hover:text-foreground" href={`${baseUrl}/blog`}>
-            ← Back to Insights
-          </a>
-          <h1 className="mt-4 text-3xl font-semibold">{post.title}</h1>
-          <p className="mt-2 text-muted-foreground">{post.excerpt}</p>
-          <div className="mt-8 space-y-4 text-sm leading-6">
-            {post.body.map((p, idx) => (
-              <p key={idx}>{p}</p>
-            ))}
-          </div>
-        </div>
-      </section>
-    );
-  };
+    if (topLevelSlug === "privacy-policy") {
+      return <PrivacyPolicyPage tenantName={tenantName} />;
+    }
 
-  const ShopList = () => (
-    <section>
-      <div className="max-w-6xl mx-auto px-4 py-12">
-        <h1 className="text-3xl font-semibold">Offerings</h1>
-        <p className="mt-2 text-muted-foreground">Starter engagements you can use to begin.</p>
-
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {SHOP_PRODUCTS.map((product) => (
-            <a
-              key={product.slug}
-              href={`${baseUrl}/shop/${product.slug}`}
-              className="block rounded-2xl border border-border bg-card p-6 hover:bg-muted/40 transition-colors"
-            >
-              <p className="font-medium">{product.name}</p>
-              <p className="mt-2 text-sm text-muted-foreground">{product.description}</p>
-              <div className="mt-4 flex items-center justify-between">
-                <span className="text-sm font-semibold">{product.price}</span>
-                <span className="text-xs text-primary">View</span>
-              </div>
-            </a>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-
-  const Product = ({ slug }: { slug: string }) => {
-    const product = SHOP_PRODUCTS.find((p) => p.slug === slug);
-    if (!product) {
-      return (
-        <section>
-          <div className="max-w-4xl mx-auto px-4 py-12">
-            <h1 className="text-2xl font-semibold">Not found</h1>
-            <p className="mt-2 text-muted-foreground">No item with slug: {slug}</p>
-            <a className="inline-block mt-6 text-sm underline" href={`${baseUrl}/shop`}>
-              Back to Offerings
-            </a>
-          </div>
-        </section>
-      );
+    if (topLevelSlug === "terms-and-conditions" || topLevelSlug === "terms") {
+      return <TermsAndConditionsPage tenantName={tenantName} />;
     }
 
     return (
-      <section>
-        <div className="max-w-4xl mx-auto px-4 py-12">
-          <a className="text-sm text-muted-foreground hover:text-foreground" href={`${baseUrl}/shop`}>
-            ← Back to Offerings
-          </a>
-          <div className="mt-4 rounded-2xl border border-border bg-card p-6">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <h1 className="text-3xl font-semibold">{product.name}</h1>
-                <p className="mt-2 text-muted-foreground">{product.description}</p>
-              </div>
-              <div className="text-right">
-                <p className="text-xl font-semibold">{product.price}</p>
-                <Button className="mt-3" onClick={() => setContactOpen(true)}>
-                  Enquire
-                </Button>
-              </div>
-            </div>
-            <p className="mt-6 text-sm text-muted-foreground">
-              This is a starter page. Connect it to your product/catalog system when ready.
-            </p>
-          </div>
+      <>
+        <div id="hero">
+          <FlowbiteHeroSection component={heroSchema} />
         </div>
-      </section>
+
+        <div id="challenge" className="scroll-mt-20">
+          <FlowbitePainPointSection component={challengeSchema} />
+        </div>
+
+        <div id="about" className="scroll-mt-20">
+          <FlowbiteContentSection component={aboutSchema} />
+        </div>
+
+        <div id="services" className="scroll-mt-20">
+          <FlowbiteWhatsIncludedSection component={servicesSchema} />
+        </div>
+
+        <div id="testimonials" className="scroll-mt-20">
+          <FlowbiteTestimonialsSection component={testimonialsSchema} />
+        </div>
+
+        <div id="our-services" className="scroll-mt-20">
+          <OurServicesSection themeSlug={themeSlug} />
+        </div>
+
+        <div id="faq" className="scroll-mt-20">
+          <FlowbiteFAQSection component={faqSchema} />
+        </div>
+
+        <div id="contact" className="scroll-mt-20">
+          <FlowbiteCTASection component={ctaSchema} />
+        </div>
+      </>
     );
   };
 
-  const ServicePage = ({ keyName }: { keyName: string }) => {
-    const svc = SERVICES.find((s) => s.key === keyName);
-    if (!svc) {
-      return (
-        <section>
-          <div className="max-w-4xl mx-auto px-4 py-12">
-            <h1 className="text-2xl font-semibold">Service not found</h1>
-            <p className="mt-2 text-muted-foreground">Unknown service: {keyName}</p>
-            <a className="inline-block mt-6 text-sm underline" href={`${baseUrl}#what-we-do`}>
-              Back to services
-            </a>
-          </div>
-        </section>
-      );
-    }
-
-    return (
-      <section>
-        <div className="max-w-4xl mx-auto px-4 py-12">
-          <a className="text-sm text-muted-foreground hover:text-foreground" href={`${baseUrl}#what-we-do`}>
-            ← Back to services
-          </a>
-          <h1 className="mt-4 text-3xl font-semibold">{svc.title}</h1>
-          <p className="mt-3 text-muted-foreground">{svc.description}</p>
-
-          <div className="mt-8 grid gap-4">
-            <div className="rounded-2xl border border-border bg-card p-6">
-              <p className="font-medium">What you get</p>
-              <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
-                <li className="flex gap-2"><CheckCircle2 className="h-4 w-4 text-primary mt-0.5" /> Evidence-based tools and structured interpretation</li>
-                <li className="flex gap-2"><CheckCircle2 className="h-4 w-4 text-primary mt-0.5" /> Role-based success profiles and decision criteria</li>
-                <li className="flex gap-2"><CheckCircle2 className="h-4 w-4 text-primary mt-0.5" /> Actionable insights for selection, development, and succession</li>
-              </ul>
-            </div>
-            <div className="rounded-2xl border border-border bg-card p-6">
-              <p className="font-medium">Outcome</p>
-              <p className="mt-2 text-sm text-muted-foreground">{svc.benefit}</p>
-              <p className="mt-3 text-sm"><span className="font-medium">Metric focus:</span> {svc.metric}</p>
-            </div>
-          </div>
-
-          <div className="mt-8 rounded-2xl border border-border bg-card p-6">
-            <p className="font-medium">Speak to a consultant</p>
-            <p className="mt-2 text-sm text-muted-foreground">Share your outcomes and context—we’ll propose a practical scope.</p>
-            <div className="mt-4">
-              <LeadForm themeSlug={tenantSlug} tenantId={effectiveTenantId} variant="compact" />
-            </div>
-          </div>
-        </div>
-      </section>
-    );
-  };
-
-  const content =
-    page.key === 'blog'
-      ? <BlogList />
-      : page.key === 'blogPost' && page.param
-        ? <BlogPost slug={page.param} />
-        : page.key === 'shop'
-          ? <ShopList />
-          : page.key === 'product' && page.param
-            ? <Product slug={page.param} />
-            : page.key === 'service' && page.param
-              ? <ServicePage keyName={page.param} />
-              : <HomeLanding />;
-
-  const headerLinks = [
-    { href: baseUrl, label: 'Home' },
-    { href: `${baseUrl}#what-we-do`, label: 'Services' },
-    { href: `${baseUrl}#impact`, label: 'Impact' },
-    { href: `${baseUrl}#resources`, label: 'Resources' },
-    { href: `${baseUrl}/blog`, label: 'Insights' },
-  ];
+  const logoSrc = branding?.site_logo || `/theme/${themeSlug}/assets/logo-white.svg`;
 
   return (
-    <div className="min-h-screen theme-bg text-foreground flex flex-col">
-      {/* Header */}
-      <header className="optimal-header sticky top-0 z-40 w-full border-b border-white/10" style={{ backgroundColor: '#145598' }}>
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
-          <a href={baseUrl} className="flex items-center gap-3 min-w-0">
-            {logoSrc ? (
-              <img src={logoSrc} alt={siteName} className="h-8 w-auto" />
-            ) : (
-              <div className="h-8 px-3 flex items-center justify-center text-white font-bold text-lg">
-                optimal
-              </div>
-            )}
-            <div className="hidden sm:block min-w-0">
-              <p className="font-medium truncate text-white">{siteName}</p>
-              <p className="text-xs truncate" style={{ color: 'rgba(255, 255, 255, 0.8)' }}>{siteTagline}</p>
-            </div>
-          </a>
+    <div className="min-h-screen flex flex-col bg-(--brand-background)">
+      <Header
+        tenantName={tenantName}
+        tenantSlug={themeSlug}
+        logoSrc={logoSrc}
+        basePath={basePath}
+        onContactClick={handleContactClick}
+      />
 
-          <nav className="hidden lg:flex items-center">
-            {headerLinks.map((l) => (
-              <a
-                key={l.href}
-                href={l.href}
-                className="text-sm px-3 py-2 rounded-md text-white/80 hover:text-white hover:bg-white/10 transition-colors"
-              >
-                {l.label}
-              </a>
-            ))}
-          </nav>
+      <main className="flex-1">{renderMain()}</main>
 
-          <div className="flex items-center gap-2">
-            <Button asChild variant="outline" className="hidden sm:inline-flex border-white/20 text-white hover:bg-white/10 hover:text-white">
-              <a href={assetUrl('optimal-consulting-brochure.pdf')} download>
-                <Download className="mr-2 h-4 w-4" /> Brochure
-              </a>
-            </Button>
-            <Button onClick={() => setContactOpen(true)} style={{ backgroundColor: '#4ED1CE', color: '#145598' }} className="hover:opacity-90">
-              Book consultation
-            </Button>
-          </div>
-        </div>
-      </header>
+      <Footer tenantName={tenantName} tenantSlug={themeSlug} basePath={basePath} />
 
-      {/* Content */}
-      <main className="flex-1">{content}</main>
-
-      {/* Contact modal */}
-      {contactOpen && (
-        <div
-          className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
-          onClick={() => setContactOpen(false)}
-        >
-          <div
-            className="w-full max-w-lg rounded-2xl border border-border bg-background p-6"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="text-lg font-semibold">Book a consultation</p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Tell us your objective—we’ll respond with a recommended approach.
-                </p>
-              </div>
-              <Button variant="ghost" onClick={() => setContactOpen(false)}>
-                Close
-              </Button>
-            </div>
-            <div className="mt-5">
-              <LeadForm themeSlug={tenantSlug} tenantId={effectiveTenantId} />
-            </div>
-          </div>
-        </div>
-      )}
+      <ContactFormModal
+        isOpen={isContactModalOpen}
+        onClose={() => setIsContactModalOpen(false)}
+        tenantName={tenantName}
+        themeSlug={themeSlug}
+      />
     </div>
   );
 };

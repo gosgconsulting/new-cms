@@ -11,10 +11,6 @@
     --brand-secondary-dark: #3db8b5;
     --brand-secondary-light: #6dd9d6;
     
-    /* Header colors */
-    --header-bg: #145598;
-    --header-text: #ffffff;
-    
     /* Tailwind CSS variables for theme integration */
     --background: 0 0% 100%;
     --foreground: 210 100% 12%;
@@ -39,26 +35,24 @@
   border-color: hsl(var(--primary));
 }
 
-/* Optimal Consulting Header Styles */
-.optimal-header {
-  background-color: var(--header-bg) !important;
-  color: var(--header-text) !important;
+/* Optimal Consulting Header Styles - Blue background with white text */
+header[class*="sticky"] {
+  background-color: #145598 !important;
+  border-bottom-color: rgba(255, 255, 255, 0.1) !important;
 }
 
-.optimal-header a,
-.optimal-header p,
-.optimal-header span {
-  color: var(--header-text) !important;
+header[class*="sticky"] * {
+  color: #ffffff !important;
 }
 
-.optimal-header .text-muted-foreground {
-  color: rgba(255, 255, 255, 0.8) !important;
+header[class*="sticky"] a,
+header[class*="sticky"] button,
+header[class*="sticky"] p,
+header[class*="sticky"] span {
+  color: #ffffff !important;
 }
 
-.optimal-header .hover\:text-foreground:hover {
-  color: var(--header-text) !important;
-}
-
-.optimal-header .hover\:bg-muted\/60:hover {
+header[class*="sticky"] a:hover {
   background-color: rgba(255, 255, 255, 0.1) !important;
+  color: #ffffff !important;
 }

@@ -28,6 +28,7 @@ const GosgConsultingTheme = lazy(() => import('../../../sparti-cms/theme/gosgcon
 const CustomTheme = lazy(() => import('../../../sparti-cms/theme/custom'));
 const HotelTheme = lazy(() => import('../../../sparti-cms/theme/hotel'));
 const NailQueenTheme = lazy(() => import('../../../sparti-cms/theme/nail-queen'));
+const OptimalConsultingTheme = lazy(() => import('../../../sparti-cms/theme/optimalconsulting'));
 const MasterTheme = lazy(() => import('../../../sparti-cms/theme/master'));
 
 /**
@@ -61,7 +62,7 @@ const themeConfig: Record<string, { name: string; component: React.LazyExoticCom
   },
   'optimalconsulting': {
     name: 'Optimal Consulting',
-    component: MasterTheme
+    component: OptimalConsultingTheme
   }
 };
 
