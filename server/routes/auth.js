@@ -1,41 +1,9 @@
 import express from 'express';
 import bcrypt from 'bcrypt';
-
-// #region agent log
-fetch('http://127.0.0.1:7243/ingest/6c8a92dc-f11e-4f7a-84d0-9dfb6f553501',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'server/routes/auth.js:1',message:'Starting auth.js imports',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'L'})}).catch(()=>{});
-// #endregion
-
-// #region agent log
-fetch('http://127.0.0.1:7243/ingest/6c8a92dc-f11e-4f7a-84d0-9dfb6f553501',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'server/routes/auth.js:5',message:'About to import db/index.js',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'L'})}).catch(()=>{});
-// #endregion
 import { query } from '../../sparti-cms/db/index.js';
-// #region agent log
-fetch('http://127.0.0.1:7243/ingest/6c8a92dc-f11e-4f7a-84d0-9dfb6f553501',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'server/routes/auth.js:8',message:'db/index.js imported successfully',data:{hasQuery:!!query},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'L'})}).catch(()=>{});
-// #endregion
-
-// #region agent log
-fetch('http://127.0.0.1:7243/ingest/6c8a92dc-f11e-4f7a-84d0-9dfb6f553501',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'server/routes/auth.js:11',message:'About to import middleware/auth.js',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'M'})}).catch(()=>{});
-// #endregion
 import { authenticateUser } from '../middleware/auth.js';
-// #region agent log
-fetch('http://127.0.0.1:7243/ingest/6c8a92dc-f11e-4f7a-84d0-9dfb6f553501',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'server/routes/auth.js:14',message:'middleware/auth.js imported successfully',data:{hasAuthFn:!!authenticateUser},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'M'})}).catch(()=>{});
-// #endregion
-
-// #region agent log
-fetch('http://127.0.0.1:7243/ingest/6c8a92dc-f11e-4f7a-84d0-9dfb6f553501',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'server/routes/auth.js:17',message:'About to import utils/auth.js',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'N'})}).catch(()=>{});
-// #endregion
 import { generateToken } from '../utils/auth.js';
-// #region agent log
-fetch('http://127.0.0.1:7243/ingest/6c8a92dc-f11e-4f7a-84d0-9dfb6f553501',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'server/routes/auth.js:20',message:'utils/auth.js imported successfully',data:{hasGenerateToken:!!generateToken},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'N'})}).catch(()=>{});
-// #endregion
-
-// #region agent log
-fetch('http://127.0.0.1:7243/ingest/6c8a92dc-f11e-4f7a-84d0-9dfb6f553501',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'server/routes/auth.js:23',message:'About to import utils/database.js',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'O'})}).catch(()=>{});
-// #endregion
 import { getDatabaseState, isMockDatabaseEnabled } from '../utils/database.js';
-// #region agent log
-fetch('http://127.0.0.1:7243/ingest/6c8a92dc-f11e-4f7a-84d0-9dfb6f553501',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'server/routes/auth.js:26',message:'utils/database.js imported successfully',data:{hasGetDbState:!!getDatabaseState},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'O'})}).catch(()=>{});
-// #endregion
 
 // Helper function to check if database connection is to localhost
 const isLocalhostConnection = () => {
