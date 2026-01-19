@@ -61,11 +61,11 @@ export default defineConfig(({ mode }) => {
   server: {
     host: "::",
     port: 8080,
+    strictPort: false, // Allow port fallback if 8080 is in use
     hmr: {
-      port: 8080,
       host: 'localhost',
-      protocol: 'ws',
-      clientPort: 8080
+      protocol: 'ws'
+      // port and clientPort removed - Vite will auto-detect from server.port
     },
     proxy: {
       '/api': {

@@ -119,14 +119,7 @@ export default function TemplateDynamic() {
 
   // Loading state
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading template...</p>
-        </div>
-      </div>
-    );
+    return <div />;
   }
 
   // Error state
@@ -158,16 +151,7 @@ export default function TemplateDynamic() {
   // Special handling for website template (uses StorefrontTheme which has different props)
   if (templateName === 'website') {
     return (
-      <Suspense
-        fallback={
-          <div className="min-h-screen flex items-center justify-center bg-background">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-              <p className="text-muted-foreground">Loading template...</p>
-            </div>
-          </div>
-        }
-      >
+      <Suspense fallback={<div />}>
         <TemplateComponent
           tenantName="Website Template"
           tenantSlug="template/website"
@@ -178,17 +162,8 @@ export default function TemplateDynamic() {
   }
   
   // Standard template rendering (accepts basePath and pageSlug)
-  return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen flex items-center justify-center bg-background">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Loading template...</p>
-          </div>
-        </div>
-      }
-    >
+    return (
+      <Suspense fallback={<div />}>
       <TemplateComponent basePath={basePath} pageSlug={pageSlug} />
     </Suspense>
   );

@@ -1538,7 +1538,6 @@ router.post('/posts', async (req, res) => {
       published_at: published_at || null,
       tenant_id: tenantId || null,
       featured_image_id: featured_image_id || null
-      featured_image_id: featured_image_id || null
     });
 
     // Handle categories using new table - always call to ensure proper state

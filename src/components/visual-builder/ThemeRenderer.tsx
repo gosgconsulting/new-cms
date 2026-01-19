@@ -94,12 +94,7 @@ const ThemeRenderer: React.FC<ThemeRendererProps> = ({
 
   // Loading fallback
   const LoadingFallback = () => (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center">
-        <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-muted-foreground" />
-        <p className="text-muted-foreground">Loading theme...</p>
-      </div>
-    </div>
+    <div />
   );
 
   // Error component for unknown themes

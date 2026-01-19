@@ -132,12 +132,7 @@ const KanbanPage: React.FC = () => {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <span className="ml-2 text-lg">Loading authentication...</span>
-      </div>
-    );
+    return <div />;
   }
 
   if (!user?.is_super_admin) {

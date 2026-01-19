@@ -34,11 +34,11 @@
 server: {
   host: "::",
   port: 8080,
+  strictPort: false, // Allow port fallback if 8080 is in use
   hmr: {
-    port: 8080,
     host: 'localhost',
-    protocol: 'ws',
-    clientPort: 8080
+    protocol: 'ws'
+    // port and clientPort removed - Vite auto-detects from server.port
   },
   proxy: {
     '/api': {
@@ -51,6 +51,8 @@ server: {
   }
 }
 ```
+
+**Note**: The HMR configuration no longer hardcodes ports. If port 8080 is unavailable, Vite will automatically use the next available port (e.g., 8086), and HMR will automatically use the same port, preventing WebSocket connection failures.
 
 ### Service Worker Cleanup (`index.html`)
 ```html

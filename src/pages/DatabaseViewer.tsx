@@ -32,11 +32,7 @@ const DatabaseViewer: React.FC = () => {
 
   // Check if user is authenticated and is super admin
   if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brandPurple"></div>
-      </div>
-    );
+    return <div />;
   }
 
   if (!user) {
