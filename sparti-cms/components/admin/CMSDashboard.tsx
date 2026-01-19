@@ -21,7 +21,6 @@ import {
   LayoutDashboard,
   Package,
   ShoppingCart,
-  Target,
   Star,
   CreditCard,
   Truck,
@@ -50,7 +49,6 @@ import SEOSettingsManager from '../seo/SEOSettingsManager';
 // Import new components
 import DeveloperManager from './DeveloperManager';
 import ContactsManager from './ContactsManager';
-import LeadsManager from './LeadsManager';
 import MyAccountPage from './MyAccountPage';
 import UsersManager from './UsersManager';
 import TenantsManager from './TenantsManager';
@@ -407,10 +405,6 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({ hideSidebar = false, themeS
         return <ContactsManager 
           currentTenantId={currentTenantId || ''}
         />;
-      case 'leads':
-        return <LeadsManager 
-          currentTenantId={currentTenantId || ''}
-        />;
       case 'forms':
         return <FormsManager />;
       case 'my-account':
@@ -482,7 +476,6 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({ hideSidebar = false, themeS
   const crmItems = [
     { id: 'forms', label: 'Forms', icon: FileInput },
     { id: 'contacts', label: 'Contacts', icon: Users },
-    { id: 'leads', label: 'Leads', icon: Target },
   ];
 
   const seoItems = [

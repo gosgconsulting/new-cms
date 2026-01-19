@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../auth/AuthProvider';
 import { api } from '../../utils/api';
+import FormLeadsView from './FormLeadsView';
 import { 
   FileText, 
   Plus, 
@@ -22,7 +23,8 @@ import {
   Download,
   MoreVertical,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
+  Target
 } from 'lucide-react';
 
 interface FormField {
@@ -89,6 +91,7 @@ const FormsManager: React.FC = () => {
   const [success, setSuccess] = useState<string | null>(null);
   const [showFormModal, setShowFormModal] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
+  const [showLeadsView, setShowLeadsView] = useState(false);
   const [editingForm, setEditingForm] = useState<Form | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -121,6 +124,13 @@ const FormsManager: React.FC = () => {
       loadSubmissions(selectedForm.id);
     }
   }, [selectedForm]);
+
+  // Load submissions when leads view is shown
+  useEffect(() => {
+    if (showLeadsView && selectedForm) {
+      loadSubmissions(selectedForm.id);
+    }
+  }, [showLeadsView, selectedForm?.id]);
 
   const loadForms = async () => {
     try {
@@ -292,6 +302,30 @@ const FormsManager: React.FC = () => {
     );
   }
 
+  // Show leads view if active
+  if (showLeadsView && selectedForm) {
+    return (
+      <div className="space-y-6">
+        <FormLeadsView
+          form={{
+            id: selectedForm.id.toString(),
+            name: selectedForm.name,
+            fields: selectedForm.fields.map(f => ({
+              name: f.field_label || f.field_name,
+              placeholder: f.placeholder || '',
+              type: f.field_type
+            })),
+            submissions: submissions.length,
+            location: ''
+          }}
+          onBack={() => {
+            setShowLeadsView(false);
+          }}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -308,15 +342,45 @@ const FormsManager: React.FC = () => {
               </p>
             </div>
             <div className="flex items-center space-x-3">
-              {selectedForm && (
-                <button
-                  onClick={() => setShowEmailModal(true)}
-                  className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  <Mail className="mr-2 h-4 w-4" />
-                  Emails
-                </button>
-              )}
+              <button
+                onClick={async () => {
+                  if (!currentTenantId) {
+                    setError('Tenant ID is required');
+                    return;
+                  }
+                  
+                  if (!confirm('This will remove duplicate forms for your tenant. Submissions from deleted duplicates will be merged into the most recent form. Continue?')) {
+                    return;
+                  }
+                  
+                  try {
+                    setIsLoading(true);
+                    const response = await api.post(`/api/forms/cleanup-duplicates?tenantId=${encodeURIComponent(currentTenantId)}`, null, {
+                      tenantId: currentTenantId
+                    });
+                    
+                    if (!response.ok) {
+                      const errorData = await response.json();
+                      throw new Error(errorData.error || 'Failed to clean up duplicates');
+                    }
+                    
+                    const result = await response.json();
+                    setSuccess(`Successfully removed ${result.deletedCount} duplicate form(s)`);
+                    
+                    // Reload forms after cleanup
+                    await loadForms();
+                  } catch (err: unknown) {
+                    setError(`Failed to clean up duplicates: ${err instanceof Error ? err.message : 'Unknown error'}`);
+                  } finally {
+                    setIsLoading(false);
+                  }
+                }}
+                className="flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                title="Remove duplicate forms"
+              >
+                <Filter className="mr-2 h-4 w-4" />
+                Clean Duplicates
+              </button>
               <button
                 onClick={() => {
                   setEditingForm(null);
@@ -393,12 +457,36 @@ const FormsManager: React.FC = () => {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
+                          setSelectedForm(form);
+                          setShowLeadsView(true);
+                        }}
+                        className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-900 bg-white border-2 border-gray-900 rounded-lg hover:bg-gray-50 focus:ring-4 focus:outline-none focus:ring-gray-200 transition-all duration-200"
+                        title="View Leads"
+                      >
+                        Leads
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedForm(form);
+                          setShowEmailModal(true);
+                        }}
+                        className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 focus:ring-4 focus:outline-none focus:ring-purple-200 transition-all duration-200"
+                        title="Email Settings"
+                      >
+                        <Mail className="w-4 h-4 mr-2" />
+                        Emails
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
                           setEditingForm(form);
                           setShowFormModal(true);
                         }}
-                        className="p-2 hover:bg-secondary rounded-lg transition-colors"
+                        className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors focus:ring-2 focus:outline-none focus:ring-gray-200"
+                        title="Edit Form"
                       >
-                        <Edit3 className="h-4 w-4 text-muted-foreground" />
+                        <Edit3 className="w-4 h-4" />
                       </button>
                     </div>
                   </div>

@@ -63,12 +63,25 @@ const FormLeadsView: React.FC<FormLeadsViewProps> = ({ form, onBack }) => {
     fetchSubmissions();
   }, [form.id]);
 
+  // Helper function to get field value from submission data
+  const getFieldValue = (field: FormField, submissionData: Record<string, string>) => {
+    // Try multiple possible keys: field name, field label (lowercased), or common variations
+    const fieldNameLower = field.name.toLowerCase().replace(/\s+/g, '_');
+    const fieldLabelLower = (field.placeholder || field.name).toLowerCase().replace(/\s+/g, '_');
+    
+    return submissionData[field.name] || 
+           submissionData[fieldNameLower] || 
+           submissionData[fieldLabelLower] ||
+           submissionData[field.name.toLowerCase()] ||
+           '';
+  };
+
   const handleExport = () => {
     // Create CSV content
     const headers = ['Date', ...form.fields.map(f => f.name)];
     const rows = submissions.map(sub => [
       sub.date,
-      ...form.fields.map(f => sub.data[f.name] || '')
+      ...form.fields.map(f => getFieldValue(f, sub.data))
     ]);
     
     const csv = [
@@ -155,11 +168,20 @@ const FormLeadsView: React.FC<FormLeadsViewProps> = ({ form, onBack }) => {
                     <TableCell className="font-medium text-gray-900">
                       {submission.date}
                     </TableCell>
-                    {form.fields.map((field) => (
-                      <TableCell key={field.name} className="text-gray-700">
-                        {submission.data[field.name] || '-'}
-                      </TableCell>
-                    ))}
+                    {form.fields.map((field) => {
+                      const fieldNameLower = field.name.toLowerCase().replace(/\s+/g, '_');
+                      const fieldLabelLower = (field.placeholder || field.name).toLowerCase().replace(/\s+/g, '_');
+                      const value = submission.data[field.name] || 
+                                   submission.data[fieldNameLower] || 
+                                   submission.data[fieldLabelLower] ||
+                                   submission.data[field.name.toLowerCase()] ||
+                                   '-';
+                      return (
+                        <TableCell key={field.name} className="text-gray-700">
+                          {value}
+                        </TableCell>
+                      );
+                    })}
                   </TableRow>
                 ))}
               </TableBody>

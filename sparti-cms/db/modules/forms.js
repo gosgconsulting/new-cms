@@ -41,9 +41,24 @@ export async function saveFormSubmissionExtended(formData) {
     if (!form) {
       console.log('Form not found in new forms table, creating default form for:', formData.form_id);
       
+      // Get tenant_id from formData if available, otherwise try to find it from existing form submissions
+      let tenantId = formData.tenant_id;
+      if (!tenantId) {
+        // Try to get tenant_id from existing form_submissions for this form_id
+        const tenantResult = await query(`
+          SELECT DISTINCT tenant_id 
+          FROM form_submissions 
+          WHERE form_id = $1 AND tenant_id IS NOT NULL 
+          LIMIT 1
+        `, [formData.form_id]);
+        if (tenantResult.rows.length > 0) {
+          tenantId = tenantResult.rows[0].tenant_id;
+        }
+      }
+      
       const defaultFormResult = await query(`
-        INSERT INTO forms (name, description, fields, settings, is_active)
-        VALUES ($1, $2, $3, $4, true)
+        INSERT INTO forms (name, description, fields, settings, is_active, tenant_id)
+        VALUES ($1, $2, $3, $4, $5, $6)
         RETURNING *
       `, [
         formData.form_name || formData.form_id,
@@ -55,7 +70,9 @@ export async function saveFormSubmissionExtended(formData) {
           { field_name: 'company', field_type: 'text', field_label: 'Company', is_required: false, sort_order: 4 },
           { field_name: 'message', field_type: 'textarea', field_label: 'Message', is_required: true, sort_order: 5 }
         ]),
-        JSON.stringify({ submit_button_text: 'Send Message', success_message: 'Thank you for your message!' })
+        JSON.stringify({ submit_button_text: 'Send Message', success_message: 'Thank you for your message!' }),
+        true,
+        tenantId || null
       ]);
       
       form = defaultFormResult.rows[0];
@@ -151,36 +168,82 @@ export async function saveFormSubmission(formData) {
 
 export async function getFormSubmissions(formId) {
   try {
-    const result = await query(`
+    // Try to get from form_submissions_extended first (newer format with JSON submission_data)
+    let result = await query(`
       SELECT 
         id,
-        name,
-        email,
-        phone,
-        message,
+        submission_data,
+        submitter_email,
+        submitter_name,
         submitted_at
-      FROM form_submissions
+      FROM form_submissions_extended
       WHERE form_id = $1
       ORDER BY submitted_at DESC
     `, [formId]);
     
-    // Format for frontend
-    const formatted = result.rows.map(row => ({
-      id: row.id.toString(),
-      date: new Date(row.submitted_at).toLocaleString('en-SG', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit'
-      }),
-      data: {
-        name: row.name,
-        email: row.email,
-        phone: row.phone || '',
-        message: row.message || ''
+    // If no results from extended table, try old form_submissions table
+    if (result.rows.length === 0) {
+      result = await query(`
+        SELECT 
+          id,
+          name,
+          email,
+          phone,
+          message,
+          submitted_at
+        FROM form_submissions
+        WHERE form_id = $1
+        ORDER BY submitted_at DESC
+      `, [formId]);
+      
+      // Format old table data
+      const formatted = result.rows.map(row => ({
+        id: row.id.toString(),
+        date: new Date(row.submitted_at).toLocaleString('en-SG', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit'
+        }),
+        data: {
+          name: row.name || '',
+          email: row.email || '',
+          phone: row.phone || '',
+          message: row.message || ''
+        }
+      }));
+      
+      return formatted;
+    }
+    
+    // Format extended table data (with JSON submission_data)
+    const formatted = result.rows.map(row => {
+      let submissionData = {};
+      try {
+        // Parse JSON submission_data if it's a string
+        if (typeof row.submission_data === 'string') {
+          submissionData = JSON.parse(row.submission_data);
+        } else {
+          submissionData = row.submission_data || {};
+        }
+      } catch (e) {
+        console.error('Error parsing submission_data:', e);
+        submissionData = {};
       }
-    }));
+      
+      return {
+        id: row.id.toString(),
+        date: new Date(row.submitted_at).toLocaleString('en-SG', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit'
+        }),
+        data: submissionData
+      };
+    });
     
     return formatted;
   } catch (error) {
