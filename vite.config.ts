@@ -21,6 +21,29 @@ export default defineConfig(({ mode }) => {
     dyadComponentTagger(), 
     react(),
     mode === 'development' && componentTagger(),
+    // Custom plugin to handle /theme/* routes for SPA routing
+    {
+      name: 'theme-spa-fallback',
+      configureServer(server) {
+        server.middlewares.use((req, res, next) => {
+          const url = req.url || '';
+          
+          // Only handle /theme/* paths
+          if (url.startsWith('/theme/')) {
+            // Check if it's an asset request (has file extension)
+            const hasExtension = /\.([a-zA-Z0-9]+)$/.test(url);
+            
+            // If it's not an asset, serve index.html for SPA routing
+            if (!hasExtension) {
+              // Rewrite to index.html to let React Router handle it
+              req.url = '/index.html';
+            }
+          }
+          
+          next();
+        });
+      }
+    },
   ].filter(Boolean);
   
   // Add theme dev plugin if in theme dev mode
