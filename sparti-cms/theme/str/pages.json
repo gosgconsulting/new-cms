@@ -83,6 +83,24 @@
       "page_type": "page"
     },
     {
+      "page_name": "Group Class",
+      "slug": "/group-class",
+      "meta_title": "Group Class Training - STR Fitness",
+      "meta_description": "Join our group classes at STR Fitness. Train together, grow together with expert coaching in a supportive community environment.",
+      "seo_index": true,
+      "status": "published",
+      "page_type": "page"
+    },
+    {
+      "page_name": "Physiotherapy",
+      "slug": "/physiotherapy",
+      "meta_title": "Physiotherapy Services - STR Fitness",
+      "meta_description": "Evidence-based physiotherapy services at STR Fitness. Recovery, rehabilitation, and movement optimization with expert physiotherapists.",
+      "seo_index": true,
+      "status": "published",
+      "page_type": "page"
+    },
+    {
       "page_name": "Thank You",
       "slug": "/thank-you",
       "meta_title": "Thank You - STR Fitness",
