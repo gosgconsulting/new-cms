@@ -1,11 +1,11 @@
 {
   "name": "Moondk",
-  "description": "E-shop design duplicated/aliased as the Moondk theme.",
+  "description": "Korean home dining ecommerce theme with chef-led curation. Clean, airy, bright design emphasizing food-forward editorial aesthetics.",
   "version": "1.0.0",
   "author": "GOSG",
   "is_active": true,
   "category": "ecommerce",
-  "tags": ["ecommerce", "shop", "store", "luxury", "jewelry"],
+  "tags": ["ecommerce", "korean", "home-dining", "chef-led", "curated"],
   "features": [
     "E-shop landing page",
     "Category browsing",
@@ -14,7 +14,7 @@
     "About pages",
     "Legal pages"
   ],
-  "preview_image": "assets/logo.png",
+  "preview_image": "assets/logo.svg",
   "demo_url": "/theme/moondk",
   "documentation_url": "/docs/themes/moondk"
 }
