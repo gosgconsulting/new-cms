@@ -1,0 +1,212 @@
+/* MoonDk Theme Styles */
+/* Note: Tailwind CSS is already loaded globally via src/index.css */
+
+/* Import Google Fonts for editorial typography */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
+
+/* MoonDk Theme Scoped Styles */
+.moondk-theme {
+  /* Color System - Korean Home Dining Palette */
+  --moondk-background: #F2F2F2;
+  --moondk-primary: #2F5C3E; /* Dark forest green from logo */
+  --moondk-primary-light: #4A7A5E;
+  --moondk-primary-dark: #1F3D2A;
+  --moondk-cream: #F2EFDC;
+  --moondk-sage: #C9CFC7;
+  --moondk-pink: #EAE2E3;
+  
+  /* Neutral Palette */
+  --moondk-text: #1A1A1A;
+  --moondk-text-secondary: rgba(26, 26, 26, 0.7);
+  --moondk-text-muted: rgba(26, 26, 26, 0.5);
+  --moondk-border: rgba(26, 26, 26, 0.1);
+  --moondk-border-light: rgba(26, 26, 26, 0.05);
+  --moondk-card: #FFFFFF;
+  --moondk-card-hover: #FAFAFA;
+  
+  /* Semantic Color Mapping for E-shop Compatibility */
+  --background: var(--moondk-background);
+  --foreground: var(--moondk-text);
+  --card: var(--moondk-card);
+  --card-foreground: var(--moondk-text);
+  --popover: var(--moondk-card);
+  --popover-foreground: var(--moondk-text);
+  --primary: var(--moondk-primary);
+  --primary-foreground: #FFFFFF;
+  --primary-hover: var(--moondk-primary-light);
+  --secondary: var(--moondk-cream);
+  --secondary-foreground: var(--moondk-text);
+  --muted: var(--moondk-sage);
+  --muted-foreground: var(--moondk-text-secondary);
+  --accent: var(--moondk-pink);
+  --accent-foreground: var(--moondk-text);
+  --destructive: #DC2626;
+  --destructive-foreground: #FFFFFF;
+  --border: var(--moondk-border);
+  --input: var(--moondk-border);
+  --ring: var(--moondk-primary);
+  --radius: 0.375rem;
+  
+  /* Navigation */
+  --nav-background: var(--moondk-background);
+  --nav-foreground: var(--moondk-text);
+  --nav-hover: var(--moondk-primary);
+  
+  /* Transitions */
+  --transition-smooth: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-bounce: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  
+  /* Typography */
+  --font-heading: 'Playfair Display', serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  
+  /* Spacing for airy feel */
+  --spacing-section: 4rem;
+  --spacing-element: 2rem;
+}
+
+/* Base Typography */
+.moondk-theme {
+  font-family: var(--font-body);
+  color: var(--moondk-text);
+  background-color: var(--moondk-background);
+  line-height: 1.6;
+}
+
+.moondk-theme h1,
+.moondk-theme h2,
+.moondk-theme h3,
+.moondk-theme h4,
+.moondk-theme h5,
+.moondk-theme h6 {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--moondk-text);
+  letter-spacing: -0.02em;
+}
+
+.moondk-theme .font-heading {
+  font-family: var(--font-heading);
+}
+
+.moondk-theme .font-body {
+  font-family: var(--font-body);
+}
+
+/* Utility Classes */
+.moondk-theme .bg-nav {
+  background-color: var(--nav-background);
+}
+
+.moondk-theme .text-nav-foreground {
+  color: var(--nav-foreground);
+}
+
+.moondk-theme .text-nav-hover {
+  color: var(--nav-hover);
+}
+
+.moondk-theme .text-primary {
+  color: var(--moondk-primary);
+}
+
+.moondk-theme .bg-primary {
+  background-color: var(--moondk-primary);
+}
+
+.moondk-theme .border-subtle {
+  border-color: var(--moondk-border-light);
+}
+
+/* Smooth Animations */
+@keyframes moondk-slide-in-right {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes moondk-slide-in {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.moondk-theme .animate-slide-in-right {
+  animation: moondk-slide-in-right 0.3s ease-out;
+}
+
+.moondk-theme .animate-slide-in {
+  animation: moondk-slide-in 0.3s ease-out;
+}
+
+/* Card Styles for Clean, Airy Layout */
+.moondk-theme .card-clean {
+  background-color: var(--moondk-card);
+  border: 1px solid var(--moondk-border-light);
+  border-radius: var(--radius);
+  transition: var(--transition-smooth);
+}
+
+.moondk-theme .card-clean:hover {
+  background-color: var(--moondk-card-hover);
+  border-color: var(--moondk-border);
+}
+
+/* Button Styles */
+.moondk-theme .btn-primary {
+  background-color: var(--moondk-primary);
+  color: #FFFFFF;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius);
+  font-family: var(--font-body);
+  font-weight: 500;
+  transition: var(--transition-smooth);
+}
+
+.moondk-theme .btn-primary:hover {
+  background-color: var(--moondk-primary-light);
+}
+
+.moondk-theme .btn-secondary {
+  background-color: transparent;
+  color: var(--moondk-primary);
+  border: 1px solid var(--moondk-primary);
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius);
+  font-family: var(--font-body);
+  font-weight: 500;
+  transition: var(--transition-smooth);
+}
+
+.moondk-theme .btn-secondary:hover {
+  background-color: var(--moondk-primary);
+  color: #FFFFFF;
+}
+
+/* Link Styles */
+.moondk-theme a {
+  color: var(--moondk-primary);
+  transition: var(--transition-smooth);
+}
+
+.moondk-theme a:hover {
+  color: var(--moondk-primary-light);
+}
+
+/* Generous Spacing for Airy Feel */
+.moondk-theme .section-spacing {
+  padding-top: var(--spacing-section);
+  padding-bottom: var(--spacing-section);
+}
+
+.moondk-theme .element-spacing {
+  margin-bottom: var(--spacing-element);
+}
