@@ -19,6 +19,7 @@ import PrivacyPolicyPage from "../master/pages/PrivacyPolicyPage";
 import TermsAndConditionsPage from "../master/pages/TermsAndConditionsPage";
 import BlogListPage from "../master/pages/blog/BlogListPage";
 import BlogPostPage from "../master/pages/blog/BlogPostPage";
+import { HeroSection } from "@/components/ui/hero-section-2";
 import "./theme.css";
 
 // Helper function to adjust color brightness
@@ -282,7 +283,7 @@ const OptimalConsultingTheme: React.FC<OptimalConsultingThemeProps> = ({
     props: {
       variant: "about",
       badge: "About us",
-      imageSrc: `/theme/${themeSlug}/assets/placeholder.svg`,
+      imageSrc: `/theme/${themeSlug}/assets/menu1.jpg`,
       reviewLabel: "20+ Years",
       reviewSub: "Experience",
     },
@@ -529,10 +530,36 @@ const OptimalConsultingTheme: React.FC<OptimalConsultingThemeProps> = ({
       return <TermsAndConditionsPage tenantName={tenantName} />;
     }
 
+    // Extract hero data from schema for new HeroSection component
+    const getTextByKey = (items: any[], key: string) => {
+      const item = items.find((i) => i.key === key);
+      return item?.content || "";
+    };
+
+    const heroMotto = getTextByKey(heroSchema.items || [], "motto");
+    const heroTitle = getTextByKey(heroSchema.items || [], "title");
+    const heroDescription = getTextByKey(heroSchema.items || [], "description");
+    const heroCTA = heroSchema.items?.find((i) => i.key === "cta");
+    const heroBackgroundImage = heroSchema.props?.backgroundImage || `/theme/${themeSlug}/assets/hero.svg`;
+
     return (
       <>
         <div id="hero">
-          <FlowbiteHeroSection component={heroSchema} />
+          <HeroSection
+            slogan={heroMotto}
+            title={heroTitle}
+            subtitle={heroDescription}
+            callToAction={{
+              text: heroCTA?.content || "Book consultation",
+              href: heroCTA?.link || "#contact"
+            }}
+            backgroundImage={heroBackgroundImage}
+            contactInfo={{
+              website: "optimalconsulting.com",
+              phone: "+65 1234 5678",
+              address: "Singapore HQ • Asia delivery"
+            }}
+          />
         </div>
 
         <div id="challenge" className="scroll-mt-20">
@@ -541,10 +568,6 @@ const OptimalConsultingTheme: React.FC<OptimalConsultingThemeProps> = ({
 
         <div id="about" className="scroll-mt-20">
           <FlowbiteContentSection component={aboutSchema} />
-        </div>
-
-        <div id="services" className="scroll-mt-20">
-          <FlowbiteWhatsIncludedSection component={servicesSchema} />
         </div>
 
         <div id="testimonials" className="scroll-mt-20">
