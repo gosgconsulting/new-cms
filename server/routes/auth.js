@@ -32,7 +32,7 @@ fetch('http://127.0.0.1:7243/ingest/6c8a92dc-f11e-4f7a-84d0-9dfb6f553501',{metho
 // #region agent log
 fetch('http://127.0.0.1:7243/ingest/6c8a92dc-f11e-4f7a-84d0-9dfb6f553501',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'server/routes/auth.js:23',message:'About to import utils/database.js',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'O'})}).catch(()=>{});
 // #endregion
-import { getDatabaseState } from '../utils/database.js';
+import { getDatabaseState, isMockDatabaseEnabled } from '../utils/database.js';
 // #region agent log
 fetch('http://127.0.0.1:7243/ingest/6c8a92dc-f11e-4f7a-84d0-9dfb6f553501',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'server/routes/auth.js:26',message:'utils/database.js imported successfully',data:{hasGetDbState:!!getDatabaseState},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'O'})}).catch(()=>{});
 // #endregion
@@ -142,6 +142,17 @@ router.post('/auth/login', asyncHandler(async (req, res) => {
   console.log('[testing] Request path:', req.path);
   console.log('[testing] Request body:', JSON.stringify(req.body));
   console.log('[testing] Request headers:', JSON.stringify(req.headers));
+
+  // If we're in mock DB mode, login via DB is not supported.
+  // Return a clean 503 (instead of crashing on missing tables).
+  if (isMockDatabaseEnabled()) {
+    return res.status(503).json({
+      success: false,
+      error: 'Database is not configured',
+      message:
+        'This environment is running in mock database mode (no DATABASE_URL configured). Login is unavailable. Use the "Create Admin User" button for local/demo access, or connect a real database to enable authentication.'
+    });
+  }
   
   // Ensure response hasn't been sent by middleware
   if (res.headersSent) {
@@ -259,7 +270,7 @@ router.post('/auth/login', asyncHandler(async (req, res) => {
         );
       `);
       
-      const tableExists = tableCheck.rows[0].exists;
+      const tableExists = tableCheck?.rows?.[0]?.exists === true;
       console.log('[testing] Users table exists:', tableExists);
       
       if (!tableExists) {
@@ -267,7 +278,7 @@ router.post('/auth/login', asyncHandler(async (req, res) => {
         return res.status(503).json({
           success: false,
           error: 'Database not fully initialized',
-          message: 'Users table is missing. Run: npm run sequelize:migrate',
+          message: 'Required authentication tables are missing. Please initialize the database schema.',
           diagnostic: '/health/database'
         });
       }
@@ -712,7 +723,7 @@ router.post('/auth/login', asyncHandler(async (req, res) => {
       return res.status(503).json({
         success: false,
         error: 'Database table missing',
-        message: 'Required database tables are missing. Run: npm run sequelize:migrate',
+        message: 'Required database tables are missing. Please initialize the database schema.',
         diagnostic: '/health/database',
         errorCode: error.code
       });

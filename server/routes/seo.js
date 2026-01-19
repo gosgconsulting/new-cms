@@ -1,6 +1,6 @@
 import express from 'express';
 import { query } from '../../sparti-cms/db/index.js';
-import { getDatabaseState } from '../utils/database.js';
+import { getDatabaseState, isMockDatabaseEnabled } from '../utils/database.js';
 import {
   getRedirects,
   createRedirect,
@@ -36,21 +36,39 @@ const DEFAULT_SEO = {
 
 router.get('/seo', async (req, res) => {
   try {
+    // If running without a real DB (Dyad/mock mode), always return defaults.
+    // This prevents Sequelize/model initialization errors from bubbling up.
+    if (isMockDatabaseEnabled()) {
+      return res.status(200).json(DEFAULT_SEO);
+    }
+
     const { dbInitialized } = getDatabaseState();
 
     // If DB is not ready, return defaults (200) to avoid breaking the UI
     if (!dbInitialized) {
+      console.log('[testing] Database not initialized, returning default SEO settings');
       return res.status(200).json(DEFAULT_SEO);
     }
 
     const tenantId = req.query.tenantId || 'tenant-gosg';
-    const seoSettings = await getPublicSEOSettings(tenantId);
-
-    // Always return valid JSON
-    return res.json(seoSettings || DEFAULT_SEO);
+    
+    try {
+      const seoSettings = await getPublicSEOSettings(tenantId);
+      
+      // Merge with defaults to ensure all required fields are present
+      const mergedSettings = { ...DEFAULT_SEO, ...seoSettings };
+      
+      // Always return valid JSON with 200 status
+      return res.status(200).json(mergedSettings);
+    } catch (seoError) {
+      // getPublicSEOSettings should not throw (has fallback), but handle just in case
+      console.error('[testing] Error in getPublicSEOSettings:', seoError);
+      return res.status(200).json(DEFAULT_SEO);
+    }
   } catch (error) {
-    console.error('[testing] Error fetching SEO settings:', error);
-    // Always return defaults to avoid 500 response
+    // Catch any unexpected errors (e.g., getDatabaseState failure)
+    console.error('[testing] Unexpected error fetching SEO settings:', error);
+    // Always return defaults with 200 status to avoid breaking the UI
     return res.status(200).json(DEFAULT_SEO);
   }
 });

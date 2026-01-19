@@ -1,6 +1,7 @@
 import { translateText } from '../../services/googleTranslationService.js';
 import models, { sequelize } from '../sequelize/models/index.js';
 import { Op, QueryTypes } from 'sequelize';
+import { query as rawQuery } from '../connection.js';
 const { SiteSchema, SiteSetting } = models;
 
 // Branding-specific functions
@@ -162,9 +163,46 @@ export async function getPublicSEOSettings(tenantId = 'tenant-gosg') {
     });
     
     return settings;
-  } catch (error) {
-    console.error(`Error fetching public SEO settings for tenant ${tenantId}:`, error);
-    throw error;
+  } catch (sequelizeError) {
+    // Fallback to raw SQL query if Sequelize fails (e.g., models not initialized, table missing)
+    console.warn(`[testing] Sequelize query failed, trying raw SQL fallback:`, sequelizeError.message);
+    try {
+      const sqlQuery = `
+        SELECT setting_key, setting_value, setting_type, tenant_id
+        FROM site_settings
+        WHERE is_public = true
+          AND (
+            setting_category = 'seo'
+            OR setting_key IN ('site_name', 'site_tagline', 'site_description', 'site_logo', 'site_favicon', 'country', 'timezone', 'language', 'theme_styles')
+          )
+          AND (tenant_id = $1 OR tenant_id IS NULL)
+        ORDER BY 
+          CASE WHEN tenant_id = $1 THEN 0 ELSE 1 END ASC,
+          setting_key ASC
+      `;
+      
+      const result = await rawQuery(sqlQuery, [tenantId]);
+      
+      // Convert to flat object format for easy access
+      // Prefer tenant-specific over master
+      const settings = {};
+      const seenKeys = new Set();
+      
+      result.rows.forEach((row) => {
+        if (!seenKeys.has(row.setting_key) || row.tenant_id === tenantId) {
+          settings[row.setting_key] = row.setting_value;
+          if (row.tenant_id === tenantId) {
+            seenKeys.add(row.setting_key);
+          }
+        }
+      });
+      
+      return settings;
+    } catch (rawQueryError) {
+      // If raw query also fails, return empty object (route handler will use defaults)
+      console.error(`[testing] Both Sequelize and raw SQL queries failed for tenant ${tenantId}:`, rawQueryError.message);
+      return {};
+    }
   }
 }
 
