@@ -56,3 +56,125 @@ header[class*="sticky"] a:hover {
   background-color: rgba(255, 255, 255, 0.1) !important;
   color: #ffffff !important;
 }
+
+/* CTA Section - Black text for optimalconsulting theme */
+section[class*="bg-brand-gradient-animated"] h2 {
+  color: #000000 !important;
+}
+
+section[class*="bg-brand-gradient-animated"] p {
+  color: #000000 !important;
+}
+
+/* All buttons - Background color #145598 */
+button:not([class*="bg-transparent"]):not([class*="border-none"]):not([class*="AccordionTrigger"]),
+.btn-cta,
+.btn-cta-secondary,
+.btn-cta-light,
+a[class*="btn-cta"] {
+  background-color: #145598 !important;
+  color: #ffffff !important;
+  border-color: #145598 !important;
+}
+
+button:not([class*="bg-transparent"]):not([class*="border-none"]):not([class*="AccordionTrigger"]):hover,
+.btn-cta:hover,
+.btn-cta-secondary:hover,
+.btn-cta-light:hover,
+a[class*="btn-cta"]:hover {
+  background-color: #0f3f6f !important;
+  border-color: #0f3f6f !important;
+}
+
+/* Exclude "Get started" link in OurServicesSection - target by parent structure */
+div[class*="rounded-2xl"][class*="border"] div[class*="mt-6"] a.btn-cta[href="#contact"] {
+  background-color: transparent !important;
+  color: inherit !important;
+  border-color: transparent !important;
+}
+
+div[class*="rounded-2xl"][class*="border"] div[class*="mt-6"] a.btn-cta[href="#contact"]:hover {
+  background-color: transparent !important;
+  border-color: transparent !important;
+}
+
+/* FAQ Section - White background for AccordionItems */
+section[class*="bg-[color:var(--bg-primary)"] [class*="rounded-2xl"][class*="border"][class*="px-5"],
+section[class*="bg-[color:var(--bg-primary)"] [class*="rounded-2xl"][class*="border"][class*="px-7"] {
+  background-color: #ffffff !important;
+}
+
+section[class*="bg-[color:var(--bg-primary)"] [class*="rounded-2xl"][class*="border"] span[class*="text-left"][class*="text-xl"],
+section[class*="bg-[color:var(--bg-primary)"] [class*="rounded-2xl"][class*="border"] span[class*="text-left"][class*="text-2xl"] {
+  color: #000000 !important;
+}
+
+/* Also target by data attributes for Radix Accordion */
+[data-radix-accordion-item][class*="rounded-2xl"] {
+  background-color: #ffffff !important;
+}
+
+[data-radix-accordion-item][class*="rounded-2xl"] span {
+  color: #000000 !important;
+}
+
+/* Override button styles for FAQ AccordionTrigger buttons */
+section[class*="bg-[color:var(--bg-primary)"] [class*="rounded-2xl"][class*="border"] button[class*="group"],
+section[class*="bg-[color:var(--bg-primary)"] [data-radix-accordion-item] button {
+  background-color: transparent !important;
+  color: #000000 !important;
+  border-color: transparent !important;
+}
+
+section[class*="bg-[color:var(--bg-primary)"] [class*="rounded-2xl"][class*="border"] button[class*="group"]:hover,
+section[class*="bg-[color:var(--bg-primary)"] [data-radix-accordion-item] button:hover {
+  background-color: transparent !important;
+  border-color: transparent !important;
+  color: #000000 !important;
+}
+
+/* OurServicesSection - White background for collapsed service items */
+section[class*="bg-(--bg-secondary)"] button[class*="rounded-xl"][class*="w-full"][class*="text-left"],
+section[class*="py-16"][class*="px-4"] button[class*="rounded-xl"][class*="w-full"][class*="text-left"] {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  border-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+section[class*="bg-(--bg-secondary)"] button[class*="rounded-xl"][class*="w-full"][class*="text-left"]:hover,
+section[class*="py-16"][class*="px-4"] button[class*="rounded-xl"][class*="w-full"][class*="text-left"]:hover {
+  background-color: #ffffff !important;
+  border-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Target collapsed service buttons by their structure */
+section[class*="bg-(--bg-secondary)"] button[class*="rounded-xl"]:not([class*="rounded-2xl"]) {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+
+section[class*="bg-(--bg-secondary)"] button[class*="rounded-xl"]:not([class*="rounded-2xl"]):hover {
+  background-color: #ffffff !important;
+}
+
+/* Make "Learn more" and "Book consultation" buttons bigger */
+/* About section - Learn more button */
+section[class*="bg-[color:var(--bg-primary)"] a.btn-cta[href="#contact"],
+section[class*="bg-[color:var(--bg-primary)"] a.btn-cta {
+  padding: 1.25rem 3rem !important;
+  font-size: 1.25rem !important;
+  font-weight: 600 !important;
+  min-height: 4rem !important;
+  line-height: 1.5 !important;
+}
+
+/* CTA section - Book consultation button */
+section[class*="bg-brand-gradient-animated"] a.btn-cta,
+section[class*="bg-brand-gradient-animated"] a.btn-cta-secondary,
+section[class*="bg-brand-gradient-animated"] a[class*="btn-cta"] {
+  padding: 1.25rem 3rem !important;
+  font-size: 1.25rem !important;
+  font-weight: 600 !important;
+  min-height: 4rem !important;
+  line-height: 1.5 !important;
+}
