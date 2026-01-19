@@ -1,14 +1,12 @@
+import foundersImage from "../../assets/founders.png";
 import Header from "../../components/header/Header";
 import Footer from "../../components/footer/Footer";
 import PageHeader from "../../components/about/PageHeader";
 import ContentSection from "../../components/about/ContentSection";
 import ImageTextBlock from "../../components/about/ImageTextBlock";
 import AboutSidebar from "../../components/about/AboutSidebar";
-import { useThemeBasePath } from "../../components/ThemeLink";
 
 export default function OurStoryPage() {
-  const basePath = useThemeBasePath();
-
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -26,7 +24,7 @@ export default function OurStoryPage() {
 
           <ContentSection>
             <ImageTextBlock
-              image={`${basePath}/assets/founders.png`}
+              image={foundersImage}
               imageAlt="Company founders"
               title="Founded on Passion"
               content="LINEA Jewelry was born from a shared vision of creating timeless pieces that transcend fleeting trends. Our founders, united by their passion for exceptional craftsmanship and sustainable practices, established the brand with a commitment to creating jewelry that tells a story - your story."

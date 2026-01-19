@@ -99,12 +99,29 @@ const FlowbiteHeroSection: React.FC<FlowbiteHeroSectionProps> = ({
     return items.filter((i) => i.type === "image" && typeof (i as any).src === "string") as any[];
   };
 
+  const getBackgroundImage = () => {
+    // Check for backgroundImage in props first
+    if ((props as any).backgroundImage) {
+      return (props as any).backgroundImage;
+    }
+    // Check for background image item in schema
+    const bgImageItem = items.find(
+      (i) => i.type === "image" && String(i.key || "").toLowerCase().includes("background")
+    ) as any;
+    if (bgImageItem?.src) {
+      return bgImageItem.src;
+    }
+    return null;
+  };
+
   const motto = getText("motto") || props.motto || "";
   const title = getText("title") || props.title || "";
   const description = getText("description") || props.description || "";
 
   const primaryCta = getButtonByKeys(["cta", "primaryCta"]);
   const secondaryCta = getButtonByKeys(["ctaSecondary", "secondaryCta", "cta2"]);
+
+  const backgroundImage = getBackgroundImage();
 
   const slides = useMemo<FlowbiteSlide[]>(() => {
     if (!showCarousel) return [];
@@ -150,29 +167,51 @@ const FlowbiteHeroSection: React.FC<FlowbiteHeroSectionProps> = ({
     <section
       className={`relative overflow-hidden bg-[color:var(--bg-primary)] py-10 sm:py-14 ${className}`}
     >
-      {/* Background: Neutral Light + Primary tint (5–8% opacity) */}
+      {/* Background: Image or Neutral Light + Primary tint (5–8% opacity) */}
       <div className="pointer-events-none absolute inset-0">
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              "linear-gradient(180deg, color-mix(in srgb, var(--brand-primary) 8%, transparent), transparent 55%)",
-          }}
-        />
-        <div
-          className="absolute -top-44 left-1/2 h-[28rem] w-[48rem] -translate-x-1/2 rounded-full blur-3xl animate-master-float"
-          style={{
-            background:
-              "radial-gradient(closest-side, color-mix(in srgb, var(--brand-primary) 10%, transparent), transparent 70%)",
-          }}
-        />
-        <div
-          className="absolute -bottom-52 right-[-12rem] h-[26rem] w-[26rem] rounded-full blur-3xl animate-master-float"
-          style={{
-            background:
-              "radial-gradient(closest-side, color-mix(in srgb, var(--brand-primary) 7%, transparent), transparent 72%)",
-          }}
-        />
+        {backgroundImage ? (
+          <>
+            {/* Background Image */}
+            <div
+              className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+              style={{
+                backgroundImage: `url('${backgroundImage}')`,
+              }}
+            />
+            {/* Overlay for text readability */}
+            <div
+              className="absolute inset-0"
+              style={{
+                background:
+                  "linear-gradient(180deg, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.2) 55%, transparent 100%)",
+              }}
+            />
+          </>
+        ) : (
+          <>
+            <div
+              className="absolute inset-0"
+              style={{
+                background:
+                  "linear-gradient(180deg, color-mix(in srgb, var(--brand-primary) 8%, transparent), transparent 55%)",
+              }}
+            />
+            <div
+              className="absolute -top-44 left-1/2 h-[28rem] w-[48rem] -translate-x-1/2 rounded-full blur-3xl animate-master-float"
+              style={{
+                background:
+                  "radial-gradient(closest-side, color-mix(in srgb, var(--brand-primary) 10%, transparent), transparent 70%)",
+              }}
+            />
+            <div
+              className="absolute -bottom-52 right-[-12rem] h-[26rem] w-[26rem] rounded-full blur-3xl animate-master-float"
+              style={{
+                background:
+                  "radial-gradient(closest-side, color-mix(in srgb, var(--brand-primary) 7%, transparent), transparent 72%)",
+              }}
+            />
+          </>
+        )}
       </div>
 
       <div className="container mx-auto px-4">

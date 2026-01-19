@@ -1,17 +1,20 @@
 {
   "name": "Moondk",
-  "description": "A simple ecommerce storefront theme (duplicated from Storefront).",
+  "description": "Korean home dining ecommerce theme with chef-led curation. Clean, airy, bright design emphasizing food-forward editorial aesthetics.",
   "version": "1.0.0",
   "author": "GOSG",
   "is_active": true,
   "category": "ecommerce",
-  "tags": ["custom", "store", "shop", "ecommerce", "products"],
+  "tags": ["ecommerce", "korean", "home-dining", "chef-led", "curated"],
   "features": [
-    "Simple homepage with product cards",
-    "Shop page listing products",
-    "Responsive layout with Tailwind"
+    "E-shop landing page",
+    "Category browsing",
+    "Product detail pages",
+    "Checkout flow",
+    "About pages",
+    "Legal pages"
   ],
-  "preview_image": "assets/logo.png",
+  "preview_image": "assets/logo.svg",
   "demo_url": "/theme/moondk",
   "documentation_url": "/docs/themes/moondk"
 }

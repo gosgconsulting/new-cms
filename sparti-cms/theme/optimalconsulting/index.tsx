@@ -149,6 +149,7 @@ const OptimalConsultingTheme: React.FC<OptimalConsultingThemeProps> = ({
     type: "flowbite-hero-section",
     props: {
       showCarousel: false,
+      backgroundImage: `/theme/${themeSlug}/assets/hero.svg`,
     },
     items: [
       {
