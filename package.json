@@ -52,7 +52,10 @@
     "verify:tenant": "node scripts/verify-tenant-connection.js",
     "setup:acatr": "node scripts/setup/ensure-tenant-acatr.js",
     "fix:admin": "node scripts/fix-master-admin-accounts.js",
-    "verify:env": "node scripts/verify-env-setup.js"
+    "verify:env": "node scripts/verify-env-setup.js",
+    "test": "node server/tests/runTests.js",
+    "test:auth": "node server/tests/authService.test.js",
+    "test:repos": "node server/tests/repositories.test.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.71.2",
