@@ -46,10 +46,22 @@ export default defineConfig(({ mode }) => {
       },
       // Allow frontend dev server to load theme assets directly from the backend.
       // Needed for themes whose assets are served by Express (e.g. Nail Queen imported assets).
+      // Only proxy theme assets (files with extensions), not routes - let Vite handle SPA routing
       '/theme': {
         target: 'http://localhost:4173',
         changeOrigin: true,
         secure: false,
+        // Only proxy if the path has a file extension (asset request)
+        // If no extension, bypass proxy to let Vite handle as SPA route
+        bypass: (req) => {
+          const path = req.url || '';
+          // If no file extension, bypass proxy (let Vite handle as SPA route)
+          if (!/\.([a-zA-Z0-9]+)$/.test(path)) {
+            return false; // Bypass proxy, let Vite handle it
+          }
+          // Proxy assets (files with extensions)
+          return null; // Continue with proxy
+        },
       }
     }
   },

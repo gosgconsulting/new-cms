@@ -51,7 +51,8 @@ const themeNames: Record<string, string> = {
   'landingpage': 'ACATR Business Services',
   'sparti-seo-landing': 'Sparti SEO Landing',
   'gosgconsulting': 'GO SG Consulting',
-  'nail-queen': 'Nail Queen'
+  'nail-queen': 'Nail Queen',
+  'moondk': 'Moondk'
 };
 
 // Dynamic theme import based on slug
@@ -65,6 +66,8 @@ const loadTheme = (slug: string) => {
       return lazy(() => import('../sparti-cms/theme/gosgconsulting'));
     case 'nail-queen':
       return lazy(() => import('../sparti-cms/theme/nail-queen'));
+    case 'moondk':
+      return lazy(() => import('../sparti-cms/theme/moondk'));
     default:
       return lazy(() => import('../sparti-cms/theme/landingpage'));
   }
