@@ -274,7 +274,7 @@ const PhysiotherapyPage: React.FC<TenantLandingProps> = ({
     },
     {
       question: 'What conditions do you treat?',
-      answer: 'We treat a wide range of musculoskeletal conditions including sports injuries, post-surgical rehabilitation, chronic pain, joint problems, muscle strains, back and neck pain, and movement dysfunctions. We also provide performance optimization for athletes and active individuals. During your initial assessment, we'll evaluate your specific condition and determine if physiotherapy is the right approach for you, or if you need referral to another healthcare provider.',
+      answer: 'We treat a wide range of musculoskeletal conditions including sports injuries, post-surgical rehabilitation, chronic pain, joint problems, muscle strains, back and neck pain, and movement dysfunctions. We also provide performance optimization for athletes and active individuals. During your initial assessment, we\'ll evaluate your specific condition and determine if physiotherapy is the right approach for you, or if you need referral to another healthcare provider.',
     },
     {
       question: 'How long does a physiotherapy session last?',

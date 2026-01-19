@@ -9,12 +9,16 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 /**
- * GET /theme/:tenantSlug/:pageSlug
- * Serves the React app's index.html for client-side routing
- * The actual page is rendered by React on the client side
- * This route handles 2-segment paths like /theme/str/booking
+ * Middleware to serve index.html for all theme routes
+ * This ensures that refreshing any theme URL serves the React app
  */
-router.get('/:tenantSlug/:pageSlug', (req, res) => {
+const serveThemeIndex = (req, res) => {
+  // Skip if this is a static asset request (has file extension)
+  const path = req.path;
+  if (path && /\.(js|css|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot|json|xml|txt|map)$/i.test(path)) {
+    return res.status(404).send('Not Found');
+  }
+
   // Serve the React app's index.html so client-side routing can handle it
   const indexPath = join(__dirname, '..', '..', 'dist', 'index.html');
   if (existsSync(indexPath)) {
@@ -48,15 +52,15 @@ router.get('/:tenantSlug/:pageSlug', (req, res) => {
       timestamp: new Date().toISOString() 
     });
   }
-});
+};
 
 /**
- * Note: Express Router with path-to-regexp v8 doesn't support /* wildcard syntax
- * for catch-all routes. The 2-segment route above handles /theme/str/booking,
- * and deeper nested paths (3+ segments) will be handled by client-side routing
- * after index.html is loaded. This is acceptable since React Router handles
- * all client-side navigation.
+ * GET /theme/:tenantSlug/:pageSlug
+ * Serves the React app's index.html for client-side routing
+ * The actual page is rendered by React on the client side
+ * This route handles 2-segment paths like /theme/str/booking, /theme/str/group-class
  */
+router.get('/:tenantSlug/:pageSlug', serveThemeIndex);
 
 /**
  * GET /theme/:tenantSlug

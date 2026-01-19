@@ -14,10 +14,22 @@ ensureUploadsDir();
 
 
 // Routes (includes access key authentication middleware)
+// IMPORTANT: Routes must come before static middleware to handle theme routes correctly
 app.use(routes);
 
 // Serve theme assets from sparti-cms/theme directory
-app.use('/theme', express.static(join(__dirname, '..', 'sparti-cms', 'theme')));
+// Only serve actual asset files (with extensions), not HTML routes or directories
+app.use('/theme', (req, res, next) => {
+  // Skip if this looks like a route (no file extension) - let route handlers deal with it
+  const path = req.path;
+  // Only serve files with extensions (assets like .js, .css, .png, etc.)
+  // Skip paths that look like routes (no extension or ending with /)
+  if (!path || path.endsWith('/') || !/\.([a-zA-Z0-9]+)$/.test(path)) {
+    return next(); // Pass to route handlers
+  }
+  // Serve static files
+  express.static(join(__dirname, '..', 'sparti-cms', 'theme'))(req, res, next);
+});
 
 // Serve static files from the 'public' directory
 app.use(express.static(join(__dirname, '..', 'public')));

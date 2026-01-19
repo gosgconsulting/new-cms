@@ -78,7 +78,8 @@ router.use('/api/woocommerce', woocommerceSyncRoutes);
 router.use('/api', docsRoutes);
 
 // Theme routes (mounted before other routes to catch /theme/* paths)
-// Theme admin/auth routes (must come before general theme routes)
+// Theme admin/auth routes (must come before general theme routes, but only handle specific paths)
+// These routes are very specific: /theme/:themeSlug/admin and /theme/:themeSlug/auth
 router.use('/theme', themeAdminRoutes);
 
 // Block /theme/template (root only). Template previews live under /theme/template/*
@@ -91,6 +92,8 @@ router.use('/theme/template', (req, res, next) => {
 });
 
 // All themes: React SPA
+// This handles all other /theme/* paths that weren't matched by themeAdminRoutes
+// Routes like /theme/str, /theme/str/group-class, etc.
 router.use('/theme', themeRoutes);
 
 // Dynamic robots.txt route - serves different content based on deployment type

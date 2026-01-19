@@ -65,5 +65,13 @@ router.get('/:themeSlug/auth', extractThemeFromUrl, (req, res) => {
   res.status(200).send(html);
 });
 
+/**
+ * IMPORTANT: This router only handles /admin and /auth paths.
+ * All other paths (like /theme/str, /theme/str/group-class, etc.) 
+ * will automatically pass through to the next router (themeRoutes)
+ * because Express Router only matches routes that are explicitly defined.
+ * No catch-all needed - unmatched routes automatically pass to next middleware.
+ */
+
 export default router;
 
