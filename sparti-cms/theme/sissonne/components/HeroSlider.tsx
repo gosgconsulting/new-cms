@@ -1,6 +1,10 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { ChevronLeft, ChevronRight, Play } from "lucide-react";
+import { ChevronLeft, ChevronRight, Play, X } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+} from "./ui/dialog";
 
 interface SlideData {
   id: number;
@@ -13,6 +17,7 @@ interface SlideData {
 
 export function HeroSlider() {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [isVideoOpen, setIsVideoOpen] = useState(false);
 
   const slides: SlideData[] = [
     {
@@ -149,7 +154,10 @@ export function HeroSlider() {
           >
             Book a trial
           </a>
-          <button className="flex items-center space-x-3 border-2 border-dance-white text-dance-white px-8 py-4 rounded-full text-lg font-button font-medium hover:bg-dance-white hover:text-dance-black transition-all duration-300">
+          <button 
+            onClick={() => setIsVideoOpen(true)}
+            className="flex items-center space-x-3 border-2 border-dance-white text-dance-white px-8 py-4 rounded-full text-lg font-button font-medium hover:bg-dance-white hover:text-dance-black transition-all duration-300"
+          >
             <Play className="h-5 w-5" />
             <span>Watch our story</span>
           </button>
@@ -172,6 +180,28 @@ export function HeroSlider() {
           ))}
         </div>
       </div>
+
+      {/* Video Modal */}
+      <Dialog open={isVideoOpen} onOpenChange={setIsVideoOpen}>
+        <DialogContent className="max-w-4xl w-full p-0 bg-black border-none">
+          <div className="relative w-full aspect-video">
+            <button
+              onClick={() => setIsVideoOpen(false)}
+              className="absolute top-4 right-4 z-10 text-white hover:text-dance-pink transition-colors bg-black/50 rounded-full p-2"
+              aria-label="Close video"
+            >
+              <X className="h-6 w-6" />
+            </button>
+            <iframe
+              className="w-full h-full"
+              src="https://www.youtube.com/embed/jNQXAC9IVRw?autoplay=1"
+              title="Sissonne Dance Academy Story"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            ></iframe>
+          </div>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 }

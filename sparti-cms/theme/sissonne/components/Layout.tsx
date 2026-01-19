@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X, Phone, Mail, MapPin } from "lucide-react";
-import { FontSwitcher } from "./FontSwitcher";
+// import { FontSwitcher } from "./FontSwitcher"; // Removed from UI but keeping file
 import logoImage from "../assets/logo.png";
 
 interface LayoutProps {
@@ -306,8 +306,8 @@ export function Layout({ children, tenantSlug = 'sissonne' }: LayoutProps) {
         </div>
       </a>
 
-      {/* Font Switcher Widget */}
-            <FontSwitcher tenantSlug={tenantSlug} />
+      {/* Font Switcher Widget - Removed from UI */}
+      {/* <FontSwitcher tenantSlug={tenantSlug} /> */}
     </div>
   );
 }

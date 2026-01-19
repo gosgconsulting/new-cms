@@ -62,7 +62,7 @@ export default function About() {
   return (
     <div className="bg-background">
       {/* Hero Section */}
-      <section className="relative bg-linear-to-br from-dance-black via-stage-drama to-dance-black py-24">
+      <section className="relative bg-linear-to-br from-dance-black via-stage-drama to-dance-black py-24" style={{ marginTop: '97px' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h1 className="text-3xl md:text-4xl font-heading font-bold text-dance-white mb-6">
