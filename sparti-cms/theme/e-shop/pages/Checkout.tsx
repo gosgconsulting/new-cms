@@ -1,6 +1,9 @@
 import { useMemo, useState } from "react";
 import { Check, CreditCard, Minus, Plus } from "lucide-react";
 
+import pantheonImage from "../assets/pantheon.jpg";
+import eclipseImage from "../assets/eclipse.jpg";
+
 import Footer from "../components/footer/Footer";
 import CheckoutHeader from "../components/header/CheckoutHeader";
 import { Button } from "@/components/ui/button";
@@ -8,11 +11,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { useThemeBasePath } from "../components/ThemeLink";
 
 export default function CheckoutPage() {
-  const basePath = useThemeBasePath();
-
   const [showDiscountInput, setShowDiscountInput] = useState(false);
   const [discountCode, setDiscountCode] = useState("");
   const [customerDetails, setCustomerDetails] = useState({
@@ -54,7 +54,7 @@ export default function CheckoutPage() {
       name: "Pantheon Ring",
       price: "€2,450",
       quantity: 1,
-      image: `${basePath}/assets/pantheon.jpg`,
+      image: pantheonImage,
       size: "54 EU / 7 US",
     },
     {
@@ -62,7 +62,7 @@ export default function CheckoutPage() {
       name: "Eclipse Earrings",
       price: "€1,850",
       quantity: 1,
-      image: `${basePath}/assets/eclipse.jpg`,
+      image: eclipseImage,
     },
   ]);
 

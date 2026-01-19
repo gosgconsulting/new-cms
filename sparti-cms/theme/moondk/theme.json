@@ -1,15 +1,18 @@
 {
   "name": "Moondk",
-  "description": "A simple ecommerce storefront theme (duplicated from Storefront).",
+  "description": "E-shop design duplicated/aliased as the Moondk theme.",
   "version": "1.0.0",
   "author": "GOSG",
   "is_active": true,
   "category": "ecommerce",
-  "tags": ["custom", "store", "shop", "ecommerce", "products"],
+  "tags": ["ecommerce", "shop", "store", "luxury", "jewelry"],
   "features": [
-    "Simple homepage with product cards",
-    "Shop page listing products",
-    "Responsive layout with Tailwind"
+    "E-shop landing page",
+    "Category browsing",
+    "Product detail pages",
+    "Checkout flow",
+    "About pages",
+    "Legal pages"
   ],
   "preview_image": "assets/logo.png",
   "demo_url": "/theme/moondk",
