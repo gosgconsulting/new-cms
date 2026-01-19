@@ -1,47 +1,42 @@
 import express from 'express';
 import { extractThemeFromUrl } from '../middleware/themeUrl.js';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+import { existsSync } from 'fs';
 
 const router = express.Router();
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
 /**
  * GET /theme/:themeSlug/auth
- * Serves the auth page with theme context
- * No authentication required - this is the login page
- * The actual auth page is handled by client-side React routing
+ * Serve the React app so client-side routing renders the Auth page.
  */
 router.get('/:themeSlug/auth', extractThemeFromUrl, (req, res) => {
-  const themeSlug = req.params.themeSlug;
-  
-  // Return HTML that will be handled by client-side React
-  const html = `<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Login - ${themeSlug}</title>
-</head>
-<body>
-  <div id="root"></div>
-  <script>
-    // Store theme context in sessionStorage for client-side routing
-    sessionStorage.setItem('themeContext', '${themeSlug}');
-    // Redirect to client-side auth route
-    window.location.href = '/theme/${themeSlug}/auth';
-  </script>
-</body>
-</html>`;
-  
-  res.setHeader('Content-Type', 'text/html');
-  res.status(200).send(html);
+  const indexPath = join(__dirname, '..', '..', 'dist', 'index.html');
+  if (existsSync(indexPath)) {
+    return res.sendFile(indexPath, (err) => {
+      if (err && !res.headersSent) {
+        res.status(500).json({
+          status: 'error',
+          message: 'Failed to serve application',
+        });
+      }
+    });
+  }
+  // Fallback when app isn't built
+  return res.status(200).json({
+    status: 'error',
+    message: 'React app not built. Please build the app first.',
+    timestamp: new Date().toISOString(),
+  });
 });
 
 /**
  * IMPORTANT: This router only handles /auth paths.
- * All other paths (like /theme/str, /theme/str/group-class, etc.) 
- * will automatically pass through to the next router (themeRoutes)
- * because Express Router only matches routes that are explicitly defined.
- * No catch-all needed - unmatched routes automatically pass to next middleware.
+ * All other paths (like /theme/str, /theme/str/group-class, etc.)
+ * will pass through to the next router (themeRoutes).
  */
 
 export default router;
-

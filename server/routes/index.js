@@ -39,8 +39,12 @@ router.use('/api', (req, res, next) => {
   if (req.path === '/auth/verify-access-key') {
     return next();
   }
-  // Skip access key authentication for login and register endpoints
-  if (req.path === '/auth/login' || req.path === '/auth/register') {
+  // Skip access key authentication for auth endpoints that use JWT or are public
+  if (
+    req.path === '/auth/login' ||
+    req.path === '/auth/register' ||
+    req.path === '/auth/me' // allow JWT auth to handle this route
+  ) {
     return next();
   }
   // Skip access key authentication for v1 routes (they use tenant API key authentication)
