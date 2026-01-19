@@ -27,5 +27,30 @@
     <!-- IMPORTANT: DO NOT REMOVE THIS SCRIPT TAG OR THIS VERY COMMENT! -->
     <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
     <script type="module" src="/src/main.tsx"></script>
+    <!-- Unregister service workers in development to prevent conflicts -->
+    <script>
+      // Unregister service workers in development (check for localhost or dev ports)
+      (function() {
+        if ('serviceWorker' in navigator) {
+          const isDev = window.location.hostname === 'localhost' || 
+                       window.location.hostname === '127.0.0.1' ||
+                       window.location.port === '8080' ||
+                       window.location.port === '8086';
+          
+          if (isDev) {
+            navigator.serviceWorker.getRegistrations().then(registrations => {
+              registrations.forEach(registration => {
+                console.log('[testing] Unregistering service worker:', registration.scope);
+                registration.unregister().then(success => {
+                  if (success) {
+                    console.log('[testing] Service worker unregistered successfully');
+                  }
+                });
+              });
+            });
+          }
+        }
+      })();
+    </script>
   </body>
 </html>

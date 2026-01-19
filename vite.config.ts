@@ -61,11 +61,18 @@ export default defineConfig(({ mode }) => {
   server: {
     host: "::",
     port: 8080,
+    hmr: {
+      port: 8080,
+      host: 'localhost',
+      protocol: 'ws',
+      clientPort: 8080
+    },
     proxy: {
       '/api': {
         target: 'http://localhost:4173',
         changeOrigin: true,
         secure: false,
+        ws: true, // Enable WebSocket proxying for HMR
       },
       // Allow frontend dev server to load theme assets directly from the backend.
       // Needed for themes whose assets are served by Express (e.g. Nail Queen imported assets).
@@ -74,6 +81,7 @@ export default defineConfig(({ mode }) => {
         target: 'http://localhost:4173',
         changeOrigin: true,
         secure: false,
+        ws: true, // Enable WebSocket proxying
         // Only proxy if the path has a file extension (asset request)
         // If no extension, bypass proxy to let Vite handle as SPA route
         bypass: (req) => {
