@@ -193,20 +193,20 @@ const ThankYouPage: React.FC<TenantLandingProps> = ({
                   href="https://www.instagram.com/strfitnessclub.sg/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-10 h-10 rounded-full border-2 border-foreground/30 flex items-center justify-center hover:border-[#E48D2A] hover:bg-[#E48D2A]/10 transition-all duration-300 group"
+                  className="w-10 h-10 rounded-full border-2 border-foreground/30 flex items-center justify-center hover:border-[#E00000] hover:bg-[#E00000]/10 transition-all duration-300 group"
                   aria-label="Instagram"
                 >
-                  <Instagram className="h-5 w-5 text-foreground group-hover:text-[#E48D2A] transition-colors" />
+                  <Instagram className="h-5 w-5 text-foreground group-hover:text-[#E00000] transition-colors" />
                 </a>
                 <a
                   href="https://wa.me"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-10 h-10 rounded-full border-2 border-foreground/30 flex items-center justify-center hover:border-[#E48D2A] hover:bg-[#E48D2A]/10 transition-all duration-300 group"
+                  className="w-10 h-10 rounded-full border-2 border-foreground/30 flex items-center justify-center hover:border-[#E00000] hover:bg-[#E00000]/10 transition-all duration-300 group"
                   aria-label="WhatsApp"
                 >
                   <svg
-                    className="h-5 w-5 text-foreground group-hover:text-[#E48D2A] transition-colors"
+                    className="h-5 w-5 text-foreground group-hover:text-[#E00000] transition-colors"
                     fill="currentColor"
                     viewBox="0 0 24 24"
                   >

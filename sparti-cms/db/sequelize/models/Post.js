@@ -112,6 +112,26 @@ export default function Post(sequelize) {
       type: DataTypes.STRING(255),
       allowNull: true,
     },
+    wordpress_id: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      comment: 'WordPress post ID for sync tracking',
+    },
+    wordpress_sync_enabled: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+      comment: 'Whether this post participates in WordPress sync',
+    },
+    wordpress_last_synced_at: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      comment: 'Timestamp of last successful sync with WordPress',
+    },
+    wordpress_sync_hash: {
+      type: DataTypes.STRING(64),
+      allowNull: true,
+      comment: 'Hash of post content for change detection',
+    },
     created_at: {
       type: DataTypes.DATE,
       defaultValue: DataTypes.NOW,

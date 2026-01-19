@@ -120,7 +120,7 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
                   onChange={handleInputChange}
                   placeholder="Your name"
                   required
-                  className="w-full px-4 py-3 bg-background border border-border rounded-lg text-foreground placeholder:text-foreground/40 focus:outline-none focus:ring-2 focus:ring-[#E48D2A] focus:border-transparent transition-all"
+                  className="w-full px-4 py-3 bg-background border border-border rounded-lg text-foreground placeholder:text-foreground/40 focus:outline-none focus:ring-2 focus:ring-[#E00000] focus:border-transparent transition-all"
                 />
               </div>
 
@@ -137,7 +137,7 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
                   onChange={handleInputChange}
                   placeholder="your.email@example.com"
                   required
-                  className="w-full px-4 py-3 bg-background border border-border rounded-lg text-foreground placeholder:text-foreground/40 focus:outline-none focus:ring-2 focus:ring-[#E48D2A] focus:border-transparent transition-all"
+                  className="w-full px-4 py-3 bg-background border border-border rounded-lg text-foreground placeholder:text-foreground/40 focus:outline-none focus:ring-2 focus:ring-[#E00000] focus:border-transparent transition-all"
                 />
               </div>
 
@@ -154,7 +154,7 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
                   onChange={handleInputChange}
                   placeholder="+65 1234 5678"
                   required
-                  className="w-full px-4 py-3 bg-background border border-border rounded-lg text-foreground placeholder:text-foreground/40 focus:outline-none focus:ring-2 focus:ring-[#E48D2A] focus:border-transparent transition-all"
+                  className="w-full px-4 py-3 bg-background border border-border rounded-lg text-foreground placeholder:text-foreground/40 focus:outline-none focus:ring-2 focus:ring-[#E00000] focus:border-transparent transition-all"
                 />
               </div>
 
@@ -171,7 +171,7 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
                   placeholder="How can we help you?"
                   required
                   rows={4}
-                  className="w-full px-4 py-3 bg-background border border-border rounded-lg text-foreground placeholder:text-foreground/40 focus:outline-none focus:ring-2 focus:ring-[#E48D2A] focus:border-transparent transition-all resize-y"
+                  className="w-full px-4 py-3 bg-background border border-border rounded-lg text-foreground placeholder:text-foreground/40 focus:outline-none focus:ring-2 focus:ring-[#E00000] focus:border-transparent transition-all resize-y"
                 />
               </div>
 

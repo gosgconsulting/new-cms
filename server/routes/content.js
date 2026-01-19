@@ -39,9 +39,101 @@ import { downloadImages } from '../../sparti-cms/services/imageDownloader.js';
 import { invalidateBySlug } from '../../sparti-cms/cache/index.js';
 import models, { sequelize } from '../../sparti-cms/db/sequelize/models/index.js';
 import { Op } from 'sequelize';
+import { createWordPressClientFromConfig } from '../services/wordpressClient.js';
 const { Post, Category, Tag } = models;
 
 const router = express.Router();
+
+/**
+ * Helper function to sync post to WordPress
+ * Returns null if sync is not needed or failed (non-blocking)
+ */
+async function syncPostToWordPress(post, tenantId) {
+  try {
+    // Check if WordPress sync is enabled for this tenant
+    const integrationResult = await query(`
+      SELECT config, is_active
+      FROM tenant_integrations
+      WHERE tenant_id = $1 AND integration_type = 'wordpress' AND is_active = true
+      LIMIT 1
+    `, [tenantId]);
+
+    if (integrationResult.rows.length === 0) {
+      return null; // WordPress integration not configured
+    }
+
+    const config = integrationResult.rows[0].config;
+    if (!config || !config.auto_sync_enabled) {
+      return null; // Auto-sync disabled
+    }
+
+    // Check if this post has WordPress sync enabled
+    if (!post.wordpress_sync_enabled) {
+      return null; // Sync disabled for this post
+    }
+
+    const client = createWordPressClientFromConfig(config);
+
+    // Map CMS status to WordPress status
+    const statusMap = {
+      'published': 'publish',
+      'draft': 'draft',
+      'private': 'private',
+      'trash': 'trash'
+    };
+    const wpStatus = statusMap[post.status] || 'draft';
+
+    // Get categories and tags
+    const postWithRelations = await Post.findByPk(post.id, {
+      include: [
+        { model: Category, as: 'categories', through: { attributes: [] } },
+        { model: Tag, as: 'tags', through: { attributes: [] } }
+      ]
+    });
+
+    const categoryIds = postWithRelations?.categories?.map(c => c.id) || [];
+    const tagIds = postWithRelations?.tags?.map(t => t.id) || [];
+
+    // Map to WordPress format
+    const wpPostData = {
+      title: post.title,
+      content: post.content || '',
+      excerpt: post.excerpt || '',
+      slug: post.slug,
+      status: wpStatus,
+      date: post.published_at ? new Date(post.published_at).toISOString() : new Date().toISOString(),
+      categories: categoryIds,
+      tags: tagIds
+    };
+
+    let wpPost;
+    if (post.wordpress_id) {
+      // Update existing WordPress post
+      wpPost = await client.updatePost(post.wordpress_id, wpPostData);
+    } else {
+      // Create new WordPress post
+      wpPost = await client.createPost(wpPostData);
+      
+      // Update post with WordPress ID
+      await post.update({
+        wordpress_id: wpPost.id,
+        wordpress_last_synced_at: new Date()
+      });
+    }
+
+    // Update last synced timestamp
+    await post.update({
+      wordpress_last_synced_at: new Date()
+    });
+
+    return { success: true, wordpress_id: wpPost.id };
+  } catch (error) {
+    console.error('[testing] Error syncing post to WordPress:', error);
+    // Log error but don't block the request
+    // Could store error in integration config for monitoring
+    return { success: false, error: error.message };
+  }
+}
 
 // ===== PAGES ROUTES =====
 
@@ -1513,6 +1605,18 @@ router.post('/posts', async (req, res) => {
     // Convert Sequelize model to plain object
     const postData = newPost ? newPost.toJSON() : post.toJSON();
     
+    // Sync to WordPress if enabled (non-blocking)
+    if (req.body.wordpress_sync_enabled !== false) {
+      // Set wordpress_sync_enabled if not explicitly set
+      if (post.wordpress_sync_enabled === undefined || post.wordpress_sync_enabled === null) {
+        await post.update({ wordpress_sync_enabled: true });
+      }
+      // Trigger sync asynchronously (don't wait for it)
+      syncPostToWordPress(post, tenantId).catch(err => {
+        console.error('[testing] WordPress sync error (non-blocking):', err);
+      });
+    }
+    
     res.status(201).json(postData);
   } catch (error) {
     console.error('[testing] Error creating post:', error);
@@ -1721,7 +1825,16 @@ router.put('/posts/:id', async (req, res) => {
       ]
     });
     
-    res.json(updatedPost ? updatedPost.toJSON() : post.toJSON());
+    // Sync to WordPress if enabled (non-blocking)
+    const finalPost = updatedPost || post;
+    if (finalPost.wordpress_sync_enabled) {
+      // Trigger sync asynchronously (don't wait for it)
+      syncPostToWordPress(finalPost, tenantId).catch(err => {
+        console.error('[testing] WordPress sync error (non-blocking):', err);
+      });
+    }
+    
+    res.json(finalPost ? finalPost.toJSON() : post.toJSON());
   } catch (error) {
     console.error('[testing] Error updating post:', error);
     

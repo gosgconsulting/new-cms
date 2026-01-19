@@ -81,9 +81,9 @@ All theme assets are stored in:
 ## Color Scheme
 
 - **Primary Red**: `#E00000`
-- **Accent Yellow/Orange**: `#E48D2A`
 - **Background**: Dark theme (defined in theme.css)
 - **Text**: White/light colors for contrast
+- **Star Ratings**: Yellow (`text-yellow-400 fill-yellow-400`) for review stars only
 
 ## Typography
 
@@ -113,4 +113,4 @@ All theme assets are stored in:
 - Changes require direct code edits to component files
 - Images must be saved to both `sparti-cms/theme/str/assets/` and `public/theme/str/assets/`
 - Always maintain the dark theme aesthetic
-- Keep the red and yellow/orange accent colors consistent
+- Keep the red primary color consistent throughout

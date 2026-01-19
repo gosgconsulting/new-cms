@@ -1,4 +1,4 @@
-import React, { lazy, Suspense, useMemo } from 'react';
+import React, { lazy, Suspense, useMemo, useState, useEffect } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
 import { AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -84,6 +84,48 @@ const TenantLandingPage: React.FC = () => {
   const { tenantSlug, pageSlug, productname } = useParams<{ tenantSlug: string; pageSlug?: string; productname?: string }>();
   const location = useLocation();
   const slug = tenantSlug || 'landingpage';
+  const [tenantId, setTenantId] = useState<string | undefined>(undefined);
+  
+  // Fetch tenant ID from database based on slug
+  useEffect(() => {
+    const fetchTenantId = async () => {
+      try {
+        // Try to find tenant by slug or theme_id
+        const response = await fetch(`/api/tenants/by-slug/${slug}`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.data) {
+            setTenantId(data.data.id);
+            return;
+          }
+        }
+        
+        // If not found by slug, try to find by theme_id
+        const themeResponse = await fetch(`/api/tenants/by-theme/${slug}`);
+        if (themeResponse.ok) {
+          const themeData = await themeResponse.json();
+          if (themeData.success && themeData.data?.tenants?.length > 0) {
+            // Use the first tenant with this theme
+            setTenantId(themeData.data.tenants[0].id);
+            return;
+          }
+        }
+        
+        // Fallback: check window.__CMS_TENANT__ (for theme deployments)
+        if (typeof window !== 'undefined' && (window as any).__CMS_TENANT__) {
+          setTenantId((window as any).__CMS_TENANT__);
+        }
+      } catch (error) {
+        console.error('[testing] Error fetching tenant ID:', error);
+        // Fallback to window variable
+        if (typeof window !== 'undefined' && (window as any).__CMS_TENANT__) {
+          setTenantId((window as any).__CMS_TENANT__);
+        }
+      }
+    };
+    
+    fetchTenantId();
+  }, [slug]);
   
   // Extract full page path from location for nested routes like /booking/classes
   // Always extract from pathname to handle both /theme/:tenantSlug/:pageSlug and /theme/:tenantSlug/* routes
@@ -151,13 +193,14 @@ const TenantLandingPage: React.FC = () => {
     </div>
   );
 
-  // Pass pageSlug if it exists so theme can handle sub-routes
+  // Pass pageSlug and tenantId if it exists so theme can handle sub-routes
   return (
     <Suspense fallback={<LoadingFallback />}>
       <ThemeComponent 
         tenantName={currentTheme.name} 
         tenantSlug={slug}
         pageSlug={fullPageSlug}
+        tenantId={tenantId}
       />
     </Suspense>
   );

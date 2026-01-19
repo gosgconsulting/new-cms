@@ -185,11 +185,11 @@ const BookingPage: React.FC<TenantLandingProps> = ({
                 {/* I am new Card */}
                 <button
                   onClick={() => handleInitialChoice('new')}
-                  className="group relative bg-background border-2 border-gray-700/50 rounded-2xl p-8 hover:border-[#E48D2A] transition-all duration-300 hover:shadow-xl text-left"
+                  className="group relative bg-background border-2 border-gray-700/50 rounded-2xl p-8 hover:border-[#E00000] transition-all duration-300 hover:shadow-xl text-left"
                 >
                   <div className="flex flex-col items-center text-center space-y-4">
-                    <div className="w-16 h-16 rounded-full bg-[#E48D2A] flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                      <UserPlus className="h-8 w-8 text-white" />
+                    <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                      <UserPlus className="h-8 w-8 text-black" />
                     </div>
                     <h2 className="text-2xl md:text-3xl font-bold uppercase text-foreground">
                       I am new
@@ -203,11 +203,11 @@ const BookingPage: React.FC<TenantLandingProps> = ({
                 {/* I am a member Card */}
                 <button
                   onClick={() => handleInitialChoice('member')}
-                  className="group relative bg-background border-2 border-gray-700/50 rounded-2xl p-8 hover:border-[#E48D2A] transition-all duration-300 hover:shadow-xl text-left"
+                  className="group relative bg-background border-2 border-gray-700/50 rounded-2xl p-8 hover:border-[#E00000] transition-all duration-300 hover:shadow-xl text-left"
                 >
                   <div className="flex flex-col items-center text-center space-y-4">
-                    <div className="w-16 h-16 rounded-full bg-[#E48D2A] flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                      <User className="h-8 w-8 text-white" />
+                    <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                      <User className="h-8 w-8 text-black" />
                     </div>
                     <h2 className="text-2xl md:text-3xl font-bold uppercase text-foreground">
                       I am a member
@@ -231,7 +231,7 @@ const BookingPage: React.FC<TenantLandingProps> = ({
                     </p>
                   </div>
                   <Button
-                    className="bg-[#E48D2A] hover:bg-[#E48D2A]/90 text-white font-bold uppercase px-6 py-3 rounded-lg text-sm transition-all duration-300 whitespace-nowrap"
+                    className="bg-[#E00000] hover:bg-[#E00000]/90 text-white font-bold uppercase px-6 py-3 rounded-lg text-sm transition-all duration-300 whitespace-nowrap"
                     onClick={() => setIsContactModalOpen(true)}
                   >
                     Chat with us
@@ -267,16 +267,16 @@ const BookingPage: React.FC<TenantLandingProps> = ({
                   onClick={() => handleOptionClick('chat')}
                   className={`group relative rounded-2xl p-8 transition-all duration-300 hover:shadow-xl text-left ${
                     selectedOption === 'chat'
-                      ? 'bg-[#E48D2A] border-2 border-[#E48D2A]'
-                      : 'bg-background border-2 border-gray-700/50 hover:border-[#E48D2A]'
+                      ? 'bg-[#E00000] border-2 border-[#E00000]'
+                      : 'bg-background border-2 border-gray-700/50 hover:border-[#E00000]'
                   }`}
                 >
                   <div className="flex flex-col items-center text-center space-y-4">
                     <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform ${
-                      selectedOption === 'chat' ? 'bg-white' : 'bg-[#E48D2A]'
+                      selectedOption === 'chat' ? 'bg-white' : 'bg-[#E00000]'
                     }`}>
                       <MessageCircle className={`h-8 w-8 ${
-                        selectedOption === 'chat' ? 'text-[#E48D2A]' : 'text-white'
+                        selectedOption === 'chat' ? 'text-[#E00000]' : 'text-white'
                       }`} />
                     </div>
                     <h2 className={`text-2xl md:text-3xl font-bold uppercase mb-2 ${
@@ -297,16 +297,16 @@ const BookingPage: React.FC<TenantLandingProps> = ({
                   onClick={() => handleOptionClick('packages')}
                   className={`group relative rounded-2xl p-8 transition-all duration-300 hover:shadow-xl text-left ${
                     selectedOption === 'packages'
-                      ? 'bg-[#E48D2A] border-2 border-[#E48D2A]'
-                      : 'bg-background border-2 border-gray-700/50 hover:border-[#E48D2A]'
+                      ? 'bg-[#E00000] border-2 border-[#E00000]'
+                      : 'bg-background border-2 border-gray-700/50 hover:border-[#E00000]'
                   }`}
                 >
                   <div className="flex flex-col items-center text-center space-y-4">
                     <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform ${
-                      selectedOption === 'packages' ? 'bg-white' : 'bg-[#E48D2A]'
+                      selectedOption === 'packages' ? 'bg-white' : 'bg-[#E00000]'
                     }`}>
                       <BookOpen className={`h-8 w-8 ${
-                        selectedOption === 'packages' ? 'text-[#E48D2A]' : 'text-white'
+                        selectedOption === 'packages' ? 'text-[#E00000]' : 'text-white'
                       }`} />
                     </div>
                     <h2 className={`text-2xl md:text-3xl font-bold uppercase mb-2 ${
@@ -351,16 +351,16 @@ const BookingPage: React.FC<TenantLandingProps> = ({
                   onClick={() => handleOptionClick('chat')}
                   className={`group relative rounded-2xl p-8 transition-all duration-300 hover:shadow-xl text-left ${
                     selectedOption === 'chat'
-                      ? 'bg-[#E48D2A] border-2 border-[#E48D2A]'
-                      : 'bg-background border-2 border-gray-700/50 hover:border-[#E48D2A]'
+                      ? 'bg-[#E00000] border-2 border-[#E00000]'
+                      : 'bg-background border-2 border-gray-700/50 hover:border-[#E00000]'
                   }`}
                 >
                   <div className="flex flex-col items-center text-center space-y-4">
                     <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform ${
-                      selectedOption === 'chat' ? 'bg-white' : 'bg-[#E48D2A]'
+                      selectedOption === 'chat' ? 'bg-white' : 'bg-[#E00000]'
                     }`}>
                       <MessageCircle className={`h-8 w-8 ${
-                        selectedOption === 'chat' ? 'text-[#E48D2A]' : 'text-white'
+                        selectedOption === 'chat' ? 'text-[#E00000]' : 'text-white'
                       }`} />
                     </div>
                     <h2 className={`text-2xl md:text-3xl font-bold uppercase mb-2 ${
@@ -381,16 +381,16 @@ const BookingPage: React.FC<TenantLandingProps> = ({
                   onClick={() => handleOptionClick('book-class')}
                   className={`group relative rounded-2xl p-8 transition-all duration-300 hover:shadow-xl text-left ${
                     selectedOption === 'book-class'
-                      ? 'bg-[#E48D2A] border-2 border-[#E48D2A]'
-                      : 'bg-background border-2 border-gray-700/50 hover:border-[#E48D2A]'
+                      ? 'bg-[#E00000] border-2 border-[#E00000]'
+                      : 'bg-background border-2 border-gray-700/50 hover:border-[#E00000]'
                   }`}
                 >
                   <div className="flex flex-col items-center text-center space-y-4">
                     <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform ${
-                      selectedOption === 'book-class' ? 'bg-white' : 'bg-[#E48D2A]'
+                      selectedOption === 'book-class' ? 'bg-white' : 'bg-[#E00000]'
                     }`}>
                       <Calendar className={`h-8 w-8 ${
-                        selectedOption === 'book-class' ? 'text-[#E48D2A]' : 'text-white'
+                        selectedOption === 'book-class' ? 'text-[#E00000]' : 'text-white'
                       }`} />
                     </div>
                     <h2 className={`text-2xl md:text-3xl font-bold uppercase mb-2 ${
@@ -438,20 +438,20 @@ const BookingPage: React.FC<TenantLandingProps> = ({
                   href="https://www.instagram.com/strfitnessclub.sg/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-10 h-10 rounded-full border-2 border-foreground/30 flex items-center justify-center hover:border-[#E48D2A] hover:bg-[#E48D2A]/10 transition-all duration-300 group"
+                  className="w-10 h-10 rounded-full border-2 border-foreground/30 flex items-center justify-center hover:border-[#E00000] hover:bg-[#E00000]/10 transition-all duration-300 group"
                   aria-label="Instagram"
                 >
-                  <Instagram className="h-5 w-5 text-foreground group-hover:text-[#E48D2A] transition-colors" />
+                  <Instagram className="h-5 w-5 text-foreground group-hover:text-[#E00000] transition-colors" />
                 </a>
                 <a
                   href="https://wa.me"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-10 h-10 rounded-full border-2 border-foreground/30 flex items-center justify-center hover:border-[#E48D2A] hover:bg-[#E48D2A]/10 transition-all duration-300 group"
+                  className="w-10 h-10 rounded-full border-2 border-foreground/30 flex items-center justify-center hover:border-[#E00000] hover:bg-[#E00000]/10 transition-all duration-300 group"
                   aria-label="WhatsApp"
                 >
                   <svg
-                    className="h-5 w-5 text-foreground group-hover:text-[#E48D2A] transition-colors"
+                    className="h-5 w-5 text-foreground group-hover:text-[#E00000] transition-colors"
                     fill="currentColor"
                     viewBox="0 0 24 24"
                   >

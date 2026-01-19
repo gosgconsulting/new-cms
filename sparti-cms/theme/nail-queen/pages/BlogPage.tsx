@@ -1,81 +1,92 @@
+import { useState, useEffect } from "react";
 import { Layout } from "../components/Layout";
+import { Link } from "react-router-dom";
 
-const blogPosts = [
-  {
-    id: 1,
-    title: "Top Nail Salon Etiquette Tips You Should Know",
-    excerpt:
-      "Going to a nail salon is such an experience that any girl will love to have. It's a change that marks pampering from the staff there. The Nail salon etiquette will help you, whether you are a regular or a first-timer. When you come in for a [...]",
-    image:
-      "https://images.unsplash.com/photo-1604654894610-df63bc536371?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
-    date: "March 15, 2024",
-  },
-  {
-    id: 2,
-    title: "Top Nail Salon Etiquette Tips You Should Know",
-    excerpt:
-      "Going to a nail salon is such an experience that any girl will love to have. It's a change that marks pampering from the staff there. The Nail salon etiquette will help you, whether you are a regular or a first-timer. When you come in for a [...]",
-    image:
-      "https://images.unsplash.com/photo-1595348020949-87cdfbb44174?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
-    date: "March 12, 2024",
-  },
-  {
-    id: 3,
-    title: "Top Nail Salon Etiquette Tips You Should Know",
-    excerpt:
-      "Going to a nail salon is such an experience that any girl will love to have. It's a change that marks pampering from the staff there. The Nail salon etiquette will help you, whether you are a regular or a first-timer. When you come in for a [...]",
-    image:
-      "https://images.unsplash.com/photo-1516975080664-ed2fc6a32937?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
-    date: "March 10, 2024",
-  },
-  {
-    id: 4,
-    title: "Top Nail Salon Etiquette Tips You Should Know",
-    excerpt:
-      "Going to a nail salon is such an experience that any girl will love to have. It's a change that marks pampering from the staff there. The Nail salon etiquette will help you, whether you are a regular or a first-timer. When you come in for a [...]",
-    image:
-      "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
-    date: "March 8, 2024",
-  },
-  {
-    id: 5,
-    title: "Top Nail Salon Etiquette Tips You Should Know",
-    excerpt:
-      "Going to a nail salon is such an experience that any girl will love to have. It's a change that marks pampering from the staff there. The Nail salon etiquette will help you, whether you are a regular or a first-timer. When you come in for a [...]",
-    image:
-      "https://images.unsplash.com/photo-1560066984-138dadb4c035?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
-    date: "March 5, 2024",
-  },
-  {
-    id: 6,
-    title: "Top Nail Salon Etiquette Tips You Should Know",
-    excerpt:
-      "Going to a nail salon is such an experience that any girl will love to have. It's a change that marks pampering from the staff there. The Nail salon etiquette will help you, whether you are a regular or a first-timer. When you come in for a [...]",
-    image:
-      "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
-    date: "March 3, 2024",
-  },
-  {
-    id: 7,
-    title: "Top Nail Salon Etiquette Tips You Should Know",
-    excerpt:
-      "Going to a nail salon is such an experience that any girl will love to have. It's a change that marks pampering from the staff there. The Nail salon etiquette will help you, whether you are a regular or a first-timer. When you come in for a [...]",
-    image:
-      "https://images.unsplash.com/photo-1515377905703-c4788e51af15?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
-    date: "March 1, 2024",
-  },
-  {
-    id: 8,
-    title: "Top Nail Salon Etiquette Tips You Should Know",
-    excerpt:
-      "Going to a nail salon is such an experience that any girl will love to have. It's a change that marks pampering from the staff there. The Nail salon etiquette will help you, whether you are a regular or a first-timer. When you come in for a [...]",
-    image:
-      "https://images.unsplash.com/photo-1607779097040-26e80aa78e66?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
-    date: "February 28, 2024",
-  },
-];
+interface BlogPost {
+  id: number;
+  title: string;
+  slug: string;
+  excerpt: string;
+  content?: string;
+  featured_image?: string;
+  og_image?: string;
+  published_at?: string;
+  created_at?: string;
+  date?: string;
+}
 
-export default function BlogPage({ basePath }: { basePath: string }) {
+export default function BlogPage({ basePath, tenantId }: { basePath: string; tenantId?: string }) {
+  const [posts, setPosts] = useState<BlogPost[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const effectiveTenantId =
+      tenantId || (typeof window !== "undefined" ? (window as any).__CMS_TENANT__ : undefined);
+
+    if (!effectiveTenantId) {
+      setIsLoading(false);
+      setError("Tenant ID not available");
+      return;
+    }
+
+    let cancelled = false;
+
+    (async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+
+        const res = await fetch(
+          `/api/v1/blog/posts?tenantId=${encodeURIComponent(effectiveTenantId)}&limit=20&status=published`,
+          { headers: { Accept: "application/json" } }
+        );
+
+        if (!res.ok) {
+          throw new Error(`Failed to fetch posts (${res.status})`);
+        }
+
+        const json = await res.json();
+        const fetchedPosts: BlogPost[] = Array.isArray(json?.data) ? json.data : [];
+
+        if (!cancelled) {
+          setPosts(fetchedPosts);
+        }
+      } catch (err: any) {
+        if (!cancelled) {
+          console.error("[testing] Error fetching blog posts:", err);
+          setError(err.message || "Failed to load blog posts");
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [tenantId]);
+
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return "";
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+    } catch {
+      return dateString;
+    }
+  };
+
+  const getFeaturedImage = (post: BlogPost) => {
+    return post.og_image || post.featured_image || "https://images.unsplash.com/photo-1604654894610-df63bc536371?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80";
+  };
+
   return (
     <Layout basePath={basePath}>
       <section className="py-16 bg-background">
@@ -86,25 +97,58 @@ export default function BlogPage({ basePath }: { basePath: string }) {
 
       <section className="pb-20 bg-background">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="space-y-8">
-            {blogPosts.map((post) => (
-              <article key={post.id} className="bg-white rounded-lg overflow-hidden shadow-lg">
-                <div className="md:flex">
-                  <div className="md:w-1/3">
-                    <img src={post.image} alt={post.title} className="w-full h-48 md:h-full object-cover" />
-                  </div>
-                  <div className="md:w-2/3 p-6">
-                    <h2 className="text-xl font-bold text-nail-queen-brown mb-3">{post.title}</h2>
-                    <p className="text-gray-600 text-sm mb-4 leading-relaxed">{post.excerpt}</p>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-500">{post.date}</span>
-                      <button className="text-nail-queen-brown text-sm font-medium hover:underline">Read more</button>
+          {isLoading && (
+            <div className="text-center py-12">
+              <p className="text-gray-600">Loading blog posts...</p>
+            </div>
+          )}
+
+          {error && !isLoading && (
+            <div className="text-center py-12">
+              <p className="text-red-600">Error: {error}</p>
+            </div>
+          )}
+
+          {!isLoading && !error && posts.length === 0 && (
+            <div className="text-center py-12">
+              <p className="text-gray-600">No blog posts found.</p>
+            </div>
+          )}
+
+          {!isLoading && !error && posts.length > 0 && (
+            <div className="space-y-8">
+              {posts.map((post) => (
+                <article key={post.id} className="bg-white rounded-lg overflow-hidden shadow-lg">
+                  <div className="md:flex">
+                    <div className="md:w-1/3">
+                      <img
+                        src={getFeaturedImage(post)}
+                        alt={post.title}
+                        className="w-full h-48 md:h-full object-cover"
+                      />
+                    </div>
+                    <div className="md:w-2/3 p-6">
+                      <h2 className="text-xl font-bold text-nail-queen-brown mb-3">{post.title}</h2>
+                      <p className="text-gray-600 text-sm mb-4 leading-relaxed">
+                        {post.excerpt || "No excerpt available."}
+                      </p>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-500">
+                          {formatDate(post.published_at || post.created_at || post.date)}
+                        </span>
+                        <Link
+                          to={`${basePath}/blog/${post.slug}`}
+                          className="text-nail-queen-brown text-sm font-medium hover:underline"
+                        >
+                          Read more
+                        </Link>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </article>
-            ))}
-          </div>
+                </article>
+              ))}
+            </div>
+          )}
         </div>
       </section>
     </Layout>

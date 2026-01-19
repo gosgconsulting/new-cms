@@ -446,8 +446,8 @@ const PhysiotherapyPage: React.FC<TenantLandingProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {/* Evidence-Based Treatment Card */}
               <div className="bg-white rounded-3xl p-6 shadow-2xl h-full flex flex-col">
-                <div className="w-12 h-12 rounded-full bg-[#E48D2A] flex items-center justify-center mb-4 shrink-0">
-                  <Wrench className="h-6 w-6 text-white" />
+                <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center mb-4 shrink-0">
+                  <Wrench className="h-6 w-6 text-black" />
                 </div>
                 <h3 className="text-xl font-bold uppercase text-black mb-3">EVIDENCE-BASED TREATMENT</h3>
                 <p className="text-black/80 text-sm leading-relaxed grow">
@@ -457,8 +457,8 @@ const PhysiotherapyPage: React.FC<TenantLandingProps> = ({
 
               {/* Comprehensive Assessment Card */}
               <div className="bg-white rounded-3xl p-6 shadow-2xl h-full flex flex-col">
-                <div className="w-12 h-12 rounded-full bg-[#E48D2A] flex items-center justify-center mb-4 shrink-0">
-                  <Award className="h-6 w-6 text-white" />
+                <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center mb-4 shrink-0">
+                  <Award className="h-6 w-6 text-black" />
                 </div>
                 <h3 className="text-xl font-bold uppercase text-black mb-3">COMPREHENSIVE ASSESSMENT</h3>
                 <p className="text-black/80 text-sm leading-relaxed grow">
@@ -468,8 +468,8 @@ const PhysiotherapyPage: React.FC<TenantLandingProps> = ({
 
               {/* Personalized Care Card */}
               <div className="bg-white rounded-3xl p-6 shadow-2xl h-full flex flex-col">
-                <div className="w-12 h-12 rounded-full bg-[#E48D2A] flex items-center justify-center mb-4 shrink-0">
-                  <Users className="h-6 w-6 text-white" />
+                <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center mb-4 shrink-0">
+                  <Users className="h-6 w-6 text-black" />
                 </div>
                 <h3 className="text-xl font-bold uppercase text-black mb-3">PERSONALIZED CARE</h3>
                 <p className="text-black/80 text-sm leading-relaxed grow">
@@ -517,10 +517,10 @@ const PhysiotherapyPage: React.FC<TenantLandingProps> = ({
                     {/* Active State - White Background with Lime Green Accent */}
                     {isActive ? (
                       <div className="relative bg-white rounded-2xl p-6 shadow-lg overflow-hidden">
-                        {/* Orange Accent on Top and Left - Irregular/Tilted Shape */}
-                        <div className="absolute top-0 left-0 w-3 h-full bg-[#E48D2A]"></div>
+                        {/* Red Accent on Top and Left - Irregular/Tilted Shape */}
+                        <div className="absolute top-0 left-0 w-3 h-full bg-[#E00000]"></div>
                         <div 
-                          className="absolute top-0 left-0 w-full h-2 bg-[#E48D2A]"
+                          className="absolute top-0 left-0 w-full h-2 bg-[#E00000]"
                           style={{ clipPath: 'polygon(0 0, 100% 0, 95% 100%, 0 100%)' }}
                         ></div>
                         
@@ -660,17 +660,17 @@ const PhysiotherapyPage: React.FC<TenantLandingProps> = ({
           <div className="flex items-center justify-center gap-4">
             <button
               onClick={() => galleryCarouselApi.current?.scrollPrev()}
-              className="w-12 h-12 rounded-full border-2 border-[#E48D2A] bg-background flex items-center justify-center hover:bg-[#E48D2A]/10 transition-colors"
+              className="w-12 h-12 rounded-full border-2 border-[#E00000] bg-background flex items-center justify-center hover:bg-[#E00000]/10 transition-colors"
               aria-label="Previous images"
             >
-              <ArrowRight className="h-5 w-5 text-[#E48D2A] transition-colors rotate-180" />
+              <ArrowRight className="h-5 w-5 text-[#E00000] transition-colors rotate-180" />
             </button>
             <button
               onClick={() => galleryCarouselApi.current?.scrollNext()}
-              className="w-12 h-12 rounded-full border-2 border-[#E48D2A] bg-background flex items-center justify-center hover:bg-[#E48D2A]/10 transition-colors"
+              className="w-12 h-12 rounded-full border-2 border-[#E00000] bg-background flex items-center justify-center hover:bg-[#E00000]/10 transition-colors"
               aria-label="Next images"
             >
-              <ArrowRight className="h-5 w-5 text-[#E48D2A] transition-colors" />
+              <ArrowRight className="h-5 w-5 text-[#E00000] transition-colors" />
             </button>
           </div>
         </div>
@@ -940,7 +940,7 @@ const PhysiotherapyPage: React.FC<TenantLandingProps> = ({
               >
                 <AccordionTrigger className="text-left hover:no-underline py-0 [&>svg]:hidden">
                   <span className="text-foreground text-lg font-medium pr-4 flex-1">{faq.question}</span>
-                  <div className="ml-auto shrink-0 w-8 h-8 rounded-full bg-[#E48D2A] border border-[#E48D2A]/50 flex items-center justify-center relative">
+                  <div className="ml-auto shrink-0 w-8 h-8 rounded-full bg-[#E00000] border border-[#E00000]/50 flex items-center justify-center relative">
                     <Plus className="plus-icon h-4 w-4 text-white" />
                     <Minus className="minus-icon h-4 w-4 text-white" />
                   </div>
@@ -1025,20 +1025,20 @@ const PhysiotherapyPage: React.FC<TenantLandingProps> = ({
                   href="https://www.instagram.com/strfitnessclub.sg/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-10 h-10 rounded-full border-2 border-foreground/30 flex items-center justify-center hover:border-[#E48D2A] hover:bg-[#E48D2A]/10 transition-all duration-300 group"
+                  className="w-10 h-10 rounded-full border-2 border-foreground/30 flex items-center justify-center hover:border-[#E00000] hover:bg-[#E00000]/10 transition-all duration-300 group"
                   aria-label="Instagram"
                 >
-                  <Instagram className="h-5 w-5 text-foreground group-hover:text-[#E48D2A] transition-colors" />
+                  <Instagram className="h-5 w-5 text-foreground group-hover:text-[#E00000] transition-colors" />
                 </a>
                 <a
                   href="https://wa.me/6588411329"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-10 h-10 rounded-full border-2 border-foreground/30 flex items-center justify-center hover:border-[#E48D2A] hover:bg-[#E48D2A]/10 transition-all duration-300 group"
+                  className="w-10 h-10 rounded-full border-2 border-foreground/30 flex items-center justify-center hover:border-[#E00000] hover:bg-[#E00000]/10 transition-all duration-300 group"
                   aria-label="WhatsApp"
                 >
                   <svg
-                    className="h-5 w-5 text-foreground group-hover:text-[#E48D2A] transition-colors"
+                    className="h-5 w-5 text-foreground group-hover:text-[#E00000] transition-colors"
                     fill="currentColor"
                     viewBox="0 0 24 24"
                   >

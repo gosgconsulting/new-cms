@@ -8,6 +8,7 @@ import PricingPage from "./pages/PricingPage";
 import GalleryPage from "./pages/GalleryPage";
 import AboutPage from "./pages/AboutPage";
 import BlogPage from "./pages/BlogPage";
+import BlogPostPage from "./pages/BlogPostPage";
 import FindUsPage from "./pages/FindUsPage";
 import LegalPlaceholderPage from "./pages/LegalPlaceholderPage";
 import NotFoundPage from "./pages/NotFoundPage";
@@ -33,6 +34,7 @@ const NailQueenTheme: React.FC<NailQueenThemeProps> = ({
   pageSlug,
   tenantSlug,
   tenantName = "Nail Queen",
+  tenantId,
 }) => {
   const location = useLocation();
 
@@ -54,7 +56,12 @@ const NailQueenTheme: React.FC<NailQueenThemeProps> = ({
       case "about":
         return <AboutPage basePath={resolvedBasePath} />;
       case "blog":
-        return <BlogPage basePath={resolvedBasePath} />;
+        // Check if there's a second part (blog post slug)
+        if (slugParts.length > 1) {
+          const postSlug = slugParts.slice(1).join("/");
+          return <BlogPostPage basePath={resolvedBasePath} slug={postSlug} tenantId={tenantId} />;
+        }
+        return <BlogPage basePath={resolvedBasePath} tenantId={tenantId} />;
       case "find-us":
         return <FindUsPage basePath={resolvedBasePath} />;
       case "privacy":
