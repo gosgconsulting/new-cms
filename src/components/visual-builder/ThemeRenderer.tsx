@@ -28,6 +28,7 @@ const GosgConsultingTheme = lazy(() => import('../../../sparti-cms/theme/gosgcon
 const CustomTheme = lazy(() => import('../../../sparti-cms/theme/custom'));
 const HotelTheme = lazy(() => import('../../../sparti-cms/theme/hotel'));
 const NailQueenTheme = lazy(() => import('../../../sparti-cms/theme/nail-queen'));
+const OptimalConsultingTheme = lazy(() => import('../../../sparti-cms/theme/optimalconsulting'));
 
 /**
  * Map theme slugs to their display names and components
@@ -57,6 +58,14 @@ const themeConfig: Record<string, { name: string; component: React.LazyExoticCom
   'nail-queen': {
     name: 'Nail Queen',
     component: NailQueenTheme
+  },
+  'optimalconsulting': {
+    name: 'Optimal Consulting',
+    component: OptimalConsultingTheme
+  },
+  'optimal-consulting': {
+    name: 'Optimal Consulting',
+    component: OptimalConsultingTheme
   }
 };
 

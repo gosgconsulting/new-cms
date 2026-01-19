@@ -53,6 +53,10 @@ const themeConfig: Record<string, { name: string; component: React.LazyExoticCom
     name: 'Optimal Consulting',
     component: OptimalConsultingTheme
   },
+  'optimal-consulting': {
+    name: 'Optimal Consulting',
+    component: OptimalConsultingTheme
+  },
   'master': {
     name: 'Master Template',
     component: MasterTheme
