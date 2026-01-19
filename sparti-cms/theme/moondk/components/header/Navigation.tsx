@@ -180,7 +180,7 @@ const Navigation = () => {
         {/* Center logo */}
         <div className="absolute left-1/2 transform -translate-x-1/2">
           <ThemeLink to="/" className="block">
-            <img src={logoSrc} alt="MOONDK" className="h-8 w-auto" />
+            <img src={logoSrc} alt="MOONDK" className="h-16 w-auto" />
           </ThemeLink>
         </div>
 

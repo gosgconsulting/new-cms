@@ -1,6 +1,6 @@
 import Header from "../components/header/Header";
 import Footer from "../components/footer/Footer";
-import FiftyFiftySection from "../components/content/FiftyFiftySection";
+import HeroSlider from "../components/content/HeroSlider";
 import ProductCarousel from "../components/content/ProductCarousel";
 import LargeHero from "../components/content/LargeHero";
 import OneThirdTwoThirdsSection from "../components/content/OneThirdTwoThirdsSection";
@@ -11,8 +11,8 @@ const IndexPage = () => {
     <div className="min-h-screen bg-background">
       <Header />
 
-      <main className="pt-8">
-        <FiftyFiftySection />
+      <main>
+        <HeroSlider />
         <ProductCarousel />
         <LargeHero />
         <OneThirdTwoThirdsSection />
