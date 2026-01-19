@@ -4,14 +4,26 @@ import {
   Send,
   X,
   Plus,
-  Calendar
+  Calendar,
+  Image as ImageIcon,
+  FileText,
+  Video,
+  Quote,
+  Link as LinkIcon,
+  Music,
+  Edit3,
+  Eye,
+  EyeOff,
+  Lock,
+  Clock,
+  Layout,
+  Megaphone,
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
   Select,
   SelectContent,
@@ -19,9 +31,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "@/components/ui/use-toast";
 import { useAuth } from '../auth/AuthProvider';
-import QuillEditor from './QuillEditor';
+import RichTextEditor from './RichTextEditor';
+import FeaturedImageSelector from './FeaturedImageSelector';
+import ExpandableCard from '../ui/ExpandableCard';
 import api from '../../utils/api';
 
 interface Category {
@@ -61,6 +77,14 @@ interface PostData {
   og_description: string;
   twitter_title: string;
   twitter_description: string;
+  featured_image_id?: number;
+  featured_image_url?: string;
+  featured_image_alt?: string;
+  featured_image_meta?: string;
+  post_format?: 'standard' | 'aside' | 'image' | 'video' | 'quote' | 'link' | 'audio';
+  visibility?: 'public' | 'password' | 'private';
+  template?: string;
+  promotion?: boolean;
 }
 
 interface NewPostEditorProps {
@@ -91,6 +115,10 @@ const NewPostEditor: React.FC<NewPostEditorProps> = ({ onBack, onSave, initialDa
     og_description: '',
     twitter_title: '',
     twitter_description: '',
+    post_format: 'standard',
+    visibility: 'public',
+    template: 'default',
+    promotion: false,
     ...initialData
   });
 
@@ -98,6 +126,7 @@ const NewPostEditor: React.FC<NewPostEditorProps> = ({ onBack, onSave, initialDa
   const [tags, setTags] = useState<Tag[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [newTagName, setNewTagName] = useState('');
+  const [editingField, setEditingField] = useState<string | null>(null);
 
   // Load data on component mount and when tenant changes
   useEffect(() => {
@@ -198,10 +227,8 @@ const NewPostEditor: React.FC<NewPostEditorProps> = ({ onBack, onSave, initialDa
     }
 
     try {
-      // Check if tag already exists
       const existingTag = tags.find(t => t.name.toLowerCase() === newTagName.toLowerCase());
       if (existingTag) {
-        // Just add it to the post if not already added
         if (!postData.tags.includes(existingTag.id)) {
           setPostData(prev => ({ ...prev, tags: [...prev.tags, existingTag.id] }));
         }
@@ -209,7 +236,6 @@ const NewPostEditor: React.FC<NewPostEditorProps> = ({ onBack, onSave, initialDa
         return;
       }
 
-      // Generate slug from tag name
       const slug = newTagName
         .toLowerCase()
         .replace(/[^a-z0-9 -]/g, '')
@@ -251,10 +277,8 @@ const NewPostEditor: React.FC<NewPostEditorProps> = ({ onBack, onSave, initialDa
         ...postData, 
         status: status || postData.status,
         published_at: status === 'published' ? new Date().toISOString() : postData.published_at,
-        // Explicitly include categories and tags
         categories: Array.isArray(postData.categories) ? postData.categories : [],
         tags: Array.isArray(postData.tags) ? postData.tags : [],
-        // For super admins, include tenant ID to properly set the post tenant
         ...(user?.is_super_admin && (currentTenantId || user.tenant_id) ? {
           tenantId: currentTenantId || user.tenant_id
         } : {})
@@ -287,214 +311,344 @@ const NewPostEditor: React.FC<NewPostEditorProps> = ({ onBack, onSave, initialDa
     return author ? `${author.first_name || ''} ${author.last_name || ''}`.trim() || author.email : 'Unknown';
   };
 
+  const formatOptions = [
+    { value: 'standard', label: 'Standard', icon: FileText },
+    { value: 'aside', label: 'Aside', icon: FileText },
+    { value: 'image', label: 'Image', icon: ImageIcon },
+    { value: 'video', label: 'Video', icon: Video },
+    { value: 'quote', label: 'Quote', icon: Quote },
+    { value: 'link', label: 'Link', icon: LinkIcon },
+    { value: 'audio', label: 'Audio', icon: Music },
+  ];
+
+  const renderEditButton = (field: string) => (
+    <button
+      type="button"
+      onClick={() => setEditingField(editingField === field ? null : field)}
+      className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+    >
+      Edit
+    </button>
+  );
+
   return (
-    <div className="min-h-screen bg-background p-6">
-      {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold text-foreground">
-          {initialData ? `Edit: ${postData.title || 'Untitled Post'}` : 'New Post'}
-        </h1>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column - Content and SEO */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Content Section */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Content</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label htmlFor="title">Title</Label>
-                <Input
-                  id="title"
-                  placeholder="Enter post title..."
-                  value={postData.title}
-                  onChange={(e) => handleInputChange('title', e.target.value)}
-                  className="mt-2"
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="content">Content</Label>
-                <div className="mt-2">
-                  <QuillEditor
-                    content={postData.content}
-                    onChange={(html) => handleInputChange('content', html)}
-                    placeholder="This is a sample post to get you started."
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* SEO Section */}
-          <Card>
-            <CardHeader>
-              <CardTitle>SEO</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label htmlFor="meta_title">Meta Title</Label>
-                <Input
-                  id="meta_title"
-                  placeholder="Enter meta title..."
-                  value={postData.meta_title}
-                  onChange={(e) => handleInputChange('meta_title', e.target.value)}
-                  className="mt-2"
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="meta_description">Meta Description</Label>
-                <Textarea
-                  id="meta_description"
-                  placeholder="Enter meta description..."
-                  value={postData.meta_description}
-                  onChange={(e) => handleInputChange('meta_description', e.target.value)}
-                  className="mt-2"
-                  rows={4}
-                />
-              </div>
-            </CardContent>
-          </Card>
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* Header */}
+        <div className="mb-6 flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-gray-900">
+            {initialData ? `Edit: ${postData.title || 'Untitled Post'}` : 'Add New Post'}
+          </h1>
+          <Button
+            variant="ghost"
+            onClick={onBack}
+            className="text-gray-600 hover:text-gray-900"
+          >
+            <X className="h-4 w-4 mr-2" />
+            Dismiss
+          </Button>
         </div>
 
-        {/* Right Column - Publishing */}
-        <div className="lg:col-span-1">
-          <Card>
-            <CardHeader>
-              <CardTitle>Publishing</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label htmlFor="status">Status</Label>
-                <Select 
-                  value={postData.status} 
-                  onValueChange={(value: any) => handleInputChange('status', value)}
-                >
-                  <SelectTrigger className="mt-2">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="draft">Draft</SelectItem>
-                    <SelectItem value="published">Published</SelectItem>
-                    <SelectItem value="private">Private</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div>
-                <Label htmlFor="publish_date">Publish date</Label>
-                <div className="relative mt-2">
-                  <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="publish_date"
-                    type="date"
-                    value={postData.published_at ? new Date(postData.published_at).toISOString().split('T')[0] : ''}
-                    onChange={(e) => handleInputChange('published_at', e.target.value ? new Date(e.target.value).toISOString() : null)}
-                    className="pl-10"
-                    placeholder="Pick a date"
-                  />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Main Content Area */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Title Input */}
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
+              <Input
+                placeholder="Legend Of X, Part 3"
+                value={postData.title}
+                onChange={(e) => handleInputChange('title', e.target.value)}
+                className="text-2xl font-semibold border-0 p-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+              />
+            </div>
+
+            {/* Add Media Button */}
+            <div>
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+              >
+                <ImageIcon className="h-4 w-4 mr-2" />
+                Add Media
+              </Button>
+            </div>
+
+            {/* Rich Text Editor */}
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
+              <RichTextEditor
+                content={postData.content}
+                onChange={(html) => handleInputChange('content', html)}
+                placeholder="Start writing or type / to choose a block"
+              />
+            </div>
+          </div>
+
+          {/* Right Sidebar */}
+          <div className="lg:col-span-1 space-y-6">
+            {/* Publish Card */}
+            <ExpandableCard title="Publish" defaultExpanded={true}>
+              <div className="space-y-4">
+                {/* Status */}
+                <div className="flex items-center justify-between py-2 border-b border-gray-100">
+                  <div>
+                    <span className="text-sm font-medium text-gray-700">Status: </span>
+                    <span className="text-sm text-gray-600 capitalize">{postData.status}</span>
+                  </div>
+                  {renderEditButton('status')}
                 </div>
-              </div>
-              
-              <div>
-                <Label htmlFor="author">Author</Label>
-                <Select 
-                  value={postData.author_id.toString()} 
-                  onValueChange={(value) => handleInputChange('author_id', parseInt(value))}
-                >
-                  <SelectTrigger className="mt-2">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {users.map(user => (
-                      <SelectItem key={user.id} value={user.id.toString()}>
-                        {user.first_name || user.last_name 
-                          ? `${user.first_name || ''} ${user.last_name || ''}`.trim()
-                          : user.email
-                        }
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div>
-                <Label htmlFor="tags">Tags</Label>
-                <div className="mt-2 space-y-2">
-                  <div className="flex gap-2">
-                    <Input
-                      id="tags"
-                      placeholder="Add a tag and press Enter"
-                      value={newTagName}
-                      onChange={(e) => setNewTagName(e.target.value)}
-                      onKeyPress={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          handleAddNewTag();
-                        }
+                {editingField === 'status' && (
+                  <Select 
+                    value={postData.status} 
+                    onValueChange={(value: any) => {
+                      handleInputChange('status', value);
+                      setEditingField(null);
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="draft">Draft</SelectItem>
+                      <SelectItem value="published">Published</SelectItem>
+                      <SelectItem value="private">Private</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+
+                {/* Visibility */}
+                <div className="flex items-center justify-between py-2 border-b border-gray-100">
+                  <div>
+                    <span className="text-sm font-medium text-gray-700">Visibility: </span>
+                    <span className="text-sm text-gray-600 capitalize">{postData.visibility || 'Public'}</span>
+                  </div>
+                  {renderEditButton('visibility')}
+                </div>
+                {editingField === 'visibility' && (
+                  <Select 
+                    value={postData.visibility || 'public'} 
+                    onValueChange={(value: any) => {
+                      handleInputChange('visibility', value);
+                      setEditingField(null);
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="public">Public</SelectItem>
+                      <SelectItem value="password">Password Protected</SelectItem>
+                      <SelectItem value="private">Private</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+
+                {/* Schedule */}
+                <div className="flex items-center justify-between py-2 border-b border-gray-100">
+                  <div>
+                    <span className="text-sm font-medium text-gray-700">Schedule: </span>
+                    <span className="text-sm text-gray-600">
+                      {postData.published_at ? new Date(postData.published_at).toLocaleDateString() : 'Off'}
+                    </span>
+                  </div>
+                  {renderEditButton('schedule')}
+                </div>
+                {editingField === 'schedule' && (
+                  <Input
+                    type="datetime-local"
+                    value={postData.published_at ? new Date(postData.published_at).toISOString().slice(0, 16) : ''}
+                    onChange={(e) => {
+                      handleInputChange('published_at', e.target.value ? new Date(e.target.value).toISOString() : null);
+                      setEditingField(null);
+                    }}
+                  />
+                )}
+
+                {/* Template */}
+                <div className="flex items-center justify-between py-2 border-b border-gray-100">
+                  <div>
+                    <span className="text-sm font-medium text-gray-700">Template: </span>
+                    <span className="text-sm text-gray-600 capitalize">{postData.template || 'Default'}</span>
+                  </div>
+                  {renderEditButton('template')}
+                </div>
+                {editingField === 'template' && (
+                  <Select 
+                    value={postData.template || 'default'} 
+                    onValueChange={(value: any) => {
+                      handleInputChange('template', value);
+                      setEditingField(null);
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="default">Default</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+
+                {/* Promotion */}
+                <div className="flex items-center justify-between py-2 border-b border-gray-100">
+                  <div>
+                    <span className="text-sm font-medium text-gray-700">Promotion: </span>
+                    <span className="text-sm text-gray-600">{postData.promotion ? 'On' : 'Off'}</span>
+                  </div>
+                  {renderEditButton('promotion')}
+                </div>
+                {editingField === 'promotion' && (
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      checked={postData.promotion || false}
+                      onCheckedChange={(checked) => {
+                        handleInputChange('promotion', checked);
+                        setEditingField(null);
                       }}
                     />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="icon"
-                      onClick={handleAddNewTag}
-                      disabled={!newTagName.trim()}
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Button>
+                    <Label>Enable promotion</Label>
                   </div>
-                  
-                  {/* Selected Tags */}
-                  {getSelectedTags().length > 0 && (
-                    <div className="flex flex-wrap gap-2">
-                      {getSelectedTags().map(tag => (
-                        <Badge 
-                          key={tag.id} 
-                          variant="secondary"
-                          className="flex items-center gap-1"
-                        >
-                          {tag.name}
-                          <button
-                            onClick={() => handleRemoveTag(tag.id)}
-                            className="ml-1 hover:text-destructive"
-                          >
-                            <X className="h-3 w-3" />
-                          </button>
-                        </Badge>
-                      ))}
-                    </div>
-                  )}
+                )}
+
+                {/* Action Buttons */}
+                <div className="flex gap-2 pt-4 border-t border-gray-100">
+                  <Button
+                    onClick={() => handleSave('draft')}
+                    disabled={isSaving}
+                    variant="cms-secondary"
+                    className="flex-1"
+                  >
+                    <Save className="h-4 w-4 mr-2" />
+                    Save Draft
+                  </Button>
+                  <Button
+                    onClick={() => handleSave('published')}
+                    disabled={isSaving || !postData.title.trim()}
+                    variant="cms-primary"
+                    className="flex-1"
+                  >
+                    <Send className="h-4 w-4 mr-2" />
+                    Publish
+                  </Button>
                 </div>
               </div>
-              
-              {/* Action Buttons */}
-              <div className="flex gap-2 pt-4">
-                <Button
-                  onClick={() => handleSave('draft')}
-                  disabled={isSaving}
-                  className="flex-1"
-                  variant="default"
-                >
-                  <Save className="h-4 w-4 mr-2" />
-                  Save
-                </Button>
-                <Button
-                  onClick={() => handleSave('published')}
-                  disabled={isSaving || !postData.title.trim()}
-                  className="flex-1"
-                  variant="outline"
-                >
-                  <Send className="h-4 w-4 mr-2" />
-                  Save & Publish
-                </Button>
+            </ExpandableCard>
+
+            {/* Format Card */}
+            <ExpandableCard title="Format" defaultExpanded={true}>
+              <RadioGroup
+                value={postData.post_format || 'standard'}
+                onValueChange={(value: any) => handleInputChange('post_format', value)}
+              >
+                <div className="space-y-2">
+                  {formatOptions.map((format) => {
+                    const Icon = format.icon;
+                    return (
+                      <div key={format.value} className="flex items-center space-x-2">
+                        <RadioGroupItem value={format.value} id={format.value} />
+                        <Label htmlFor={format.value} className="flex items-center gap-2 cursor-pointer">
+                          <Icon className="h-4 w-4" />
+                          <span>{format.label}</span>
+                        </Label>
+                      </div>
+                    );
+                  })}
+                </div>
+              </RadioGroup>
+            </ExpandableCard>
+
+            {/* Featured Image Card */}
+            <ExpandableCard title="Image Settings" defaultExpanded={true}>
+              <FeaturedImageSelector
+                imageUrl={postData.featured_image_url}
+                imageId={postData.featured_image_id}
+                altText={postData.featured_image_alt || ''}
+                metaDescription={postData.featured_image_meta || ''}
+                onImageChange={(url, imageId) => {
+                  handleInputChange('featured_image_url', url);
+                  if (imageId) handleInputChange('featured_image_id', imageId);
+                }}
+                onAltTextChange={(altText) => handleInputChange('featured_image_alt', altText)}
+                onMetaDescriptionChange={(meta) => handleInputChange('featured_image_meta', meta)}
+              />
+            </ExpandableCard>
+
+            {/* Page Attributes Card */}
+            <ExpandableCard title="Page Attributes" defaultExpanded={false}>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="author">Author</Label>
+                  <Select 
+                    value={postData.author_id.toString()} 
+                    onValueChange={(value) => handleInputChange('author_id', parseInt(value))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {users.map(user => (
+                        <SelectItem key={user.id} value={user.id.toString()}>
+                          {user.first_name || user.last_name 
+                            ? `${user.first_name || ''} ${user.last_name || ''}`.trim()
+                            : user.email
+                          }
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="tags">Tags</Label>
+                  <div className="mt-2 space-y-2">
+                    <div className="flex gap-2">
+                      <Input
+                        id="tags"
+                        placeholder="Add a tag"
+                        value={newTagName}
+                        onChange={(e) => setNewTagName(e.target.value)}
+                        onKeyPress={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleAddNewTag();
+                          }
+                        }}
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        onClick={handleAddNewTag}
+                        disabled={!newTagName.trim()}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    
+                    {getSelectedTags().length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {getSelectedTags().map(tag => (
+                          <Badge 
+                            key={tag.id} 
+                            variant="secondary"
+                            className="flex items-center gap-1"
+                          >
+                            {tag.name}
+                            <button
+                              onClick={() => handleRemoveTag(tag.id)}
+                              className="ml-1 hover:text-destructive"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
-            </CardContent>
-          </Card>
+            </ExpandableCard>
+          </div>
         </div>
       </div>
     </div>

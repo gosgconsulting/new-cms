@@ -40,15 +40,24 @@ const createSequelizeInstance = () => {
 
   const config = parseConnectionString(connectionString);
 
+  // Determine if we should use SSL
+  // Use SSL for remote connections (Railway, cloud), but make it optional for localhost
+  const isLocalhost = config.host === 'localhost' || 
+                     config.host === '127.0.0.1' || 
+                     config.host === '::1' ||
+                     connectionString.includes('localhost') ||
+                     connectionString.includes('127.0.0.1');
+  const useSSL = !isLocalhost || process.env.DATABASE_SSL === 'true';
+
   const sequelize = new Sequelize(config.database, config.username, config.password, {
     host: config.host,
     port: config.port,
     dialect: 'postgres',
-    dialectOptions: {
+    dialectOptions: useSSL ? {
       ssl: {
         rejectUnauthorized: false, // For Railway and other cloud providers
       },
-    },
+    } : {},
     pool: {
       max: 20,
       min: 0,

@@ -23,6 +23,8 @@ const buttonVariants = cva(
         branded: "bg-brandPurple hover:bg-brandPurple/90 text-white",
         "cta-gradient": "bg-gradient-to-r from-[#9b87f5] via-[#7E69AB] to-[#0EA5E9] text-white font-semibold rounded-full shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300",
         "cta-outline": "border-2 border-[#9b87f5] text-[#9b87f5] bg-transparent hover:bg-[#9b87f5] hover:text-white rounded-full font-semibold transition-all duration-300",
+        "cms-primary": "bg-[#7E69AB] text-white hover:bg-[#6B5A8F] rounded-lg font-medium shadow-sm",
+        "cms-secondary": "border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 rounded-lg font-medium",
       },
       size: {
         default: "h-10 px-4 py-2",

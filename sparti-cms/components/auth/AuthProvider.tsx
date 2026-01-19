@@ -143,132 +143,146 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   const signIn = useCallback(async (email: string, password: string, themeSlug?: string): Promise<{ success: boolean; error?: string }> => {
-    try {
-      // In development, use relative URLs to leverage Vite proxy
-      const API_BASE_URL = import.meta.env.DEV 
-        ? '' // Use relative URLs in development (Vite proxy handles /api)
-        : (import.meta.env.VITE_API_BASE_URL || 'http://localhost:4173');
-      
-      // Include themeSlug in query string if provided (for backend validation)
-      const loginUrl = themeSlug
-        ? `${API_BASE_URL}/api/auth/login?themeSlug=${encodeURIComponent(themeSlug)}`
-        : `${API_BASE_URL}/api/auth/login`;
-      
-      const response = await fetch(loginUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(currentTenantId ? { 'X-Tenant-Id': currentTenantId } : {})
-        },
-        body: JSON.stringify({ email, password }),
-      });
+    // Retry logic for network failures
+    const maxRetries = 2;
+    let lastError: Error | null = null;
 
-      // Check if response is ok and has content
-      if (!response.ok) {
-        // Try to parse error response as JSON
-        let errorData: any = {};
-        let rawText = '';
-        try {
-          rawText = await response.text();
-          errorData = rawText ? JSON.parse(rawText) : {};
-        } catch {
-          // ignore JSON parse errors
-        }
-
-        // Map common statuses to friendly messages
-        let errorMessage =
-          errorData.message ||
-          errorData.error ||
-          `Login failed (${response.status})`;
-
-        if (response.status === 401) {
-          errorMessage = 'Invalid email or password.';
-        } else if (response.status === 503) {
-          errorMessage = 'Database is unavailable. Please try again shortly.';
-        } else if (response.status >= 500) {
-          errorMessage = 'Server error. Please try again in a moment.';
-        }
-
-        console.error('[testing] Login failed:', errorMessage);
-        return { 
-          success: false, 
-          error: errorMessage
-        };
-      }
-
-      // Parse response as JSON
-      let data;
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
-        const text = await response.text();
-        if (!text) {
-          throw new Error('Empty response from server');
-        }
-        data = JSON.parse(text);
-      } catch (parseError) {
-        console.error('[testing] Failed to parse login response:', parseError);
-        return { 
-          success: false, 
-          error: 'Invalid response from server. Please try again.' 
-        };
-      }
+        // In development, use relative URLs to leverage Vite proxy
+        const API_BASE_URL = import.meta.env.DEV 
+          ? '' // Use relative URLs in development (Vite proxy handles /api)
+          : (import.meta.env.VITE_API_BASE_URL || 'http://localhost:4173');
+        
+        // Include themeSlug in query string if provided (for backend validation)
+        const loginUrl = themeSlug
+          ? `${API_BASE_URL}/api/auth/login?themeSlug=${encodeURIComponent(themeSlug)}`
+          : `${API_BASE_URL}/api/auth/login`;
+        
+        const response = await fetch(loginUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(currentTenantId ? { 'X-Tenant-Id': currentTenantId } : {})
+          },
+          body: JSON.stringify({ email, password }),
+        });
 
-      if (data.success && data.user) {
-        const userData: User = {
-          id: data.user.id.toString(),
-          first_name: data.user.first_name,
-          last_name: data.user.last_name,
-          email: data.user.email,
-          role: data.user.role,
-          tenant_id: data.user.tenant_id,
-          is_super_admin: data.user.is_super_admin || false
-        };
-        
-        setUser(userData);
-        localStorage.setItem('sparti-user-session', JSON.stringify({ ...userData, token: data.token }));
-        
-        // Set tenant ID from user.tenant_id only once on sign-in
-        // This ensures it's set on sign-in but not when user is updated later
-        if (!hasSetTenantFromSignIn.current) {
-          const tenantIdToSet = userData.tenant_id && !userData.is_super_admin ? userData.tenant_id : null;
-          
-          if (tenantIdToSet) {
-            setCurrentTenantId(tenantIdToSet);
-            localStorage.setItem('sparti-current-tenant-id', tenantIdToSet);
-            hasSetTenantFromSignIn.current = true;
+        // Check if response is ok and has content
+        if (!response.ok) {
+          // Try to parse error response as JSON
+          let errorData: any = {};
+          let rawText = '';
+          try {
+            rawText = await response.text();
+            errorData = rawText ? JSON.parse(rawText) : {};
+          } catch {
+            // ignore JSON parse errors
           }
+
+          // Map common statuses to friendly messages
+          let errorMessage =
+            errorData.message ||
+            errorData.error ||
+            `Login failed (${response.status})`;
+
+          if (response.status === 401) {
+            errorMessage = 'Invalid email or password.';
+          } else if (response.status === 503) {
+            errorMessage = 'Database is unavailable. Please try again shortly.';
+          } else if (response.status >= 500) {
+            errorMessage = 'Server error. Please try again in a moment.';
+          }
+
+          console.error('[testing] Login failed:', errorMessage);
+          return { 
+            success: false, 
+            error: errorMessage
+          };
         }
-        
-        return { success: true };
-      } else {
-        // Return the specific error message from the server, or fallback to generic message
-        const errorMessage = data.message || data.error || 'Invalid credentials';
-        console.error('[testing] Login failed:', errorMessage);
+
+        // Parse response as JSON
+        let data;
+        try {
+          const text = await response.text();
+          if (!text) {
+            throw new Error('Empty response from server');
+          }
+          data = JSON.parse(text);
+        } catch (parseError) {
+          console.error('[testing] Failed to parse login response:', parseError);
+          return { 
+            success: false, 
+            error: 'Invalid response from server. Please try again.' 
+          };
+        }
+
+        if (data.success && data.user) {
+          const userData: User = {
+            id: data.user.id.toString(),
+            first_name: data.user.first_name,
+            last_name: data.user.last_name,
+            email: data.user.email,
+            role: data.user.role,
+            tenant_id: data.user.tenant_id,
+            is_super_admin: data.user.is_super_admin || false
+          };
+          
+          setUser(userData);
+          localStorage.setItem('sparti-user-session', JSON.stringify({ ...userData, token: data.token }));
+          
+          // Set tenant ID from user.tenant_id only once on sign-in
+          // This ensures it's set on sign-in but not when user is updated later
+          if (!hasSetTenantFromSignIn.current) {
+            const tenantIdToSet = userData.tenant_id && !userData.is_super_admin ? userData.tenant_id : null;
+            
+            if (tenantIdToSet) {
+              setCurrentTenantId(tenantIdToSet);
+              localStorage.setItem('sparti-current-tenant-id', tenantIdToSet);
+              hasSetTenantFromSignIn.current = true;
+            }
+          }
+          
+          return { success: true };
+        } else {
+          // Return the specific error message from the server, or fallback to generic message
+          const errorMessage = data.message || data.error || 'Invalid credentials';
+          console.error('[testing] Login failed:', errorMessage);
+          return { 
+            success: false, 
+            error: errorMessage
+          };
+        }
+      } catch (error) {
+        console.error('[testing] Login error:', error);
+        // Check if it's a network error and we have retries left
+        if (error instanceof TypeError && error.message.includes('fetch') && attempt < maxRetries) {
+          lastError = error;
+          await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1))); // Exponential backoff
+          continue;
+        }
+        // Check if it's a JSON parse error
+        if (error instanceof SyntaxError && error.message.includes('JSON')) {
+          return { 
+            success: false, 
+            error: 'Invalid response from server. Please try again.' 
+          };
+        }
+        // For other errors or if no retries left, return error
         return { 
           success: false, 
-          error: errorMessage
+          error: error instanceof Error ? error.message : 'Login failed. Please try again.' 
         };
       }
-    } catch (error) {
-      console.error('[testing] Login error:', error);
-      // Check if it's a network error
-      if (error instanceof TypeError && error.message.includes('fetch')) {
-        return { 
-          success: false, 
-          error: 'Unable to connect to server. Please check your connection and try again.' 
-        };
-      }
-      // Check if it's a JSON parse error
-      if (error instanceof SyntaxError && error.message.includes('JSON')) {
-        return { 
-          success: false, 
-          error: 'Invalid response from server. Please try again.' 
-        };
-      }
-      return { 
-        success: false, 
-        error: error instanceof Error ? error.message : 'Login failed. Please try again.' 
-      };
     }
+
+    // If we exhausted retries, return the last error
+    return {
+      success: false,
+      error: lastError instanceof Error 
+        ? `Connection failed after ${maxRetries + 1} attempts: ${lastError.message}`
+        : 'Login failed. Please check your connection and try again.'
+    };
   }, [currentTenantId]);
 
   const signInWithAccessKey = useCallback(async (accessKey: string): Promise<{ success: boolean; error?: string }> => {

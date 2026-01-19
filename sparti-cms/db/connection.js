@@ -134,6 +134,8 @@ const getPool = () => {
       }
       const isLocalhost = connString.includes('localhost') || connString.includes('127.0.0.1') || connString.includes('::1');
       const useSSL = !isLocalhost || process.env.DATABASE_SSL === 'true';
+      // Increase timeout for localhost connections to allow more time for PostgreSQL to respond
+      const connectionTimeout = isLocalhost ? 30000 : 10000;
       
       // Database configuration
       const dbConfig = {
@@ -141,7 +143,7 @@ const getPool = () => {
         ...(useSSL ? { ssl: { rejectUnauthorized: false } } : {}),
         max: 20,
         idleTimeoutMillis: 30000,
-        connectionTimeoutMillis: 10000,
+        connectionTimeoutMillis: connectionTimeout,
       };
       
       // Create connection pool
@@ -181,7 +183,15 @@ const getPool = () => {
 export async function query(text, params, retries = 3) {
   let lastError;
   
-  for (let attempt = 1; attempt <= retries; attempt++) {
+  // Determine if this is a localhost connection for enhanced retry logic
+  const connString = process.env.DATABASE_PUBLIC_URL || process.env.DATABASE_URL || '';
+  const isLocalhost = connString.includes('localhost') || 
+                     connString.includes('127.0.0.1') || 
+                     connString.includes('::1');
+  // Increase retries for localhost connections to handle slow startup
+  const maxRetries = isLocalhost ? 5 : retries;
+  
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
     let client;
     try {
       // Get pool (lazy initialization ensures dotenv is loaded)
@@ -192,11 +202,12 @@ export async function query(text, params, retries = 3) {
         return await poolInstance.query(text, params);
       }
 
-      // Get a client from the pool with timeout
+      // Get a client from the pool with timeout (longer for localhost)
+      const connectionTimeout = isLocalhost ? 30000 : 10000;
       client = await Promise.race([
         poolInstance.connect(),
         new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Connection timeout after 10 seconds')), 10000)
+          setTimeout(() => reject(new Error(`Connection timeout after ${connectionTimeout / 1000} seconds`)), connectionTimeout)
         )
       ]);
       
@@ -242,18 +253,31 @@ export async function query(text, params, retries = 3) {
       if (error.code === 'ECONNRESET' || error.code === 'ECONNREFUSED' || error.code === 'ETIMEDOUT') {
         if (attempt === 1) {
           console.error('[testing] Database connection issue detected. Possible causes:');
-          console.error('[testing]   - Database server is not running or not accessible');
-          console.error('[testing]   - Network connectivity issues');
-          console.error('[testing]   - Incorrect connection string or credentials');
-          console.error('[testing]   - Firewall blocking the connection');
-          console.error('[testing]   - Database server may be paused (Railway free tier)');
+          if (isLocalhost) {
+            console.error('[testing]   - PostgreSQL service is not running locally');
+            console.error('[testing]   - PostgreSQL is starting up (may take a few seconds)');
+            console.error('[testing]   - Incorrect connection string or credentials in .env');
+            console.error('[testing]   - PostgreSQL is not listening on the expected port');
+          } else {
+            console.error('[testing]   - Database server is not running or not accessible');
+            console.error('[testing]   - Network connectivity issues');
+            console.error('[testing]   - Incorrect connection string or credentials');
+            console.error('[testing]   - Firewall blocking the connection');
+            console.error('[testing]   - Database server may be paused (Railway free tier)');
+          }
         }
       }
       
-      // Wait before retrying (exponential backoff)
-      if (attempt < retries) {
-        const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
-        console.log(`[testing] Retrying query in ${delay}ms...`);
+      // Wait before retrying (exponential backoff, longer for localhost ECONNREFUSED)
+      if (attempt < maxRetries) {
+        let delay;
+        if (isLocalhost && error.code === 'ECONNREFUSED') {
+          // Longer delays for localhost connection refused (PostgreSQL may be starting)
+          delay = Math.min(2000 * Math.pow(2, attempt - 1), 10000);
+        } else {
+          delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
+        }
+        console.log(`[testing] Retrying query in ${delay}ms... (attempt ${attempt}/${maxRetries})`);
         await new Promise(resolve => setTimeout(resolve, delay));
       }
     }

@@ -13,7 +13,7 @@
 
 import React, { lazy, Suspense } from 'react';
 import { createRoot } from 'react-dom/client';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -82,7 +82,8 @@ const queryClient = new QueryClient({
   },
 });
 
-const App = () => {
+// Create theme router with future flags
+const createThemeRouter = () => {
   const themeSlug = getThemeSlug();
   const themeName = themeNames[themeSlug] || themeSlug;
   const ThemeComponent = loadTheme(themeSlug);
@@ -92,48 +93,63 @@ const App = () => {
     ? ((window as any).__CMS_TENANT__ || undefined)
     : undefined;
 
+  return createBrowserRouter(
+    [
+      {
+        path: "/",
+        element: (
+          <ErrorBoundary>
+            <Suspense fallback={
+              <div className="min-h-screen flex items-center justify-center">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                  <p className="text-muted-foreground">Loading theme...</p>
+                </div>
+              </div>
+            }>
+              <ThemeComponent 
+                tenantName={themeName} 
+                tenantSlug={themeSlug}
+                tenantId={tenantId}
+              />
+            </Suspense>
+          </ErrorBoundary>
+        ),
+      },
+      {
+        path: "*",
+        element: (
+          <div className="min-h-screen flex items-center justify-center p-4">
+            <div className="text-center">
+              <h1 className="text-2xl font-bold mb-2">Theme Development Mode</h1>
+              <p className="text-muted-foreground mb-4">
+                Theme: <code className="bg-muted px-2 py-1 rounded">{themeSlug}</code>
+              </p>
+              <p className="text-sm text-muted-foreground">
+                All routes redirect to the theme at root (/)
+              </p>
+            </div>
+          </div>
+        ),
+      },
+    ],
+    {
+      future: {
+        v7_relativeSplatPath: true,
+      },
+    }
+  );
+};
+
+const App = () => {
+  const router = createThemeRouter();
+
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={
-              <ErrorBoundary>
-                <Suspense fallback={
-                  <div className="min-h-screen flex items-center justify-center">
-                    <div className="text-center">
-                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-                      <p className="text-muted-foreground">Loading theme...</p>
-                    </div>
-                  </div>
-                }>
-                  <ThemeComponent 
-                    tenantName={themeName} 
-                    tenantSlug={themeSlug}
-                    tenantId={tenantId}
-                  />
-                </Suspense>
-              </ErrorBoundary>
-            } />
-            
-            {/* Catch all - redirect to theme */}
-            <Route path="*" element={
-              <div className="min-h-screen flex items-center justify-center p-4">
-                <div className="text-center">
-                  <h1 className="text-2xl font-bold mb-2">Theme Development Mode</h1>
-                  <p className="text-muted-foreground mb-4">
-                    Theme: <code className="bg-muted px-2 py-1 rounded">{themeSlug}</code>
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    All routes redirect to the theme at root (/)
-                  </p>
-                </div>
-              </div>
-            } />
-          </Routes>
-        </BrowserRouter>
+        <RouterProvider router={router} />
       </TooltipProvider>
     </QueryClientProvider>
   );

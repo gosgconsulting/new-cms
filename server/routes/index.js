@@ -5,8 +5,26 @@ import { renderPageBySlug } from '../../sparti-cms/render/pageRenderer.js';
 import { getPageCache, setPageCache } from '../../sparti-cms/cache/index.js';
 
 // Import all route modules
+// #region agent log
+fetch('http://127.0.0.1:7243/ingest/6c8a92dc-f11e-4f7a-84d0-9dfb6f553501',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'server/routes/index.js:7',message:'Starting route imports',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'J'})}).catch(()=>{});
+// #endregion
+
+// #region agent log
+fetch('http://127.0.0.1:7243/ingest/6c8a92dc-f11e-4f7a-84d0-9dfb6f553501',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'server/routes/index.js:10',message:'About to import health.js',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'J'})}).catch(()=>{});
+// #endregion
 import healthRoutes from './health.js';
+// #region agent log
+fetch('http://127.0.0.1:7243/ingest/6c8a92dc-f11e-4f7a-84d0-9dfb6f553501',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'server/routes/index.js:13',message:'health.js imported successfully',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'J'})}).catch(()=>{});
+// #endregion
+
+// #region agent log
+fetch('http://127.0.0.1:7243/ingest/6c8a92dc-f11e-4f7a-84d0-9dfb6f553501',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'server/routes/index.js:16',message:'About to import auth.js',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'K'})}).catch(()=>{});
+// #endregion
 import authRoutes from './auth.js';
+// #region agent log
+fetch('http://127.0.0.1:7243/ingest/6c8a92dc-f11e-4f7a-84d0-9dfb6f553501',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'server/routes/index.js:18',message:'auth.js imported successfully',data:{hasAuthRoutes:!!authRoutes},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'K'})}).catch(()=>{});
+// #endregion
+
 import contentRoutes from './content.js';
 import formsRoutes from './forms.js';
 import crmRoutes from './crm.js';

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import type { ComponentSchema } from "../../../sparti-cms/types/schema";
-import FlowbiteHeroSection from "@/libraries/flowbite/components/FlowbiteHeroSection";
+import BannerSection from "./components/BannerSection";
 import FlowbiteTestimonialsSection from "@/libraries/flowbite/components/FlowbiteTestimonialsSection";
 import FlowbitePainPointSection from "@/libraries/flowbite/components/FlowbitePainPointSection";
 import FlowbiteContentSection from "@/libraries/flowbite/components/FlowbiteContentSection";
@@ -188,16 +188,12 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
 
   // Landing page schemas
   const heroSchema: ComponentSchema = {
-    type: "flowbite-hero-section",
+    type: "banner-section",
     props: {
-      showCarousel: false,
+      backgroundColor: "#2A2C2E",
+      backgroundImage: `/theme/${themeSlug}/assets/placeholder.svg`,
     },
     items: [
-      {
-        key: "motto",
-        type: "text",
-        content: "Unlimited design, one simple plan — built to convert.",
-      },
       {
         key: "title",
         type: "heading",
@@ -564,7 +560,7 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
     return (
       <>
         <div id="hero">
-          <FlowbiteHeroSection component={heroSchema} />
+          <BannerSection component={heroSchema} />
         </div>
 
         <div id="challenge" className="scroll-mt-20">

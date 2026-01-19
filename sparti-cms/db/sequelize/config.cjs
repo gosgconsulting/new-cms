@@ -29,6 +29,21 @@ if (!connectionString) {
 
 const config = parseConnectionString(connectionString);
 
+// Determine if we should use SSL
+// Use SSL for remote connections (Railway, cloud), but make it optional for localhost
+const isLocalhost = config.host === 'localhost' || 
+                   config.host === '127.0.0.1' || 
+                   config.host === '::1' ||
+                   connectionString.includes('localhost') ||
+                   connectionString.includes('127.0.0.1');
+const useSSL = !isLocalhost || process.env.DATABASE_SSL === 'true';
+
+const dialectOptions = useSSL ? {
+  ssl: {
+    rejectUnauthorized: false,
+  },
+} : {};
+
 module.exports = {
   development: {
     username: config.username,
@@ -37,11 +52,7 @@ module.exports = {
     host: config.host,
     port: config.port,
     dialect: 'postgres',
-    dialectOptions: {
-      ssl: {
-        rejectUnauthorized: false,
-      },
-    },
+    dialectOptions: dialectOptions,
   },
   production: {
     username: config.username,
@@ -50,10 +61,6 @@ module.exports = {
     host: config.host,
     port: config.port,
     dialect: 'postgres',
-    dialectOptions: {
-      ssl: {
-        rejectUnauthorized: false,
-      },
-    },
+    dialectOptions: dialectOptions,
   },
 };

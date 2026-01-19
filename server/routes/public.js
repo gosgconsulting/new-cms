@@ -8,10 +8,19 @@ import {
   getThemeSettings,
   getBrandingSettings
 } from '../../sparti-cms/db/index.js';
-import models, { sequelize } from '../../sparti-cms/db/sequelize/models/index.js';
-import { Op } from 'sequelize';
 
-const { Post, Category, Tag } = models;
+// Lazy-load Sequelize and models inside handlers to avoid boot-time crashes if DATABASE_URL is missing
+const loadSequelizeModels = async () => {
+  const modelsModule = await import('../../sparti-cms/db/sequelize/models/index.js');
+  const sequelizeModule = await import('../../sparti-cms/db/sequelize/models/index.js');
+  const sequelizeInstance = (await import('../../sparti-cms/db/sequelize/models/index.js')).sequelize;
+  const { Op } = await import('sequelize');
+  return {
+    models: modelsModule.default,
+    sequelize: sequelizeInstance,
+    Op
+  };
+};
 
 const router = express.Router();
 
@@ -43,6 +52,7 @@ const errorResponse = (error, code, status = 500) => {
 router.get('/pages', async (req, res) => {
   try {
     const tenantId = req.tenantId;
+    const { sequelize } = await loadSequelizeModels();
     const { status, page_type, limit, offset } = req.query;
     
     // Build query with Sequelize
@@ -107,6 +117,7 @@ router.get('/pages', async (req, res) => {
 router.get('/pages/:slug', async (req, res) => {
   try {
     const tenantId = req.tenantId;
+    const { sequelize } = await loadSequelizeModels();
     const { language } = req.query;
     let slug = req.params.slug;
     
@@ -264,6 +275,8 @@ router.get('/global-schema', async (req, res) => {
 router.get('/blog/posts', async (req, res) => {
   try {
     const tenantId = req.tenantId;
+    const { sequelize, models, Op } = await loadSequelizeModels();
+    const { Post, Category, Tag } = models;
     const { status, limit, offset } = req.query;
     
     // Build where clause
@@ -367,6 +380,8 @@ router.get('/blog/posts/:slug', async (req, res) => {
   try {
     const tenantId = req.tenantId;
     const slug = req.params.slug;
+    const { models } = await loadSequelizeModels();
+    const { Post, Category, Tag } = models;
     
     // Build where clause
     const whereClause = { slug };
@@ -610,4 +625,3 @@ router.get('/theme/:themeSlug/styles', async (req, res) => {
 });
 
 export default router;
-

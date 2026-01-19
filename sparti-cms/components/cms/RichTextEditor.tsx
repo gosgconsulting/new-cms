@@ -1,179 +1,136 @@
-import React from 'react';
-import { useEditor, EditorContent } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
-import TextAlign from '@tiptap/extension-text-align';
-import {
-  Bold,
-  Italic,
-  List,
-  ListOrdered,
-  Heading1,
-  Heading2,
-  Heading3,
-  AlignLeft,
-  AlignCenter,
-  AlignRight,
-  Undo,
-  Redo,
-} from 'lucide-react';
-import { Button } from '../../../src/components/ui/button';
-import { Separator } from '../../../src/components/ui/separator';
+import React, { useMemo, useRef, useEffect, useState } from 'react';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 
 interface RichTextEditorProps {
   content: string;
   onChange: (content: string) => void;
+  placeholder?: string;
 }
 
-const RichTextEditor: React.FC<RichTextEditorProps> = ({ content, onChange }) => {
-  const editor = useEditor({
-    extensions: [
-      StarterKit,
-      TextAlign.configure({
-        types: ['heading', 'paragraph'],
-      }),
-    ],
-    content,
-    onUpdate: ({ editor }) => {
-      onChange(editor.getHTML());
+const RichTextEditor: React.FC<RichTextEditorProps> = ({
+  content,
+  onChange,
+  placeholder = 'Start writing...',
+}) => {
+  const quillRef = useRef<ReactQuill>(null);
+  const [isFocused, setIsFocused] = useState(false);
+
+  // Full toolbar configuration matching reference design
+  const modules = useMemo(() => ({
+    toolbar: {
+      container: [
+        [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+        [{ 'font': [] }],
+        [{ 'size': [] }],
+        ['bold', 'italic', 'underline', 'strike'],
+        [{ 'color': [] }, { 'background': [] }],
+        [{ 'script': 'sub' }, { 'script': 'super' }],
+        [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+        [{ 'indent': '-1' }, { 'indent': '+1' }],
+        [{ 'align': [] }],
+        ['blockquote', 'code-block'],
+        ['link', 'image', 'video'],
+        ['clean'],
+      ],
     },
-  });
+    clipboard: {
+      matchVisual: true,
+    },
+    history: {
+      delay: 1000,
+      maxStack: 50,
+      userOnly: true,
+    },
+  }), []);
 
-  if (!editor) {
-    return null;
-  }
+  const formats = [
+    'header', 'font', 'size',
+    'bold', 'italic', 'underline', 'strike',
+    'color', 'background',
+    'script',
+    'list', 'bullet', 'indent',
+    'align', 'direction',
+    'blockquote', 'code-block',
+    'link', 'image', 'video',
+  ];
 
-  const ToolbarButton = ({
-    onClick,
-    isActive,
-    children,
-    title,
-  }: {
-    onClick: () => void;
-    isActive?: boolean;
-    children: React.ReactNode;
-    title: string;
-  }) => (
-    <Button
-      type="button"
-      variant={isActive ? 'secondary' : 'ghost'}
-      size="sm"
-      onClick={onClick}
-      title={title}
-      className="h-8 w-8 p-0"
-    >
-      {children}
-    </Button>
-  );
+  const handleChange = (value: string) => {
+    onChange(value);
+  };
+
+  // Handle image insertion
+  useEffect(() => {
+    if (quillRef.current) {
+      const quill = quillRef.current.getEditor();
+      const toolbar = quill.getModule('toolbar');
+      
+      if (toolbar) {
+        toolbar.addHandler('image', () => {
+          const url = prompt('Enter image URL:');
+          if (url) {
+            const range = quill.getSelection();
+            if (range) {
+              quill.insertEmbed(range.index, 'image', url, 'user');
+            }
+          }
+        });
+      }
+    }
+  }, []);
 
   return (
-    <div className="border rounded-lg overflow-hidden">
-      {/* Toolbar */}
-      <div className="bg-muted/50 border-b p-2 flex flex-wrap gap-1">
-        {/* Text Formatting */}
-        <ToolbarButton
-          onClick={() => editor.chain().focus().toggleBold().run()}
-          isActive={editor.isActive('bold')}
-          title="Bold"
-        >
-          <Bold className="h-4 w-4" />
-        </ToolbarButton>
-        <ToolbarButton
-          onClick={() => editor.chain().focus().toggleItalic().run()}
-          isActive={editor.isActive('italic')}
-          title="Italic"
-        >
-          <Italic className="h-4 w-4" />
-        </ToolbarButton>
-
-        <Separator orientation="vertical" className="h-8 mx-1" />
-
-        {/* Headings */}
-        <ToolbarButton
-          onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-          isActive={editor.isActive('heading', { level: 1 })}
-          title="Heading 1"
-        >
-          <Heading1 className="h-4 w-4" />
-        </ToolbarButton>
-        <ToolbarButton
-          onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-          isActive={editor.isActive('heading', { level: 2 })}
-          title="Heading 2"
-        >
-          <Heading2 className="h-4 w-4" />
-        </ToolbarButton>
-        <ToolbarButton
-          onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-          isActive={editor.isActive('heading', { level: 3 })}
-          title="Heading 3"
-        >
-          <Heading3 className="h-4 w-4" />
-        </ToolbarButton>
-
-        <Separator orientation="vertical" className="h-8 mx-1" />
-
-        {/* Lists */}
-        <ToolbarButton
-          onClick={() => editor.chain().focus().toggleBulletList().run()}
-          isActive={editor.isActive('bulletList')}
-          title="Bullet List"
-        >
-          <List className="h-4 w-4" />
-        </ToolbarButton>
-        <ToolbarButton
-          onClick={() => editor.chain().focus().toggleOrderedList().run()}
-          isActive={editor.isActive('orderedList')}
-          title="Numbered List"
-        >
-          <ListOrdered className="h-4 w-4" />
-        </ToolbarButton>
-
-        <Separator orientation="vertical" className="h-8 mx-1" />
-
-        {/* Text Alignment */}
-        <ToolbarButton
-          onClick={() => editor.chain().focus().setTextAlign('left').run()}
-          isActive={editor.isActive({ textAlign: 'left' })}
-          title="Align Left"
-        >
-          <AlignLeft className="h-4 w-4" />
-        </ToolbarButton>
-        <ToolbarButton
-          onClick={() => editor.chain().focus().setTextAlign('center').run()}
-          isActive={editor.isActive({ textAlign: 'center' })}
-          title="Align Center"
-        >
-          <AlignCenter className="h-4 w-4" />
-        </ToolbarButton>
-        <ToolbarButton
-          onClick={() => editor.chain().focus().setTextAlign('right').run()}
-          isActive={editor.isActive({ textAlign: 'right' })}
-          title="Align Right"
-        >
-          <AlignRight className="h-4 w-4" />
-        </ToolbarButton>
-
-        <Separator orientation="vertical" className="h-8 mx-1" />
-
-        {/* Undo/Redo */}
-        <ToolbarButton
-          onClick={() => editor.chain().focus().undo().run()}
-          title="Undo"
-        >
-          <Undo className="h-4 w-4" />
-        </ToolbarButton>
-        <ToolbarButton
-          onClick={() => editor.chain().focus().redo().run()}
-          title="Redo"
-        >
-          <Redo className="h-4 w-4" />
-        </ToolbarButton>
-      </div>
-
-      {/* Editor Content */}
-      <EditorContent
-        editor={editor}
-        className="prose prose-sm max-w-none p-4 min-h-[400px] focus:outline-none"
+    <div className="rich-text-editor">
+      <style>{`
+        .rich-text-editor .ql-container {
+          border: 1px solid #e5e7eb;
+          border-radius: 8px;
+          font-size: 16px;
+        }
+        .rich-text-editor .ql-editor {
+          min-height: 300px;
+          padding: 16px;
+        }
+        .rich-text-editor .ql-editor.ql-blank::before {
+          color: #9ca3af;
+          font-style: normal;
+        }
+        .rich-text-editor .ql-toolbar {
+          border: 1px solid #e5e7eb;
+          border-bottom: none;
+          border-radius: 8px 8px 0 0;
+          background: #f9fafb;
+          padding: 8px;
+        }
+        .rich-text-editor .ql-toolbar .ql-formats {
+          margin-right: 8px;
+        }
+        .rich-text-editor .ql-toolbar button {
+          width: 28px;
+          height: 28px;
+          padding: 4px;
+        }
+        .rich-text-editor .ql-toolbar button:hover,
+        .rich-text-editor .ql-toolbar button.ql-active {
+          color: #7E69AB;
+        }
+        .rich-text-editor .ql-toolbar .ql-stroke {
+          stroke: currentColor;
+        }
+        .rich-text-editor .ql-toolbar .ql-fill {
+          fill: currentColor;
+        }
+      `}</style>
+      <ReactQuill
+        ref={quillRef}
+        theme="snow"
+        value={content}
+        onChange={handleChange}
+        modules={modules}
+        formats={formats}
+        placeholder={placeholder}
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => setIsFocused(false)}
       />
     </div>
   );

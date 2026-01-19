@@ -2,11 +2,14 @@ import express from 'express';
 import { authenticateUser } from '../middleware/auth.js';
 import { getDatabaseState } from '../utils/database.js';
 import { query } from '../../sparti-cms/db/index.js';
-import models from '../../sparti-cms/db/sequelize/models/index.js';
-import { Op } from 'sequelize';
-import bcrypt from 'bcrypt';
-
-const { User } = models;
+// Lazy-load Sequelize models and utilities inside handlers to avoid boot-time crashes
+// when DATABASE_URL is not set. This keeps the server up for health and auth routes.
+// Helper to load models and Op on demand.
+const loadSequelize = async () => {
+  const modelsModule = await import('../../sparti-cms/db/sequelize/models/index.js');
+  const sequelizePkg = await import('sequelize');
+  return { models: modelsModule.default, Op: sequelizePkg.Op };
+};
 
 const router = express.Router();
 
@@ -281,7 +284,8 @@ router.post('/users', authenticateUser, async (req, res) => {
     // Super admins can create users for any tenant or no tenant
 
     // Create user using Sequelize
-    const user = await User.create({
+    const { models } = await loadSequelize();
+    const user = await models.User.create({
       first_name,
       last_name,
       email,
@@ -294,7 +298,7 @@ router.post('/users', authenticateUser, async (req, res) => {
     });
 
     // Fetch the created user without password hash
-    const createdUser = await User.findByPk(user.id, {
+    const createdUser = await models.User.findByPk(user.id, {
       attributes: {
         exclude: ['password_hash']
       }
@@ -379,7 +383,8 @@ router.put('/users/:id', authenticateUser, async (req, res) => {
     // Super admins can update any user, so no tenant filter
     
     // Find the user
-    const user = await User.findOne({ where: whereClause });
+    const { models } = await loadSequelize();
+    const user = await models.User.findOne({ where: whereClause });
     
     if (!user) {
       return res.status(404).json({
@@ -434,7 +439,7 @@ router.put('/users/:id', authenticateUser, async (req, res) => {
     await user.update(updateData);
 
     // Fetch the updated user without password hash
-    const updatedUser = await User.findByPk(user.id, {
+    const updatedUser = await models.User.findByPk(user.id, {
       attributes: {
         exclude: ['password_hash']
       }
@@ -528,7 +533,8 @@ router.put('/users/:id/password', authenticateUser, async (req, res) => {
       });
     }
     
-    const user = await User.findOne({ where: whereClause });
+    const { models } = await loadSequelize();
+    const user = await models.User.findOne({ where: whereClause });
     
     if (!user) {
       return res.status(404).json({
@@ -622,7 +628,8 @@ router.delete('/users/:id', authenticateUser, async (req, res) => {
     // Super admins can delete any user, so no tenant filter
     
     // Find and delete the user
-    const user = await User.findOne({ where: whereClause });
+    const { models } = await loadSequelize();
+    const user = await models.User.findOne({ where: whereClause });
     
     if (!user) {
       return res.status(404).json({

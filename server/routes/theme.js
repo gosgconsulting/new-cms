@@ -12,11 +12,16 @@ const __dirname = dirname(__filename);
  * Middleware to serve index.html for all theme routes
  * This ensures that refreshing any theme URL serves the React app
  */
-const serveThemeIndex = (req, res) => {
-  // Skip if this is a static asset request (has file extension)
+const serveThemeIndex = (req, res, next) => {
+  // Skip if this is a static asset request (has file extension or contains /assets/)
   const path = req.path;
+  // Skip any path containing /assets/ (theme asset directory) - pass to static middleware
+  if (path && path.includes('/assets/')) {
+    return next(); // Let static middleware handle it
+  }
+  // Skip if this is a static asset request (has file extension) - pass to static middleware
   if (path && /\.(js|css|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot|json|xml|txt|map)$/i.test(path)) {
-    return res.status(404).send('Not Found');
+    return next(); // Let static middleware handle it
   }
 
   // Serve the React app's index.html so client-side routing can handle it
@@ -69,7 +74,13 @@ router.get('/:tenantSlug/:pageSlug', serveThemeIndex);
  * This route handles 1-segment paths like /theme/str
  * Must come last to avoid matching longer paths
  */
-router.get('/:tenantSlug', (req, res) => {
+router.get('/:tenantSlug', (req, res, next) => {
+  // Skip if this is an asset request - pass to static middleware
+  const path = req.path;
+  if (path && (path.includes('/assets/') || /\.(js|css|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot|json|xml|txt|map)$/i.test(path))) {
+    return next(); // Let static middleware handle it
+  }
+  
   // Serve the React app's index.html so client-side routing can handle it
   const indexPath = join(__dirname, '..', '..', 'dist', 'index.html');
   if (existsSync(indexPath)) {

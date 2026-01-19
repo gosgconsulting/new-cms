@@ -1,15 +1,23 @@
-import jwt from 'jsonwebtoken';
-import { JWT_SECRET } from '../config/constants.js';
+// #region agent log
+fetch('http://127.0.0.1:7243/ingest/6c8a92dc-f11e-4f7a-84d0-9dfb6f553501',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'server/middleware/auth.js:1',message:'About to import utils/auth.js',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'P'})}).catch(()=>{});
+// #endregion
+import { verifyToken, extractTokenFromHeader, createAuthErrorResponse } from '../utils/auth.js';
+// #region agent log
+fetch('http://127.0.0.1:7243/ingest/6c8a92dc-f11e-4f7a-84d0-9dfb6f553501',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'server/middleware/auth.js:4',message:'utils/auth.js imported successfully',data:{hasVerifyToken:!!verifyToken,hasExtractToken:!!extractTokenFromHeader,hasCreateError:!!createAuthErrorResponse},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'P'})}).catch(()=>{});
+// #endregion
 
-// Authentication middleware
+/**
+ * Authentication middleware
+ * Uses centralized auth utilities for consistency
+ */
 export const authenticateUser = (req, res, next) => {
   try {
     const authHeader = req.headers.authorization || req.headers.Authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ success: false, error: 'Not authenticated' });
-    }
+    const token = extractTokenFromHeader(authHeader);
 
-    const token = authHeader.split(' ')[1];
+    if (!token) {
+      return res.status(401).json(createAuthErrorResponse('Not authenticated'));
+    }
 
     // Development shortcut: accept a special dev super admin token
     if (process.env.NODE_ENV === 'development' && token === 'dev-super-admin-token') {
@@ -25,19 +33,17 @@ export const authenticateUser = (req, res, next) => {
       return next();
     }
 
-    // Normal JWT verification
-    if (!JWT_SECRET) {
-      return res.status(500).json({ success: false, error: 'Server configuration error: JWT_SECRET not set' });
-    }
-
+    // Normal JWT verification using centralized utility
     try {
-      const decoded = jwt.verify(token, JWT_SECRET);
+      const decoded = verifyToken(token);
       req.user = decoded;
       return next();
-    } catch (err) {
-      return res.status(401).json({ success: false, error: 'Invalid or expired token' });
+    } catch (error) {
+      const errorMessage = error.message || 'Invalid or expired token';
+      return res.status(401).json(createAuthErrorResponse(errorMessage));
     }
   } catch (error) {
-    return res.status(500).json({ success: false, error: 'Authentication middleware error' });
+    console.error('[auth] Authentication middleware error:', error);
+    return res.status(500).json(createAuthErrorResponse('Authentication middleware error', 500));
   }
 };

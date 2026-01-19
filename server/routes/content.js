@@ -1505,7 +1505,8 @@ router.post('/posts', async (req, res) => {
       og_title,
       og_description,
       twitter_title,
-      twitter_description
+      twitter_description,
+      featured_image_id
     } = req.body;
     
     // Validate required fields
@@ -1535,7 +1536,9 @@ router.post('/posts', async (req, res) => {
       twitter_description: twitter_description || '',
       twitter_image: '',
       published_at: published_at || null,
-      tenant_id: tenantId || null
+      tenant_id: tenantId || null,
+      featured_image_id: featured_image_id || null
+      featured_image_id: featured_image_id || null
     });
 
     // Handle categories using new table - always call to ensure proper state
@@ -1703,7 +1706,8 @@ router.put('/posts/:id', async (req, res) => {
       og_title,
       og_description,
       twitter_title,
-      twitter_description
+      twitter_description,
+      featured_image_id
     } = req.body;
     
     // Validate required fields
@@ -1747,6 +1751,7 @@ router.put('/posts/:id', async (req, res) => {
       og_description: og_description || '',
       twitter_title: twitter_title || '',
       twitter_description: twitter_description || '',
+      featured_image_id: featured_image_id !== undefined ? featured_image_id : post.featured_image_id,
       published_at: published_at || null
     };
     

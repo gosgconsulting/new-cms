@@ -1,10 +1,69 @@
 import express from 'express';
-import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
+
+// #region agent log
+fetch('http://127.0.0.1:7243/ingest/6c8a92dc-f11e-4f7a-84d0-9dfb6f553501',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'server/routes/auth.js:1',message:'Starting auth.js imports',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'L'})}).catch(()=>{});
+// #endregion
+
+// #region agent log
+fetch('http://127.0.0.1:7243/ingest/6c8a92dc-f11e-4f7a-84d0-9dfb6f553501',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'server/routes/auth.js:5',message:'About to import db/index.js',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'L'})}).catch(()=>{});
+// #endregion
 import { query } from '../../sparti-cms/db/index.js';
-import { JWT_SECRET } from '../config/constants.js';
+// #region agent log
+fetch('http://127.0.0.1:7243/ingest/6c8a92dc-f11e-4f7a-84d0-9dfb6f553501',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'server/routes/auth.js:8',message:'db/index.js imported successfully',data:{hasQuery:!!query},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'L'})}).catch(()=>{});
+// #endregion
+
+// #region agent log
+fetch('http://127.0.0.1:7243/ingest/6c8a92dc-f11e-4f7a-84d0-9dfb6f553501',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'server/routes/auth.js:11',message:'About to import middleware/auth.js',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'M'})}).catch(()=>{});
+// #endregion
 import { authenticateUser } from '../middleware/auth.js';
+// #region agent log
+fetch('http://127.0.0.1:7243/ingest/6c8a92dc-f11e-4f7a-84d0-9dfb6f553501',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'server/routes/auth.js:14',message:'middleware/auth.js imported successfully',data:{hasAuthFn:!!authenticateUser},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'M'})}).catch(()=>{});
+// #endregion
+
+// #region agent log
+fetch('http://127.0.0.1:7243/ingest/6c8a92dc-f11e-4f7a-84d0-9dfb6f553501',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'server/routes/auth.js:17',message:'About to import utils/auth.js',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'N'})}).catch(()=>{});
+// #endregion
+import { generateToken } from '../utils/auth.js';
+// #region agent log
+fetch('http://127.0.0.1:7243/ingest/6c8a92dc-f11e-4f7a-84d0-9dfb6f553501',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'server/routes/auth.js:20',message:'utils/auth.js imported successfully',data:{hasGenerateToken:!!generateToken},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'N'})}).catch(()=>{});
+// #endregion
+
+// #region agent log
+fetch('http://127.0.0.1:7243/ingest/6c8a92dc-f11e-4f7a-84d0-9dfb6f553501',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'server/routes/auth.js:23',message:'About to import utils/database.js',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'O'})}).catch(()=>{});
+// #endregion
 import { getDatabaseState } from '../utils/database.js';
+// #region agent log
+fetch('http://127.0.0.1:7243/ingest/6c8a92dc-f11e-4f7a-84d0-9dfb6f553501',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'server/routes/auth.js:26',message:'utils/database.js imported successfully',data:{hasGetDbState:!!getDatabaseState},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'O'})}).catch(()=>{});
+// #endregion
+
+// Helper function to check if database connection is to localhost
+const isLocalhostConnection = () => {
+  const connString = process.env.DATABASE_PUBLIC_URL || process.env.DATABASE_URL || '';
+  return connString.includes('localhost') || 
+         connString.includes('127.0.0.1') || 
+         connString.includes('::1');
+};
+
+// Helper function to generate localhost-specific error message
+const getLocalhostErrorMessage = (errorCode, baseMessage) => {
+  if (!isLocalhostConnection()) {
+    return baseMessage;
+  }
+  
+  const localhostGuidance = [
+    '1. Verify PostgreSQL is running locally:',
+    '   - Windows: Check Services or run: net start postgresql-x64-XX',
+    '   - Mac/Linux: Check with: pg_isready or systemctl status postgresql',
+    '2. Verify your connection string format in .env:',
+    '   DATABASE_PUBLIC_URL=postgresql://username:password@localhost:5432/database_name',
+    '3. Check PostgreSQL credentials (username, password, database name)',
+    '4. If SSL errors occur, add DATABASE_SSL=false to your .env file',
+    '5. Verify PostgreSQL is listening on the correct port (default: 5432)'
+  ].join('\n');
+  
+  return `${baseMessage}\n\nFor localhost connections:\n${localhostGuidance}`;
+};
 import {
   getAllTenants,
   getTenantById,
@@ -28,8 +87,14 @@ const router = express.Router();
 // ===== AUTHENTICATION ROUTES =====
 
 // Async error handler wrapper
+// Properly handles async route handlers and ensures promises are returned to Express
 const asyncHandler = (fn) => (req, res, next) => {
-  Promise.resolve(fn(req, res, next)).catch((error) => {
+  // Execute the async function and get the promise
+  // This ensures Express properly awaits the async operation
+  const promise = Promise.resolve(fn(req, res, next));
+  
+  // Handle promise rejection (async errors)
+  promise.catch((error) => {
     console.error('[testing] ========== UNHANDLED ASYNC ERROR ==========');
     console.error('[testing] Unhandled async error in route handler:', error);
     console.error('[testing] Error type:', error?.constructor?.name || 'Unknown');
@@ -38,6 +103,8 @@ const asyncHandler = (fn) => (req, res, next) => {
     console.error('[testing] Error stack:', error?.stack);
     console.error('[testing] Request path:', req.path);
     console.error('[testing] Request method:', req.method);
+    console.error('[testing] Request URL:', req.url);
+    console.error('[testing] Request originalUrl:', req.originalUrl);
     console.error('[testing] ============================================');
     
     if (!res.headersSent) {
@@ -47,25 +114,40 @@ const asyncHandler = (fn) => (req, res, next) => {
         ? `Server error: ${error.message}${error?.code ? ` (Code: ${error.code})` : ''}`
         : 'Server error. Please try again in a moment.';
       
-      res.status(500).json({
-        success: false,
-        error: errorMessage,
-        message: errorMessage,
-        diagnostic: '/health/database',
-        errorCode: error?.code,
-        ...(isDevelopment && error?.stack ? { stack: error.stack } : {})
-      });
+      try {
+        res.status(500).json({
+          success: false,
+          error: errorMessage,
+          message: errorMessage,
+          diagnostic: '/health/database',
+          errorCode: error?.code,
+          ...(isDevelopment && error?.stack ? { stack: error.stack } : {})
+        });
+      } catch (sendError) {
+        console.error('[testing] Failed to send error response:', sendError);
+      }
     } else {
       console.error('[testing] Response already sent, cannot send error response');
     }
   });
+  
+  // Return the promise to Express so it can properly await the async operation
+  return promise;
 };
 
 // Login endpoint
 router.post('/auth/login', asyncHandler(async (req, res) => {
   console.log('[testing] Login attempt started');
+  console.log('[testing] Request method:', req.method);
+  console.log('[testing] Request path:', req.path);
   console.log('[testing] Request body:', JSON.stringify(req.body));
   console.log('[testing] Request headers:', JSON.stringify(req.headers));
+  
+  // Ensure response hasn't been sent by middleware
+  if (res.headersSent) {
+    console.error('[testing] Response already sent by middleware, aborting login handler');
+    return;
+  }
   
   try {
     // Step 1: Check database initialization state
@@ -206,11 +288,13 @@ router.post('/auth/login', asyncHandler(async (req, res) => {
       
       // Provide specific error messages based on error type
       if (checkError?.code === 'ECONNREFUSED' || checkError?.code === 'ETIMEDOUT' || checkError?.code === 'ECONNRESET') {
+        const baseMessage = 'Unable to connect to database. Check DATABASE_URL or DATABASE_PUBLIC_URL environment variable in your .env file and ensure database server is running.';
         return res.status(503).json({
           success: false,
           error: 'Database connection failed',
-          message: 'Unable to connect to database. Check DATABASE_URL or DATABASE_PUBLIC_URL environment variable in your .env file and ensure database server is running.',
-          diagnostic: '/health/database'
+          message: getLocalhostErrorMessage(checkError?.code, baseMessage),
+          diagnostic: '/health/database',
+          errorCode: checkError?.code
         });
       }
       
@@ -240,10 +324,11 @@ router.post('/auth/login', asyncHandler(async (req, res) => {
       }
       
       if (connectionTestError?.code === 'ECONNREFUSED' || connectionTestError?.code === 'ETIMEDOUT' || connectionTestError?.code === 'ECONNRESET') {
+        const baseMessage = 'Unable to connect to database. If DATABASE_URL points to localhost, ensure Postgres is running locally. For cloud/Railway databases, use the full remote connection string in DATABASE_PUBLIC_URL or DATABASE_URL.';
         return res.status(503).json({
           success: false,
           error: 'Database connection failed',
-          message: 'Unable to connect to database. If DATABASE_URL points to localhost, ensure Postgres is running locally. For cloud/Railway databases, use the full remote connection string in DATABASE_PUBLIC_URL or DATABASE_URL.',
+          message: getLocalhostErrorMessage(connectionTestError?.code, baseMessage),
           diagnostic: '/health/database',
           errorCode: connectionTestError?.code
         });
@@ -320,10 +405,11 @@ router.post('/auth/login', asyncHandler(async (req, res) => {
       }
       
       if (queryError?.code === 'ECONNREFUSED' || queryError?.code === 'ETIMEDOUT' || queryError?.code === 'ECONNRESET') {
+        const baseMessage = 'Unable to connect to database. Check DATABASE_URL or DATABASE_PUBLIC_URL environment variable in your .env file and ensure database server is running.';
         return res.status(503).json({
           success: false,
           error: 'Database connection failed',
-          message: 'Unable to connect to database. Check DATABASE_URL or DATABASE_PUBLIC_URL environment variable in your .env file and ensure database server is running.',
+          message: getLocalhostErrorMessage(queryError?.code, baseMessage),
           diagnostic: '/health/database',
           errorCode: queryError.code
         });
@@ -431,7 +517,21 @@ router.post('/auth/login', asyncHandler(async (req, res) => {
     // Step 7.5: Validate theme-tenant relationship if theme context provided
     if (requestedThemeSlug && !user.is_super_admin && user.tenant_id) {
       console.log('[testing] Validating theme-tenant relationship...');
+      console.log('[testing] Theme validation params:', { tenant_id: user.tenant_id, themeSlug: requestedThemeSlug });
       try {
+        // Validate parameters before querying
+        if (!user.tenant_id || !requestedThemeSlug) {
+          console.error('[testing] Invalid parameters for theme validation:', { tenant_id: user.tenant_id, themeSlug: requestedThemeSlug });
+          if (res.headersSent) {
+            return;
+          }
+          return res.status(400).json({
+            success: false,
+            error: 'Invalid theme validation parameters',
+            message: 'Missing tenant ID or theme slug for validation.'
+          });
+        }
+        
         // Check if user's tenant uses the requested theme
         const tenantThemeCheck = await query(`
           SELECT id, name, slug, theme_id
@@ -442,6 +542,10 @@ router.post('/auth/login', asyncHandler(async (req, res) => {
 
         if (tenantThemeCheck.rows.length === 0) {
           console.log('[testing] User tenant does not use requested theme');
+          if (res.headersSent) {
+            console.error('[testing] Response already sent, cannot send error response');
+            return;
+          }
           return res.status(403).json({
             success: false,
             error: 'Access denied',
@@ -452,15 +556,49 @@ router.post('/auth/login', asyncHandler(async (req, res) => {
         console.log('[testing] Theme-tenant relationship validated successfully');
       } catch (themeCheckError) {
         console.error('[testing] Error validating theme-tenant relationship:', themeCheckError);
+        console.error('[testing] Theme check error details:', {
+          code: themeCheckError?.code,
+          message: themeCheckError?.message,
+          stack: themeCheckError?.stack
+        });
+        
+        if (res.headersSent) {
+          console.error('[testing] Response already sent, cannot send error response');
+          return;
+        }
+        
+        // Handle specific database errors
+        if (themeCheckError?.code === '42P01') {
+          return res.status(503).json({
+            success: false,
+            error: 'Database table missing',
+            message: 'Tenants table does not exist. Run: npm run sequelize:migrate',
+            diagnostic: '/health/database',
+            errorCode: themeCheckError.code
+          });
+        }
+        
+        if (themeCheckError?.code === 'ECONNREFUSED' || themeCheckError?.code === 'ETIMEDOUT' || themeCheckError?.code === 'ECONNRESET') {
+          const baseMessage = 'Unable to connect to database. Check DATABASE_URL or DATABASE_PUBLIC_URL environment variable in your .env file and ensure database server is running.';
+          return res.status(503).json({
+            success: false,
+            error: 'Database connection failed',
+            message: getLocalhostErrorMessage(themeCheckError?.code, baseMessage),
+            diagnostic: '/health/database',
+            errorCode: themeCheckError.code
+          });
+        }
+        
         return res.status(500).json({
           success: false,
           error: 'Theme validation failed',
-          message: 'Unable to verify theme access. Please try again later.'
+          message: `Unable to verify theme access: ${themeCheckError?.message || 'Unknown error'}. Please try again later.`,
+          errorCode: themeCheckError?.code
         });
       }
     }
 
-    // Step 8: Create JWT token
+    // Step 8: Create JWT token using centralized utility
     console.log('[testing] Step 8: Creating JWT token...');
     // For super admins, use requested tenantId if provided to set a default context; otherwise null
     const tenantId = user.is_super_admin ? (requestedTenantId || null) : user.tenant_id;
@@ -476,29 +614,15 @@ router.post('/auth/login', asyncHandler(async (req, res) => {
       themeSlug: requestedThemeSlug || null
     };
     
-    // Check if JWT_SECRET is available
-    if (!JWT_SECRET) {
-      console.error('[testing] JWT_SECRET is not set');
-      if (res.headersSent) {
-        console.error('[testing] Response already sent, cannot send error response');
-        return;
-      }
-      return res.status(500).json({
-        success: false,
-        error: 'Server configuration error',
-        message: 'JWT_SECRET environment variable is not set. Please check server configuration.'
-      });
-    }
-    
     let token;
     try {
-      token = jwt.sign(userData, JWT_SECRET, { expiresIn: '24h' });
+      token = generateToken(userData);
       console.log('[testing] JWT token created successfully');
-    } catch (jwtError) {
-      console.error('[testing] JWT signing error:', jwtError);
-      console.error('[testing] JWT error details:', {
-        message: jwtError?.message,
-        stack: jwtError?.stack
+    } catch (tokenError) {
+      console.error('[testing] Token generation error:', tokenError);
+      console.error('[testing] Token error details:', {
+        message: tokenError?.message,
+        stack: tokenError?.stack
       });
       
       if (res.headersSent) {
@@ -509,7 +633,7 @@ router.post('/auth/login', asyncHandler(async (req, res) => {
       return res.status(500).json({
         success: false,
         error: 'Token generation failed',
-        message: 'An error occurred while generating authentication token. Please try again.'
+        message: tokenError.message || 'An error occurred while generating authentication token. Please try again.'
       });
     }
 
@@ -547,10 +671,11 @@ router.post('/auth/login', asyncHandler(async (req, res) => {
     
     // Handle database connection errors
     if (error?.code === 'ECONNREFUSED' || error?.code === 'ETIMEDOUT' || error?.code === 'ENOTFOUND' || error?.code === 'ECONNRESET' || error?.code === 'ENETUNREACH') {
+      const baseMessage = `Unable to connect to database (${error.code}). Check DATABASE_URL or DATABASE_PUBLIC_URL environment variable in your .env file and ensure database server is running.`;
       return res.status(503).json({
         success: false,
         error: 'Database connection failed',
-          message: `Unable to connect to database (${error.code}). Check DATABASE_URL or DATABASE_PUBLIC_URL environment variable in your .env file and ensure database server is running. For localhost connections, ensure the database is accessible.`,
+        message: getLocalhostErrorMessage(error.code, baseMessage),
         diagnostic: '/health/database',
         errorCode: error.code
       });
