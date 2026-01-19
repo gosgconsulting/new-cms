@@ -52,7 +52,9 @@ export default function BlogPostPage({
 
   useEffect(() => {
     const effectiveTenantId =
-      tenantId || (typeof window !== "undefined" ? (window as any).__CMS_TENANT__ : undefined);
+      tenantId || 
+      (typeof window !== "undefined" ? (window as any).__CMS_TENANT__ : undefined) ||
+      'tenant-nail-queen'; // Fallback for nail-queen theme
 
     if (!effectiveTenantId || !slug) {
       setIsLoading(false);
