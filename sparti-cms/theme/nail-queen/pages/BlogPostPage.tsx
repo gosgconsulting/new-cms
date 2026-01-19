@@ -37,6 +37,88 @@ function stripHtml(html: string) {
   return tmp.textContent || tmp.innerText || "";
 }
 
+/**
+ * Process blog content HTML to improve markup and readability
+ * - Ensures proper heading hierarchy
+ * - Converts paragraphs with only bold text to headings when appropriate
+ * - Improves structure for better readability
+ */
+function processBlogContent(html: string): string {
+  if (typeof window === 'undefined' || !html) return html;
+  
+  try {
+    // Create a temporary DOM element to parse and modify the HTML
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    const body = doc.body;
+    
+    // Process paragraphs that might be headings
+    const paragraphs = Array.from(body.querySelectorAll('p'));
+    
+    paragraphs.forEach((p) => {
+      const text = p.textContent?.trim() || '';
+      const children = Array.from(p.children);
+      
+      // If paragraph contains only a single <strong> or <b> element
+      if (children.length === 1 && (children[0].tagName === 'STRONG' || children[0].tagName === 'B')) {
+        const boldText = children[0].textContent?.trim() || '';
+        
+        // Check if it looks like a heading:
+        // - Short text (less than 100 chars)
+        // - Doesn't end with punctuation
+        // - Followed by another paragraph
+        if (boldText.length < 100 && !boldText.match(/[.!?]$/) && boldText.length > 10) {
+          const nextSibling = p.nextElementSibling;
+          if (nextSibling && (nextSibling.tagName === 'P' || nextSibling.tagName === 'DIV')) {
+            // Convert to h2 heading
+            const h2 = doc.createElement('h2');
+            h2.textContent = boldText;
+            p.parentNode?.replaceChild(h2, p);
+          }
+        }
+      }
+      
+      // Check if paragraph starts with bold text that matches heading patterns
+      const firstChild = p.firstElementChild;
+      if (firstChild && (firstChild.tagName === 'STRONG' || firstChild.tagName === 'B')) {
+        const boldText = firstChild.textContent?.trim() || '';
+        const headingPatterns = /^(Why|What|How|When|Where|Which|Who|The|Our|Your|This|These|Classic|Premium|Best|Top|Essential|Important|Key|Main|Types?|Benefits?|Features?|Services?|Packages?|Options?|Tips?|Steps?|Guide|Overview|Introduction|Conclusion|Summary)/i;
+        
+        if (headingPatterns.test(boldText) && boldText.length < 80 && boldText.length > 10) {
+          const nextSibling = p.nextElementSibling;
+          if (nextSibling && (nextSibling.tagName === 'P' || nextSibling.tagName === 'DIV')) {
+            // Create h2 and move remaining content
+            const h2 = doc.createElement('h2');
+            h2.textContent = boldText;
+            
+            // Get remaining content after the bold element
+            const remainingContent = p.cloneNode(true) as Element;
+            if (remainingContent.firstElementChild) {
+              remainingContent.removeChild(remainingContent.firstElementChild);
+            }
+            
+            // Replace paragraph with heading
+            p.parentNode?.replaceChild(h2, p);
+            
+            // If there's remaining content, add it as a new paragraph after the heading
+            if (remainingContent.textContent?.trim()) {
+              const newP = doc.createElement('p');
+              newP.innerHTML = remainingContent.innerHTML;
+              h2.parentNode?.insertBefore(newP, h2.nextSibling);
+            }
+          }
+        }
+      }
+    });
+    
+    // Return the processed HTML
+    return body.innerHTML;
+  } catch (error) {
+    console.error('[testing] Error processing blog content:', error);
+    return html; // Return original HTML on error
+  }
+}
+
 export default function BlogPostPage({
   basePath,
   slug,
@@ -189,10 +271,12 @@ export default function BlogPostPage({
           </header>
 
           {/* Post Content */}
-          <div
-            className="prose prose-lg max-w-none text-gray-700"
-            dangerouslySetInnerHTML={{ __html: post.content || post.excerpt || "" }}
-          />
+          <div className="blog-content">
+            <div
+              className="prose prose-lg max-w-none"
+              dangerouslySetInnerHTML={{ __html: processBlogContent(post.content || post.excerpt || "") }}
+            />
+          </div>
 
           {/* Tags */}
           {post.tags && post.tags.length > 0 && (
