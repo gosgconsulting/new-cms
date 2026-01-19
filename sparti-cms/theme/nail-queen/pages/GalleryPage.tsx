@@ -1,10 +1,25 @@
 import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { ThumbnailsCarousel } from "@/components/ui/thumbnails-carousel";
 
 import { Layout } from "../components/Layout";
 
+type GalleryItem = {
+  id: number;
+  category: string;
+  title: string;
+  image: string;
+};
+
 export default function GalleryPage({ basePath }: { basePath: string }) {
   const [activeFilter, setActiveFilter] = useState("manicures");
+  const [selectedItem, setSelectedItem] = useState<GalleryItem | null>(null);
 
   const asset = (path: string) => `${basePath.replace(/\/+$/, "")}/assets/${path.replace(/^\/+/, "")}`;
 
@@ -67,14 +82,8 @@ export default function GalleryPage({ basePath }: { basePath: string }) {
       {
         id: 10,
         category: "manicures",
-        title: "3D Chrome",
+        title: "2D",
         image: asset("gallery/manicures/3d chrome.jpg"),
-      },
-      {
-        id: 11,
-        category: "manicures",
-        title: "Polka dot",
-        image: asset("gallery/manicures/potka dot.PNG"),
       },
       {
         id: 12,
@@ -153,8 +162,58 @@ export default function GalleryPage({ basePath }: { basePath: string }) {
 
   const filteredItems = galleryItems.filter((item) => item.category === activeFilter);
 
+  // Generate carousel images for a gallery item
+  // Since each item has one image, we'll use the same image multiple times
+  // This is common in galleries where you might have multiple views/angles of the same work
+  const generateCarouselImages = (item: GalleryItem) => {
+    const baseImage = item.image;
+    // Generate 6 slides (common pattern in galleries)
+    const count = 6;
+    
+    return Array.from({ length: count }, () => ({
+      full: baseImage,
+      thumb: baseImage,
+    }));
+  };
+
+  const handleCardClick = (item: GalleryItem) => {
+    setSelectedItem(item);
+  };
+
+  const handleCloseDialog = () => {
+    setSelectedItem(null);
+  };
+
   return (
     <Layout basePath={basePath}>
+      <style>{`
+        [data-radix-dialog-content][data-state="open"] {
+          animation: dialog-enter 200ms ease-out !important;
+        }
+        [data-radix-dialog-content][data-state="closed"] {
+          animation: dialog-exit 200ms ease-in !important;
+        }
+        @keyframes dialog-enter {
+          from {
+            opacity: 0;
+            transform: translate(-50%, -50%) scale(0.95);
+          }
+          to {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+          }
+        }
+        @keyframes dialog-exit {
+          from {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+          }
+          to {
+            opacity: 0;
+            transform: translate(-50%, -50%) scale(0.95);
+          }
+        }
+      `}</style>
       <section className="py-16 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h1 className="text-6xl font-bold text-center text-nail-queen-brown mb-16">Gallery</h1>
@@ -182,7 +241,11 @@ export default function GalleryPage({ basePath }: { basePath: string }) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredItems.map((item) => (
-              <div key={item.id} className="group cursor-pointer">
+              <div
+                key={item.id}
+                className="group cursor-pointer"
+                onClick={() => handleCardClick(item)}
+              >
                 <div className="aspect-square bg-white rounded-lg overflow-hidden shadow-lg">
                   <img
                     src={item.image}
@@ -198,6 +261,21 @@ export default function GalleryPage({ basePath }: { basePath: string }) {
           </div>
         </div>
       </section>
+
+      <Dialog open={!!selectedItem} onOpenChange={(open) => !open && handleCloseDialog()}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold text-nail-queen-brown">
+              {selectedItem?.title}
+            </DialogTitle>
+          </DialogHeader>
+          {selectedItem && (
+            <div className="mt-4">
+              <ThumbnailsCarousel images={generateCarouselImages(selectedItem)} />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 }
