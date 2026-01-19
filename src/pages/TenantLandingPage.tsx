@@ -9,6 +9,7 @@ const SpartiSEOLandingTheme = lazy(() => import('../../sparti-cms/theme/sparti-s
 const GosgConsultingTheme = lazy(() => import('../../sparti-cms/theme/gosgconsulting'));
 const SissonneTheme = lazy(() => import('../../sparti-cms/theme/sissonne'));
 const StorefrontTheme = lazy(() => import('../../sparti-cms/theme/storefront'));
+const MoondkTheme = lazy(() => import('../../sparti-cms/theme/moondk'));
 const StrTheme = lazy(() => import('../../sparti-cms/theme/str'));
 const OptimalConsultingTheme = lazy(() => import('../../sparti-cms/theme/optimalconsulting'));
 const MasterTheme = lazy(() => import('../../sparti-cms/theme/master'));
@@ -44,6 +45,10 @@ const themeConfig: Record<string, { name: string; component: React.LazyExoticCom
   'storefront': {
     name: 'Storefront',
     component: StorefrontTheme
+  },
+  'moondk': {
+    name: 'Moondk',
+    component: MoondkTheme
   },
   'str': {
     name: 'STR',
