@@ -78,8 +78,9 @@ router.use('/api/woocommerce', woocommerceSyncRoutes);
 router.use('/api', docsRoutes);
 
 // Theme routes (mounted before other routes to catch /theme/* paths)
-// Theme admin/auth routes (must come before general theme routes, but only handle specific paths)
-// These routes are very specific: /theme/:themeSlug/admin and /theme/:themeSlug/auth
+// Theme auth routes (must come before general theme routes, but only handle specific paths)
+// This route is very specific: /theme/:themeSlug/auth
+// Note: Admin route has been removed to avoid conflicts
 router.use('/theme', themeAdminRoutes);
 
 // Block /theme/template (root only). Template previews live under /theme/template/*

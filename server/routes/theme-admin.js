@@ -4,36 +4,6 @@ import { extractThemeFromUrl } from '../middleware/themeUrl.js';
 const router = express.Router();
 
 /**
- * GET /theme/:themeSlug/admin
- * Serves the admin page with theme context
- * extractThemeFromUrl middleware will validate tenant-theme relationship if user is authenticated
- * If user is not authenticated, client-side ThemeAdmin component will redirect to auth
- */
-router.get('/:themeSlug/admin', extractThemeFromUrl, (req, res) => {
-  const themeSlug = req.params.themeSlug;
-  
-  // Return HTML that will be handled by client-side React
-  const html = `<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Admin - ${themeSlug}</title>
-</head>
-<body>
-  <div id="root"></div>
-  <script>
-    // Store theme context in sessionStorage for client-side routing
-    sessionStorage.setItem('themeContext', '${themeSlug}');
-  </script>
-</body>
-</html>`;
-  
-  res.setHeader('Content-Type', 'text/html');
-  res.status(200).send(html);
-});
-
-/**
  * GET /theme/:themeSlug/auth
  * Serves the auth page with theme context
  * No authentication required - this is the login page
@@ -66,7 +36,7 @@ router.get('/:themeSlug/auth', extractThemeFromUrl, (req, res) => {
 });
 
 /**
- * IMPORTANT: This router only handles /admin and /auth paths.
+ * IMPORTANT: This router only handles /auth paths.
  * All other paths (like /theme/str, /theme/str/group-class, etc.) 
  * will automatically pass through to the next router (themeRoutes)
  * because Express Router only matches routes that are explicitly defined.

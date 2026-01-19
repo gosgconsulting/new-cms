@@ -49,10 +49,7 @@ const Auth: React.FC = () => {
   const locationState = location.state as LocationState;
   let from = locationState?.from?.pathname || "/admin";
   
-  // If in theme context, redirect to theme admin after login
-  if (isThemeAuth && from === "/admin") {
-    from = `/theme/${themeSlug}/admin`;
-  }
+  // Note: Theme admin route has been removed, always redirect to main /admin
   
   // Initial form data
   const [formData, setFormData] = useState<FormData>({

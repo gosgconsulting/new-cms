@@ -34,8 +34,17 @@ app.use('/theme', (req, res, next) => {
 // Serve static files from the 'public' directory
 app.use(express.static(join(__dirname, '..', 'public')));
 
+// Serve assets from dist/assets directory explicitly
+// This ensures JS, CSS, and other built assets are always accessible
+app.use('/assets', express.static(join(__dirname, '..', 'dist', 'assets')));
+
 // Serve static files from the dist directory - MUST come after API routes
-app.use(express.static(join(__dirname, '..', 'dist')));
+// This serves built assets (JS, CSS, images, etc.) in both development and production
+// In development, if accessing through Express server, assets must be built first
+app.use(express.static(join(__dirname, '..', 'dist'), {
+  // Don't serve index.html as a static file - let route handlers deal with it
+  index: false
+}));
 
 // Handle all other routes by serving the React app - MUST be last
 app.use((req, res) => {

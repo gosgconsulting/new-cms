@@ -47,6 +47,19 @@ const Header: React.FC<HeaderProps> = ({
 
   const showShopNavigation = isShopPage();
 
+  // Handle logo click - detect standalone vs theme mode
+  const handleLogoClick = () => {
+    const pathname = location.pathname;
+    // Detect standalone mode: pathname doesn't include /theme/gosgconsulting
+    const isStandaloneMode = !pathname.includes(`/theme/${tenantSlug}`);
+    
+    if (isStandaloneMode) {
+      navigate('/'); // Main domain - go to root
+    } else {
+      navigate(themeBasePath); // Theme mode - go to theme homepage
+    }
+  };
+
   return (
     <header
       className={`z-50 w-full bg-background/95 supports-[backdrop-filter]:bg-background/80 backdrop-blur-lg border-b ${
@@ -57,7 +70,7 @@ const Header: React.FC<HeaderProps> = ({
         {/* Logo */}
         <div 
           className="flex items-center justify-start cursor-pointer"
-          onClick={() => navigate(themeBasePath)}
+          onClick={handleLogoClick}
         >
           <img
             src={defaultLogoSrc}

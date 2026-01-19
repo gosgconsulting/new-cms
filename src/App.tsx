@@ -9,12 +9,10 @@ import { useSEO } from "@/hooks/useSEO";
 import { AuthProvider } from "../sparti-cms/components/auth/AuthProvider";
 import ErrorBoundary from "./components/ErrorBoundary";
 import EmbedPagesManager from "../sparti-cms/components/embed/EmbedPagesManager";
-import ThemeAdminRedirect from "./components/ThemeAdminRedirect";
 import SuperAdminRoute from "../sparti-cms/components/auth/SuperAdminRoute";
 import NotFound from "./pages/NotFound";
 import Admin from "./pages/Admin";
 import Auth from "./pages/Auth";
-import ThemeAdmin from "./pages/ThemeAdmin";
 import DatabaseViewer from "./pages/DatabaseViewer";
 import PublicDashboard from "./pages/PublicDashboard";
 import TenantLandingPage from "./pages/TenantLandingPage";
@@ -185,12 +183,7 @@ const App = () => {
               </ErrorBoundary>
             } />
 			
-            {/* Theme admin/auth routes */}
-            <Route path="/theme/:themeSlug/admin" element={
-              <ErrorBoundary>
-                <ThemeAdmin />
-              </ErrorBoundary>
-            } />
+            {/* Theme auth route */}
             <Route path="/theme/:themeSlug/auth" element={
               <ErrorBoundary>
                 <Auth />
