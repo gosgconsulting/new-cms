@@ -138,6 +138,26 @@ export const router = createBrowserRouter(
       element: <RootLayout><EmbedPagesManager /></RootLayout>,
     },
     {
+      path: "/blog",
+      element: (
+        <RootLayout>
+          <ErrorBoundary>
+            <TenantLandingPage />
+          </ErrorBoundary>
+        </RootLayout>
+      ),
+    },
+    {
+      path: "/blog/:slug",
+      element: (
+        <RootLayout>
+          <ErrorBoundary>
+            <TenantLandingPage />
+          </ErrorBoundary>
+        </RootLayout>
+      ),
+    },
+    {
       path: "/theme/:tenantSlug/product/:productname",
       element: (
         <RootLayout>

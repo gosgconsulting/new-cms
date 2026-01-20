@@ -86,8 +86,12 @@ const themeConfig: Record<string, { name: string; component: React.LazyExoticCom
  * - Can replace hardcoded values with database values when tenant is assigned
  */
 const TenantLandingPage: React.FC = () => {
-  const { tenantSlug, pageSlug, productname } = useParams<{ tenantSlug: string; pageSlug?: string; productname?: string }>();
+  const { tenantSlug, pageSlug, productname, slug: blogSlug } = useParams<{ tenantSlug?: string; pageSlug?: string; productname?: string; slug?: string }>();
   const location = useLocation();
+  
+  // Handle root-level blog routes (/blog or /blog/:slug)
+  // If there's no tenantSlug but pathname starts with /blog, use landingpage theme
+  const isRootBlogRoute = !tenantSlug && (location.pathname === '/blog' || location.pathname.startsWith('/blog/'));
   const slug = tenantSlug || 'landingpage';
   const [tenantId, setTenantId] = useState<string | undefined>(undefined);
   
@@ -139,10 +143,18 @@ const TenantLandingPage: React.FC = () => {
       return `product/${productname}`;
     }
     
+    // Handle root-level blog routes (/blog or /blog/:slug)
+    if (isRootBlogRoute) {
+      if (blogSlug) {
+        return `blog/${blogSlug}`;
+      }
+      return 'blog';
+    }
+    
     // Extract full path from pathname to handle nested routes
     const pathParts = location.pathname.split('/').filter(Boolean);
     const themeIndex = pathParts.indexOf('theme');
-    const tenantIndex = pathParts.indexOf(tenantSlug);
+    const tenantIndex = pathParts.indexOf(tenantSlug || slug);
     
     if (themeIndex >= 0 && tenantIndex === themeIndex + 1 && tenantIndex + 1 < pathParts.length) {
       // Get all parts after tenant slug (handles both single and nested paths)
@@ -152,7 +164,7 @@ const TenantLandingPage: React.FC = () => {
     
     // Fallback to pageSlug if pathname parsing didn't work
     return pageSlug;
-  }, [pageSlug, location.pathname, tenantSlug, productname]);
+  }, [pageSlug, location.pathname, tenantSlug, productname, isRootBlogRoute, blogSlug, slug]);
   
   // Get theme config or fallback
   const currentTheme = useMemo(() => {
