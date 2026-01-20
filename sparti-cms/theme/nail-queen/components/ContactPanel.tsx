@@ -80,14 +80,14 @@ const ContactPanel: React.FC<ContactPanelProps> = ({ open, onOpenChange }) => {
               <h3 className="text-lg font-medium">1. How would you like to contact us?</h3>
               <p className="text-sm text-gray-600">Choose one option, then continue.</p>
 
-              <div className="space-y-3">
+              <div className="space-y-3 text-left">
                 {/* WhatsApp */}
                 <button
                   type="button"
                   onClick={() => setSelectedMethod("whatsapp")}
                   aria-pressed={selectedMethod === "whatsapp"}
                   className={cn(
-                    "w-full flex items-center justify-between rounded-xl border p-4 transition-colors",
+                    "w-full flex items-center justify-start rounded-xl border p-4 transition-colors text-left",
                     selectedMethod === "whatsapp" ? "border-green-500 bg-green-50" : "hover:bg-gray-50"
                   )}
                 >
@@ -106,7 +106,7 @@ const ContactPanel: React.FC<ContactPanelProps> = ({ open, onOpenChange }) => {
                   onClick={() => setSelectedMethod("instagram")}
                   aria-pressed={selectedMethod === "instagram"}
                   className={cn(
-                    "w-full flex items-center justify-between rounded-xl border p-4 transition-colors",
+                    "w-full flex items-center justify-start rounded-xl border p-4 transition-colors text-left",
                     selectedMethod === "instagram" ? "border-pink-500 bg-pink-50" : "hover:bg-gray-50"
                   )}
                 >
@@ -125,7 +125,7 @@ const ContactPanel: React.FC<ContactPanelProps> = ({ open, onOpenChange }) => {
                   onClick={() => setSelectedMethod("form")}
                   aria-pressed={selectedMethod === "form"}
                   className={cn(
-                    "w-full flex items-center justify-between rounded-xl border p-4 transition-colors",
+                    "w-full flex items-center justify-start rounded-xl border p-4 transition-colors text-left",
                     selectedMethod === "form" ? "border-gray-900 bg-gray-50" : "hover:bg-gray-50"
                   )}
                 >
@@ -144,7 +144,7 @@ const ContactPanel: React.FC<ContactPanelProps> = ({ open, onOpenChange }) => {
                   onClick={() => setSelectedMethod("call")}
                   aria-pressed={selectedMethod === "call"}
                   className={cn(
-                    "w-full flex items-center justify-between rounded-xl border p-4 transition-colors",
+                    "w-full flex items-center justify-start rounded-xl border p-4 transition-colors text-left",
                     selectedMethod === "call" ? "border-blue-500 bg-blue-50" : "hover:bg-gray-50"
                   )}
                 >
