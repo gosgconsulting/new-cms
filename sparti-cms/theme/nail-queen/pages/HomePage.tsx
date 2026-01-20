@@ -350,7 +350,13 @@ export default function HomePage({ basePath }: { basePath: string }) {
                 No hidden agendas, just beautiful nails. Unlike package pushing salons, we believe in clear pricing and personalized recommendations. Choose any service you desire, knowing exactly what you're paying for.
               </p>
               <div className="flex justify-center">
-                <button className="text-nail-queen-brown text-sm font-medium border border-nail-queen-brown px-6 py-2 rounded-full hover:bg-nail-queen-brown hover:text-white transition-colors mt-auto">
+                <button
+                  className="text-nail-queen-brown text-sm font-medium border border-nail-queen-brown px-6 py-2 rounded-full hover:bg-nail-queen-brown hover:text-white transition-colors mt-auto"
+                  onClick={() => {
+                    const ev = new CustomEvent("nailqueen:open-contact");
+                    window.dispatchEvent(ev);
+                  }}
+                >
                   Learn more
                 </button>
               </div>

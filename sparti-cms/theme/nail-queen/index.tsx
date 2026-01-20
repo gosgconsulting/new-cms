@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 
 import "./theme.css";
@@ -12,6 +12,8 @@ import BlogPostPage from "./pages/BlogPostPage";
 import FindUsPage from "./pages/FindUsPage";
 import LegalPlaceholderPage from "./pages/LegalPlaceholderPage";
 import NotFoundPage from "./pages/NotFoundPage";
+
+import ContactPanel from "./components/ContactPanel";
 
 interface NailQueenThemeProps {
   basePath?: string;
@@ -44,6 +46,14 @@ const NailQueenTheme: React.FC<NailQueenThemeProps> = ({
   const normalized = normalizeSlug(pageSlug);
   const slugParts = normalized.split("/").filter(Boolean);
   const topLevel = slugParts[0] || "";
+
+  const [isContactOpen, setIsContactOpen] = useState(false);
+
+  useEffect(() => {
+    const handler = () => setIsContactOpen(true);
+    window.addEventListener("nailqueen:open-contact", handler);
+    return () => window.removeEventListener("nailqueen:open-contact", handler);
+  }, []);
 
   const renderRoute = () => {
     switch (topLevel) {
@@ -89,6 +99,7 @@ const NailQueenTheme: React.FC<NailQueenThemeProps> = ({
     <div className="nail-queen-theme">
       {/* Keeping the tenantName prop available for future integration */}
       <div data-theme-slug={themeSlug} data-tenant-name={tenantName}>
+        <ContactPanel open={isContactOpen} onOpenChange={setIsContactOpen} />
         {renderRoute()}
       </div>
     </div>

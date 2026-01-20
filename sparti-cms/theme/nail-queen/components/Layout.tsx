@@ -3,6 +3,8 @@ import { Link, useLocation } from "react-router-dom";
 
 import { cn } from "@/lib/utils";
 import { SocialMediaSticky } from "./SocialMediaSticky";
+import { useEffect, useState } from "react";
+import ContactPanel from "./ContactPanel";
 
 interface LayoutProps {
   basePath: string;
@@ -17,6 +19,13 @@ const joinPath = (basePath: string, subPath: string) => {
 
 export function Layout({ basePath, children }: LayoutProps) {
   const location = useLocation();
+
+  const [isContactOpen, setIsContactOpen] = useState(false);
+  useEffect(() => {
+    const handler = () => setIsContactOpen(true);
+    window.addEventListener("nailqueen:open-contact", handler);
+    return () => window.removeEventListener("nailqueen:open-contact", handler);
+  }, []);
 
   const navItems = [
     { label: "Home", path: "" },
@@ -60,7 +69,10 @@ export function Layout({ basePath, children }: LayoutProps) {
               ))}
             </div>
 
-            <button className="bg-nail-queen-brown text-white px-6 py-2 rounded-full text-sm font-medium hover:bg-nail-queen-brown/90 transition-colors">
+            <button
+              className="bg-nail-queen-brown text-white px-6 py-2 rounded-full text-sm font-medium hover:bg-nail-queen-brown/90 transition-colors"
+              onClick={() => setIsContactOpen(true)}
+            >
               Book now
             </button>
           </div>
@@ -68,6 +80,8 @@ export function Layout({ basePath, children }: LayoutProps) {
       </nav>
 
       <main className="pt-16">{children}</main>
+
+      <ContactPanel open={isContactOpen} onOpenChange={setIsContactOpen} />
 
       <div className="fixed bottom-6 right-6 z-50">
         <a
