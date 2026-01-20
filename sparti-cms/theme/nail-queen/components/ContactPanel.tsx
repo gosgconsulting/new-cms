@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Sheet,
   SheetContent,
@@ -12,7 +12,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { X } from "lucide-react";
 
 type ContactPanelProps = {
   open: boolean;
@@ -21,7 +20,6 @@ type ContactPanelProps = {
 
 const ContactPanel: React.FC<ContactPanelProps> = ({ open, onOpenChange }) => {
   const [step, setStep] = useState(1);
-  const initialFocusRef = useRef<HTMLButtonElement | null>(null);
 
   // Reset steps when closing
   useEffect(() => {
@@ -36,13 +34,6 @@ const ContactPanel: React.FC<ContactPanelProps> = ({ open, onOpenChange }) => {
       return () => {
         document.body.style.overflow = original;
       };
-    }
-  }, [open]);
-
-  // Focus the close button when opened (Sheet traps focus; this sets initial focus)
-  useEffect(() => {
-    if (open && initialFocusRef.current) {
-      initialFocusRef.current.focus();
     }
   }, [open]);
 
@@ -66,23 +57,10 @@ const ContactPanel: React.FC<ContactPanelProps> = ({ open, onOpenChange }) => {
           bg-white
         "
       >
-        {/* Close button (ESC and backdrop also close via Sheet) */}
-        <div className="absolute right-4 top-4">
-          <SheetClose asChild>
-            <button
-              aria-label="Close"
-              className="rounded-full p-2 hover:bg-gray-100"
-              ref={initialFocusRef}
-            >
-              <X className="h-5 w-5" />
-            </button>
-          </SheetClose>
-        </div>
-
         <SheetHeader className="mt-8">
           <SheetTitle className="text-xl font-semibold">Contact us</SheetTitle>
           <SheetDescription className="text-sm text-gray-600">
-            Tell us about your goals — we’ll tailor the scope after a quick consultation.
+            Tell us about your goals — we'll tailor the scope after a quick consultation.
           </SheetDescription>
         </SheetHeader>
 
