@@ -8,6 +8,7 @@ import {
   getFormSubmissions,
   createContact
 } from '../../sparti-cms/db/index.js';
+import { processFormSubmissionEmails } from '../utils/emailService.js';
 
 const router = express.Router();
 
@@ -18,10 +19,28 @@ router.post('/form-submissions', async (req, res) => {
   try {
     const { form_id, form_name, name, email, phone, company, message, tenant_id } = req.body;
     
-    console.log('[testing] Form submission received:', { form_id, name, email, tenant_id });
+    // Extract tenant_id from multiple sources (body, query, headers, middleware)
+    const extractedTenantId = tenant_id || 
+                              req.query.tenantId || 
+                              req.headers['x-tenant-id'] || 
+                              req.headers['X-Tenant-Id'] ||
+                              req.tenantId;
+    
+    console.log('[testing] Form submission received:', { 
+      form_id, 
+      name, 
+      email, 
+      tenant_id: extractedTenantId,
+      tenant_id_sources: {
+        body: tenant_id,
+        query: req.query.tenantId,
+        header: req.headers['x-tenant-id'] || req.headers['X-Tenant-Id'],
+        middleware: req.tenantId
+      }
+    });
     
     // Save form submission
-    const submission = await saveFormSubmission({ 
+    const result = await saveFormSubmission({ 
       form_id, 
       form_name, 
       name, 
@@ -29,10 +48,13 @@ router.post('/form-submissions', async (req, res) => {
       phone,
       company, 
       message,
-      tenant_id,
+      tenant_id: extractedTenantId,
       ip_address: req.ip,
       user_agent: req.get('User-Agent')
     });
+
+    const submission = result.submission;
+    const extendedResult = result.extended;
 
     // Also create/update contact record with tenant information
     try {
@@ -49,12 +71,74 @@ router.post('/form-submissions', async (req, res) => {
         source: form_name || form_id || 'form',
         status: 'new',
         notes: message ? `Form message: ${message}` : null
-      }, tenant_id); // Pass tenant_id as second parameter
+      }, extractedTenantId); // Pass extracted tenant_id
       
-      console.log('[testing] Contact created from form submission for tenant:', tenant_id);
+      console.log('[testing] Contact created from form submission for tenant:', extractedTenantId);
     } catch (contactError) {
       console.error('[testing] Error creating contact from form:', contactError);
       // Don't fail the form submission if contact creation fails
+    }
+    
+    // Send email notifications and auto-replies (non-blocking)
+    // Use the form object returned from saveFormSubmissionExtended
+    try {
+      let formId = null;
+      
+      // If we have the extended result (which includes the form), use it directly
+      if (extendedResult && extendedResult.form) {
+        formId = extendedResult.form.id;
+        console.log('[testing] Using form from extended result for email notifications:', { 
+          form_id, 
+          formId: extendedResult.form.id, 
+          form_name: extendedResult.form.name 
+        });
+      } else if (form_id) {
+        // Fallback: Try to get form by ID or name (for backward compatibility)
+        // Pass tenant_id if available to find the correct form
+        const form = await getFormById(form_id, extractedTenantId);
+        if (form) {
+          formId = form.id;
+          console.log('[testing] Found form for email notifications (fallback lookup):', { 
+            form_id, 
+            formId: form.id, 
+            form_name: form.name 
+          });
+        } else {
+          console.log('[testing] Form not found by ID/name:', form_id);
+        }
+      }
+      
+      // If we have a form ID, process emails
+      if (formId) {
+        const formSubmission = {
+          form_id,
+          form_name,
+          name,
+          email,
+          phone: phone || '',
+          company: company || '',
+          message: message || ''
+        };
+        
+        // Process emails asynchronously (don't wait for it to complete)
+        // This ensures form submission response is sent quickly
+        processFormSubmissionEmails(formSubmission, formId)
+          .then(results => {
+            console.log('[testing] Form submission emails processed:', {
+              formId,
+              notifications: results.notifications ? 'sent' : 'skipped',
+              autoReply: results.autoReply ? 'sent' : 'skipped'
+            });
+          })
+          .catch(error => {
+            console.error('[testing] Error processing form submission emails (non-fatal):', error);
+          });
+      } else {
+        console.log('[testing] No form ID found, skipping email notifications. form_id was:', form_id);
+      }
+    } catch (emailError) {
+      console.error('[testing] Error setting up form submission emails (non-fatal):', emailError);
+      // Don't fail the form submission if email setup fails
     }
     
     res.json({ 
