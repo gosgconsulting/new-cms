@@ -199,12 +199,12 @@ const PersonalTrainingPage: React.FC<TenantLandingProps> = ({
     },
     {
       title: 'PROGRESS TRACKING & ADJUSTMENTS',
-      description: `Your program isn't set in stone—it adapts as you improve. Your coach tracks your progress, measures your strength gains, and adjusts your training load, exercises, and intensity based on how your body responds. This data‑driven approach ensures you're always progressing, never plateauing, and always working at the right level for optimal results.`,
+      description: `Your program isn't set in stone—it adapts as you improve. Your coach tracks your progress, measures your strength gains, and adjusts your training load, exercises, and intensity based on how your body responds. This data‑driven approach ensures you're always progressing, never plateauing, and always working at the right level for optimal results. To enhance precision and track progress objectively, we use advanced tools such as force plates and dynamometers. These technologies allow us to measure strength, power, balance, and movement efficiency, ensuring rehabilitation is tailored, measurable, and results-driven.`,
       content: '',
     },
     {
       title: 'INJURY PREVENTION & REHABILITATION SUPPORT',
-      description: `Our physiotherapy‑informed approach means your coach understands how to work with injuries, not around them. Whether you're recovering from an injury or preventing one, your training program incorporates rehabilitation principles, movement corrections, and progressive loading that supports your body's healing and resilience. Train safely while building back stronger.`,
+      description: `Having a team that includes a physiotherapist means that your coach understands how to work with injuries, not around them. Whether you're recovering from an injury or preventing one, your training program incorporates rehabilitation principles, movement corrections, and progressive loading that supports your body's healing and resilience. Train safely while building back stronger.`,
       content: '',
     },
     {

@@ -184,17 +184,17 @@ const GroupClassPage: React.FC<TenantLandingProps> = ({
   const programmes = [
     {
       title: 'VARIETY OF CLASS TYPES',
-      description: `Our group classes offer diverse training styles to keep your workouts fresh and engaging. From high-intensity interval training (HIIT) and strength circuits to hybrid workouts combining cardio and resistance, you'll find classes that match your goals and preferences. Each class is designed to be scalable, so whether you're a beginner or advanced, you'll be challenged appropriately.`,
+      description: `At STR Fitness Club, our group classes cover the full spectrum of performance training. From strength-focused sessions that build a solid foundation, to conditioning classes targeting varied movement patterns and HYROX-style stations, every workout is designed to improve strength, endurance, and efficiency. Our HYROX classes and simulations prepare you for real race-day intensity, helping you refine pacing, strategy, and mental resilience. Complementing this, our Run & Develop classes focus on improving running threshold and speed, ensuring you move stronger, faster, and more confidently—whether in training or competition.`,
       content: '',
     },
     {
       title: 'EXPERT COACHING & FORM CORRECTION',
-      description: `Every class is led by experienced coaches who provide real-time guidance, form correction, and motivation. Our coaches understand how to manage a group while ensuring each participant receives attention. They demonstrate movements clearly, offer modifications for different fitness levels, and create a safe, effective training environment where everyone can succeed.`,
+      description: `Every session is guided by experienced coaches who bring expert instruction, real-time feedback, and unwavering encouragement. Our coaches understand how to manage a group while ensuring each participant receives attention. They demonstrate movements clearly, offer modifications for different fitness levels, and create a safe, effective training environment where everyone can succeed.`,
       content: '',
     },
     {
       title: 'COMMUNITY & ACCOUNTABILITY',
-      description: `Training in a group creates natural accountability and motivation. You'll work alongside others who share similar goals, creating a supportive community that encourages consistency. The energy of a group class pushes you to work harder than you might alone, while the camaraderie makes fitness fun and sustainable. Many members form lasting friendships through our classes.`,
+      description: `You'll train in an environment built on mutual support, where everyone pushes each other to improve and celebrate every milestone — big or small. The energy of a group class pushes you to work harder than you might alone, while the camaraderie makes fitness fun and sustainable. Many members form lasting friendships through our classes.`,
       content: '',
     },
     {
@@ -405,9 +405,9 @@ const GroupClassPage: React.FC<TenantLandingProps> = ({
         isMenuOpen={isMenuOpen}
         setIsMenuOpen={setIsMenuOpen}
         isHomepage={true}
-        title="Group Class Training For Community And Performance"
-        subtitle="Train Together, Grow Together"
-        description="Experience the energy and motivation of group training. Our diverse classes combine expert coaching with a supportive community, creating workouts that are challenging, fun, and effective. Whether you're building strength, improving fitness, or seeking accountability, our group classes offer the perfect environment to achieve your goals."
+        title="Where Expert Coaching Meets Community Training"
+        subtitle="Train Better, Live Better"
+        description="Experience our Small Group Classes, capped at 8 - 12 pax with a dedicated, progressive and structured training programme alongside a supportive community. Whether you're building strength, improving fitness, or seeking accountability, our group classes offer the perfect environment to achieve your goals."
         buttonText="Chat With Us"
         onButtonClick={() => setIsContactModalOpen(true)}
       />
@@ -439,7 +439,7 @@ const GroupClassPage: React.FC<TenantLandingProps> = ({
 
             {/* Content */}
             <p className="text-lg md:text-xl text-foreground mb-16 max-w-3xl leading-relaxed">
-              At STR, we believe fitness is better together. Our group classes combine expert coaching with the energy and motivation that comes from training alongside others. Every class is led by experienced coaches who provide real-time guidance, form correction, and motivation while creating a supportive community atmosphere. Whether you're a beginner or advanced, our scalable workouts ensure everyone is appropriately challenged. Join us to experience workouts that are challenging, fun, and effective—all while building lasting connections with fellow members.
+              At STR Fitness Club, we believe fitness should be transformative, empowering, and community-driven. Our group classes embody the ethos of Train Better, Live Better — where physical performance meets mental resilience and holistic well-being. Every session is guided by experienced coaches who bring expert instruction, real-time feedback, and unwavering encouragement. You'll train in an environment built on mutual support, where everyone pushes each other to improve and celebrate every milestone — big or small. <br></br><br></br>Whether you're stepping into your fitness journey for the first time or preparing for your next race, our scalable workouts meet you where you are and elevate you further. With classes designed for a range of intensities — from beginner-friendly to advanced performance training — you'll find challenge, connection, and results, all within a welcoming community. Join STR Group Classes and experience effective, fun, and purpose-driven workouts that build strength, confidence, resilience, and lasting friendships along the way.
             </p>
 
             {/* Feature Cards */}
@@ -451,7 +451,7 @@ const GroupClassPage: React.FC<TenantLandingProps> = ({
                 </div>
                 <h3 className="text-xl font-bold uppercase text-black mb-3">EXPERT COACHING</h3>
                 <p className="text-black/80 text-sm leading-relaxed grow">
-                  Every class is led by experienced coaches who provide real-time guidance, form correction, and motivation. They know how to manage a group while ensuring each participant receives attention and appropriate challenge.
+                  Every session is guided by experienced coaches who bring expert instruction, real-time feedback, and unwavering encouragement.
                 </p>
               </div>
 
@@ -462,7 +462,7 @@ const GroupClassPage: React.FC<TenantLandingProps> = ({
                 </div>
                 <h3 className="text-xl font-bold uppercase text-black mb-3">SUPPORTIVE COMMUNITY</h3>
                 <p className="text-black/80 text-sm leading-relaxed grow">
-                  Training with others creates natural accountability and motivation. The group energy pushes you to work harder, while the supportive atmosphere makes fitness fun and sustainable. Many members form lasting friendships.
+                  You'll train in an environment built on mutual support, where everyone pushes each other to improve and celebrate every milestone — big or small.
                 </p>
               </div>
 
@@ -473,7 +473,7 @@ const GroupClassPage: React.FC<TenantLandingProps> = ({
                 </div>
                 <h3 className="text-xl font-bold uppercase text-black mb-3">VARIETY & FLEXIBILITY</h3>
                 <p className="text-black/80 text-sm leading-relaxed grow">
-                  From HIIT and strength circuits to hybrid workouts, we offer diverse class types to keep your training fresh. With multiple classes throughout the week, you can find sessions that fit your schedule.
+                  At STR Fitness Club, our group classes cover the full spectrum of performance training. From strength-focused sessions that build a solid foundation, to conditioning classes targeting varied movement patterns and HYROX-style stations, every workout is designed to improve strength, endurance, and efficiency. Our HYROX classes and simulations prepare you for real race-day intensity, helping you refine pacing, strategy, and mental resilience. Complementing this, our Run & Develop classes focus on improving running threshold and speed, ensuring you move stronger, faster, and more confidently—whether in training or competition.
                 </p>
               </div>
             </div>
@@ -490,7 +490,7 @@ const GroupClassPage: React.FC<TenantLandingProps> = ({
               GROUP CLASS PACKAGES
             </h2>
             <p className="text-lg md:text-xl text-foreground/80 leading-relaxed max-w-3xl mx-auto">
-              Start your fitness journey with our special first-time offer. Experience unlimited access to our diverse range of group classes designed to challenge, motivate, and transform.
+            Join STR Group Classes and experience effective, fun, and purpose-driven workouts that build strength, confidence, resilience, and lasting friendships along the way
             </p>
           </div>
 
@@ -1084,7 +1084,7 @@ const GroupClassPage: React.FC<TenantLandingProps> = ({
               READY TO START YOUR GROUP CLASS JOURNEY?
             </h2>
             <p className="text-lg md:text-xl text-foreground/80 mb-8 max-w-2xl mx-auto leading-relaxed">
-              Experience the energy and motivation of group training. Our diverse classes combine expert coaching with a supportive community, creating workouts that are challenging, fun, and effective. Whether you're building strength, improving fitness, or seeking accountability, your journey starts with a conversation. Chat with us today to learn how we can help you achieve your goals.
+              Experience our Small Group Classes, capped at 8 - 12 pax with a dedicated, progressive and structured training programme alongside a supportive community. Whether you're building strength, improving fitness, or seeking accountability, your journey starts with a conversation. Chat with us today to learn how we can help you achieve your goals.
             </p>
             
             {/* CTA Button */}

@@ -194,12 +194,12 @@ const PhysiotherapyPage: React.FC<TenantLandingProps> = ({
     },
     {
       title: 'HANDS-ON MANUAL THERAPY',
-      description: `Our physiotherapists use skilled hands-on techniques to address tissue restrictions, improve joint mobility, reduce pain, and enhance movement quality. Techniques may include soft tissue mobilization, joint mobilization, myofascial release, and other manual interventions tailored to your condition. This hands-on approach complements exercise-based treatment for comprehensive recovery.`,
+      description: `Our physiotherapists use skilled hands-on techniques to address tissue restrictions, improve joint mobility, reduce pain, and enhance movement quality. Techniques may include soft tissue mobilization, joint mobilization, myofascial release, dry needling, and other manual interventions tailored to your condition. This hands-on approach complements exercise-based treatment for comprehensive recovery.`,
       content: '',
     },
     {
       title: 'EXERCISE PRESCRIPTION & REHABILITATION',
-      description: `Movement is medicine. Your physiotherapist prescribes specific exercises designed to address your condition, restore function, and prevent recurrence. These exercises progress as you improve, ensuring you're always working at the right level for optimal recovery. You'll receive clear instructions and guidance on performing exercises correctly, both during sessions and for home practice.`,
+      description: `Movement is medicine. Your physiotherapist prescribes specific exercises designed to address your condition, restore function, and prevent recurrence. These exercises progress as you improve, ensuring you're always working at the right level for optimal recovery. You'll receive clear instructions and guidance on performing exercises correctly, both during sessions and for home practice. To enhance precision and track progress objectively, we use advanced tools such as force plates and dynamometers. These technologies allow us to measure strength, power, balance, and movement efficiency, ensuring rehabilitation is tailored, measurable, and results-driven.`,
       content: '',
     },
     {
@@ -405,9 +405,9 @@ const PhysiotherapyPage: React.FC<TenantLandingProps> = ({
         isMenuOpen={isMenuOpen}
         setIsMenuOpen={setIsMenuOpen}
         isHomepage={true}
-        title="Physiotherapy For Recovery And Performance"
+        title="Evidence-Based Sports Physiotherapy & Performance Rehabilitation"
         subtitle="Evidence-Based Rehabilitation And Movement Optimization"
-        description="Comprehensive physiotherapy services that address the root cause of your condition, not just the symptoms. Our evidence-based approach combines hands-on treatment, therapeutic exercise, and movement correction to help you recover from injury, manage pain, and optimize performance."
+        description="STR Fitness Club Physiotherapy delivers clinically driven, evidence-based care with a strong focus on sports performance and movement efficiency. Our approach prioritizes accurate assessment and diagnosis to identify the underlying causes of pain, injury, and movement dysfunction, rather than simply treating symptoms."
         buttonText="Chat With Us"
         onButtonClick={() => setIsContactModalOpen(true)}
       />
@@ -439,7 +439,7 @@ const PhysiotherapyPage: React.FC<TenantLandingProps> = ({
 
             {/* Content */}
             <p className="text-lg md:text-xl text-foreground mb-16 max-w-3xl leading-relaxed">
-              At STR, we believe effective physiotherapy addresses the root cause of your condition, not just the symptoms. Our evidence-based approach combines comprehensive assessment, hands-on manual therapy, therapeutic exercise, and movement correction to help you recover from injury, manage pain, and optimize performance. Every treatment plan is personalized to your specific needs and goals, whether you're recovering from surgery, managing chronic pain, or seeking to enhance athletic performance. Our integration with training services means we can seamlessly guide you from treatment to performance optimization.
+              STR Fitness Club Physiotherapy delivers clinically driven, evidence-based care with a strong focus on sports performance and movement efficiency. Our approach prioritizes accurate assessment and diagnosis to identify the underlying causes of pain, injury, and movement dysfunction, rather than simply treating symptoms.
             </p>
 
             {/* Feature Cards */}
@@ -451,29 +451,29 @@ const PhysiotherapyPage: React.FC<TenantLandingProps> = ({
                 </div>
                 <h3 className="text-xl font-bold uppercase text-black mb-3">EVIDENCE-BASED TREATMENT</h3>
                 <p className="text-black/80 text-sm leading-relaxed grow">
-                  Our physiotherapy approach is grounded in the latest research and clinical evidence. Every treatment technique is selected based on what's most effective for your specific condition, ensuring safe and results-driven care.
+                  Rehabilitation integrates manual therapy, progressive therapeutic exercise, and movement re-education, all conducted within a fully equipped gym environment. This allows for precise load management and sport-specific progressions that bridge the gap between clinical rehabilitation and high-performance training.
                 </p>
               </div>
 
-              {/* Comprehensive Assessment Card */}
+              {/* Integrated Care Card */}
               <div className="bg-white rounded-3xl p-6 shadow-2xl h-full flex flex-col">
                 <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center mb-4 shrink-0">
                   <Award className="h-6 w-6 text-black" />
                 </div>
-                <h3 className="text-xl font-bold uppercase text-black mb-3">COMPREHENSIVE ASSESSMENT</h3>
+                <h3 className="text-xl font-bold uppercase text-black mb-3">INTEGRATED CARE</h3>
                 <p className="text-black/80 text-sm leading-relaxed grow">
-                  We conduct thorough assessments to identify the root cause of your condition—not just the symptoms. This comprehensive evaluation allows us to develop targeted treatment plans that address your specific needs and goals.
+                  Our physiotherapists work in close collaboration with STR coaches and personal trainers to ensure continuity between rehabilitation and training. This integrated model supports safe return to sport, reduced injury risk, and measurable improvements in performance capacity.
                 </p>
               </div>
 
-              {/* Personalized Care Card */}
+              {/* High Level Performance Card */}
               <div className="bg-white rounded-3xl p-6 shadow-2xl h-full flex flex-col">
                 <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center mb-4 shrink-0">
                   <Users className="h-6 w-6 text-black" />
                 </div>
-                <h3 className="text-xl font-bold uppercase text-black mb-3">PERSONALIZED CARE</h3>
+                <h3 className="text-xl font-bold uppercase text-black mb-3">HIGH LEVEL PERFORMANCE</h3>
                 <p className="text-black/80 text-sm leading-relaxed grow">
-                  Every treatment plan is tailored to your specific condition, goals, and lifestyle. We combine hands-on therapy, therapeutic exercise, and education to empower you in your recovery and long-term health.
+                  With extensive experience working with elite and competitive athletes, our team understands the demands of high-performance training, competition timelines, and return-to-play requirements. This background informs our clinical decision-making and progression strategies, ensuring every athlete—whether elite, competitive, or recreational—receives structured, outcome-driven care designed for long-term resilience and peak performance.
                 </p>
               </div>
             </div>
