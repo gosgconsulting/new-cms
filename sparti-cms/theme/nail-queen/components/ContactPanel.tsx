@@ -12,6 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 
 type ContactPanelProps = {
   open: boolean;
@@ -20,10 +21,14 @@ type ContactPanelProps = {
 
 const ContactPanel: React.FC<ContactPanelProps> = ({ open, onOpenChange }) => {
   const [step, setStep] = useState(1);
+  const [selectedMethod, setSelectedMethod] = useState<"whatsapp" | "instagram" | "form" | "call" | null>(null);
 
-  // Reset steps when closing
+  // Reset both step and selected method when closing
   useEffect(() => {
-    if (!open) setStep(1);
+    if (!open) {
+      setStep(1);
+      setSelectedMethod(null);
+    }
   }, [open]);
 
   // Disable background scrolling while panel is open
@@ -42,6 +47,9 @@ const ContactPanel: React.FC<ContactPanelProps> = ({ open, onOpenChange }) => {
 
   const next = () => setStep((s) => Math.min(3, s + 1));
   const back = () => setStep((s) => Math.max(1, s - 1));
+
+  // OPTIONAL: computed flag to control Next disabled when no method selected
+  const nextDisabled = step === 1 && !selectedMethod;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -68,7 +76,92 @@ const ContactPanel: React.FC<ContactPanelProps> = ({ open, onOpenChange }) => {
         <div className="mt-6 space-y-6">
           {step === 1 && (
             <div className="space-y-4">
-              <h3 className="text-lg font-medium">1. Your details</h3>
+              <h3 className="text-lg font-medium">1. How would you like to contact us?</h3>
+              <p className="text-sm text-gray-600">Choose one option, then continue.</p>
+
+              <div className="space-y-3">
+                {/* WhatsApp */}
+                <button
+                  type="button"
+                  onClick={() => setSelectedMethod("whatsapp")}
+                  aria-pressed={selectedMethod === "whatsapp"}
+                  className={cn(
+                    "w-full flex items-center justify-between rounded-xl border p-4 transition-colors",
+                    selectedMethod === "whatsapp" ? "border-green-500 bg-green-50" : "hover:bg-gray-50"
+                  )}
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="inline-block h-6 w-6 rounded-md bg-green-500" />
+                    <div>
+                      <div className="font-medium">WhatsApp</div>
+                      <div className="text-xs text-gray-600">Fastest reply</div>
+                    </div>
+                  </div>
+                </button>
+
+                {/* Instagram */}
+                <button
+                  type="button"
+                  onClick={() => setSelectedMethod("instagram")}
+                  aria-pressed={selectedMethod === "instagram"}
+                  className={cn(
+                    "w-full flex items-center justify-between rounded-xl border p-4 transition-colors",
+                    selectedMethod === "instagram" ? "border-pink-500 bg-pink-50" : "hover:bg-gray-50"
+                  )}
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="inline-block h-6 w-6 rounded-md bg-pink-500" />
+                    <div>
+                      <div className="font-medium">Instagram</div>
+                      <div className="text-xs text-gray-600">DM us on Instagram</div>
+                    </div>
+                  </div>
+                </button>
+
+                {/* Contact form */}
+                <button
+                  type="button"
+                  onClick={() => setSelectedMethod("form")}
+                  aria-pressed={selectedMethod === "form"}
+                  className={cn(
+                    "w-full flex items-center justify-between rounded-xl border p-4 transition-colors",
+                    selectedMethod === "form" ? "border-gray-900 bg-gray-50" : "hover:bg-gray-50"
+                  )}
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="inline-block h-6 w-6 rounded-md bg-black" />
+                    <div>
+                      <div className="font-medium">Contact form</div>
+                      <div className="text-xs text-gray-600">Email follow-up</div>
+                    </div>
+                  </div>
+                </button>
+
+                {/* Call */}
+                <button
+                  type="button"
+                  onClick={() => setSelectedMethod("call")}
+                  aria-pressed={selectedMethod === "call"}
+                  className={cn(
+                    "w-full flex items-center justify-between rounded-xl border p-4 transition-colors",
+                    selectedMethod === "call" ? "border-blue-500 bg-blue-50" : "hover:bg-gray-50"
+                  )}
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="inline-block h-6 w-6 rounded-md bg-blue-500" />
+                    <div>
+                      <div className="font-medium">Call</div>
+                      <div className="text-xs text-gray-600">Speak to us directly</div>
+                    </div>
+                  </div>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {step === 2 && (
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium">2. Your details</h3>
               <div className="space-y-3">
                 <label className="block text-sm font-medium">Name</label>
                 <Input placeholder="Your name" />
@@ -80,33 +173,6 @@ const ContactPanel: React.FC<ContactPanelProps> = ({ open, onOpenChange }) => {
               <div className="space-y-3">
                 <label className="block text-sm font-medium">Phone (optional)</label>
                 <Input type="tel" placeholder="+65 1234 5678" />
-              </div>
-            </div>
-          )}
-
-          {step === 2 && (
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium">2. How would you like to contact us?</h3>
-              <p className="text-sm text-gray-600">Choose one option, then continue.</p>
-              <div className="space-y-3">
-                <button className="w-full flex items-center justify-between rounded-xl border p-4 hover:bg-gray-50 transition-colors">
-                  <div className="flex items-center gap-3">
-                    <span className="inline-block h-6 w-6 rounded-md bg-green-500" />
-                    <div>
-                      <div className="font-medium">WhatsApp</div>
-                      <div className="text-xs text-gray-600">Fastest reply</div>
-                    </div>
-                  </div>
-                </button>
-                <button className="w-full flex items-center justify-between rounded-xl border p-4 hover:bg-gray-50 transition-colors">
-                  <div className="flex items-center gap-3">
-                    <span className="inline-block h-6 w-6 rounded-md bg-black" />
-                    <div>
-                      <div className="font-medium">Contact form</div>
-                      <div className="text-xs text-gray-600">Email follow-up</div>
-                    </div>
-                  </div>
-                </button>
               </div>
             </div>
           )}
@@ -125,7 +191,7 @@ const ContactPanel: React.FC<ContactPanelProps> = ({ open, onOpenChange }) => {
             Back
           </Button>
           {canGoNext ? (
-            <Button onClick={next} className="min-w-[96px]">
+            <Button onClick={next} disabled={nextDisabled} className="min-w-[96px]">
               Next
             </Button>
           ) : (
