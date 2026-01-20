@@ -29,7 +29,17 @@ const InfoIcon = ({ type }: { type: 'website' | 'phone' | 'address' }) => {
 
 
 // Prop types for the HeroSection component
-interface HeroSectionProps extends React.HTMLAttributes<HTMLDivElement> {
+interface HeroSectionProps extends Omit<
+  React.HTMLAttributes<HTMLElement>,
+  | 'title'
+  | 'onDrag'
+  | 'onDragStart'
+  | 'onDragEnd'
+  | 'onDragEnter'
+  | 'onDragLeave'
+  | 'onDragOver'
+  | 'onDrop'
+> {
   logo?: {
     url: string;
     alt: string;
@@ -72,8 +82,7 @@ const HeroSection = React.forwardRef<HTMLDivElement, HeroSectionProps>(
         y: 0,
         opacity: 1,
         transition: {
-          duration: 0.5,
-          ease: "easeOut",
+          duration: 0.5
         },
       },
     };
