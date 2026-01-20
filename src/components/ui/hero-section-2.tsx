@@ -91,7 +91,7 @@ const HeroSection = React.forwardRef<HTMLDivElement, HeroSectionProps>(
         {...props}
       >
         {/* Left Side: Content */}
-        <div className="flex w-full flex-col justify-between p-8 md:w-1/2 md:p-12 lg:w-3/5 lg:p-16">
+        <div className="flex w-full flex-col justify-between p-8 md:w-1/2 md:p-12 lg:w-3/5 lg:p-16 lg:pl-24 xl:pl-32">
             {/* Top Section: Logo & Main Content */}
             <div>
                 <motion.header className="mb-12" variants={itemVariants}>
@@ -111,32 +111,21 @@ const HeroSection = React.forwardRef<HTMLDivElement, HeroSectionProps>(
                         {title}
                     </motion.h1>
                     <motion.div className="my-6 h-1 w-20 bg-primary" variants={itemVariants}></motion.div>
-                    <motion.p className="mb-8 max-w-md text-base text-muted-foreground" variants={itemVariants}>
+                    <motion.p className="mb-8 max-w-md md:max-w-lg lg:max-w-xl xl:max-w-2xl text-base text-muted-foreground" variants={itemVariants}>
                         {subtitle}
                     </motion.p>
-                    <motion.a href={callToAction.href} className="text-lg font-bold tracking-widest text-primary transition-colors hover:text-primary/80" variants={itemVariants}>
+                    <motion.a 
+                      href={callToAction.href} 
+                      className="inline-block px-6 py-3 text-lg font-bold tracking-widest text-white bg-[#145598] rounded-md transition-all duration-300 hover:bg-[#0f3f6f] hover:scale-105 hover:shadow-xl hover:shadow-[#145598]/30 hover:-translate-y-0.5 active:scale-100" 
+                      style={{ backgroundColor: '#145598' }}
+                      variants={itemVariants}
+                      whileHover={{ scale: 1.05, y: -2 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
                         {callToAction.text}
                     </motion.a>
                 </motion.main>
             </div>
-
-            {/* Bottom Section: Footer Info */}
-            <motion.footer className="mt-12 w-full" variants={itemVariants}>
-                <div className="grid grid-cols-1 gap-6 text-xs text-muted-foreground sm:grid-cols-3">
-                    <div className="flex items-center">
-                        <InfoIcon type="website" />
-                        <span>{contactInfo.website}</span>
-                    </div>
-                    <div className="flex items-center">
-                        <InfoIcon type="phone" />
-                        <span>{contactInfo.phone}</span>
-                    </div>
-                    <div className="flex items-center">
-                        <InfoIcon type="address" />
-                        <span>{contactInfo.address}</span>
-                    </div>
-                </div>
-            </motion.footer>
         </div>
 
         {/* Right Side: Image with Clip Path Animation */}

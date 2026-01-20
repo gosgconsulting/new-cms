@@ -83,8 +83,11 @@ const Header: React.FC<HeaderProps> = ({
           <div className="flex items-center gap-3">
             <button 
               onClick={onContactClick} 
-              className="px-4 py-2 rounded-md font-semibold text-sm transition-colors bg-white/90 backdrop-blur-sm border border-white/20"
-              style={{ color: '#145598' }}
+              className="contact-us-button px-4 py-2 rounded-md font-semibold text-sm transition-colors backdrop-blur-sm border border-white/20"
+              style={{ 
+                color: '#145598',
+                backgroundColor: 'rgba(255, 255, 255, 0.5)'
+              }}
             >
               Contact Us
             </button>

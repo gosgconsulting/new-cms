@@ -57,13 +57,24 @@ header[class*="sticky"] a:hover {
   color: #ffffff !important;
 }
 
-/* CTA Section - Black text for optimalconsulting theme */
+/* Contact Us button in header - white background with 50% opacity */
+header[class*="sticky"] button.contact-us-button {
+  background-color: rgba(255, 255, 255, 0.5) !important;
+  color: #145598 !important;
+  border-radius: 0.375rem !important; /* rounded-md */
+}
+
+/* CTA Section - Deep blue gradient background with white text for optimalconsulting theme */
+section[class*="bg-brand-gradient-animated"] {
+  background: linear-gradient(135deg, #145598 0%, #0f3f6f 50%, #1a6bb8 100%) !important;
+}
+
 section[class*="bg-brand-gradient-animated"] h2 {
-  color: #000000 !important;
+  color: #ffffff !important;
 }
 
 section[class*="bg-brand-gradient-animated"] p {
-  color: #000000 !important;
+  color: #ffffff !important;
 }
 
 /* All buttons - Background color #145598 */
@@ -75,6 +86,15 @@ a[class*="btn-cta"] {
   background-color: #145598 !important;
   color: #ffffff !important;
   border-color: #145598 !important;
+}
+
+/* Hero Section Banner Button - Ensure background is visible */
+section[class*="flex-col"] a[href*="#contact"],
+section[class*="flex-col"] a[class*="bg-\[#145598\]"],
+section[class*="flex-col"] a[class*="inline-block"][class*="px-6"] {
+  background-color: #145598 !important;
+  color: #ffffff !important;
+  border: none !important;
 }
 
 button:not([class*="bg-transparent"]):not([class*="border-none"]):not([class*="AccordionTrigger"]):hover,
@@ -161,20 +181,57 @@ section[class*="bg-(--bg-secondary)"] button[class*="rounded-xl"]:not([class*="r
 /* About section - Learn more button */
 section[class*="bg-[color:var(--bg-primary)"] a.btn-cta[href="#contact"],
 section[class*="bg-[color:var(--bg-primary)"] a.btn-cta {
-  padding: 1.25rem 3rem !important;
-  font-size: 1.25rem !important;
+  padding: 0.875rem 2rem !important;
+  font-size: 1rem !important;
   font-weight: 600 !important;
-  min-height: 4rem !important;
+  min-height: 3rem !important;
   line-height: 1.5 !important;
+  transition: all 0.3s ease !important;
+  border-radius: 0.5rem !important; /* rounded-lg */
+}
+
+section[class*="bg-[color:var(--bg-primary)"] a.btn-cta[href="#contact"]:hover,
+section[class*="bg-[color:var(--bg-primary)"] a.btn-cta:hover {
+  transform: scale(1.05) translateY(-2px) !important;
+  box-shadow: 0 10px 25px rgba(20, 85, 152, 0.3) !important;
+}
+
+/* About section - Second button "Ready to partner with us" */
+section[class*="bg-[color:var(--bg-primary)"] a.btn-cta-secondary {
+  background-color: #1e63b8 !important;
+  color: #ffffff !important;
+  border-color: #1e63b8 !important;
+  border-radius: 0.5rem !important; /* rounded-lg */
+  padding: 0.875rem 2rem !important;
+  font-size: 1rem !important;
+  font-weight: 600 !important;
+  min-height: 3rem !important;
+  line-height: 1.5 !important;
+  transition: all 0.3s ease !important;
+}
+
+section[class*="bg-[color:var(--bg-primary)"] a.btn-cta-secondary:hover {
+  background-color: #1a5498 !important;
+  border-color: #1a5498 !important;
+  transform: scale(1.05) translateY(-2px) !important;
+  box-shadow: 0 10px 25px rgba(30, 99, 184, 0.3) !important;
 }
 
 /* CTA section - Book consultation button */
 section[class*="bg-brand-gradient-animated"] a.btn-cta,
 section[class*="bg-brand-gradient-animated"] a.btn-cta-secondary,
 section[class*="bg-brand-gradient-animated"] a[class*="btn-cta"] {
-  padding: 1.25rem 3rem !important;
-  font-size: 1.25rem !important;
+  padding: 0.875rem 2rem !important;
+  font-size: 1rem !important;
   font-weight: 600 !important;
-  min-height: 4rem !important;
+  min-height: 3rem !important;
   line-height: 1.5 !important;
+  transition: all 0.3s ease !important;
+}
+
+section[class*="bg-brand-gradient-animated"] a.btn-cta:hover,
+section[class*="bg-brand-gradient-animated"] a.btn-cta-secondary:hover,
+section[class*="bg-brand-gradient-animated"] a[class*="btn-cta"]:hover {
+  transform: scale(1.05) translateY(-2px) !important;
+  box-shadow: 0 10px 25px rgba(20, 85, 152, 0.3) !important;
 }

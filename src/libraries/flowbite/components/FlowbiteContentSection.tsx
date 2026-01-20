@@ -57,11 +57,22 @@ const FlowbiteContentSection: React.FC<FlowbiteContentSectionProps> = ({
     };
   };
 
+  const getAllButtons = () => {
+    return items
+      .filter((i) => i.type === "button")
+      .map((item: any) => ({
+        content: item?.content || "",
+        link: item?.link || "#",
+        key: item?.key || "",
+      }));
+  };
+
   const variant = (props as any).variant as string | undefined;
 
   const title = getHeading("title") || (props as any).title || "";
   const badge = getText("badge") || (props as any).badge || "";
   const button = getButton("button");
+  const buttons = getAllButtons();
 
   const paragraphs = useMemo(() => {
     const arr = getArray("content");
@@ -145,10 +156,26 @@ const FlowbiteContentSection: React.FC<FlowbiteContentSectionProps> = ({
                 </div>
               ) : null}
 
-              {button.content ? (
+              {buttons.length > 0 ? (
+                <Reveal direction="up" delayMs={260 + paragraphs.length * 90}>
+                  <div className="mt-8 flex flex-wrap gap-4">
+                    {buttons.map((btn, index) => (
+                      <a
+                        key={btn.key || index}
+                        href={btn.link}
+                        className={`btn-cta rounded-lg ${
+                          index > 0 ? "btn-cta-secondary" : ""
+                        }`}
+                      >
+                        {btn.content}
+                      </a>
+                    ))}
+                  </div>
+                </Reveal>
+              ) : button.content ? (
                 <Reveal direction="up" delayMs={260 + paragraphs.length * 90}>
                   <div className="mt-8">
-                    <a href={button.link} className="btn-cta">
+                    <a href={button.link} className="btn-cta rounded-lg">
                       {button.content}
                     </a>
                   </div>
@@ -220,9 +247,23 @@ const FlowbiteContentSection: React.FC<FlowbiteContentSectionProps> = ({
               </div>
             ) : null}
 
-            {button.content ? (
+            {buttons.length > 0 ? (
+              <div className="mt-8 flex flex-wrap gap-4">
+                {buttons.map((btn, index) => (
+                  <a
+                    key={btn.key || index}
+                    href={btn.link}
+                    className={`btn-cta rounded-lg ${
+                      index > 0 ? "btn-cta-secondary" : ""
+                    }`}
+                  >
+                    {btn.content}
+                  </a>
+                ))}
+              </div>
+            ) : button.content ? (
               <div className="mt-8">
-                <a href={button.link} className="btn-cta">
+                <a href={button.link} className="btn-cta rounded-lg">
                   {button.content}
                 </a>
               </div>

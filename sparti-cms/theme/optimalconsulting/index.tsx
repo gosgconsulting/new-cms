@@ -20,6 +20,8 @@ import TermsAndConditionsPage from "../master/pages/TermsAndConditionsPage";
 import BlogListPage from "../master/pages/blog/BlogListPage";
 import BlogPostPage from "../master/pages/blog/BlogPostPage";
 import { HeroSection } from "@/components/ui/hero-section-2";
+import StatisticsSection from "./components/StatisticsSection";
+import AnniversarySection from "./components/AnniversarySection";
 import "./theme.css";
 
 // Helper function to adjust color brightness
@@ -150,7 +152,7 @@ const OptimalConsultingTheme: React.FC<OptimalConsultingThemeProps> = ({
     type: "flowbite-hero-section",
     props: {
       showCarousel: false,
-      backgroundImage: `/theme/${themeSlug}/assets/hero.svg`,
+      backgroundImage: `/theme/${themeSlug}/Assets/500x202-768x310.jpg`,
     },
     items: [
       {
@@ -580,6 +582,14 @@ const OptimalConsultingTheme: React.FC<OptimalConsultingThemeProps> = ({
 
         <div id="faq" className="scroll-mt-20">
           <FlowbiteFAQSection component={faqSchema} />
+        </div>
+
+        <div id="statistics" className="scroll-mt-20">
+          <StatisticsSection />
+        </div>
+
+        <div id="anniversary" className="scroll-mt-20">
+          <AnniversarySection themeSlug={themeSlug} />
         </div>
 
         <div id="contact" className="scroll-mt-20">
