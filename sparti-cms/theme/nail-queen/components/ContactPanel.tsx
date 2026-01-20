@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import { MessageCircle, Camera, FileText, Phone } from "lucide-react";
 
 type ContactPanelProps = {
   open: boolean;
@@ -91,7 +92,7 @@ const ContactPanel: React.FC<ContactPanelProps> = ({ open, onOpenChange }) => {
                   )}
                 >
                   <div className="flex items-center gap-3">
-                    <span className="inline-block h-6 w-6 rounded-md bg-green-500" />
+                    <MessageCircle className="h-5 w-5 text-green-600" />
                     <div>
                       <div className="font-medium">WhatsApp</div>
                       <div className="text-xs text-gray-600">Fastest reply</div>
@@ -110,7 +111,7 @@ const ContactPanel: React.FC<ContactPanelProps> = ({ open, onOpenChange }) => {
                   )}
                 >
                   <div className="flex items-center gap-3">
-                    <span className="inline-block h-6 w-6 rounded-md bg-pink-500" />
+                    <Camera className="h-5 w-5 text-pink-500" />
                     <div>
                       <div className="font-medium">Instagram</div>
                       <div className="text-xs text-gray-600">DM us on Instagram</div>
@@ -129,7 +130,7 @@ const ContactPanel: React.FC<ContactPanelProps> = ({ open, onOpenChange }) => {
                   )}
                 >
                   <div className="flex items-center gap-3">
-                    <span className="inline-block h-6 w-6 rounded-md bg-black" />
+                    <FileText className="h-5 w-5 text-gray-900" />
                     <div>
                       <div className="font-medium">Contact form</div>
                       <div className="text-xs text-gray-600">Email follow-up</div>
@@ -148,7 +149,7 @@ const ContactPanel: React.FC<ContactPanelProps> = ({ open, onOpenChange }) => {
                   )}
                 >
                   <div className="flex items-center gap-3">
-                    <span className="inline-block h-6 w-6 rounded-md bg-blue-500" />
+                    <Phone className="h-5 w-5 text-blue-600" />
                     <div>
                       <div className="font-medium">Call</div>
                       <div className="text-xs text-gray-600">Speak to us directly</div>
