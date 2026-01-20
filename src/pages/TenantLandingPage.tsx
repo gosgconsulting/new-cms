@@ -156,6 +156,12 @@ const TenantLandingPage: React.FC = () => {
     const themeIndex = pathParts.indexOf('theme');
     const tenantIndex = pathParts.indexOf(tenantSlug || slug);
     
+    // Handle root-level routes (no /theme prefix)
+    if (themeIndex < 0 && pathParts.length > 0) {
+      // Root-level route like /blog or /blog/slug
+      return pathParts.join('/');
+    }
+    
     if (themeIndex >= 0 && tenantIndex === themeIndex + 1 && tenantIndex + 1 < pathParts.length) {
       // Get all parts after tenant slug (handles both single and nested paths)
       const remainingParts = pathParts.slice(tenantIndex + 1);
@@ -163,7 +169,7 @@ const TenantLandingPage: React.FC = () => {
     }
     
     // Fallback to pageSlug if pathname parsing didn't work
-    return pageSlug;
+    return pageSlug || '';
   }, [pageSlug, location.pathname, tenantSlug, productname, isRootBlogRoute, blogSlug, slug]);
   
   // Get theme config or fallback

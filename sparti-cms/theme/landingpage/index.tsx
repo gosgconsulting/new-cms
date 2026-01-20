@@ -59,7 +59,8 @@ const TenantLanding: React.FC<TenantLandingProps> = ({
   const [isContactDialogOpen, setIsContactDialogOpen] = useState(false);
   
   // Parse the page slug to determine which page to render
-  const normalizedPageSlug = normalizeSlug(pageSlug);
+  // For root-level routes like /blog, pageSlug might be undefined, so we also check pathname
+  const normalizedPageSlug = normalizeSlug(pageSlug || location.pathname);
   const slugParts = normalizedPageSlug.split("/").filter(Boolean);
   const topLevelSlug = slugParts[0] || "";
   
@@ -71,7 +72,11 @@ const TenantLanding: React.FC<TenantLandingProps> = ({
                          location.pathname.includes('/thank-you');
   
   // Check if we're on a blog page
-  const isBlogPage = topLevelSlug === "blog";
+  // Match /blog exactly or as a path segment (e.g., /blog or /theme/landingpage/blog or /blog/post-slug)
+  const isBlogPage = topLevelSlug === "blog" ||
+                     location.pathname === '/blog' ||
+                     location.pathname.startsWith('/blog/') ||
+                     location.pathname.includes('/blog');
 
   const handleContactClick = () => {
     setIsContactDialogOpen(true);
@@ -182,11 +187,20 @@ const TenantLanding: React.FC<TenantLandingProps> = ({
 
   // Render blog pages
   if (isBlogPage) {
-    console.log('[testing] Blog page detected:', { pageSlug, normalizedPageSlug, slugParts, topLevelSlug });
-    if (slugParts.length === 1) {
+    console.log('[testing] Blog page detected:', { pageSlug, normalizedPageSlug, slugParts, topLevelSlug, pathname: location.pathname });
+    
+    // Determine if it's a blog post or blog list page
+    // Check pathname directly for more reliable detection
+    const pathParts = location.pathname.split('/').filter(Boolean);
+    const blogIndex = pathParts.indexOf('blog');
+    const isBlogPost = blogIndex >= 0 && blogIndex + 1 < pathParts.length;
+    const postSlug = isBlogPost ? pathParts[blogIndex + 1] : null;
+    
+    if (isBlogPost && postSlug) {
       return (
-        <BlogListPage 
-          basePath={basePath} 
+        <BlogPostPage
+          basePath={basePath}
+          slug={postSlug}
           tenantId={effectiveTenantId}
           tenantName={siteName}
           tenantSlug={tenantSlug}
@@ -195,10 +209,11 @@ const TenantLanding: React.FC<TenantLandingProps> = ({
         />
       );
     }
+    
+    // Blog list page
     return (
-      <BlogPostPage
-        basePath={basePath}
-        slug={slugParts[1] || ""}
+      <BlogListPage 
+        basePath={basePath} 
         tenantId={effectiveTenantId}
         tenantName={siteName}
         tenantSlug={tenantSlug}
