@@ -1,16 +1,34 @@
 import { query } from '../connection.js';
 
 // Get form by ID or name
-export async function getFormById(formId) {
+export async function getFormById(formId, tenantId = null) {
   try {
     // Try to parse as integer first, if it fails, search by name
     const isNumeric = !isNaN(parseInt(formId));
     
     let result;
     if (isNumeric) {
-      result = await query('SELECT * FROM forms WHERE id = $1 OR name = $1', [parseInt(formId), formId]);
+      // Use $1 for id (integer) and $2 for name (string) to avoid type mismatch
+      if (tenantId) {
+        result = await query(
+          'SELECT * FROM forms WHERE (id = $1 OR name = $2) AND LOWER(TRIM(tenant_id)) = LOWER(TRIM($3::text))', 
+          [parseInt(formId), String(formId), String(tenantId)]
+        );
+      } else {
+        result = await query(
+          'SELECT * FROM forms WHERE id = $1 OR name = $2', 
+          [parseInt(formId), String(formId)]
+        );
+      }
     } else {
-      result = await query('SELECT * FROM forms WHERE name = $1', [formId]);
+      if (tenantId) {
+        result = await query(
+          'SELECT * FROM forms WHERE LOWER(TRIM(name)) = LOWER(TRIM($1)) AND LOWER(TRIM(tenant_id)) = LOWER(TRIM($2::text))', 
+          [formId, String(tenantId)]
+        );
+      } else {
+        result = await query('SELECT * FROM forms WHERE name = $1', [formId]);
+      }
     }
     
     return result.rows[0];
@@ -35,7 +53,8 @@ export async function getEmailSettingsByFormId(formId) {
 export async function saveFormSubmissionExtended(formData) {
   try {
     // First, try to find the form in the new forms table
-    let form = await getFormById(formData.form_id);
+    // Pass tenant_id to ensure we find the correct form for this tenant
+    let form = await getFormById(formData.form_id, formData.tenant_id);
     
     // If form doesn't exist in new table, create a default one for backward compatibility
     if (!form) {
@@ -121,7 +140,11 @@ export async function saveFormSubmissionExtended(formData) {
       formData.user_agent
     ]);
 
-    return result.rows[0];
+    // Return both the submission and the form object
+    return {
+      submission: result.rows[0],
+      form: form
+    };
   } catch (error) {
     console.error('Error saving form submission to new database:', error);
     throw error;
@@ -152,14 +175,19 @@ export async function saveFormSubmission(formData) {
     ]);
     
     // Also save to new forms database for integration
+    let extendedResult = null;
     try {
-      await saveFormSubmissionExtended(formData);
+      extendedResult = await saveFormSubmissionExtended(formData);
     } catch (newDbError) {
       console.error('Error saving to new forms database:', newDbError);
       // Don't fail the legacy save if new database fails
     }
     
-    return legacyResult.rows[0];
+    // Return both legacy submission and extended result (which includes form)
+    return {
+      submission: legacyResult.rows[0],
+      extended: extendedResult
+    };
   } catch (error) {
     console.error('Error saving form submission:', error);
     throw error;
