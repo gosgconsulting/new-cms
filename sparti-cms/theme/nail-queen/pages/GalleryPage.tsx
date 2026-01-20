@@ -29,7 +29,7 @@ export default function GalleryPage({ basePath }: { basePath: string }) {
         id: 1,
         category: "manicures",
         title: "French tips",
-        image: asset("gallery/manicures/french tip.jpg"),
+        image: asset("gallery/Nail_Queen/french_tips/11.jpg"),
       },
       {
         id: 2,
@@ -47,7 +47,7 @@ export default function GalleryPage({ basePath }: { basePath: string }) {
         id: 4,
         category: "manicures",
         title: "3D flower",
-        image: asset("gallery/manicures/3d flower.jpg"),
+        image: asset("gallery/Nail_Queen/3d_flower/4.jpg"),
       },
       {
         id: 5,
@@ -59,19 +59,19 @@ export default function GalleryPage({ basePath }: { basePath: string }) {
         id: 6,
         category: "manicures",
         title: "Ombre",
-        image: asset("gallery/manicures/ombre.JPG"),
+        image: asset("gallery/Nail_Queen/ombre/n32.JPG"),
       },
       {
         id: 7,
         category: "manicures",
         title: "BIAB",
-        image: asset("gallery/manicures/biab.jpg"),
+        image: asset("gallery/Nail_Queen/biab/9.jpg"),
       },
       {
         id: 8,
         category: "manicures",
         title: "Cat eye",
-        image: asset("gallery/manicures/cat eye.png"),
+        image: asset("gallery/Nail_Queen/cateyes/6copy.jpg"),
       },
       {
         id: 9,
@@ -83,7 +83,7 @@ export default function GalleryPage({ basePath }: { basePath: string }) {
         id: 10,
         category: "manicures",
         title: "2D",
-        image: asset("gallery/manicures/3d chrome.jpg"),
+        image: asset("gallery/Nail_Queen/2d/f1.jpg"),
       },
       {
         id: 12,
@@ -163,11 +163,320 @@ export default function GalleryPage({ basePath }: { basePath: string }) {
   const filteredItems = galleryItems.filter((item) => item.category === activeFilter);
 
   // Generate carousel images for a gallery item
-  // Since each item has one image, we'll use the same image multiple times
-  // This is common in galleries where you might have multiple views/angles of the same work
+  // For "French tips", use all images from the french_tips directory
+  // For other items, use the same image multiple times
   const generateCarouselImages = (item: GalleryItem) => {
+    // Special handling for French tips - use first 15 showable images from the directory
+    if (item.title === "French tips") {
+      const frenchTipsImages = [
+        "1.jpg",
+        "11.jpg",
+        "12.jpg",
+        "2_copy.jpg",
+        "4.jpg",
+        "5.jpg",
+        "6.jpg",
+        "7.jpg",
+        "8.jpg",
+        "9.jpg",
+        "a_copy.jpg",
+        "a3.jpg",
+        "bb14abcd8b703b2e6261_2.JPG",
+        "c_copy_2.jpg",
+        "hl2.jpg",
+      ];
+
+      return frenchTipsImages.map((filename) => {
+        // Properly encode the filename to handle spaces and special characters
+        const encodedFilename = encodeURIComponent(filename);
+        const imagePath = asset(`gallery/Nail_Queen/french_tips/${encodedFilename}`);
+        return {
+          full: imagePath,
+          thumb: imagePath,
+        };
+      });
+    }
+
+    // Special handling for Metalic - use first 15 showable images from the directory
+    if (item.title === "Metalic") {
+      const metalicImages = [
+        "3_2.png",
+        "a2_2.jpg",
+        "c1.jpg",
+        "c2.PNG",
+        "c3.jpg",
+        "c5.jpg",
+        "c6.jpg",
+        "c7.PNG",
+        "IMG_0337_copy_2.jpg",
+        "IMG_2660_copy.jpg",
+        "IMG_4704_copy.jpg",
+        "IMG_5596_copy_2.jpg",
+        "IMG_5847.jpg",
+        "IMG_5861.png",
+        "IMG_6380.jpg",
+      ];
+
+      return metalicImages.map((filename) => {
+        // Properly encode the filename to handle spaces and special characters
+        const encodedFilename = encodeURIComponent(filename);
+        const imagePath = asset(`gallery/Nail_Queen/Metalic/${encodedFilename}`);
+        return {
+          full: imagePath,
+          thumb: imagePath,
+        };
+      });
+    }
+
+    // Special handling for 3D - use first 15 showable images from the directory
+    if (item.title === "3D") {
+      const threeDImages = [
+        "1_2.jpg",
+        "10.PNG",
+        "11_copy.jpg",
+        "4.jpg",
+        "4_1.png",
+        "8_copy.jpg",
+        "ds_f.jpg",
+        "g_copy.jpg",
+        "i.jpg",
+        "IMG_0399.jpg",
+        "IMG_1815.JPG",
+        "IMG_1859.jpg",
+        "IMG_2232_copy.jpg",
+        "IMG_3054_copy.jpg",
+        "IMG_3304_copy.jpg",
+      ];
+
+      return threeDImages.map((filename) => {
+        // Properly encode the filename to handle spaces and special characters
+        const encodedFilename = encodeURIComponent(filename);
+        const imagePath = asset(`gallery/Nail_Queen/3d/${encodedFilename}`);
+        return {
+          full: imagePath,
+          thumb: imagePath,
+        };
+      });
+    }
+
+    // Special handling for 3D flower - use first 15 showable images from the directory
+    if (item.title === "3D flower") {
+      const threeDFlowerImages = [
+        "2_copy_2.jpg",
+        "2_copy_2_2.jpg",
+        "4.jpg",
+        "4_copy.jpg",
+        "5.jpg",
+        "6_copy.jpg",
+        "9_copy.jpg",
+        "a3.jpg",
+        "cover_3d.jpg",
+        "IMG_5758_copy_2.jpg",
+        "IMG_8813.JPG",
+        "IMG_8995_copy.jpg",
+        "IMG_9084.JPG",
+        "vdvf.jpg",
+      ];
+
+      return threeDFlowerImages.map((filename) => {
+        // Properly encode the filename to handle spaces and special characters
+        const encodedFilename = encodeURIComponent(filename);
+        const imagePath = asset(`gallery/Nail_Queen/3d_flower/${encodedFilename}`);
+        return {
+          full: imagePath,
+          thumb: imagePath,
+        };
+      });
+    }
+
+    // Special handling for Extension - use first 15 showable images from the directory
+    if (item.title === "Extension") {
+      const extensionImages = [
+        "1_2.jpg",
+        "1_22.png",
+        "1_3.jpg",
+        "11.jpg",
+        "11_copy.jpg",
+        "12_2.jpg",
+        "2_3.jpg",
+        "2_33.png",
+        "3.jpg",
+        "3_2.jpg",
+        "5_copy.jpg",
+        "7.jpg",
+        "9_copy.jpg",
+        "a.jpg",
+        "a3_2.jpg",
+      ];
+
+      return extensionImages.map((filename) => {
+        // Properly encode the filename to handle spaces and special characters
+        const encodedFilename = encodeURIComponent(filename);
+        const imagePath = asset(`gallery/Nail_Queen/extension/${encodedFilename}`);
+        return {
+          full: imagePath,
+          thumb: imagePath,
+        };
+      });
+    }
+
+    // Special handling for Ombre - use first 15 showable images from the directory
+    if (item.title === "Ombre") {
+      const ombreImages = [
+        "1_3.jpg",
+        "9_copy.jpg",
+        "b3.jpg",
+        "b4.jpg",
+        "IMG_0098_2.jpg",
+        "IMG_1421_copy.jpg",
+        "IMG_2436.jpg",
+        "IMG_2932_copy_2.PNG",
+        "IMG_3093.jpg",
+        "IMG_5324.jpg",
+        "IMG_5432.jpg",
+        "IMG_5592_copy.jpg",
+        "IMG_5695_copy.png",
+        "IMG_8367.JPG",
+        "IMG_9101.jpg",
+      ];
+
+      return ombreImages.map((filename) => {
+        // Properly encode the filename to handle spaces and special characters
+        const encodedFilename = encodeURIComponent(filename);
+        const imagePath = asset(`gallery/Nail_Queen/ombre/${encodedFilename}`);
+        return {
+          full: imagePath,
+          thumb: imagePath,
+        };
+      });
+    }
+
+    // Special handling for BIAB - use first 15 showable images from the directory
+    if (item.title === "BIAB") {
+      const biabImages = [
+        "3.png",
+        "6.jpg",
+        "68519af7bd7fcd40d22a652160c79bbf.JPG",
+        "9.jpg",
+        "cdsc.png",
+        "IMG_0135.png",
+        "IMG_2660_copy.jpg",
+        "IMG_2696_copy.jpg",
+        "IMG_4793_copy.jpg",
+        "IMG_4967.png",
+        "IMG_5277.png",
+        "IMG_5292.png",
+        "IMG_5396.png",
+        "IMG_5411 copy.jpg",
+        "IMG_5492.png",
+      ];
+
+      return biabImages.map((filename) => {
+        // Properly encode the filename to handle spaces and special characters
+        const encodedFilename = encodeURIComponent(filename);
+        const imagePath = asset(`gallery/Nail_Queen/biab/${encodedFilename}`);
+        return {
+          full: imagePath,
+          thumb: imagePath,
+        };
+      });
+    }
+
+    // Special handling for Cat eye - use first 15 showable images from the directory
+    if (item.title === "Cat eye") {
+      const catEyeImages = [
+        "1_3.jpg",
+        "12_2.jpg",
+        "6copy.jpg",
+        "9copy.jpg",
+        "a.jpg",
+        "b.jpg",
+        "b3.jpg",
+        "b4.jpg",
+        "c 2.jpg",
+        "cc.jpg",
+        "e_copy.jpg",
+        "hl5.jpg",
+        "IMG_0337_copy_2.jpg",
+        "IMG_1815.JPG",
+        "IMG_2298_copy.jpg",
+      ];
+
+      return catEyeImages.map((filename) => {
+        // Properly encode the filename to handle spaces and special characters
+        const encodedFilename = encodeURIComponent(filename);
+        const imagePath = asset(`gallery/Nail_Queen/cateyes/${encodedFilename}`);
+        return {
+          full: imagePath,
+          thumb: imagePath,
+        };
+      });
+    }
+
+    // Special handling for Crystal - use first 15 showable images from the directory
+    if (item.title === "Crystal") {
+      const crystalImages = [
+        "1_2.png",
+        "1_5.PNG",
+        "a_copy.jpg",
+        "b_copy.jpg",
+        "cc_2.jpg",
+        "i.jpg",
+        "IMG_0098_2.jpg",
+        "IMG_3057_copy.jpg",
+        "IMG_4614_copy.jpg",
+        "IMG_5732_copy.jpg",
+        "IMG_6364.jpg",
+        "IMG_6380.jpg",
+        "IMG_6740.png",
+        "IMG_6828.png",
+        "IMG_7300_copy.jpg",
+      ];
+
+      return crystalImages.map((filename) => {
+        // Properly encode the filename to handle spaces and special characters
+        const encodedFilename = encodeURIComponent(filename);
+        const imagePath = asset(`gallery/Nail_Queen/crystal/${encodedFilename}`);
+        return {
+          full: imagePath,
+          thumb: imagePath,
+        };
+      });
+    }
+
+    // Special handling for 2D - use first 15 showable images from the directory
+    if (item.title === "2D") {
+      const twoDImages = [
+        "1_2.png",
+        "1_5.PNG",
+        "3.png",
+        "a_copy.jpg",
+        "b_copy.jpg",
+        "c.jpg",
+        "cc_2.jpg",
+        "cdsc.png",
+        "f1.jpg",
+        "fe.jpg",
+        "i.jpg",
+        "IMG_0098_2.jpg",
+        "IMG_0922 copy 2.jpg",
+        "IMG_0985.jpg",
+        "IMG_1279.PNG",
+      ];
+
+      return twoDImages.map((filename) => {
+        // Properly encode the filename to handle spaces and special characters
+        const encodedFilename = encodeURIComponent(filename);
+        const imagePath = asset(`gallery/Nail_Queen/2d/${encodedFilename}`);
+        return {
+          full: imagePath,
+          thumb: imagePath,
+        };
+      });
+    }
+
+    // For other items, use the same image multiple times
     const baseImage = item.image;
-    // Generate 6 slides (common pattern in galleries)
     const count = 6;
     
     return Array.from({ length: count }, () => ({
