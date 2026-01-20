@@ -44,6 +44,81 @@ export default function HomePage({ basePath }: { basePath: string }) {
     };
   }, []);
 
+  // Hide the summary section (tabs and overall rating) after widget loads
+  useEffect(() => {
+    const hideSummarySection = () => {
+      const container = document.getElementById("trustindex-container");
+      if (!container) return;
+
+      // Hide summary sections with various selectors
+      const selectors = [
+        ".ti-header",
+        ".ti-header-content",
+        ".ti-summary",
+        ".ti-summary-container",
+        ".ti-tabs",
+        "[class*='tab']",
+        "[class*='summary']",
+        "[class*='header']",
+        "[class*='write-review']",
+        "[class*='excellent']",
+      ];
+
+      selectors.forEach((selector) => {
+        const elements = container.querySelectorAll(selector);
+        elements.forEach((el) => {
+          (el as HTMLElement).style.display = "none";
+        });
+      });
+
+      // Hide the first child container if it contains tabs or summary content
+      const widgetContainer = container.querySelector(".ti-widget-container");
+      if (widgetContainer) {
+        const firstChild = widgetContainer.firstElementChild as HTMLElement;
+        if (firstChild) {
+          const hasTabs = firstChild.querySelector("[class*='tab'], .ti-tabs");
+          const hasSummary = firstChild.querySelector("[class*='summary'], .ti-summary");
+          const hasRating = firstChild.textContent?.includes("Excellent") || 
+                           firstChild.textContent?.includes("reviews");
+          
+          if (hasTabs || hasSummary || hasRating) {
+            firstChild.style.display = "none";
+            console.log("[testing] Hidden summary section");
+          }
+        }
+      }
+    };
+
+    // Try to hide immediately
+    hideSummarySection();
+
+    // Also watch for widget to load and hide summary
+    const observer = new MutationObserver(() => {
+      hideSummarySection();
+    });
+
+    const container = document.getElementById("trustindex-container");
+    if (container) {
+      observer.observe(container, {
+        childList: true,
+        subtree: true,
+      });
+    }
+
+    // Also check periodically in case observer misses it
+    const interval = setInterval(hideSummarySection, 500);
+    const timeout = setTimeout(() => {
+      clearInterval(interval);
+      observer.disconnect();
+    }, 10000); // Stop after 10 seconds
+
+    return () => {
+      clearInterval(interval);
+      clearTimeout(timeout);
+      observer.disconnect();
+    };
+  }, []);
+
   return (
     <Layout basePath={basePath}>
       {/* Hero Section */}
@@ -346,7 +421,30 @@ export default function HomePage({ basePath }: { basePath: string }) {
                   display: none !important;
                 }
 
-                /* Style the Trustindex widget to match the original design */
+                /* Hide the summary section with tabs and overall rating - target common Trustindex structures */
+                #trustindex-container .ti-widget .ti-header,
+                #trustindex-container .ti-widget .ti-header-content,
+                #trustindex-container .ti-widget .ti-widget-container .ti-header,
+                #trustindex-container .ti-widget .ti-summary,
+                #trustindex-container .ti-widget .ti-summary-container,
+                #trustindex-container .ti-widget .ti-widget-container > div:first-child:not([class*="review"]):not([class*="list"]):not([class*="carousel"]),
+                #trustindex-container .ti-widget [class*="summary"],
+                #trustindex-container .ti-widget [class*="header"],
+                #trustindex-container .ti-widget .ti-tabs,
+                #trustindex-container .ti-widget [class*="tab"],
+                #trustindex-container .ti-widget .ti-widget-container > .ti-header-container,
+                #trustindex-container .ti-widget .ti-widget-container > .ti-summary-container,
+                /* Hide white summary card - common structure */
+                #trustindex-container .ti-widget .ti-widget-container > div:has([class*="tab"]),
+                #trustindex-container .ti-widget .ti-widget-container > div:has([class*="rating"]):not([class*="review"]),
+                #trustindex-container .ti-widget [class*="write-review"],
+                #trustindex-container .ti-widget [class*="excellent"],
+                /* Hide any section before the review list */
+                #trustindex-container .ti-widget .ti-widget-container > div:first-of-type:not(.ti-reviews-container):not([class*="review-list"]):not([class*="carousel"]) {
+                  display: none !important;
+                }
+
+                /* Keep only the review carousel/list */
                 #trustindex-container .ti-widget {
                   background: transparent !important;
                   border: none !important;
@@ -356,7 +454,7 @@ export default function HomePage({ basePath }: { basePath: string }) {
                   color: white !important;
                 }
 
-                /* Alternative: Hide TripAdvisor section specifically */
+                /* Hide TripAdvisor section specifically */
                 #trustindex-container [data-layout-category="tripadvisor"],
                 #trustindex-container .tripadvisor-section,
                 #trustindex-container .ti-widget:last-child {
