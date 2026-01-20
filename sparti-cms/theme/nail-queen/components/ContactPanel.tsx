@@ -84,11 +84,13 @@ const ContactPanel: React.FC<ContactPanelProps> = ({ open, onOpenChange }) => {
                 {/* WhatsApp */}
                 <button
                   type="button"
-                  onClick={() => setSelectedMethod("whatsapp")}
-                  aria-pressed={selectedMethod === "whatsapp"}
+                  onClick={() => {
+                    window.open("https://wa.me/6597916789", "_blank");
+                    onOpenChange(false);
+                  }}
+                  aria-pressed={false}
                   className={cn(
-                    "w-full flex items-center justify-start rounded-xl border p-4 transition-colors text-left",
-                    selectedMethod === "whatsapp" ? "border-green-500 bg-green-50" : "hover:bg-gray-50"
+                    "w-full flex items-center justify-start rounded-xl border p-4 transition-colors text-left hover:bg-gray-50"
                   )}
                 >
                   <div className="flex items-center gap-3">
@@ -103,11 +105,13 @@ const ContactPanel: React.FC<ContactPanelProps> = ({ open, onOpenChange }) => {
                 {/* Instagram */}
                 <button
                   type="button"
-                  onClick={() => setSelectedMethod("instagram")}
-                  aria-pressed={selectedMethod === "instagram"}
+                  onClick={() => {
+                    window.open("https://www.instagram.com/nailqueen.sg", "_blank");
+                    onOpenChange(false);
+                  }}
+                  aria-pressed={false}
                   className={cn(
-                    "w-full flex items-center justify-start rounded-xl border p-4 transition-colors text-left",
-                    selectedMethod === "instagram" ? "border-pink-500 bg-pink-50" : "hover:bg-gray-50"
+                    "w-full flex items-center justify-start rounded-xl border p-4 transition-colors text-left hover:bg-gray-50"
                   )}
                 >
                   <div className="flex items-center gap-3">
@@ -141,11 +145,13 @@ const ContactPanel: React.FC<ContactPanelProps> = ({ open, onOpenChange }) => {
                 {/* Call */}
                 <button
                   type="button"
-                  onClick={() => setSelectedMethod("call")}
-                  aria-pressed={selectedMethod === "call"}
+                  onClick={() => {
+                    window.open("tel:+6597916789", "_self");
+                    onOpenChange(false);
+                  }}
+                  aria-pressed={false}
                   className={cn(
-                    "w-full flex items-center justify-start rounded-xl border p-4 transition-colors text-left",
-                    selectedMethod === "call" ? "border-blue-500 bg-blue-50" : "hover:bg-gray-50"
+                    "w-full flex items-center justify-start rounded-xl border p-4 transition-colors text-left hover:bg-gray-50"
                   )}
                 >
                   <div className="flex items-center gap-3">
