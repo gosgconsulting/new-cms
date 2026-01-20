@@ -30,8 +30,9 @@ const InfoIcon = ({ type }: { type: 'website' | 'phone' | 'address' }) => {
 
 // Prop types for the HeroSection component
 interface HeroSectionProps extends Omit<
-  React.HTMLAttributes<HTMLElement>,
+  React.HTMLAttributes<HTMLDivElement>,
   | 'title'
+  | 'onAnimationStart'
   | 'onDrag'
   | 'onDragStart'
   | 'onDragEnd'
