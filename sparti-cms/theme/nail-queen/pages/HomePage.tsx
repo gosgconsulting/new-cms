@@ -238,7 +238,7 @@ export default function HomePage({ basePath }: { basePath: string }) {
       <section className="py-20 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row gap-16 items-start">
-            <div className="relative w-full md:w-1/4">
+            <div className="relative w-full md:w-1/4 md:-mr-6">
               <h2 className="text-4xl font-bold text-black mb-8">
                 Our
                 <br />
