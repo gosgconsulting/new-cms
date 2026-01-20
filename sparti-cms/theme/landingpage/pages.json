@@ -81,6 +81,15 @@
       "seo_index": false,
       "status": "draft",
       "page_type": "legal"
+    },
+    {
+      "page_name": "Blog",
+      "slug": "/blog",
+      "meta_title": "Blog - ACATR Business Services",
+      "meta_description": "Read our latest articles about Singapore business setup, company incorporation, accounting services, and compliance tips.",
+      "seo_index": true,
+      "status": "published",
+      "page_type": "page"
     }
   ]
 }

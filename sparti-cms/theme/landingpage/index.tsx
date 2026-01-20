@@ -10,6 +10,8 @@ import CTASection from './components/CTASection';
 import Footer from './components/Footer';
 import { ContactFormDialog } from './components/ContactFormDialog';
 import { ThankYouPage } from './components/ThankYouPage';
+import BlogListPage from './pages/blog/BlogListPage';
+import BlogPostPage from './pages/blog/BlogPostPage';
 import { useThemeSettings, useThemeBranding } from '../../hooks/useThemeSettings';
 import { getSiteName, getLogoSrc, getFaviconSrc, applyFavicon } from './utils/settings';
 
@@ -17,7 +19,17 @@ interface TenantLandingProps {
   tenantName?: string;
   tenantSlug?: string;
   tenantId?: string;
+  basePath?: string;
+  pageSlug?: string;
 }
+
+const normalizeSlug = (slug?: string) => {
+  if (!slug) return "";
+  return String(slug)
+    .split("?")[0]
+    .replace(/^\/+/, "")
+    .replace(/\/+$/, "");
+};
 
 /**
  * ACATR Professional Business Services Landing Page Theme
@@ -26,7 +38,9 @@ interface TenantLandingProps {
 const TenantLanding: React.FC<TenantLandingProps> = ({ 
   tenantName = 'ACATR Business Services', 
   tenantSlug = 'landingpage',
-  tenantId
+  tenantId,
+  basePath = `/theme/${tenantSlug || 'landingpage'}`,
+  pageSlug
 }) => {
   const location = useLocation();
   
@@ -44,11 +58,20 @@ const TenantLanding: React.FC<TenantLandingProps> = ({
   
   const [isContactDialogOpen, setIsContactDialogOpen] = useState(false);
   
+  // Parse the page slug to determine which page to render
+  const normalizedPageSlug = normalizeSlug(pageSlug);
+  const slugParts = normalizedPageSlug.split("/").filter(Boolean);
+  const topLevelSlug = slugParts[0] || "";
+  
   // Check if we're on the thank you page
   // Match /thank-you exactly or as a path segment (e.g., /thank-you or /theme/landingpage/thank-you)
-  const isThankYouPage = location.pathname === '/thank-you' || 
+  const isThankYouPage = topLevelSlug === "thank-you" ||
+                         location.pathname === '/thank-you' || 
                          location.pathname.endsWith('/thank-you') ||
                          location.pathname.includes('/thank-you');
+  
+  // Check if we're on a blog page
+  const isBlogPage = topLevelSlug === "blog";
 
   const handleContactClick = () => {
     setIsContactDialogOpen(true);
@@ -156,6 +179,34 @@ const TenantLanding: React.FC<TenantLandingProps> = ({
       highlight: 'Streamlined process from setup to operations with professional oversight'
     }
   ];
+
+  // Render blog pages
+  if (isBlogPage) {
+    console.log('[testing] Blog page detected:', { pageSlug, normalizedPageSlug, slugParts, topLevelSlug });
+    if (slugParts.length === 1) {
+      return (
+        <BlogListPage 
+          basePath={basePath} 
+          tenantId={effectiveTenantId}
+          tenantName={siteName}
+          tenantSlug={tenantSlug}
+          logoSrc={logoSrc}
+          onContactClick={handleContactClick}
+        />
+      );
+    }
+    return (
+      <BlogPostPage
+        basePath={basePath}
+        slug={slugParts[1] || ""}
+        tenantId={effectiveTenantId}
+        tenantName={siteName}
+        tenantSlug={tenantSlug}
+        logoSrc={logoSrc}
+        onContactClick={handleContactClick}
+      />
+    );
+  }
 
   // Render thank you page if on thank you route, otherwise render homepage
   if (isThankYouPage) {
