@@ -48,6 +48,14 @@ const ContactModal = ({ open, onOpenChange }: ContactModalProps) => {
       .contact-modal-content[data-state="closed"] {
         animation: slideOutToRight 300ms cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
       }
+      .contact-modal-content {
+        width: 100% !important;
+      }
+      @media (min-width: 640px) {
+        .contact-modal-content {
+          width: 30% !important;
+        }
+      }
     `;
     document.head.appendChild(style);
     return () => {
@@ -72,7 +80,7 @@ const ContactModal = ({ open, onOpenChange }: ContactModalProps) => {
         <DialogPrimitive.Content
           className={cn(
             "contact-modal-content",
-            "fixed inset-y-0 right-0 z-50 w-full sm:w-[420px] lg:w-[520px] h-full bg-white shadow-2xl p-6 overflow-y-auto"
+            "fixed inset-y-0 right-0 z-50 w-full sm:w-[30%] h-full bg-white shadow-2xl p-6 overflow-y-auto"
           )}
         >
           {/* Close button */}
