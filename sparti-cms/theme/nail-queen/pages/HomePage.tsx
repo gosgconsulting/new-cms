@@ -273,16 +273,16 @@ export default function HomePage({ basePath }: { basePath: string }) {
               <div className="absolute right-0 top-0 bottom-0 w-0.5 bg-nail-queen-brown hidden md:block"></div>
             </div>
 
-            <div className="w-full md:w-1/2 grid grid-cols-2 gap-4">
+            <div className="w-full md:w-[42%] grid grid-cols-2 gap-3">
               <div className="bg-white rounded-lg overflow-hidden shadow-lg">
-                <div className="aspect-square bg-gray-200">
+                <div className="aspect-[4/3] bg-gray-200">
                   <img
                     src={asset("pricing/manicure.jpg")}
                     alt="Manicures"
                     className="w-full h-full object-cover"
                   />
                 </div>
-                <div className="p-4">
+                <div className="p-3">
                   <h3 className="text-lg font-bold text-black mb-2">Manicures</h3>
                   <p className="text-gray-600 text-sm mb-4">
                     Experience meticulous nail care and stunning nail art designs that reflect your unique style and personality, using top-quality products for long-lasting results.
@@ -292,14 +292,14 @@ export default function HomePage({ basePath }: { basePath: string }) {
               </div>
 
               <div className="bg-white rounded-lg overflow-hidden shadow-lg">
-                <div className="aspect-square bg-gray-200">
+                <div className="aspect-[4/3] bg-gray-200">
                   <img
                     src={asset("pricing/pedicure.png")}
                     alt="Pedicures"
                     className="w-full h-full object-cover"
                   />
                 </div>
-                <div className="p-4">
+                <div className="p-3">
                   <h3 className="text-lg font-bold text-black mb-2">Pedicures</h3>
                   <p className="text-gray-600 text-sm mb-4">
                     Pamper your feet with our luxurious pedicure treatments, including exfoliation, massage therapy, and expert nail care, leaving you with healthy, beautiful feet.
@@ -309,14 +309,14 @@ export default function HomePage({ basePath }: { basePath: string }) {
               </div>
 
               <div className="bg-white rounded-lg overflow-hidden shadow-lg">
-                <div className="aspect-square bg-gray-200">
+                <div className="aspect-[4/3] bg-gray-200">
                   <img
                     src={asset("pricing/spa.png")}
                     alt="Spa"
                     className="w-full h-full object-cover"
                   />
                 </div>
-                <div className="p-4">
+                <div className="p-3">
                   <h3 className="text-lg font-bold text-black mb-2">Spa</h3>
                   <p className="text-gray-600 text-sm mb-4">
                     A Four-Senses Ritual crafted from delicate techniques, soft aromas, and layers of nourishing care that unfold slowly on the skin.
@@ -326,14 +326,14 @@ export default function HomePage({ basePath }: { basePath: string }) {
               </div>
 
               <div className="bg-white rounded-lg overflow-hidden shadow-lg">
-                <div className="aspect-square bg-gray-200">
+                <div className="aspect-[4/3] bg-gray-200">
                   <img
                     src="https://images.unsplash.com/photo-1516975080664-ed2fc6a32937?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80"
                     alt="Eyebrows"
                     className="w-full h-full object-cover"
                   />
                 </div>
-                <div className="p-4">
+                <div className="p-3">
                   <h3 className="text-lg font-bold text-black mb-2">Eyebrows</h3>
                   <p className="text-gray-600 text-sm mb-4">
                     Clean up stray hairs and define your features with our quick shave, brow shaping, and precise threading services for a neat, polished look.
