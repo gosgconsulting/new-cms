@@ -254,8 +254,8 @@ export default function HomePage({ basePath }: { basePath: string }) {
               }
             }
           `}</style>
-          <div className="flex flex-col md:flex-row gap-12 items-start">
-            <div className="relative w-full md:w-1/5 md:-mr-6 services-text-wrapper">
+          <div className="flex flex-col md:flex-row gap-20 items-start">
+            <div className="relative w-90 md:w-1/5 md:-mr-10 services-text-wrapper">
               <h2 className="text-4xl font-bold text-black mb-8">
                 Our
                 <br />
