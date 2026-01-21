@@ -183,33 +183,43 @@ const GroupClassPage: React.FC<TenantLandingProps> = ({
   // Programmes data for accordion - Group Class focused services
   const programmes = [
     {
-      title: 'VARIETY OF CLASS TYPES',
-      description: `At STR Fitness Club, our group classes cover the full spectrum of performance training. From strength-focused sessions that build a solid foundation, to conditioning classes targeting varied movement patterns and HYROX-style stations, every workout is designed to improve strength, endurance, and efficiency. Our HYROX classes and simulations prepare you for real race-day intensity, helping you refine pacing, strategy, and mental resilience. Complementing this, our Run & Develop classes focus on improving running threshold and speed, ensuring you move stronger, faster, and more confidently—whether in training or competition.`,
+      title: 'HYROX APEX 1.1',
+      description: `HYROX APEX 1.1 is designed to introduce you to hybrid fitness training in a structured and approachable way, focusing on fundamental HYROX-style movements, basic race formats, and controlled intensity to build confidence, strength, and aerobic capacity. You’ll learn proper technique for key functional exercises such as sled pushes, carries, lunges, and rowing, while developing pacing and movement efficiency in a fully scalable environment suitable for beginners and first-time HYROX athletes.`,
       content: '',
     },
     {
-      title: 'EXPERT COACHING & FORM CORRECTION',
-      description: `Every session is guided by experienced coaches who bring expert instruction, real-time feedback, and unwavering encouragement. Our coaches understand how to manage a group while ensuring each participant receives attention. They demonstrate movements clearly, offer modifications for different fitness levels, and create a safe, effective training environment where everyone can succeed.`,
+      title: 'Run & Develop',
+      description: `Run & Develop focuses on improving running performance through structured sessions that target technique, speed, endurance, and threshold development, supported by strength and mobility work to enhance efficiency and reduce injury risk. Whether you are new to running or training for endurance events, this class helps you build confidence, consistency, and stronger running mechanics that carry over into all forms of training.`,
       content: '',
     },
     {
-      title: 'COMMUNITY & ACCOUNTABILITY',
-      description: `You'll train in an environment built on mutual support, where everyone pushes each other to improve and celebrate every milestone — big or small. The energy of a group class pushes you to work harder than you might alone, while the camaraderie makes fitness fun and sustainable. Many members form lasting friendships through our classes.`,
+      title: 'STR Build Upper',
+      description: `STR Build Upper is a strength-focused class dedicated to developing the chest, shoulders, back, and arms using barbells, dumbbells, kettlebells, and bodyweight movements. Each session emphasizes proper technique, progressive overload, and balanced upper-body development to improve functional strength, posture, and overall performance across both daily movement and athletic training.`,
       content: '',
     },
     {
-      title: 'FLEXIBLE SCHEDULING',
-      description: `With multiple classes throughout the week, you can find sessions that fit your schedule. Book classes in advance through our system, and attend as often as your membership allows. Whether you prefer morning workouts, lunchtime sessions, or evening classes, we offer options that work around your lifestyle.`,
+      title: 'STR Conditioning 1.2',
+      description: `STR Conditioning 1.2 is a higher-intensity conditioning class designed to challenge stamina, work capacity, and mental resilience through longer efforts, faster transitions, and demanding movement combinations. Coaches guide pacing and movement efficiency to help you sustain output under fatigue while continuing to train safely and effectively.`,
       content: '',
     },
     {
-      title: 'SCALABLE INTENSITY',
-      description: `Every exercise in our group classes can be modified to match your current fitness level. Our coaches provide variations for beginners, intermediate, and advanced participants, ensuring everyone gets an appropriate challenge. You can progress at your own pace while still benefiting from the group dynamic and expert coaching.`,
+      title: 'HYROX APEX 1.2',
+      description: `HYROX APEX 1.2 is a higher-intensity hybrid training class that closely simulates race-day demands through increased volume, heavier loads, faster transitions, and more complex workout structures. Sessions are designed to improve muscular endurance, cardiovascular efficiency, pacing strategy, and mental resilience under fatigue, with expert coaching to refine movement quality and performance for athletes preparing for competitive hybrid events.`,
       content: '',
     },
     {
-      title: 'PROGRESS TRACKING & SUPPORT',
-      description: `While group classes focus on the collective experience, our coaches still track your progress and provide individual support when needed. You'll receive guidance on technique, modifications, and progression strategies. Many members combine group classes with personal training for a comprehensive fitness approach that delivers optimal results.`,
+      title: 'STR Build Lower',
+      description: `STR Build Upper is a strength-focused class dedicated to developing the chest, shoulders, back, and arms using barbells, dumbbells, kettlebells, and bodyweight movements. Each session emphasizes proper technique, progressive overload, and balanced upper-body development to improve functional strength, posture, and overall performance across both daily movement and athletic training.`,
+      content: '',
+    },
+    {
+      title: 'STR Conditioning 1.1',
+      description: `STR Conditioning 1.1 introduces structured conditioning workouts designed to build cardiovascular fitness and muscular endurance at manageable intensities, using functional movements, circuits, and interval formats. Sessions are fully scalable and focused on consistency, making them ideal for building a strong aerobic base without feeling overwhelmed.`,
+      content: '',
+    },
+    {
+      title: 'STR Squad',
+      description: `STR Squad is a team-based training class that combines strength, conditioning, and functional movements in a collaborative, high-energy environment. Designed around partner and small-group workouts, this class builds accountability, communication, and motivation while reinforcing STR’s strong community culture and shared commitment to progress.`,
       content: '',
     },
   ];
@@ -589,11 +599,27 @@ const GroupClassPage: React.FC<TenantLandingProps> = ({
           <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-start">
             {/* Left Column - Big Title */}
             <div className="flex flex-col justify-center">
-              <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold uppercase text-foreground leading-tight mb-6">
-                WHAT'S INCLUDED IN GROUP CLASSES
+              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold uppercase text-foreground leading-tight mb-6">
+              GROUP CLASS PACKAGES 2 WEEKS UNLIMITED TRAINING
+              </h1>
+              <h2 className="text-lg md:text-xl text-foreground/80 leading-relaxed max-w-xl mb-8 uppercase tracking-wide">
+                New Here? Train Unlimited for 2 Weeks at{" "}
+                <span
+                  className="text-[#E00000] ml-2"
+                  style={{
+                    fontFamily: "inherit",
+                    fontWeight: "inherit",
+                    letterSpacing: "inherit",
+                    textTransform: "inherit",
+                    fontSize: "1.6em",
+                    lineHeight: "1",
+                  }}
+                >
+                  $99
+                </span>
               </h2>
               <p className="text-lg md:text-xl text-foreground/80 leading-relaxed max-w-xl mb-8">
-                Every group class at STR includes expert coaching, scalable workouts, and a supportive community. Here's what you get when you join our classes.
+              Join STR Group Classes and experience effective, fun, and purpose-driven workouts that build strength, confidence, resilience, and lasting friendships along the way
               </p>
               {/* Programmes Image */}
               <div className="w-full max-w-xl">
