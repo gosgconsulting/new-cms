@@ -273,7 +273,7 @@ export default function HomePage({ basePath }: { basePath: string }) {
               <div className="absolute right-0 top-0 bottom-0 w-0.5 bg-nail-queen-brown hidden md:block"></div>
             </div>
 
-            <div className="w-full md:w-3/5 grid grid-cols-2 gap-6">
+            <div className="w-full md:w-1/2 grid grid-cols-2 gap-4">
               <div className="bg-white rounded-lg overflow-hidden shadow-lg">
                 <div className="aspect-square bg-gray-200">
                   <img
