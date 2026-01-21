@@ -3,6 +3,13 @@ import { Layout } from "../components/Layout";
 
 export default function HomePage({ basePath }: { basePath: string }) {
   const asset = (path: string) => `${basePath.replace(/\/+$/, "")}/assets/${path.replace(/^\/+/, "")}`;
+  
+  // Adjustable gap between text and vertical line in "Our Services" section
+  // Change these values to adjust spacing: mobile (default) and desktop (md breakpoint and up)
+  const servicesTextToLineGap = {
+    mobile: "0.5rem",   // 8px - adjust this value for mobile gap
+    desktop: "0.75rem",  // 12px - adjust this value for desktop gap
+  };
 
   useEffect(() => {
     // Check if Trustindex script is already loaded to prevent duplicates
@@ -237,8 +244,18 @@ export default function HomePage({ basePath }: { basePath: string }) {
       {/* Our Services Section */}
       <section className="py-20 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row gap-24 items-start">
-            <div className="relative w-1 md:w-1/3 md:-mr-6 pr-8 md:pr-12">
+          <style>{`
+            .services-text-wrapper {
+              padding-right: ${servicesTextToLineGap.mobile};
+            }
+            @media (min-width: 768px) {
+              .services-text-wrapper {
+                padding-right: ${servicesTextToLineGap.desktop};
+              }
+            }
+          `}</style>
+          <div className="flex flex-col md:flex-row gap-12 items-start">
+            <div className="relative w-full md:w-1/5 md:-mr-6 services-text-wrapper">
               <h2 className="text-4xl font-bold text-black mb-8">
                 Our
                 <br />
@@ -256,7 +273,7 @@ export default function HomePage({ basePath }: { basePath: string }) {
               <div className="absolute right-0 top-0 bottom-0 w-0.5 bg-nail-queen-brown hidden md:block"></div>
             </div>
 
-            <div className="w-full md:w-2/3 grid grid-cols-2 gap-6">
+            <div className="w-full md:w-3/5 grid grid-cols-2 gap-6">
               <div className="bg-white rounded-lg overflow-hidden shadow-lg">
                 <div className="aspect-square bg-gray-200">
                   <img
