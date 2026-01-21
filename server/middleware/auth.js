@@ -7,8 +7,14 @@ import {
 /**
  * Authentication middleware
  * Verifies JWT access tokens and attaches user to request
+ * Also accepts users authenticated via access key (req.user already set)
  */
 export const authenticateUser = (req, res, next) => {
+  // If user is already authenticated (e.g., by access key middleware), skip JWT check
+  if (req.user) {
+    return next();
+  }
+
   try {
     const authHeader = req.headers.authorization || req.headers.Authorization;
     const token = extractTokenFromHeader(authHeader);
