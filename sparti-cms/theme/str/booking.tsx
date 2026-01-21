@@ -94,7 +94,7 @@ const BookingPage: React.FC<TenantLandingProps> = ({
                 <img 
                   src={STR_ASSETS.logos.header} 
                   alt="STR" 
-                  className="h-12 w-auto"
+                  className="h-24 w-auto"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     if (target.dataset.fallbackAdded) return;

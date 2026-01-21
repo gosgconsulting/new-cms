@@ -237,8 +237,8 @@ export default function HomePage({ basePath }: { basePath: string }) {
       {/* Our Services Section */}
       <section className="py-20 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row gap-16 items-start">
-            <div className="relative w-full md:w-1/4 md:-mr-6">
+          <div className="flex flex-col md:flex-row gap-24 items-start">
+            <div className="relative w-1 md:w-1/3 md:-mr-6 pr-8 md:pr-12">
               <h2 className="text-4xl font-bold text-black mb-8">
                 Our
                 <br />
@@ -256,7 +256,7 @@ export default function HomePage({ basePath }: { basePath: string }) {
               <div className="absolute right-0 top-0 bottom-0 w-0.5 bg-nail-queen-brown hidden md:block"></div>
             </div>
 
-            <div className="w-full md:w-4/5 grid grid-cols-2 gap-6">
+            <div className="w-full md:w-2/3 grid grid-cols-2 gap-6">
               <div className="bg-white rounded-lg overflow-hidden shadow-lg">
                 <div className="aspect-square bg-gray-200">
                   <img
