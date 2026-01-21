@@ -124,8 +124,16 @@ router.post('/language/remove', authenticateUser, async (req, res) => {
       return res.status(400).json({ success: false, message: 'Language code is required' });
     }
     
-    // Get tenant ID from req.tenantId (set by auth middleware), query parameter, user context, or default
-    const tenantId = req.tenantId || req.query.tenantId || req.user?.tenant_id || 'tenant-gosg';
+    // Get tenant ID from req.tenantId (set by auth middleware), query parameter, or user context
+    const tenantId = req.tenantId || req.query.tenantId || req.user?.tenant_id;
+    
+    if (!tenantId) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Tenant ID is required' 
+      });
+    }
+    
     console.log(`[testing] API: Removing language ${languageCode} for tenant: ${tenantId}`);
     
     const result = await languageManagementService.removeLanguage(languageCode, tenantId);
@@ -149,8 +157,16 @@ router.post('/language/set-default', authenticateUser, async (req, res) => {
       return res.status(400).json({ success: false, message: 'Language code is required' });
     }
     
-    // Get tenant ID from req.tenantId (set by auth middleware), query parameter, user context, or default
-    const tenantId = req.tenantId || req.query.tenantId || req.user?.tenant_id || 'tenant-gosg';
+    // Get tenant ID from req.tenantId (set by auth middleware), query parameter, or user context
+    const tenantId = req.tenantId || req.query.tenantId || req.user?.tenant_id;
+    
+    if (!tenantId) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Tenant ID is required' 
+      });
+    }
+    
     console.log(`[testing] API: Setting default language ${languageCode} for tenant: ${tenantId}`);
     
     const result = await languageManagementService.setDefaultLanguage(

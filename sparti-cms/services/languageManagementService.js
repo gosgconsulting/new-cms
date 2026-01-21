@@ -7,6 +7,13 @@
 
 import { query } from '../db/index.js';
 import { translateText } from './googleTranslationService.js';
+import {
+  extractTranslatableText,
+  injectTranslatedText,
+  translateTextFields,
+  getDefaultLanguage,
+  upsertPageLayout
+} from '../db/modules/pages.js';
 
 /**
  * Add a new language to the site
@@ -514,7 +521,14 @@ const processPageTranslations = async (languageCode, tenantId) => {
     
     console.log(`[testing] Found ${pagesResult.rows.length} pages for tenant ${tenantId}`);
     
-    // 2. For each page, get its default layout
+    // 2. Get default language for translation
+    const defaultLanguage = await getDefaultLanguage(tenantId);
+    console.log(`[testing] Default language for translation: ${defaultLanguage}`);
+    
+    // Normalize "default" to null for translation API (which will auto-detect)
+    const sourceLanguage = defaultLanguage === 'default' ? null : defaultLanguage;
+    
+    // 3. For each page, translate its default layout
     for (const page of pagesResult.rows) {
       const pageId = page.id;
       
@@ -533,7 +547,6 @@ const processPageTranslations = async (languageCode, tenantId) => {
       
       const defaultLayout = defaultLayoutResult.rows[0];
       const layoutJson = defaultLayout.layout_json;
-      const version = defaultLayout.version;
       
       // Check if a translation already exists
       const existingTranslationResult = await query(`
@@ -547,34 +560,39 @@ const processPageTranslations = async (languageCode, tenantId) => {
         continue;
       }
       
-      // 3. Instead of translating, we'll just duplicate the layout with the new language
-      // In a real implementation, we would translate the content using translateLayoutContent
+      // 4. Extract translatable text from layout
+      const textMap = extractTranslatableText(layoutJson);
+      const textPaths = Object.keys(textMap);
       
-      // Store the "translated" layout
-      await query(`
-        INSERT INTO page_layouts (page_id, language, layout_json, version, is_default)
-        VALUES ($1, $2, $3, $4, false)
-      `, [pageId, languageCode, layoutJson, version]);
+      if (textPaths.length === 0) {
+        console.log(`[testing] No translatable text found in page ${pageId}, creating duplicate layout`);
+        // If no text to translate, just duplicate the layout
+        await query(`
+          INSERT INTO page_layouts (page_id, language, layout_json, version, is_default)
+          VALUES ($1, $2, $3, $4, false)
+        `, [pageId, languageCode, layoutJson, defaultLayout.version]);
+        continue;
+      }
       
-      console.log(`[testing] Created new layout for page ${pageId} with language ${languageCode}`);
+      console.log(`[testing] Found ${textPaths.length} translatable text fields for page ${pageId}`);
+      
+      // 5. Translate all text fields
+      const translations = await translateTextFields(textMap, languageCode, sourceLanguage);
+      
+      // 6. Inject translated text back into layout
+      const translatedLayout = injectTranslatedText(layoutJson, translations);
+      
+      // 7. Save translated layout
+      await upsertPageLayout(pageId, translatedLayout, languageCode, tenantId);
+      
+      console.log(`[testing] Successfully translated and saved layout for page ${pageId} and language ${languageCode}`);
     }
+    
+    console.log(`[testing] Completed translation process for language ${languageCode}`);
   } catch (error) {
     console.error(`[testing] Error processing page translations:`, error);
     throw error;
   }
-};
-
-/**
- * Translate layout content (mock implementation)
- * 
- * @param {Object} layoutJson - The layout JSON to translate
- * @param {string} targetLanguage - The target language code
- * @returns {Promise<Object>} - The translated layout JSON
- */
-const translateLayoutContent = async (layoutJson, targetLanguage) => {
-  // This is a mock implementation that would normally translate the content
-  // For now, we're just returning the original layout
-  return layoutJson;
 };
 
 export default {

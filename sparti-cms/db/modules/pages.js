@@ -1102,7 +1102,7 @@ async function insertNewLayout(pageId, layoutJson, language) {
 
 // Helper function to extract translatable text from layout JSON
 // Returns a map of paths to text values for translation
-function extractTranslatableText(obj, path = '', result = {}) {
+export function extractTranslatableText(obj, path = '', result = {}) {
   if (obj === null || obj === undefined) {
     return result;
   }
@@ -1138,7 +1138,7 @@ function extractTranslatableText(obj, path = '', result = {}) {
 }
 
 // Helper function to inject translated text back into layout JSON
-function injectTranslatedText(obj, translations, path = '') {
+export function injectTranslatedText(obj, translations, path = '') {
   if (obj === null || obj === undefined) {
     return obj;
   }
@@ -1191,7 +1191,7 @@ async function getConfiguredLanguages(tenantId) {
 }
 
 // Helper function to get default language from site_settings
-async function getDefaultLanguage(tenantId) {
+export async function getDefaultLanguage(tenantId) {
   const defaultLanguageResult = await query(`
     SELECT setting_value 
     FROM site_settings 
@@ -1218,14 +1218,16 @@ async function getTargetLanguages(tenantId) {
 }
 
 // Helper function to translate all text fields for a single language
-async function translateTextFields(textMap, targetLanguage, defaultLanguage) {
+export async function translateTextFields(textMap, targetLanguage, defaultLanguage) {
+  // Normalize "default" to null for translation API (which will auto-detect)
+  const sourceLanguage = defaultLanguage === 'default' ? null : defaultLanguage;
   const translations = {};
   const textPaths = Object.keys(textMap);
   
   for (const textPath of textPaths) {
     const originalText = textMap[textPath];
     try {
-      const translatedText = await translateText(originalText, targetLanguage, defaultLanguage);
+      const translatedText = await translateText(originalText, targetLanguage, sourceLanguage);
       translations[textPath] = translatedText;
       console.log(`[testing] Translated ${textPath}: "${originalText.substring(0, 50)}..." -> "${translatedText.substring(0, 50)}..."`);
     } catch (error) {
@@ -1306,7 +1308,7 @@ async function translateLayoutToAllLanguages(pageId, layoutJson, tenantId) {
 }
 
 // Helper function to upsert page layout (update or insert)
-async function upsertPageLayout(pageId, layoutJson, language, tenantId = null) {
+export async function upsertPageLayout(pageId, layoutJson, language, tenantId = null) {
   console.log('[testing] ========== upsertPageLayout ==========');
   console.log('[testing] Parameters:', {
     pageId: pageId,
