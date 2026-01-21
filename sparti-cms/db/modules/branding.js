@@ -2,13 +2,14 @@ import { translateText } from '../../services/googleTranslationService.js';
 import models, { sequelize } from '../sequelize/models/index.js';
 import { Op, QueryTypes } from 'sequelize';
 import { query as rawQuery } from '../connection.js';
+import { debugLog, debugError } from '../../utils/debugLogger.js';
 const { SiteSchema, SiteSetting } = models;
 
 // Branding-specific functions
 // Includes master fallback (tenant_id IS NULL) for missing tenant-specific settings
 export async function getBrandingSettings(tenantId = 'tenant-gosg', themeId = null) {
   try {
-    console.log(`[testing] getBrandingSettings called with tenantId: ${tenantId}, themeId: ${themeId}`);
+    debugLog(`getBrandingSettings called with tenantId: ${tenantId}, themeId: ${themeId}`);
     
     const whereClause = {
       [Op.and]: [
@@ -71,9 +72,9 @@ export async function getBrandingSettings(tenantId = 'tenant-gosg', themeId = nu
       attributes: ['setting_key', 'setting_value', 'setting_type', 'setting_category', 'is_public', 'tenant_id', 'theme_id']
     });
     
-    console.log(`[testing] getBrandingSettings found ${results.length} settings for tenant ${tenantId}, theme ${themeId}`);
+    debugLog(`getBrandingSettings found ${results.length} settings for tenant ${tenantId}, theme ${themeId}`);
     if (results.length > 0) {
-      console.log(`[testing] Sample settings:`, results.slice(0, 3).map(r => ({
+      debugLog(`Sample settings:`, results.slice(0, 3).map(r => ({
         key: r.setting_key,
         category: r.setting_category,
         is_public: r.is_public,
@@ -111,7 +112,7 @@ export async function getBrandingSettings(tenantId = 'tenant-gosg', themeId = nu
       }
     });
     
-    console.log(`[testing] getBrandingSettings returning:`, {
+    debugLog(`getBrandingSettings returning:`, {
       brandingKeys: Object.keys(settings.branding),
       seoKeys: Object.keys(settings.seo),
       localizationKeys: Object.keys(settings.localization),
@@ -165,7 +166,7 @@ export async function getPublicSEOSettings(tenantId = 'tenant-gosg') {
     return settings;
   } catch (sequelizeError) {
     // Fallback to raw SQL query if Sequelize fails (e.g., models not initialized, table missing)
-    console.warn(`[testing] Sequelize query failed, trying raw SQL fallback:`, sequelizeError.message);
+    debugError(`Sequelize query failed, trying raw SQL fallback:`, sequelizeError.message);
     try {
       const sqlQuery = `
         SELECT setting_key, setting_value, setting_type, tenant_id
@@ -200,7 +201,7 @@ export async function getPublicSEOSettings(tenantId = 'tenant-gosg') {
       return settings;
     } catch (rawQueryError) {
       // If raw query also fails, return empty object (route handler will use defaults)
-      console.error(`[testing] Both Sequelize and raw SQL queries failed for tenant ${tenantId}:`, rawQueryError.message);
+      debugError(`Both Sequelize and raw SQL queries failed for tenant ${tenantId}:`, rawQueryError.message);
       return {};
     }
   }
@@ -422,7 +423,7 @@ async function ensureSiteSchemaLanguageColumn() {
   } catch (error) {
     // Column already exists, ignore
     if (error.code !== '42701' && !error.message.includes('already exists')) {
-      console.log('[testing] Note: Could not ensure language column exists:', error.message);
+      debugLog('Note: Could not ensure language column exists:', error.message);
     }
   }
 }
@@ -455,10 +456,10 @@ async function ensureSiteSchemaUniqueConstraint() {
         type: 'unique',
         name: 'site_schemas_schema_key_tenant_id_language_unique'
       });
-      console.log('[testing] Added composite unique constraint for site_schemas');
+      debugLog('Added composite unique constraint for site_schemas');
     }
   } catch (error) {
-    console.log('[testing] Note: Could not ensure composite unique constraint exists:', error.message);
+    debugLog('Note: Could not ensure composite unique constraint exists:', error.message);
   }
 }
 
@@ -500,9 +501,9 @@ async function translateSchemaTextFields(textMap, targetLanguage, defaultLanguag
     try {
       const translatedText = await translateText(originalText, targetLanguage, defaultLanguage);
       translations[textPath] = translatedText;
-      console.log(`[testing] Translated schema text ${textPath}: "${originalText.substring(0, 50)}..." -> "${translatedText.substring(0, 50)}..."`);
+      debugLog(`Translated schema text ${textPath}: "${originalText.substring(0, 50)}..." -> "${translatedText.substring(0, 50)}..."`);
     } catch (error) {
-      console.error(`[testing] Error translating schema text at path ${textPath}:`, error);
+      debugError(`Error translating schema text at path ${textPath}:`, error);
       // Use original text if translation fails
       translations[textPath] = originalText;
     }
@@ -514,7 +515,7 @@ async function translateSchemaTextFields(textMap, targetLanguage, defaultLanguag
 // Helper function to translate schema to a single target language
 async function translateSchemaToLanguage(schemaKey, schemaValue, targetLanguage, defaultLanguage, tenantId, textMap) {
   try {
-    console.log(`[testing] Translating schema ${schemaKey} to ${targetLanguage}...`);
+    debugLog(`Translating schema ${schemaKey} to ${targetLanguage}...`);
     
     // Translate all text fields
     const translations = await translateSchemaTextFields(textMap, targetLanguage, defaultLanguage);
@@ -525,9 +526,9 @@ async function translateSchemaToLanguage(schemaKey, schemaValue, targetLanguage,
     // Upsert the translated schema
     await upsertSiteSchema(schemaKey, translatedSchema, targetLanguage, tenantId);
     
-    console.log(`[testing] Successfully translated and saved schema ${schemaKey} for language ${targetLanguage}`);
+    debugLog(`Successfully translated and saved schema ${schemaKey} for language ${targetLanguage}`);
   } catch (error) {
-    console.error(`[testing] Error translating schema ${schemaKey} to ${targetLanguage}:`, error);
+    debugError(`Error translating schema ${schemaKey} to ${targetLanguage}:`, error);
     throw error; // Re-throw to let caller handle
   }
 }
@@ -535,17 +536,17 @@ async function translateSchemaToLanguage(schemaKey, schemaValue, targetLanguage,
 // Helper function to translate schema to all configured languages
 async function translateSchemaToAllLanguages(schemaKey, schemaValue, tenantId) {
   try {
-    console.log(`[testing] Starting translation for schema ${schemaKey} and tenant ${tenantId}`);
+    debugLog(`Starting translation for schema ${schemaKey} and tenant ${tenantId}`);
     
     // Get target languages
     const targetLanguages = await getTargetLanguages(tenantId);
     
     if (targetLanguages.length === 0) {
-      console.log(`[testing] No target languages to translate to, skipping translation`);
+      debugLog(`No target languages to translate to, skipping translation`);
       return;
     }
     
-    console.log(`[testing] Translating to ${targetLanguages.length} languages: ${targetLanguages.join(', ')}`);
+    debugLog(`Translating to ${targetLanguages.length} languages: ${targetLanguages.join(', ')}`);
     
     // Extract translatable text from schema
     const textMap = extractTranslatableTextFromSchema(schemaValue);

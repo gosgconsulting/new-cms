@@ -1,6 +1,10 @@
 import { query } from '../connection.js';
 import pool from '../connection.js';
 import { translateText } from '../../services/googleTranslationService.js';
+import models from '../sequelize/models/index.js';
+import { Op } from 'sequelize';
+
+const { Page } = models;
 
 export async function initializeSEOPagesTables() {
   try {
@@ -70,31 +74,23 @@ export async function createPage(pageData) {
       ...commonFields
     } = pageData;
 
-    const result = await query(`
-      INSERT INTO pages (
-        page_name, slug, meta_title, meta_description, seo_index, status,
-        page_type, tenant_id, campaign_source, conversion_goal,
-        legal_type, last_reviewed_date, version
-      )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
-      RETURNING *
-    `, [
-      commonFields.page_name,
-      commonFields.slug,
-      commonFields.meta_title || null,
-      commonFields.meta_description || null,
-      commonFields.seo_index !== undefined ? commonFields.seo_index : (page_type === 'legal' ? false : true),
-      commonFields.status || 'draft',
-      page_type,
-      tenant_id,
-      campaign_source || null,
-      conversion_goal || null,
-      legal_type || null,
-      last_reviewed_date || null,
-      version || (page_type === 'legal' ? '1.0' : null)
-    ]);
+    const page = await Page.create({
+      page_name: commonFields.page_name,
+      slug: commonFields.slug,
+      meta_title: commonFields.meta_title || null,
+      meta_description: commonFields.meta_description || null,
+      seo_index: commonFields.seo_index !== undefined ? commonFields.seo_index : (page_type === 'legal' ? false : true),
+      status: commonFields.status || 'draft',
+      page_type: page_type,
+      tenant_id: tenant_id,
+      campaign_source: campaign_source || null,
+      conversion_goal: conversion_goal || null,
+      legal_type: legal_type || null,
+      last_reviewed_date: last_reviewed_date || null,
+      version: version || (page_type === 'legal' ? '1.0' : null)
+    });
     
-    return result.rows[0];
+    return page.toJSON();
   } catch (error) {
     console.error('Error creating page:', error);
     throw error;
@@ -104,24 +100,27 @@ export async function createPage(pageData) {
 export async function getPages(pageType = null, tenantId = 'tenant-gosg') {
   try {
     // Include master pages (tenant_id = NULL) and tenant-specific pages
-    let whereClause = 'WHERE (tenant_id = $1 OR tenant_id IS NULL)';
-    let params = [tenantId];
+    const whereClause = {
+      [Op.or]: [
+        { tenant_id: tenantId },
+        { tenant_id: null }
+      ]
+    };
     
     if (pageType) {
-      whereClause += ' AND page_type = $2';
-      params.push(pageType);
+      whereClause.page_type = pageType;
     }
     
-    // Order by tenant-specific first, then master
-    const result = await query(`
-      SELECT * FROM pages 
-      ${whereClause}
-      ORDER BY 
-        CASE WHEN tenant_id = $1 THEN 0 ELSE 1 END,
-        page_type, 
-        created_at DESC
-    `, params);
-    return result.rows;
+    const pages = await Page.findAll({
+      where: whereClause,
+      order: [
+        [Page.sequelize.literal(`CASE WHEN tenant_id = '${tenantId}' THEN 0 ELSE 1 END`), 'ASC'],
+        ['page_type', 'ASC'],
+        ['created_at', 'DESC']
+      ]
+    });
+    
+    return pages.map(page => page.toJSON());
   } catch (error) {
     console.error('Error fetching pages:', error);
     throw error;
@@ -132,15 +131,46 @@ export async function getPage(pageId, tenantId = 'tenant-gosg') {
   try {
     // Include master pages (tenant_id = NULL) and tenant-specific pages
     // Prefer tenant-specific over master
-    const result = await query(`
-      SELECT * FROM pages 
-      WHERE id = $1 AND (tenant_id = $2 OR tenant_id IS NULL)
-      ORDER BY CASE WHEN tenant_id = $2 THEN 0 ELSE 1 END
-      LIMIT 1
-    `, [pageId, tenantId]);
-    return result.rows[0] || null;
+    const page = await Page.findOne({
+      where: {
+        id: pageId,
+        [Op.or]: [
+          { tenant_id: tenantId },
+          { tenant_id: null }
+        ]
+      },
+      order: [
+        [Page.sequelize.literal(`CASE WHEN tenant_id = '${tenantId}' THEN 0 ELSE 1 END`), 'ASC']
+      ]
+    });
+    
+    return page ? page.toJSON() : null;
   } catch (error) {
     console.error('Error fetching page:', error);
+    throw error;
+  }
+}
+
+export async function getPageBySlug(slug, tenantId = 'tenant-gosg') {
+  try {
+    // Include master pages (tenant_id = NULL) and tenant-specific pages
+    // Prefer tenant-specific over master
+    const page = await Page.findOne({
+      where: {
+        slug: slug,
+        [Op.or]: [
+          { tenant_id: tenantId },
+          { tenant_id: null }
+        ]
+      },
+      order: [
+        [Page.sequelize.literal(`CASE WHEN tenant_id = '${tenantId}' THEN 0 ELSE 1 END`), 'ASC']
+      ]
+    });
+    
+    return page ? page.toJSON() : null;
+  } catch (error) {
+    console.error('Error fetching page by slug:', error);
     throw error;
   }
 }
@@ -148,11 +178,11 @@ export async function getPage(pageId, tenantId = 'tenant-gosg') {
 export async function updatePage(pageId, pageData, tenantId = 'tenant-gosg') {
   try {
     // Check if it's a master page and prevent update
-    const checkResult = await query(`SELECT tenant_id FROM pages WHERE id = $1`, [pageId]);
-    if (checkResult.rows.length === 0) {
+    const existingPage = await Page.findByPk(pageId);
+    if (!existingPage) {
       throw new Error('Page not found');
     }
-    if (!checkResult.rows[0].tenant_id) {
+    if (!existingPage.tenant_id) {
       throw new Error('Cannot update master page. Master pages (tenant_id = NULL) are shared across all tenants.');
     }
     
@@ -165,44 +195,34 @@ export async function updatePage(pageId, pageData, tenantId = 'tenant-gosg') {
       ...commonFields
     } = pageData;
 
-    const result = await query(`
-      UPDATE pages 
-      SET 
-        page_name = COALESCE($2, page_name),
-        slug = COALESCE($3, slug),
-        meta_title = COALESCE($4, meta_title),
-        meta_description = COALESCE($5, meta_description),
-        seo_index = COALESCE($6, seo_index),
-        status = COALESCE($7, status),
-        campaign_source = COALESCE($8, campaign_source),
-        conversion_goal = COALESCE($9, conversion_goal),
-        legal_type = COALESCE($10, legal_type),
-        last_reviewed_date = COALESCE($11, last_reviewed_date),
-        version = COALESCE($12, version),
-        updated_at = NOW()
-      WHERE id = $1 AND tenant_id = $13
-      RETURNING *
-    `, [
-      pageId,
-      commonFields.page_name,
-      commonFields.slug,
-      commonFields.meta_title,
-      commonFields.meta_description,
-      commonFields.seo_index,
-      commonFields.status,
-      campaign_source,
-      conversion_goal,
-      legal_type,
-      last_reviewed_date,
-      version,
-      tenantId
-    ]);
+    // Build update object, only including defined fields
+    const updateData = {};
+    if (commonFields.page_name !== undefined) updateData.page_name = commonFields.page_name;
+    if (commonFields.slug !== undefined) updateData.slug = commonFields.slug;
+    if (commonFields.meta_title !== undefined) updateData.meta_title = commonFields.meta_title;
+    if (commonFields.meta_description !== undefined) updateData.meta_description = commonFields.meta_description;
+    if (commonFields.seo_index !== undefined) updateData.seo_index = commonFields.seo_index;
+    if (commonFields.status !== undefined) updateData.status = commonFields.status;
+    if (campaign_source !== undefined) updateData.campaign_source = campaign_source;
+    if (conversion_goal !== undefined) updateData.conversion_goal = conversion_goal;
+    if (legal_type !== undefined) updateData.legal_type = legal_type;
+    if (last_reviewed_date !== undefined) updateData.last_reviewed_date = last_reviewed_date;
+    if (version !== undefined) updateData.version = version;
     
-    if (result.rows.length === 0) {
+    const [updatedCount] = await Page.update(updateData, {
+      where: {
+        id: pageId,
+        tenant_id: tenantId
+      }
+    });
+    
+    if (updatedCount === 0) {
       throw new Error('Page not found or is a master page (cannot update master pages)');
     }
     
-    return result.rows[0];
+    // Fetch and return updated page
+    const updatedPage = await Page.findByPk(pageId);
+    return updatedPage.toJSON();
   } catch (error) {
     console.error('Error updating page:', error);
     throw error;
@@ -212,19 +232,26 @@ export async function updatePage(pageId, pageData, tenantId = 'tenant-gosg') {
 export async function deletePage(pageId, tenantId = 'tenant-gosg') {
   try {
     // Check if it's a master page and prevent deletion
-    const checkResult = await query(`SELECT tenant_id FROM pages WHERE id = $1`, [pageId]);
-    if (checkResult.rows.length === 0) {
+    const existingPage = await Page.findByPk(pageId);
+    if (!existingPage) {
       throw new Error('Page not found');
     }
-    if (!checkResult.rows[0].tenant_id) {
+    if (!existingPage.tenant_id) {
       throw new Error('Cannot delete master page. Master pages (tenant_id = NULL) are shared across all tenants.');
     }
     
-    const result = await query(`DELETE FROM pages WHERE id = $1 AND tenant_id = $2`, [pageId, tenantId]);
-    if (result.rowCount === 0) {
+    const deletedCount = await Page.destroy({
+      where: {
+        id: pageId,
+        tenant_id: tenantId
+      }
+    });
+    
+    if (deletedCount === 0) {
       throw new Error('Page not found or is a master page (cannot delete master pages)');
     }
-    return result.rowCount > 0;
+    
+    return deletedCount > 0;
   } catch (error) {
     console.error('Error deleting page:', error);
     throw error;

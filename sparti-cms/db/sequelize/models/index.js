@@ -11,6 +11,7 @@ import PostTagFactory from './PostTag.js';
 import SiteSchemaFactory from './SiteSchema.js';
 import SiteSettingFactory from './SiteSetting.js';
 import UserFactory from './User.js';
+import PageFactory from './Page.js';
 
 // Initialize models
 const Category = CategoryFactory(sequelize);
@@ -21,6 +22,7 @@ const PostTag = PostTagFactory(sequelize);
 const SiteSchema = SiteSchemaFactory(sequelize);
 const SiteSetting = SiteSettingFactory(sequelize);
 const User = UserFactory(sequelize);
+const Page = PageFactory(sequelize);
 
 const models = {
   Category,
@@ -31,6 +33,7 @@ const models = {
   SiteSchema,
   SiteSetting,
   User,
+  Page,
 };
 
 // Define associations

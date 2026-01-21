@@ -1,4 +1,5 @@
 import { Pool } from 'pg';
+import { debugLog, debugError } from '../utils/debugLogger.js';
 
 // Get connection string from environment or use default
 const getConnectionString = () => {
@@ -6,14 +7,14 @@ const getConnectionString = () => {
   
   // Log which connection string source is being used (without exposing credentials)
   if (process.env.DATABASE_PUBLIC_URL) {
-    console.log('[testing] Using DATABASE_PUBLIC_URL for connection');
+    debugLog('Using DATABASE_PUBLIC_URL for connection');
   } else if (process.env.DATABASE_URL) {
-    console.log('[testing] Using DATABASE_URL for connection');
+    debugLog('Using DATABASE_URL for connection');
   } else {
-    console.error('[testing] WARNING: No DATABASE_URL or DATABASE_PUBLIC_URL found in environment variables!');
-    console.error('[testing] Falling back to MOCK DATABASE mode so the app can run without a real DB.');
-    console.error('[testing] To fix: Set DATABASE_PUBLIC_URL or DATABASE_URL in your .env file');
-    console.error('[testing] Example: DATABASE_PUBLIC_URL=postgresql://user:password@host:port/database');
+    debugError('WARNING: No DATABASE_URL or DATABASE_PUBLIC_URL found in environment variables!');
+    debugError('Falling back to MOCK DATABASE mode so the app can run without a real DB.');
+    debugError('To fix: Set DATABASE_PUBLIC_URL or DATABASE_URL in your .env file');
+    debugError('Example: DATABASE_PUBLIC_URL=postgresql://user:password@host:port/database');
     // In mock mode we won't throw here; upstream handles gracefully
     return null;
   }
@@ -21,11 +22,11 @@ const getConnectionString = () => {
   // Extract host and port for logging (without exposing credentials)
   try {
     const url = new URL(connString.replace('postgresql://', 'http://'));
-    console.log(`[testing] Connecting to database at ${url.hostname}:${url.port || 5432}`);
-    console.log(`[testing] Database name: ${url.pathname.replace('/', '') || 'default'}`);
+    debugLog(`Connecting to database at ${url.hostname}:${url.port || 5432}`);
+    debugLog(`Database name: ${url.pathname.replace('/', '') || 'default'}`);
   } catch (e) {
-    console.error('[testing] Could not parse connection string for logging:', e.message);
-    console.error('[testing] Connection string format should be: postgresql://user:password@host:port/database');
+    debugError('Could not parse connection string for logging:', e.message);
+    debugError('Connection string format should be: postgresql://user:password@host:port/database');
   }
   
   return connString;
@@ -109,14 +110,14 @@ class MockPool {
 const getPool = () => {
   if (!pool) {
     if (isMockMode) {
-      console.warn('[testing] MOCK DATABASE mode enabled. No DATABASE_URL found. Returning empty results for reads.');
+      debugError('MOCK DATABASE mode enabled. No DATABASE_URL found. Returning empty results for reads.');
       pool = new MockPool();
       return pool;
     }
 
-    console.log('[testing] Initializing database connection pool...');
+    debugLog('Initializing database connection pool...');
     const connInfo = getConnectionInfo();
-    console.log('[testing] Connection info:', {
+    debugLog('Connection info:', {
       source: connInfo.source,
       host: connInfo.host,
       port: connInfo.port,
@@ -151,13 +152,13 @@ const getPool = () => {
       
       // Test connection
       pool.on('connect', (client) => {
-        console.log('[testing] Connected to PostgreSQL database');
-        console.log('[testing] Connection pool active');
+        debugLog('Connected to PostgreSQL database');
+        debugLog('Connection pool active');
       });
 
       pool.on('error', (err) => {
-        console.error('[testing] PostgreSQL connection pool error:', err);
-        console.error('[testing] Pool error details:', {
+        debugError('PostgreSQL connection pool error:', err);
+        debugError('Pool error details:', {
           code: err.code,
           message: err.message,
           errno: err.errno,
@@ -165,10 +166,10 @@ const getPool = () => {
         });
       });
       
-      console.log('[testing] Database connection pool created');
+      debugLog('Database connection pool created');
     } catch (error) {
-      console.error('[testing] Failed to create database connection pool:', error);
-      console.error('[testing] Pool creation error details:', {
+      debugError('Failed to create database connection pool:', error);
+      debugError('Pool creation error details:', {
         code: error.code,
         message: error.message,
         stack: error.stack
@@ -219,7 +220,7 @@ export async function query(text, params, retries = 3) {
         try {
           client.release();
         } catch (releaseError) {
-          console.error('[testing] Error releasing client:', releaseError);
+          debugError('Error releasing client:', releaseError);
         }
       }
       
@@ -227,18 +228,18 @@ export async function query(text, params, retries = 3) {
       
       // Log detailed error information
       if (attempt === 1) {
-        console.error('[testing] Query error (attempt 1):', error.message);
+        debugError('Query error (attempt 1):', error.message);
         if (error.code) {
-          console.error('[testing] Error code:', error.code);
+          debugError('Error code:', error.code);
         }
         if (error.errno) {
-          console.error('[testing] Error number:', error.errno);
+          debugError('Error number:', error.errno);
         }
         if (error.syscall) {
-          console.error('[testing] System call:', error.syscall);
+          debugError('System call:', error.syscall);
         }
       } else {
-        console.error(`[testing] Query error (attempt ${attempt}/${retries}):`, error.message);
+        debugError(`Query error (attempt ${attempt}/${retries}):`, error.message);
       }
       
       // Don't retry on certain errors
@@ -252,18 +253,18 @@ export async function query(text, params, retries = 3) {
       // For connection errors, provide helpful message
       if (error.code === 'ECONNRESET' || error.code === 'ECONNREFUSED' || error.code === 'ETIMEDOUT') {
         if (attempt === 1) {
-          console.error('[testing] Database connection issue detected. Possible causes:');
+          debugError('Database connection issue detected. Possible causes:');
           if (isLocalhost) {
-            console.error('[testing]   - PostgreSQL service is not running locally');
-            console.error('[testing]   - PostgreSQL is starting up (may take a few seconds)');
-            console.error('[testing]   - Incorrect connection string or credentials in .env');
-            console.error('[testing]   - PostgreSQL is not listening on the expected port');
+            debugError('  - PostgreSQL service is not running locally');
+            debugError('  - PostgreSQL is starting up (may take a few seconds)');
+            debugError('  - Incorrect connection string or credentials in .env');
+            debugError('  - PostgreSQL is not listening on the expected port');
           } else {
-            console.error('[testing]   - Database server is not running or not accessible');
-            console.error('[testing]   - Network connectivity issues');
-            console.error('[testing]   - Incorrect connection string or credentials');
-            console.error('[testing]   - Firewall blocking the connection');
-            console.error('[testing]   - Database server may be paused (Railway free tier)');
+            debugError('  - Database server is not running or not accessible');
+            debugError('  - Network connectivity issues');
+            debugError('  - Incorrect connection string or credentials');
+            debugError('  - Firewall blocking the connection');
+            debugError('  - Database server may be paused (Railway free tier)');
           }
         }
       }
@@ -277,29 +278,29 @@ export async function query(text, params, retries = 3) {
         } else {
           delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
         }
-        console.log(`[testing] Retrying query in ${delay}ms... (attempt ${attempt}/${maxRetries})`);
+        debugLog(`Retrying query in ${delay}ms... (attempt ${attempt}/${maxRetries})`);
         await new Promise(resolve => setTimeout(resolve, delay));
       }
     }
   }
   
   // All retries failed
-  console.error('[testing] Query failed after all retries');
-  console.error('[testing] Last error:', lastError.message);
+  debugError('Query failed after all retries');
+  debugError('Last error:', lastError.message);
   if (lastError.code === 'ECONNRESET') {
-    console.error('[testing]');
-    console.error('[testing] ============================================');
-    console.error('[testing] DATABASE CONNECTION FAILED');
-    console.error('[testing] ============================================');
-    console.error('[testing] The server will continue running, but database');
-    console.error('[testing] operations will fail until the connection is fixed.');
-    console.error('[testing]');
-    console.error('[testing] To fix this:');
-    console.error('[testing] 1. Check if your database server is running');
-    console.error('[testing] 2. Verify DATABASE_URL or DATABASE_PUBLIC_URL env var');
-    console.error('[testing] 3. Check network connectivity');
-    console.error('[testing] 4. For Railway: ensure database is not paused');
-    console.error('[testing] ============================================');
+    debugError('');
+    debugError('============================================');
+    debugError('DATABASE CONNECTION FAILED');
+    debugError('============================================');
+    debugError('The server will continue running, but database');
+    debugError('operations will fail until the connection is fixed.');
+    debugError('');
+    debugError('To fix this:');
+    debugError('1. Check if your database server is running');
+    debugError('2. Verify DATABASE_URL or DATABASE_PUBLIC_URL env var');
+    debugError('3. Check network connectivity');
+    debugError('4. For Railway: ensure database is not paused');
+    debugError('============================================');
   }
   throw lastError;
 }
@@ -314,7 +315,7 @@ export async function executeMultiStatementSQL(sqlText) {
   try {
     await client.query(sqlText);
   } catch (error) {
-    console.error('[testing] Error in multi-statement SQL execution:', error.message);
+    debugError('Error in multi-statement SQL execution:', error.message);
     if (error.code && !['42P07', '42710', '23505', 'MOCK_DB'].includes(error.code)) {
       throw error;
     }
@@ -347,7 +348,7 @@ export default poolProxy;
 // Connection test function for diagnostics
 export async function testConnection() {
   try {
-    console.log('[testing] Testing database connection...');
+    debugLog('Testing database connection...');
     const poolInstance = getPool();
     const client = await poolInstance.connect();
     
@@ -360,13 +361,13 @@ export async function testConnection() {
         postgresVersion: result.rows[0]?.pg_version || (isMockMode ? 'mock' : null),
         connectionInfo: getConnectionInfo()
       };
-      console.log('[testing] Connection test successful');
+      debugLog('Connection test successful');
       return connectionInfo;
     } finally {
       client.release();
     }
   } catch (error) {
-    console.error('[testing] Connection test failed:', error);
+    debugError('Connection test failed:', error);
     return {
       success: false,
       connected: false,

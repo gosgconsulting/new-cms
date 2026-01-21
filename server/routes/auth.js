@@ -4,6 +4,7 @@ import { query } from '../../sparti-cms/db/index.js';
 import { authenticateUser } from '../middleware/auth.js';
 import { generateToken } from '../utils/auth.js';
 import { getDatabaseState, isMockDatabaseEnabled } from '../utils/database.js';
+import { debugLog, debugError } from '../../sparti-cms/utils/debugLogger.js';
 
 // Helper function to check if database connection is to localhost
 const isLocalhostConnection = () => {
@@ -63,17 +64,17 @@ const asyncHandler = (fn) => (req, res, next) => {
   
   // Handle promise rejection (async errors)
   promise.catch((error) => {
-    console.error('[testing] ========== UNHANDLED ASYNC ERROR ==========');
-    console.error('[testing] Unhandled async error in route handler:', error);
-    console.error('[testing] Error type:', error?.constructor?.name || 'Unknown');
-    console.error('[testing] Error message:', error?.message);
-    console.error('[testing] Error code:', error?.code || 'N/A');
-    console.error('[testing] Error stack:', error?.stack);
-    console.error('[testing] Request path:', req.path);
-    console.error('[testing] Request method:', req.method);
-    console.error('[testing] Request URL:', req.url);
-    console.error('[testing] Request originalUrl:', req.originalUrl);
-    console.error('[testing] ============================================');
+    debugError('========== UNHANDLED ASYNC ERROR ==========');
+    debugError('Unhandled async error in route handler:', error);
+    debugError('Error type:', error?.constructor?.name || 'Unknown');
+    debugError('Error message:', error?.message);
+    debugError('Error code:', error?.code || 'N/A');
+    debugError('Error stack:', error?.stack);
+    debugError('Request path:', req.path);
+    debugError('Request method:', req.method);
+    debugError('Request URL:', req.url);
+    debugError('Request originalUrl:', req.originalUrl);
+    debugError('============================================');
     
     if (!res.headersSent) {
       // Provide better error messages in development mode
@@ -92,10 +93,10 @@ const asyncHandler = (fn) => (req, res, next) => {
           ...(isDevelopment && error?.stack ? { stack: error.stack } : {})
         });
       } catch (sendError) {
-        console.error('[testing] Failed to send error response:', sendError);
+        debugError('Failed to send error response:', sendError);
       }
     } else {
-      console.error('[testing] Response already sent, cannot send error response');
+      debugError('Response already sent, cannot send error response');
     }
   });
   
@@ -105,11 +106,11 @@ const asyncHandler = (fn) => (req, res, next) => {
 
 // Login endpoint
 router.post('/auth/login', asyncHandler(async (req, res) => {
-  console.log('[testing] Login attempt started');
-  console.log('[testing] Request method:', req.method);
-  console.log('[testing] Request path:', req.path);
-  console.log('[testing] Request body:', JSON.stringify(req.body));
-  console.log('[testing] Request headers:', JSON.stringify(req.headers));
+  debugLog(' Login attempt started');
+  debugLog(' Request method:', req.method);
+  debugLog(' Request path:', req.path);
+  debugLog(' Request body:', JSON.stringify(req.body));
+  debugLog(' Request headers:', JSON.stringify(req.headers));
 
   // If we're in mock DB mode, login via DB is not supported.
   // Return a clean 503 (instead of crashing on missing tables).
@@ -124,22 +125,22 @@ router.post('/auth/login', asyncHandler(async (req, res) => {
   
   // Ensure response hasn't been sent by middleware
   if (res.headersSent) {
-    console.error('[testing] Response already sent by middleware, aborting login handler');
+    debugError(' Response already sent by middleware, aborting login handler');
     return;
   }
   
   try {
     // Step 1: Check database initialization state
-    console.log('[testing] Step 1: Checking database initialization state...');
+    debugLog(' Step 1: Checking database initialization state...');
     let dbState;
     try {
       dbState = getDatabaseState();
-      console.log('[testing] Database state:', {
+      debugLog(' Database state:', {
         initialized: dbState.dbInitialized,
         hasError: !!dbState.dbInitializationError
       });
     } catch (stateError) {
-      console.error('[testing] Error getting database state:', stateError);
+      debugError(' Error getting database state:', stateError);
       if (!res.headersSent) {
         return res.status(500).json({
           success: false,
@@ -154,9 +155,9 @@ router.post('/auth/login', asyncHandler(async (req, res) => {
     
     // Check if database is ready
     if (!dbInitialized) {
-      console.error('[testing] Database not initialized');
+      debugError(' Database not initialized');
       if (dbInitializationError) {
-        console.error('[testing] Database initialization error:', dbInitializationError.message);
+        debugError(' Database initialization error:', dbInitializationError.message);
         return res.status(503).json({
           success: false,
           error: 'Database initialization failed',
@@ -171,20 +172,20 @@ router.post('/auth/login', asyncHandler(async (req, res) => {
         diagnostic: '/health/database'
       });
     }
-    console.log('[testing] Database is initialized');
+    debugLog(' Database is initialized');
 
     // Step 2: Validate input
-    console.log('[testing] Step 2: Validating input...');
-    console.log('[testing] Request body type:', typeof req.body);
-    console.log('[testing] Request body keys:', req.body ? Object.keys(req.body) : 'null/undefined');
-    console.log('[testing] Content-Type header:', req.headers['content-type']);
+    debugLog(' Step 2: Validating input...');
+    debugLog(' Request body type:', typeof req.body);
+    debugLog(' Request body keys:', req.body ? Object.keys(req.body) : 'null/undefined');
+    debugLog(' Content-Type header:', req.headers['content-type']);
     
     const { email, password } = req.body || {};
     
     // Check if body is empty or missing
     if (!req.body || typeof req.body !== 'object' || Object.keys(req.body).length === 0) {
-      console.error('[testing] Request body is missing or invalid:', req.body);
-      console.error('[testing] Raw request body:', req.rawBody || 'not available');
+      debugError(' Request body is missing or invalid:', req.body);
+      debugError(' Raw request body:', req.rawBody || 'not available');
       return res.status(400).json({
         success: false,
         error: 'Invalid request body',
@@ -194,7 +195,7 @@ router.post('/auth/login', asyncHandler(async (req, res) => {
     
     // Validate email and password are present and not empty
     if (!email || typeof email !== 'string' || email.trim() === '') {
-      console.error('[testing] Missing or invalid email. Received:', email);
+      debugError(' Missing or invalid email. Received:', email);
       return res.status(400).json({
         success: false,
         error: 'Email is required',
@@ -203,7 +204,7 @@ router.post('/auth/login', asyncHandler(async (req, res) => {
     }
     
     if (!password || typeof password !== 'string' || password.trim() === '') {
-      console.error('[testing] Missing or invalid password');
+      debugError(' Missing or invalid password');
       return res.status(400).json({
         success: false,
         error: 'Password is required',
@@ -211,24 +212,24 @@ router.post('/auth/login', asyncHandler(async (req, res) => {
       });
     }
     
-    console.log('[testing] Input validated, email:', email);
+    debugLog(' Input validated, email:', email);
 
     // Capture tenant from header or query for master DB tenant scoping
     const requestedTenantId = req.headers['x-tenant-id'] || req.headers['X-Tenant-Id'] || req.query.tenantId || null;
     if (requestedTenantId) {
-      console.log('[testing] Requested tenant for login:', requestedTenantId);
+      debugLog(' Requested tenant for login:', requestedTenantId);
     } else {
-      console.log('[testing] No tenantId provided in headers/query; login will be unscoped (super admins allowed, tenant users must match by email only)');
+      debugLog(' No tenantId provided in headers/query; login will be unscoped (super admins allowed, tenant users must match by email only)');
     }
 
     // Capture theme slug from query or header for theme-scoped login
     const requestedThemeSlug = req.query.themeSlug || req.headers['x-theme-slug'] || req.headers['X-Theme-Slug'] || null;
     if (requestedThemeSlug) {
-      console.log('[testing] Requested theme for login:', requestedThemeSlug);
+      debugLog(' Requested theme for login:', requestedThemeSlug);
     }
 
     // Step 3: Check if users table exists
-    console.log('[testing] Step 3: Checking if users table exists...');
+    debugLog(' Step 3: Checking if users table exists...');
     try {
       const tableCheck = await query(`
         SELECT EXISTS (
@@ -239,10 +240,10 @@ router.post('/auth/login', asyncHandler(async (req, res) => {
       `);
       
       const tableExists = tableCheck?.rows?.[0]?.exists === true;
-      console.log('[testing] Users table exists:', tableExists);
+      debugLog(' Users table exists:', tableExists);
       
       if (!tableExists) {
-        console.error('[testing] Users table does not exist');
+        debugError(' Users table does not exist');
         return res.status(503).json({
           success: false,
           error: 'Database not fully initialized',
@@ -251,8 +252,8 @@ router.post('/auth/login', asyncHandler(async (req, res) => {
         });
       }
     } catch (checkError) {
-      console.error('[testing] Error checking users table existence:', checkError);
-      console.error('[testing] Check error details:', {
+      debugError(' Error checking users table existence:', checkError);
+      debugError(' Check error details:', {
         code: checkError?.code,
         message: checkError?.message,
         errno: checkError?.errno,
@@ -261,7 +262,7 @@ router.post('/auth/login', asyncHandler(async (req, res) => {
       
       // Check if response was already sent
       if (res.headersSent) {
-        console.error('[testing] Response already sent, cannot send error response');
+        debugError(' Response already sent, cannot send error response');
         return;
       }
       
@@ -286,19 +287,19 @@ router.post('/auth/login', asyncHandler(async (req, res) => {
     }
 
     // Step 4: Test database connection before querying
-    console.log('[testing] Step 4: Testing database connection...');
+    debugLog(' Step 4: Testing database connection...');
     try {
       await query('SELECT 1');
-      console.log('[testing] Database connection test successful');
+      debugLog(' Database connection test successful');
     } catch (connectionTestError) {
-      console.error('[testing] Database connection test failed:', connectionTestError);
-      console.error('[testing] Connection test error details:', {
+      debugError(' Database connection test failed:', connectionTestError);
+      debugError(' Connection test error details:', {
         code: connectionTestError?.code,
         message: connectionTestError?.message
       });
       
       if (res.headersSent) {
-        console.error('[testing] Response already sent, cannot send error response');
+        debugError(' Response already sent, cannot send error response');
         return;
       }
       
@@ -323,12 +324,12 @@ router.post('/auth/login', asyncHandler(async (req, res) => {
     }
 
     // Step 5: Querying user by email (tenant-scoped if provided)
-    console.log('[testing] Step 5: Querying user by email...');
+    debugLog(' Step 5: Querying user by email...');
     let userResult;
     try {
       if (requestedTenantId) {
         // Restrict to requested tenant unless super admin
-        console.log('[testing] Querying with tenant filter:', requestedTenantId);
+        debugLog(' Querying with tenant filter:', requestedTenantId);
         userResult = await query(
           `SELECT id, first_name, last_name, email, password_hash, role, is_active, status,
            tenant_id, COALESCE(is_super_admin, false) as is_super_admin
@@ -339,7 +340,7 @@ router.post('/auth/login', asyncHandler(async (req, res) => {
         );
       } else {
         // No tenant provided: allow super admins or any matching email (legacy behavior)
-        console.log('[testing] Querying without tenant filter');
+        debugLog(' Querying without tenant filter');
         userResult = await query(
           `SELECT id, first_name, last_name, email, password_hash, role, is_active, status,
            tenant_id, COALESCE(is_super_admin, false) as is_super_admin
@@ -349,16 +350,16 @@ router.post('/auth/login', asyncHandler(async (req, res) => {
           [email]
         );
       }
-      console.log('[testing] User query completed, found', userResult.rows.length, 'user(s)');
+      debugLog(' User query completed, found', userResult.rows.length, 'user(s)');
     } catch (queryError) {
-      console.error('[testing] ========== USER QUERY ERROR ==========');
-      console.error('[testing] Query error type:', queryError?.constructor?.name);
-      console.error('[testing] Query error message:', queryError?.message);
-      console.error('[testing] Query error code:', queryError?.code);
-      console.error('[testing] Query error stack:', queryError?.stack);
-      console.error('[testing] =======================================');
-      console.error('[testing] Database query error during login:', queryError);
-      console.error('[testing] Query error details:', {
+      debugError(' ========== USER QUERY ERROR ==========');
+      debugError(' Query error type:', queryError?.constructor?.name);
+      debugError(' Query error message:', queryError?.message);
+      debugError(' Query error code:', queryError?.code);
+      debugError(' Query error stack:', queryError?.stack);
+      debugError(' =======================================');
+      debugError(' Database query error during login:', queryError);
+      debugError(' Query error details:', {
         code: queryError?.code,
         message: queryError?.message,
         errno: queryError?.errno,
@@ -368,7 +369,7 @@ router.post('/auth/login', asyncHandler(async (req, res) => {
       
       // Check if response was already sent
       if (res.headersSent) {
-        console.error('[testing] Response already sent, cannot send error response');
+        debugError(' Response already sent, cannot send error response');
         return;
       }
       
@@ -415,9 +416,9 @@ router.post('/auth/login', asyncHandler(async (req, res) => {
     }
 
     // Step 6: Validate user exists
-    console.log('[testing] Step 6: Validating user...');
+    debugLog(' Step 6: Validating user...');
     if (userResult.rows.length === 0) {
-      console.log('[testing] No user found with email:', email, 'for tenant:', requestedTenantId || '(none)');
+      debugLog(' No user found with email:', email, 'for tenant:', requestedTenantId || '(none)');
       // If tenant was provided, return clearer message
       if (requestedTenantId) {
         return res.status(403).json({
@@ -433,18 +434,18 @@ router.post('/auth/login', asyncHandler(async (req, res) => {
     }
 
     const user = userResult.rows[0];
-    console.log('[testing] User found:', user.email, 'ID:', user.id, 'tenant_id:', user.tenant_id, 'super_admin:', user.is_super_admin);
+    debugLog(' User found:', user.email, 'ID:', user.id, 'tenant_id:', user.tenant_id, 'super_admin:', user.is_super_admin);
 
     // Check if user is active and approved
     if (!user.is_active) {
-      console.error('[testing] User account is not active:', user.email);
+      debugError(' User account is not active:', user.email);
       return res.status(401).json({
         success: false,
         error: 'Account is not active'
       });
     }
     if (user.status && user.status !== 'active') {
-      console.error('[testing] User account status not active (', user.status, '):', user.email);
+      debugError(' User account status not active (', user.status, '):', user.email);
       return res.status(401).json({
         success: false,
         error: 'Account pending approval'
@@ -453,7 +454,7 @@ router.post('/auth/login', asyncHandler(async (req, res) => {
 
     // Check if password_hash exists
     if (!user.password_hash) {
-      console.error('[testing] User has no password_hash:', user.email);
+      debugError(' User has no password_hash:', user.email);
       return res.status(401).json({
         success: false,
         error: 'Account configuration error. Please contact support.'
@@ -461,20 +462,20 @@ router.post('/auth/login', asyncHandler(async (req, res) => {
     }
 
     // Step 7: Verify password
-    console.log('[testing] Step 7: Verifying password...');
+    debugLog(' Step 7: Verifying password...');
     let isValidPassword = false;
     try {
       isValidPassword = await bcrypt.compare(password, user.password_hash);
-      console.log('[testing] Password verification result:', isValidPassword);
+      debugLog(' Password verification result:', isValidPassword);
     } catch (bcryptError) {
-      console.error('[testing] Bcrypt comparison error:', bcryptError);
-      console.error('[testing] Bcrypt error details:', {
+      debugError(' Bcrypt comparison error:', bcryptError);
+      debugError(' Bcrypt error details:', {
         message: bcryptError?.message,
         stack: bcryptError?.stack
       });
       
       if (res.headersSent) {
-        console.error('[testing] Response already sent, cannot send error response');
+        debugError(' Response already sent, cannot send error response');
         return;
       }
       
@@ -486,7 +487,7 @@ router.post('/auth/login', asyncHandler(async (req, res) => {
     }
     
     if (!isValidPassword) {
-      console.log('[testing] Invalid password for user:', user.email);
+      debugLog(' Invalid password for user:', user.email);
       return res.status(401).json({
         success: false,
         error: 'Invalid credentials'
@@ -495,12 +496,12 @@ router.post('/auth/login', asyncHandler(async (req, res) => {
 
     // Step 7.5: Validate theme-tenant relationship if theme context provided
     if (requestedThemeSlug && !user.is_super_admin && user.tenant_id) {
-      console.log('[testing] Validating theme-tenant relationship...');
-      console.log('[testing] Theme validation params:', { tenant_id: user.tenant_id, themeSlug: requestedThemeSlug });
+      debugLog(' Validating theme-tenant relationship...');
+      debugLog(' Theme validation params:', { tenant_id: user.tenant_id, themeSlug: requestedThemeSlug });
       try {
         // Validate parameters before querying
         if (!user.tenant_id || !requestedThemeSlug) {
-          console.error('[testing] Invalid parameters for theme validation:', { tenant_id: user.tenant_id, themeSlug: requestedThemeSlug });
+          debugError(' Invalid parameters for theme validation:', { tenant_id: user.tenant_id, themeSlug: requestedThemeSlug });
           if (res.headersSent) {
             return;
           }
@@ -520,9 +521,9 @@ router.post('/auth/login', asyncHandler(async (req, res) => {
         `, [user.tenant_id, requestedThemeSlug]);
 
         if (tenantThemeCheck.rows.length === 0) {
-          console.log('[testing] User tenant does not use requested theme');
+          debugLog(' User tenant does not use requested theme');
           if (res.headersSent) {
-            console.error('[testing] Response already sent, cannot send error response');
+            debugError(' Response already sent, cannot send error response');
             return;
           }
           return res.status(403).json({
@@ -532,17 +533,17 @@ router.post('/auth/login', asyncHandler(async (req, res) => {
             code: 'TENANT_THEME_MISMATCH'
           });
         }
-        console.log('[testing] Theme-tenant relationship validated successfully');
+        debugLog(' Theme-tenant relationship validated successfully');
       } catch (themeCheckError) {
-        console.error('[testing] Error validating theme-tenant relationship:', themeCheckError);
-        console.error('[testing] Theme check error details:', {
+        debugError(' Error validating theme-tenant relationship:', themeCheckError);
+        debugError(' Theme check error details:', {
           code: themeCheckError?.code,
           message: themeCheckError?.message,
           stack: themeCheckError?.stack
         });
         
         if (res.headersSent) {
-          console.error('[testing] Response already sent, cannot send error response');
+          debugError(' Response already sent, cannot send error response');
           return;
         }
         
@@ -578,7 +579,7 @@ router.post('/auth/login', asyncHandler(async (req, res) => {
     }
 
     // Step 8: Create JWT token using centralized utility
-    console.log('[testing] Step 8: Creating JWT token...');
+    debugLog(' Step 8: Creating JWT token...');
     // For super admins, use requested tenantId if provided to set a default context; otherwise null
     const tenantId = user.is_super_admin ? (requestedTenantId || null) : user.tenant_id;
     const userData = {
@@ -596,16 +597,16 @@ router.post('/auth/login', asyncHandler(async (req, res) => {
     let token;
     try {
       token = generateToken(userData);
-      console.log('[testing] JWT token created successfully');
+      debugLog(' JWT token created successfully');
     } catch (tokenError) {
-      console.error('[testing] Token generation error:', tokenError);
-      console.error('[testing] Token error details:', {
+      debugError(' Token generation error:', tokenError);
+      debugError(' Token error details:', {
         message: tokenError?.message,
         stack: tokenError?.stack
       });
       
       if (res.headersSent) {
-        console.error('[testing] Response already sent, cannot send error response');
+        debugError(' Response already sent, cannot send error response');
         return;
       }
       
@@ -617,14 +618,14 @@ router.post('/auth/login', asyncHandler(async (req, res) => {
     }
 
     // Step 9: Return user data with token
-    console.log('[testing] Step 9: Sending success response...');
+    debugLog(' Step 9: Sending success response...');
     // Check if response was already sent (shouldn't happen, but safety check)
     if (res.headersSent) {
-      console.error('[testing] Response already sent, cannot send success response');
+      debugError(' Response already sent, cannot send success response');
       return;
     }
     
-    console.log('[testing] Login successful for user:', user.email);
+    debugLog(' Login successful for user:', user.email);
     res.json({
       success: true,
       user: userData,
@@ -632,19 +633,19 @@ router.post('/auth/login', asyncHandler(async (req, res) => {
     });
 
   } catch (error) {
-    console.error('[testing] ========== LOGIN ERROR ==========');
-    console.error('[testing] Login error:', error);
-    console.error('[testing] Login error code:', error?.code);
-    console.error('[testing] Login error message:', error?.message);
-    console.error('[testing] Login error name:', error?.name);
-    console.error('[testing] Login error errno:', error?.errno);
-    console.error('[testing] Login error syscall:', error?.syscall);
-    console.error('[testing] Login error stack:', error?.stack);
-    console.error('[testing] ===================================');
+    debugError(' ========== LOGIN ERROR ==========');
+    debugError(' Login error:', error);
+    debugError(' Login error code:', error?.code);
+    debugError(' Login error message:', error?.message);
+    debugError(' Login error name:', error?.name);
+    debugError(' Login error errno:', error?.errno);
+    debugError(' Login error syscall:', error?.syscall);
+    debugError(' Login error stack:', error?.stack);
+    debugError(' ===================================');
     
     // Ensure we always send a valid JSON response
     if (res.headersSent) {
-      console.error('[testing] Response already sent, cannot send error response');
+      debugError(' Response already sent, cannot send error response');
       return;
     }
     
@@ -676,7 +677,7 @@ router.post('/auth/login', asyncHandler(async (req, res) => {
     try {
       dbState = getDatabaseState();
     } catch (stateError) {
-      console.error('[testing] Error getting database state in catch block:', stateError);
+      debugError(' Error getting database state in catch block:', stateError);
     }
     
     if (error?.code === '42P01' || error?.message?.includes('does not exist')) {
@@ -709,12 +710,12 @@ router.post('/auth/login', asyncHandler(async (req, res) => {
     }
     
     // Log full error details for debugging
-    console.error('[testing] ========== UNHANDLED LOGIN ERROR ==========');
-    console.error('[testing] Error type:', error?.constructor?.name || 'Unknown');
-    console.error('[testing] Error message:', error?.message);
-    console.error('[testing] Error code:', error?.code || 'N/A');
-    console.error('[testing] Error stack:', error?.stack);
-    console.error('[testing] ===========================================');
+    debugError(' ========== UNHANDLED LOGIN ERROR ==========');
+    debugError(' Error type:', error?.constructor?.name || 'Unknown');
+    debugError(' Error message:', error?.message);
+    debugError(' Error code:', error?.code || 'N/A');
+    debugError(' Error stack:', error?.stack);
+    debugError(' ===========================================');
     
     // Generic error - but include more details in development
     // Always show detailed error in development, or if error message is available
@@ -809,7 +810,7 @@ router.post('/auth/register', async (req, res) => {
       message: 'Registration successful! Your account is pending approval.'
     });
   } catch (error) {
-    console.error('[testing] Registration error:', error);
+    debugError(' Registration error:', error);
     if (error?.code === '42P01') {
       return res.status(503).json({
         success: false,
@@ -867,7 +868,7 @@ router.get('/auth/me', authenticateUser, async (req, res) => {
         [userId]
       );
     } catch (queryError) {
-      console.error('[testing] Database query error in /auth/me:', queryError);
+      debugError(' Database query error in /auth/me:', queryError);
       return res.status(500).json({
         success: false,
         error: 'Database query failed',
@@ -904,7 +905,7 @@ router.get('/auth/me', authenticateUser, async (req, res) => {
     });
 
   } catch (error) {
-    console.error('[testing] Error fetching current user:', error);
+    debugError(' Error fetching current user:', error);
     
     // Handle database not ready errors gracefully
     const { dbInitialized } = getDatabaseState();
@@ -998,9 +999,9 @@ router.get('/auth/verify-access-key', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('[testing] Error verifying access key:', error);
-    console.error('[testing] Error details:', error.message);
-    console.error('[testing] Error stack:', error.stack);
+    debugError(' Error verifying access key:', error);
+    debugError(' Error details:', error.message);
+    debugError(' Error stack:', error.stack);
     res.status(500).json({
       success: false,
       error: 'Failed to verify access key'
@@ -1044,7 +1045,7 @@ router.post('/access-keys/generate', authenticateUser, async (req, res) => {
     });
 
   } catch (error) {
-    console.error('[testing] Error generating access key:', error);
+    debugError(' Error generating access key:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to generate access key'
@@ -1087,7 +1088,7 @@ router.get('/access-keys', authenticateUser, async (req, res) => {
     });
 
   } catch (error) {
-    console.error('[testing] Error fetching access keys:', error);
+    debugError(' Error fetching access keys:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to fetch access keys'
@@ -1126,7 +1127,7 @@ router.delete('/access-keys/:keyId', authenticateUser, async (req, res) => {
     });
 
   } catch (error) {
-    console.error('[testing] Error revoking access key:', error);
+    debugError(' Error revoking access key:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to revoke access key'
@@ -1350,7 +1351,7 @@ router.post('/tenants/:id/import-theme', authenticateUser, async (req, res) => {
         await updateSiteSchema('footer', defaultFooterSchema, 'default', tenantId);
       }
     } catch (schemaError) {
-      console.error('[testing] Error importing schemas:', schemaError);
+      debugError(' Error importing schemas:', schemaError);
       // Continue even if schema import fails
     }
     
@@ -1361,7 +1362,7 @@ router.post('/tenants/:id/import-theme', authenticateUser, async (req, res) => {
       pages: importedPages
     });
   } catch (error) {
-    console.error('[testing] Error importing theme:', error);
+    debugError(' Error importing theme:', error);
     res.status(500).json({ error: 'Failed to import theme' });
   }
 });
@@ -1411,7 +1412,7 @@ router.post('/tenants/:id/sync', authenticateUser, async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('[testing] Error syncing tenant:', error);
+    debugError(' Error syncing tenant:', error);
     res.status(500).json({ 
       error: 'Failed to sync tenant',
       message: error instanceof Error ? error.message : 'Unknown error'

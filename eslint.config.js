@@ -24,6 +24,14 @@ export default tseslint.config(
         { allowConstantExport: true },
       ],
       "@typescript-eslint/no-unused-vars": "off",
+      // Prevent new [testing] console.log statements - use debugLogger instead
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: "CallExpression[callee.object.name='console'][callee.property.name=/^(log|error|warn)$/] > Literal[value=/\\[testing\\]/]",
+          message: "Use debugLog, debugError, or debugWarn from sparti-cms/utils/debugLogger.js instead of console.log('[testing]...')",
+        },
+      ],
     },
   }
 );

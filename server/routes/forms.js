@@ -9,6 +9,7 @@ import {
   createContact
 } from '../../sparti-cms/db/index.js';
 import { processFormSubmissionEmails } from '../utils/emailService.js';
+import { debugLog, debugError } from '../../sparti-cms/utils/debugLogger.js';
 
 const router = express.Router();
 
@@ -26,7 +27,7 @@ router.post('/form-submissions', async (req, res) => {
                               req.headers['X-Tenant-Id'] ||
                               req.tenantId;
     
-    console.log('[testing] Form submission received:', { 
+    debugLog('Form submission received:', { 
       form_id, 
       name, 
       email, 
@@ -73,9 +74,9 @@ router.post('/form-submissions', async (req, res) => {
         notes: message ? `Form message: ${message}` : null
       }, extractedTenantId); // Pass extracted tenant_id
       
-      console.log('[testing] Contact created from form submission for tenant:', extractedTenantId);
+      debugLog('Contact created from form submission for tenant:', extractedTenantId);
     } catch (contactError) {
-      console.error('[testing] Error creating contact from form:', contactError);
+      debugError('Error creating contact from form:', contactError);
       // Don't fail the form submission if contact creation fails
     }
     
@@ -87,7 +88,7 @@ router.post('/form-submissions', async (req, res) => {
       // If we have the extended result (which includes the form), use it directly
       if (extendedResult && extendedResult.form) {
         formId = extendedResult.form.id;
-        console.log('[testing] Using form from extended result for email notifications:', { 
+        debugLog('Using form from extended result for email notifications:', { 
           form_id, 
           formId: extendedResult.form.id, 
           form_name: extendedResult.form.name 
@@ -98,13 +99,13 @@ router.post('/form-submissions', async (req, res) => {
         const form = await getFormById(form_id, extractedTenantId);
         if (form) {
           formId = form.id;
-          console.log('[testing] Found form for email notifications (fallback lookup):', { 
+          debugLog('Found form for email notifications (fallback lookup):', { 
             form_id, 
             formId: form.id, 
             form_name: form.name 
           });
         } else {
-          console.log('[testing] Form not found by ID/name:', form_id);
+          debugLog('Form not found by ID/name:', form_id);
         }
       }
       
@@ -124,20 +125,20 @@ router.post('/form-submissions', async (req, res) => {
         // This ensures form submission response is sent quickly
         processFormSubmissionEmails(formSubmission, formId)
           .then(results => {
-            console.log('[testing] Form submission emails processed:', {
+            debugLog('Form submission emails processed:', {
               formId,
               notifications: results.notifications ? 'sent' : 'skipped',
               autoReply: results.autoReply ? 'sent' : 'skipped'
             });
           })
           .catch(error => {
-            console.error('[testing] Error processing form submission emails (non-fatal):', error);
+            debugError('Error processing form submission emails (non-fatal):', error);
           });
       } else {
-        console.log('[testing] No form ID found, skipping email notifications. form_id was:', form_id);
+        debugLog('No form ID found, skipping email notifications. form_id was:', form_id);
       }
     } catch (emailError) {
-      console.error('[testing] Error setting up form submission emails (non-fatal):', emailError);
+      debugError('Error setting up form submission emails (non-fatal):', emailError);
       // Don't fail the form submission if email setup fails
     }
     
@@ -147,7 +148,7 @@ router.post('/form-submissions', async (req, res) => {
       id: submission.id
     });
   } catch (error) {
-    console.error('[testing] Error saving form submission:', error);
+    debugError('Error saving form submission:', error);
     res.status(500).json({ error: 'Failed to save form submission' });
   }
 });
@@ -155,7 +156,7 @@ router.post('/form-submissions', async (req, res) => {
 // Get all form submissions
 router.get('/form-submissions/all', async (req, res) => {
   try {
-    console.log('[testing] Fetching all form submissions');
+    debugLog('Fetching all form submissions');
     
     const result = await query(`
       SELECT * FROM form_submissions 
@@ -164,7 +165,7 @@ router.get('/form-submissions/all', async (req, res) => {
     
     res.json(result.rows);
   } catch (error) {
-    console.error('[testing] Error fetching all form submissions:', error);
+    debugError('Error fetching all form submissions:', error);
     res.status(500).json({ error: 'Failed to fetch form submissions' });
   }
 });
@@ -174,13 +175,13 @@ router.get('/form-submissions/:formId', async (req, res) => {
   try {
     const { formId } = req.params;
     
-    console.log('[testing] Fetching submissions for form:', formId);
+    debugLog('Fetching submissions for form:', formId);
     
     const submissions = await getFormSubmissions(formId);
     
     res.json(submissions);
   } catch (error) {
-    console.error('[testing] Error fetching form submissions:', error);
+    debugError('Error fetching form submissions:', error);
     res.status(500).json({ error: 'Failed to fetch form submissions' });
   }
 });
@@ -208,11 +209,11 @@ router.get('/forms', authenticateUser, async (req, res) => {
     }
     
     if (!tenantId) {
-      console.error('[testing] No tenant ID found. req.tenantId:', req.tenantId, 'req.user?.tenant_id:', req.user?.tenant_id, 'headers:', req.headers['x-tenant-id'] || req.headers['X-Tenant-Id'], 'query:', req.query.tenantId);
+      debugError('No tenant ID found. req.tenantId:', req.tenantId, 'req.user?.tenant_id:', req.user?.tenant_id, 'headers:', req.headers['x-tenant-id'] || req.headers['X-Tenant-Id'], 'query:', req.query.tenantId);
       return res.status(400).json({ error: 'Tenant ID is required' });
     }
     
-    console.log('[testing] Fetching forms for tenant:', tenantId, 'User is super admin:', req.user?.is_super_admin);
+    debugLog('Fetching forms for tenant:', tenantId, 'User is super admin:', req.user?.is_super_admin);
     
     // Ensure tenant_id is treated as string for comparison (PostgreSQL VARCHAR)
     // Use LOWER() for case-insensitive comparison and trim whitespace
@@ -252,10 +253,10 @@ router.get('/forms', authenticateUser, async (req, res) => {
       }
     }
     
-    console.log('[testing] Found', result.rows.length, 'forms for tenant', tenantId, '- after deduplication:', deduplicatedForms.length);
+    debugLog('Found', result.rows.length, 'forms for tenant', tenantId, '- after deduplication:', deduplicatedForms.length);
     res.json(deduplicatedForms);
   } catch (error) {
-    console.error('[testing] Error fetching forms:', error);
+    debugError('Error fetching forms:', error);
     res.status(500).json({ error: 'Failed to fetch forms' });
   }
 });
@@ -270,7 +271,7 @@ router.get('/forms/:id', authenticateUser, async (req, res) => {
       res.status(404).json({ error: 'Form not found' });
     }
   } catch (error) {
-    console.error('[testing] Error fetching form:', error);
+    debugError('Error fetching form:', error);
     res.status(500).json({ error: 'Failed to fetch form' });
   }
 });
@@ -339,7 +340,7 @@ router.post('/forms', authenticateUser, async (req, res) => {
     
     res.json(newForm);
   } catch (error) {
-    console.error('[testing] Error creating form:', error);
+    debugError('Error creating form:', error);
     res.status(500).json({ error: 'Failed to create form' });
   }
 });
@@ -377,7 +378,7 @@ router.put('/forms/:id', authenticateUser, async (req, res) => {
       res.status(404).json({ error: 'Form not found' });
     }
   } catch (error) {
-    console.error('[testing] Error updating form:', error);
+    debugError('Error updating form:', error);
     res.status(500).json({ error: 'Failed to update form' });
   }
 });
@@ -411,7 +412,7 @@ router.delete('/forms/:id', authenticateUser, async (req, res) => {
       res.status(404).json({ error: 'Form not found' });
     }
   } catch (error) {
-    console.error('[testing] Error deleting form:', error);
+    debugError('Error deleting form:', error);
     res.status(500).json({ error: 'Failed to delete form' });
   }
 });
@@ -426,7 +427,7 @@ router.get('/forms/:id/email-settings', async (req, res) => {
       res.status(404).json({ error: 'Email settings not found' });
     }
   } catch (error) {
-    console.error('[testing] Error fetching email settings:', error);
+    debugError('Error fetching email settings:', error);
     res.status(500).json({ error: 'Failed to fetch email settings' });
   }
 });
@@ -483,7 +484,7 @@ router.put('/forms/:id/email-settings', async (req, res) => {
     
     res.json(result.rows[0]);
   } catch (error) {
-    console.error('[testing] Error updating email settings:', error);
+    debugError('Error updating email settings:', error);
     res.status(500).json({ error: 'Failed to update email settings' });
   }
 });
@@ -500,7 +501,7 @@ router.get('/forms/:id/submissions', async (req, res) => {
     
     res.json(result.rows);
   } catch (error) {
-    console.error('[testing] Error fetching submissions:', error);
+    debugError('Error fetching submissions:', error);
     res.status(500).json({ error: 'Failed to fetch submissions' });
   }
 });
@@ -527,7 +528,7 @@ router.post('/forms/cleanup-duplicates', authenticateUser, async (req, res) => {
       return res.status(400).json({ error: 'Tenant ID is required' });
     }
     
-    console.log('[testing] Cleaning up duplicate forms for tenant:', tenantId);
+    debugLog('Cleaning up duplicate forms for tenant:', tenantId);
     
     // Find duplicate forms (same name, same tenant_id)
     const duplicatesResult = await query(`
@@ -554,7 +555,7 @@ router.post('/forms/cleanup-duplicates', authenticateUser, async (req, res) => {
       const formToKeep = formIds[0];
       const formsToDelete = formIds.slice(1);
       
-      console.log(`[testing] Found ${formIds.length} duplicates for form "${duplicate.name}". Keeping form ${formToKeep}, deleting:`, formsToDelete);
+      debugLog(`Found ${formIds.length} duplicates for form "${duplicate.name}". Keeping form ${formToKeep}, deleting:`, formsToDelete);
       
       // Before deleting, migrate any submissions from deleted forms to the kept form
       for (const formIdToDelete of formsToDelete) {
@@ -589,7 +590,7 @@ router.post('/forms/cleanup-duplicates', authenticateUser, async (req, res) => {
       }
     }
     
-    console.log('[testing] Cleanup complete. Deleted', deletedCount, 'duplicate forms');
+    debugLog('Cleanup complete. Deleted', deletedCount, 'duplicate forms');
     
     res.json({
       success: true,
@@ -598,7 +599,7 @@ router.post('/forms/cleanup-duplicates', authenticateUser, async (req, res) => {
       deletedFormIds
     });
   } catch (error) {
-    console.error('[testing] Error cleaning up duplicate forms:', error);
+    debugError('Error cleaning up duplicate forms:', error);
     res.status(500).json({ error: 'Failed to clean up duplicate forms' });
   }
 });
