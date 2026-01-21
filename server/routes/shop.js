@@ -2,7 +2,9 @@ import express from 'express';
 import { query } from '../../sparti-cms/db/index.js';
 import {
   getProducts,
+  getProductsWithDetails,
   getProduct,
+  getProductFromProductsTable,
   getProductBySlug,
   createProduct,
   updateProduct,
@@ -63,7 +65,7 @@ async function getEshopProvider(tenantId) {
 router.get('/products', authenticateTenantApiKey, async (req, res) => {
   try {
     const tenantId = req.tenantId;
-    const { search, limit, page = 1, per_page = 10 } = req.query;
+    const { search, limit, page = 1, per_page = 10, status, with_details } = req.query;
 
     // Check e-shop provider setting
     const eshopProvider = await getEshopProvider(tenantId);
@@ -189,8 +191,12 @@ router.get('/products', authenticateTenantApiKey, async (req, res) => {
     const filters = {};
     if (search) filters.search = search;
     if (limit) filters.limit = parseInt(limit);
+    if (status) filters.status = status;
 
-    const products = await getProducts(tenantId, filters);
+    // Use detailed query if requested (for admin table view)
+    const products = with_details === 'true' 
+      ? await getProductsWithDetails(tenantId, filters)
+      : await getProducts(tenantId, filters);
 
     res.json({ 
       success: true, 
@@ -253,8 +259,12 @@ router.get('/products/:id', authenticateTenantApiKey, async (req, res) => {
       }
     }
 
-    // Fallback to local database
-    const product = await getProduct(productId, tenantId);
+    // Fallback to local database - try products table first, then pern_products
+    let product = await getProductFromProductsTable(productId, tenantId);
+    
+    if (!product) {
+      product = await getProduct(productId, tenantId);
+    }
 
     if (!product) {
       return res.status(404).json({ 

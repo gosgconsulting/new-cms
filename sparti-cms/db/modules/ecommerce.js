@@ -24,7 +24,62 @@ function handleTableError(error) {
 // ===== PRODUCTS =====
 
 /**
- * Get all products for a tenant
+ * Get all products for a tenant (from products table with variants and categories)
+ * @param {string} tenantId - Tenant ID
+ * @param {Object} filters - Optional filters (status, search)
+ * @returns {Promise<Array>} Array of products with inventory and category data
+ */
+export async function getProductsWithDetails(tenantId, filters = {}) {
+  try {
+    let sql = `
+      SELECT 
+        p.id,
+        p.name,
+        p.handle as slug,
+        p.status,
+        p.featured_image as image_url,
+        p.description,
+        p.created_at,
+        p.updated_at,
+        COALESCE(SUM(pv.inventory_quantity), 0)::integer as inventory_total,
+        COUNT(pv.id)::integer as variant_count,
+        pc.name as category_name
+      FROM products p
+      LEFT JOIN product_variants pv ON p.id = pv.product_id
+      LEFT JOIN product_category_relations pcr ON p.id = pcr.product_id
+      LEFT JOIN product_categories pc ON pcr.category_id = pc.id
+      WHERE p.tenant_id = $1
+    `;
+    const params = [tenantId];
+
+    if (filters.status) {
+      sql += ` AND p.status = $${params.length + 1}`;
+      params.push(filters.status);
+    }
+
+    if (filters.search) {
+      sql += ` AND (p.name ILIKE $${params.length + 1} OR p.description ILIKE $${params.length + 1})`;
+      params.push(`%${filters.search}%`);
+    }
+
+    sql += ` GROUP BY p.id, p.name, p.handle, p.status, p.featured_image, p.description, p.created_at, p.updated_at, pc.name`;
+    sql += ` ORDER BY p.created_at DESC`;
+
+    if (filters.limit) {
+      sql += ` LIMIT $${params.length + 1}`;
+      params.push(filters.limit);
+    }
+
+    const result = await query(sql, params);
+    return result.rows;
+  } catch (error) {
+    console.error('[testing] Error getting products with details:', error);
+    return handleTableError(error);
+  }
+}
+
+/**
+ * Get all products for a tenant (legacy PERN-Store table)
  * @param {string} tenantId - Tenant ID
  * @param {Object} filters - Optional filters (status, search)
  * @returns {Promise<Array>} Array of products
@@ -60,7 +115,40 @@ export async function getProducts(tenantId, filters = {}) {
 }
 
 /**
- * Get a single product by ID
+ * Get a single product by ID from products table
+ * @param {number} productId - Product ID
+ * @param {string} tenantId - Tenant ID
+ * @returns {Promise<Object|null>} Product object or null
+ */
+export async function getProductFromProductsTable(productId, tenantId) {
+  try {
+    const result = await query(`
+      SELECT 
+        id as product_id,
+        name,
+        handle as slug,
+        status,
+        featured_image as image_url,
+        description,
+        created_at,
+        updated_at,
+        COALESCE(
+          (SELECT MIN(pv.price) FROM product_variants pv WHERE pv.product_id = id),
+          0
+        ) as price
+      FROM products
+      WHERE id = $1 AND tenant_id = $2
+    `, [productId, tenantId]);
+
+    return result.rows[0] || null;
+  } catch (error) {
+    console.error('[testing] Error getting product from products table:', error);
+    return handleTableError(error);
+  }
+}
+
+/**
+ * Get a single product by ID (legacy PERN-Store table)
  * @param {number} productId - Product ID
  * @param {string} tenantId - Tenant ID
  * @returns {Promise<Object|null>} Product object or null

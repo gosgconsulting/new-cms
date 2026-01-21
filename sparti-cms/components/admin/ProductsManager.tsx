@@ -7,11 +7,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ProductCreationWizard from './ProductCreationWizard';
 import ProductEditTable from './ProductEditTable';
 import BulkProductEditTable from './BulkProductEditTable';
 import ProductJsonViewer from './ProductJsonViewer';
 import ProductVariantTable from './ProductVariantTable';
+import ProductTable, { ProductTableRow } from './ProductTable';
 
 interface Product {
   product_id: number;
@@ -33,18 +35,24 @@ export default function ProductsManager({ currentTenantId }: ProductsManagerProp
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showBulkEdit, setShowBulkEdit] = useState(false);
   const [editingProductId, setEditingProductId] = useState<number | null>(null);
+  const [activeTab, setActiveTab] = useState('all');
+  const [selectedProducts, setSelectedProducts] = useState<number[]>([]);
   const queryClient = useQueryClient();
 
   const { data: products = [], isLoading } = useQuery({
-    queryKey: ['products', currentTenantId, searchTerm],
+    queryKey: ['products', currentTenantId, searchTerm, activeTab],
     queryFn: async () => {
       if (!currentTenantId) {
         throw new Error('Tenant ID is required');
       }
       
       const params = new URLSearchParams();
+      params.append('with_details', 'true');
       if (searchTerm) {
         params.append('search', searchTerm);
+      }
+      if (activeTab !== 'all') {
+        params.append('status', activeTab);
       }
       
       const response = await api.get(`/api/shop/products?${params.toString()}`, { tenantId: currentTenantId });
@@ -92,17 +100,21 @@ export default function ProductsManager({ currentTenantId }: ProductsManagerProp
     setShowBulkEdit(false);
   };
 
-  const filteredProducts = products.filter((product: Product) => {
-    if (searchTerm) {
-      const searchLower = searchTerm.toLowerCase();
-      return (
-        product.name.toLowerCase().includes(searchLower) ||
-        product.description?.toLowerCase().includes(searchLower) ||
-        product.slug.toLowerCase().includes(searchLower)
-      );
+  const handleSelectProduct = (productId: number) => {
+    setSelectedProducts(prev => 
+      prev.includes(productId) 
+        ? prev.filter(id => id !== productId)
+        : [...prev, productId]
+    );
+  };
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedProducts(products.map((p: ProductTableRow) => p.id));
+    } else {
+      setSelectedProducts([]);
     }
-    return true;
-  });
+  };
 
   return (
     <div className="p-6 space-y-6">
@@ -146,10 +158,17 @@ export default function ProductsManager({ currentTenantId }: ProductsManagerProp
         />
       )}
 
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex items-center space-x-4">
-            <div className="flex-1 relative">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        <div className="flex items-center justify-between">
+          <TabsList>
+            <TabsTrigger value="all">All</TabsTrigger>
+            <TabsTrigger value="active">Active</TabsTrigger>
+            <TabsTrigger value="draft">Draft</TabsTrigger>
+            <TabsTrigger value="archived">Archived</TabsTrigger>
+          </TabsList>
+          
+          <div className="flex-1 max-w-md mx-4">
+            <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search products..."
@@ -159,42 +178,116 @@ export default function ProductsManager({ currentTenantId }: ProductsManagerProp
               />
             </div>
           </div>
+        </div>
+
+        <TabsContent value={activeTab} className="space-y-4">
+          {editingProductId ? (
+            <EditingProductView
+              productId={editingProductId}
+              currentTenantId={currentTenantId}
+              onCancel={handleCancel}
+            />
+          ) : (
+            <ProductTable
+              products={products}
+              selectedProducts={selectedProducts}
+              onSelectProduct={handleSelectProduct}
+              onSelectAll={handleSelectAll}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              isLoading={isLoading}
+            />
+          )}
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}
+
+interface EditingProductViewProps {
+  productId: number;
+  currentTenantId: string;
+  onCancel: () => void;
+}
+
+function EditingProductView({ productId, currentTenantId, onCancel }: EditingProductViewProps) {
+  // Fetch product with old format for ProductEditTable
+  const { data: product, isLoading: isLoadingProduct } = useQuery({
+    queryKey: ['product-for-edit', productId, currentTenantId],
+    queryFn: async () => {
+      if (!currentTenantId) {
+        return null;
+      }
+      
+      const response = await api.get(`/api/shop/products/${productId}`, { tenantId: currentTenantId });
+      if (!response.ok) {
+        throw new Error('Failed to fetch product');
+      }
+      const result = await response.json();
+      return result.data;
+    },
+    enabled: !!currentTenantId && !!productId,
+  });
+
+  // Fetch variants
+  const { data: variants = [], isLoading: isLoadingVariants } = useQuery({
+    queryKey: ['product-variants-for-edit', productId, currentTenantId],
+    queryFn: async () => {
+      if (!currentTenantId || !product) {
+        return [];
+      }
+      
+      try {
+        const response = await api.get(`/api/shop/products/${productId}/variants`, { tenantId: currentTenantId });
+        if (response.ok) {
+          const result = await response.json();
+          return Array.isArray(result.data) ? result.data : [];
+        }
+      } catch (e) {
+        console.warn('[testing] Could not fetch variants:', e);
+      }
+      
+      return [];
+    },
+    enabled: !!currentTenantId && !!product,
+  });
+
+  if (isLoadingProduct || isLoadingVariants) {
+    return (
+      <Card className="border-2 border-blue-200 bg-blue-50/30">
+        <CardContent className="p-6">
+          <div className="py-8 text-center text-muted-foreground">
+            Loading product data...
+          </div>
         </CardContent>
       </Card>
+    );
+  }
 
-      {isLoading ? (
-        <div className="text-center py-12">Loading products...</div>
-      ) : filteredProducts.length === 0 && !showCreateForm ? (
-        <Card>
-          <CardContent className="p-12 text-center">
-            <Package className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <p className="text-muted-foreground">No products found</p>
-            <Button
-              onClick={() => setShowCreateForm(true)}
-              className="mt-4"
-              variant="outline"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Create your first product
-            </Button>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="space-y-4">
-          {filteredProducts.map((product: Product) => (
-            <ProductCard
-              key={product.product_id}
-              product={product}
-              isEditing={editingProductId === product.product_id}
-              onEdit={() => handleEdit(product.product_id)}
-              onDelete={() => handleDelete(product.product_id)}
-              onCancel={handleCancel}
-              currentTenantId={currentTenantId}
-            />
-          ))}
-        </div>
-      )}
-    </div>
+  if (!product) {
+    return (
+      <Card className="border-2 border-red-200 bg-red-50/30">
+        <CardContent className="p-6">
+          <div className="py-8 text-center text-red-600">
+            Product not found
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="border-2 border-blue-200 bg-blue-50/30">
+      <CardContent className="p-6">
+        <ProductEditTable
+          product={product}
+          variants={variants}
+          currentTenantId={currentTenantId}
+          onSuccess={onCancel}
+          onCancel={onCancel}
+        />
+      </CardContent>
+    </Card>
   );
 }
 
