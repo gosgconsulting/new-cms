@@ -5,6 +5,7 @@ import {
   Dialog,
   DialogContent,
 } from "./ui/dialog";
+import { useContactModal } from "../contexts/ContactModalContext";
 
 interface SlideData {
   id: number;
@@ -18,6 +19,7 @@ interface SlideData {
 export function HeroSlider() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isVideoOpen, setIsVideoOpen] = useState(false);
+  const { openModal } = useContactModal();
 
   const slides: SlideData[] = [
     {
@@ -148,12 +150,12 @@ export function HeroSlider() {
         </div>
 
         <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
-          <a
-            href="#book-trial"
+          <button
+            onClick={openModal}
             className="bg-dance-pink text-dance-white px-10 py-4 rounded-full text-lg font-button font-medium tracking-wide transition-all duration-300 transform hover:scale-105 shadow-2xl hover:opacity-90"
           >
             Book a trial
-          </a>
+          </button>
           <button 
             onClick={() => setIsVideoOpen(true)}
             className="flex items-center space-x-3 border-2 border-dance-white text-dance-white px-8 py-4 rounded-full text-lg font-button font-medium hover:bg-dance-white hover:text-dance-black transition-all duration-300"

@@ -27,6 +27,8 @@ interface HeroSectionProps {
   isMenuOpen?: boolean;
   setIsMenuOpen?: (open: boolean) => void;
   isHomepage?: boolean;
+  logoSrc?: string;
+  circularLogoSrc?: string;
 }
 
 const HeroSection: React.FC<HeroSectionProps> = ({
@@ -46,7 +48,9 @@ const HeroSection: React.FC<HeroSectionProps> = ({
   navItems = [],
   isMenuOpen = false,
   setIsMenuOpen,
-  isHomepage = false
+  isHomepage = false,
+  logoSrc,
+  circularLogoSrc
 }) => {
   // Extract props from items if provided (for schema-based editing)
   const extractedProps = items ? extractPropsFromItems(items) : {};
@@ -92,8 +96,8 @@ const HeroSection: React.FC<HeroSectionProps> = ({
                   // Circular logo on homepage (larger size, transparent background)
                   <a href="/theme/str">
                     <img 
-                      src={STR_ASSETS.logos.circular} 
-                      alt="STR Logo - Strength Through Range" 
+                      src={circularLogoSrc || STR_ASSETS.logos.circular} 
+                      alt={`${tenantName} Logo`} 
                       className="h-16 sm:h-20 md:h-24 lg:h-28 w-auto"
                       onError={(e) => {
                         // Fallback to text if image not found
@@ -103,7 +107,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
                         target.dataset.fallbackAdded = 'true';
                         const fallback = document.createElement('div');
                         fallback.className = 'text-2xl font-bold text-primary';
-                        fallback.textContent = 'STR';
+                        fallback.textContent = tenantName;
                         target.parentElement?.appendChild(fallback);
                       }}
                     />
@@ -112,8 +116,8 @@ const HeroSection: React.FC<HeroSectionProps> = ({
                   // Regular header logo on other pages
                   <a href="/theme/str">
                     <img 
-                      src={STR_ASSETS.logos.header} 
-                      alt="STR" 
+                      src={logoSrc || STR_ASSETS.logos.header} 
+                      alt={tenantName} 
                       className="h-12 w-auto"
                       onError={(e) => {
                         // Fallback to text if image not found
@@ -123,7 +127,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
                         target.dataset.fallbackAdded = 'true';
                         const fallback = document.createElement('div');
                         fallback.className = 'text-2xl font-bold text-primary';
-                        fallback.textContent = 'STR';
+                        fallback.textContent = tenantName;
                         target.parentElement?.appendChild(fallback);
                       }}
                     />

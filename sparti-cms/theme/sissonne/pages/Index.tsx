@@ -18,9 +18,11 @@ import { HeroSlider } from "../components/HeroSlider";
 import { TestimonialSlider } from "../components/TestimonialSlider";
 import { FacultySlider } from "../components/FacultySlider";
 import { GallerySlider } from "../components/GallerySlider";
+import { useContactModal } from "../contexts/ContactModalContext";
 
 export default function Index() {
   const [selectedProgram, setSelectedProgram] = useState("ballet");
+  const { openModal } = useContactModal();
 
   const programs = [
     {
@@ -274,86 +276,34 @@ export default function Index() {
       {/* Gallery Section */}
       <GallerySlider />
 
-      {/* Trial Class CTA Section */}
-      <section id="book-trial" className="py-16 bg-white">
-        <div className="px-8 lg:px-16">
-          <div className="grid lg:grid-cols-2 gap-8 lg:gap-16">
-            {/* Left Side - Image */}
-            <div className="w-full">
-              <img
-                src="https://static.wixstatic.com/media/6710cb_2ecd453ed2864a1f9c6b6ad9edad216a~mv2.jpg/v1/fill/w_1111,h_960,fp_0.50_0.50,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/6710cb_2ecd453ed2864a1f9c6b6ad9edad216a~mv2.jpg"
-                alt="Young ballet dancers at the barre"
-                className="w-full h-full object-cover"
-              />
-            </div>
+      {/* Trial Class CTA Banner */}
+      <section id="book-trial" className="relative py-20 lg:py-24 overflow-hidden">
+        {/* Gradient Background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-dance-pink via-dance-purple to-dance-pink/80"></div>
+        
+        {/* Optional subtle pattern overlay for texture */}
+        <div className="absolute inset-0 opacity-10" style={{
+          backgroundImage: `radial-gradient(circle at 2px 2px, white 1px, transparent 0)`,
+          backgroundSize: '40px 40px'
+        }}></div>
 
-            {/* Right Side - Form */}
-            <div className="w-full flex flex-col justify-center p-40">
-              <div className="mb-8">
-                <h3
-                  className="text-2xl font-heading font-normal mb-6 text-dance-pink"
-                >
-                  BOOK A TRIAL
-                </h3>
-                <p className="text-gray-600 font-body text-sm leading-relaxed mb-6">
-                  If you would like to book a trial, we'll be more than happy to
-                  help. Please fill out the form below and we will get back to
-                  you as soon as possible.
-                </p>
-              </div>
-
-              <form className="space-y-4">
-                <div>
-                  <input
-                    type="text"
-                    placeholder="Name"
-                    className="w-full px-3 py-3 border border-gray-300 focus:border-gray-400 focus:outline-none font-body text-sm"
-                  />
-                </div>
-
-                <div>
-                  <input
-                    type="email"
-                    placeholder="Email"
-                    className="w-full px-3 py-3 border border-gray-300 focus:border-gray-400 focus:outline-none font-body text-sm"
-                  />
-                </div>
-
-                <div>
-                  <select className="w-full px-3 py-3 border border-gray-300 focus:border-gray-400 focus:outline-none font-body text-sm appearance-none bg-white">
-                    <option value="">Class</option>
-                    <option value="ballet-rad">Ballet</option>
-                    <option value="jazz-cstd">Jazz CSTD</option>
-                    <option value="elite">Elite Performance</option>
-                    <option value="dsa">DSA Preparation</option>
-                    <option value="adult">Adult Classes</option>
-                  </select>
-                </div>
-
-                <div>
-                  <input
-                    type="date"
-                    placeholder="Date of Birth"
-                    className="w-full px-3 py-3 border border-gray-300 focus:border-gray-400 focus:outline-none font-body text-sm"
-                  />
-                </div>
-
-                <div>
-                  <textarea
-                    placeholder="Any other information you would like us to know..."
-                    rows={4}
-                    className="w-full px-3 py-3 border border-gray-300 focus:border-gray-400 focus:outline-none font-body text-sm resize-none"
-                  ></textarea>
-                </div>
-
-                <button
-                  type="submit"
-                  className="w-full bg-black text-white py-3 font-body font-medium text-sm hover:bg-gray-800 transition-colors duration-200"
-                >
-                  Submit
-                </button>
-              </form>
-            </div>
+        {/* Content */}
+        <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-3xl mx-auto text-center">
+            <h3 className="text-3xl md:text-4xl lg:text-5xl font-heading font-normal mb-4 text-white">
+              BOOK A TRIAL
+            </h3>
+            <p className="text-white/95 font-body text-base md:text-lg leading-relaxed mb-8 max-w-2xl mx-auto">
+              If you would like to book a trial, we'll be more than happy to
+              help. Please fill out the form and we will get back to
+              you as soon as possible.
+            </p>
+            <button
+              onClick={openModal}
+              className="bg-white text-dance-pink px-8 py-4 font-button font-medium text-base md:text-lg hover:bg-white/90 transition-all duration-300 transform hover:scale-105 shadow-xl rounded-full"
+            >
+              Book a Trial
+            </button>
           </div>
         </div>
       </section>

@@ -3,14 +3,17 @@ import { Link, useLocation } from "react-router-dom";
 import { Menu, X, Phone, Mail, MapPin } from "lucide-react";
 // import { FontSwitcher } from "./FontSwitcher"; // Removed from UI but keeping file
 import logoImage from "../assets/logo.png";
+import ContactModal from "./ContactModal";
+import { ContactModalProvider, useContactModal } from "../contexts/ContactModalContext";
 
 interface LayoutProps {
   children: React.ReactNode;
   tenantSlug?: string;
 }
 
-export function Layout({ children, tenantSlug = 'sissonne' }: LayoutProps) {
+function LayoutContent({ children, tenantSlug = 'sissonne' }: LayoutProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { isOpen: isContactModalOpen, openModal, closeModal } = useContactModal();
   const location = useLocation();
   const themeBasePath = `/theme/${tenantSlug}`;
 
@@ -88,16 +91,6 @@ export function Layout({ children, tenantSlug = 'sissonne' }: LayoutProps) {
               )}
             </nav>
 
-            {/* CTA */}
-            <div className="hidden lg:flex items-center">
-              <a
-                href="#book-trial"
-                className="bg-dance-pink text-dance-white px-8 py-4 rounded-full text-sm font-button font-medium tracking-wide transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl hover:opacity-90"
-              >
-                Book a trial
-              </a>
-            </div>
-
             {/* Mobile menu button */}
             <button
               className="lg:hidden text-dance-black hover:text-dance-pink p-2 rounded-lg hover:bg-dance-pink/10 transition-all duration-300"
@@ -144,13 +137,15 @@ export function Layout({ children, tenantSlug = 'sissonne' }: LayoutProps) {
                   <Phone className="h-4 w-4 text-dance-pink" />
                   <span>+65 6123 4567</span>
                 </div>
-                <a
-                  href="#book-trial"
+                <button
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    openModal();
+                  }}
                   className="block text-center w-full bg-dance-pink text-dance-white px-6 py-4 rounded-full font-button font-medium tracking-wide transition-all duration-300 transform hover:scale-105 shadow-xl hover:opacity-90"
-                  onClick={() => setIsMenuOpen(false)}
                 >
                   Book a trial
-                </a>
+                </button>
               </div>
             </div>
           </div>
@@ -290,24 +285,39 @@ export function Layout({ children, tenantSlug = 'sissonne' }: LayoutProps) {
         </div>
       </footer>
 
-      {/* Sticky Contact Us (WhatsApp) */}
-      <a
-        href="https://wa.me/659730951"
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label="Contact us on WhatsApp"
+      {/* Sticky Contact Us Button */}
+      <button
+        onClick={openModal}
+        aria-label="Contact us"
         className="fixed -right-[3.2rem] top-1/2 -translate-y-1/2 z-50 group"
       >
         <div
-          className="flex items-center justify-center gap-2 shadow-xl text-white px-4 py-3 -rotate-90 origin-center hover:opacity-90 transition-opacity bg-dance-pink"
+          className="flex items-center justify-center gap-2 shadow-xl text-white px-4 py-3 -rotate-90 origin-center hover:opacity-90 transition-opacity bg-dance-pink cursor-pointer"
         >
           <span className="text-lg">👋</span>
           <span className="text-sm font-semibold tracking-wide uppercase">Contact Us</span>
         </div>
-      </a>
+      </button>
+
+      {/* Contact Modal */}
+      <ContactModal open={isContactModalOpen} onOpenChange={(open) => {
+        if (open) {
+          openModal();
+        } else {
+          closeModal();
+        }
+      }} />
 
       {/* Font Switcher Widget - Removed from UI */}
       {/* <FontSwitcher tenantSlug={tenantSlug} /> */}
     </div>
+  );
+}
+
+export function Layout({ children, tenantSlug = 'sissonne' }: LayoutProps) {
+  return (
+    <ContactModalProvider>
+      <LayoutContent tenantSlug={tenantSlug}>{children}</LayoutContent>
+    </ContactModalProvider>
   );
 }

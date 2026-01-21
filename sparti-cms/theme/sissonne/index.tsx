@@ -12,6 +12,7 @@ import Baskerville from "./pages/Baskerville";
 import EbGaramond from "./pages/EbGaramond";
 import Lora from "./pages/Lora";
 import AmalfiAvenir from "./pages/AmalfiAvenir";
+import { ThankYouPage } from "./components/ThankYouPage";
 
 interface TenantLandingProps {
   tenantName?: string;
@@ -74,6 +75,8 @@ const TenantLanding: React.FC<TenantLandingProps> = ({
         return <Gallery />;
       case 'about':
         return <About />;
+      case 'thank-you':
+        return <ThankYouPage tenantName={tenantName} tenantSlug={tenantSlug} tenantId={tenantId} />;
       case 'baskerville':
         return <Baskerville />;
       case 'eb-garamond':
@@ -86,6 +89,11 @@ const TenantLanding: React.FC<TenantLandingProps> = ({
         return <NotFound />;
     }
   };
+
+  // ThankYouPage already includes Layout, so don't wrap it
+  if (currentPage === 'thank-you') {
+    return renderPage();
+  }
 
   return (
     <Layout tenantSlug={tenantSlug}>

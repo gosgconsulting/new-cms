@@ -17,6 +17,11 @@ import ContactModal from './ContactModal';
 import HeroSection from './components/HeroSection';
 import { STR_ASSETS, getGalleryImages } from './config/assets';
 import { fetchSTRReviews, type STRTestimonial, type STRPlaceInfo, formatReviewDate, getInitials } from './services/googleReviews';
+import { useThemeBranding } from '../../hooks/useThemeSettings';
+import { getSiteName, getSiteDescription, getLogoSrc, getFaviconSrc, applyFavicon } from './utils/settings';
+import { SEOHead } from './components/SEOHead';
+import { GTM } from './components/GTM';
+import { useCustomCode } from './hooks/useCustomCode';
 
 interface TenantLandingProps {
   tenantName?: string;
@@ -33,6 +38,50 @@ const STRTheme: React.FC<TenantLandingProps> = ({
 }) => {
   const location = useLocation();
   const params = useParams<{ pageSlug?: string }>();
+
+  // Load branding settings from database
+  const { branding, loading: brandingLoading, error: brandingError } = useThemeBranding('str', tenantId || undefined);
+  
+  // Load custom code settings (for GTM, GA, etc.)
+  const { customCode } = useCustomCode(tenantId || undefined);
+  
+  // Get settings from database with fallback to defaults using utility functions
+  const siteName = getSiteName(branding, tenantName);
+  const siteDescription = getSiteDescription(branding, 'STR Fitness Club - Evidence-based strength training, personal training, physiotherapy, and group classes in Singapore.');
+  const logoSrc = getLogoSrc(branding, STR_ASSETS.logos.header);
+  const faviconSrc = getFaviconSrc(branding);
+  
+  // Apply favicon when branding loads
+  useEffect(() => {
+    if (faviconSrc && !brandingLoading) {
+      const timeoutId1 = setTimeout(() => {
+        applyFavicon(faviconSrc);
+      }, 100);
+      
+      const timeoutId2 = setTimeout(() => {
+        applyFavicon(faviconSrc);
+      }, 500);
+      
+      return () => {
+        clearTimeout(timeoutId1);
+        clearTimeout(timeoutId2);
+        if ((window as any).__faviconObserver) {
+          (window as any).__faviconObserver.disconnect();
+          delete (window as any).__faviconObserver;
+        }
+      };
+    }
+  }, [faviconSrc, brandingLoading]);
+  
+  // Log branding loading state for debugging
+  useEffect(() => {
+    if (brandingError) {
+      console.error('[testing] Error loading branding settings:', brandingError);
+    }
+    if (branding) {
+      console.log('[testing] Branding settings loaded:', branding);
+    }
+  }, [branding, brandingError]);
 
   // Determine which page to render (pure calculation, no hooks)
   const currentPage = useMemo(() => {
@@ -205,8 +254,44 @@ const STRTheme: React.FC<TenantLandingProps> = ({
   // Gallery images - loaded from centralized asset config
   const galleryImages = getGalleryImages();
 
+  // Determine current page meta data
+  const pageMeta = useMemo(() => {
+    const baseMeta = {
+      title: siteName,
+      description: siteDescription,
+      keywords: 'STR Fitness, strength training, personal training, physiotherapy, group classes, Singapore, fitness, rehabilitation',
+      url: typeof window !== 'undefined' ? window.location.href : '',
+    };
+
+    if (currentPage === 'booking') {
+      return { ...baseMeta, title: `Book a Session - ${siteName}` };
+    }
+    if (currentPage === 'packages') {
+      return { ...baseMeta, title: `Packages - ${siteName}` };
+    }
+    if (currentPage === 'classes') {
+      return { ...baseMeta, title: `Classes - ${siteName}` };
+    }
+    if (currentPage === 'personal-training') {
+      return { ...baseMeta, title: `Personal Training - ${siteName}` };
+    }
+    if (currentPage === 'group-class') {
+      return { ...baseMeta, title: `Group Classes - ${siteName}` };
+    }
+    if (currentPage === 'physiotherapy') {
+      return { ...baseMeta, title: `Physiotherapy - ${siteName}` };
+    }
+    return baseMeta;
+  }, [currentPage, siteName, siteDescription]);
+
   return (
     <div className="str-theme min-h-screen bg-background text-foreground">
+      {/* SEO metadata */}
+      <SEOHead meta={pageMeta} favicon={faviconSrc || undefined} />
+      
+      {/* Google Tag Manager */}
+      <GTM gtmId={customCode?.gtmId} />
+      
       {/* Header - only render for non-homepage pages */}
       {!isHomepage && (
         <header className="z-50 bg-background/95 backdrop-blur-sm border-b border-border">
@@ -215,8 +300,8 @@ const STRTheme: React.FC<TenantLandingProps> = ({
               <div className="flex items-center space-x-2">
                 <a href="/theme/str">
                   <img
-                    src={STR_ASSETS.logos.header}
-                    alt="STR"
+                    src={logoSrc}
+                    alt={siteName}
                     className="h-10 w-auto"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
@@ -225,7 +310,7 @@ const STRTheme: React.FC<TenantLandingProps> = ({
                       target.dataset.fallbackAdded = 'true';
                       const fallback = document.createElement('div');
                       fallback.className = 'text-xl font-bold text-primary';
-                      fallback.textContent = 'STR';
+                      fallback.textContent = siteName;
                       target.parentElement?.appendChild(fallback);
                     }}
                   />
@@ -283,8 +368,8 @@ const STRTheme: React.FC<TenantLandingProps> = ({
               <div className="flex items-center space-x-2">
                 <a href="/theme/str">
                   <img
-                    src={STR_ASSETS.logos.header}
-                    alt="STR"
+                    src={logoSrc}
+                    alt={siteName}
                     className="h-12 w-auto"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
@@ -293,7 +378,7 @@ const STRTheme: React.FC<TenantLandingProps> = ({
                       target.dataset.fallbackAdded = 'true';
                       const fallback = document.createElement('div');
                       fallback.className = 'text-2xl font-bold text-primary';
-                      fallback.textContent = 'STR';
+                      fallback.textContent = siteName;
                       target.parentElement?.appendChild(fallback);
                     }}
                   />
@@ -345,6 +430,7 @@ const STRTheme: React.FC<TenantLandingProps> = ({
 
       {/* Hero Section */}
       <HeroSection
+        tenantName={siteName}
         tenantSlug={tenantSlug}
         items={undefined}
         showHeader={isHomepage}
@@ -352,6 +438,8 @@ const STRTheme: React.FC<TenantLandingProps> = ({
         isMenuOpen={isMenuOpen}
         setIsMenuOpen={setIsMenuOpen}
         isHomepage={isHomepage}
+        logoSrc={logoSrc}
+        circularLogoSrc={logoSrc}
       />
 
       {/* About Us Section */}
@@ -871,8 +959,8 @@ const STRTheme: React.FC<TenantLandingProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 lg:gap-16 mb-12">
             <div className="space-y-3">
               <img
-                src={STR_ASSETS.logos.footer}
-                alt="STR"
+                src={logoSrc}
+                alt={siteName}
                 className="h-12 w-auto"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
@@ -881,7 +969,7 @@ const STRTheme: React.FC<TenantLandingProps> = ({
                   target.dataset.fallbackAdded = 'true';
                   const fallback = document.createElement('div');
                   fallback.className = 'text-2xl font-bold text-foreground uppercase tracking-tight';
-                  fallback.textContent = 'STR';
+                  fallback.textContent = siteName;
                   target.parentElement?.appendChild(fallback);
                 }}
               />
@@ -938,7 +1026,7 @@ const STRTheme: React.FC<TenantLandingProps> = ({
               <a href="/terms-conditions" className="hover:text-[#E00000] transition-colors">Terms & Conditions</a>
             </div>
             <div className="text-center text-sm text-foreground/60">
-              @ 2025. <span className="font-bold text-foreground">STR</span>. © All rights reserved.
+              @ 2025. <span className="font-bold text-foreground">{siteName}</span>. © All rights reserved.
             </div>
           </div>
         </div>
