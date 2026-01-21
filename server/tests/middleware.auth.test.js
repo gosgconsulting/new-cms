@@ -14,11 +14,13 @@ vi.mock('../services/authService.js', () => {
     ...actual,
     verifyAccessToken: vi.fn(),
     extractTokenFromHeader: vi.fn((header) => {
-      if (!header) return null;
-      if (header.startsWith('Bearer ')) {
-        return header.substring(7);
+      if (!header || typeof header !== 'string') {
+        return null;
       }
-      return header;
+      if (!header.startsWith('Bearer ')) {
+        return null;
+      }
+      return header.substring(7);
     }),
     createAuthErrorResponse: vi.fn((message, statusCode = 401) => ({
       success: false,
@@ -127,18 +129,26 @@ describe('Authentication Middleware', () => {
         expect(next).toHaveBeenCalled();
       });
 
-      it('should accept token without Bearer prefix', () => {
-        const mockUser = { id: 1, email: 'user@example.com' };
+      it('should return 401 when token is provided without Bearer prefix', () => {
+        // The actual extractTokenFromHeader returns null for non-Bearer headers
         const mockToken = 'valid-token';
 
         req.headers.authorization = mockToken;
-        vi.mocked(verifyAccessToken).mockReturnValue(mockUser);
 
         authenticateUser(req, res, next);
 
-        expect(verifyAccessToken).toHaveBeenCalled();
-        expect(req.user).toEqual(mockUser);
-        expect(next).toHaveBeenCalled();
+        // extractTokenFromHeader returns null, so no token is extracted
+        expect(extractTokenFromHeader).toHaveBeenCalledWith(mockToken);
+        expect(verifyAccessToken).not.toHaveBeenCalled();
+        expect(res.status).toHaveBeenCalledWith(401);
+        expect(res.json).toHaveBeenCalledWith(
+          expect.objectContaining({
+            success: false,
+            error: 'Not authenticated',
+          })
+        );
+        expect(next).not.toHaveBeenCalled();
+        expect(req.user).toBeNull();
       });
     });
 
