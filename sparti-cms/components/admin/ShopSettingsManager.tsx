@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { CreditCard, CheckCircle, XCircle, ExternalLink, RefreshCw, Settings, Truck, Puzzle } from 'lucide-react';
+import { CreditCard, CheckCircle, XCircle, ExternalLink, RefreshCw, Settings, Truck, Puzzle, Eye, EyeOff, Key } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import { api } from '../../utils/api';
 import { Button } from '@/components/ui/button';
@@ -394,8 +394,204 @@ export default function ShopSettingsManager({ currentTenantId, activeTab: propAc
   };
 
   const renderStripeConnect = () => {
+    // Stripe Configuration state
+    const [stripeSecretKey, setStripeSecretKey] = useState('');
+    const [stripeWebhookSecret, setStripeWebhookSecret] = useState('');
+    const [showSecretKey, setShowSecretKey] = useState(false);
+    const [showWebhookSecret, setShowWebhookSecret] = useState(false);
+    const [isSavingConfig, setIsSavingConfig] = useState(false);
+    const [configMessage, setConfigMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+    // Fetch current Stripe configuration
+    const { data: stripeConfig, isLoading: isLoadingConfig } = useQuery({
+      queryKey: ['stripe-config', currentTenantId],
+      queryFn: async () => {
+        const response = await api.get('/api/shop/stripe/config', { tenantId: currentTenantId });
+        if (!response.ok) {
+          throw new Error('Failed to fetch Stripe configuration');
+        }
+        const result = await response.json();
+        return result.data;
+      },
+      enabled: !!currentTenantId,
+    });
+
+    // Update form fields when config is loaded
+    useEffect(() => {
+      if (stripeConfig) {
+        // Don't populate actual values for security, just show placeholder if configured
+        setStripeSecretKey('');
+        setStripeWebhookSecret('');
+      }
+    }, [stripeConfig]);
+
+    // Mutation to update Stripe configuration
+    const updateConfigMutation = useMutation({
+      mutationFn: async (data: { stripe_secret_key?: string; stripe_webhook_secret?: string }) => {
+        const response = await api.put('/api/shop/stripe/config', data, { tenantId: currentTenantId });
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Failed to update Stripe configuration');
+        }
+        return response.json();
+      },
+      onSuccess: () => {
+        setConfigMessage({ type: 'success', text: 'Stripe configuration updated successfully' });
+        queryClient.invalidateQueries({ queryKey: ['stripe-config', currentTenantId] });
+        queryClient.invalidateQueries({ queryKey: ['stripe-status', currentTenantId] });
+        // Clear form fields after successful save
+        setStripeSecretKey('');
+        setStripeWebhookSecret('');
+        // Clear message after 3 seconds
+        setTimeout(() => setConfigMessage(null), 3000);
+      },
+      onError: (error: Error) => {
+        setConfigMessage({ type: 'error', text: error.message });
+      },
+    });
+
+    const handleSaveConfig = async () => {
+      if (!stripeSecretKey && !stripeWebhookSecret) {
+        setConfigMessage({ type: 'error', text: 'Please provide at least one key to update' });
+        return;
+      }
+
+      setIsSavingConfig(true);
+      setConfigMessage(null);
+
+      try {
+        const updateData: { stripe_secret_key?: string; stripe_webhook_secret?: string } = {};
+        if (stripeSecretKey) {
+          updateData.stripe_secret_key = stripeSecretKey;
+        }
+        if (stripeWebhookSecret) {
+          updateData.stripe_webhook_secret = stripeWebhookSecret;
+        }
+
+        await updateConfigMutation.mutateAsync(updateData);
+      } catch (error) {
+        // Error handled by mutation onError
+      } finally {
+        setIsSavingConfig(false);
+      }
+    };
+
     return (
       <div className="space-y-6">
+        {/* Stripe Configuration Card */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center space-x-3">
+              <Key className="h-6 w-6" />
+              <div>
+                <CardTitle>Stripe Configuration</CardTitle>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Configure your Stripe API keys for this tenant
+                </p>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {isLoadingConfig ? (
+              <div className="text-center py-4">Loading configuration...</div>
+            ) : (
+              <>
+                <Alert className="bg-blue-50 border-blue-200">
+                  <AlertDescription className="text-blue-800">
+                    <strong>Note:</strong> Enter your Stripe secret key and webhook secret here. 
+                    These keys are stored securely in the database and are specific to this tenant.
+                    {stripeConfig?.has_stripe_secret_key && (
+                      <div className="mt-2">
+                        <CheckCircle className="h-4 w-4 inline mr-1" />
+                        Secret key is configured
+                      </div>
+                    )}
+                    {stripeConfig?.has_stripe_webhook_secret && (
+                      <div className="mt-1">
+                        <CheckCircle className="h-4 w-4 inline mr-1" />
+                        Webhook secret is configured
+                      </div>
+                    )}
+                  </AlertDescription>
+                </Alert>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Stripe Secret Key
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showSecretKey ? 'text' : 'password'}
+                        value={stripeSecretKey}
+                        onChange={(e) => setStripeSecretKey(e.target.value)}
+                        placeholder={stripeConfig?.has_stripe_secret_key ? 'Enter new key to update (or leave blank)' : 'sk_test_... or sk_live_...'}
+                        className="w-full px-3 py-2 pr-10 border border-border rounded-lg focus:ring-2 focus:ring-brandPurple focus:border-transparent"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowSecretKey(!showSecretKey)}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      >
+                        {showSecretKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Your Stripe secret key (starts with sk_test_ or sk_live_)
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Stripe Webhook Secret
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showWebhookSecret ? 'text' : 'password'}
+                        value={stripeWebhookSecret}
+                        onChange={(e) => setStripeWebhookSecret(e.target.value)}
+                        placeholder={stripeConfig?.has_stripe_webhook_secret ? 'Enter new secret to update (or leave blank)' : 'whsec_...'}
+                        className="w-full px-3 py-2 pr-10 border border-border rounded-lg focus:ring-2 focus:ring-brandPurple focus:border-transparent"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowWebhookSecret(!showWebhookSecret)}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      >
+                        {showWebhookSecret ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Your Stripe webhook signing secret (starts with whsec_)
+                    </p>
+                  </div>
+
+                  {configMessage && (
+                    <Alert 
+                      variant={configMessage.type === 'error' ? 'destructive' : 'default'} 
+                      className={configMessage.type === 'success' ? 'bg-green-50 border-green-200' : ''}
+                    >
+                      <AlertDescription className={configMessage.type === 'success' ? 'text-green-800' : ''}>
+                        {configMessage.text}
+                      </AlertDescription>
+                    </Alert>
+                  )}
+
+                  <div className="flex justify-end">
+                    <Button
+                      onClick={handleSaveConfig}
+                      disabled={isSavingConfig || (!stripeSecretKey && !stripeWebhookSecret)}
+                    >
+                      {isSavingConfig ? 'Saving...' : 'Save Configuration'}
+                    </Button>
+                  </div>
+                </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Stripe Connect Status Card */}
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -476,13 +672,20 @@ export default function ShopSettingsManager({ currentTenantId, activeTab: propAc
               </div>
             ) : (
               <div className="space-y-4">
+                {!stripeConfig?.has_stripe_secret_key && (
+                  <Alert variant="destructive">
+                    <AlertDescription>
+                      <strong>Stripe is not configured.</strong> Please set your Stripe secret key above before connecting your account.
+                    </AlertDescription>
+                  </Alert>
+                )}
                 <p className="text-sm text-muted-foreground">
                   Connect your Stripe account to start accepting payments. You'll be redirected to
                   Stripe to complete the onboarding process.
                 </p>
                 <Button
                   onClick={() => connectMutation.mutate()}
-                  disabled={connectMutation.isPending}
+                  disabled={connectMutation.isPending || !stripeConfig?.has_stripe_secret_key}
                 >
                   {connectMutation.isPending ? (
                     'Connecting...'
