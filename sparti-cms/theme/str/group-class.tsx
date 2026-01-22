@@ -501,7 +501,7 @@ const GroupClassPage: React.FC<TenantLandingProps> = ({
               <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold uppercase text-foreground leading-tight mb-6">
               GROUP CLASS PACKAGES 2 WEEKS UNLIMITED TRAINING
               </h1>
-              <h2 className="text-lg md:text-xl text-foreground/80 leading-relaxed max-w-xl mb-8 uppercase tracking-wide">
+              {/* <h2 className="text-lg md:text-xl text-foreground/80 leading-relaxed max-w-xl mb-8 uppercase tracking-wide">
                 New Here? Train Unlimited for 2 Weeks at{" "}
                 <span
                   className="text-[#E00000] ml-2"
@@ -516,7 +516,7 @@ const GroupClassPage: React.FC<TenantLandingProps> = ({
                 >
                   $99
                 </span>
-              </h2>
+              </h2> */}
               <p className="text-lg md:text-xl text-foreground/80 leading-relaxed max-w-xl mb-8">
               Join STR Group Classes and experience effective, fun, and purpose-driven workouts that build strength, confidence, resilience, and lasting friendships along the way
               </p>
