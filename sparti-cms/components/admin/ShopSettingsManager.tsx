@@ -19,13 +19,23 @@ export default function ShopSettingsManager({ currentTenantId, activeTab: propAc
   const [searchParams, setSearchParams] = useSearchParams();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<string>(propActiveTab || 'general');
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Check for Stripe return parameters
   useEffect(() => {
     const stripeParam = searchParams.get('stripe');
     if (stripeParam === 'success' || stripeParam === 'refresh') {
-      // Refetch Stripe status
-      queryClient.invalidateQueries({ queryKey: ['stripe-status', currentTenantId] });
+      // Wait a moment for Stripe webhook to process (if configured)
+      // Then refetch status - the endpoint will check Stripe directly anyway
+      setTimeout(async () => {
+        try {
+          await queryClient.invalidateQueries({ queryKey: ['stripe-status', currentTenantId] });
+          await queryClient.refetchQueries({ queryKey: ['stripe-status', currentTenantId] });
+        } catch (error) {
+          console.error('[testing] Error refetching Stripe status after return:', error);
+        }
+      }, 1000);
+      
       // Remove the parameter from URL
       searchParams.delete('stripe');
       setSearchParams(searchParams, { replace: true });
@@ -447,13 +457,21 @@ export default function ShopSettingsManager({ currentTenantId, activeTab: propAc
                 )}
                 <Button
                   variant="outline"
-                  onClick={() => {
-                    // Refresh status
-                    queryClient.invalidateQueries({ queryKey: ['stripe-status', currentTenantId] });
+                  onClick={async () => {
+                    setIsRefreshing(true);
+                    try {
+                      await queryClient.invalidateQueries({ queryKey: ['stripe-status', currentTenantId] });
+                      await queryClient.refetchQueries({ queryKey: ['stripe-status', currentTenantId] });
+                    } catch (error) {
+                      console.error('[testing] Error refreshing Stripe status:', error);
+                    } finally {
+                      setTimeout(() => setIsRefreshing(false), 500);
+                    }
                   }}
+                  disabled={isRefreshing}
                 >
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  Refresh Status
+                  <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+                  {isRefreshing ? 'Refreshing...' : 'Refresh Status'}
                 </Button>
               </div>
             ) : (

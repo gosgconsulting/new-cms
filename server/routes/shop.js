@@ -1703,6 +1703,50 @@ router.post('/stripe/connect', authenticateTenantApiKey, async (req, res) => {
     `, [tenantId]);
 
     let accountId = tenantResult.rows[0]?.stripe_connect_account_id;
+    let onboardingCompleted = tenantResult.rows[0]?.stripe_connect_onboarding_completed || false;
+
+    // If account exists, verify its actual status in Stripe
+    if (accountId && stripe) {
+      try {
+        const account = await stripe.accounts.retrieve(accountId);
+        const isActuallyReady = account.details_submitted && account.charges_enabled;
+        
+        // Update DB to match Stripe's actual status
+        if (isActuallyReady !== onboardingCompleted) {
+          await query(`
+            UPDATE tenants 
+            SET stripe_connect_onboarding_completed = $1
+            WHERE id = $2
+          `, [isActuallyReady, tenantId]);
+          onboardingCompleted = isActuallyReady;
+        }
+
+        // If already completed, return success
+        if (onboardingCompleted) {
+          return res.json({
+            success: true,
+            data: {
+              accountId,
+              onboardingCompleted: true,
+              message: 'Stripe account is already connected'
+            }
+          });
+        }
+      } catch (stripeError) {
+        // If account doesn't exist in Stripe, clear it from DB
+        if (stripeError.code === 'resource_missing') {
+          await query(`
+            UPDATE tenants 
+            SET stripe_connect_account_id = NULL,
+                stripe_connect_onboarding_completed = false
+            WHERE id = $1
+          `, [tenantId]);
+          accountId = null;
+        } else {
+          throw stripeError;
+        }
+      }
+    }
 
     // Create new account if doesn't exist
     if (!accountId) {
@@ -1717,21 +1761,10 @@ router.post('/stripe/connect', authenticateTenantApiKey, async (req, res) => {
       // Save account ID to tenant
       await query(`
         UPDATE tenants 
-        SET stripe_connect_account_id = $1 
+        SET stripe_connect_account_id = $1,
+            stripe_connect_onboarding_completed = false
         WHERE id = $2
       `, [accountId, tenantId]);
-    }
-
-    // Check if onboarding is already completed
-    if (tenantResult.rows[0]?.stripe_connect_onboarding_completed) {
-      return res.json({
-        success: true,
-        data: {
-          accountId,
-          onboardingCompleted: true,
-          message: 'Stripe account is already connected'
-        }
-      });
     }
 
     // Create account link for onboarding
@@ -1781,8 +1814,9 @@ router.get('/stripe/status', authenticateTenantApiKey, async (req, res) => {
 
     const tenant = result.rows[0];
     let accountDetails = null;
+    let onboardingCompleted = tenant.stripe_connect_onboarding_completed || false;
 
-    // If account exists, fetch details from Stripe
+    // If account exists, fetch details from Stripe and verify actual status
     if (tenant.stripe_connect_account_id && stripe) {
       try {
         const account = await stripe.accounts.retrieve(tenant.stripe_connect_account_id);
@@ -1794,8 +1828,44 @@ router.get('/stripe/status', authenticateTenantApiKey, async (req, res) => {
           email: account.email,
           country: account.country,
         };
+
+        // 🔥 KEY FIX: Check Stripe's actual status and update database if needed
+        // Account is ready if details are submitted AND charges are enabled
+        const isActuallyReady = account.details_submitted && account.charges_enabled;
+        
+        // If Stripe says it's ready but our DB says it's not, update the DB
+        if (isActuallyReady && !onboardingCompleted) {
+          await query(`
+            UPDATE tenants 
+            SET stripe_connect_onboarding_completed = true
+            WHERE id = $1
+          `, [tenantId]);
+          onboardingCompleted = true;
+          console.log(`[testing] Updated onboarding status for tenant ${tenantId} based on Stripe account status`);
+        }
+        
+        // If Stripe says it's NOT ready but our DB says it is, update the DB
+        if (!isActuallyReady && onboardingCompleted) {
+          await query(`
+            UPDATE tenants 
+            SET stripe_connect_onboarding_completed = false
+            WHERE id = $1
+          `, [tenantId]);
+          onboardingCompleted = false;
+          console.log(`[testing] Reset onboarding status for tenant ${tenantId} - account not ready in Stripe`);
+        }
       } catch (stripeError) {
         console.error('[testing] Error fetching Stripe account:', stripeError);
+        // If account doesn't exist in Stripe, reset our DB
+        if (stripeError.code === 'resource_missing') {
+          await query(`
+            UPDATE tenants 
+            SET stripe_connect_account_id = NULL,
+                stripe_connect_onboarding_completed = false
+            WHERE id = $1
+          `, [tenantId]);
+          onboardingCompleted = false;
+        }
       }
     }
 
@@ -1803,7 +1873,7 @@ router.get('/stripe/status', authenticateTenantApiKey, async (req, res) => {
       success: true,
       data: {
         accountId: tenant.stripe_connect_account_id,
-        onboardingCompleted: tenant.stripe_connect_onboarding_completed,
+        onboardingCompleted,
         accountDetails
       }
     });
@@ -1843,7 +1913,7 @@ router.post('/stripe/webhook', async (req, res) => {
     }
 
     // Handle account.updated event (onboarding completion)
-    if (event.type === 'account.updated') {
+    if (event && event.type === 'account.updated') {
       const account = event.data.object;
       
       // Update tenant's onboarding status
