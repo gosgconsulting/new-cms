@@ -285,7 +285,7 @@ const OptimalConsultingTheme: React.FC<OptimalConsultingThemeProps> = ({
     props: {
       variant: "about",
       badge: "About us",
-      imageSrc: `/theme/${themeSlug}/assets/plant_1.jpg`,
+      imageSrc: `/theme/optimalconsulting/Assets/Plant.jpg`,
       reviewLabel: "20+ Years",
       reviewSub: "Experience",
     },
@@ -542,7 +542,7 @@ const OptimalConsultingTheme: React.FC<OptimalConsultingThemeProps> = ({
     const heroTitle = getTextByKey(heroSchema.items || [], "title");
     const heroDescription = getTextByKey(heroSchema.items || [], "description");
     const heroCTA = heroSchema.items?.find((i) => i.key === "cta");
-    const heroBackgroundImage = heroSchema.props?.backgroundImage || `/theme/${themeSlug}/assets/hero.svg`;
+    const heroBackgroundImage = heroSchema.props?.backgroundImage || `/theme/${themeSlug}/Assets/hero.svg`;
 
     return (
       <>
