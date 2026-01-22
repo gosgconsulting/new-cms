@@ -285,7 +285,7 @@ const OptimalConsultingTheme: React.FC<OptimalConsultingThemeProps> = ({
     props: {
       variant: "about",
       badge: "About us",
-      imageSrc: `/theme/${themeSlug}/assets/Plant.jpg`,
+      imageSrc: `/theme/${themeSlug}/assets/plant_1.jpg`,
       reviewLabel: "20+ Years",
       reviewSub: "Experience",
     },

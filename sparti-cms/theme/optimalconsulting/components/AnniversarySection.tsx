@@ -95,7 +95,7 @@ const AnniversarySection: React.FC<AnniversarySectionProps> = ({
              <div>
                <a
                  href="#contact"
-                 className="inline-flex items-center px-6 py-3 text-white font-semibold bg-[#145598] rounded-md transition-all duration-300 text-lg sm:text-xl group motion-reduce:transition-none hover:bg-[#0f3f6f] hover:scale-105 hover:shadow-xl hover:shadow-[#145598]/30 hover:-translate-y-0.5 active:scale-100"
+                 className="inline-flex items-center px-8 py-3 text-white font-semibold bg-[#145598] rounded-full transition-all duration-300 text-base sm:text-lg group motion-reduce:transition-none hover:bg-[#0f3f6f] hover:scale-105 hover:shadow-xl hover:shadow-[#145598]/30 hover:-translate-y-0.5 active:scale-100"
                >
                  <span className="relative">
                    Learn More

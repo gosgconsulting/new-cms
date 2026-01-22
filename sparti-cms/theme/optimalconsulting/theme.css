@@ -46,7 +46,7 @@ header[class*="sticky"] * {
 }
 
 header[class*="sticky"] a,
-header[class*="sticky"] button,
+header[class*="sticky"] button:not(.contact-us-button),
 header[class*="sticky"] p,
 header[class*="sticky"] span {
   color: #ffffff !important;
@@ -55,13 +55,6 @@ header[class*="sticky"] span {
 header[class*="sticky"] a:hover {
   background-color: rgba(255, 255, 255, 0.1) !important;
   color: #ffffff !important;
-}
-
-/* Contact Us button in header - white background with 50% opacity */
-header[class*="sticky"] button.contact-us-button {
-  background-color: rgba(255, 255, 255, 0.5) !important;
-  color: #145598 !important;
-  border-radius: 0.375rem !important; /* rounded-md */
 }
 
 /* CTA Section - Deep blue gradient background with white text for optimalconsulting theme */
@@ -78,7 +71,7 @@ section[class*="bg-brand-gradient-animated"] p {
 }
 
 /* All buttons - Background color #145598 */
-button:not([class*="bg-transparent"]):not([class*="border-none"]):not([class*="AccordionTrigger"]),
+button:not([class*="bg-transparent"]):not([class*="border-none"]):not([class*="AccordionTrigger"]):not(.contact-us-button),
 .btn-cta,
 .btn-cta-secondary,
 .btn-cta-light,
@@ -95,15 +88,45 @@ section[class*="flex-col"] a[class*="inline-block"][class*="px-6"] {
   background-color: #145598 !important;
   color: #ffffff !important;
   border: none !important;
+  border-radius: 9999px !important; /* Fully rounded/pill shape */
 }
 
-button:not([class*="bg-transparent"]):not([class*="border-none"]):not([class*="AccordionTrigger"]):hover,
+button:not([class*="bg-transparent"]):not([class*="border-none"]):not([class*="AccordionTrigger"]):not(.contact-us-button):hover,
 .btn-cta:hover,
 .btn-cta-secondary:hover,
 .btn-cta-light:hover,
 a[class*="btn-cta"]:hover {
   background-color: #0f3f6f !important;
   border-color: #0f3f6f !important;
+}
+
+/* Contact Us button in header - white background with black text */
+/* This must come after all other button rules to ensure it overrides them */
+header[class*="sticky"] button.contact-us-button,
+header.sticky button.contact-us-button,
+header button.contact-us-button,
+button.contact-us-button {
+  background-color: #ffffff !important;
+  background: #ffffff91 !important;
+  color: #000000 !important;
+  border-radius: 9999px !important; /* rounded-md */
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Override the general white text rule for contact button specifically */
+header[class*="sticky"] button.contact-us-button *,
+header button.contact-us-button *,
+button.contact-us-button * {
+  color: #000000 !important;
+}
+
+/* Contact button hover state */
+header[class*="sticky"] button.contact-us-button:hover,
+header button.contact-us-button:hover,
+button.contact-us-button:hover {
+  background-color: #f5f5f5 !important;
+  background: #f5f5f5 !important;
+  color: #000000 !important;
 }
 
 /* Exclude "Get started" link in OurServicesSection - target by parent structure */
@@ -187,7 +210,7 @@ section[class*="bg-[color:var(--bg-primary)"] a.btn-cta {
   min-height: 3rem !important;
   line-height: 1.5 !important;
   transition: all 0.3s ease !important;
-  border-radius: 0.5rem !important; /* rounded-lg */
+  border-radius: 9999px !important; /* rounded-lg */
 }
 
 section[class*="bg-[color:var(--bg-primary)"] a.btn-cta[href="#contact"]:hover,
@@ -227,6 +250,7 @@ section[class*="bg-brand-gradient-animated"] a[class*="btn-cta"] {
   min-height: 3rem !important;
   line-height: 1.5 !important;
   transition: all 0.3s ease !important;
+  border-radius: 9999px !important; /* Fully rounded/pill shape */
 }
 
 section[class*="bg-brand-gradient-animated"] a.btn-cta:hover,
