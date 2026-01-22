@@ -152,7 +152,7 @@ const OptimalConsultingTheme: React.FC<OptimalConsultingThemeProps> = ({
     type: "flowbite-hero-section",
     props: {
       showCarousel: false,
-      backgroundImage: `/theme/${themeSlug}/Assets/Field.jpeg`,
+      backgroundImage: `/theme/${themeSlug}/Assets/Field.jpg`,
     },
     items: [
       {
@@ -285,7 +285,7 @@ const OptimalConsultingTheme: React.FC<OptimalConsultingThemeProps> = ({
     props: {
       variant: "about",
       badge: "About us",
-      imageSrc: `/theme/${themeSlug}/assets/Plant.jpeg`,
+      imageSrc: `/theme/${themeSlug}/assets/Plant.jpg`,
       reviewLabel: "20+ Years",
       reviewSub: "Experience",
     },

@@ -70,7 +70,7 @@ const OurServicesSection: React.FC<OurServicesSectionProps> = ({ themeSlug }) =>
             <Reveal direction="up" delayMs={160}>
               <div className="mt-8 w-full max-w-xl">
                 <img
-                  src={`/theme/${themeSlug}/assets/menu2.jpg`}
+                  src={`/theme/${themeSlug}/assets/menu2.JPG`}
                   alt="Services illustration"
                   className="w-full h-auto rounded-2xl border border-black/10 bg-white shadow-sm"
                   loading="lazy"
