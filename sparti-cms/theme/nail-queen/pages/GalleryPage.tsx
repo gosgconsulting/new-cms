@@ -59,7 +59,7 @@ export default function GalleryPage({ basePath }: { basePath: string }) {
         id: 6,
         category: "manicures",
         title: "Ombre",
-        image: asset("gallery/Nail_Queen/ombre/n32.JPG"),
+        image: asset("gallery/Nail_Queen/ombre/n32.jpg"),
       },
       {
         id: 7,
