@@ -28,7 +28,84 @@ import Stripe from 'stripe';
 
 const router = express.Router();
 
-// Initialize Stripe (will be undefined if STRIPE_SECRET_KEY is not set)
+// Cache for tenant-specific Stripe instances
+const stripeInstances = new Map();
+
+/**
+ * Get or create a Stripe instance for a specific tenant
+ * @param {string} tenantId - The tenant ID
+ * @returns {Stripe|null} Stripe instance or null if not configured
+ */
+async function getTenantStripe(tenantId) {
+  if (!tenantId) {
+    return null;
+  }
+
+  // Check cache first
+  if (stripeInstances.has(tenantId)) {
+    return stripeInstances.get(tenantId);
+  }
+
+  try {
+    // Get tenant's Stripe secret key from database
+    const tenantResult = await query(`
+      SELECT stripe_secret_key
+      FROM tenants
+      WHERE id = $1
+    `, [tenantId]);
+
+    const stripeSecretKey = tenantResult.rows[0]?.stripe_secret_key;
+
+    // Fallback to global STRIPE_SECRET_KEY for backward compatibility
+    const secretKey = stripeSecretKey || process.env.STRIPE_SECRET_KEY;
+
+    if (!secretKey) {
+      return null;
+    }
+
+    // Create Stripe instance for this tenant
+    const stripe = new Stripe(secretKey, {
+      apiVersion: '2024-11-20.acacia',
+    });
+
+    // Cache the instance
+    stripeInstances.set(tenantId, stripe);
+    return stripe;
+  } catch (error) {
+    console.error(`[testing] Error getting Stripe instance for tenant ${tenantId}:`, error);
+    return null;
+  }
+}
+
+/**
+ * Get tenant's Stripe webhook secret
+ * @param {string} tenantId - The tenant ID
+ * @returns {string|null} Webhook secret or null if not configured
+ */
+async function getTenantWebhookSecret(tenantId) {
+  if (!tenantId) {
+    return process.env.STRIPE_WEBHOOK_SECRET || null;
+  }
+
+  try {
+    const tenantResult = await query(`
+      SELECT stripe_webhook_secret
+      FROM tenants
+      WHERE id = $1
+    `, [tenantId]);
+
+    const webhookSecret = tenantResult.rows[0]?.stripe_webhook_secret;
+    
+    // Fallback to global STRIPE_WEBHOOK_SECRET for backward compatibility
+    return webhookSecret || process.env.STRIPE_WEBHOOK_SECRET || null;
+  } catch (error) {
+    console.error(`[testing] Error getting webhook secret for tenant ${tenantId}:`, error);
+    return process.env.STRIPE_WEBHOOK_SECRET || null;
+  }
+}
+
+// Legacy global Stripe instance for backward compatibility (deprecated)
+// Use getTenantStripe() instead
 const stripe = process.env.STRIPE_SECRET_KEY 
   ? new Stripe(process.env.STRIPE_SECRET_KEY, {
       apiVersion: '2024-11-20.acacia',
@@ -1682,17 +1759,110 @@ router.delete('/reviews/:id', authenticateTenantApiKey, async (req, res) => {
 
 // ===== STRIPE CONNECT ROUTES =====
 
-// Initiate Stripe Connect onboarding
-router.post('/stripe/connect', authenticateTenantApiKey, async (req, res) => {
+// Update tenant Stripe configuration
+router.put('/stripe/config', authenticateTenantApiKey, async (req, res) => {
   try {
-    if (!stripe) {
-      return res.status(500).json({ 
-        success: false, 
-        error: 'Stripe is not configured. Please set STRIPE_SECRET_KEY environment variable.' 
+    const tenantId = req.tenantId;
+    const { stripe_secret_key, stripe_webhook_secret } = req.body;
+
+    // Validate that at least one key is provided
+    if (!stripe_secret_key && !stripe_webhook_secret) {
+      return res.status(400).json({
+        success: false,
+        error: 'At least one of stripe_secret_key or stripe_webhook_secret must be provided'
       });
     }
 
+    // Build update query dynamically
+    const updates = [];
+    const values = [];
+    let paramIndex = 1;
+
+    if (stripe_secret_key !== undefined) {
+      updates.push(`stripe_secret_key = $${paramIndex}`);
+      values.push(stripe_secret_key);
+      paramIndex++;
+      
+      // Clear cached Stripe instance for this tenant
+      stripeInstances.delete(tenantId);
+    }
+
+    if (stripe_webhook_secret !== undefined) {
+      updates.push(`stripe_webhook_secret = $${paramIndex}`);
+      values.push(stripe_webhook_secret);
+      paramIndex++;
+    }
+
+    values.push(tenantId);
+
+    await query(`
+      UPDATE tenants 
+      SET ${updates.join(', ')}
+      WHERE id = $${paramIndex}
+    `, values);
+
+    res.json({
+      success: true,
+      message: 'Stripe configuration updated successfully'
+    });
+  } catch (error) {
+    console.error('[testing] Error updating Stripe configuration:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Get tenant Stripe configuration (without exposing secrets)
+router.get('/stripe/config', authenticateTenantApiKey, async (req, res) => {
+  try {
     const tenantId = req.tenantId;
+
+    const result = await query(`
+      SELECT 
+        stripe_secret_key IS NOT NULL as has_stripe_secret_key,
+        stripe_webhook_secret IS NOT NULL as has_stripe_webhook_secret,
+        stripe_connect_account_id,
+        stripe_connect_onboarding_completed
+      FROM tenants
+      WHERE id = $1
+    `, [tenantId]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'Tenant not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: result.rows[0]
+    });
+  } catch (error) {
+    console.error('[testing] Error fetching Stripe configuration:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Initiate Stripe Connect onboarding
+router.post('/stripe/connect', authenticateTenantApiKey, async (req, res) => {
+  try {
+    const tenantId = req.tenantId;
+    
+    // Get tenant-specific Stripe instance
+    const stripe = await getTenantStripe(tenantId);
+    if (!stripe) {
+      return res.status(500).json({ 
+        success: false, 
+        error: 'Stripe is not configured for this tenant. Please set stripe_secret_key in tenant settings or STRIPE_SECRET_KEY environment variable.' 
+      });
+    }
+
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
 
     // Check if tenant already has a Stripe account
@@ -1816,6 +1986,9 @@ router.get('/stripe/status', authenticateTenantApiKey, async (req, res) => {
     let accountDetails = null;
     let onboardingCompleted = tenant.stripe_connect_onboarding_completed || false;
 
+    // Get tenant-specific Stripe instance
+    const stripe = await getTenantStripe(tenantId);
+
     // If account exists, fetch details from Stripe and verify actual status
     if (tenant.stripe_connect_account_id && stripe) {
       try {
@@ -1889,39 +2062,121 @@ router.get('/stripe/status', authenticateTenantApiKey, async (req, res) => {
 // Webhook to handle Stripe Connect onboarding completion
 router.post('/stripe/webhook', async (req, res) => {
   try {
-    if (!stripe) {
-      return res.status(500).json({ 
-        success: false, 
-        error: 'Stripe is not configured' 
-      });
-    }
-
     const sig = req.headers['stripe-signature'];
-    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+    
+    // Try to identify tenant from webhook event (before verification)
+    // We'll need to verify with each tenant's webhook secret
+    let event = null;
+    let verifiedTenantId = null;
 
-    if (!webhookSecret) {
-      console.warn('[testing] STRIPE_WEBHOOK_SECRET not set, skipping webhook verification');
-      return res.json({ received: true });
+    // First, try to parse the event to get account ID
+    let accountId = null;
+    try {
+      // Try with global webhook secret first (backward compatibility)
+      const globalWebhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+      if (globalWebhookSecret) {
+        const globalStripe = process.env.STRIPE_SECRET_KEY 
+          ? new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2024-11-20.acacia' })
+          : null;
+        if (globalStripe) {
+          try {
+            event = globalStripe.webhooks.constructEvent(req.body, sig, globalWebhookSecret);
+            if (event?.data?.object?.id) {
+              accountId = event.data.object.id;
+            }
+          } catch (err) {
+            // Not for global account, continue to try tenant-specific
+          }
+        }
+      }
+    } catch (err) {
+      // Continue to try tenant-specific verification
     }
 
-    let event;
-    try {
-      event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
-    } catch (err) {
-      console.error('[testing] Webhook signature verification failed:', err.message);
-      return res.status(400).send(`Webhook Error: ${err.message}`);
+    // If we have an account ID, find the tenant
+    if (accountId && !event) {
+      const tenantResult = await query(`
+        SELECT id, stripe_webhook_secret
+        FROM tenants
+        WHERE stripe_connect_account_id = $1
+      `, [accountId]);
+
+      if (tenantResult.rows.length > 0) {
+        const tenant = tenantResult.rows[0];
+        verifiedTenantId = tenant.id;
+        const tenantStripe = await getTenantStripe(tenant.id);
+        const tenantWebhookSecret = await getTenantWebhookSecret(tenant.id);
+
+        if (tenantStripe && tenantWebhookSecret) {
+          try {
+            event = tenantStripe.webhooks.constructEvent(req.body, sig, tenantWebhookSecret);
+          } catch (err) {
+            console.error(`[testing] Webhook signature verification failed for tenant ${tenant.id}:`, err.message);
+            return res.status(400).send(`Webhook Error: ${err.message}`);
+          }
+        }
+      }
+    }
+
+    // If still no event, try global fallback
+    if (!event) {
+      const globalWebhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+      if (!globalWebhookSecret) {
+        console.warn('[testing] No webhook secret configured, skipping webhook verification');
+        return res.json({ received: true });
+      }
+
+      const globalStripe = process.env.STRIPE_SECRET_KEY 
+        ? new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2024-11-20.acacia' })
+        : null;
+
+      if (!globalStripe) {
+        return res.status(500).json({ 
+          success: false, 
+          error: 'Stripe is not configured' 
+        });
+      }
+
+      try {
+        event = globalStripe.webhooks.constructEvent(req.body, sig, globalWebhookSecret);
+      } catch (err) {
+        console.error('[testing] Webhook signature verification failed:', err.message);
+        return res.status(400).send(`Webhook Error: ${err.message}`);
+      }
     }
 
     // Handle account.updated event (onboarding completion)
     if (event && event.type === 'account.updated') {
       const account = event.data.object;
       
+      // Find tenant by account ID if not already found
+      if (!verifiedTenantId && account.id) {
+        const tenantResult = await query(`
+          SELECT id
+          FROM tenants
+          WHERE stripe_connect_account_id = $1
+        `, [account.id]);
+        
+        if (tenantResult.rows.length > 0) {
+          verifiedTenantId = tenantResult.rows[0].id;
+        }
+      }
+      
       // Update tenant's onboarding status
-      await query(`
-        UPDATE tenants 
-        SET stripe_connect_onboarding_completed = $1
-        WHERE stripe_connect_account_id = $2
-      `, [account.details_submitted && account.charges_enabled, account.id]);
+      if (verifiedTenantId) {
+        await query(`
+          UPDATE tenants 
+          SET stripe_connect_onboarding_completed = $1
+          WHERE id = $2
+        `, [account.details_submitted && account.charges_enabled, verifiedTenantId]);
+      } else if (account.id) {
+        // Fallback: update by account ID
+        await query(`
+          UPDATE tenants 
+          SET stripe_connect_onboarding_completed = $1
+          WHERE stripe_connect_account_id = $2
+        `, [account.details_submitted && account.charges_enabled, account.id]);
+      }
     }
 
     res.json({ received: true });

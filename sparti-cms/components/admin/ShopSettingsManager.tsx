@@ -45,7 +45,7 @@ export default function ShopSettingsManager({ currentTenantId, activeTab: propAc
   const { data: stripeStatus, isLoading } = useQuery({
     queryKey: ['stripe-status', currentTenantId],
     queryFn: async () => {
-      const response = await api.get('/api/shop/stripe/status');
+      const response = await api.get('/api/shop/stripe/status', { tenantId: currentTenantId });
       if (!response.ok) {
         throw new Error('Failed to fetch Stripe status');
       }
@@ -56,7 +56,7 @@ export default function ShopSettingsManager({ currentTenantId, activeTab: propAc
 
   const connectMutation = useMutation({
     mutationFn: async () => {
-      const response = await api.post('/api/shop/stripe/connect');
+      const response = await api.post('/api/shop/stripe/connect', undefined, { tenantId: currentTenantId });
       if (!response.ok) {
         throw new Error('Failed to initiate Stripe Connect');
       }
