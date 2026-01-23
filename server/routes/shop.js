@@ -1710,20 +1710,35 @@ router.get('/orders/:id', authenticateTenantApiKey, async (req, res) => {
 });
 
 // Create order
-router.post('/orders', authenticateUser, authenticateTenantApiKey, async (req, res) => {
+router.post('/orders', authenticateTenantApiKey, async (req, res) => {
   try {
     const tenantId = req.tenantId;
-    // Allow admins to specify user_id for manual order creation, otherwise use authenticated user
-    const userId = req.body.user_id && (req.user.is_super_admin || req.user.role === 'admin') 
-      ? parseInt(req.body.user_id) 
-      : req.user.id;
+    
+    // Determine user_id: 
+    // - If user is authenticated, use their ID
+    // - If admin specifies user_id, allow it
+    // - Otherwise, allow null for guest orders
+    let userId = null;
+    if (req.user) {
+      // User is authenticated
+      userId = req.body.user_id && (req.user.is_super_admin || req.user.role === 'admin') 
+        ? parseInt(req.body.user_id) 
+        : req.user.id;
+    } else if (req.body.user_id) {
+      // Guest order, but user_id was explicitly provided (shouldn't happen, but handle it)
+      userId = parseInt(req.body.user_id);
+    }
+    // Otherwise userId remains null for guest orders
+    
     const {
       items,
       amount,
       total,
       ref,
       payment_method,
-      status
+      status,
+      guest_email,
+      guest_name
     } = req.body;
 
     if (!items || !Array.isArray(items) || items.length === 0) {
@@ -1767,8 +1782,10 @@ router.post('/orders', authenticateUser, authenticateTenantApiKey, async (req, r
               currency: 'usd',
               metadata: {
                 tenant_id: tenantId,
-                user_id: userId.toString(),
+                user_id: userId ? userId.toString() : 'guest',
                 order_ref: orderRef,
+                guest_email: guest_email || '',
+                guest_name: guest_name || '',
               },
             }, {
               stripeAccount: tenant.stripe_connect_account_id, // Use connected account
@@ -1787,8 +1804,10 @@ router.post('/orders', authenticateUser, authenticateTenantApiKey, async (req, r
               currency: 'usd',
               metadata: {
                 tenant_id: tenantId,
-                user_id: userId.toString(),
+                user_id: userId ? userId.toString() : 'guest',
                 order_ref: orderRef,
+                guest_email: guest_email || '',
+                guest_name: guest_name || '',
               },
             });
 
@@ -1809,12 +1828,14 @@ router.post('/orders', authenticateUser, authenticateTenantApiKey, async (req, r
     }
 
     const order = await createOrder({
-      user_id: userId,
+      user_id: userId, // Can be null for guest orders
       status: status || 'pending', // Allow status to be set for manual orders
       amount: amount || null,
       total: total || null,
       ref: orderRef, // Use Payment Intent ID if Stripe, otherwise use provided ref or generated
       payment_method: payment_method || null,
+      guest_email: guest_email || null,
+      guest_name: guest_name || null,
       items: items.map(item => ({
         product_id: parseInt(item.product_id),
         quantity: parseInt(item.quantity)
@@ -1982,13 +2003,13 @@ router.delete('/reviews/:id', authenticateTenantApiKey, async (req, res) => {
 router.put('/stripe/config', authenticateTenantApiKey, async (req, res) => {
   try {
     const tenantId = req.tenantId;
-    const { stripe_secret_key, stripe_webhook_secret } = req.body;
+    const { stripe_secret_key, stripe_publishable_key, stripe_webhook_secret } = req.body;
 
     // Validate that at least one key is provided
-    if (!stripe_secret_key && !stripe_webhook_secret) {
+    if (!stripe_secret_key && !stripe_publishable_key && !stripe_webhook_secret) {
       return res.status(400).json({
         success: false,
-        error: 'At least one of stripe_secret_key or stripe_webhook_secret must be provided'
+        error: 'At least one of stripe_secret_key, stripe_publishable_key, or stripe_webhook_secret must be provided'
       });
     }
 
@@ -2004,6 +2025,12 @@ router.put('/stripe/config', authenticateTenantApiKey, async (req, res) => {
       
       // Clear cached Stripe instance for this tenant
       stripeInstances.delete(tenantId);
+    }
+
+    if (stripe_publishable_key !== undefined) {
+      updates.push(`stripe_publishable_key = $${paramIndex}`);
+      values.push(stripe_publishable_key);
+      paramIndex++;
     }
 
     if (stripe_webhook_secret !== undefined) {
@@ -2041,6 +2068,7 @@ router.get('/stripe/config', authenticateTenantApiKey, async (req, res) => {
     const result = await query(`
       SELECT 
         stripe_secret_key IS NOT NULL as has_stripe_secret_key,
+        stripe_publishable_key IS NOT NULL as has_stripe_publishable_key,
         stripe_webhook_secret IS NOT NULL as has_stripe_webhook_secret,
         stripe_connect_account_id,
         stripe_connect_onboarding_completed
@@ -2074,23 +2102,60 @@ router.get('/stripe/publishable-key', authenticateTenantApiKey, async (req, res)
     const tenantId = req.tenantId;
     
     const tenantResult = await query(`
-      SELECT stripe_secret_key
+      SELECT stripe_publishable_key, stripe_secret_key
       FROM tenants
       WHERE id = $1
     `, [tenantId]);
 
-    const stripeSecretKey = tenantResult.rows[0]?.stripe_secret_key || process.env.STRIPE_SECRET_KEY;
+    // First try to get the stored publishable key
+    let publishableKey = tenantResult.rows[0]?.stripe_publishable_key;
     
-    if (!stripeSecretKey) {
+    // If not stored, try to retrieve it from Stripe API using the secret key
+    if (!publishableKey) {
+      const stripeSecretKey = tenantResult.rows[0]?.stripe_secret_key || process.env.STRIPE_SECRET_KEY;
+      
+      if (!stripeSecretKey) {
+        return res.status(404).json({
+          success: false,
+          error: 'Stripe is not configured for this tenant. Please set both stripe_secret_key and stripe_publishable_key in tenant settings.'
+        });
+      }
+
+      try {
+        // Retrieve publishable key from Stripe API
+        const stripe = new Stripe(stripeSecretKey, {
+          apiVersion: '2024-11-20.acacia',
+        });
+        
+        // Get account details which includes publishable key
+        const account = await stripe.accounts.retrieve();
+        publishableKey = account.settings?.publishable_key || null;
+        
+        // If we got it from API, store it for future use
+        if (publishableKey) {
+          await query(`
+            UPDATE tenants
+            SET stripe_publishable_key = $1
+            WHERE id = $2
+          `, [publishableKey, tenantId]);
+          console.log('[testing] Retrieved and stored publishable key from Stripe API');
+        }
+      } catch (stripeError) {
+        console.error('[testing] Error retrieving publishable key from Stripe:', stripeError);
+        // Fallback: try to construct it (this won't work but provides a better error message)
+        return res.status(404).json({
+          success: false,
+          error: 'Stripe publishable key is not configured. Please set stripe_publishable_key in tenant settings. You can find it in your Stripe Dashboard under API keys.'
+        });
+      }
+    }
+    
+    if (!publishableKey) {
       return res.status(404).json({
         success: false,
-        error: 'Stripe is not configured for this tenant'
+        error: 'Stripe publishable key is not configured. Please set stripe_publishable_key in tenant settings.'
       });
     }
-
-    // Convert secret key to publishable key format
-    // sk_test_... -> pk_test_... or sk_live_... -> pk_live_...
-    const publishableKey = stripeSecretKey.replace(/^sk_(test|live)_/, 'pk_$1_');
     
     res.json({
       success: true,

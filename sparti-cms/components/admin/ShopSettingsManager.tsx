@@ -400,8 +400,10 @@ export default function ShopSettingsManager({ currentTenantId, activeTab: propAc
   const renderStripeConnect = () => {
     // Stripe Configuration state
     const [stripeSecretKey, setStripeSecretKey] = useState('');
+    const [stripePublishableKey, setStripePublishableKey] = useState('');
     const [stripeWebhookSecret, setStripeWebhookSecret] = useState('');
     const [showSecretKey, setShowSecretKey] = useState(false);
+    const [showPublishableKey, setShowPublishableKey] = useState(false);
     const [showWebhookSecret, setShowWebhookSecret] = useState(false);
     const [isSavingConfig, setIsSavingConfig] = useState(false);
     const [isEditingConfig, setIsEditingConfig] = useState(false);
@@ -426,6 +428,7 @@ export default function ShopSettingsManager({ currentTenantId, activeTab: propAc
       if (stripeConfig) {
         // Don't populate actual values for security, just show placeholder if configured
         setStripeSecretKey('');
+        setStripePublishableKey('');
         setStripeWebhookSecret('');
         // Exit edit mode after successful save (when config is updated)
         if (configMessage?.type === 'success') {
@@ -436,7 +439,7 @@ export default function ShopSettingsManager({ currentTenantId, activeTab: propAc
 
     // Mutation to update Stripe configuration
     const updateConfigMutation = useMutation({
-      mutationFn: async (data: { stripe_secret_key?: string; stripe_webhook_secret?: string }) => {
+      mutationFn: async (data: { stripe_secret_key?: string; stripe_publishable_key?: string; stripe_webhook_secret?: string }) => {
         const response = await api.put('/api/shop/stripe/config', data, { tenantId: currentTenantId });
         if (!response.ok) {
           const error = await response.json();
@@ -450,6 +453,7 @@ export default function ShopSettingsManager({ currentTenantId, activeTab: propAc
         queryClient.invalidateQueries({ queryKey: ['stripe-status', currentTenantId] });
         // Clear form fields after successful save
         setStripeSecretKey('');
+        setStripePublishableKey('');
         setStripeWebhookSecret('');
         setIsEditingConfig(false);
         // Clear message after 3 seconds
@@ -499,7 +503,7 @@ export default function ShopSettingsManager({ currentTenantId, activeTab: propAc
     };
 
     // Determine if we should show edit mode
-    const hasAnyKey = stripeConfig?.has_stripe_secret_key || stripeConfig?.has_stripe_webhook_secret;
+    const hasAnyKey = stripeConfig?.has_stripe_secret_key || stripeConfig?.has_stripe_publishable_key || stripeConfig?.has_stripe_webhook_secret;
     const showEditForm = isEditingConfig || !hasAnyKey;
 
     return (
@@ -524,7 +528,7 @@ export default function ShopSettingsManager({ currentTenantId, activeTab: propAc
               <>
                 <Alert className="bg-blue-50 border-blue-200">
                   <AlertDescription className="text-blue-800">
-                    <strong>Note:</strong> Enter your Stripe secret key and webhook secret here. 
+                    <strong>Note:</strong> Enter your Stripe keys here. You can find these in your <a href="https://dashboard.stripe.com/apikeys" target="_blank" rel="noopener noreferrer" className="underline">Stripe Dashboard</a>. 
                     These keys are stored securely in the database and are specific to this tenant.
                   </AlertDescription>
                 </Alert>
@@ -532,7 +536,7 @@ export default function ShopSettingsManager({ currentTenantId, activeTab: propAc
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">
-                      Stripe Secret Key
+                      Stripe Secret Key *
                     </label>
                     <div className="relative">
                       <input
@@ -557,6 +561,31 @@ export default function ShopSettingsManager({ currentTenantId, activeTab: propAc
 
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">
+                      Stripe Publishable Key *
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showPublishableKey ? 'text' : 'password'}
+                        value={stripePublishableKey}
+                        onChange={(e) => setStripePublishableKey(e.target.value)}
+                        placeholder={stripeConfig?.has_stripe_publishable_key ? 'Enter new key to update' : 'pk_test_... or pk_live_...'}
+                        className="w-full px-3 py-2 pr-10 border border-border rounded-lg focus:ring-2 focus:ring-brandPurple focus:border-transparent"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPublishableKey(!showPublishableKey)}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      >
+                        {showPublishableKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Your Stripe publishable key (starts with pk_test_ or pk_live_). Required for frontend payment forms.
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
                       Stripe Webhook Secret
                     </label>
                     <div className="relative">
@@ -576,7 +605,7 @@ export default function ShopSettingsManager({ currentTenantId, activeTab: propAc
                       </button>
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">
-                      Your Stripe webhook signing secret (starts with whsec_)
+                      Your Stripe webhook signing secret (starts with whsec_). Required for webhook verification.
                     </p>
                   </div>
 
@@ -604,7 +633,7 @@ export default function ShopSettingsManager({ currentTenantId, activeTab: propAc
                     )}
                     <Button
                       onClick={handleSaveConfig}
-                      disabled={isSavingConfig || (!stripeSecretKey && !stripeWebhookSecret)}
+                      disabled={isSavingConfig || (!stripeSecretKey && !stripePublishableKey && !stripeWebhookSecret)}
                     >
                       {isSavingConfig ? 'Saving...' : 'Save Configuration'}
                     </Button>
@@ -636,6 +665,28 @@ export default function ShopSettingsManager({ currentTenantId, activeTab: propAc
                       </div>
                     </div>
                     {stripeConfig?.has_stripe_secret_key && (
+                      <Badge className="bg-green-500">
+                        <CheckCircle className="h-3 w-3 mr-1" />
+                        Configured
+                      </Badge>
+                    )}
+                  </div>
+
+                  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <div className="flex items-center space-x-3">
+                      <CheckCircle className="h-5 w-5 text-green-600" />
+                      <div>
+                        <div className="font-medium text-foreground">Stripe Publishable Key</div>
+                        <div className="text-sm text-muted-foreground">
+                          {stripeConfig?.has_stripe_publishable_key ? (
+                            <span className="font-mono text-xs">pk_***...****</span>
+                          ) : (
+                            <span className="text-amber-600">Not configured</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    {stripeConfig?.has_stripe_publishable_key && (
                       <Badge className="bg-green-500">
                         <CheckCircle className="h-3 w-3 mr-1" />
                         Configured

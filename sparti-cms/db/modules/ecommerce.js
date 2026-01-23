@@ -769,52 +769,83 @@ export async function getOrder(orderId, tenantId) {
  * @returns {Promise<Object>} Created order
  */
 export async function createOrder(orderData, tenantId) {
+  const {
+    user_id,
+    status = 'pending',
+    amount,
+    total,
+    ref,
+    payment_method,
+    items,
+    guest_email,
+    guest_name
+  } = orderData;
+
+  // Start transaction
+  await query('BEGIN');
+
   try {
-    const {
+    // Create order (user_id can be null for guest orders)
+    console.log('[testing] Creating order with data:', {
       user_id,
-      status = 'pending',
+      status,
       amount,
       total,
       ref,
       payment_method,
-      items
-    } = orderData;
+      tenantId,
+      guest_email: guest_email || null,
+      guest_name: guest_name || null,
+      itemsCount: items?.length || 0
+    });
+    
+    const orderResult = await query(`
+      INSERT INTO pern_orders (user_id, status, amount, total, ref, payment_method, tenant_id, guest_email, guest_name)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      RETURNING order_id, user_id, status, date, amount, total, ref, payment_method, guest_email, guest_name
+    `, [user_id, status, amount, total, ref, payment_method, tenantId, guest_email || null, guest_name || null]);
 
-    // Start transaction
-    await query('BEGIN');
+    const order = orderResult.rows[0];
+    const orderId = order.order_id;
 
-    try {
-      // Create order
-      const orderResult = await query(`
-        INSERT INTO pern_orders (user_id, status, amount, total, ref, payment_method, tenant_id)
-        VALUES ($1, $2, $3, $4, $5, $6, $7)
-        RETURNING order_id, user_id, status, date, amount, total, ref, payment_method
-      `, [user_id, status, amount, total, ref, payment_method, tenantId]);
-
-      const order = orderResult.rows[0];
-      const orderId = order.order_id;
-
-      // Create order items
-      if (items && Array.isArray(items)) {
-        for (const item of items) {
-          await query(`
-            INSERT INTO pern_order_item (order_id, product_id, quantity, tenant_id)
-            VALUES ($1, $2, $3, $4)
-          `, [orderId, item.product_id, item.quantity, tenantId]);
-        }
+    // Create order items
+    if (items && Array.isArray(items)) {
+      for (const item of items) {
+        await query(`
+          INSERT INTO pern_order_item (order_id, product_id, quantity, tenant_id)
+          VALUES ($1, $2, $3, $4)
+        `, [orderId, item.product_id, item.quantity, tenantId]);
       }
-
-      await query('COMMIT');
-
-      // Return order with items
-      return await getOrder(orderId, tenantId);
-    } catch (error) {
-      await query('ROLLBACK');
-      throw error;
     }
+
+    await query('COMMIT');
+
+    // Return order with items
+    return await getOrder(orderId, tenantId);
   } catch (error) {
+    // Always rollback on error to clear the aborted transaction state
+    try {
+      await query('ROLLBACK');
+    } catch (rollbackError) {
+      console.error('[testing] Error during rollback:', rollbackError);
+      // If rollback fails, try to start a new transaction to clear the state
+      try {
+        await query('BEGIN');
+        await query('ROLLBACK');
+      } catch (clearError) {
+        console.error('[testing] Error clearing transaction state:', clearError);
+      }
+    }
     console.error('[testing] Error creating order:', error);
-    return handleTableError(error);
+    console.error('[testing] Error details:', {
+      message: error.message,
+      code: error.code,
+      detail: error.detail,
+      constraint: error.constraint,
+      table: error.table,
+      column: error.column
+    });
+    throw handleTableError(error);
   }
 }
 

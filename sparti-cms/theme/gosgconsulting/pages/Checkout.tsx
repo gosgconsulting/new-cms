@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Loader2, CheckCircle, AlertCircle } from 'lucide-react';
-import { getCart, createOrder } from '../services/shopApi';
+import { getCart, getCartById, getOrCreateGuestCart, createOrder } from '../services/shopApi';
 import { StripeCheckout } from '../../../components/checkout/StripeCheckout';
 import { getStripePublishableKey, createOrderWithPayment } from '../../../services/stripeCheckout';
 
@@ -41,6 +41,7 @@ const Checkout: React.FC = () => {
   const [stripePublishableKey, setStripePublishableKey] = useState<string | null>(null);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [orderId, setOrderId] = useState<number | null>(null);
+  const [loadingStripeForm, setLoadingStripeForm] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     name: '',
     email: '',
@@ -66,45 +67,81 @@ const Checkout: React.FC = () => {
     return null;
   };
 
+  // Get guest cart ID from localStorage
+  const getGuestCartId = (): number | null => {
+    try {
+      const cartId = localStorage.getItem('sparti-guest-cart-id');
+      if (cartId) {
+        return parseInt(cartId);
+      }
+    } catch (err) {
+      console.error('[testing] Error parsing guest cart ID:', err);
+    }
+    return null;
+  };
+
   useEffect(() => {
     const fetchCart = async () => {
       const userId = getUserId();
-      if (!userId) {
-        setError('Please log in to checkout');
-        setLoading(false);
-        return;
-      }
+      const tenantId = 'tenant-gosg';
 
       try {
         setLoading(true);
-        const data = await getCart(userId);
-        if (!data || !data.items || data.items.length === 0) {
+        setError(null);
+        
+        let cartData;
+        if (userId) {
+          // Logged in user - fetch from API
+          cartData = await getCart(userId, tenantId);
+          
+          // Pre-fill form with user data if available
+          try {
+            const session = localStorage.getItem('sparti-user-session');
+            if (session) {
+              const userData = JSON.parse(session);
+              if (userData.user) {
+                setFormData((prev) => ({
+                  ...prev,
+                  name: userData.user.first_name && userData.user.last_name
+                    ? `${userData.user.first_name} ${userData.user.last_name}`
+                    : prev.name,
+                  email: userData.user.email || prev.email,
+                }));
+              }
+            }
+          } catch (err) {
+            // Ignore errors in pre-filling
+          }
+        } else {
+          // Guest user - get or create cart, then fetch by cart_id
+          let cartId = getGuestCartId();
+          
+          if (!cartId) {
+            // Create new guest cart
+            const newCart = await getOrCreateGuestCart(tenantId);
+            cartId = newCart.id;
+            if (cartId) {
+              localStorage.setItem('sparti-guest-cart-id', cartId.toString());
+            }
+          }
+          
+          if (cartId) {
+            // Fetch cart by ID
+            cartData = await getCartById(cartId, tenantId);
+          } else {
+            cartData = { id: 0, user_id: 0, items: [] };
+          }
+        }
+
+        if (!cartData || !cartData.items || cartData.items.length === 0) {
           setError('Your cart is empty');
           setLoading(false);
           return;
         }
-        setCart(data);
-
-        // Pre-fill form with user data if available
-        try {
-          const session = localStorage.getItem('sparti-user-session');
-          if (session) {
-            const userData = JSON.parse(session);
-            if (userData.user) {
-              setFormData((prev) => ({
-                ...prev,
-                name: userData.user.first_name && userData.user.last_name
-                  ? `${userData.user.first_name} ${userData.user.last_name}`
-                  : prev.name,
-                email: userData.user.email || prev.email,
-              }));
-            }
-          }
-        } catch (err) {
-          // Ignore errors in pre-filling
-        }
+        
+        setCart(cartData);
       } catch (err: any) {
-        console.error('Error fetching cart:', err);
+        console.error('[testing] Error fetching cart:', err);
         setError(err.message || 'Failed to load cart');
       } finally {
         setLoading(false);
@@ -137,11 +174,12 @@ const Checkout: React.FC = () => {
 
     try {
       const userId = getUserId();
-      if (!userId) {
-        throw new Error('Please log in to complete checkout');
-      }
-
       const tenantId = 'tenant-gosg'; // Default tenant ID for gosgconsulting
+
+      // Validate form data for guest checkout
+      if (!formData.name || !formData.email || !formData.phone || !formData.address) {
+        throw new Error('Please fill in all required fields');
+      }
 
       const orderData = {
         items: cart.items.map((item) => ({
@@ -152,30 +190,21 @@ const Checkout: React.FC = () => {
         total: Math.round(calculateTotal() * 100), // Convert to cents
         ref: `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
         payment_method: formData.payment_method,
+        // Include guest information if not logged in
+        ...(userId ? {} : {
+          guest_email: formData.email,
+          guest_name: formData.name,
+        }),
       };
 
-      // If Stripe, create order and show payment form
+      // If Stripe, the order and payment intent should already be created
+      // Just confirm the payment
       if (formData.payment_method === 'STRIPE') {
-        // Get publishable key
-        const pubKey = await getStripePublishableKey(tenantId);
-        if (!pubKey) {
-          throw new Error('Stripe is not configured. Please contact support.');
+        if (!showStripeCheckout || !clientSecret) {
+          throw new Error('Payment form not initialized. Please select Stripe again.');
         }
-        setStripePublishableKey(pubKey);
-
-        // Create order with payment intent
-        const { order, clientSecret: secret } = await createOrderWithPayment(
-          { ...orderData, payment_method: 'STRIPE' },
-          tenantId
-        );
-
-        if (!secret) {
-          throw new Error('Failed to initialize payment. Please try again.');
-        }
-
-        setOrderId(order.id);
-        setClientSecret(secret);
-        setShowStripeCheckout(true);
+        // Payment will be confirmed by the StripeCheckout component
+        // Don't submit the form here, let Stripe handle it
         setSubmitting(false);
         return;
       }
@@ -194,9 +223,74 @@ const Checkout: React.FC = () => {
     }
   };
 
+  // Initialize Stripe payment form when Stripe is selected
+  const initializeStripePayment = async () => {
+    if (!cart || !cart.items || cart.items.length === 0) {
+      return;
+    }
+
+    const tenantId = 'tenant-gosg';
+    setLoadingStripeForm(true);
+    setError(null);
+
+    try {
+      // Get publishable key
+      const pubKey = await getStripePublishableKey(tenantId);
+      if (!pubKey) {
+        throw new Error('Stripe is not configured. Please contact support.');
+      }
+      setStripePublishableKey(pubKey);
+
+      // Create a temporary order with payment intent to get clientSecret
+      // We'll create the actual order when they submit
+      const orderData = {
+        items: cart.items.map((item) => ({
+          product_id: item.product_id,
+          quantity: item.quantity,
+        })),
+        amount: calculateTotal(),
+        total: Math.round(calculateTotal() * 100), // Convert to cents
+        payment_method: 'STRIPE' as const,
+      };
+
+      const { order, clientSecret: secret } = await createOrderWithPayment(
+        orderData,
+        tenantId
+      );
+
+      if (!secret) {
+        throw new Error('Failed to initialize payment form. Please try again.');
+      }
+
+      setOrderId(order.id);
+      setClientSecret(secret);
+      setShowStripeCheckout(true);
+    } catch (err: any) {
+      console.error('[testing] Error initializing Stripe:', err);
+      setError(err.message || 'Failed to initialize payment form');
+      setFormData((prev) => ({ ...prev, payment_method: '' })); // Reset payment method
+    } finally {
+      setLoadingStripeForm(false);
+    }
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData((prev) => {
+      const updated = { ...prev, [name]: value };
+      
+      // If payment method changed to Stripe, initialize Stripe form
+      if (name === 'payment_method' && value === 'STRIPE' && !showStripeCheckout) {
+        initializeStripePayment();
+      } else if (name === 'payment_method' && value !== 'STRIPE') {
+        // Reset Stripe state if switching away from Stripe
+        setShowStripeCheckout(false);
+        setClientSecret(null);
+        setOrderId(null);
+      }
+      
+      return updated;
+    });
   };
 
   if (loading) {
@@ -375,7 +469,7 @@ const Checkout: React.FC = () => {
                       className="w-4 h-4"
                       disabled={showStripeCheckout}
                     />
-                    <span className="font-medium">Stripe</span>
+                    <span className="font-medium">Stripe (Credit/Debit Card)</span>
                   </label>
                   <label className="flex items-center gap-3 p-4 border border-border rounded-lg cursor-pointer hover:bg-muted">
                     <input
@@ -390,28 +484,20 @@ const Checkout: React.FC = () => {
                     <span className="font-medium">Paystack</span>
                   </label>
                 </div>
+                
+                {/* Loading state for Stripe */}
+                {formData.payment_method === 'STRIPE' && loadingStripeForm && (
+                  <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
+                      <p className="text-sm text-blue-800">
+                        Initializing secure payment form...
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
 
-              {/* Stripe Checkout Form */}
-              {formData.payment_method === 'STRIPE' && showStripeCheckout && stripePublishableKey && clientSecret && (
-                <div className="bg-card border border-border rounded-lg p-6">
-                  <h2 className="text-xl font-bold mb-4">Complete Payment</h2>
-                  <StripeCheckout
-                    clientSecret={clientSecret}
-                    publishableKey={stripePublishableKey}
-                    onSuccess={(paymentIntent) => {
-                      console.log('[testing] Payment succeeded:', paymentIntent);
-                      navigate('/theme/gosgconsulting/checkout/success', {
-                        state: { orderId, paymentIntentId: paymentIntent.id }
-                      });
-                    }}
-                    onError={(error) => {
-                      setError(error.message);
-                      setShowStripeCheckout(false);
-                    }}
-                  />
-                </div>
-              )}
             </div>
 
             {/* Order Summary */}
@@ -441,27 +527,58 @@ const Checkout: React.FC = () => {
                   </div>
                 )}
 
-                <button
-                  type="submit"
-                  disabled={submitting || !formData.payment_method || showStripeCheckout}
-                  className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
-                >
-                  {submitting ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Processing...
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle className="h-4 w-4" />
-                      Place Order
-                    </>
-                  )}
-                </button>
+                {/* Hide "Place Order" button when Stripe checkout is showing (Stripe form has its own submit button) */}
+                {!showStripeCheckout && (
+                  <button
+                    type="submit"
+                    disabled={submitting || !formData.payment_method}
+                    className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                  >
+                    {submitting ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Processing...
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle className="h-4 w-4" />
+                        Place Order
+                      </>
+                    )}
+                  </button>
+                )}
               </div>
             </div>
           </div>
         </form>
+
+        {/* Stripe Checkout Form - Show immediately when Stripe is selected (outside main form to avoid nested forms) */}
+        {formData.payment_method === 'STRIPE' && showStripeCheckout && stripePublishableKey && clientSecret && (
+          <div className="mt-8">
+            <div className="bg-card border border-border rounded-lg p-6">
+              <h2 className="text-xl font-bold mb-2">Card Details</h2>
+              <p className="text-sm text-muted-foreground mb-4">
+                Enter your payment information below. Your card details are securely processed by Stripe.
+              </p>
+              <StripeCheckout
+                clientSecret={clientSecret}
+                publishableKey={stripePublishableKey}
+                onSuccess={(paymentIntent) => {
+                  console.log('[testing] Payment succeeded:', paymentIntent);
+                  navigate('/theme/gosgconsulting/checkout/success', {
+                    state: { orderId, paymentIntentId: paymentIntent.id }
+                  });
+                }}
+                onError={(error) => {
+                  setError(error.message);
+                  setShowStripeCheckout(false);
+                  setClientSecret(null);
+                  setFormData((prev) => ({ ...prev, payment_method: '' }));
+                }}
+              />
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

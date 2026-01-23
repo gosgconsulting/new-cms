@@ -285,7 +285,7 @@ export async function removeFromCart(cartItemId: number, tenantId: string = TENA
 
 /**
  * Create an order
- * Note: Requires user authentication
+ * Note: Can be used for both authenticated users and guests
  */
 export async function createOrder(orderData: {
   items: Array<{ product_id: number; quantity: number }>;
@@ -293,6 +293,8 @@ export async function createOrder(orderData: {
   total?: number;
   ref?: string;
   payment_method?: 'PAYSTACK' | 'STRIPE';
+  guest_email?: string;
+  guest_name?: string;
 }, tenantId: string = TENANT_ID) {
   try {
     const response = await api.post('/api/shop/orders', orderData, { tenantId });

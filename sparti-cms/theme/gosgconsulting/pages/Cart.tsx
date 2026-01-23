@@ -335,16 +335,7 @@ const Cart: React.FC = () => {
                 </div>
               </div>
               <button
-                onClick={() => {
-                  const userId = getUserId();
-                  if (!userId) {
-                    if (confirm('Please log in to proceed to checkout. Would you like to go to the login page?')) {
-                      navigate('/theme/gosgconsulting/auth');
-                    }
-                  } else {
-                    navigate('/theme/gosgconsulting/checkout');
-                  }
-                }}
+                onClick={() => navigate('/theme/gosgconsulting/checkout')}
                 className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
               >
                 Proceed to Checkout
