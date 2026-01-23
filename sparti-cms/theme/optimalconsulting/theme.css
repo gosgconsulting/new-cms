@@ -129,16 +129,16 @@ button.contact-us-button:hover {
   color: #000000 !important;
 }
 
-/* Exclude "Get started" link in OurServicesSection - target by parent structure */
-div[class*="rounded-2xl"][class*="border"] div[class*="mt-6"] a.btn-cta[href="#contact"] {
-  background-color: transparent !important;
-  color: inherit !important;
-  border-color: transparent !important;
+/* Get started button in OurServicesSection dropdown - styled as blue button */
+div[class*="rounded-2xl"][class*="border"] div[class*="mt-6"] a[href="#contact"]:not(.btn-cta) {
+  background-color: #145598 !important;
+  color: #ffffff !important;
+  border-color: #145598 !important;
 }
 
-div[class*="rounded-2xl"][class*="border"] div[class*="mt-6"] a.btn-cta[href="#contact"]:hover {
-  background-color: transparent !important;
-  border-color: transparent !important;
+div[class*="rounded-2xl"][class*="border"] div[class*="mt-6"] a[href="#contact"]:not(.btn-cta):hover {
+  background-color: #0f3f6f !important;
+  border-color: #0f3f6f !important;
 }
 
 /* FAQ Section - White background for AccordionItems */

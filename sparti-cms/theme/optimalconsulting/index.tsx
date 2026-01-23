@@ -13,7 +13,7 @@ import { useThemeBranding } from "../../hooks/useThemeSettings";
 import Header from "./components/Header";
 import Footer from "../master/components/layout/Footer";
 import ContactFormModal from "../master/components/modals/ContactFormModal";
-import OurServicesSection from "../master/components/OurServicesSection";
+import OurServicesSection from "./components/OurServicesSection";
 import { ThankYouPage } from "../master/pages/ThankYouPage";
 import PrivacyPolicyPage from "../master/pages/PrivacyPolicyPage";
 import TermsAndConditionsPage from "../master/pages/TermsAndConditionsPage";
