@@ -228,46 +228,32 @@ const GroupClassPage: React.FC<TenantLandingProps> = ({
     { name: 'FAQ', href: '#faq' },
   ];
 
+  
   // Programmes data for accordion - Group Class focused services
   const programmes = [
     {
-      title: 'HYROX APEX 1.1',
-      description: `HYROX APEX 1.1 is designed to introduce you to hybrid fitness training in a structured and approachable way, focusing on fundamental HYROX-style movements, basic race formats, and controlled intensity to build confidence, strength, and aerobic capacity. You’ll learn proper technique for key functional exercises such as sled pushes, carries, lunges, and rowing, while developing pacing and movement efficiency in a fully scalable environment suitable for beginners and first-time HYROX athletes.`,
+      title: 'HYROX APEX',
+      description: `HYROX APEX is a group class that combines running with HYROX stations in a structured training format. Sessions involve compromised runs paired with station-based work, as well as EMOM-style blocks. Training is organised into clearly labelled sections such as 1.1 and 1.2, allowing participants to move through running and station work in a defined sequence within each session.`,
       content: '',
     },
     {
       title: 'Run & Develop',
-      description: `Run & Develop focuses on improving running performance through structured sessions that target technique, speed, endurance, and threshold development, supported by strength and mobility work to enhance efficiency and reduce injury risk. Whether you are new to running or training for endurance events, this class helps you build confidence, consistency, and stronger running mechanics that carry over into all forms of training.`,
+      description: `Run & Develop is offered as a group class at STR. The class is presented as part of the overall program lineup, however no specific exercise breakdown, training format, or session structure is defined here. As such, this class is described at a high level without detailing individual movements or programming structure.`,
       content: '',
     },
     {
       title: 'STR Build Upper',
-      description: `STR Build Upper is a strength-focused class dedicated to developing the chest, shoulders, back, and arms using barbells, dumbbells, kettlebells, and bodyweight movements. Each session emphasizes proper technique, progressive overload, and balanced upper-body development to improve functional strength, posture, and overall performance across both daily movement and athletic training.`,
-      content: '',
-    },
-    {
-      title: 'STR Conditioning 1.2',
-      description: `STR Conditioning 1.2 is a higher-intensity conditioning class designed to challenge stamina, work capacity, and mental resilience through longer efforts, faster transitions, and demanding movement combinations. Coaches guide pacing and movement efficiency to help you sustain output under fatigue while continuing to train safely and effectively.`,
-      content: '',
-    },
-    {
-      title: 'HYROX APEX 1.2',
-      description: `HYROX APEX 1.2 is a higher-intensity hybrid training class that closely simulates race-day demands through increased volume, heavier loads, faster transitions, and more complex workout structures. Sessions are designed to improve muscular endurance, cardiovascular efficiency, pacing strategy, and mental resilience under fatigue, with expert coaching to refine movement quality and performance for athletes preparing for competitive hybrid events.`,
+      description: `STR Build Upper is a strength-focused class structured around Primary and Secondary lifts. Sessions follow a clear lift hierarchy, with upper-body barbell movements forming the core of the training. Exercises include strict press variations and barbell row variations, with the Primary lift serving as the main focus of the session and the Secondary lift supporting overall upper-body strength work.`,
       content: '',
     },
     {
       title: 'STR Build Lower',
-      description: `STR Build Upper is a strength-focused class dedicated to developing the chest, shoulders, back, and arms using barbells, dumbbells, kettlebells, and bodyweight movements. Each session emphasizes proper technique, progressive overload, and balanced upper-body development to improve functional strength, posture, and overall performance across both daily movement and athletic training.`,
+      description: `STR Build Lower is a lower-body strength class structured around Primary and Secondary lifts. Training focuses on barbell-based lower-body movements, including barbell front squats, barbell split squats, and barbell reverse lunges. Sessions follow a consistent strength structure, with clear separation between main lifts and supporting movements.`,
       content: '',
     },
     {
-      title: 'STR Conditioning 1.1',
-      description: `STR Conditioning 1.1 introduces structured conditioning workouts designed to build cardiovascular fitness and muscular endurance at manageable intensities, using functional movements, circuits, and interval formats. Sessions are fully scalable and focused on consistency, making them ideal for building a strong aerobic base without feeling overwhelmed.`,
-      content: '',
-    },
-    {
-      title: 'STR Squad',
-      description: `STR Squad is a team-based training class that combines strength, conditioning, and functional movements in a collaborative, high-energy environment. Designed around partner and small-group workouts, this class builds accountability, communication, and motivation while reinforcing STR’s strong community culture and shared commitment to progress.`,
+      title: 'STR Conditioning',
+      description: `STR Conditioning is a conditioning-focused class structured as mixed-movement sessions. Training includes a range of conditioning exercises such as wallballs, burpees broad jump, sled push, sled pull, sandbag lunges, farmer’s carry, ski, and row movements. Sessions are organised into labelled blocks such as 1.1 and 1.2, creating a clear structure for moving through different conditioning elements within a single class.`,
       content: '',
     },
   ];
@@ -593,7 +579,7 @@ const GroupClassPage: React.FC<TenantLandingProps> = ({
             </div>
 
             {/* Right Column - Accordion */}
-            <div className="space-y-0">
+            <div className="space-y-0 sticky top-20 self-start">
               {programmes.map((programme, index) => {
                 const isActive = activeProgramme === index;
                 return (
