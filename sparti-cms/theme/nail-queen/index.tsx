@@ -12,6 +12,7 @@ import BlogPostPage from "./pages/BlogPostPage";
 import FindUsPage from "./pages/FindUsPage";
 import LegalPlaceholderPage from "./pages/LegalPlaceholderPage";
 import NotFoundPage from "./pages/NotFoundPage";
+import { ThankYouPage } from "./components/ThankYouPage";
 
 interface NailQueenThemeProps {
   basePath?: string;
@@ -64,6 +65,15 @@ const NailQueenTheme: React.FC<NailQueenThemeProps> = ({
         return <BlogPage basePath={resolvedBasePath} tenantId={tenantId} />;
       case "find-us":
         return <FindUsPage basePath={resolvedBasePath} />;
+      case "thank-you":
+        return (
+          <ThankYouPage
+            basePath={resolvedBasePath}
+            tenantName={tenantName}
+            tenantSlug={tenantSlug}
+            tenantId={tenantId}
+          />
+        );
       case "privacy":
         return (
           <LegalPlaceholderPage
