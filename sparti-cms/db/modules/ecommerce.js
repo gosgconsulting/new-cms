@@ -314,6 +314,138 @@ export async function deleteProduct(productId, tenantId) {
 // ===== CART =====
 
 /**
+ * Get cart by cart ID
+ * @param {number} cartId - Cart ID
+ * @param {string} tenantId - Tenant ID
+ * @returns {Promise<Object|null>} Cart with items or null
+ */
+export async function getCartById(cartId, tenantId) {
+  try {
+    // Get cart
+    const cartResult = await query(`
+      SELECT id, user_id FROM pern_cart
+      WHERE id = $1 AND tenant_id = $2
+      LIMIT 1
+    `, [cartId, tenantId]);
+
+    if (cartResult.rows.length === 0) {
+      return null;
+    }
+
+    const cart = cartResult.rows[0];
+
+    // Get cart items with product details
+    const itemsResult = await query(`
+      SELECT 
+        ci.id,
+        ci.cart_id,
+        ci.product_id,
+        ci.quantity,
+        p.name as product_name,
+        p.slug as product_slug,
+        p.price,
+        p.image_url
+      FROM pern_cart_item ci
+      JOIN pern_products p ON ci.product_id = p.product_id
+      WHERE ci.cart_id = $1 AND ci.tenant_id = $2
+      ORDER BY ci.created_at DESC
+    `, [cartId, tenantId]);
+
+    return {
+      id: cart.id,
+      user_id: cart.user_id,
+      items: itemsResult.rows
+    };
+  } catch (error) {
+    console.error('[testing] Error getting cart by ID:', error);
+    return handleTableError(error);
+  }
+}
+
+/**
+ * Get or create guest cart (user_id = null)
+ * @param {string} tenantId - Tenant ID
+ * @returns {Promise<Object>} Cart with items
+ */
+export async function getOrCreateGuestCart(tenantId) {
+  try {
+    // Try to get existing guest cart (user_id is null)
+    let cartResult = await query(`
+      SELECT id FROM pern_cart
+      WHERE user_id IS NULL AND tenant_id = $1
+      ORDER BY created_at DESC
+      LIMIT 1
+    `, [tenantId]);
+
+    let cartId;
+    if (cartResult.rows.length === 0) {
+      // Create new guest cart
+      const newCart = await query(`
+        INSERT INTO pern_cart (user_id, tenant_id)
+        VALUES (NULL, $1)
+        RETURNING id
+      `, [tenantId]);
+      cartId = newCart.rows[0].id;
+    } else {
+      cartId = cartResult.rows[0].id;
+    }
+
+    // Get cart items with product details
+    const itemsResult = await query(`
+      SELECT 
+        ci.id,
+        ci.cart_id,
+        ci.product_id,
+        ci.quantity,
+        p.name as product_name,
+        p.slug as product_slug,
+        p.price,
+        p.image_url
+      FROM pern_cart_item ci
+      JOIN pern_products p ON ci.product_id = p.product_id
+      WHERE ci.cart_id = $1 AND ci.tenant_id = $2
+      ORDER BY ci.created_at DESC
+    `, [cartId, tenantId]);
+
+    return {
+      id: cartId,
+      user_id: null,
+      items: itemsResult.rows
+    };
+  } catch (error) {
+    console.error('[testing] Error getting/creating guest cart:', error);
+    return handleTableError(error);
+  }
+}
+
+/**
+ * Associate cart with user (when guest logs in)
+ * @param {number} cartId - Cart ID
+ * @param {number} userId - User ID
+ * @param {string} tenantId - Tenant ID
+ * @returns {Promise<Object|null>} Updated cart or null
+ */
+export async function associateCartWithUser(cartId, userId, tenantId) {
+  try {
+    const result = await query(`
+      UPDATE pern_cart
+      SET user_id = $1
+      WHERE id = $2 AND tenant_id = $3 AND user_id IS NULL
+      RETURNING id, user_id
+    `, [userId, cartId, tenantId]);
+
+    if (result.rows.length === 0) {
+      return null;
+    }
+
+    return result.rows[0];
+  } catch (error) {
+    console.error('[testing] Error associating cart with user:', error);
+    return handleTableError(error);
+  }
+}
+
+/**
  * Get user's cart
  * @param {number} userId - User ID
  * @param {string} tenantId - Tenant ID
@@ -365,6 +497,56 @@ export async function getCart(userId, tenantId) {
     };
   } catch (error) {
     console.error('[testing] Error getting cart:', error);
+    return handleTableError(error);
+  }
+}
+
+/**
+ * Add item to cart by cart ID (for guest carts)
+ * @param {number} cartId - Cart ID
+ * @param {number} productId - Product ID
+ * @param {number} quantity - Quantity
+ * @param {string} tenantId - Tenant ID
+ * @returns {Promise<Object>} Cart item
+ */
+export async function addToCartById(cartId, productId, quantity, tenantId) {
+  try {
+    // Verify cart exists
+    const cartCheck = await query(`
+      SELECT id FROM pern_cart
+      WHERE id = $1 AND tenant_id = $2
+    `, [cartId, tenantId]);
+
+    if (cartCheck.rows.length === 0) {
+      throw new Error('Cart not found');
+    }
+
+    // Check if item already exists in cart
+    const existing = await query(`
+      SELECT id, quantity FROM pern_cart_item
+      WHERE cart_id = $1 AND product_id = $2 AND tenant_id = $3
+    `, [cartId, productId, tenantId]);
+
+    if (existing.rows.length > 0) {
+      // Update quantity
+      const result = await query(`
+        UPDATE pern_cart_item
+        SET quantity = quantity + $1, updated_at = NOW()
+        WHERE id = $2 AND tenant_id = $3
+        RETURNING id, cart_id, product_id, quantity
+      `, [quantity, existing.rows[0].id, tenantId]);
+      return result.rows[0];
+    } else {
+      // Add new item
+      const result = await query(`
+        INSERT INTO pern_cart_item (cart_id, product_id, quantity, tenant_id)
+        VALUES ($1, $2, $3, $4)
+        RETURNING id, cart_id, product_id, quantity
+      `, [cartId, productId, quantity, tenantId]);
+      return result.rows[0];
+    }
+  } catch (error) {
+    console.error('[testing] Error adding to cart by ID:', error);
     return handleTableError(error);
   }
 }

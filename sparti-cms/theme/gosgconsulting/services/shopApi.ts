@@ -52,6 +52,65 @@ export async function getProductBySlug(slug: string, tenantId: string = TENANT_I
 }
 
 /**
+ * Get or create guest cart
+ * @param tenantId - Tenant ID
+ * @returns Promise resolving to cart with cart_id
+ */
+export async function getOrCreateGuestCart(tenantId: string = TENANT_ID) {
+  try {
+    const response = await api.get('/api/shop/cart/guest', { tenantId });
+    if (!response.ok) {
+      throw new Error('Failed to fetch guest cart');
+    }
+    const result = await response.json();
+    return result.data || { id: null, user_id: null, items: [] };
+  } catch (error) {
+    console.error('[testing] Error fetching guest cart:', error);
+    throw error;
+  }
+}
+
+/**
+ * Get cart by cart ID
+ * @param cartId - Cart ID
+ * @param tenantId - Tenant ID
+ * @returns Promise resolving to cart
+ */
+export async function getCartById(cartId: number, tenantId: string = TENANT_ID) {
+  try {
+    const response = await api.get(`/api/shop/cart/${cartId}`, { tenantId });
+    if (!response.ok) {
+      throw new Error('Failed to fetch cart');
+    }
+    const result = await response.json();
+    return result.data || { id: cartId, user_id: null, items: [] };
+  } catch (error) {
+    console.error('[testing] Error fetching cart by ID:', error);
+    throw error;
+  }
+}
+
+/**
+ * Associate guest cart with user (when guest logs in)
+ * @param cartId - Cart ID
+ * @param tenantId - Tenant ID
+ * @returns Promise resolving to updated cart
+ */
+export async function associateCartWithUser(cartId: number, tenantId: string = TENANT_ID) {
+  try {
+    const response = await api.post(`/api/shop/cart/${cartId}/associate`, {}, { tenantId });
+    if (!response.ok) {
+      throw new Error('Failed to associate cart with user');
+    }
+    const result = await response.json();
+    return result.data;
+  } catch (error) {
+    console.error('[testing] Error associating cart with user:', error);
+    throw error;
+  }
+}
+
+/**
  * Get user's cart
  * Note: Requires user authentication
  */
@@ -65,6 +124,38 @@ export async function getCart(userId: number, tenantId: string = TENANT_ID) {
     return result.data || { id: null, user_id: userId, items: [] };
   } catch (error) {
     console.error('[testing] Error fetching cart:', error);
+    throw error;
+  }
+}
+
+/**
+ * Add item to guest cart (by cart_id)
+ * @param cartId - Cart ID
+ * @param productId - Product ID
+ * @param quantity - Quantity
+ * @param tenantId - Tenant ID
+ * @returns Promise resolving to cart item
+ */
+export async function addToGuestCart(
+  cartId: number,
+  productId: number,
+  quantity: number,
+  tenantId: string = TENANT_ID
+) {
+  try {
+    const response = await api.post(
+      `/api/shop/cart/guest/${cartId}`,
+      { product_id: productId, quantity },
+      { tenantId }
+    );
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || 'Failed to add item to cart');
+    }
+    const result = await response.json();
+    return result.data;
+  } catch (error) {
+    console.error('[testing] Error adding to guest cart:', error);
     throw error;
   }
 }
@@ -98,6 +189,36 @@ export async function addToCart(
 }
 
 /**
+ * Update guest cart item quantity
+ * @param cartItemId - Cart item ID
+ * @param quantity - New quantity
+ * @param tenantId - Tenant ID
+ * @returns Promise resolving to updated cart item
+ */
+export async function updateGuestCartItem(
+  cartItemId: number,
+  quantity: number,
+  tenantId: string = TENANT_ID
+) {
+  try {
+    const response = await api.put(
+      `/api/shop/cart/guest/${cartItemId}`,
+      { quantity },
+      { tenantId }
+    );
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || 'Failed to update cart item');
+    }
+    const result = await response.json();
+    return result.data;
+  } catch (error) {
+    console.error('[testing] Error updating guest cart item:', error);
+    throw error;
+  }
+}
+
+/**
  * Update cart item quantity
  * Note: Requires user authentication
  */
@@ -120,6 +241,26 @@ export async function updateCartItem(
     return result.data;
   } catch (error) {
     console.error('[testing] Error updating cart item:', error);
+    throw error;
+  }
+}
+
+/**
+ * Remove item from guest cart
+ * @param cartItemId - Cart item ID
+ * @param tenantId - Tenant ID
+ * @returns Promise resolving to true if successful
+ */
+export async function removeFromGuestCart(cartItemId: number, tenantId: string = TENANT_ID) {
+  try {
+    const response = await api.delete(`/api/shop/cart/guest/${cartItemId}`, { tenantId });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || 'Failed to remove item from cart');
+    }
+    return true;
+  } catch (error) {
+    console.error('[testing] Error removing from guest cart:', error);
     throw error;
   }
 }

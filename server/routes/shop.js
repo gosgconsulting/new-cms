@@ -10,7 +10,11 @@ import {
   updateProduct,
   deleteProduct,
   getCart,
+  getCartById,
+  getOrCreateGuestCart,
+  associateCartWithUser,
   addToCart,
+  addToCartById,
   updateCartItem,
   removeFromCart,
   getOrders,
@@ -1024,6 +1028,197 @@ router.delete('/products/:id', authenticateTenantApiKey, async (req, res) => {
 
 // ===== CART ROUTES (PERN-Store Schema) =====
 
+// Get or create guest cart (no authentication required, but needs tenant API key)
+router.get('/cart/guest', authenticateTenantApiKey, async (req, res) => {
+  try {
+    const tenantId = req.tenantId;
+    const cart = await getOrCreateGuestCart(tenantId);
+
+    res.json({ 
+      success: true, 
+      data: cart 
+    });
+  } catch (error) {
+    console.error('[testing] Error fetching guest cart:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
+  }
+});
+
+// Get cart by cart ID (for guest carts or logged-in users)
+router.get('/cart/:cartId', authenticateTenantApiKey, async (req, res) => {
+  try {
+    const tenantId = req.tenantId;
+    const cartId = parseInt(req.params.cartId);
+
+    if (isNaN(cartId)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid cart ID'
+      });
+    }
+
+    const cart = await getCartById(cartId, tenantId);
+
+    if (!cart) {
+      return res.status(404).json({
+        success: false,
+        error: 'Cart not found'
+      });
+    }
+
+    res.json({ 
+      success: true, 
+      data: cart 
+    });
+  } catch (error) {
+    console.error('[testing] Error fetching cart by ID:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
+  }
+});
+
+// Associate guest cart with user (when guest logs in)
+router.post('/cart/:cartId/associate', authenticateUser, authenticateTenantApiKey, async (req, res) => {
+  try {
+    const tenantId = req.tenantId;
+    const userId = req.user.id;
+    const cartId = parseInt(req.params.cartId);
+
+    if (isNaN(cartId)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid cart ID'
+      });
+    }
+
+    const result = await associateCartWithUser(cartId, userId, tenantId);
+
+    if (!result) {
+      return res.status(404).json({
+        success: false,
+        error: 'Cart not found or already associated with a user'
+      });
+    }
+
+    res.json({ 
+      success: true, 
+      data: result,
+      message: 'Cart associated with user account'
+    });
+  } catch (error) {
+    console.error('[testing] Error associating cart with user:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
+  }
+});
+
+// Add item to guest cart (by cart_id, no authentication required)
+router.post('/cart/guest/:cartId', authenticateTenantApiKey, async (req, res) => {
+  try {
+    const tenantId = req.tenantId;
+    const cartId = parseInt(req.params.cartId);
+    const { product_id, quantity } = req.body;
+
+    if (isNaN(cartId)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid cart ID'
+      });
+    }
+
+    if (!product_id || !quantity) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Product ID and quantity are required' 
+      });
+    }
+
+    const cartItem = await addToCartById(cartId, parseInt(product_id), parseInt(quantity), tenantId);
+
+    res.json({ 
+      success: true, 
+      data: cartItem 
+    });
+  } catch (error) {
+    console.error('[testing] Error adding to guest cart:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
+  }
+});
+
+// Update guest cart item (no authentication required, but needs tenant API key)
+router.put('/cart/guest/:itemId', authenticateTenantApiKey, async (req, res) => {
+  try {
+    const tenantId = req.tenantId;
+    const cartItemId = parseInt(req.params.itemId);
+    const { quantity } = req.body;
+
+    if (quantity === undefined) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Quantity is required' 
+      });
+    }
+
+    const cartItem = await updateCartItem(cartItemId, parseInt(quantity), tenantId);
+
+    if (!cartItem) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'Cart item not found' 
+      });
+    }
+
+    res.json({ 
+      success: true, 
+      data: cartItem 
+    });
+  } catch (error) {
+    console.error('[testing] Error updating guest cart item:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
+  }
+});
+
+// Remove item from guest cart (no authentication required, but needs tenant API key)
+router.delete('/cart/guest/:itemId', authenticateTenantApiKey, async (req, res) => {
+  try {
+    const tenantId = req.tenantId;
+    const cartItemId = parseInt(req.params.itemId);
+
+    const deleted = await removeFromCart(cartItemId, tenantId);
+
+    if (!deleted) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'Cart item not found' 
+      });
+    }
+
+    res.json({ 
+      success: true, 
+      message: 'Item removed from cart' 
+    });
+  } catch (error) {
+    console.error('[testing] Error removing from guest cart:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
+  }
+});
+
 // Get user's cart
 router.get('/cart', authenticateUser, authenticateTenantApiKey, async (req, res) => {
   try {
@@ -1547,6 +1742,7 @@ router.post('/orders', authenticateUser, authenticateTenantApiKey, async (req, r
     }
 
     let stripePaymentIntentId = null;
+    let stripeClientSecret = null;
     let orderRef = ref || generateOrderNumber();
 
     // If payment method is STRIPE and Stripe is configured, create Payment Intent
@@ -1579,6 +1775,7 @@ router.post('/orders', authenticateUser, authenticateTenantApiKey, async (req, r
             });
 
             stripePaymentIntentId = paymentIntent.id;
+            stripeClientSecret = paymentIntent.client_secret;
             orderRef = paymentIntent.id; // Use Payment Intent ID as order reference
             
             console.log(`[testing] Created Stripe Payment Intent ${stripePaymentIntentId} for order ${orderRef} on Connect account ${tenant.stripe_connect_account_id}`);
@@ -1596,6 +1793,7 @@ router.post('/orders', authenticateUser, authenticateTenantApiKey, async (req, r
             });
 
             stripePaymentIntentId = paymentIntent.id;
+            stripeClientSecret = paymentIntent.client_secret;
             orderRef = paymentIntent.id; // Use Payment Intent ID as order reference
             
             console.log(`[testing] Created Stripe Payment Intent ${stripePaymentIntentId} for order ${orderRef} (direct payment, no Connect required)`);
@@ -1631,6 +1829,7 @@ router.post('/orders', authenticateUser, authenticateTenantApiKey, async (req, r
       data: {
         ...order,
         stripe_payment_intent_id: stripePaymentIntentId, // Include in response
+        stripe_client_secret: stripeClientSecret, // Include client_secret for frontend payment confirmation
       }
     });
   } catch (error) {
@@ -1862,6 +2061,45 @@ router.get('/stripe/config', authenticateTenantApiKey, async (req, res) => {
     });
   } catch (error) {
     console.error('[testing] Error fetching Stripe configuration:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Get Stripe publishable key for a tenant
+router.get('/stripe/publishable-key', authenticateTenantApiKey, async (req, res) => {
+  try {
+    const tenantId = req.tenantId;
+    
+    const tenantResult = await query(`
+      SELECT stripe_secret_key
+      FROM tenants
+      WHERE id = $1
+    `, [tenantId]);
+
+    const stripeSecretKey = tenantResult.rows[0]?.stripe_secret_key || process.env.STRIPE_SECRET_KEY;
+    
+    if (!stripeSecretKey) {
+      return res.status(404).json({
+        success: false,
+        error: 'Stripe is not configured for this tenant'
+      });
+    }
+
+    // Convert secret key to publishable key format
+    // sk_test_... -> pk_test_... or sk_live_... -> pk_live_...
+    const publishableKey = stripeSecretKey.replace(/^sk_(test|live)_/, 'pk_$1_');
+    
+    res.json({
+      success: true,
+      data: {
+        publishable_key: publishableKey
+      }
+    });
+  } catch (error) {
+    console.error('[testing] Error getting Stripe publishable key:', error);
     res.status(500).json({
       success: false,
       error: error.message
@@ -2196,6 +2434,33 @@ router.post('/stripe/webhook', async (req, res) => {
           SET stripe_connect_onboarding_completed = $1
           WHERE stripe_connect_account_id = $2
         `, [account.details_submitted && account.charges_enabled, account.id]);
+      }
+    }
+
+    // Handle payment_intent.succeeded event (payment confirmation)
+    if (event && event.type === 'payment_intent.succeeded') {
+      const paymentIntent = event.data.object;
+      const paymentIntentId = paymentIntent.id;
+      
+      // Find order by payment intent ID (stored in ref field or stripe_payment_intent_id column)
+      const orderResult = await query(`
+        SELECT id, tenant_id
+        FROM orders
+        WHERE ref = $1 OR stripe_payment_intent_id = $1
+      `, [paymentIntentId]);
+
+      if (orderResult.rows.length > 0) {
+        const order = orderResult.rows[0];
+        // Update order status to 'paid'
+        await query(`
+          UPDATE orders
+          SET status = 'paid'
+          WHERE id = $1
+        `, [order.id]);
+        
+        console.log(`[testing] Updated order ${order.id} status to 'paid' after successful payment intent ${paymentIntentId}`);
+      } else {
+        console.warn(`[testing] Could not find order for payment intent ${paymentIntentId}`);
       }
     }
 

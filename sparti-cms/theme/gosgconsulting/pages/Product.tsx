@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { ShoppingCart, Star, Loader2, ArrowLeft } from 'lucide-react';
-import { getProductBySlug, getReviews, addToCart } from '../services/shopApi';
+import { getProductBySlug, getReviews, addToCart, getOrCreateGuestCart, addToGuestCart } from '../services/shopApi';
 
 interface Product {
   product_id: number;
@@ -115,17 +115,39 @@ const Product: React.FC = () => {
     if (!product) return;
 
     const userId = getUserId();
-    if (!userId) {
-      alert('Please log in to add items to cart');
-      navigate('/theme/gosgconsulting/auth');
-      return;
-    }
-
+    const tenantId = 'tenant-gosg';
     setAddingToCart(true);
+    
     try {
-      await addToCart(userId, product.product_id, quantity);
-      alert('Item added to cart!');
-      navigate('/theme/gosgconsulting/cart');
+      if (userId) {
+        // Logged in user - add via API
+        await addToCart(userId, product.product_id, quantity, tenantId);
+        alert('Item added to cart!');
+        navigate('/theme/gosgconsulting/cart');
+      } else {
+        // Guest user - get or create cart, then add item
+        let cartId = null;
+        const storedCartId = localStorage.getItem('sparti-guest-cart-id');
+        
+        if (storedCartId) {
+          cartId = parseInt(storedCartId);
+        } else {
+          // Create new guest cart
+          const cart = await getOrCreateGuestCart(tenantId);
+          cartId = cart.id;
+          localStorage.setItem('sparti-guest-cart-id', cartId.toString());
+        }
+        
+        if (!cartId) {
+          throw new Error('Failed to get cart ID');
+        }
+        
+        // Add item to guest cart
+        await addToGuestCart(cartId, product.product_id, quantity, tenantId);
+        console.log('[testing] Item added to guest cart:', { cartId, productId: product.product_id, quantity });
+        alert('Item added to cart!');
+        navigate('/theme/gosgconsulting/cart');
+      }
     } catch (err: any) {
       console.error('[testing] Error adding to cart:', err);
       alert(err.message || 'Failed to add item to cart');
@@ -152,7 +174,7 @@ const Product: React.FC = () => {
       <Star
         key={i}
         className={`h-4 w-4 ${
-          i < rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
+          i < rating ? 'fill-yellow-400 text-yellow-400' : 'text-muted-foreground'
         }`}
       />
     ));
@@ -160,10 +182,10 @@ const Product: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
           <Loader2 className="h-8 w-8 animate-spin text-blue-600 mx-auto mb-4" />
-          <p className="text-gray-600">Loading product...</p>
+          <p className="text-muted-foreground">Loading product...</p>
         </div>
       </div>
     );
@@ -171,13 +193,13 @@ const Product: React.FC = () => {
 
   if (error || !product) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+      <div className="min-h-screen flex items-center justify-center bg-background px-4">
         <div className="text-center max-w-md">
-          <h2 className="text-2xl font-bold mb-2 text-gray-900">Product Not Found</h2>
-          <p className="text-gray-600 mb-2">{error || 'The product you are looking for does not exist.'}</p>
+          <h2 className="text-2xl font-bold mb-2 text-foreground">Product Not Found</h2>
+          <p className="text-muted-foreground mb-2">{error || 'The product you are looking for does not exist.'}</p>
           {productSlug && (
-            <p className="text-sm text-gray-500 mb-6">
-              Slug: <code className="bg-gray-100 px-2 py-1 rounded">{productSlug}</code>
+            <p className="text-sm text-muted-foreground mb-6">
+              Slug: <code className="bg-muted px-2 py-1 rounded">{productSlug}</code>
             </p>
           )}
           <button
@@ -197,20 +219,20 @@ const Product: React.FC = () => {
     : 0;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto px-4 py-8 md:px-6 md:py-12">
         <button
           onClick={() => navigate('/theme/gosgconsulting/shop')}
-          className="mb-6 flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
+          className="mb-6 flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
           <span>Back to Shop</span>
         </button>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-6 md:p-8">
             {/* Product Image */}
-            <div className="bg-gray-100 rounded-lg overflow-hidden aspect-square">
+            <div className="bg-muted rounded-lg overflow-hidden aspect-square">
               {product.image_url ? (
                 <img
                   src={product.image_url}
@@ -221,15 +243,15 @@ const Product: React.FC = () => {
                   }}
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center bg-gray-200">
-                  <ShoppingCart className="h-24 w-24 text-gray-400" />
+                <div className="w-full h-full flex items-center justify-center bg-muted">
+                  <ShoppingCart className="h-24 w-24 text-muted-foreground" />
                 </div>
               )}
             </div>
 
             {/* Product Details */}
             <div className="flex flex-col">
-              <h1 className="text-3xl md:text-4xl font-bold mb-4 text-gray-900">{product.name}</h1>
+              <h1 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">{product.name}</h1>
               
               <div className="flex items-center gap-4 mb-6">
                 <span className="text-3xl font-bold text-blue-600">
@@ -238,7 +260,7 @@ const Product: React.FC = () => {
                 {reviews.length > 0 && (
                   <div className="flex items-center gap-2">
                     {renderStars(Math.round(averageRating))}
-                    <span className="text-sm text-gray-600">
+                    <span className="text-sm text-muted-foreground">
                       ({reviews.length} review{reviews.length !== 1 ? 's' : ''})
                     </span>
                   </div>
@@ -246,16 +268,16 @@ const Product: React.FC = () => {
               </div>
 
               <div className="mb-6 flex-1">
-                <h2 className="text-lg font-semibold mb-2 text-gray-900">Description</h2>
-                <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">
+                <h2 className="text-lg font-semibold mb-2 text-foreground">Description</h2>
+                <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed">
                   {product.description || 'No description available.'}
                 </p>
               </div>
 
               {/* Quantity and Add to Cart */}
-              <div className="border-t border-gray-200 pt-6 mt-auto">
+              <div className="border-t border-border pt-6 mt-auto">
                 <div className="flex items-center gap-4 mb-6">
-                  <label htmlFor="quantity" className="font-semibold text-gray-900">
+                  <label htmlFor="quantity" className="font-semibold text-foreground">
                     Quantity:
                   </label>
                   <input
@@ -264,7 +286,7 @@ const Product: React.FC = () => {
                     min="1"
                     value={quantity}
                     onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                    className="w-20 px-3 py-2 border border-gray-300 rounded-lg text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-20 px-3 py-2 border border-border rounded-lg text-center bg-background focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
                 <button
@@ -291,21 +313,21 @@ const Product: React.FC = () => {
 
         {/* Reviews Section */}
         {reviews.length > 0 && (
-          <div className="mt-12 bg-white rounded-lg shadow-sm border border-gray-200 p-6 md:p-8">
-            <h2 className="text-2xl font-bold mb-6 text-gray-900">Customer Reviews</h2>
+          <div className="mt-12 bg-card border border-border rounded-lg shadow-sm p-6 md:p-8">
+            <h2 className="text-2xl font-bold mb-6 text-foreground">Customer Reviews</h2>
             <div className="space-y-6">
               {reviews.map((review) => (
-                <div key={review.id} className="border-b border-gray-200 pb-6 last:border-b-0 last:pb-0">
+                <div key={review.id} className="border-b border-border pb-6 last:border-b-0 last:pb-0">
                   <div className="flex items-start gap-4 mb-3">
                     <div className="flex items-center gap-2">
                       {renderStars(review.rating)}
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
-                        <span className="font-semibold text-gray-900">
+                        <span className="font-semibold text-foreground">
                           {review.user_name || 'Anonymous'}
                         </span>
-                        <span className="text-sm text-gray-500">
+                        <span className="text-sm text-muted-foreground">
                           {new Date(review.date).toLocaleDateString('en-US', {
                             year: 'numeric',
                             month: 'long',
@@ -313,7 +335,7 @@ const Product: React.FC = () => {
                           })}
                         </span>
                       </div>
-                      <p className="text-gray-700 leading-relaxed">{review.content}</p>
+                      <p className="text-muted-foreground leading-relaxed">{review.content}</p>
                     </div>
                   </div>
                 </div>
@@ -323,8 +345,8 @@ const Product: React.FC = () => {
         )}
 
         {reviews.length === 0 && (
-          <div className="mt-12 bg-white rounded-lg shadow-sm border border-gray-200 p-6 md:p-8 text-center">
-            <p className="text-gray-600">No reviews yet. Be the first to review this product!</p>
+          <div className="mt-12 bg-card border border-border rounded-lg shadow-sm p-6 md:p-8 text-center">
+            <p className="text-muted-foreground">No reviews yet. Be the first to review this product!</p>
           </div>
         )}
       </div>

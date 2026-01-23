@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import { getCart, createOrder } from '../services/shopApi';
+import { StripeCheckout } from '../../../components/checkout/StripeCheckout';
+import { getStripePublishableKey, createOrderWithPayment } from '../../../services/stripeCheckout';
 
 interface CartItem {
   id: number;
@@ -35,6 +37,10 @@ const Checkout: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showStripeCheckout, setShowStripeCheckout] = useState(false);
+  const [stripePublishableKey, setStripePublishableKey] = useState<string | null>(null);
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [orderId, setOrderId] = useState<number | null>(null);
   const [formData, setFormData] = useState<FormData>({
     name: '',
     email: '',
@@ -135,6 +141,8 @@ const Checkout: React.FC = () => {
         throw new Error('Please log in to complete checkout');
       }
 
+      const tenantId = 'tenant-gosg'; // Default tenant ID for gosgconsulting
+
       const orderData = {
         items: cart.items.map((item) => ({
           product_id: item.product_id,
@@ -146,6 +154,33 @@ const Checkout: React.FC = () => {
         payment_method: formData.payment_method,
       };
 
+      // If Stripe, create order and show payment form
+      if (formData.payment_method === 'STRIPE') {
+        // Get publishable key
+        const pubKey = await getStripePublishableKey(tenantId);
+        if (!pubKey) {
+          throw new Error('Stripe is not configured. Please contact support.');
+        }
+        setStripePublishableKey(pubKey);
+
+        // Create order with payment intent
+        const { order, clientSecret: secret } = await createOrderWithPayment(
+          { ...orderData, payment_method: 'STRIPE' },
+          tenantId
+        );
+
+        if (!secret) {
+          throw new Error('Failed to initialize payment. Please try again.');
+        }
+
+        setOrderId(order.id);
+        setClientSecret(secret);
+        setShowStripeCheckout(true);
+        setSubmitting(false);
+        return;
+      }
+
+      // For other payment methods (Paystack), use existing flow
       const order = await createOrder(orderData);
 
       // Redirect to success page or show success message
@@ -338,6 +373,7 @@ const Checkout: React.FC = () => {
                       checked={formData.payment_method === 'STRIPE'}
                       onChange={handleInputChange}
                       className="w-4 h-4"
+                      disabled={showStripeCheckout}
                     />
                     <span className="font-medium">Stripe</span>
                   </label>
@@ -349,11 +385,33 @@ const Checkout: React.FC = () => {
                       checked={formData.payment_method === 'PAYSTACK'}
                       onChange={handleInputChange}
                       className="w-4 h-4"
+                      disabled={showStripeCheckout}
                     />
                     <span className="font-medium">Paystack</span>
                   </label>
                 </div>
               </div>
+
+              {/* Stripe Checkout Form */}
+              {formData.payment_method === 'STRIPE' && showStripeCheckout && stripePublishableKey && clientSecret && (
+                <div className="bg-card border border-border rounded-lg p-6">
+                  <h2 className="text-xl font-bold mb-4">Complete Payment</h2>
+                  <StripeCheckout
+                    clientSecret={clientSecret}
+                    publishableKey={stripePublishableKey}
+                    onSuccess={(paymentIntent) => {
+                      console.log('[testing] Payment succeeded:', paymentIntent);
+                      navigate('/theme/gosgconsulting/checkout/success', {
+                        state: { orderId, paymentIntentId: paymentIntent.id }
+                      });
+                    }}
+                    onError={(error) => {
+                      setError(error.message);
+                      setShowStripeCheckout(false);
+                    }}
+                  />
+                </div>
+              )}
             </div>
 
             {/* Order Summary */}
@@ -385,7 +443,7 @@ const Checkout: React.FC = () => {
 
                 <button
                   type="submit"
-                  disabled={submitting || !formData.payment_method}
+                  disabled={submitting || !formData.payment_method || showStripeCheckout}
                   className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                   {submitting ? (

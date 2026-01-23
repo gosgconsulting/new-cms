@@ -14,6 +14,7 @@ import Shop from './pages/Shop';
 import Cart from './pages/Cart';
 import Product from './pages/Product';
 import Checkout from './pages/Checkout';
+import CheckoutSuccess from './pages/CheckoutSuccess';
 import NotFound from './pages/NotFound';
 import { ThankYouPage } from './components/ThankYouPage';
 import Blog from './components/Blog';
@@ -407,13 +408,27 @@ const GOSGTheme: React.FC<TenantLandingProps> = ({
   // Determine which page to render
   // Priority: 1) pageSlug prop, 2) params.pageSlug, 3) extract from pathname, 4) homepage
   const currentPage = useMemo(() => {
+    // Check for checkout/success route first (special nested route)
+    if (location.pathname.includes('/checkout/success')) {
+      return 'checkout/success';
+    }
+    
     // Check pageSlug prop first (passed from TenantLandingPage)
+    // This handles cases like "product/test" from /theme/gosgconsulting/product/test
     if (pageSlug) {
+      // If pageSlug starts with "product/", it's a product page
+      if (pageSlug.startsWith('product/')) {
+        return 'product';
+      }
       return pageSlug;
     }
     
     // Check if we have a pageSlug param (from /theme/:tenantSlug/:pageSlug route)
     if (params.pageSlug) {
+      // If pageSlug starts with "product/", it's a product page
+      if (params.pageSlug.startsWith('product/')) {
+        return 'product';
+      }
       return params.pageSlug;
     }
     
@@ -454,19 +469,28 @@ const GOSGTheme: React.FC<TenantLandingProps> = ({
   // Extract product name for product page
   const getProductName = () => {
     if (currentPage === 'product') {
-      // Try to get from params first
+      // Try to get from params first (direct route param)
       if (params.productname) {
         return params.productname;
       }
-      // Check if pageSlug contains product path
+      // Check if pageSlug contains product path (from TenantLandingPage)
       if (pageSlug && pageSlug.startsWith('product/')) {
         return pageSlug.replace('product/', '');
+      }
+      // Check params.pageSlug (alternative route format)
+      if (params.pageSlug && params.pageSlug.startsWith('product/')) {
+        return params.pageSlug.replace('product/', '');
       }
       // Otherwise extract from pathname
       const pathParts = location.pathname.split('/').filter(Boolean);
       const themeIndex = pathParts.indexOf(tenantSlug);
       if (themeIndex >= 0 && themeIndex + 2 < pathParts.length && pathParts[themeIndex + 1] === 'product') {
         return pathParts[themeIndex + 2];
+      }
+      // Fallback: try to extract from any path that includes /product/
+      const productIndex = pathParts.indexOf('product');
+      if (productIndex >= 0 && productIndex < pathParts.length - 1) {
+        return pathParts[productIndex + 1];
       }
     }
     return null;
@@ -494,13 +518,15 @@ const GOSGTheme: React.FC<TenantLandingProps> = ({
         return <Product />;
       case 'checkout':
         return <Checkout />;
+      case 'checkout/success':
+        return <CheckoutSuccess />;
       default:
         return <NotFound />;
     }
   };
 
   // For shop pages, we need to wrap them with Header and Footer
-  const needsLayout = ['shop', 'cart', 'product', 'checkout'].includes(currentPage || '');
+  const needsLayout = ['shop', 'cart', 'product', 'checkout', 'checkout/success'].includes(currentPage || '');
 
   if (needsLayout) {
     return (

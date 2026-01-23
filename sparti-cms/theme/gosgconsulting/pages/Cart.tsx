@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ShoppingCart, Trash2, Plus, Minus, Loader2, ArrowRight } from 'lucide-react';
-import { getCart, updateCartItem, removeFromCart } from '../services/shopApi';
+import { getCart, getCartById, getOrCreateGuestCart, updateCartItem, updateGuestCartItem, removeFromCart, removeFromGuestCart, associateCartWithUser } from '../services/shopApi';
 
 interface CartItem {
   id: number;
@@ -41,25 +41,85 @@ const Cart: React.FC = () => {
     return null;
   };
 
+  // Get guest cart ID from localStorage
+  const getGuestCartId = (): number | null => {
+    try {
+      const cartId = localStorage.getItem('sparti-guest-cart-id');
+      if (cartId) {
+        return parseInt(cartId);
+      }
+    } catch (err) {
+      console.error('[testing] Error parsing guest cart ID:', err);
+    }
+    return null;
+  };
+
   useEffect(() => {
     const fetchCart = async () => {
       const userId = getUserId();
-      if (!userId) {
-        setError('Please log in to view your cart');
-        setLoading(false);
-        return;
-      }
-
-      try {
-        setLoading(true);
-        setError(null);
-        const data = await getCart(userId);
-        setCart(data);
-      } catch (err: any) {
-        console.error('Error fetching cart:', err);
-        setError(err.message || 'Failed to load cart');
-      } finally {
-        setLoading(false);
+      const tenantId = 'tenant-gosg';
+      
+      if (userId) {
+        // User is logged in - check if we have a guest cart to associate
+        const guestCartId = getGuestCartId();
+        if (guestCartId) {
+          try {
+            // Associate guest cart with user
+            await associateCartWithUser(guestCartId, tenantId);
+            console.log('[testing] Associated guest cart with user:', guestCartId);
+            // Clear guest cart ID from localStorage
+            localStorage.removeItem('sparti-guest-cart-id');
+          } catch (err: any) {
+            console.warn('[testing] Failed to associate guest cart (may already be associated):', err);
+            // Clear guest cart ID anyway
+            localStorage.removeItem('sparti-guest-cart-id');
+          }
+        }
+        
+        // Fetch user's cart
+        try {
+          setLoading(true);
+          setError(null);
+          const data = await getCart(userId, tenantId);
+          setCart(data);
+        } catch (err: any) {
+          console.error('[testing] Error fetching cart:', err);
+          setError(err.message || 'Failed to load cart');
+        } finally {
+          setLoading(false);
+        }
+      } else {
+        // Guest user - get or create cart, then fetch by cart_id
+        try {
+          setLoading(true);
+          setError(null);
+          
+          let cartId = getGuestCartId();
+          
+          if (!cartId) {
+            // Create new guest cart
+            const newCart = await getOrCreateGuestCart(tenantId);
+            cartId = newCart.id;
+            if (cartId) {
+              localStorage.setItem('sparti-guest-cart-id', cartId.toString());
+            }
+          }
+          
+          if (cartId) {
+            // Fetch cart by ID
+            const cartData = await getCartById(cartId, tenantId);
+            console.log('[testing] Guest cart loaded:', cartData);
+            setCart(cartData);
+          } else {
+            // Empty guest cart
+            setCart({ id: 0, user_id: 0, items: [] });
+          }
+        } catch (err: any) {
+          console.error('[testing] Error loading guest cart:', err);
+          setError(err.message || 'Failed to load cart');
+        } finally {
+          setLoading(false);
+        }
       }
     };
 
@@ -72,17 +132,29 @@ const Cart: React.FC = () => {
       return;
     }
 
+    const userId = getUserId();
+    const tenantId = 'tenant-gosg';
     setUpdating(cartItemId);
+    
     try {
-      await updateCartItem(cartItemId, newQuantity);
-      // Refresh cart
-      const userId = getUserId();
       if (userId) {
-        const data = await getCart(userId);
+        // Logged in user - update via API
+        await updateCartItem(cartItemId, newQuantity, tenantId);
+        // Refresh cart
+        const data = await getCart(userId, tenantId);
         setCart(data);
+      } else {
+        // Guest user - update via API
+        await updateGuestCartItem(cartItemId, newQuantity, tenantId);
+        // Refresh cart
+        const cartId = getGuestCartId();
+        if (cartId) {
+          const data = await getCartById(cartId, tenantId);
+          setCart(data);
+        }
       }
     } catch (err: any) {
-      console.error('Error updating cart item:', err);
+      console.error('[testing] Error updating cart item:', err);
       alert(err.message || 'Failed to update cart item');
     } finally {
       setUpdating(null);
@@ -90,17 +162,29 @@ const Cart: React.FC = () => {
   };
 
   const handleRemoveItem = async (cartItemId: number) => {
+    const userId = getUserId();
+    const tenantId = 'tenant-gosg';
     setUpdating(cartItemId);
+    
     try {
-      await removeFromCart(cartItemId);
-      // Refresh cart
-      const userId = getUserId();
       if (userId) {
-        const data = await getCart(userId);
+        // Logged in user - remove via API
+        await removeFromCart(cartItemId, tenantId);
+        // Refresh cart
+        const data = await getCart(userId, tenantId);
         setCart(data);
+      } else {
+        // Guest user - remove via API
+        await removeFromGuestCart(cartItemId, tenantId);
+        // Refresh cart
+        const cartId = getGuestCartId();
+        if (cartId) {
+          const data = await getCartById(cartId, tenantId);
+          setCart(data);
+        }
       }
     } catch (err: any) {
-      console.error('Error removing cart item:', err);
+      console.error('[testing] Error removing cart item:', err);
       alert(err.message || 'Failed to remove item');
     } finally {
       setUpdating(null);
@@ -251,7 +335,16 @@ const Cart: React.FC = () => {
                 </div>
               </div>
               <button
-                onClick={() => navigate('/theme/gosgconsulting/checkout')}
+                onClick={() => {
+                  const userId = getUserId();
+                  if (!userId) {
+                    if (confirm('Please log in to proceed to checkout. Would you like to go to the login page?')) {
+                      navigate('/theme/gosgconsulting/auth');
+                    }
+                  } else {
+                    navigate('/theme/gosgconsulting/checkout');
+                  }
+                }}
                 className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
               >
                 Proceed to Checkout
