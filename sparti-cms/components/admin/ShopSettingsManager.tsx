@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { CreditCard, CheckCircle, XCircle, ExternalLink, RefreshCw, Settings, Truck, Puzzle, Eye, EyeOff, Key } from 'lucide-react';
+import { CreditCard, CheckCircle, XCircle, ExternalLink, RefreshCw, Settings, Truck, Puzzle, Eye, EyeOff, Key, Edit2, X } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import { api } from '../../utils/api';
 import { Button } from '@/components/ui/button';
@@ -58,7 +58,9 @@ export default function ShopSettingsManager({ currentTenantId, activeTab: propAc
     mutationFn: async () => {
       const response = await api.post('/api/shop/stripe/connect', undefined, { tenantId: currentTenantId });
       if (!response.ok) {
-        throw new Error('Failed to initiate Stripe Connect');
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = errorData.error || 'Failed to initiate Stripe Connect';
+        throw new Error(errorMessage);
       }
       return response.json();
     },
@@ -400,6 +402,7 @@ export default function ShopSettingsManager({ currentTenantId, activeTab: propAc
     const [showSecretKey, setShowSecretKey] = useState(false);
     const [showWebhookSecret, setShowWebhookSecret] = useState(false);
     const [isSavingConfig, setIsSavingConfig] = useState(false);
+    const [isEditingConfig, setIsEditingConfig] = useState(false);
     const [configMessage, setConfigMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
     // Fetch current Stripe configuration
@@ -416,14 +419,18 @@ export default function ShopSettingsManager({ currentTenantId, activeTab: propAc
       enabled: !!currentTenantId,
     });
 
-    // Update form fields when config is loaded
+    // Reset edit mode when config changes
     useEffect(() => {
       if (stripeConfig) {
         // Don't populate actual values for security, just show placeholder if configured
         setStripeSecretKey('');
         setStripeWebhookSecret('');
+        // Exit edit mode after successful save (when config is updated)
+        if (configMessage?.type === 'success') {
+          setIsEditingConfig(false);
+        }
       }
-    }, [stripeConfig]);
+    }, [stripeConfig, configMessage]);
 
     // Mutation to update Stripe configuration
     const updateConfigMutation = useMutation({
@@ -442,6 +449,7 @@ export default function ShopSettingsManager({ currentTenantId, activeTab: propAc
         // Clear form fields after successful save
         setStripeSecretKey('');
         setStripeWebhookSecret('');
+        setIsEditingConfig(false);
         // Clear message after 3 seconds
         setTimeout(() => setConfigMessage(null), 3000);
       },
@@ -476,6 +484,22 @@ export default function ShopSettingsManager({ currentTenantId, activeTab: propAc
       }
     };
 
+    const handleCancelEdit = () => {
+      setIsEditingConfig(false);
+      setStripeSecretKey('');
+      setStripeWebhookSecret('');
+      setConfigMessage(null);
+    };
+
+    const handleStartEdit = () => {
+      setIsEditingConfig(true);
+      setConfigMessage(null);
+    };
+
+    // Determine if we should show edit mode
+    const hasAnyKey = stripeConfig?.has_stripe_secret_key || stripeConfig?.has_stripe_webhook_secret;
+    const showEditForm = isEditingConfig || !hasAnyKey;
+
     return (
       <div className="space-y-6">
         {/* Stripe Configuration Card */}
@@ -494,24 +518,12 @@ export default function ShopSettingsManager({ currentTenantId, activeTab: propAc
           <CardContent className="space-y-4">
             {isLoadingConfig ? (
               <div className="text-center py-4">Loading configuration...</div>
-            ) : (
+            ) : showEditForm ? (
               <>
                 <Alert className="bg-blue-50 border-blue-200">
                   <AlertDescription className="text-blue-800">
                     <strong>Note:</strong> Enter your Stripe secret key and webhook secret here. 
                     These keys are stored securely in the database and are specific to this tenant.
-                    {stripeConfig?.has_stripe_secret_key && (
-                      <div className="mt-2">
-                        <CheckCircle className="h-4 w-4 inline mr-1" />
-                        Secret key is configured
-                      </div>
-                    )}
-                    {stripeConfig?.has_stripe_webhook_secret && (
-                      <div className="mt-1">
-                        <CheckCircle className="h-4 w-4 inline mr-1" />
-                        Webhook secret is configured
-                      </div>
-                    )}
                   </AlertDescription>
                 </Alert>
 
@@ -525,7 +537,7 @@ export default function ShopSettingsManager({ currentTenantId, activeTab: propAc
                         type={showSecretKey ? 'text' : 'password'}
                         value={stripeSecretKey}
                         onChange={(e) => setStripeSecretKey(e.target.value)}
-                        placeholder={stripeConfig?.has_stripe_secret_key ? 'Enter new key to update (or leave blank)' : 'sk_test_... or sk_live_...'}
+                        placeholder={stripeConfig?.has_stripe_secret_key ? 'Enter new key to update' : 'sk_test_... or sk_live_...'}
                         className="w-full px-3 py-2 pr-10 border border-border rounded-lg focus:ring-2 focus:ring-brandPurple focus:border-transparent"
                       />
                       <button
@@ -550,7 +562,7 @@ export default function ShopSettingsManager({ currentTenantId, activeTab: propAc
                         type={showWebhookSecret ? 'text' : 'password'}
                         value={stripeWebhookSecret}
                         onChange={(e) => setStripeWebhookSecret(e.target.value)}
-                        placeholder={stripeConfig?.has_stripe_webhook_secret ? 'Enter new secret to update (or leave blank)' : 'whsec_...'}
+                        placeholder={stripeConfig?.has_stripe_webhook_secret ? 'Enter new secret to update' : 'whsec_...'}
                         className="w-full px-3 py-2 pr-10 border border-border rounded-lg focus:ring-2 focus:ring-brandPurple focus:border-transparent"
                       />
                       <button
@@ -577,7 +589,17 @@ export default function ShopSettingsManager({ currentTenantId, activeTab: propAc
                     </Alert>
                   )}
 
-                  <div className="flex justify-end">
+                  <div className="flex justify-end gap-2">
+                    {hasAnyKey && (
+                      <Button
+                        variant="outline"
+                        onClick={handleCancelEdit}
+                        disabled={isSavingConfig}
+                      >
+                        <X className="h-4 w-4 mr-2" />
+                        Cancel
+                      </Button>
+                    )}
                     <Button
                       onClick={handleSaveConfig}
                       disabled={isSavingConfig || (!stripeSecretKey && !stripeWebhookSecret)}
@@ -585,6 +607,71 @@ export default function ShopSettingsManager({ currentTenantId, activeTab: propAc
                       {isSavingConfig ? 'Saving...' : 'Save Configuration'}
                     </Button>
                   </div>
+                </div>
+              </>
+            ) : (
+              <>
+                <Alert className="bg-green-50 border-green-200">
+                  <CheckCircle className="h-4 w-4 text-green-600" />
+                  <AlertDescription className="text-green-800">
+                    <strong>Stripe keys are configured</strong> for this tenant. Your keys are stored securely.
+                  </AlertDescription>
+                </Alert>
+
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <div className="flex items-center space-x-3">
+                      <CheckCircle className="h-5 w-5 text-green-600" />
+                      <div>
+                        <div className="font-medium text-foreground">Stripe Secret Key</div>
+                        <div className="text-sm text-muted-foreground">
+                          {stripeConfig?.has_stripe_secret_key ? (
+                            <span className="font-mono text-xs">sk_***...****</span>
+                          ) : (
+                            <span className="text-amber-600">Not configured</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    {stripeConfig?.has_stripe_secret_key && (
+                      <Badge className="bg-green-500">
+                        <CheckCircle className="h-3 w-3 mr-1" />
+                        Configured
+                      </Badge>
+                    )}
+                  </div>
+
+                  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <div className="flex items-center space-x-3">
+                      <CheckCircle className="h-5 w-5 text-green-600" />
+                      <div>
+                        <div className="font-medium text-foreground">Stripe Webhook Secret</div>
+                        <div className="text-sm text-muted-foreground">
+                          {stripeConfig?.has_stripe_webhook_secret ? (
+                            <span className="font-mono text-xs">whsec_***...****</span>
+                          ) : (
+                            <span className="text-amber-600">Not configured</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    {stripeConfig?.has_stripe_webhook_secret && (
+                      <Badge className="bg-green-500">
+                        <CheckCircle className="h-3 w-3 mr-1" />
+                        Configured
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex justify-end">
+                  <Button
+                    variant="outline"
+                    onClick={handleStartEdit}
+                  >
+                    <Edit2 className="h-4 w-4 mr-2" />
+                    Update Keys
+                  </Button>
                 </div>
               </>
             )}
@@ -699,7 +786,28 @@ export default function ShopSettingsManager({ currentTenantId, activeTab: propAc
                 {connectMutation.isError && (
                   <Alert variant="destructive">
                     <AlertDescription>
-                      Failed to connect Stripe account. Please try again.
+                      <div className="space-y-2">
+                        <div>
+                          <strong>Failed to connect Stripe account:</strong> {connectMutation.error?.message || 'Unknown error'}
+                        </div>
+                        {(connectMutation.error?.message?.includes('Connect') || 
+                          connectMutation.error?.message?.includes('signed up for Connect') ||
+                          connectMutation.error?.message?.toLowerCase().includes('connect')) && (
+                          <div className="text-sm mt-2 space-y-2">
+                            <p className="font-medium">Your Stripe account needs to have Stripe Connect enabled.</p>
+                            <p>To enable Stripe Connect:</p>
+                            <ol className="list-decimal list-inside mt-1 space-y-1 ml-2">
+                              <li>Go to your <a href="https://dashboard.stripe.com/settings/connect" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline font-medium">Stripe Dashboard → Settings → Connect</a></li>
+                              <li>Click "Enable Connect" or "Get started with Connect"</li>
+                              <li>Complete the Connect setup process</li>
+                              <li>Return here and try connecting again</li>
+                            </ol>
+                            <p className="mt-2">
+                              Learn more: <a href="https://stripe.com/docs/connect" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline font-medium">Stripe Connect Documentation</a>
+                            </p>
+                          </div>
+                        )}
+                      </div>
                     </AlertDescription>
                   </Alert>
                 )}
