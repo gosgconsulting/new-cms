@@ -9,6 +9,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import PaymentMethodsManager from './PaymentMethodsManager';
 import ShippingMethodsManager from './ShippingMethodsManager';
+import { useAuth } from '../auth/AuthProvider';
 
 interface ShopSettingsManagerProps {
   currentTenantId: string;
@@ -20,6 +21,7 @@ export default function ShopSettingsManager({ currentTenantId, activeTab: propAc
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<string>(propActiveTab || 'general');
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const { user } = useAuth();
 
   // Check for Stripe return parameters
   useEffect(() => {
@@ -678,143 +680,164 @@ export default function ShopSettingsManager({ currentTenantId, activeTab: propAc
           </CardContent>
         </Card>
 
-        {/* Stripe Connect Status Card */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <CreditCard className="h-6 w-6" />
-                <div>
-                  <CardTitle>Stripe Connect</CardTitle>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Connect your Stripe account to accept payments
-                  </p>
-                </div>
-              </div>
-              {isConnected ? (
-                <Badge className="bg-green-500">
-                  <CheckCircle className="h-4 w-4 mr-1" />
-                  Connected
-                </Badge>
-              ) : (
-                <Badge variant="secondary">
-                  <XCircle className="h-4 w-4 mr-1" />
-                  Not Connected
-                </Badge>
-              )}
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {isLoading ? (
-              <div className="text-center py-4">Loading Stripe status...</div>
-            ) : isConnected ? (
-              <div className="space-y-4">
-                <Alert>
-                  <CheckCircle className="h-4 w-4" />
-                  <AlertDescription>
-                    Your Stripe account is connected and ready to accept payments.
-                    {accountId && (
-                      <div className="mt-2">
-                        <strong>Account ID:</strong> <code className="text-xs">{accountId}</code>
-                      </div>
-                    )}
-                  </AlertDescription>
-                </Alert>
-                {stripeStatus?.accountDetails && (
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <strong>Charges Enabled:</strong>{' '}
-                      {stripeStatus.accountDetails.charges_enabled ? 'Yes' : 'No'}
-                    </div>
-                    <div>
-                      <strong>Payouts Enabled:</strong>{' '}
-                      {stripeStatus.accountDetails.payouts_enabled ? 'Yes' : 'No'}
-                    </div>
-                    <div>
-                      <strong>Country:</strong> {stripeStatus.accountDetails.country || 'N/A'}
-                    </div>
-                    <div>
-                      <strong>Email:</strong> {stripeStatus.accountDetails.email || 'N/A'}
-                    </div>
+        {/* Stripe Connect Status Card (Optional - for marketplace/platform scenarios) - Only visible to super admins */}
+        {user?.is_super_admin && (
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <CreditCard className="h-6 w-6" />
+                  <div>
+                    <CardTitle>Stripe Connect (Optional)</CardTitle>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Optional: Connect for marketplace/platform scenarios. Direct payments work with just your secret key.
+                    </p>
                   </div>
+                </div>
+                {isConnected ? (
+                  <Badge className="bg-green-500">
+                    <CheckCircle className="h-4 w-4 mr-1" />
+                    Connected
+                  </Badge>
+                ) : (
+                  <Badge variant="secondary">
+                    <XCircle className="h-4 w-4 mr-1" />
+                    Not Connected
+                  </Badge>
                 )}
-                <Button
-                  variant="outline"
-                  onClick={async () => {
-                    setIsRefreshing(true);
-                    try {
-                      await queryClient.invalidateQueries({ queryKey: ['stripe-status', currentTenantId] });
-                      await queryClient.refetchQueries({ queryKey: ['stripe-status', currentTenantId] });
-                    } catch (error) {
-                      console.error('[testing] Error refreshing Stripe status:', error);
-                    } finally {
-                      setTimeout(() => setIsRefreshing(false), 500);
-                    }
-                  }}
-                  disabled={isRefreshing}
-                >
-                  <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-                  {isRefreshing ? 'Refreshing...' : 'Refresh Status'}
-                </Button>
               </div>
-            ) : (
-              <div className="space-y-4">
-                {!stripeConfig?.has_stripe_secret_key && (
-                  <Alert variant="destructive">
-                    <AlertDescription>
-                      <strong>Stripe is not configured.</strong> Please set your Stripe secret key above before connecting your account.
-                    </AlertDescription>
-                  </Alert>
-                )}
-                <p className="text-sm text-muted-foreground">
-                  Connect your Stripe account to start accepting payments. You'll be redirected to
-                  Stripe to complete the onboarding process.
-                </p>
-                <Button
-                  onClick={() => connectMutation.mutate()}
-                  disabled={connectMutation.isPending || !stripeConfig?.has_stripe_secret_key}
-                >
-                  {connectMutation.isPending ? (
-                    'Connecting...'
-                  ) : (
-                    <>
-                      Connect Stripe Account
-                      <ExternalLink className="h-4 w-4 ml-2" />
-                    </>
-                  )}
-                </Button>
-                {connectMutation.isError && (
-                  <Alert variant="destructive">
-                    <AlertDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {isLoading ? (
+                <div className="text-center py-4">Loading Stripe status...</div>
+              ) : isConnected ? (
+                <div className="space-y-4">
+                  <Alert className="bg-blue-50 border-blue-200">
+                    <CheckCircle className="h-4 w-4 text-blue-600" />
+                    <AlertDescription className="text-blue-800">
                       <div className="space-y-2">
                         <div>
-                          <strong>Failed to connect Stripe account:</strong> {connectMutation.error?.message || 'Unknown error'}
+                          <strong>Stripe Connect is enabled.</strong> Payments will be processed through your connected account.
+                          {accountId && (
+                            <div className="mt-2">
+                              <strong>Account ID:</strong> <code className="text-xs">{accountId}</code>
+                            </div>
+                          )}
                         </div>
-                        {(connectMutation.error?.message?.includes('Connect') || 
-                          connectMutation.error?.message?.includes('signed up for Connect') ||
-                          connectMutation.error?.message?.toLowerCase().includes('connect')) && (
-                          <div className="text-sm mt-2 space-y-2">
-                            <p className="font-medium">Your Stripe account needs to have Stripe Connect enabled.</p>
-                            <p>To enable Stripe Connect:</p>
-                            <ol className="list-decimal list-inside mt-1 space-y-1 ml-2">
-                              <li>Go to your <a href="https://dashboard.stripe.com/settings/connect" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline font-medium">Stripe Dashboard → Settings → Connect</a></li>
-                              <li>Click "Enable Connect" or "Get started with Connect"</li>
-                              <li>Complete the Connect setup process</li>
-                              <li>Return here and try connecting again</li>
-                            </ol>
-                            <p className="mt-2">
-                              Learn more: <a href="https://stripe.com/docs/connect" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline font-medium">Stripe Connect Documentation</a>
-                            </p>
-                          </div>
-                        )}
+                        <p className="text-sm mt-2">
+                          <strong>Note:</strong> Stripe Connect is only needed for marketplace/platform scenarios where you're collecting payments on behalf of connected accounts. For regular e-commerce, you can use Stripe payments directly with just your secret key (no Connect required).
+                        </p>
                       </div>
                     </AlertDescription>
                   </Alert>
-                )}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                  {stripeStatus?.accountDetails && (
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <strong>Charges Enabled:</strong>{' '}
+                        {stripeStatus.accountDetails.charges_enabled ? 'Yes' : 'No'}
+                      </div>
+                      <div>
+                        <strong>Payouts Enabled:</strong>{' '}
+                        {stripeStatus.accountDetails.payouts_enabled ? 'Yes' : 'No'}
+                      </div>
+                      <div>
+                        <strong>Country:</strong> {stripeStatus.accountDetails.country || 'N/A'}
+                      </div>
+                      <div>
+                        <strong>Email:</strong> {stripeStatus.accountDetails.email || 'N/A'}
+                      </div>
+                    </div>
+                  )}
+                  <Button
+                    variant="outline"
+                    onClick={async () => {
+                      setIsRefreshing(true);
+                      try {
+                        await queryClient.invalidateQueries({ queryKey: ['stripe-status', currentTenantId] });
+                        await queryClient.refetchQueries({ queryKey: ['stripe-status', currentTenantId] });
+                      } catch (error) {
+                        console.error('[testing] Error refreshing Stripe status:', error);
+                      } finally {
+                        setTimeout(() => setIsRefreshing(false), 500);
+                      }
+                    }}
+                    disabled={isRefreshing}
+                  >
+                    <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+                    {isRefreshing ? 'Refreshing...' : 'Refresh Status'}
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <Alert className="bg-blue-50 border-blue-200">
+                    <AlertDescription className="text-blue-800">
+                      <div className="space-y-2">
+                        <p>
+                          <strong>Stripe Connect is optional.</strong> You can use Stripe payments with just your secret key and webhook secret (configured above).
+                        </p>
+                        <p className="text-sm">
+                          Stripe Connect is only needed if you're running a marketplace or platform where you need to collect payments on behalf of connected accounts. For regular e-commerce stores, you don't need Connect.
+                        </p>
+                      </div>
+                    </AlertDescription>
+                  </Alert>
+                  {!stripeConfig?.has_stripe_secret_key && (
+                    <Alert variant="destructive">
+                      <AlertDescription>
+                        <strong>Stripe secret key required.</strong> Please configure your Stripe secret key above before using Stripe payments or Connect.
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                  <p className="text-sm text-muted-foreground">
+                    If you need Stripe Connect for marketplace scenarios, you can connect your account below. You'll be redirected to Stripe to complete the onboarding process.
+                  </p>
+                  <Button
+                    onClick={() => connectMutation.mutate()}
+                    disabled={connectMutation.isPending || !stripeConfig?.has_stripe_secret_key}
+                    variant="outline"
+                  >
+                    {connectMutation.isPending ? (
+                      'Connecting...'
+                    ) : (
+                      <>
+                        Enable Stripe Connect (Optional)
+                        <ExternalLink className="h-4 w-4 ml-2" />
+                      </>
+                    )}
+                  </Button>
+                  {connectMutation.isError && (
+                    <Alert variant="destructive">
+                      <AlertDescription>
+                        <div className="space-y-2">
+                          <div>
+                            <strong>Failed to connect Stripe account:</strong> {connectMutation.error?.message || 'Unknown error'}
+                          </div>
+                          {(connectMutation.error?.message?.includes('Connect') || 
+                            connectMutation.error?.message?.includes('signed up for Connect') ||
+                            connectMutation.error?.message?.toLowerCase().includes('connect')) && (
+                            <div className="text-sm mt-2 space-y-2">
+                              <p className="font-medium">Your Stripe account needs to have Stripe Connect enabled.</p>
+                              <p>To enable Stripe Connect:</p>
+                              <ol className="list-decimal list-inside mt-1 space-y-1 ml-2">
+                                <li>Go to your <a href="https://dashboard.stripe.com/settings/connect" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline font-medium">Stripe Dashboard → Settings → Connect</a></li>
+                                <li>Click "Enable Connect" or "Get started with Connect"</li>
+                                <li>Complete the Connect setup process</li>
+                                <li>Return here and try connecting again</li>
+                              </ol>
+                              <p className="mt-2">
+                                Learn more: <a href="https://stripe.com/docs/connect" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline font-medium">Stripe Connect Documentation</a>
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
       </div>
     );
   };
