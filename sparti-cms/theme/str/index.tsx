@@ -21,6 +21,7 @@ import { useThemeBranding } from '../../hooks/useThemeSettings';
 import { getSiteName, getSiteDescription, getLogoSrc, getFaviconSrc, applyFavicon } from './utils/settings';
 import { SEOHead } from './components/SEOHead';
 import { GTM } from './components/GTM';
+import { GoogleAnalytics } from './components/GoogleAnalytics';
 import { useCustomCode } from './hooks/useCustomCode';
 
 interface TenantLandingProps {
@@ -291,6 +292,9 @@ const STRTheme: React.FC<TenantLandingProps> = ({
       
       {/* Google Tag Manager */}
       <GTM gtmId={customCode?.gtmId} />
+      
+      {/* Google Analytics */}
+      <GoogleAnalytics gaId={customCode?.gaId} />
       
       {/* Header - only render for non-homepage pages */}
       {!isHomepage && (

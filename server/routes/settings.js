@@ -417,8 +417,25 @@ router.post('/theme/:themeId/sync', authenticateUser, async (req, res) => {
 
 // ===== CUSTOM CODE ROUTES =====
 
-// Get custom code settings
-router.get('/custom-code', authenticateUser, async (req, res) => {
+// Get custom code settings (public endpoint for theme usage, requires tenantId query param)
+router.get('/custom-code', async (req, res) => {
+  try {
+    // Get tenant ID from query parameter (required for public access)
+    const tenantId = req.query.tenantId;
+    if (!tenantId) {
+      return res.status(400).json({ error: 'tenantId query parameter is required' });
+    }
+    console.log(`[testing] API: Getting custom code settings for tenant: ${tenantId}`);
+    const settings = await getCustomCodeSettings(tenantId);
+    res.json(settings);
+  } catch (error) {
+    console.error('[testing] API: Error getting custom code settings:', error);
+    res.status(500).json({ error: 'Failed to get custom code settings' });
+  }
+});
+
+// Get custom code settings (authenticated endpoint for admin - fallback if no tenantId in query)
+router.get('/custom-code/auth', authenticateUser, async (req, res) => {
   try {
     // Get tenant ID from req.tenantId (set by auth middleware), query parameter, user context, or default
     const tenantId = req.tenantId || req.query.tenantId || req.user?.tenant_id || 'tenant-gosg';

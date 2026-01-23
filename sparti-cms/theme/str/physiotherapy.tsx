@@ -9,6 +9,12 @@ import ContactModal from './ContactModal';
 import HeroSection from './components/HeroSection';
 import { STR_ASSETS, getGalleryImages } from './config/assets';
 import { fetchSTRReviews, type STRTestimonial, type STRPlaceInfo, formatReviewDate, getInitials } from './services/googleReviews';
+import { useThemeBranding } from '../../hooks/useThemeSettings';
+import { getSiteName, getSiteDescription, getLogoSrc, getFaviconSrc, applyFavicon } from './utils/settings';
+import { SEOHead } from './components/SEOHead';
+import { GTM } from './components/GTM';
+import { GoogleAnalytics } from './components/GoogleAnalytics';
+import { useCustomCode } from './hooks/useCustomCode';
 
 interface TenantLandingProps {
   tenantName?: string;
@@ -22,6 +28,48 @@ const PhysiotherapyPage: React.FC<TenantLandingProps> = ({
   tenantSlug = 'str',
   tenantId
 }) => {
+  // Load branding settings from database
+  const { branding, loading: brandingLoading } = useThemeBranding('str', tenantId || undefined);
+  
+  // Load custom code settings (for GTM, GA, etc.)
+  const { customCode } = useCustomCode(tenantId || undefined);
+  
+  // Get settings from database with fallback to defaults
+  const siteName = getSiteName(branding, tenantName);
+  const siteDescription = getSiteDescription(branding, 'Physiotherapy - STR Fitness Club - Evidence-based sports physiotherapy and rehabilitation in Singapore.');
+  const logoSrc = getLogoSrc(branding, STR_ASSETS.logos.header);
+  const faviconSrc = getFaviconSrc(branding);
+  
+  // Apply favicon when branding loads
+  useEffect(() => {
+    if (faviconSrc && !brandingLoading) {
+      const timeoutId1 = setTimeout(() => {
+        applyFavicon(faviconSrc);
+      }, 100);
+      
+      const timeoutId2 = setTimeout(() => {
+        applyFavicon(faviconSrc);
+      }, 500);
+      
+      return () => {
+        clearTimeout(timeoutId1);
+        clearTimeout(timeoutId2);
+        if ((window as any).__faviconObserver) {
+          (window as any).__faviconObserver.disconnect();
+          delete (window as any).__faviconObserver;
+        }
+      };
+    }
+  }, [faviconSrc, brandingLoading]);
+  
+  // Page meta
+  const pageMeta = useMemo(() => ({
+    title: `Physiotherapy - ${siteName}`,
+    description: siteDescription,
+    keywords: 'STR Fitness, physiotherapy, sports rehabilitation, injury recovery, Singapore',
+    url: typeof window !== 'undefined' ? window.location.href : '',
+  }), [siteName, siteDescription]);
+
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeProgramme, setActiveProgramme] = useState(0);
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
@@ -311,6 +359,15 @@ const PhysiotherapyPage: React.FC<TenantLandingProps> = ({
 
   return (
     <div className="str-theme min-h-screen bg-background text-foreground">
+      {/* SEO metadata */}
+      <SEOHead meta={pageMeta} favicon={faviconSrc || undefined} />
+      
+      {/* Google Tag Manager */}
+      <GTM gtmId={customCode?.gtmId} />
+      
+      {/* Google Analytics */}
+      <GoogleAnalytics gaId={customCode?.gaId} />
+      
       {/* Header - appears after scrolling */}
       {isScrolled && (
         <header className="z-60 bg-background/95 backdrop-blur-sm border-b border-border transition-opacity duration-300">
@@ -320,8 +377,8 @@ const PhysiotherapyPage: React.FC<TenantLandingProps> = ({
               <div className="flex items-center space-x-2">
                 <a href="/theme/str">
                   <img 
-                    src={STR_ASSETS.logos.header} 
-                    alt="STR" 
+                    src={logoSrc}
+                    alt={siteName}
                     className="h-12 w-auto"
                     onError={(e) => {
                       // Fallback to text if image not found
@@ -1005,8 +1062,8 @@ const PhysiotherapyPage: React.FC<TenantLandingProps> = ({
             {/* Left Column - Logo & Social */}
             <div className="space-y-3">
               <img 
-                src={STR_ASSETS.logos.footer} 
-                alt="STR" 
+                src={logoSrc}
+                alt={siteName}
                 className="h-12 w-auto"
                 onError={(e) => {
                   // Fallback to text if image not found

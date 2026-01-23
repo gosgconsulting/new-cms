@@ -1,8 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import './theme.css';
 import { Button } from '@/components/ui/button';
 import { Menu, X, Instagram, CheckCircle } from 'lucide-react';
 import { STR_ASSETS } from './config/assets';
+import { useThemeBranding } from '../../hooks/useThemeSettings';
+import { getSiteName, getSiteDescription, getLogoSrc, getFaviconSrc, applyFavicon } from './utils/settings';
+import { SEOHead } from './components/SEOHead';
+import { GTM } from './components/GTM';
+import { GoogleAnalytics } from './components/GoogleAnalytics';
+import { useCustomCode } from './hooks/useCustomCode';
 
 interface TenantLandingProps {
   tenantName?: string;
@@ -16,6 +22,48 @@ const ThankYouPage: React.FC<TenantLandingProps> = ({
   tenantSlug = 'str',
   tenantId
 }) => {
+  // Load branding settings from database
+  const { branding, loading: brandingLoading } = useThemeBranding('str', tenantId || undefined);
+  
+  // Load custom code settings (for GTM, GA, etc.)
+  const { customCode } = useCustomCode(tenantId || undefined);
+  
+  // Get settings from database with fallback to defaults
+  const siteName = getSiteName(branding, tenantName);
+  const siteDescription = getSiteDescription(branding, 'Thank You - STR Fitness Club');
+  const logoSrc = getLogoSrc(branding, STR_ASSETS.logos.header);
+  const faviconSrc = getFaviconSrc(branding);
+  
+  // Apply favicon when branding loads
+  useEffect(() => {
+    if (faviconSrc && !brandingLoading) {
+      const timeoutId1 = setTimeout(() => {
+        applyFavicon(faviconSrc);
+      }, 100);
+      
+      const timeoutId2 = setTimeout(() => {
+        applyFavicon(faviconSrc);
+      }, 500);
+      
+      return () => {
+        clearTimeout(timeoutId1);
+        clearTimeout(timeoutId2);
+        if ((window as any).__faviconObserver) {
+          (window as any).__faviconObserver.disconnect();
+          delete (window as any).__faviconObserver;
+        }
+      };
+    }
+  }, [faviconSrc, brandingLoading]);
+  
+  // Page meta
+  const pageMeta = useMemo(() => ({
+    title: `Thank You - ${siteName}`,
+    description: siteDescription,
+    keywords: 'STR Fitness, thank you, Singapore',
+    url: typeof window !== 'undefined' ? window.location.href : '',
+  }), [siteName, siteDescription]);
+
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   // Navigation items
@@ -38,6 +86,14 @@ const ThankYouPage: React.FC<TenantLandingProps> = ({
 
   return (
     <div className="str-theme min-h-screen bg-background text-foreground">
+      {/* SEO metadata */}
+      <SEOHead meta={pageMeta} favicon={faviconSrc || undefined} />
+      
+      {/* Google Tag Manager */}
+      <GTM gtmId={customCode?.gtmId} />
+      
+      {/* Google Analytics */}
+      <GoogleAnalytics gaId={customCode?.gaId} />
       {/* Header */}
       <header className="z-50 bg-background/95 backdrop-blur-sm border-b border-border">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -46,8 +102,8 @@ const ThankYouPage: React.FC<TenantLandingProps> = ({
             <div className="flex items-center space-x-2">
               <a href="/theme/str">
                 <img 
-                  src={STR_ASSETS.logos.header} 
-                  alt="STR" 
+                  src={logoSrc}
+                  alt={siteName}
                   className="h-10 w-auto"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
@@ -174,8 +230,8 @@ const ThankYouPage: React.FC<TenantLandingProps> = ({
             {/* Left Column - Logo & Social */}
             <div className="space-y-3">
               <img
-                src={STR_ASSETS.logos.footer}
-                alt="STR"
+                src={logoSrc}
+                alt={siteName}
                 className="h-12 w-auto"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
