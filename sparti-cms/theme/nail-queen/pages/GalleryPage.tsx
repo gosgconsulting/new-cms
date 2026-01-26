@@ -86,6 +86,12 @@ export default function GalleryPage({ basePath }: { basePath: string }) {
         image: asset("gallery/Nail_Queen/2d/f1.jpg"),
       },
       {
+        id: 11,
+        category: "manicures",
+        title: "Seasonal design",
+        image: asset("gallery/Nail_Queen/seasonal_design/a.jpg"),
+      },
+      {
         id: 12,
         category: "pedicures",
         title: "Pedicure Service",
@@ -197,7 +203,7 @@ export default function GalleryPage({ basePath }: { basePath: string }) {
       });
     }
 
-    // Special handling for Metalic - use first 15 showable images from the directory
+    // Special handling for Metalic - use all images from the directory
     if (item.title === "Metalic") {
       const metalicImages = [
         "3_2.png",
@@ -215,6 +221,12 @@ export default function GalleryPage({ basePath }: { basePath: string }) {
         "IMG_5847.jpg",
         "IMG_5861.png",
         "IMG_6380.jpg",
+        "IMG_6992_2.png",
+        "IMG_8651_copy_2.JPG",
+        "IMG_9854.jpg",
+        "k.jpg",
+        "sc_2.jpg",
+        "vvdf.jpg",
       ];
 
       return metalicImages.map((filename) => {
@@ -228,7 +240,7 @@ export default function GalleryPage({ basePath }: { basePath: string }) {
       });
     }
 
-    // Special handling for 3D - use first 15 showable images from the directory
+    // Special handling for 3D - use all images from the directory
     if (item.title === "3D") {
       const threeDImages = [
         "1_2.jpg",
@@ -246,6 +258,15 @@ export default function GalleryPage({ basePath }: { basePath: string }) {
         "IMG_2232_copy.jpg",
         "IMG_3054_copy.jpg",
         "IMG_3304_copy.jpg",
+        "IMG_5541_copy.png",
+        "IMG_8037_copy.JPG",
+        "IMG_8651_copy 2.JPG",
+        "IMG_8717_copy.jpg",
+        "IMG_9233.JPG",
+        "IMG_9345_copy.jpg",
+        "kitty.jpg",
+        "NAIL_QUEEN.PNG",
+        "sn_1.jpg",
       ];
 
       return threeDImages.map((filename) => {
@@ -259,13 +280,13 @@ export default function GalleryPage({ basePath }: { basePath: string }) {
       });
     }
 
-    // Special handling for 3D flower - use first 15 showable images from the directory
+    // Special handling for 3D flower - use all images from the directory
     if (item.title === "3D flower") {
       const threeDFlowerImages = [
-        "2_copy_2.jpg",
         "2_copy_2_2.jpg",
-        "4.jpg",
+        "2_copy_2.jpg",
         "4_copy.jpg",
+        "4.jpg",
         "5.jpg",
         "6_copy.jpg",
         "9_copy.jpg",
@@ -289,7 +310,7 @@ export default function GalleryPage({ basePath }: { basePath: string }) {
       });
     }
 
-    // Special handling for Extension - use first 15 showable images from the directory
+    // Special handling for Extension - use all images from the directory
     if (item.title === "Extension") {
       const extensionImages = [
         "1_2.jpg",
@@ -307,6 +328,30 @@ export default function GalleryPage({ basePath }: { basePath: string }) {
         "9_copy.jpg",
         "a.jpg",
         "a3_2.jpg",
+        "b2.jpg",
+        "bb14abcd8b703b2e6261_2.JPG",
+        "bfewfwf.jpg",
+        "cc_2.jpg",
+        "dscs.jpg",
+        "fe.jpg",
+        "hl1.jpg",
+        "hl5.jpg",
+        "hl6.jpg",
+        "IMG_2298_copy.jpg",
+        "IMG_2384.jpg",
+        "IMG_3084.jpg",
+        "IMG_3957_copy_2.jpg",
+        "IMG_4918_copy_2.JPG",
+        "IMG_5373_2_copy.png",
+        "IMG_5661.jpg",
+        "IMG_5731_copy.jpg",
+        "IMG_6828.png",
+        "IMG_7035_copy.jpg",
+        "IMG_7474.png",
+        "IMG_7544_copy.png",
+        "IMG_8395_copy.jpg",
+        "n2_2.jpg",
+        "sc_2.jpg",
       ];
 
       return extensionImages.map((filename) => {
@@ -320,7 +365,7 @@ export default function GalleryPage({ basePath }: { basePath: string }) {
       });
     }
 
-    // Special handling for Ombre - use first 15 showable images from the directory
+    // Special handling for Ombre - use all images from the directory
     if (item.title === "Ombre") {
       const ombreImages = [
         "1_3.jpg",
@@ -338,6 +383,11 @@ export default function GalleryPage({ basePath }: { basePath: string }) {
         "IMG_5695_copy.png",
         "IMG_8367.JPG",
         "IMG_9101.jpg",
+        "IMG_9256_copy_2.jpg",
+        "IMG_9854.jpg",
+        "jjkhn.jpg",
+        "kitty_3.jpg",
+        "n32.jpg",
       ];
 
       return ombreImages.map((filename) => {
@@ -351,7 +401,7 @@ export default function GalleryPage({ basePath }: { basePath: string }) {
       });
     }
 
-    // Special handling for BIAB - use first 15 showable images from the directory
+    // Special handling for BIAB - use all images from the directory
     if (item.title === "BIAB") {
       const biabImages = [
         "3.png",
@@ -360,8 +410,11 @@ export default function GalleryPage({ basePath }: { basePath: string }) {
         "9.jpg",
         "cdsc.png",
         "IMG_0135.png",
+        "IMG_0321.HEIC",
+        "IMG_1671.HEIC",
         "IMG_2660_copy.jpg",
         "IMG_2696_copy.jpg",
+        "IMG_4242.heic",
         "IMG_4793_copy.jpg",
         "IMG_4967.png",
         "IMG_5277.png",
@@ -369,6 +422,21 @@ export default function GalleryPage({ basePath }: { basePath: string }) {
         "IMG_5396.png",
         "IMG_5411 copy.jpg",
         "IMG_5492.png",
+        "IMG_5557.png",
+        "IMG_7083 copy.jpg",
+        "IMG_7474.png",
+        "IMG_7505.png",
+        "IMG_7591 copy.png",
+        "kitty 2.jpg",
+        "medium length stunning.PNG",
+        "n.jpg",
+        "R1.png",
+        "R2.png",
+        "R3.png",
+        "R4.png",
+        "R5.png",
+        "short nail tn.jpg",
+        "vdcd.jpg",
       ];
 
       return biabImages.map((filename) => {
@@ -382,7 +450,7 @@ export default function GalleryPage({ basePath }: { basePath: string }) {
       });
     }
 
-    // Special handling for Cat eye - use first 15 showable images from the directory
+    // Special handling for Cat eye - use all images from the directory
     if (item.title === "Cat eye") {
       const catEyeImages = [
         "1_3.jpg",
@@ -400,6 +468,16 @@ export default function GalleryPage({ basePath }: { basePath: string }) {
         "IMG_0337_copy_2.jpg",
         "IMG_1815.JPG",
         "IMG_2298_copy.jpg",
+        "IMG_2401_copy.jpg",
+        "IMG_3957_copy_2.jpg",
+        "IMG_4959_copy.jpg",
+        "IMG_5533.png",
+        "IMG_5559_copy_2.jpg",
+        "IMG_6513_copy_2.jpg",
+        "IMG_6750_Recovered.png",
+        "IMG_7030_copy.jpg",
+        "IMG_9450_copy.jpg",
+        "z.jpg",
       ];
 
       return catEyeImages.map((filename) => {
@@ -413,7 +491,7 @@ export default function GalleryPage({ basePath }: { basePath: string }) {
       });
     }
 
-    // Special handling for Crystal - use first 15 showable images from the directory
+    // Special handling for Crystal - use all images from the directory
     if (item.title === "Crystal") {
       const crystalImages = [
         "1_2.png",
@@ -423,6 +501,7 @@ export default function GalleryPage({ basePath }: { basePath: string }) {
         "cc_2.jpg",
         "i.jpg",
         "IMG_0098_2.jpg",
+        "IMG_1281.HEIC",
         "IMG_3057_copy.jpg",
         "IMG_4614_copy.jpg",
         "IMG_5732_copy.jpg",
@@ -431,6 +510,14 @@ export default function GalleryPage({ basePath }: { basePath: string }) {
         "IMG_6740.png",
         "IMG_6828.png",
         "IMG_7300_copy.jpg",
+        "IMG_7453_copy_2.JPG",
+        "IMG_8006_copy.jpg",
+        "IMG_8040_2_copy.jpg",
+        "IMG_8395_copy.png",
+        "IMG_9476.HEIC",
+        "IMG_9477_copy.jpg",
+        "n1 2.jpg",
+        "VT_2.jpg",
       ];
 
       return crystalImages.map((filename) => {
@@ -444,7 +531,7 @@ export default function GalleryPage({ basePath }: { basePath: string }) {
       });
     }
 
-    // Special handling for 2D - use first 15 showable images from the directory
+    // Special handling for 2D - use all images from the directory
     if (item.title === "2D") {
       const twoDImages = [
         "1_2.png",
@@ -461,13 +548,110 @@ export default function GalleryPage({ basePath }: { basePath: string }) {
         "IMG_0098_2.jpg",
         "IMG_0922 copy 2.jpg",
         "IMG_0985.jpg",
+        "IMG_1276.HEIC",
         "IMG_1279.PNG",
+        "IMG_1281.HEIC",
+        "IMG_1311_copy.jpg",
+        "IMG_1462.HEIC",
+        "IMG_1542.heic",
+        "IMG_1671.HEIC",
+        "IMG_1921_copy.jpg",
+        "IMG_2384.HEIC",
+        "IMG_2437.HEIC",
+        "IMG_2467_copy.jpg",
+        "IMG_2500_copy.jpg",
+        "IMG_2763_copy.jpg",
+        "IMG_3057_copy.jpg",
+        "IMG_3580_copy.jpg",
+        "IMG_4356.HEIC",
+        "IMG_4614_copy.jpg",
+        "IMG_4722_copy.jpg",
+        "IMG_4793_copy.jpg",
+        "IMG_4951_copy.jpg",
+        "IMG_4959_copy.jpg",
+        "IMG_5151_copy.jpg",
+        "IMG_5359.jpg",
+        "IMG_5373 2_copy.png",
+        "IMG_5396.png",
+        "IMG_5732_copy.jpg",
+        "IMG_6364.jpg",
+        "IMG_6380.jpg",
+        "IMG_6486.png",
+        "IMG_6740.png",
+        "IMG_6775_copy.jpg",
+        "IMG_6828.png",
+        "IMG_6999.jpg",
+        "IMG_7083 copy.jpg",
+        "IMG_7300_copy.jpg",
+        "IMG_7453_copy 2.JPG",
+        "IMG_7474.png",
+        "IMG_7501.png",
+        "IMG_7884_copy.png",
+        "IMG_7942_copy.PNG",
+        "IMG_8006_copy.jpg",
+        "IMG_8040 2_copy.jpg",
+        "IMG_8395_copy.png",
+        "IMG_8733_copy.jpg",
+        "IMG_9477_copy.jpg",
+        "j.JPG",
+        "maritni_tn.jpg",
+        "n.jpg",
+        "n1_2.jpg",
+        "R2.png",
+        "sds.jpg",
+        "Untitled-1.png",
+        "vu╠â_tru╠ú 2.jpg",
+        "x.png",
+        "xsx.jpg",
+        "z.jpg",
       ];
 
       return twoDImages.map((filename) => {
         // Properly encode the filename to handle spaces and special characters
         const encodedFilename = encodeURIComponent(filename);
         const imagePath = asset(`gallery/Nail_Queen/2d/${encodedFilename}`);
+        return {
+          full: imagePath,
+          thumb: imagePath,
+        };
+      });
+    }
+
+    // Special handling for Seasonal design - use images from the seasonal_design directory
+    if (item.title === "Seasonal design") {
+      const seasonalDesignImages = [
+        "a.jpg",
+        "b.jpg",
+        "c.jpg",
+        "d.jpg",
+        "e.jpg",
+        "f.jpg",
+        "g.jpg",
+        "h.jpg",
+        "i.jpg",
+        "j.jpg",
+        "k.jpg",
+        "l.jpg",
+        "m.jpg",
+        "IMG_3915 copy 2.jpg",
+        "IMG_4722 copy.jpg",
+        "IMG_4729 copy.jpg",
+        "IMG_4793 copy.jpg",
+        "IMG_4947 copy.jpg",
+        "IMG_4951 copy.jpg",
+        "IMG_4959 copy.jpg",
+        "IMG_5057 copy.jpg",
+        "IMG_9212 copy.jpg",
+        "IMG_9338 copy.jpg",
+        "IMG_9450 copy.jpg",
+        "IMG_9477 copy.jpg",
+        "IMG_9534 copy.jpg",
+      ];
+
+      return seasonalDesignImages.map((filename) => {
+        // Properly encode the filename to handle spaces and special characters
+        const encodedFilename = encodeURIComponent(filename);
+        const imagePath = asset(`gallery/Nail_Queen/seasonal_design/${encodedFilename}`);
         return {
           full: imagePath,
           thumb: imagePath,
@@ -572,7 +756,7 @@ export default function GalleryPage({ basePath }: { basePath: string }) {
       </section>
 
       <Dialog open={!!selectedItem} onOpenChange={(open) => !open && handleCloseDialog()}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-6xl max-h-[95vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold text-nail-queen-brown">
               {selectedItem?.title}

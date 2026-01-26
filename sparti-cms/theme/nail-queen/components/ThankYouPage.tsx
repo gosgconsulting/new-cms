@@ -9,7 +9,8 @@ interface ThankYouPageProps {
 }
 
 const WHATSAPP_PHONE = '6597916789';
-const INSTAGRAM_HANDLE = 'nailqueen.sg';
+const INSTAGRAM_HANDLE = 'nailqueen_bymichelletran';
+const FACEBOOK_URL = 'https://www.facebook.com/nailqueenfep';
 
 export const ThankYouPage: React.FC<ThankYouPageProps> = ({
   basePath,
@@ -29,6 +30,7 @@ export const ThankYouPage: React.FC<ThankYouPageProps> = ({
 
   const isWhatsappRedirect = via === 'whatsapp';
   const isInstagramRedirect = via === 'instagram';
+  const isFacebookRedirect = via === 'facebook';
   const isCallRedirect = via === 'call';
 
   useEffect(() => {
@@ -69,7 +71,7 @@ export const ThankYouPage: React.FC<ThankYouPageProps> = ({
 
       return () => window.clearTimeout(t);
     }
-  }, [isWhatsappRedirect, isInstagramRedirect, isCallRedirect, whatsappMessage, callPhone]);
+  }, [isWhatsappRedirect, isInstagramRedirect, isFacebookRedirect, isCallRedirect, whatsappMessage, callPhone]);
 
   const handleGoHome = () => {
     // Navigate to homepage - remove /thank-you from current path
@@ -147,6 +149,47 @@ export const ThankYouPage: React.FC<ThankYouPageProps> = ({
 
               <div className="flex items-center justify-center gap-3 text-gray-700">
                 <div className="h-5 w-5 rounded-full border-2 border-gray-300 border-t-pink-500 animate-spin" />
+                <span className="text-sm">Please wait</span>
+              </div>
+
+              <div className="mt-10">
+                <button
+                  onClick={handleGoHome}
+                  className="px-6 py-3 bg-nail-queen-brown text-white rounded-full font-medium hover:bg-nail-queen-brown/90 transition-colors"
+                >
+                  Return to Homepage
+                </button>
+              </div>
+            </div>
+          </main>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (isFacebookRedirect) {
+    return (
+      <Layout basePath={basePath}>
+        <div className="min-h-screen bg-white pt-24">
+          <main className="container mx-auto px-4 py-16">
+            <div className="max-w-2xl mx-auto text-center">
+              <div className="mb-6">
+                <div className="w-24 h-24 mx-auto bg-blue-100 rounded-full flex items-center justify-center">
+                  <svg className="w-12 h-12 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+              </div>
+
+              <h1 className="text-3xl md:text-4xl font-bold mb-3 text-gray-900">
+                Redirecting to Facebook...
+              </h1>
+              <p className="text-gray-600 mb-8">
+                We saved your enquiry. Opening Facebook for you to visit our page.
+              </p>
+
+              <div className="flex items-center justify-center gap-3 text-gray-700">
+                <div className="h-5 w-5 rounded-full border-2 border-gray-300 border-t-blue-600 animate-spin" />
                 <span className="text-sm">Please wait</span>
               </div>
 

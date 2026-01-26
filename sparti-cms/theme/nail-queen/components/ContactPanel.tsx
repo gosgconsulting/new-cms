@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
-import { MessageCircle, Camera, FileText, Phone, Loader2 } from "lucide-react";
+import { MessageCircle, Camera, FileText, Phone, Loader2, Facebook } from "lucide-react";
 import { getTenantId } from "../../../utils/tenantConfig";
 
 type ContactPanelProps = {
@@ -23,7 +23,8 @@ type ContactPanelProps = {
 type ContactMethod = "whatsapp" | "instagram" | "form" | "call";
 
 const WHATSAPP_PHONE = "6597916789";
-const INSTAGRAM_HANDLE = "nailqueen.sg";
+const INSTAGRAM_URL = "https://www.instagram.com/nailqueen_bymichelletran/";
+const FACEBOOK_URL = "https://www.facebook.com/nailqueenfep";
 
 function getThankYouPath(): string {
   const pathname = window.location.pathname || "/";
@@ -270,6 +271,31 @@ const ContactPanel: React.FC<ContactPanelProps> = ({ open, onOpenChange }) => {
                     <div>
                       <div className="font-medium">Instagram</div>
                       <div className="text-xs text-gray-600">DM us on Instagram</div>
+                    </div>
+                  </div>
+                </button>
+
+                {/* Facebook */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const thankYouPath = getThankYouPath();
+                    const params = new URLSearchParams({
+                      via: "facebook",
+                    });
+                    onOpenChange(false);
+                    window.location.href = `${thankYouPath}?${params.toString()}`;
+                  }}
+                  aria-pressed={false}
+                  className={cn(
+                    "w-full flex items-center justify-start rounded-xl border p-4 transition-colors text-left hover:bg-gray-50"
+                  )}
+                >
+                  <div className="flex items-center gap-3">
+                    <Facebook className="h-5 w-5 text-blue-600" />
+                    <div>
+                      <div className="font-medium">Facebook</div>
+                      <div className="text-xs text-gray-600">Visit our Facebook page</div>
                     </div>
                   </div>
                 </button>

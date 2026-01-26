@@ -1,6 +1,7 @@
 import { useState } from "react";
 import useEmblaCarousel from "embla-carousel-react";
 import { cn } from "@/lib/utils";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface ThumbnailsCarouselProps {
   images: Array<{
@@ -13,10 +14,6 @@ interface ThumbnailsCarouselProps {
 export function ThumbnailsCarousel({ images, defaultPage = 0 }: ThumbnailsCarouselProps) {
   const [selectedIndex, setSelectedIndex] = useState(defaultPage);
   const [emblaRef, emblaApi] = useEmblaCarousel({ startIndex: defaultPage });
-  const [emblaThumbsRef, emblaThumbsApi] = useEmblaCarousel({
-    containScroll: "keepSnaps",
-    dragFree: true,
-  });
 
   if (!images || images.length === 0) {
     return null;
@@ -30,10 +27,6 @@ export function ThumbnailsCarousel({ images, defaultPage = 0 }: ThumbnailsCarous
     if (emblaApi) emblaApi.scrollNext();
   };
 
-  const onThumbClick = (index: number) => {
-    if (emblaApi) emblaApi.scrollTo(index);
-  };
-
   // Update selected index when main carousel changes
   if (emblaApi) {
     emblaApi.on("select", () => {
@@ -42,56 +35,43 @@ export function ThumbnailsCarousel({ images, defaultPage = 0 }: ThumbnailsCarous
   }
 
   return (
-    <div className="max-w-2xl p-2 mx-auto">
-      <div className="overflow-hidden rounded-lg shadow-lg mb-4" ref={emblaRef}>
-        <div className="flex">
-          {images.map((image, index) => (
-            <div key={index} className="flex-[0_0_100%] min-w-0">
-              <img
-                src={image.full}
-                alt={`Slide ${index + 1}`}
-                className="w-full h-80 object-cover"
-              />
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="flex items-center gap-4">
-        <button
-          onClick={scrollPrev}
-          className="p-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 rounded-lg transition-colors shrink-0"
-        >
-          ←
-        </button>
-
-        <div className="overflow-hidden flex-1 px-2" ref={emblaThumbsRef}>
-          <div className="flex gap-2">
+    <div className="max-w-4xl p-2 mx-auto">
+      <div className="relative flex items-center gap-2">
+        {/* Left arrow - positioned outside the image */}
+        {images.length > 1 && (
+          <button
+            onClick={scrollPrev}
+            className="flex-shrink-0 p-2 bg-white/90 hover:bg-white rounded-full shadow-lg transition-colors z-10 -ml-2"
+            aria-label="Previous image"
+          >
+            <ChevronLeft className="h-6 w-6 text-gray-900" />
+          </button>
+        )}
+        
+        <div className="relative overflow-hidden rounded-lg shadow-lg flex-1" ref={emblaRef}>
+          <div className="flex">
             {images.map((image, index) => (
-              <button
-                key={index}
-                onClick={() => onThumbClick(index)}
-                className={cn(
-                  "shrink-0 border-2 rounded-md overflow-hidden cursor-pointer transition-all hover:border-gray-300",
-                  selectedIndex === index ? "border-blue-500" : "border-transparent"
-                )}
-              >
+              <div key={index} className="flex-[0_0_100%] min-w-0">
                 <img
-                  src={image.thumb}
-                  alt={`Thumbnail ${index + 1}`}
-                  className="w-16 h-12 object-cover"
+                  src={image.full}
+                  alt={`Slide ${index + 1}`}
+                  className="w-full h-[600px] object-cover"
                 />
-              </button>
+              </div>
             ))}
           </div>
         </div>
-
-        <button
-          onClick={scrollNext}
-          className="p-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 rounded-lg transition-colors shrink-0"
-        >
-          →
-        </button>
+        
+        {/* Right arrow - positioned outside the image */}
+        {images.length > 1 && (
+          <button
+            onClick={scrollNext}
+            className="flex-shrink-0 p-2 bg-white/90 hover:bg-white rounded-full shadow-lg transition-colors z-10 -mr-2"
+            aria-label="Next image"
+          >
+            <ChevronRight className="h-6 w-6 text-gray-900" />
+          </button>
+        )}
       </div>
     </div>
   );
