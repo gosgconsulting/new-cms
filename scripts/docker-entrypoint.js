@@ -135,21 +135,40 @@ async function main() {
       console.log(`[testing] dist directory exists with ${distContents.length} files`);
     }
     
+    // Log PORT before importing server
+    console.log(`[testing] Environment check:`);
+    console.log(`[testing]   process.env.PORT: ${process.env.PORT || 'not set (will use default 4173)'}`);
+    console.log(`[testing]   process.env.NODE_ENV: ${process.env.NODE_ENV || 'not set'}`);
+    console.log(`[testing]   process.env.DATABASE_URL: ${process.env.DATABASE_URL ? 'set' : 'not set'}`);
+    console.log(`[testing]   process.env.DATABASE_PUBLIC_URL: ${process.env.DATABASE_PUBLIC_URL ? 'set' : 'not set'}`);
+    
     // Import server - this will start the server
-    console.log('[testing] Importing server module...');
+    console.log('[testing] Importing server module (this will start the server)...');
+    let serverModule;
     try {
-      await import('../server/index.js');
-      console.log('[testing] Server module imported successfully');
+      serverModule = await import('../server/index.js');
+      console.log('[testing] ✅ Server module imported successfully');
     } catch (importError) {
-      console.error('[testing] ERROR: Failed to import server module:', importError);
-      console.error('[testing] Error details:', importError.message);
-      console.error('[testing] Stack:', importError.stack);
+      console.error('[testing] ❌ ERROR: Failed to import server module');
+      console.error('[testing] Error name:', importError.name);
+      console.error('[testing] Error message:', importError.message);
+      console.error('[testing] Error code:', importError.code || 'N/A');
+      console.error('[testing] Error stack:', importError.stack);
+      // Try to get more details about the error
+      if (importError.cause) {
+        console.error('[testing] Error cause:', importError.cause);
+      }
+      // Check if it's a module resolution error
+      if (importError.code === 'MODULE_NOT_FOUND') {
+        console.error('[testing] This appears to be a module resolution error');
+        console.error('[testing] Check that all dependencies are installed');
+      }
       throw importError;
     }
     
     // Wait a moment for server to start listening
-    console.log('[testing] Waiting for server to start listening (3 seconds)...');
-    await new Promise(resolve => setTimeout(resolve, 3000));
+    console.log('[testing] Waiting for server to start listening (5 seconds)...');
+    await new Promise(resolve => setTimeout(resolve, 5000));
     
     // Verify server is responding to healthchecks
     const serverReady = await waitForServerReady();
