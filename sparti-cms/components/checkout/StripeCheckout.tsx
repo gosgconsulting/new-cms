@@ -38,6 +38,16 @@ const CheckoutForm: React.FC<{
     setError(null);
 
     try {
+      // First, submit the elements to validate the form
+      const { error: submitError } = await elements.submit();
+      
+      if (submitError) {
+        setError(submitError.message || 'Please check your payment details');
+        setIsProcessing(false);
+        return;
+      }
+
+      // If validation passes, confirm the payment
       const { error: stripeError, paymentIntent } = await stripe.confirmPayment({
         elements,
         clientSecret,
