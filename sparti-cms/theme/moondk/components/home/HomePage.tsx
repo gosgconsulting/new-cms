@@ -4,6 +4,7 @@ import { Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ThemeLink } from "../ThemeLink";
+import HomeHeroSlider from "./HomeHeroSlider";
 
 import heroImage from "../../assets/slider-2.png";
 import heroImage2 from "../../assets/slider-3.png";
@@ -148,91 +149,11 @@ export default function HomePage() {
 
   return (
     <main>
-      {/* Hero */}
-      <section className="px-6 pt-10 pb-12">
-        <div className="mx-auto max-w-6xl">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
-            <div>
-              <p className="text-sm font-body tracking-wide text-foreground/70">
-                Korean home dining, chef-led.
-              </p>
-              <h1 className="mt-3 text-4xl md:text-5xl lg:text-6xl font-heading font-semibold leading-[1.05]">
-                Curated ingredients & tools
-                <span className="block">for your everyday table.</span>
-              </h1>
-              <p className="mt-5 text-base md:text-lg font-body text-foreground/70 max-w-xl">
-                Discover heritage flavors, modern essentials, and curated sets—made
-                to cook beautifully at home.
-              </p>
-
-              <div className="mt-7 flex flex-col sm:flex-row gap-3">
-                <Button asChild className="rounded-full bg-primary hover:bg-primary/90 px-7">
-                  <ThemeLink to="/category/shop">Shop now</ThemeLink>
-                </Button>
-                <Button asChild variant="outline" className="rounded-full px-7">
-                  <ThemeLink to="/about/our-story">Our story</ThemeLink>
-                </Button>
-              </div>
-
-              <div className="mt-10 grid grid-cols-3 gap-6 max-w-lg">
-                <div>
-                  <p className="text-sm font-heading">Chef-curated</p>
-                  <p className="text-sm text-foreground/70 font-body">Tested at home.</p>
-                </div>
-                <div>
-                  <p className="text-sm font-heading">Authentic</p>
-                  <p className="text-sm text-foreground/70 font-body">Heritage-first.</p>
-                </div>
-                <div>
-                  <p className="text-sm font-heading">Beautiful</p>
-                  <p className="text-sm text-foreground/70 font-body">Gift-ready.</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="relative">
-              <div className="absolute -inset-6 rounded-[2.5rem] bg-gradient-to-br from-[#F2EFDC] via-[#EAE2E3] to-[#C9CFC7] opacity-80" />
-              <div className="relative rounded-[2.25rem] overflow-hidden border border-border/40 bg-card shadow-sm">
-                <img
-                  src={heroImage}
-                  alt="Featured collection"
-                  className="h-[360px] w-full object-cover"
-                />
-                <div className="absolute bottom-4 left-4 right-4">
-                  <div className="rounded-[1.5rem] bg-white/85 backdrop-blur px-4 py-3 border border-border/30">
-                    <div className="flex items-center justify-between gap-3">
-                      <div>
-                        <p className="text-xs font-body text-foreground/70">This week</p>
-                        <p className="text-sm font-heading">Chef's Selection Box</p>
-                      </div>
-                      <Button asChild size="sm" className="rounded-full bg-primary hover:bg-primary/90">
-                        <ThemeLink to="/product/1">View</ThemeLink>
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="hidden sm:block absolute -bottom-6 -left-6 w-44">
-                <Card className="rounded-[1.75rem] overflow-hidden border-border/40 shadow-sm">
-                  <CardContent className="p-0">
-                    <ThemeLink to="/product/3" className="block">
-                      <img src={heroImage2} alt="Second feature" className="h-36 w-full object-cover" />
-                    </ThemeLink>
-                    <div className="p-3 bg-card">
-                      <p className="text-xs font-body text-foreground/70">New</p>
-                      <p className="text-sm font-heading">Premium Gochujang</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* Hero slider (LoveWellness-style) */}
+      <HomeHeroSlider />
 
       {/* Product list */}
-      <section className="px-6 pb-20">
+      <section className="px-6 py-16">
         <div className="mx-auto max-w-6xl">
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6">
             <div>
