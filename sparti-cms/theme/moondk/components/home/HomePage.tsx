@@ -8,6 +8,7 @@ import HomeHeroSlider from "./HomeHeroSlider";
 import HomeCategoryCarousel from "./HomeCategoryCarousel";
 import HomeAboutSection from "./HomeAboutSection";
 import HomeFineDiningSection from "./HomeFineDiningSection";
+import HomeRecipesSection from "./HomeRecipesSection";
 
 import heroImage from "../../assets/slider-2.png";
 import heroImage2 from "../../assets/slider-3.png";
@@ -163,6 +164,9 @@ export default function HomePage() {
 
       {/* Fine Dining at Beok */}
       <HomeFineDiningSection />
+
+      {/* Recipes */}
+      <HomeRecipesSection />
 
       {/* Product list */}
       <section className="px-6 pb-20">

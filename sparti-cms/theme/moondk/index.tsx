@@ -14,6 +14,7 @@ import StoreLocatorPage from "./pages/about/StoreLocator";
 import PrivacyPolicyPage from "./pages/PrivacyPolicy";
 import TermsOfServicePage from "./pages/TermsOfService";
 import NotFoundPage from "./pages/NotFound";
+import RecipesPage from "./pages/Recipes";
 
 interface MoondkThemeProps {
   tenantName?: string;
@@ -84,6 +85,10 @@ const MoondkTheme: React.FC<MoondkThemeProps> = ({
 
     if (current === "about/store-locator") {
       return <StoreLocatorPage />;
+    }
+
+    if (current === "recipes") {
+      return <RecipesPage />;
     }
 
     return <NotFoundPage />;
