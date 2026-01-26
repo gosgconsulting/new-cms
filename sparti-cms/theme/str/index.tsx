@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Star, Menu, X, ArrowRight, Wrench, Award, Users, ChevronUp, Plus, Minus, Instagram } from 'lucide-react';
 import BookingPage from './booking';
 import PackagesPage from './packages';
@@ -15,7 +16,7 @@ import GroupClassPage from './group-class';
 import PhysiotherapyPage from './physiotherapy';
 import ContactModal from './ContactModal';
 import HeroSection from './components/HeroSection';
-import { STR_ASSETS, getGalleryImages } from './config/assets';
+import { STR_ASSETS, getGalleryImages, getPersonalTrainingGalleryImages, getGroupClassGalleryImages, getPhysiotherapyGalleryImages } from './config/assets';
 import { fetchSTRReviews, type STRTestimonial, type STRPlaceInfo, formatReviewDate, getInitials } from './services/googleReviews';
 import { useThemeBranding } from '../../hooks/useThemeSettings';
 import { getSiteName, getSiteDescription, getLogoSrc, getFaviconSrc, applyFavicon } from './utils/settings';
@@ -50,6 +51,8 @@ const STRTheme: React.FC<TenantLandingProps> = ({
   const siteName = getSiteName(branding, tenantName);
   const siteDescription = getSiteDescription(branding, 'STR Fitness Club - Evidence-based strength training, personal training, physiotherapy, and group classes in Singapore.');
   const logoSrc = getLogoSrc(branding, STR_ASSETS.logos.header);
+  // For homepage, use circular logo (branding may override, but default to circular logo from assets)
+  const circularLogoSrc = branding?.site_logo || STR_ASSETS.logos.circular;
   const faviconSrc = getFaviconSrc(branding);
   
   // Apply favicon when branding loads
@@ -137,6 +140,7 @@ const STRTheme: React.FC<TenantLandingProps> = ({
   const testimonialsCarouselApi = useRef<any>(null);
   const [activeTestimonialSlide, setActiveTestimonialSlide] = useState(0);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [activeGalleryTab, setActiveGalleryTab] = useState('all');
 
   // EFFECTS (guarded where needed, but always declared)
   // Check for #contact hash in URL and open modal
@@ -254,6 +258,12 @@ const STRTheme: React.FC<TenantLandingProps> = ({
 
   // Gallery images - loaded from centralized asset config
   const galleryImages = getGalleryImages();
+  const personalTrainingImages = getPersonalTrainingGalleryImages();
+  const groupClassImages = getGroupClassGalleryImages();
+  const physiotherapyImages = getPhysiotherapyGalleryImages();
+  
+  // Combined gallery images for "All" tab
+  const allGalleryImages = [...groupClassImages, ...physiotherapyImages, ...personalTrainingImages];
 
   // Determine current page meta data
   const pageMeta = useMemo(() => {
@@ -443,7 +453,7 @@ const STRTheme: React.FC<TenantLandingProps> = ({
         setIsMenuOpen={setIsMenuOpen}
         isHomepage={isHomepage}
         logoSrc={logoSrc}
-        circularLogoSrc={logoSrc}
+        circularLogoSrc={circularLogoSrc}
       />
 
       {/* About Us Section */}
@@ -621,71 +631,311 @@ const STRTheme: React.FC<TenantLandingProps> = ({
             Training sessions, facility photos and videos
           </p>
 
-          <div className="relative mb-8">
-            <Carousel
-              opts={{ align: 'start', loop: true, slidesToScroll: 1 }}
-              className="w-full"
-              setApi={(api) => {
-                if (api) {
-                  galleryCarouselApi.current = api;
-                  setActiveGalleryIndex(api.selectedScrollSnap());
-                  api.on('select', () => setActiveGalleryIndex(api.selectedScrollSnap()));
-                }
-              }}
-            >
-              <CarouselContent className="-ml-2 md:-ml-4">
-                {Array.from({ length: Math.ceil(galleryImages.length / 4) }).map((_, slideIndex) => {
-                  const slideImages = galleryImages.slice(slideIndex * 4, slideIndex * 4 + 4);
-                  return (
-                    <CarouselItem key={slideIndex} className="pl-2 md:pl-4 basis-full">
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                        {slideImages.map((image, imageIndex) => {
-                          const globalIndex = slideIndex * 4 + imageIndex;
-                          return (
-                            <div
-                              key={globalIndex}
-                              className="relative rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 group cursor-pointer"
-                              onClick={() => setSelectedGalleryImage(image)}
-                            >
-                              <div className="aspect-square relative">
-                                <img
-                                  src={image.src}
-                                  alt={image.alt}
-                                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                                  loading="lazy"
-                                  onError={(e) => {
-                                    const target = e.target as HTMLImageElement;
-                                    target.src = 'https://images.pexels.com/photos/4164754/pexels-photo-4164754.jpeg?auto=compress&cs=tinysrgb&w=800';
-                                  }}
-                                />
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </CarouselItem>
-                  );
-                })}
-              </CarouselContent>
-            </Carousel>
-          </div>
+          {/* Gallery Tabs */}
+          <Tabs value={activeGalleryTab} onValueChange={setActiveGalleryTab} className="w-full">
+            <TabsList className="grid w-full max-w-3xl mx-auto mb-8 grid-cols-4 bg-gray-800/60">
+              <TabsTrigger 
+                value="all" 
+                className="data-[state=active]:bg-[#E00000] data-[state=active]:text-white uppercase font-bold"
+              >
+                All
+              </TabsTrigger>
+              <TabsTrigger 
+                value="group-class" 
+                className="data-[state=active]:bg-[#E00000] data-[state=active]:text-white uppercase font-bold"
+              >
+                Group Class
+              </TabsTrigger>
+              <TabsTrigger 
+                value="physiotherapy" 
+                className="data-[state=active]:bg-[#E00000] data-[state=active]:text-white uppercase font-bold"
+              >
+                Physiotherapy
+              </TabsTrigger>
+              <TabsTrigger 
+                value="personal-training" 
+                className="data-[state=active]:bg-[#E00000] data-[state=active]:text-white uppercase font-bold"
+              >
+                Personal Training
+              </TabsTrigger>
+            </TabsList>
 
-          <div className="flex items-center justify-center gap-4">
-            <button
-              onClick={() => galleryCarouselApi.current?.scrollPrev()}
-              className="w-12 h-12 rounded-full border-2 border-[#E00000] bg-background flex items-center justify-center hover:bg-[#E00000]/10 transition-colors"
-              aria-label="Previous images"
-            >
-              <ArrowRight className="h-5 w-5 text-[#E00000] transition-colors rotate-180" />
-            </button>
-            <button
-              onClick={() => galleryCarouselApi.current?.scrollNext()}
-              className="w-12 h-12 rounded-full border-2 border-[#E00000] bg-background flex items-center justify-center hover:bg-[#E00000]/10 transition-colors"
-              aria-label="Next images"
-            >
-              <ArrowRight className="h-5 w-5 text-[#E00000] transition-colors" />
-            </button>
-          </div>
+            {/* All Gallery */}
+            <TabsContent value="all" className="mt-0">
+              <div className="relative mb-8">
+                <Carousel
+                  opts={{ align: 'start', loop: true, slidesToScroll: 1 }}
+                  className="w-full"
+                  setApi={(api) => {
+                    if (api) {
+                      galleryCarouselApi.current = api;
+                      setActiveGalleryIndex(api.selectedScrollSnap());
+                      api.on('select', () => setActiveGalleryIndex(api.selectedScrollSnap()));
+                    }
+                  }}
+                >
+                  <CarouselContent className="-ml-2 md:-ml-4">
+                    {Array.from({ length: Math.ceil(allGalleryImages.length / 4) }).map((_, slideIndex) => {
+                      const slideImages = allGalleryImages.slice(slideIndex * 4, slideIndex * 4 + 4);
+                      return (
+                        <CarouselItem key={slideIndex} className="pl-2 md:pl-4 basis-full">
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            {slideImages.map((image, imageIndex) => {
+                              const globalIndex = slideIndex * 4 + imageIndex;
+                              return (
+                                <div
+                                  key={globalIndex}
+                                  className="relative rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 group cursor-pointer"
+                                  onClick={() => setSelectedGalleryImage(image)}
+                                >
+                                  <div className="aspect-square relative">
+                                    <img
+                                      src={image.src}
+                                      alt={image.alt}
+                                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                                      loading="lazy"
+                                      onError={(e) => {
+                                        const target = e.target as HTMLImageElement;
+                                        target.src = 'https://images.pexels.com/photos/4164754/pexels-photo-4164754.jpeg?auto=compress&cs=tinysrgb&w=800';
+                                      }}
+                                    />
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </CarouselItem>
+                      );
+                    })}
+                  </CarouselContent>
+                </Carousel>
+              </div>
+
+              <div className="flex items-center justify-center gap-4">
+                <button
+                  onClick={() => galleryCarouselApi.current?.scrollPrev()}
+                  className="w-12 h-12 rounded-full border-2 border-[#E00000] bg-background flex items-center justify-center hover:bg-[#E00000]/10 transition-colors"
+                  aria-label="Previous images"
+                >
+                  <ArrowRight className="h-5 w-5 text-[#E00000] transition-colors rotate-180" />
+                </button>
+                <button
+                  onClick={() => galleryCarouselApi.current?.scrollNext()}
+                  className="w-12 h-12 rounded-full border-2 border-[#E00000] bg-background flex items-center justify-center hover:bg-[#E00000]/10 transition-colors"
+                  aria-label="Next images"
+                >
+                  <ArrowRight className="h-5 w-5 text-[#E00000] transition-colors" />
+                </button>
+              </div>
+            </TabsContent>
+
+            {/* Group Class Gallery */}
+            <TabsContent value="group-class" className="mt-0">
+              <div className="relative mb-8">
+                <Carousel
+                  opts={{ align: 'start', loop: true, slidesToScroll: 1 }}
+                  className="w-full"
+                  setApi={(api) => {
+                    if (api) {
+                      galleryCarouselApi.current = api;
+                      setActiveGalleryIndex(api.selectedScrollSnap());
+                      api.on('select', () => setActiveGalleryIndex(api.selectedScrollSnap()));
+                    }
+                  }}
+                >
+                  <CarouselContent className="-ml-2 md:-ml-4">
+                    {Array.from({ length: Math.ceil(groupClassImages.length / 4) }).map((_, slideIndex) => {
+                      const slideImages = groupClassImages.slice(slideIndex * 4, slideIndex * 4 + 4);
+                      return (
+                        <CarouselItem key={slideIndex} className="pl-2 md:pl-4 basis-full">
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            {slideImages.map((image, imageIndex) => {
+                              const globalIndex = slideIndex * 4 + imageIndex;
+                              return (
+                                <div
+                                  key={globalIndex}
+                                  className="relative rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 group cursor-pointer"
+                                  onClick={() => setSelectedGalleryImage(image)}
+                                >
+                                  <div className="aspect-square relative">
+                                    <img
+                                      src={image.src}
+                                      alt={image.alt}
+                                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                                      loading="lazy"
+                                      onError={(e) => {
+                                        const target = e.target as HTMLImageElement;
+                                        target.src = 'https://images.pexels.com/photos/4164754/pexels-photo-4164754.jpeg?auto=compress&cs=tinysrgb&w=800';
+                                      }}
+                                    />
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </CarouselItem>
+                      );
+                    })}
+                  </CarouselContent>
+                </Carousel>
+              </div>
+
+              <div className="flex items-center justify-center gap-4">
+                <button
+                  onClick={() => galleryCarouselApi.current?.scrollPrev()}
+                  className="w-12 h-12 rounded-full border-2 border-[#E00000] bg-background flex items-center justify-center hover:bg-[#E00000]/10 transition-colors"
+                  aria-label="Previous images"
+                >
+                  <ArrowRight className="h-5 w-5 text-[#E00000] transition-colors rotate-180" />
+                </button>
+                <button
+                  onClick={() => galleryCarouselApi.current?.scrollNext()}
+                  className="w-12 h-12 rounded-full border-2 border-[#E00000] bg-background flex items-center justify-center hover:bg-[#E00000]/10 transition-colors"
+                  aria-label="Next images"
+                >
+                  <ArrowRight className="h-5 w-5 text-[#E00000] transition-colors" />
+                </button>
+              </div>
+            </TabsContent>
+
+            {/* Physiotherapy Gallery */}
+            <TabsContent value="physiotherapy" className="mt-0">
+              <div className="relative mb-8">
+                <Carousel
+                  opts={{ align: 'start', loop: true, slidesToScroll: 1 }}
+                  className="w-full"
+                  setApi={(api) => {
+                    if (api) {
+                      galleryCarouselApi.current = api;
+                      setActiveGalleryIndex(api.selectedScrollSnap());
+                      api.on('select', () => setActiveGalleryIndex(api.selectedScrollSnap()));
+                    }
+                  }}
+                >
+                  <CarouselContent className="-ml-2 md:-ml-4">
+                    {Array.from({ length: Math.ceil(physiotherapyImages.length / 4) }).map((_, slideIndex) => {
+                      const slideImages = physiotherapyImages.slice(slideIndex * 4, slideIndex * 4 + 4);
+                      return (
+                        <CarouselItem key={slideIndex} className="pl-2 md:pl-4 basis-full">
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            {slideImages.map((image, imageIndex) => {
+                              const globalIndex = slideIndex * 4 + imageIndex;
+                              return (
+                                <div
+                                  key={globalIndex}
+                                  className="relative rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 group cursor-pointer"
+                                  onClick={() => setSelectedGalleryImage(image)}
+                                >
+                                  <div className="aspect-square relative">
+                                    <img
+                                      src={image.src}
+                                      alt={image.alt}
+                                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                                      loading="lazy"
+                                      onError={(e) => {
+                                        const target = e.target as HTMLImageElement;
+                                        target.src = 'https://images.pexels.com/photos/4164754/pexels-photo-4164754.jpeg?auto=compress&cs=tinysrgb&w=800';
+                                      }}
+                                    />
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </CarouselItem>
+                      );
+                    })}
+                  </CarouselContent>
+                </Carousel>
+              </div>
+
+              <div className="flex items-center justify-center gap-4">
+                <button
+                  onClick={() => galleryCarouselApi.current?.scrollPrev()}
+                  className="w-12 h-12 rounded-full border-2 border-[#E00000] bg-background flex items-center justify-center hover:bg-[#E00000]/10 transition-colors"
+                  aria-label="Previous images"
+                >
+                  <ArrowRight className="h-5 w-5 text-[#E00000] transition-colors rotate-180" />
+                </button>
+                <button
+                  onClick={() => galleryCarouselApi.current?.scrollNext()}
+                  className="w-12 h-12 rounded-full border-2 border-[#E00000] bg-background flex items-center justify-center hover:bg-[#E00000]/10 transition-colors"
+                  aria-label="Next images"
+                >
+                  <ArrowRight className="h-5 w-5 text-[#E00000] transition-colors" />
+                </button>
+              </div>
+            </TabsContent>
+
+            {/* Personal Training Gallery */}
+            <TabsContent value="personal-training" className="mt-0">
+              <div className="relative mb-8">
+                <Carousel
+                  opts={{ align: 'start', loop: true, slidesToScroll: 1 }}
+                  className="w-full"
+                  setApi={(api) => {
+                    if (api) {
+                      galleryCarouselApi.current = api;
+                      setActiveGalleryIndex(api.selectedScrollSnap());
+                      api.on('select', () => setActiveGalleryIndex(api.selectedScrollSnap()));
+                    }
+                  }}
+                >
+                  <CarouselContent className="-ml-2 md:-ml-4">
+                    {Array.from({ length: Math.ceil(personalTrainingImages.length / 4) }).map((_, slideIndex) => {
+                      const slideImages = personalTrainingImages.slice(slideIndex * 4, slideIndex * 4 + 4);
+                      return (
+                        <CarouselItem key={slideIndex} className="pl-2 md:pl-4 basis-full">
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            {slideImages.map((image, imageIndex) => {
+                              const globalIndex = slideIndex * 4 + imageIndex;
+                              return (
+                                <div
+                                  key={globalIndex}
+                                  className="relative rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 group cursor-pointer"
+                                  onClick={() => setSelectedGalleryImage(image)}
+                                >
+                                  <div className="aspect-square relative">
+                                    <img
+                                      src={image.src}
+                                      alt={image.alt}
+                                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                                      loading="lazy"
+                                      onError={(e) => {
+                                        const target = e.target as HTMLImageElement;
+                                        target.src = 'https://images.pexels.com/photos/4164754/pexels-photo-4164754.jpeg?auto=compress&cs=tinysrgb&w=800';
+                                      }}
+                                    />
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </CarouselItem>
+                      );
+                    })}
+                  </CarouselContent>
+                </Carousel>
+              </div>
+
+              <div className="flex items-center justify-center gap-4">
+                <button
+                  onClick={() => galleryCarouselApi.current?.scrollPrev()}
+                  className="w-12 h-12 rounded-full border-2 border-[#E00000] bg-background flex items-center justify-center hover:bg-[#E00000]/10 transition-colors"
+                  aria-label="Previous images"
+                >
+                  <ArrowRight className="h-5 w-5 text-[#E00000] transition-colors rotate-180" />
+                </button>
+                <button
+                  onClick={() => galleryCarouselApi.current?.scrollNext()}
+                  className="w-12 h-12 rounded-full border-2 border-[#E00000] bg-background flex items-center justify-center hover:bg-[#E00000]/10 transition-colors"
+                  aria-label="Next images"
+                >
+                  <ArrowRight className="h-5 w-5 text-[#E00000] transition-colors" />
+                </button>
+              </div>
+            </TabsContent>
+          </Tabs>
         </div>
       </section>
 

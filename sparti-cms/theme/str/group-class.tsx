@@ -7,7 +7,7 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Star, Menu, X, ArrowRight, Wrench, Award, Users, ChevronUp, Plus, Minus, Instagram } from 'lucide-react';
 import ContactModal from './ContactModal';
 import HeroSection from './components/HeroSection';
-import { STR_ASSETS, getGalleryImages } from './config/assets';
+import { STR_ASSETS, getGroupClassGalleryImages } from './config/assets';
 import { fetchSTRReviews, type STRTestimonial, type STRPlaceInfo, formatReviewDate, getInitials } from './services/googleReviews';
 import { useThemeBranding } from '../../hooks/useThemeSettings';
 import { getSiteName, getSiteDescription, getLogoSrc, getFaviconSrc, applyFavicon } from './utils/settings';
@@ -259,7 +259,7 @@ const GroupClassPage: React.FC<TenantLandingProps> = ({
   ];
 
   // Gallery images - loaded from centralized asset config
-  const galleryImages = getGalleryImages();
+  const galleryImages = getGroupClassGalleryImages();
 
   // Team members
   const teamMembers = [

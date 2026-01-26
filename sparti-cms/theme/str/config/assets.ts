@@ -26,56 +26,108 @@ export const STR_ASSETS = {
     programmes: `${ASSET_BASE_PATH}/programmes/Group-1171274862-1.png`,
   },
   
-  // Gallery Images
+  // Gallery Images - Personal Training Gallery
+  personalTrainingGallery: [
+    `${ASSET_BASE_PATH}/gallery/personal-training-1.png`,
+    `${ASSET_BASE_PATH}/gallery/personal-training-2.png`,
+    `${ASSET_BASE_PATH}/gallery/personal-training-3.png`,
+    `${ASSET_BASE_PATH}/gallery/personal-training-4.png`,
+    `${ASSET_BASE_PATH}/gallery/personal-training-5.png`,
+    `${ASSET_BASE_PATH}/gallery/personal-training-6.png`,
+    `${ASSET_BASE_PATH}/gallery/personal-training-7.png`,
+    `${ASSET_BASE_PATH}/gallery/personal-training-8.png`,
+    `${ASSET_BASE_PATH}/gallery/personal-training-9.png`,
+  ],
+  
+  // Gallery Images - Group Class Gallery
+  groupClassGallery: [
+    `${ASSET_BASE_PATH}/gallery/group-class-1.png`,
+    `${ASSET_BASE_PATH}/gallery/group-class-2.png`,
+    `${ASSET_BASE_PATH}/gallery/group-class-3.png`,
+    `${ASSET_BASE_PATH}/gallery/group-class-4.png`,
+    `${ASSET_BASE_PATH}/gallery/group-class-5.png`,
+    `${ASSET_BASE_PATH}/gallery/group-class-6.png`,
+  ],
+  
+  // Gallery Images - Physiotherapy Gallery
+  physiotherapyGallery: [
+    `${ASSET_BASE_PATH}/gallery/physiotherapy-1.png`,
+    `${ASSET_BASE_PATH}/gallery/physiotherapy-2.png`,
+    `${ASSET_BASE_PATH}/gallery/physiotherapy-3.png`,
+    `${ASSET_BASE_PATH}/gallery/physiotherapy-4.png`,
+    `${ASSET_BASE_PATH}/gallery/physiotherapy-5.png`,
+    `${ASSET_BASE_PATH}/gallery/physiotherapy-6.png`,
+  ],
+  
+  // Legacy gallery - kept for backward compatibility (defaults to personal training)
   gallery: [
-    `${ASSET_BASE_PATH}/gallery/athlete-1-300x300.png`,
-    `${ASSET_BASE_PATH}/gallery/athlete-2-300x300.png`,
-    `${ASSET_BASE_PATH}/gallery/athlete-3-300x300.png`,
-    `${ASSET_BASE_PATH}/gallery/athlete-4-200x300.png`,
-    `${ASSET_BASE_PATH}/gallery/Athletes-300x225.jpg`,
-    `${ASSET_BASE_PATH}/gallery/GALLERY-2-200x300.jpg`,
-    `${ASSET_BASE_PATH}/gallery/GALLERY-200x300.jpg`,
-    `${ASSET_BASE_PATH}/gallery/Personal-Training-200x300.jpg`,
-    `${ASSET_BASE_PATH}/gallery/Physio-space-200x300.jpg`,
-    `${ASSET_BASE_PATH}/gallery/programme-1-300x300.png`,
-    `${ASSET_BASE_PATH}/gallery/programme-2-300x300.png`,
-    `${ASSET_BASE_PATH}/gallery/Programmes-1-200x300.jpg`,
-    `${ASSET_BASE_PATH}/gallery/Programmes-139x300.png`,
-    `${ASSET_BASE_PATH}/gallery/Programmes-2-200x300.jpg`,
-    `${ASSET_BASE_PATH}/gallery/Programmes-3-200x300.jpg`,
-    `${ASSET_BASE_PATH}/gallery/Programmes-31-200x300.jpg`,
-    `${ASSET_BASE_PATH}/gallery/Programmes-4-200x300.jpg`,
-    `${ASSET_BASE_PATH}/gallery/Programmes-5-200x300.jpg`,
-    `${ASSET_BASE_PATH}/gallery/Programmes-6-200x300.jpg`,
+    `${ASSET_BASE_PATH}/gallery/personal-training-1.png`,
+    `${ASSET_BASE_PATH}/gallery/personal-training-2.png`,
+    `${ASSET_BASE_PATH}/gallery/personal-training-3.png`,
+    `${ASSET_BASE_PATH}/gallery/personal-training-4.png`,
+    `${ASSET_BASE_PATH}/gallery/personal-training-5.png`,
+    `${ASSET_BASE_PATH}/gallery/personal-training-6.png`,
+    `${ASSET_BASE_PATH}/gallery/personal-training-7.png`,
+    `${ASSET_BASE_PATH}/gallery/personal-training-8.png`,
+    `${ASSET_BASE_PATH}/gallery/personal-training-9.png`,
   ],
 } as const;
 
-// Helper function to get gallery images with alt text
-export const getGalleryImages = () => {
+// Helper function to get Personal Training gallery images with alt text
+export const getPersonalTrainingGalleryImages = () => {
   const altTexts = [
-    'STR Fitness athlete training',
-    'STR Fitness athlete in action',
-    'STR Fitness athlete workout',
-    'STR Fitness athlete training session',
-    'STR Fitness athletes group training',
-    'STR Fitness gallery training session',
-    'STR Fitness gallery facility',
-    'STR Fitness personal training session',
-    'STR Fitness physiotherapy space',
-    'STR Fitness programme training',
-    'STR Fitness programme session',
-    'STR Fitness programmes training',
-    'STR Fitness programmes facility',
-    'STR Fitness programmes session',
-    'STR Fitness programmes training area',
-    'STR Fitness programmes workout',
-    'STR Fitness programmes facility',
-    'STR Fitness programmes training',
-    'STR Fitness programmes session',
+    'STR Personal Training - Plyometric box jump exercise with trainer observation',
+    'STR Personal Training - One-on-one training session with leg exercise',
+    'STR Personal Training - Dynamic plyometric training session',
+    'STR Personal Training - Outdoor training with plyometric boxes',
+    'STR Personal Training - Trainer and client interaction during workout',
+    'STR Personal Training - Resistance band exercise with trainer guidance',
+    'STR Personal Training - Abdominal exercise with trainer support',
+    'STR Personal Training - Manual therapy and assessment session',
+    'STR Personal Training - Hands-on training and therapy session',
   ];
   
-  return STR_ASSETS.gallery.map((src, index) => ({
+  return STR_ASSETS.personalTrainingGallery.map((src, index) => ({
     src,
-    alt: altTexts[index] || 'STR Fitness gallery image',
+    alt: altTexts[index] || 'STR Personal Training gallery image',
   }));
+};
+
+// Helper function to get Group Class gallery images with alt text
+export const getGroupClassGalleryImages = () => {
+  const altTexts = [
+    'STR Group Class - Dynamic group training session with multiple exercises',
+    'STR Group Class - Functional training with rowing machines and equipment',
+    'STR Group Class - Team of trainers and athletes at STR facility',
+    'STR Group Class - Group rowing session with Concept2 machines',
+    'STR Group Class - Outdoor training session with stretching',
+    'STR Group Class - Instructor-led group class with participants',
+  ];
+  
+  return STR_ASSETS.groupClassGallery.map((src, index) => ({
+    src,
+    alt: altTexts[index] || 'STR Group Class gallery image',
+  }));
+};
+
+// Helper function to get Physiotherapy gallery images with alt text
+export const getPhysiotherapyGalleryImages = () => {
+  const altTexts = [
+    'STR Physiotherapy - Manual therapy session with therapist treating patient on treatment table',
+    'STR Physiotherapy - Hands-on physiotherapy treatment with therapist applying manual techniques',
+    'STR Physiotherapy - Active rehabilitation session with leg exercise and therapist guidance',
+    'STR Physiotherapy - Knee and thigh rehabilitation with manual therapy techniques',
+    'STR Physiotherapy - Treadmill assessment and monitoring during rehabilitation',
+    'STR Physiotherapy - Leg curl and extension exercise with therapist assistance',
+  ];
+  
+  return STR_ASSETS.physiotherapyGallery.map((src, index) => ({
+    src,
+    alt: altTexts[index] || 'STR Physiotherapy gallery image',
+  }));
+};
+
+// Legacy function - kept for backward compatibility (defaults to personal training)
+export const getGalleryImages = () => {
+  return getPersonalTrainingGalleryImages();
 };
