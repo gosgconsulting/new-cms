@@ -79,6 +79,7 @@ const Navigation = () => {
       href: "/",
       submenuItems: [],
       images: [],
+<<<<<<< HEAD
     },
     {
       name: "SHOP",
@@ -112,6 +113,25 @@ const Navigation = () => {
       images: [],
     },
     {
+=======
+    },
+    {
+      name: "SHOP",
+      href: "/category/shop",
+      submenuItems: ["Curated Sets", "Ingredients", "Tools", "Recipe Collections", "Essentials"],
+      images: [
+        { src: pantheonImage, alt: "Curated Sets", label: "Curated Sets", to: "/category/curated-sets" },
+        { src: haloImage, alt: "Ingredients", label: "Ingredients", to: "/category/ingredients" },
+      ],
+    },
+    {
+      name: "RECIPES",
+      href: "/recipes",
+      submenuItems: [],
+      images: [],
+    },
+    {
+>>>>>>> 687dfeb057b10a53dd9bb902c2bb43030fad2f84
       name: "BEOK",
       href: "/beok",
       submenuItems: [],
@@ -134,7 +154,11 @@ const Navigation = () => {
       }}
     >
       {/* Topbar */}
+<<<<<<< HEAD
       <div
+=======
+      <div 
+>>>>>>> 687dfeb057b10a53dd9bb902c2bb43030fad2f84
         className="w-full py-2 px-6 flex items-center justify-between text-sm"
         style={{
           backgroundColor: "#9CAF88", // Sage green background
@@ -143,8 +167,13 @@ const Navigation = () => {
         <div className="text-[#2F5C3E] font-body font-light">
           FREE DELIVERY FOR ORDERS OVER $150
         </div>
+<<<<<<< HEAD
         <ThemeLink
           to="/category/shop"
+=======
+        <ThemeLink 
+          to="/category/shop" 
+>>>>>>> 687dfeb057b10a53dd9bb902c2bb43030fad2f84
           className="text-[#2F5C3E] font-body font-light flex items-center gap-1 hover:opacity-80 transition-opacity"
         >
           SHOP NOW
@@ -152,6 +181,7 @@ const Navigation = () => {
         </ThemeLink>
       </div>
 
+<<<<<<< HEAD
       {/* Main Header (desktop: menu left, logo center, icons right) */}
       <div className="bg-white">
         <div className="grid grid-cols-3 items-center h-20 px-6">
@@ -295,6 +325,151 @@ const Navigation = () => {
                 </span>
               )}
             </button>
+=======
+      {/* Main Header Section */}
+      <div className="bg-white">
+        {/* Top Row: Mobile Menu, Logo, Utility Icons */}
+        <div className="flex items-center justify-between h-20 px-6">
+          {/* Mobile hamburger button */}
+          <button
+            className="lg:hidden p-2 mt-0.5 text-nav-foreground hover:text-primary transition-colors duration-200"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            aria-label="Toggle menu"
+          >
+            <div className="w-5 h-5 relative">
+              <span
+                className={`absolute block w-5 h-px bg-current transform transition-all duration-300 ${
+                  isMobileMenuOpen ? "rotate-45 top-2.5" : "top-1.5"
+                }`}
+              ></span>
+              <span
+                className={`absolute block w-5 h-px bg-current transform transition-all duration-300 top-2.5 ${
+                  isMobileMenuOpen ? "opacity-0" : "opacity-100"
+                }`}
+              ></span>
+              <span
+                className={`absolute block w-5 h-px bg-current transform transition-all duration-300 ${
+                  isMobileMenuOpen ? "-rotate-45 top-2.5" : "top-3.5"
+                }`}
+              ></span>
+            </div>
+          </button>
+
+          {/* Center logo */}
+          <div className="absolute left-1/2 transform -translate-x-1/2">
+            <ThemeLink to="/" className="block">
+              <img src={logoSrc} alt="MOONDK" className="h-16 w-auto" />
+            </ThemeLink>
+          </div>
+
+          {/* Right utility icons */}
+          <div className="flex items-center space-x-2">
+            <button
+              className="p-2 text-nav-foreground hover:text-primary transition-colors duration-200"
+              aria-label="Search"
+              onClick={() => setIsSearchOpen(!isSearchOpen)}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth="1.5"
+                stroke="currentColor"
+                className="w-5 h-5"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+                />
+              </svg>
+            </button>
+            <button
+              className="p-2 text-nav-foreground hover:text-primary transition-colors duration-200"
+              aria-label="Account"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth="1.5"
+                stroke="currentColor"
+                className="w-5 h-5"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"
+                />
+              </svg>
+            </button>
+            <button
+              className="p-2 text-nav-foreground hover:text-primary transition-colors duration-200 relative"
+              aria-label="Shopping bag"
+              onClick={() => setIsShoppingBagOpen(true)}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth="1.5"
+                stroke="currentColor"
+                className="w-5 h-5"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007ZM8.625 10.5a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm7.5 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"
+                />
+              </svg>
+              {totalItems > 0 && (
+                <span className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-[30%] text-[0.5rem] font-semibold text-primary pointer-events-none">
+                  {totalItems}
+                </span>
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* Navigation Menu - Centered below logo */}
+        <div className="hidden lg:flex items-center justify-center border-t border-border py-3">
+          <div className="flex items-center space-x-8">
+            {navItems.map((item) => (
+              <div
+                key={item.name}
+                className="relative"
+                onMouseEnter={() => {
+                  if (item.submenuItems && item.submenuItems.length > 0) {
+                    setActiveDropdown(item.name);
+                  }
+                }}
+                onMouseLeave={() => setActiveDropdown(null)}
+              >
+                <ThemeLink
+                  to={item.href}
+                  className="text-nav-foreground hover:text-primary transition-colors duration-200 text-sm font-body font-light py-2 block flex items-center gap-1"
+                >
+                  {item.name}
+                  {item.submenuItems && item.submenuItems.length > 0 && (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth="1.5"
+                      stroke="currentColor"
+                      className="w-3 h-3"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="m19.5 8.25-7.5 7.5-7.5-7.5"
+                      />
+                    </svg>
+                  )}
+                </ThemeLink>
+              </div>
+            ))}
+>>>>>>> 687dfeb057b10a53dd9bb902c2bb43030fad2f84
           </div>
         </div>
       </div>
