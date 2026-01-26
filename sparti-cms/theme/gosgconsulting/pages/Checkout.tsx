@@ -177,7 +177,8 @@ const Checkout: React.FC = () => {
       const tenantId = 'tenant-gosg'; // Default tenant ID for gosgconsulting
 
       // Validate form data for guest checkout
-      if (!formData.name || !formData.email || !formData.phone || !formData.address) {
+      // FIX: use shipping_address (existing field) instead of non-existent address
+      if (!formData.name || !formData.email || !formData.phone || !formData.shipping_address) {
         throw new Error('Please fill in all required fields');
       }
 
