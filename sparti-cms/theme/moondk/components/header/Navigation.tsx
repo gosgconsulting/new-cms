@@ -83,10 +83,26 @@ const Navigation = () => {
     {
       name: "SHOP",
       href: "/category/shop",
-      submenuItems: ["Curated Sets", "Ingredients", "Tools", "Recipe Collections", "Essentials"],
+      submenuItems: [
+        "Curated Sets",
+        "Ingredients",
+        "Tools",
+        "Recipe Collections",
+        "Essentials",
+      ],
       images: [
-        { src: pantheonImage, alt: "Curated Sets", label: "Curated Sets", to: "/category/curated-sets" },
-        { src: haloImage, alt: "Ingredients", label: "Ingredients", to: "/category/ingredients" },
+        {
+          src: pantheonImage,
+          alt: "Curated Sets",
+          label: "Curated Sets",
+          to: "/category/curated-sets",
+        },
+        {
+          src: haloImage,
+          alt: "Ingredients",
+          label: "Ingredients",
+          to: "/category/ingredients",
+        },
       ],
     },
     {
@@ -118,7 +134,7 @@ const Navigation = () => {
       }}
     >
       {/* Topbar */}
-      <div 
+      <div
         className="w-full py-2 px-6 flex items-center justify-between text-sm"
         style={{
           backgroundColor: "#9CAF88", // Sage green background
@@ -127,8 +143,8 @@ const Navigation = () => {
         <div className="text-[#2F5C3E] font-body font-light">
           FREE DELIVERY FOR ORDERS OVER $150
         </div>
-        <ThemeLink 
-          to="/category/shop" 
+        <ThemeLink
+          to="/category/shop"
           className="text-[#2F5C3E] font-body font-light flex items-center gap-1 hover:opacity-80 transition-opacity"
         >
           SHOP NOW
@@ -136,44 +152,85 @@ const Navigation = () => {
         </ThemeLink>
       </div>
 
-      {/* Main Header Section */}
+      {/* Main Header (desktop: menu left, logo center, icons right) */}
       <div className="bg-white">
-        {/* Top Row: Mobile Menu, Logo, Utility Icons */}
-        <div className="flex items-center justify-between h-20 px-6">
-          {/* Mobile hamburger button */}
-          <button
-            className="lg:hidden p-2 mt-0.5 text-nav-foreground hover:text-primary transition-colors duration-200"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            aria-label="Toggle menu"
-          >
-            <div className="w-5 h-5 relative">
-              <span
-                className={`absolute block w-5 h-px bg-current transform transition-all duration-300 ${
-                  isMobileMenuOpen ? "rotate-45 top-2.5" : "top-1.5"
-                }`}
-              ></span>
-              <span
-                className={`absolute block w-5 h-px bg-current transform transition-all duration-300 top-2.5 ${
-                  isMobileMenuOpen ? "opacity-0" : "opacity-100"
-                }`}
-              ></span>
-              <span
-                className={`absolute block w-5 h-px bg-current transform transition-all duration-300 ${
-                  isMobileMenuOpen ? "-rotate-45 top-2.5" : "top-3.5"
-                }`}
-              ></span>
+        <div className="grid grid-cols-3 items-center h-20 px-6">
+          {/* Left: mobile hamburger + desktop menu */}
+          <div className="flex items-center justify-start gap-8">
+            <button
+              className="lg:hidden p-2 mt-0.5 text-nav-foreground hover:text-primary transition-colors duration-200"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              aria-label="Toggle menu"
+            >
+              <div className="w-5 h-5 relative">
+                <span
+                  className={`absolute block w-5 h-px bg-current transform transition-all duration-300 ${
+                    isMobileMenuOpen ? "rotate-45 top-2.5" : "top-1.5"
+                  }`}
+                ></span>
+                <span
+                  className={`absolute block w-5 h-px bg-current transform transition-all duration-300 top-2.5 ${
+                    isMobileMenuOpen ? "opacity-0" : "opacity-100"
+                  }`}
+                ></span>
+                <span
+                  className={`absolute block w-5 h-px bg-current transform transition-all duration-300 ${
+                    isMobileMenuOpen ? "-rotate-45 top-2.5" : "top-3.5"
+                  }`}
+                ></span>
+              </div>
+            </button>
+
+            <div className="hidden lg:flex items-center space-x-8">
+              {navItems.map((item) => (
+                <div
+                  key={item.name}
+                  className="relative"
+                  onMouseEnter={() => {
+                    if (item.submenuItems && item.submenuItems.length > 0) {
+                      setActiveDropdown(item.name);
+                    } else {
+                      setActiveDropdown(null);
+                    }
+                  }}
+                  onMouseLeave={() => setActiveDropdown(null)}
+                >
+                  <ThemeLink
+                    to={item.href}
+                    className="text-nav-foreground hover:text-primary transition-colors duration-200 text-sm font-body font-light py-2 block flex items-center gap-1"
+                  >
+                    {item.name}
+                    {item.submenuItems && item.submenuItems.length > 0 && (
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth="1.5"
+                        stroke="currentColor"
+                        className="w-3 h-3"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="m19.5 8.25-7.5 7.5-7.5-7.5"
+                        />
+                      </svg>
+                    )}
+                  </ThemeLink>
+                </div>
+              ))}
             </div>
-          </button>
+          </div>
 
           {/* Center logo */}
-          <div className="absolute left-1/2 transform -translate-x-1/2">
+          <div className="flex items-center justify-center">
             <ThemeLink to="/" className="block">
-              <img src={logoSrc} alt="MOONDK" className="h-16 w-auto" />
+              <img src={logoSrc} alt="MOONDK" className="h-12 w-auto" />
             </ThemeLink>
           </div>
 
-          {/* Right utility icons */}
-          <div className="flex items-center space-x-2">
+          {/* Right: utility icons */}
+          <div className="flex items-center justify-end space-x-2">
             <button
               className="p-2 text-nav-foreground hover:text-primary transition-colors duration-200"
               aria-label="Search"
@@ -238,47 +295,6 @@ const Navigation = () => {
                 </span>
               )}
             </button>
-          </div>
-        </div>
-
-        {/* Navigation Menu - Centered below logo */}
-        <div className="hidden lg:flex items-center justify-center border-t border-border py-3">
-          <div className="flex items-center space-x-8">
-            {navItems.map((item) => (
-              <div
-                key={item.name}
-                className="relative"
-                onMouseEnter={() => {
-                  if (item.submenuItems && item.submenuItems.length > 0) {
-                    setActiveDropdown(item.name);
-                  }
-                }}
-                onMouseLeave={() => setActiveDropdown(null)}
-              >
-                <ThemeLink
-                  to={item.href}
-                  className="text-nav-foreground hover:text-primary transition-colors duration-200 text-sm font-body font-light py-2 block flex items-center gap-1"
-                >
-                  {item.name}
-                  {item.submenuItems && item.submenuItems.length > 0 && (
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth="1.5"
-                      stroke="currentColor"
-                      className="w-3 h-3"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="m19.5 8.25-7.5 7.5-7.5-7.5"
-                      />
-                    </svg>
-                  )}
-                </ThemeLink>
-              </div>
-            ))}
           </div>
         </div>
       </div>
