@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ThemeLink } from "../ThemeLink";
 import HomeHeroSlider from "./HomeHeroSlider";
 import HomeCategoryCarousel from "./HomeCategoryCarousel";
+import HomeFeaturedProductsCarousel from "./HomeFeaturedProductsCarousel";
 
 import heroImage from "../../assets/slider-2.png";
 import heroImage2 from "../../assets/slider-3.png";
@@ -155,6 +156,9 @@ export default function HomePage() {
 
       {/* Product categories */}
       <HomeCategoryCarousel />
+
+      {/* Featured product carousel (LoveWellness-style cards + progress) */}
+      <HomeFeaturedProductsCarousel />
 
       {/* Product list */}
       <section className="px-6 pb-20">
