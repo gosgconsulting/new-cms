@@ -6,9 +6,7 @@ import { syncThemesFromFileSystem } from '../sparti-cms/services/themeSync.js';
 
 // Validate PORT
 if (!PORT || isNaN(Number(PORT)) || Number(PORT) < 1 || Number(PORT) > 65535) {
-  console.error(`[Server] ❌ Invalid PORT: ${PORT}`);
-  console.error('[Server] PORT must be a number between 1 and 65535');
-  console.error(`[Server] process.env.PORT: ${process.env.PORT || 'not set'}`);
+  console.error(`Invalid PORT: ${PORT}. PORT must be a number between 1 and 65535`);
   process.exit(1);
 }
 
@@ -25,38 +23,22 @@ process.on('SIGTERM', () => {
 
 // Start server immediately, initialize database in background
 function startServer() {
-  console.log(`[Server] Attempting to start server on port ${PORT}...`);
-  console.log(`[Server] NODE_ENV: ${process.env.NODE_ENV || 'not set'}`);
-  console.log(`[Server] process.env.PORT: ${process.env.PORT || 'not set'}`);
-  
   try {
     // Start listening immediately so health checks work
     const server = app.listen(PORT, '0.0.0.0', () => {
-      console.log(`[Server] ✅ Server running on port ${PORT}`);
-      console.log(`[Server] Health check available at http://0.0.0.0:${PORT}/health`);
-      console.log(`[Server] Detailed health check available at http://0.0.0.0:${PORT}/health/detailed`);
-      console.log(`[Server] Application available at http://0.0.0.0:${PORT}/`);
-      console.log(`[Server] API endpoints available at http://0.0.0.0:${PORT}/api/`);
-      console.log('[Server] Server started, initializing database in background...');
+      console.log(`Server running on port ${PORT}`);
+      console.log(`Health check available at http://0.0.0.0:${PORT}/health`);
     });
     
     // Handle server errors
     server.on('error', (error) => {
-      console.error('[Server] ❌ Server error:', error);
+      console.error('Server error:', error.message);
       if (error.code === 'EADDRINUSE') {
-        console.error(`[Server] Port ${PORT} is already in use`);
-        console.error('[Server] This might indicate another instance is running');
+        console.error(`Port ${PORT} is already in use`);
       } else if (error.code === 'EACCES') {
-        console.error(`[Server] Permission denied to bind to port ${PORT}`);
-        console.error('[Server] Try running with elevated permissions or use a different port');
-      } else {
-        console.error('[Server] Unexpected server error:', error.message);
-        console.error('[Server] Error code:', error.code);
-        console.error('[Server] Error stack:', error.stack);
+        console.error(`Permission denied to bind to port ${PORT}`);
       }
-      // Don't exit immediately - let Railway see the error
       setTimeout(() => {
-        console.error('[Server] Exiting due to server error...');
         process.exit(1);
       }, 5000);
     });
@@ -64,25 +46,20 @@ function startServer() {
     // Initialize database in the background (non-blocking)
     initializeDatabaseInBackground().then(() => {
       // After database is initialized, sync themes from file system
-      console.log('[Server] Database initialized, syncing themes...');
       syncThemesFromFileSystem().then((result) => {
-        if (result.success) {
-          console.log(`[Server] Theme sync completed: ${result.message}`);
-        } else {
-          console.error(`[Server] Theme sync failed: ${result.message}`);
+        if (!result.success) {
+          console.error(`Theme sync failed: ${result.message}`);
         }
       }).catch((error) => {
-        console.error('[Server] Error syncing themes:', error);
+        console.error('Error syncing themes:', error.message);
       });
     }).catch((error) => {
-      console.error('[Server] Database initialization error (non-fatal):', error);
+      console.error('Database initialization error (non-fatal):', error.message);
       // Don't exit - server can still serve health checks
     });
   } catch (error) {
-    console.error('[Server] ❌ Fatal error starting server:', error);
-    console.error('[Server] Error message:', error.message);
-    console.error('[Server] Error stack:', error.stack);
-    // Give a moment for logs to flush
+    console.error('Fatal error starting server:', error.message);
+    console.error('Error stack:', error.stack);
     setTimeout(() => {
       process.exit(1);
     }, 2000);

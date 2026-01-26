@@ -52,59 +52,24 @@ export async function initializeDatabaseInBackground(maxRetries = 5, retryDelay 
     // Ignore parsing errors
   }
   
-  console.log('[testing] ========== DATABASE INITIALIZATION ==========');
-  console.log(`[testing] Connection source: ${connectionSource}`);
-  console.log(`[testing] Host: ${hostInfo}`);
-  console.log(`[testing] Connection type: ${isLocalhost ? 'localhost' : 'remote'}`);
-  console.log(`[testing] SSL enabled: ${useSSL}`);
-  if (isLocalhost) {
-    console.log('[testing] Localhost connection detected - using extended timeout and retry logic');
-  }
-  console.log('[testing] ===========================================');
-  
   while (attempt < maxRetries) {
     attempt++;
     try {
-      console.log(`[testing] Testing database connection... (attempt ${attempt}/${maxRetries})`);
-      
       // Test connection first with a simple query
       const { query } = await import('../../sparti-cms/db/index.js');
       await query('SELECT 1');
-      console.log('[testing] Database connection test successful');
-      
-      // Initialize blog schema for default tenant
-      // await ensureBlogSchemaInitialized('tenant-gosg');
       
       setDatabaseState(true);
-      console.log('[testing] Database initialization completed successfully');
       return; // Success - exit the retry loop
       
     } catch (error) {
-      console.error(`[testing] Database connection error (attempt ${attempt}/${maxRetries}):`, error.message);
-      console.error(`[testing] Error code: ${error.code || 'N/A'}`);
-      
-      if (isLocalhost && error.code === 'ECONNREFUSED') {
-        console.error('[testing] Localhost connection refused - possible causes:');
-        console.error('[testing]   - PostgreSQL service is not running');
-        console.error('[testing]   - PostgreSQL is starting up (wait a few seconds)');
-        console.error('[testing]   - Incorrect port in connection string');
-        console.error('[testing]   - PostgreSQL is not configured to accept connections');
-      }
-      
       if (attempt >= maxRetries) {
         // All retries exhausted
-        console.error('[testing] ========== DATABASE INITIALIZATION FAILED ==========');
-        console.error('[testing] Failed to connect to database after all retries');
-        console.error('[testing] Note: Make sure migrations are run via: npm run sequelize:migrate');
-        if (isLocalhost) {
-          console.error('[testing]');
-          console.error('[testing] For localhost connections, verify:');
-          console.error('[testing]   1. PostgreSQL service is running');
-          console.error('[testing]   2. Connection string in .env is correct');
-          console.error('[testing]   3. Credentials are correct');
-          console.error('[testing]   4. PostgreSQL is listening on the expected port');
+        console.error('Failed to connect to database after all retries');
+        console.error('Error:', error.message);
+        if (isLocalhost && error.code === 'ECONNREFUSED') {
+          console.error('Localhost connection refused - verify PostgreSQL is running');
         }
-        console.error('[testing] ====================================================');
         setDatabaseState(false, error);
         return;
       }
@@ -114,7 +79,6 @@ export async function initializeDatabaseInBackground(maxRetries = 5, retryDelay 
       if (isLocalhost && error.code === 'ECONNREFUSED') {
         delay = Math.min(retryDelay * 1.5, 10000); // Longer delay for localhost
       }
-      console.log(`[testing] Retrying database connection in ${delay}ms...`);
       await new Promise(resolve => setTimeout(resolve, delay));
       
       // Exponential backoff for subsequent retries

@@ -20,14 +20,11 @@ async function waitForDatabase(maxRetries = 30, retryDelay = 2000) {
   while (attempt < maxRetries) {
     attempt++;
     try {
-      console.log(`[testing] Waiting for database connection... (attempt ${attempt}/${maxRetries})`);
       await query('SELECT 1');
-      console.log('[testing] Database connection successful!');
       return true;
     } catch (error) {
-      console.log(`[testing] Database not ready yet: ${error.message}`);
       if (attempt >= maxRetries) {
-        console.error('[testing] Failed to connect to database after all retries');
+        console.error('Failed to connect to database after all retries');
         throw new Error('Database connection timeout');
       }
       await new Promise(resolve => setTimeout(resolve, retryDelay));
@@ -42,22 +39,13 @@ async function runDatabaseMigrations(maxRetries = 3, retryDelay = 5000) {
   while (attempt < maxRetries) {
     attempt++;
     try {
-      console.log(`[testing] Starting database migrations... (attempt ${attempt}/${maxRetries})`);
       await runMigrations();
-      console.log('[testing] Database migrations completed successfully');
       return true;
     } catch (error) {
-      console.error(`[testing] Error running migrations (attempt ${attempt}/${maxRetries}):`, error.message);
-      
       if (attempt >= maxRetries) {
-        console.error('[testing] All migration attempts failed');
-        console.error('[testing] Continuing with server start - migrations can be run manually');
-        // Don't exit - allow server to start even if migrations fail
-        // This allows the server to run and show errors in logs
+        console.error('Database migrations failed - continuing with server start');
         return false;
       }
-      
-      console.log(`[testing] Retrying migrations in ${retryDelay}ms...`);
       await new Promise(resolve => setTimeout(resolve, retryDelay));
     }
   }
@@ -71,8 +59,6 @@ async function waitForServerReady(maxRetries = 15, retryDelay = 2000) {
   const { PORT } = await import('../server/config/constants.js');
   const port = PORT || 4173;
   
-  console.log(`[testing] Waiting for server to respond on port ${port}...`);
-  
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
       await new Promise((resolve, reject) => {
@@ -81,7 +67,6 @@ async function waitForServerReady(maxRetries = 15, retryDelay = 2000) {
           res.on('data', chunk => data += chunk);
           res.on('end', () => {
             if (res.statusCode === 200) {
-              console.log('[testing] ✅ Server healthcheck passed!');
               resolve();
             } else {
               reject(new Error(`Healthcheck returned ${res.statusCode}: ${data}`));
@@ -99,12 +84,9 @@ async function waitForServerReady(maxRetries = 15, retryDelay = 2000) {
       return true;
     } catch (error) {
       if (attempt < maxRetries - 1) {
-        console.log(`[testing] Server not ready yet: ${error.message} (attempt ${attempt + 1}/${maxRetries})`);
         await new Promise(resolve => setTimeout(resolve, retryDelay));
       } else {
-        console.error('[testing] ❌ Server healthcheck failed after all retries');
-        console.error('[testing] This may indicate the server failed to start');
-        // Don't exit - let Railway healthcheck handle it
+        console.error('Server healthcheck failed after all retries');
         return false;
       }
     }
@@ -115,69 +97,35 @@ async function waitForServerReady(maxRetries = 15, retryDelay = 2000) {
 // Main entrypoint
 async function main() {
   try {
-    // Start the server FIRST so healthchecks can pass immediately
-    // The server will handle database initialization in the background
-    console.log('[testing] Starting production server (healthcheck will be available immediately)...');
-    console.log('[testing] Current working directory:', process.cwd());
-    console.log('[testing] Node version:', process.version);
-    console.log('[testing] NODE_ENV:', process.env.NODE_ENV);
-    
     // Check if dist directory exists (critical for server to work)
     const fs = await import('fs');
     const path = await import('path');
     const distPath = path.join(process.cwd(), 'dist');
     if (!fs.existsSync(distPath)) {
-      console.error('[testing] ERROR: dist directory does not exist!');
-      console.error('[testing] Build may have failed. Check build logs.');
-      // Don't exit - let server try to start anyway (it has fallback)
-    } else {
-      const distContents = fs.readdirSync(distPath);
-      console.log(`[testing] dist directory exists with ${distContents.length} files`);
+      console.error('ERROR: dist directory does not exist! Build may have failed.');
     }
     
-    // Log PORT before importing server
-    console.log(`[testing] Environment check:`);
-    console.log(`[testing]   process.env.PORT: ${process.env.PORT || 'not set (will use default 4173)'}`);
-    console.log(`[testing]   process.env.NODE_ENV: ${process.env.NODE_ENV || 'not set'}`);
-    console.log(`[testing]   process.env.DATABASE_URL: ${process.env.DATABASE_URL ? 'set' : 'not set'}`);
-    console.log(`[testing]   process.env.DATABASE_PUBLIC_URL: ${process.env.DATABASE_PUBLIC_URL ? 'set' : 'not set'}`);
-    
     // Import server - this will start the server
-    console.log('[testing] Importing server module (this will start the server)...');
     let serverModule;
     try {
       serverModule = await import('../server/index.js');
-      console.log('[testing] ✅ Server module imported successfully');
     } catch (importError) {
-      console.error('[testing] ❌ ERROR: Failed to import server module');
-      console.error('[testing] Error name:', importError.name);
-      console.error('[testing] Error message:', importError.message);
-      console.error('[testing] Error code:', importError.code || 'N/A');
-      console.error('[testing] Error stack:', importError.stack);
-      // Try to get more details about the error
-      if (importError.cause) {
-        console.error('[testing] Error cause:', importError.cause);
-      }
-      // Check if it's a module resolution error
+      console.error('ERROR: Failed to import server module');
+      console.error('Error:', importError.message);
       if (importError.code === 'MODULE_NOT_FOUND') {
-        console.error('[testing] This appears to be a module resolution error');
-        console.error('[testing] Check that all dependencies are installed');
+        console.error('Module resolution error - check that all dependencies are installed');
       }
       throw importError;
     }
     
     // Wait a moment for server to start listening
-    console.log('[testing] Waiting for server to start listening (5 seconds)...');
     await new Promise(resolve => setTimeout(resolve, 5000));
     
     // Verify server is responding to healthchecks
     const serverReady = await waitForServerReady();
     
-    if (serverReady) {
-      console.log('[testing] ✅ Server is ready and healthcheck is passing!');
-    } else {
-      console.warn('[testing] ⚠️ Server healthcheck not ready, but continuing...');
-      console.warn('[testing] Railway healthcheck will retry');
+    if (!serverReady) {
+      console.warn('Server healthcheck not ready, but continuing...');
     }
     
     // Wait for database and run migrations in parallel (non-blocking)
@@ -186,30 +134,14 @@ async function main() {
       .then(() => {
         return runDatabaseMigrations();
       })
-      .then((success) => {
-        if (success) {
-          console.log('[testing] Database setup completed successfully in background');
-        } else {
-          console.warn('[testing] Database setup completed with warnings - check logs');
-        }
-      })
       .catch((error) => {
-        console.error('[testing] Database setup error (non-fatal):', error);
+        console.error('Database setup error (non-fatal):', error.message);
         // Don't exit - server continues running
       });
     
-    // Keep process alive - server/index.js already started the server
-    console.log('[testing] Entrypoint complete, server should be running');
-    console.log('[testing] Process will stay alive to keep server running');
-    
-    // Keep the process alive indefinitely
-    // The server is already running from server/index.js
-    // This process just needs to stay alive
-    
   } catch (error) {
-    console.error('[testing] ❌ Fatal error in entrypoint:', error);
-    console.error('[testing] Error message:', error.message);
-    console.error('[testing] Error stack:', error.stack);
+    console.error('Fatal error in entrypoint:', error.message);
+    console.error('Error stack:', error.stack);
     
     // Give a moment for logs to flush
     await new Promise(resolve => setTimeout(resolve, 1000));
@@ -219,16 +151,13 @@ async function main() {
 
 // Handle uncaught errors to prevent silent crashes
 process.on('uncaughtException', (error) => {
-  console.error('[testing] ❌ Uncaught Exception:', error);
-  console.error('[testing] Stack:', error.stack);
-  // Don't exit immediately - let Railway see the error
+  console.error('Uncaught Exception:', error.message);
+  console.error('Stack:', error.stack);
   setTimeout(() => process.exit(1), 5000);
 });
 
 process.on('unhandledRejection', (reason, promise) => {
-  console.error('[testing] ❌ Unhandled Rejection at:', promise);
-  console.error('[testing] Reason:', reason);
-  // Don't exit immediately - let Railway see the error
+  console.error('Unhandled Rejection:', reason);
   setTimeout(() => process.exit(1), 5000);
 });
 
