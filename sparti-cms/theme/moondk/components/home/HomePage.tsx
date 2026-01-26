@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ThemeLink } from "../ThemeLink";
 import HomeHeroSlider from "./HomeHeroSlider";
+import HomeCategoryCarousel from "./HomeCategoryCarousel";
 
 import heroImage from "../../assets/slider-2.png";
 import heroImage2 from "../../assets/slider-3.png";
@@ -152,8 +153,11 @@ export default function HomePage() {
       {/* Hero slider (LoveWellness-style) */}
       <HomeHeroSlider />
 
+      {/* Product categories */}
+      <HomeCategoryCarousel />
+
       {/* Product list */}
-      <section className="px-6 py-16">
+      <section className="px-6 pb-20">
         <div className="mx-auto max-w-6xl">
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6">
             <div>
