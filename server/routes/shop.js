@@ -1763,67 +1763,72 @@ router.post('/orders', authenticateTenantApiKey, async (req, res) => {
     // If payment method is STRIPE and Stripe is configured, create Payment Intent
     if (payment_method === 'STRIPE') {
       const stripe = await getTenantStripe(tenantId); // Get tenant-specific Stripe instance
-      if (stripe) {
-        try {
-          // Check if tenant has Stripe Connect enabled
-          const tenantResult = await query(`
-            SELECT stripe_connect_account_id, stripe_connect_onboarding_completed
-            FROM tenants
-            WHERE id = $1
-          `, [tenantId]);
+      if (!stripe) {
+        return res.status(400).json({
+          success: false,
+          error: 'Stripe is not configured for this tenant. Please configure your Stripe secret key in Shop Settings.'
+        });
+      }
 
-          const tenant = tenantResult.rows[0];
-          const hasStripeConnect = tenant?.stripe_connect_account_id && tenant?.stripe_connect_onboarding_completed;
+      try {
+        // Check if tenant has Stripe Connect enabled
+        const tenantResult = await query(`
+          SELECT stripe_connect_account_id, stripe_connect_onboarding_completed
+          FROM tenants
+          WHERE id = $1
+        `, [tenantId]);
 
-          if (hasStripeConnect) {
-            // Use Stripe Connect (for marketplace/platform scenarios)
-            const paymentIntent = await stripe.paymentIntents.create({
-              amount: Math.round((total || amount || 0) * 100), // Convert to cents
-              currency: 'usd',
-              metadata: {
-                tenant_id: tenantId,
-                user_id: userId ? userId.toString() : 'guest',
-                order_ref: orderRef,
-                guest_email: guest_email || '',
-                guest_name: guest_name || '',
-              },
-            }, {
-              stripeAccount: tenant.stripe_connect_account_id, // Use connected account
-            });
+        const tenant = tenantResult.rows[0];
+        const hasStripeConnect = tenant?.stripe_connect_account_id && tenant?.stripe_connect_onboarding_completed;
 
-            stripePaymentIntentId = paymentIntent.id;
-            stripeClientSecret = paymentIntent.client_secret;
-            orderRef = paymentIntent.id; // Use Payment Intent ID as order reference
-            
-            console.log(`[testing] Created Stripe Payment Intent ${stripePaymentIntentId} for order ${orderRef} on Connect account ${tenant.stripe_connect_account_id}`);
-          } else {
-            // Use direct Stripe payments (standard e-commerce, no Connect needed)
-            // Just need the secret key - no Connect account required
-            const paymentIntent = await stripe.paymentIntents.create({
-              amount: Math.round((total || amount || 0) * 100), // Convert to cents
-              currency: 'usd',
-              metadata: {
-                tenant_id: tenantId,
-                user_id: userId ? userId.toString() : 'guest',
-                order_ref: orderRef,
-                guest_email: guest_email || '',
-                guest_name: guest_name || '',
-              },
-            });
+        if (hasStripeConnect) {
+          // Use Stripe Connect (for marketplace/platform scenarios)
+          const paymentIntent = await stripe.paymentIntents.create({
+            amount: Math.round((total || amount || 0) * 100), // Convert to cents
+            currency: 'usd',
+            metadata: {
+              tenant_id: tenantId,
+              user_id: userId ? userId.toString() : 'guest',
+              order_ref: orderRef,
+              guest_email: guest_email || '',
+              guest_name: guest_name || '',
+            },
+          }, {
+            stripeAccount: tenant.stripe_connect_account_id, // Use connected account
+          });
 
-            stripePaymentIntentId = paymentIntent.id;
-            stripeClientSecret = paymentIntent.client_secret;
-            orderRef = paymentIntent.id; // Use Payment Intent ID as order reference
-            
-            console.log(`[testing] Created Stripe Payment Intent ${stripePaymentIntentId} for order ${orderRef} (direct payment, no Connect required)`);
-          }
-        } catch (stripeError) {
-          console.error('[testing] Error creating Stripe Payment Intent:', stripeError);
-          // Continue with order creation even if Stripe fails
-          // The order will be created but without Payment Intent
+          stripePaymentIntentId = paymentIntent.id;
+          stripeClientSecret = paymentIntent.client_secret;
+          orderRef = paymentIntent.id; // Use Payment Intent ID as order reference
+          
+          console.log(`[testing] Created Stripe Payment Intent ${stripePaymentIntentId} for order ${orderRef} on Connect account ${tenant.stripe_connect_account_id}`);
+        } else {
+          // Use direct Stripe payments (standard e-commerce, no Connect needed)
+          // Just need the secret key - no Connect account required
+          const paymentIntent = await stripe.paymentIntents.create({
+            amount: Math.round((total || amount || 0) * 100), // Convert to cents
+            currency: 'usd',
+            metadata: {
+              tenant_id: tenantId,
+              user_id: userId ? userId.toString() : 'guest',
+              order_ref: orderRef,
+              guest_email: guest_email || '',
+              guest_name: guest_name || '',
+            },
+          });
+
+          stripePaymentIntentId = paymentIntent.id;
+          stripeClientSecret = paymentIntent.client_secret;
+          orderRef = paymentIntent.id; // Use Payment Intent ID as order reference
+          
+          console.log(`[testing] Created Stripe Payment Intent ${stripePaymentIntentId} for order ${orderRef} (direct payment, no Connect required)`);
         }
-      } else {
-        console.warn(`[testing] Stripe not configured for tenant ${tenantId}, skipping Payment Intent creation`);
+      } catch (stripeError) {
+        console.error('[testing] Error creating Stripe Payment Intent:', stripeError);
+        return res.status(500).json({
+          success: false,
+          error: `Failed to create Stripe payment intent: ${stripeError.message || 'Unknown error'}`
+        });
       }
     }
 

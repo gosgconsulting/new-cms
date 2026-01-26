@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { CreditCard, CheckCircle, XCircle, ExternalLink, RefreshCw, Settings, Truck, Puzzle, Eye, EyeOff, Key, Edit2, X } from 'lucide-react';
+import { CreditCard, CheckCircle, XCircle, ExternalLink, RefreshCw, Settings, Truck, Puzzle, Eye, EyeOff, Key, Edit2, X, AlertTriangle } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import { api } from '../../utils/api';
 import { Button } from '@/components/ui/button';
@@ -465,7 +465,7 @@ export default function ShopSettingsManager({ currentTenantId, activeTab: propAc
     });
 
     const handleSaveConfig = async () => {
-      if (!stripeSecretKey && !stripeWebhookSecret) {
+      if (!stripeSecretKey && !stripePublishableKey && !stripeWebhookSecret) {
         setConfigMessage({ type: 'error', text: 'Please provide at least one key to update' });
         return;
       }
@@ -474,9 +474,12 @@ export default function ShopSettingsManager({ currentTenantId, activeTab: propAc
       setConfigMessage(null);
 
       try {
-        const updateData: { stripe_secret_key?: string; stripe_webhook_secret?: string } = {};
+        const updateData: { stripe_secret_key?: string; stripe_publishable_key?: string; stripe_webhook_secret?: string } = {};
         if (stripeSecretKey) {
           updateData.stripe_secret_key = stripeSecretKey;
+        }
+        if (stripePublishableKey) {
+          updateData.stripe_publishable_key = stripePublishableKey;
         }
         if (stripeWebhookSecret) {
           updateData.stripe_webhook_secret = stripeWebhookSecret;
@@ -605,9 +608,18 @@ export default function ShopSettingsManager({ currentTenantId, activeTab: propAc
                       </button>
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">
-                      Your Stripe webhook signing secret (starts with whsec_). Required for webhook verification.
+                      Optional: Your Stripe webhook signing secret (starts with whsec_). Used for webhook signature verification and automatic order status updates.
                     </p>
                   </div>
+
+                  {!stripeConfig?.has_stripe_webhook_secret && !stripeWebhookSecret && (
+                    <Alert className="bg-amber-50 border-amber-200">
+                      <AlertTriangle className="h-4 w-4 text-amber-600" />
+                      <AlertDescription className="text-amber-800">
+                        <strong>Webhook secret not configured.</strong> Without this, order status won't automatically update when payments succeed. You'll need to manually check payment status or rely on frontend confirmation. The webhook endpoint will also accept unverified requests.
+                      </AlertDescription>
+                    </Alert>
+                  )}
 
                   {configMessage && (
                     <Alert 
@@ -716,6 +728,15 @@ export default function ShopSettingsManager({ currentTenantId, activeTab: propAc
                     )}
                   </div>
                 </div>
+
+                {!stripeConfig?.has_stripe_webhook_secret && (
+                  <Alert className="bg-amber-50 border-amber-200">
+                    <AlertTriangle className="h-4 w-4 text-amber-600" />
+                    <AlertDescription className="text-amber-800">
+                      <strong>Webhook secret not configured.</strong> Without this, order status won't automatically update when payments succeed. You'll need to manually check payment status or rely on frontend confirmation. The webhook endpoint will also accept unverified requests.
+                    </AlertDescription>
+                  </Alert>
+                )}
 
                 <div className="flex justify-end">
                   <Button
