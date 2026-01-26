@@ -14,10 +14,10 @@ function parsePrice(price: string) {
   return Number.isFinite(n) ? n : 0;
 }
 
-const ProductGrid = ({
+export default function ProductGrid({
   activeTab = "All",
   sortBy = "featured",
-}: ProductGridProps) => {
+}: ProductGridProps) {
   const filtered =
     activeTab && activeTab !== "All"
       ? allProducts.filter((p) => p.category === activeTab)
@@ -33,45 +33,52 @@ const ProductGrid = ({
 
   return (
     <section className="w-full px-6 pb-12">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {products.map((product) => (
           <Card
             key={product.id}
-            className="border border-primary/60 shadow-none bg-white rounded-[1.5rem] overflow-hidden"
+            className="rounded-[1.5rem] border-border/40 shadow-none hover:shadow-sm transition-shadow"
           >
             <CardContent className="p-0">
-              <div className="relative bg-white aspect-square">
-                {product.isNew && (
-                  <div className="absolute top-4 left-4 text-xs font-body font-medium text-primary">
-                    NEW
-                  </div>
-                )}
-                <ThemeLink to={`/product/${product.id}`} className="block h-full w-full">
+              <ThemeLink to={`/product/${product.id}`} className="block">
+                <div className="relative rounded-t-[1.5rem] overflow-hidden bg-white">
+                  {product.isNew && (
+                    <div className="absolute top-4 left-4 text-xs font-body font-medium text-primary">
+                      NEW
+                    </div>
+                  )}
                   <img
                     src={product.image}
                     alt={product.name}
-                    className="h-full w-full object-contain p-10"
+                    className="w-full h-52 md:h-56 object-contain p-10"
                   />
-                </ThemeLink>
-              </div>
+                </div>
+              </ThemeLink>
 
-              <div className="bg-[#F2EFDC] px-5 py-4">
-                <p className="text-sm font-body font-light text-primary">{product.category}</p>
-                <div className="mt-1 flex items-end justify-between gap-4">
-                  <h3 className="text-base font-heading font-medium text-foreground leading-snug">
-                    {product.name}
-                  </h3>
-                  <p className="text-sm font-body font-light text-foreground whitespace-nowrap">
-                    {product.price}
-                  </p>
+              <div className="p-4">
+                <div className="flex items-center justify-between gap-3 text-xs text-foreground/60 font-body">
+                  <span className="truncate">{product.category}</span>
+                  <span className="whitespace-nowrap">{product.price}</span>
                 </div>
 
-                <Button
-                  asChild
-                  className="mt-4 w-full rounded-full bg-primary hover:bg-primary/90"
-                >
-                  <ThemeLink to={`/product/${product.id}`}>View product</ThemeLink>
-                </Button>
+                <ThemeLink to={`/product/${product.id}`} className="block mt-2">
+                  <h3 className="text-base font-heading leading-tight hover:underline underline-offset-4">
+                    {product.name}
+                  </h3>
+                </ThemeLink>
+
+                <p className="mt-2 text-sm font-body text-foreground/70">
+                  Chef-curated essentials for Korean home dining.
+                </p>
+
+                <div className="mt-4">
+                  <Button
+                    asChild
+                    className="rounded-full w-full bg-primary hover:bg-primary/90"
+                  >
+                    <ThemeLink to={`/product/${product.id}`}>View product</ThemeLink>
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -81,6 +88,4 @@ const ProductGrid = ({
       <Pagination />
     </section>
   );
-};
-
-export default ProductGrid;
+}
