@@ -18,6 +18,7 @@ import CheckoutSuccess from './pages/CheckoutSuccess';
 import NotFound from './pages/NotFound';
 import { ThankYouPage } from './components/ThankYouPage';
 import Blog from './components/Blog';
+import MasterTheme from '../master/index';
 
 interface TenantLandingProps {
   tenantName?: string;
@@ -165,8 +166,78 @@ const GOSGContent: React.FC<TenantLandingProps> = ({
       },
       // Section 3 — Animated headline
       { key: "AnimatedAboutSection", name: "Animated About", type: "AboutSection2", items: [] },
-      // Section 4 — Pricing Page
-      { key: "PricingPageSection", name: "Pricing", type: "PricingPage", items: [] },
+      // Section 4 — Full-stack growth package (replaced PricingPageSection)
+      {
+        key: "GrowthPackageSection",
+        name: "Growth Package",
+        type: "flowbite-whats-included-section",
+        items: [
+          {
+            key: "badge",
+            type: "text",
+            content: "Services",
+          },
+          {
+            key: "title",
+            type: "heading",
+            level: 2,
+            content: "Increase your revenue with a full‑stack growth package",
+          },
+          {
+            key: "description",
+            type: "text",
+            content: "A focused breakdown of the core areas driving results, each tailored to your goals.",
+          },
+          {
+            key: "features",
+            type: "array",
+            items: [
+              {
+                key: "s1",
+                type: "feature",
+                items: [
+                  { key: "title", type: "heading", level: 3, content: "Website & Conversion" },
+                  {
+                    key: "description",
+                    type: "text",
+                    content: "High‑converting landing pages, A/B test ideas, and conversion tracking.",
+                  },
+                ],
+              },
+              {
+                key: "s2",
+                type: "feature",
+                items: [
+                  { key: "title", type: "heading", level: 3, content: "Acquisition" },
+                  {
+                    key: "description",
+                    type: "text",
+                    content: "SEM + social ads, plus smart retargeting that doesn't waste spend.",
+                  },
+                ],
+              },
+              {
+                key: "s3",
+                type: "feature",
+                items: [
+                  { key: "title", type: "heading", level: 3, content: "Creative & Content" },
+                  {
+                    key: "description",
+                    type: "text",
+                    content: "Creative assets and copy that match your brand and convert.",
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            key: "cta",
+            type: "button",
+            content: "Get free consultation",
+            link: "#contact",
+          },
+        ],
+      },
       // Section 5 — Gallery4 services
       { key: "Gallery4Section", name: "Our Services", type: "Gallery4Section", items: [] },
       // FAQ
@@ -400,6 +471,7 @@ const GOSGContent: React.FC<TenantLandingProps> = ({
 const GOSGTheme: React.FC<TenantLandingProps> = ({ 
   tenantName = 'GO SG Consulting', 
   tenantSlug = 'gosgconsulting',
+  tenantId,
   pageSlug
 }) => {
   const location = useLocation();
@@ -504,6 +576,18 @@ const GOSGTheme: React.FC<TenantLandingProps> = ({
         return <GOSGContent tenantName={tenantName} tenantSlug={tenantSlug} />;
       case 'seo':
         return <GOSGContent tenantName={tenantName} tenantSlug={tenantSlug} pageSlug="seo" />;
+      case 'paid-ads':
+        // Render master theme homepage design exactly as it is
+        // Use tenantSlug="master" to get master theme branding, but override basePath for asset paths
+        // Use tenantId if available, otherwise fallback to 'tenant-gosg' (same as GOSGContent uses)
+        return (
+          <MasterTheme
+            basePath="/theme/gosgconsulting"
+            tenantName={tenantName}
+            tenantSlug="master"
+            tenantId={tenantId || 'tenant-gosg'}
+          />
+        );
       case 'blog':
         // theme blog index
         return <Blog tenantName={tenantName} tenantSlug={tenantSlug} />;

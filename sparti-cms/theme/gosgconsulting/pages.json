@@ -39,6 +39,26 @@
       ]
     },
     {
+      "page_name": "Paid Ads",
+      "slug": "/paid-ads",
+      "meta_title": "Paid Ads - GO SG Consulting",
+      "meta_description": "Master theme design for paid advertising services and digital marketing solutions.",
+      "seo_index": true,
+      "status": "published",
+      "page_type": "page",
+      "keywords": ["paid ads", "SEM", "PPC", "digital marketing", "advertising", "Singapore"],
+      "sections": [
+        { "id": "hero", "name": "Banner Section", "description": "Hero section with main value proposition" },
+        { "id": "challenge", "name": "Pain Point Section", "description": "Challenge/problem section" },
+        { "id": "about", "name": "Content Section", "description": "About us content section" },
+        { "id": "services", "name": "What's Included Section", "description": "Services and features breakdown" },
+        { "id": "testimonials", "name": "Testimonials Section", "description": "Customer testimonials" },
+        { "id": "our-services", "name": "Our Services Section", "description": "Additional services showcase" },
+        { "id": "faq", "name": "FAQ Section", "description": "Frequently asked questions" },
+        { "id": "contact", "name": "CTA Section", "description": "Call to action section" }
+      ]
+    },
+    {
       "page_name": "Blog",
       "slug": "/blog",
       "meta_title": "SEO Insights & Expert Tips - GO SG Consulting Blog",

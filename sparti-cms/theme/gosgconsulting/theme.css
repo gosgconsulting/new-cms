@@ -456,3 +456,50 @@
     background-position: 0% 50%;
   }
 }
+
+/* Growth Package Section - Streamlined colors and button styling */
+.gosg-growth-package-section {
+  /* Override CSS variables for streamlined colors - use brand primary throughout */
+  --brand-accent: var(--brand-primary);
+  --brand-accent-dark: var(--brand-secondary);
+}
+
+/* Streamline button - use brand primary color with smooth transitions */
+.gosg-growth-package-section a.btn-cta,
+.gosg-growth-package-section button.btn-cta {
+  background-color: var(--brand-primary) !important;
+  color: #ffffff !important;
+  border: none !important;
+  font-weight: 600 !important;
+  transition: all 0.3s ease !important;
+  box-shadow: 0 4px 12px rgba(155, 135, 245, 0.25) !important;
+}
+
+.gosg-growth-package-section a.btn-cta:hover,
+.gosg-growth-package-section button.btn-cta:hover {
+  background-color: var(--brand-secondary) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 24px rgba(155, 135, 245, 0.4) !important;
+}
+
+/* Override the callout box colors to use brand primary instead of accent */
+.gosg-growth-package-section section div[style*="color-mix"] {
+  background: color-mix(in srgb, var(--brand-primary) 10%, white) !important;
+  border: 1px solid color-mix(in srgb, var(--brand-primary) 22%, transparent) !important;
+}
+
+/* Override clock icon color to use brand primary */
+.gosg-growth-package-section svg[class*="lucide-Clock3"],
+.gosg-growth-package-section [class*="Clock3"] {
+  color: var(--brand-primary) !important;
+}
+
+/* Streamline checkmark icons to use brand primary */
+.gosg-growth-package-section [class*="icon-container-secondary"] {
+  background-color: color-mix(in srgb, var(--brand-primary) 10%, white) !important;
+  border-color: color-mix(in srgb, var(--brand-primary) 30%, transparent) !important;
+}
+
+.gosg-growth-package-section [class*="icon-container-secondary"] svg {
+  color: var(--brand-primary) !important;
+}

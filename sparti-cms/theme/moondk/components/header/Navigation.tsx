@@ -1,11 +1,12 @@
-import { ArrowRight, X, ChevronRight } from "lucide-react";
+import { X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 
 import { ThemeLink } from "../ThemeLink";
-import ShoppingBag, { type CartItem } from "./ShoppingBag";
+import ShoppingBag from "./ShoppingBag";
+import { useCart } from "../../contexts/CartContext";
 
-import logoSrc from "../../assets/logo.svg";
+import logoSrc from "../../assets/logo.png";
 
 // Placeholder images - replace with actual product images
 import pantheonImage from "../../../e-shop/assets/pantheon.jpg";
@@ -18,41 +19,8 @@ const Navigation = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [offCanvasType, setOffCanvasType] = useState<"favorites" | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isShoppingBagOpen, setIsShoppingBagOpen] = useState(false);
-
-  // Shopping bag state with mock items
-  const [cartItems, setCartItems] = useState<CartItem[]>([
-    {
-      id: 1,
-      name: "Chef's Selection Box",
-      price: "€45",
-      image: pantheonImage,
-      quantity: 1,
-      category: "Curated Sets",
-    },
-    {
-      id: 2,
-      name: "Korean Home Essentials",
-      price: "€32",
-      image: eclipseImage,
-      quantity: 1,
-      category: "Essentials",
-    },
-  ]);
-
-  const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
-
-  const updateQuantity = (id: number, newQuantity: number) => {
-    if (newQuantity <= 0) {
-      setCartItems((items) => items.filter((item) => item.id !== id));
-    } else {
-      setCartItems((items) =>
-        items.map((item) =>
-          item.id === id ? { ...item, quantity: newQuantity } : item
-        )
-      );
-    }
-  };
+  
+  const { cartItems, updateQuantity, totalItems, isCartOpen, openCart, closeCart } = useCart();
 
   // Preload dropdown images for faster display
   useEffect(() => {
@@ -63,15 +31,6 @@ const Navigation = () => {
       img.src = src;
     });
   }, []);
-
-  const popularSearches = [
-    "Chef's Selection",
-    "Korean Ingredients",
-    "Home Dining Sets",
-    "Curated Products",
-    "Recipe Collections",
-    "Chef Tools",
-  ];
 
   const navItems = [
     {
@@ -90,20 +49,7 @@ const Navigation = () => {
         "Recipe Collections",
         "Essentials",
       ],
-      images: [
-        {
-          src: pantheonImage,
-          alt: "Curated Sets",
-          label: "Curated Sets",
-          to: "/category/curated-sets",
-        },
-        {
-          src: haloImage,
-          alt: "Ingredients",
-          label: "Ingredients",
-          to: "/category/ingredients",
-        },
-      ],
+      images: [],
     },
     {
       name: "RECIPES",
@@ -135,21 +81,14 @@ const Navigation = () => {
     >
       {/* Topbar */}
       <div
-        className="w-full py-2 px-6 flex items-center justify-between text-sm"
+        className="w-full py-2 px-6 flex items-center justify-center text-sm"
         style={{
-          backgroundColor: "#9CAF88", // Sage green background
+          backgroundColor: "#B6B8A1", // Updated topbar color
         }}
       >
         <div className="text-[#2F5C3E] font-body font-light">
           FREE DELIVERY FOR ORDERS OVER $150
         </div>
-        <ThemeLink
-          to="/category/shop"
-          className="text-[#2F5C3E] font-body font-light flex items-center gap-1 hover:opacity-80 transition-opacity"
-        >
-          SHOP NOW
-          <ChevronRight size={14} />
-        </ThemeLink>
       </div>
 
       {/* Main Header */}
@@ -219,6 +158,35 @@ const Navigation = () => {
                       </svg>
                     )}
                   </ThemeLink>
+                  
+                  {/* Simple dropdown below menu item */}
+                  {activeDropdown === item.name && item.submenuItems && item.submenuItems.length > 0 && (
+                    <div
+                      className="absolute top-full left-0 mt-1 bg-white border border-border shadow-lg z-50 min-w-[200px] py-2"
+                      onMouseEnter={() => setActiveDropdown(item.name)}
+                      onMouseLeave={() => setActiveDropdown(null)}
+                    >
+                      <ul className="space-y-0">
+                        {item.submenuItems.map((subItem, index) => {
+                          const to =
+                            item.name === "SHOP"
+                              ? `/category/${subItem.toLowerCase().replace(/\s+/g, "-")}`
+                              : `/category/${subItem.toLowerCase().replace(/\s+/g, "-")}`;
+
+                          return (
+                            <li key={index}>
+                              <ThemeLink
+                                to={to}
+                                className="text-nav-foreground hover:text-primary transition-colors duration-200 text-sm font-body font-light block px-4 py-2 hover:bg-muted/50"
+                              >
+                                {subItem}
+                              </ThemeLink>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -279,7 +247,7 @@ const Navigation = () => {
             <button
               className="p-2 text-nav-foreground hover:text-primary transition-colors duration-200 relative"
               aria-label="Shopping bag"
-              onClick={() => setIsShoppingBagOpen(true)}
+              onClick={openCart}
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -305,73 +273,13 @@ const Navigation = () => {
         </div>
       </div>
 
-      {/* Full width dropdown */}
-      {activeDropdown && (
-        <div
-          className="absolute top-full left-0 right-0 bg-background border-b border-border z-50"
-          onMouseEnter={() => setActiveDropdown(activeDropdown)}
-          onMouseLeave={() => setActiveDropdown(null)}
-        >
-          <div className="px-6 py-8">
-            <div className="flex justify-between w-full">
-              {/* Left side - Menu items */}
-              <div className="flex-1">
-                <ul className="space-y-2">
-                  {navItems
-                    .find((item) => item.name === activeDropdown)
-                    ?.submenuItems.map((subItem, index) => {
-                      const to =
-                        activeDropdown === "SHOP"
-                          ? `/category/${subItem.toLowerCase().replace(/\s+/g, "-")}`
-                          : `/category/${subItem.toLowerCase().replace(/\s+/g, "-")}`;
-
-                      return (
-                        <li key={index}>
-                          <ThemeLink
-                            to={to}
-                            className="text-nav-foreground hover:text-primary transition-colors duration-200 text-sm font-body font-light block py-2"
-                          >
-                            {subItem}
-                          </ThemeLink>
-                        </li>
-                      );
-                    })}
-                </ul>
-              </div>
-
-              {/* Right side - Images */}
-              <div className="flex space-x-6">
-                {navItems
-                  .find((item) => item.name === activeDropdown)
-                  ?.images.map((image, index) => (
-                    <ThemeLink
-                      key={index}
-                      to={image.to}
-                      className="w-[400px] h-[280px] cursor-pointer group relative overflow-hidden block"
-                    >
-                      <img
-                        src={image.src}
-                        alt={image.alt}
-                        className="w-full h-full object-cover transition-opacity duration-200 group-hover:opacity-90"
-                      />
-                      <div className="absolute bottom-2 left-2 text-white text-xs font-light flex items-center gap-1">
-                        <span>{image.label}</span>
-                        <ArrowRight size={12} />
-                      </div>
-                    </ThemeLink>
-                  ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Search overlay */}
       {isSearchOpen && (
-        <div className="absolute top-full left-0 right-0 bg-background border-b border-border z-50">
+        <div className="absolute top-full left-0 right-0 bg-white border-b border-border z-50">
           <div className="px-6 py-8">
             <div className="max-w-2xl mx-auto">
-              <div className="relative mb-8">
+              <div className="relative">
                 <div className="flex items-center border-b border-border pb-2">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -393,22 +301,6 @@ const Navigation = () => {
                     className="flex-1 bg-transparent text-nav-foreground placeholder:text-nav-foreground/60 outline-none text-lg font-body"
                     autoFocus
                   />
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-nav-foreground text-sm font-body font-light mb-4">
-                  Popular Searches
-                </h3>
-                <div className="flex flex-wrap gap-3">
-                  {popularSearches.map((search, index) => (
-                    <button
-                      key={index}
-                      className="text-nav-foreground hover:text-primary text-sm font-body font-light py-2 px-4 border border-border rounded-full transition-colors duration-200 hover:border-primary"
-                    >
-                      {search}
-                    </button>
-                  ))}
                 </div>
               </div>
             </div>
@@ -458,12 +350,12 @@ const Navigation = () => {
 
       {/* Shopping Bag */}
       <ShoppingBag
-        isOpen={isShoppingBagOpen}
-        onClose={() => setIsShoppingBagOpen(false)}
+        isOpen={isCartOpen}
+        onClose={closeCart}
         cartItems={cartItems}
         updateQuantity={updateQuantity}
         onViewFavorites={() => {
-          setIsShoppingBagOpen(false);
+          closeCart();
           setOffCanvasType("favorites");
         }}
       />
@@ -506,7 +398,7 @@ const Navigation = () => {
                   className="rounded-full bg-primary hover:bg-primary-hover !text-white"
                   onClick={() => {
                     setOffCanvasType(null);
-                    setIsShoppingBagOpen(true);
+                    openCart();
                   }}
                 >
                   View Bag

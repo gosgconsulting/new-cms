@@ -61,13 +61,6 @@ export default function ProductDetailPage({ productId }: { productId: string }) 
           </div>
           <ProductCarousel />
         </section>
-
-        <section className="w-full mt-12">
-          <div className="mb-6 px-6">
-            <h2 className="text-lg font-heading font-medium text-foreground">More from this collection</h2>
-          </div>
-          <ProductCarousel />
-        </section>
       </main>
 
       <Footer />

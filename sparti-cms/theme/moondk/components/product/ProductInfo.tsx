@@ -10,12 +10,25 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { ThemeLink } from "../ThemeLink";
+import { useCart } from "../../contexts/CartContext";
+import hoveniaDulcisImage from "../../../e-shop/assets/hovenia-dulcis.png";
 
 const ProductInfo = () => {
   const [quantity, setQuantity] = useState(1);
+  const { addToCart } = useCart();
 
   const incrementQuantity = () => setQuantity((prev) => prev + 1);
   const decrementQuantity = () => setQuantity((prev) => Math.max(1, prev - 1));
+
+  const handleAddToBag = () => {
+    addToCart({
+      name: "Hovenia Dulcis Extract (헛개수)",
+      price: "€24",
+      image: hoveniaDulcisImage,
+      quantity: quantity,
+      category: "Ingredients",
+    });
+  };
 
   return (
     <div className="space-y-8">
@@ -110,7 +123,10 @@ const ProductInfo = () => {
           </div>
         </div>
 
-        <Button className="w-full h-12 bg-primary !text-white hover:bg-primary-hover font-body font-medium rounded-full">
+        <Button 
+          className="w-full h-12 bg-primary !text-white hover:bg-primary-hover font-body font-medium rounded-full"
+          onClick={handleAddToBag}
+        >
           Add to Bag
         </Button>
       </div>

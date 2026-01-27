@@ -1,7 +1,7 @@
 import { ChevronLeft } from "lucide-react";
 import { ThemeLink } from "../ThemeLink";
 
-import logoSrc from "../../assets/logo.svg";
+import logoSrc from "../../assets/logo.png";
 
 const CheckoutHeader = () => {
   return (

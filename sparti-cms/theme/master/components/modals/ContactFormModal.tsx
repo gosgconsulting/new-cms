@@ -287,18 +287,18 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
                   </div>
                 )}
 
-                <div className="flex items-center justify-between pt-2">
+                <div className="flex items-center justify-between pt-2 gap-3">
                   <button
                     type="button"
                     disabled
-                    className="btn-cta-secondary rounded-full px-6 py-3 opacity-60 cursor-not-allowed flex items-center"
+                    className="btn-cta-secondary opacity-60 cursor-not-allowed flex items-center"
                   >
                     <ArrowLeft className="h-4 w-4 mr-2" /> Back
                   </button>
                   <button
                     type="button"
                     onClick={goNext}
-                    className="btn-cta rounded-full px-7 py-3 flex items-center"
+                    className="btn-cta flex items-center"
                   >
                     Next <ArrowRight className="h-4 w-4 ml-2" />
                   </button>
@@ -367,11 +367,11 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
                   </div>
                 )}
 
-                <div className="flex items-center justify-between pt-2">
+                <div className="flex items-center justify-between pt-2 gap-3">
                   <button
                     type="button"
                     onClick={goBack}
-                    className="btn-cta-secondary rounded-full px-6 py-3 flex items-center"
+                    className="btn-cta-secondary flex items-center"
                   >
                     <ArrowLeft className="h-4 w-4 mr-2" /> Back
                   </button>
@@ -379,7 +379,7 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
                     type="button"
                     onClick={goNext}
                     disabled={!canGoNextFromStep2}
-                    className="btn-cta rounded-full px-7 py-3 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                    className="btn-cta disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
                   >
                     Next <ArrowRight className="h-4 w-4 ml-2" />
                   </button>
@@ -426,11 +426,11 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
                   </div>
                 )}
 
-                <div className="flex items-center justify-between pt-2">
+                <div className="flex items-center justify-between pt-2 gap-3">
                   <button
                     type="button"
                     onClick={goBack}
-                    className="btn-cta-secondary rounded-full px-6 py-3 flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="btn-cta-secondary flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
                     disabled={isSubmitting}
                   >
                     <ArrowLeft className="h-4 w-4 mr-2" /> Back
@@ -438,7 +438,7 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="btn-cta rounded-full px-7 py-3 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                    className="btn-cta disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
                   >
                     {isSubmitting ? (
                       <>

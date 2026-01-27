@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo } from "react";
 import "./theme.css";
 import { ThemeBasePathProvider } from "./components/ThemeLink";
+import { CartProvider } from "./contexts/CartContext";
 
 import IndexPage from "./pages/Index";
 import CategoryPage from "./pages/Category";
@@ -102,9 +103,11 @@ const MoondkTheme: React.FC<MoondkThemeProps> = ({
 
   return (
     <ThemeBasePathProvider basePath={basePath}>
-      <div className="moondk-theme min-h-screen bg-background text-foreground">
-        {renderPage()}
-      </div>
+      <CartProvider>
+        <div className="moondk-theme min-h-screen bg-background text-foreground">
+          {renderPage()}
+        </div>
+      </CartProvider>
     </ThemeBasePathProvider>
   );
 };

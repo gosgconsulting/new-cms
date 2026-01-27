@@ -39,7 +39,7 @@ const ShoppingBag = ({
       <div className="absolute inset-0 bg-black/50 h-screen" onClick={onClose} />
 
       {/* Off-canvas panel */}
-      <div className="absolute right-0 top-0 h-screen w-96 bg-background border-l border-border animate-slide-in-right flex flex-col">
+      <div className="absolute right-0 top-0 h-screen w-96 bg-white border-l border-border animate-slide-in-right flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-border">
           <h2 className="text-lg font-heading font-medium text-foreground">Shopping Bag</h2>

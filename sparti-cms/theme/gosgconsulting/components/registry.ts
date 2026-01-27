@@ -66,6 +66,9 @@ import VideoSection from './VideoSection';
 import WhatsIncludedSection from './WhatsIncludedSection';
 import WhyChooseUsSection from './WhyChooseUsSection';
 
+// Flowbite components
+import FlowbiteWhatsIncludedSectionWrapper from './FlowbiteWhatsIncludedSectionWrapper';
+
 /**
  * Registry of components available for dynamic rendering
  * The keys should match the "type" field in the component schema
@@ -135,7 +138,11 @@ export const componentRegistry = {
   TestimonialsSection,
   VideoSection,
   WhatsIncludedSection,
-  WhyChooseUsSection,};
+  WhyChooseUsSection,
+
+  // Flowbite components
+  'flowbite-whats-included-section': FlowbiteWhatsIncludedSectionWrapper,
+};
 
 export type ComponentRegistryType = typeof componentRegistry;
 export type ComponentType = keyof ComponentRegistryType;

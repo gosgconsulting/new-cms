@@ -38,6 +38,14 @@ interface MasterThemeProps {
   tenantSlug?: string;
   tenantId?: string;
   designSystemTheme?: "default" | "minimal" | "enterprise" | "playful" | "mono";
+  logoSrc?: string;
+  heroSchemaOverride?: ComponentSchema;
+  challengeSchemaOverride?: ComponentSchema;
+  aboutSchemaOverride?: ComponentSchema;
+  servicesSchemaOverride?: ComponentSchema;
+  faqSchemaOverride?: ComponentSchema;
+  ctaSchemaOverride?: ComponentSchema;
+  testimonialsSchemaOverride?: ComponentSchema;
 }
 
 const normalizeSlug = (slug?: string) => {
@@ -67,6 +75,14 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
   tenantSlug = "master",
   tenantId,
   designSystemTheme = "default",
+  logoSrc: logoSrcProp,
+  heroSchemaOverride,
+  challengeSchemaOverride,
+  aboutSchemaOverride,
+  servicesSchemaOverride,
+  faqSchemaOverride,
+  ctaSchemaOverride,
+  testimonialsSchemaOverride,
 }) => {
   const location = useLocation();
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
@@ -77,6 +93,9 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
 
   // Fetch branding colors from database
   const { branding } = useThemeBranding(themeSlug, tenantId);
+
+  // Extract logo from branding if not provided as prop
+  const logoSrc = logoSrcProp || (branding as any)?.site_logo || undefined;
 
   // Apply branding colors as CSS variables
   useEffect(() => {
@@ -186,8 +205,8 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
     );
   }
 
-  // Landing page schemas
-  const heroSchema: ComponentSchema = {
+  // Landing page schemas - use overrides if provided, otherwise use defaults
+  const heroSchema: ComponentSchema = heroSchemaOverride || {
     type: "banner-section",
     props: {
       backgroundColor: "#2A2C2E",
@@ -209,13 +228,13 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
       {
         key: "cta",
         type: "button",
-        content: "Book an intro call",
+        content: "Get Started",
         link: "#contact",
       },
     ],
   };
 
-  const testimonialsSchema: ComponentSchema = {
+  const testimonialsSchema: ComponentSchema = testimonialsSchemaOverride || {
     type: "flowbite-testimonials-section",
     props: {
       title: "Loved by founders",
@@ -280,7 +299,7 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
     ],
   };
 
-  const challengeSchema: ComponentSchema = {
+  const challengeSchema: ComponentSchema = challengeSchemaOverride || {
     type: "flowbite-pain-point-section",
     props: {},
     items: [
@@ -322,7 +341,7 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
     ],
   };
 
-  const aboutSchema: ComponentSchema = {
+  const aboutSchema: ComponentSchema = aboutSchemaOverride || {
     type: "flowbite-content-section",
     props: {
       variant: "about",
@@ -353,7 +372,7 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
     ],
   };
 
-  const servicesSchema: ComponentSchema = {
+  const servicesSchema: ComponentSchema = servicesSchemaOverride || {
     type: "flowbite-whats-included-section",
     props: {},
     items: [
@@ -426,7 +445,7 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
     ],
   };
 
-  const faqSchema: ComponentSchema = {
+  const faqSchema: ComponentSchema = faqSchemaOverride || {
     type: "flowbite-faq-section",
     props: {},
     items: [
@@ -507,7 +526,7 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
     ],
   };
 
-  const ctaSchema: ComponentSchema = {
+  const ctaSchema: ComponentSchema = ctaSchemaOverride || {
     type: "flowbite-cta-section",
     props: {
       // Use the master theme's standard CTA styling (green button) and keep it a normal size
@@ -600,6 +619,7 @@ const MasterTheme: React.FC<MasterThemeProps> = ({
         tenantName={tenantName}
         tenantSlug={themeSlug}
         basePath={basePath}
+        logoSrc={logoSrc}
         onContactClick={handleContactClick}
       />
 
