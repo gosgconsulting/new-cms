@@ -107,8 +107,8 @@ const SocialProofNotification: React.FC<SocialProofNotificationProps> = ({ onLea
   }
 
   return (
-    <div className="fixed bottom-6 left-6 z-50 animate-in slide-in-from-left-5 duration-300">
-      <div className="bg-white rounded-lg shadow-xl border border-gray-200 p-4 max-w-sm min-w-[320px]">
+    <div className="fixed bottom-6 left-6 z-50 animate-[slideInLeft_0.3s_ease-out]">
+      <div className="bg-white rounded-lg shadow-xl border border-gray-200 p-4 max-w-sm min-w-[320px] relative">
         {/* Close button */}
         <button
           onClick={handleClose}
