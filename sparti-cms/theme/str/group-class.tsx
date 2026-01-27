@@ -265,19 +265,8 @@ const GroupClassPage: React.FC<TenantLandingProps> = ({
     },
   ];
 
-  // Gallery images - loaded from centralized asset config
-  const baseGalleryImages = getGroupClassGalleryImages();
-  const galleryImages = [
-    ...baseGalleryImages,
-    {
-      src: '/theme/str/assets/gallery/TYY02449.jpg',
-      alt: 'STR Group Class - Group training session with instructor demonstrating exercises on turf floor with STRENGTH THROUGH STR RANGE branding',
-    },
-    {
-      src: '/theme/str/assets/gallery/TYY02602.jpg',
-      alt: 'STR Group Class - Coach instructing group class participants seated on gym floor with fitness equipment visible',
-    },
-  ];
+  // Gallery images - loaded from centralized asset config file
+  const galleryImages = getGroupClassGalleryImages()
 
   // Team members
   const teamMembers = [
