@@ -1,5 +1,6 @@
 import HomeHeroSlider from "./HomeHeroSlider";
 import HomeCategoryCarousel from "./HomeCategoryCarousel";
+import HomeNewArrivalsSection from "./HomeNewArrivalsSection";
 import HomeAboutSection from "./HomeAboutSection";
 import HomeFineDiningSection from "./HomeFineDiningSection";
 import HomeRecipesSection from "./HomeRecipesSection";
@@ -12,6 +13,9 @@ export default function HomePage() {
 
       {/* Product categories */}
       <HomeCategoryCarousel />
+
+      {/* New arrivals */}
+      <HomeNewArrivalsSection />
 
       {/* About MoonDk */}
       <HomeAboutSection />
