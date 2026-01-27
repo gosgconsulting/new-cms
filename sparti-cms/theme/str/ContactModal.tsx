@@ -43,9 +43,14 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
   };
 
   const handleWhatsAppClick = () => {
-    // Open WhatsApp with a pre-filled message
-    const message = encodeURIComponent('Hello! I would like to get in touch with STR Fitness.');
-    window.open(`https://wa.me/6588411329?text=${message}`, '_blank');
+    // Redirect to thank-you page first, then it will redirect to WhatsApp
+    const message = 'Hello! I would like to get in touch with STR Fitness.';
+    const params = new URLSearchParams({
+      via: 'whatsapp',
+      message: message,
+    });
+    onClose();
+    window.location.href = `/theme/str/thank-you?${params.toString()}`;
   };
 
   if (!isOpen) return null;
