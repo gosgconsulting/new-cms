@@ -29,14 +29,14 @@ export const STR_ASSETS = {
   // Gallery Images - Personal Training Gallery
   personalTrainingGallery: [
     `${ASSET_BASE_PATH}/gallery/personal-training-1.png`,
-    `${ASSET_BASE_PATH}/gallery/personal-training-2.png`,
-    `${ASSET_BASE_PATH}/gallery/personal-training-3.png`,
-    `${ASSET_BASE_PATH}/gallery/personal-training-4.png`,
     `${ASSET_BASE_PATH}/gallery/personal-training-5.png`,
     `${ASSET_BASE_PATH}/gallery/personal-training-6.png`,
     `${ASSET_BASE_PATH}/gallery/personal-training-7.png`,
     `${ASSET_BASE_PATH}/gallery/personal-training-8.png`,
     `${ASSET_BASE_PATH}/gallery/personal-training-9.png`,
+    `${ASSET_BASE_PATH}/gallery/personal-training-10.jpg`,
+    `${ASSET_BASE_PATH}/gallery/personal-training-11.jpg`,
+    `${ASSET_BASE_PATH}/gallery/personal-training-12.jpg`,
   ],
   
   // Gallery Images - Group Class Gallery
@@ -70,6 +70,9 @@ export const STR_ASSETS = {
     `${ASSET_BASE_PATH}/gallery/personal-training-7.png`,
     `${ASSET_BASE_PATH}/gallery/personal-training-8.png`,
     `${ASSET_BASE_PATH}/gallery/personal-training-9.png`,
+    `${ASSET_BASE_PATH}/gallery/personal-training-10.png`,
+    `${ASSET_BASE_PATH}/gallery/personal-training-11.png`,
+    `${ASSET_BASE_PATH}/gallery/personal-training-12.png`,
   ],
 } as const;
 
@@ -85,6 +88,9 @@ export const getPersonalTrainingGalleryImages = () => {
     'STR Personal Training - Abdominal exercise with trainer support',
     'STR Personal Training - Manual therapy and assessment session',
     'STR Personal Training - Hands-on training and therapy session',
+    'STR Personal Training - Trainer adjusting leg exercise machine with client seated',
+    'STR Personal Training - Trainer closely supervising client on leg curl machine',
+    'STR Personal Training - Resistance band lunge exercise with trainer guidance',
   ];
   
   return STR_ASSETS.personalTrainingGallery.map((src, index) => ({

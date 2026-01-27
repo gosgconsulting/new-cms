@@ -193,7 +193,7 @@ const ModalContactForm: React.FC<ModalContactFormProps> = ({ className = "" }) =
             <div className="space-y-4">
               <div>
                 <label htmlFor="name" className="block text-sm font-medium text-neutral-800 mb-2">
-                  Name *
+                  Full Name *
                 </label>
                 <Input
                   id="name"
@@ -201,7 +201,7 @@ const ModalContactForm: React.FC<ModalContactFormProps> = ({ className = "" }) =
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   disabled={isSubmitting}
-                  className="h-11 rounded-xl bg-white focus-visible:ring-2 focus-visible:ring-neutral-900/20"
+                  className="h-11 rounded-xl bg-white border border-neutral-300 focus-visible:ring-2 focus-visible:ring-neutral-900/20 focus-visible:border-neutral-900"
                 />
               </div>
 
@@ -216,7 +216,7 @@ const ModalContactForm: React.FC<ModalContactFormProps> = ({ className = "" }) =
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={isSubmitting}
-                  className="h-11 rounded-xl bg-white focus-visible:ring-2 focus-visible:ring-neutral-900/20"
+                  className="h-11 rounded-xl bg-white border border-neutral-300 focus-visible:ring-2 focus-visible:ring-neutral-900/20 focus-visible:border-neutral-900"
                 />
               </div>
 
@@ -231,7 +231,7 @@ const ModalContactForm: React.FC<ModalContactFormProps> = ({ className = "" }) =
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   disabled={isSubmitting}
-                  className="h-11 rounded-xl bg-white focus-visible:ring-2 focus-visible:ring-neutral-900/20"
+                  className="h-11 rounded-xl bg-white border border-neutral-300 focus-visible:ring-2 focus-visible:ring-neutral-900/20 focus-visible:border-neutral-900"
                 />
               </div>
 
@@ -245,7 +245,7 @@ const ModalContactForm: React.FC<ModalContactFormProps> = ({ className = "" }) =
                   value={company}
                   onChange={(e) => setCompany(e.target.value)}
                   disabled={isSubmitting}
-                  className="h-11 rounded-xl bg-white focus-visible:ring-2 focus-visible:ring-neutral-900/20"
+                  className="h-11 rounded-xl bg-white border border-neutral-300 focus-visible:ring-2 focus-visible:ring-neutral-900/20 focus-visible:border-neutral-900"
                 />
               </div>
             </div>

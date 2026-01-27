@@ -164,7 +164,82 @@ const GOSGContent: React.FC<TenantLandingProps> = ({
           }
         ]
       },
-      // Section 3 — Animated headline
+      // Section 3 — Results Carousel
+      {
+        key: "ResultsCarouselSection",
+        name: "Results",
+        type: "ResultsCarouselSection",
+        items: [
+          {
+            key: "caseStudies",
+            type: "array",
+            items: [
+              {
+                key: "case1",
+                type: "caseStudy",
+                items: [
+                  { key: "companyName", type: "text", content: "Selenightco" },
+                  {
+                    key: "tags",
+                    type: "array",
+                    items: [
+                      { key: "tag1", type: "text", content: "3 MARKETS" },
+                      { key: "tag2", type: "text", content: "STRATEGY" },
+                      { key: "tag3", type: "text", content: "PERFORMANCE" },
+                      { key: "tag4", type: "text", content: "CREATIVE" },
+                      { key: "tag5", type: "text", content: "DATA" },
+                      { key: "tag6", type: "text", content: "6 MONTHS" },
+                    ],
+                  },
+                  {
+                    key: "description",
+                    type: "text",
+                    content:
+                      "Selenightco generated 60k revenue with a ROI of x60. Primal developed a targeted strategy using Facebook Advertising to drive revenue growth, focusing on CPAS campaigns (Lazada, Shopee) and Brand.com for the SEA market. Understanding the variation in consumer behavior across different regions, we emphasised comprehensive A/B testing on creatives and key messages.",
+                  },
+                  {
+                    key: "metrics",
+                    type: "array",
+                    items: [
+                      {
+                        key: "metric1",
+                        type: "metric",
+                        value: "4.5x",
+                        label1: "CPO",
+                        label2: "Decrease",
+                        color: "pink",
+                      },
+                      {
+                        key: "metric2",
+                        type: "metric",
+                        value: "3.5x",
+                        label1: "Increase",
+                        label2: "Reach",
+                        color: "orange",
+                      },
+                      {
+                        key: "metric3",
+                        type: "metric",
+                        value: "26x",
+                        label1: "Brand",
+                        label2: "Recall",
+                        color: "teal",
+                      },
+                    ],
+                  },
+                  {
+                    key: "screenshot",
+                    type: "image",
+                    src: "/placeholder.svg",
+                    alt: "Selenightco results screenshot",
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+      // Section 4 — Animated headline
       { key: "AnimatedAboutSection", name: "Animated About", type: "AboutSection2", items: [] },
       // Section 4 — Full-stack growth package (replaced PricingPageSection)
       {
@@ -685,6 +760,81 @@ const PaidAdsPage: React.FC<PaidAdsPageProps> = ({
             ]
           }
         ]
+      },
+      // Section 3 — Results Carousel
+      {
+        key: "ResultsCarouselSection",
+        name: "Results",
+        type: "ResultsCarouselSection",
+        items: [
+          {
+            key: "caseStudies",
+            type: "array",
+            items: [
+              {
+                key: "case1",
+                type: "caseStudy",
+                items: [
+                  { key: "companyName", type: "text", content: "Selenightco" },
+                  {
+                    key: "tags",
+                    type: "array",
+                    items: [
+                      { key: "tag1", type: "text", content: "3 MARKETS" },
+                      { key: "tag2", type: "text", content: "STRATEGY" },
+                      { key: "tag3", type: "text", content: "PERFORMANCE" },
+                      { key: "tag4", type: "text", content: "CREATIVE" },
+                      { key: "tag5", type: "text", content: "DATA" },
+                      { key: "tag6", type: "text", content: "6 MONTHS" },
+                    ],
+                  },
+                  {
+                    key: "description",
+                    type: "text",
+                    content:
+                      "Selenightco generated 60k revenue with a ROI of x60. Primal developed a targeted strategy using Facebook Advertising to drive revenue growth, focusing on CPAS campaigns (Lazada, Shopee) and Brand.com for the SEA market. Understanding the variation in consumer behavior across different regions, we emphasised comprehensive A/B testing on creatives and key messages.",
+                  },
+                  {
+                    key: "metrics",
+                    type: "array",
+                    items: [
+                      {
+                        key: "metric1",
+                        type: "metric",
+                        value: "4.5x",
+                        label1: "CPO",
+                        label2: "Decrease",
+                        color: "pink",
+                      },
+                      {
+                        key: "metric2",
+                        type: "metric",
+                        value: "3.5x",
+                        label1: "Increase",
+                        label2: "Reach",
+                        color: "orange",
+                      },
+                      {
+                        key: "metric3",
+                        type: "metric",
+                        value: "26x",
+                        label1: "Brand",
+                        label2: "Recall",
+                        color: "teal",
+                      },
+                    ],
+                  },
+                  {
+                    key: "screenshot",
+                    type: "image",
+                    src: "/placeholder.svg",
+                    alt: "Selenightco results screenshot",
+                  },
+                ],
+              },
+            ],
+          },
+        ],
       },
       // Section 4 — Full-stack growth package
       {

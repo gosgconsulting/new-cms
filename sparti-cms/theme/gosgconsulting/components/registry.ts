@@ -17,6 +17,7 @@ import SimplePricingSection from './SimplePricingSection';
 import SimpleTextSection from './SimpleTextSection';
 import SimpleListSection from './SimpleListSection';
 import SimpleStatsSection from './SimpleStatsSection';
+import ResultsCarouselSection from './ResultsCarouselSection';
 
 // Auto-generated component imports
 import Accordion from './Accordion';
@@ -78,6 +79,7 @@ export const componentRegistry = {
   HeroSection,
   HomeHeroSection,
   ChallengeSection,
+  ResultsCarouselSection,
   Gallery4Section,
   BlogSection,
   ContactForm,
