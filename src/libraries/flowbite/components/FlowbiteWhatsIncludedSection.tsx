@@ -61,12 +61,23 @@ const FlowbiteWhatsIncludedSection: React.FC<FlowbiteWhatsIncludedProps> = ({
     };
   };
 
+  const getImage = (key: string) => {
+    const item = items.find(
+      (i) => i.key?.toLowerCase() === key.toLowerCase() && i.type === "image"
+    ) as any;
+    return {
+      src: item?.src || "",
+      alt: item?.alt || "",
+    };
+  };
+
   const badge = getText("badge") || (props as any).badge || "";
   const title = getHeading("title") || (props as any).title || "";
   const description = getText("description") || (props as any).description || "";
 
   const featuresRaw = getArray("features") || (props as any).features || [];
   const cta = getButton("cta");
+  const quoteImage = getImage("quoteImage");
 
   const features = useMemo<Feature[]>(() => {
     if (!Array.isArray(featuresRaw)) return [];
@@ -173,6 +184,22 @@ const FlowbiteWhatsIncludedSection: React.FC<FlowbiteWhatsIncludedProps> = ({
                     );
                   })}
                 </div>
+              ) : null}
+
+              {/* Quote Image (above Everything included) */}
+              {quoteImage.src ? (
+                <Reveal direction="up" delayMs={250 + features.length * 90}>
+                  <div className="mt-10 mb-6 flex justify-center">
+                    <img
+                      src={quoteImage.src}
+                      alt={quoteImage.alt}
+                      className="max-w-full h-auto rounded-2xl shadow-lg"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = '/placeholder.svg';
+                      }}
+                    />
+                  </div>
+                </Reveal>
               ) : null}
 
               {/* Highlight callout (accent/utility only) */}

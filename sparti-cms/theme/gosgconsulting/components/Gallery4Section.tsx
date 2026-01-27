@@ -92,7 +92,7 @@ const Gallery4Section: React.FC<Gallery4SectionProps> = ({ items = [], onContact
             What's included in your growth package
           </h2>
           <p className="mt-4 text-lg text-gray-600 max-w-3xl mx-auto">
-            A focused breakdown of the core areas driving results, each tailored to your goals and adapted after consultation.
+            Every part of the funnel works together, each tailored to your business goals.
           </p>
         </div>
 

@@ -97,7 +97,23 @@ const ModernHeroSection: React.FC<ModernHeroSectionProps> = ({
             {/* Main Heading */}
             <Reveal direction="up" delayMs={0}>
               <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-tight">
-                {title.includes('Revenue') ? (
+                {title.includes('known') ? (
+                  <>
+                    <span style={{ color: '#2D1C59' }}>
+                      {title.split('known')[0]}
+                    </span>
+                    <span 
+                      className="bg-gradient-to-r from-[#FF6B35] to-[#FFA500] bg-clip-text text-transparent"
+                    >
+                      known
+                    </span>
+                    {title.split('known')[1] && (
+                      <span style={{ color: '#2D1C59' }}>
+                        {title.split('known')[1]}
+                      </span>
+                    )}
+                  </>
+                ) : title.includes('Revenue') ? (
                   <>
                     <span style={{ color: '#2D1C59' }}>
                       {title.split('Revenue')[0]}

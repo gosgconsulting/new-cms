@@ -234,12 +234,12 @@ const GOSGContent: React.FC<TenantLandingProps> = ({
             key: "title", 
             type: "heading", 
             level: 1, 
-            content: "Turn Every Visitor Into Revenue" 
+            content: "Great brands deserve to be known" 
           },
           { 
             key: "description", 
             type: "text", 
-            content: "Our dedicated team works inside your brand, crafting high-converting pages and campaigns that turn traffic into sales. We handle the full funnel — from acquisition to conversion — so every visitor has a clear path to revenue. See results immediately, not months from now." 
+            content: "You already have a strong product or service. What's missing is visibility, clarity, and a system that turns attention into revenue. At GO SG, we help great brands get discovered, remembered, and chosen — using a full-stack growth package built to drive real results, not vanity metrics." 
           },
           { 
             key: "emailPlaceholder", 
@@ -419,12 +419,12 @@ const GOSGContent: React.FC<TenantLandingProps> = ({
             key: "title",
             type: "heading",
             level: 2,
-            content: "Increase your revenue with a full‑stack growth package",
+            content: "A full-stack growth package built to scale good brands",
           },
           {
             key: "description",
             type: "text",
-            content: "A focused breakdown of the core areas driving results, each tailored to your goals.",
+            content: "Every part of the funnel works together, each tailored to your business goals.",
           },
           {
             key: "features",
@@ -438,7 +438,7 @@ const GOSGContent: React.FC<TenantLandingProps> = ({
                   {
                     key: "description",
                     type: "text",
-                    content: "High‑converting landing pages, A/B test ideas, and conversion tracking.",
+                    content: "High-converting landing pages, clear messaging, A/B testing ideas, and proper conversion tracking — so visitors understand your value and take action.",
                   },
                 ],
               },
@@ -450,7 +450,7 @@ const GOSGContent: React.FC<TenantLandingProps> = ({
                   {
                     key: "description",
                     type: "text",
-                    content: "SEM + social ads, plus smart retargeting that doesn't waste spend.",
+                    content: "SEO, SEM, and social ads that put your brand in front of the right audience, plus smart retargeting that maximises spend instead of wasting it.",
                   },
                 ],
               },
@@ -462,11 +462,29 @@ const GOSGContent: React.FC<TenantLandingProps> = ({
                   {
                     key: "description",
                     type: "text",
-                    content: "Creative assets and copy that match your brand and convert.",
+                    content: "Creative assets and copy that tell your story clearly, elevate your brand, and convert attention into demand.",
+                  },
+                ],
+              },
+              {
+                key: "s4",
+                type: "feature",
+                items: [
+                  { key: "title", type: "heading", level: 3, content: "Everything included" },
+                  {
+                    key: "description",
+                    type: "text",
+                    content: "Full tracking setup, transparent reporting, and ongoing optimisation — so you stay focused on running the business while we focus on growth.",
                   },
                 ],
               },
             ],
+          },
+          {
+            key: "quoteImage",
+            type: "image",
+            src: "/theme/gosgconsulting/assets/greg-quote.png",
+            alt: "Greg, founder of GO SG",
           },
           {
             key: "cta",
@@ -1146,12 +1164,12 @@ const PaidAdsPage: React.FC<PaidAdsPageProps> = ({
             key: "title", 
             type: "heading", 
             level: 1, 
-            content: "Turn Every Visitor Into Revenue" 
+            content: "Great brands deserve to be known" 
           },
           { 
             key: "description", 
             type: "text", 
-            content: "Our dedicated team works inside your brand, crafting high-converting pages and campaigns that turn traffic into sales. We handle the full funnel — from acquisition to conversion — so every visitor has a clear path to revenue. See results immediately, not months from now." 
+            content: "You already have a strong product or service. What's missing is visibility, clarity, and a system that turns attention into revenue. At GO SG, we help great brands get discovered, remembered, and chosen — using a full-stack growth package built to drive real results, not vanity metrics." 
           },
           { 
             key: "emailPlaceholder", 
@@ -1356,12 +1374,12 @@ const PaidAdsPage: React.FC<PaidAdsPageProps> = ({
             key: "title",
             type: "heading",
             level: 2,
-            content: "Increase your revenue with a full‑stack growth package",
+            content: "A full-stack growth package built to scale good brands",
           },
           {
             key: "description",
             type: "text",
-            content: "A focused breakdown of the core areas driving results, each tailored to your goals.",
+            content: "Every part of the funnel works together, each tailored to your business goals.",
           },
           {
             key: "features",
@@ -1375,7 +1393,7 @@ const PaidAdsPage: React.FC<PaidAdsPageProps> = ({
                   {
                     key: "description",
                     type: "text",
-                    content: "High‑converting landing pages, A/B test ideas, and conversion tracking.",
+                    content: "High-converting landing pages, clear messaging, A/B testing ideas, and proper conversion tracking — so visitors understand your value and take action.",
                   },
                 ],
               },
@@ -1387,7 +1405,7 @@ const PaidAdsPage: React.FC<PaidAdsPageProps> = ({
                   {
                     key: "description",
                     type: "text",
-                    content: "SEM + social ads, plus smart retargeting that doesn't waste spend.",
+                    content: "SEO, SEM, and social ads that put your brand in front of the right audience, plus smart retargeting that maximises spend instead of wasting it.",
                   },
                 ],
               },
@@ -1399,11 +1417,29 @@ const PaidAdsPage: React.FC<PaidAdsPageProps> = ({
                   {
                     key: "description",
                     type: "text",
-                    content: "Creative assets and copy that match your brand and convert.",
+                    content: "Creative assets and copy that tell your story clearly, elevate your brand, and convert attention into demand.",
+                  },
+                ],
+              },
+              {
+                key: "s4",
+                type: "feature",
+                items: [
+                  { key: "title", type: "heading", level: 3, content: "Everything included" },
+                  {
+                    key: "description",
+                    type: "text",
+                    content: "Full tracking setup, transparent reporting, and ongoing optimisation — so you stay focused on running the business while we focus on growth.",
                   },
                 ],
               },
             ],
+          },
+          {
+            key: "quoteImage",
+            type: "image",
+            src: "/theme/gosgconsulting/assets/greg-quote.png",
+            alt: "Greg, founder of GO SG",
           },
           {
             key: "cta",
