@@ -554,7 +554,7 @@ const PersonalTrainingPage: React.FC<TenantLandingProps> = ({
               {/* Programmes Image */}
               <div className="w-full max-w-xl">
                 <img 
-                  src={STR_ASSETS.images.programmes}
+                  src="/theme/str/assets/programmes/1to1.png"
                   alt="STR Fitness Gym Facilities - Rowing Machines, Training Area, and Weightlifting Equipment"
                   className="w-full h-auto rounded-lg object-cover shadow-lg"
                   onError={(e) => {
@@ -677,35 +677,25 @@ const PersonalTrainingPage: React.FC<TenantLandingProps> = ({
               }}
             >
               <CarouselContent className="-ml-2 md:-ml-4">
-                {/* Group images into slides of 4 */}
-                {Array.from({ length: Math.ceil(galleryImages.length / 4) }).map((_, slideIndex) => {
-                  const slideImages = galleryImages.slice(slideIndex * 4, slideIndex * 4 + 4);
+                {/* Each image is its own slide, but we show 4 at a time */}
+                {galleryImages.map((image, index) => {
                   return (
-                    <CarouselItem key={slideIndex} className="pl-2 md:pl-4 basis-full">
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                        {slideImages.map((image, imageIndex) => {
-                          const globalIndex = slideIndex * 4 + imageIndex;
-                          return (
-                            <div
-                              key={globalIndex}
-                              className="relative rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 group cursor-pointer"
-                              onClick={() => setSelectedGalleryImage(image)}
-                            >
-                              <div className="aspect-square relative">
-                                <img
-                                  src={image.src}
-                                  alt={image.alt}
-                                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                                  loading="lazy"
-                                  onError={(e) => {
-                                    const target = e.target as HTMLImageElement;
-                                    target.src = 'https://images.pexels.com/photos/4164754/pexels-photo-4164754.jpeg?auto=compress&cs=tinysrgb&w=800';
-                                  }}
-                                />
-                              </div>
-                            </div>
-                          );
-                        })}
+                    <CarouselItem key={index} className="pl-2 md:pl-4 basis-1/2 md:basis-1/4">
+                      <div className="relative rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 group cursor-pointer"
+                        onClick={() => setSelectedGalleryImage(image)}
+                      >
+                        <div className="aspect-square relative">
+                          <img
+                            src={image.src}
+                            alt={image.alt}
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                            loading="lazy"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.src = 'https://images.pexels.com/photos/4164754/pexels-photo-4164754.jpeg?auto=compress&cs=tinysrgb&w=800';
+                            }}
+                          />
+                        </div>
                       </div>
                     </CarouselItem>
                   );
