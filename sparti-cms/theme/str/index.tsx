@@ -24,6 +24,7 @@ import { SEOHead } from './components/SEOHead';
 import { GTM } from './components/GTM';
 import { GoogleAnalytics } from './components/GoogleAnalytics';
 import { useCustomCode } from './hooks/useCustomCode';
+import { getThemeUrl, getPageUrl, getHomeUrl } from './utils/urls';
 
 interface TenantLandingProps {
   tenantName?: string;
@@ -312,7 +313,7 @@ const STRTheme: React.FC<TenantLandingProps> = ({
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex h-20 items-center justify-between">
               <div className="flex items-center space-x-2">
-                <a href="/theme/str">
+                <a href={getHomeUrl()}>
                   <img
                     src={logoSrc}
                     alt={siteName}
@@ -339,7 +340,7 @@ const STRTheme: React.FC<TenantLandingProps> = ({
                 ))}
                 <Button
                   className="bg-[#E00000] text-white hover:bg-[#E00000]/90 font-bold uppercase px-6 py-2 rounded-lg text-sm transition-all duration-300"
-                  onClick={() => window.location.href = '/theme/str/booking'}
+                  onClick={() => window.location.href = getPageUrl('booking')}
                 >
                   Get Started
                 </Button>
@@ -363,7 +364,7 @@ const STRTheme: React.FC<TenantLandingProps> = ({
                   className="w-full bg-[#E00000] text-white hover:bg-[#E00000]/90 font-bold uppercase px-6 py-3 rounded-lg text-sm transition-all duration-300 mt-4"
                   onClick={() => {
                     setIsMenuOpen(false);
-                    window.location.href = '/theme/str/booking';
+                    window.location.href = getPageUrl('booking');
                   }}
                 >
                   Get Started
@@ -380,7 +381,7 @@ const STRTheme: React.FC<TenantLandingProps> = ({
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex h-20 items-center justify-between">
               <div className="flex items-center space-x-2">
-                <a href="/theme/str">
+                <a href={getHomeUrl()}>
                   <img
                     src={logoSrc}
                     alt={siteName}
@@ -407,7 +408,7 @@ const STRTheme: React.FC<TenantLandingProps> = ({
                 ))}
                 <Button
                   className="bg-[#E00000] text-white hover:bg-[#E00000]/90 font-bold uppercase px-6 py-2 rounded-lg text-sm transition-all duration-300"
-                  onClick={() => window.location.href = '/theme/str/booking'}
+                  onClick={() => window.location.href = getPageUrl('booking')}
                 >
                   Get Started
                 </Button>
@@ -431,7 +432,7 @@ const STRTheme: React.FC<TenantLandingProps> = ({
                   className="w-full bg-[#E00000] text-white hover:bg-[#E00000]/90 font-bold uppercase px-6 py-3 rounded-lg text-sm transition-all duration-300 mt-4"
                   onClick={() => {
                     setIsMenuOpen(false);
-                    window.location.href = '/theme/str/booking';
+                    window.location.href = getPageUrl('booking');
                   }}
                 >
                   Get Started
@@ -1105,7 +1106,7 @@ const STRTheme: React.FC<TenantLandingProps> = ({
             <Button
               size="lg"
               className="bg-[#E00000] text-white hover:bg-[#E00000]/90 text-lg px-10 py-6 font-bold uppercase rounded-lg transition-all duration-300 hover:scale-105"
-              onClick={() => window.location.href = '/theme/str/booking'}
+              onClick={() => window.location.href = getPageUrl('booking')}
             >
               START YOUR JOURNEY
             </Button>
@@ -1174,7 +1175,7 @@ const STRTheme: React.FC<TenantLandingProps> = ({
             <Button
               size="lg"
               className="bg-[#E00000] text-white hover:bg-[#E00000]/90 text-lg px-10 py-6 font-bold uppercase rounded-lg transition-all duration-300 hover:scale-105"
-              onClick={() => window.location.href = '/theme/str/booking'}
+              onClick={() => window.location.href = getPageUrl('booking')}
             >
               GET STARTED TODAY
             </Button>
@@ -1199,7 +1200,7 @@ const STRTheme: React.FC<TenantLandingProps> = ({
             <Button
               size="lg"
               className="bg-[#E00000] text-white hover:bg-[#E00000]/90 text-lg px-10 py-6 font-bold uppercase rounded-lg transition-all duration-300 hover:scale-105"
-              onClick={() => window.location.href = '/theme/str#programmes'}
+              onClick={() => window.location.href = getThemeUrl('#programmes')}
             >
               EXPLORE OUR PROGRAMMES
             </Button>

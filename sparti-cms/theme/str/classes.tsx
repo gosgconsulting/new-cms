@@ -10,6 +10,7 @@ import { SEOHead } from './components/SEOHead';
 import { GTM } from './components/GTM';
 import { GoogleAnalytics } from './components/GoogleAnalytics';
 import { useCustomCode } from './hooks/useCustomCode';
+import { getThemeUrl, getPageUrl, getHomeUrl } from './utils/urls';
 
 interface TenantLandingProps {
   tenantName?: string;
@@ -87,20 +88,20 @@ const ClassesPage: React.FC<TenantLandingProps> = ({
 
   // Navigation items
   const navItems = [
-    { name: 'About Us', href: '/theme/str' },
-    { name: 'Programmes', href: '/theme/str#programmes' },
-    { name: 'Gallery', href: '/theme/str#gallery' },
-    { name: 'FAQs', href: '/theme/str#faq' },
+    { name: 'About Us', href: getHomeUrl() },
+    { name: 'Programmes', href: getThemeUrl('#programmes') },
+    { name: 'Gallery', href: getThemeUrl('#gallery') },
+    { name: 'FAQs', href: getThemeUrl('#faq') },
   ];
 
   // Footer menu items
   const footerMenuItems = [
-    { name: 'About Us', href: '/theme/str#about' },
-    { name: 'Our Programmes', href: '/theme/str#programmes' },
-    { name: 'Gallery', href: '/theme/str#gallery' },
-    { name: 'Reviews', href: '/theme/str#reviews' },
-    { name: 'Our Team', href: '/theme/str#team' },
-    { name: 'FAQ', href: '/theme/str#faq' },
+    { name: 'About Us', href: getThemeUrl('#about') },
+    { name: 'Our Programmes', href: getThemeUrl('#programmes') },
+    { name: 'Gallery', href: getThemeUrl('#gallery') },
+    { name: 'Reviews', href: getThemeUrl('#reviews') },
+    { name: 'Our Team', href: getThemeUrl('#team') },
+    { name: 'FAQ', href: getThemeUrl('#faq') },
   ];
 
   return (
@@ -119,7 +120,7 @@ const ClassesPage: React.FC<TenantLandingProps> = ({
           <div className="flex h-20 items-center justify-between">
             {/* Logo */}
             <div className="flex items-center space-x-2">
-              <a href="/theme/str">
+              <a href={getHomeUrl()}>
                 <img
                   src={logoSrc}
                   alt={siteName}

@@ -9,6 +9,7 @@ import { SEOHead } from './components/SEOHead';
 import { GTM } from './components/GTM';
 import { GoogleAnalytics } from './components/GoogleAnalytics';
 import { useCustomCode } from './hooks/useCustomCode';
+import { getThemeUrl, getPageUrl, getHomeUrl } from './utils/urls';
 
 interface TenantLandingProps {
   tenantName?: string;
@@ -96,25 +97,25 @@ const ThankYouPage: React.FC<TenantLandingProps> = ({
   }, [isWhatsappRedirect, whatsappMessage]);
 
   const handleGoHome = () => {
-    window.location.href = '/theme/str';
+    window.location.href = getHomeUrl();
   };
 
   // Navigation items
   const navItems = [
-    { name: 'About Us', href: '/theme/str' },
-    { name: 'Programmes', href: '/theme/str#programmes' },
-    { name: 'Gallery', href: '/theme/str#gallery' },
-    { name: 'FAQs', href: '/theme/str#faq' },
+    { name: 'About Us', href: getHomeUrl() },
+    { name: 'Programmes', href: getThemeUrl('#programmes') },
+    { name: 'Gallery', href: getThemeUrl('#gallery') },
+    { name: 'FAQs', href: getThemeUrl('#faq') },
   ];
 
   // Footer menu items
   const footerMenuItems = [
-    { name: 'About Us', href: '/theme/str#about' },
-    { name: 'Our Programmes', href: '/theme/str#programmes' },
-    { name: 'Gallery', href: '/theme/str#gallery' },
-    { name: 'Reviews', href: '/theme/str#reviews' },
-    { name: 'Our Team', href: '/theme/str#team' },
-    { name: 'FAQ', href: '/theme/str#faq' },
+    { name: 'About Us', href: getThemeUrl('#about') },
+    { name: 'Our Programmes', href: getThemeUrl('#programmes') },
+    { name: 'Gallery', href: getThemeUrl('#gallery') },
+    { name: 'Reviews', href: getThemeUrl('#reviews') },
+    { name: 'Our Team', href: getThemeUrl('#team') },
+    { name: 'FAQ', href: getThemeUrl('#faq') },
   ];
 
   // WhatsApp redirect view
@@ -136,7 +137,7 @@ const ThankYouPage: React.FC<TenantLandingProps> = ({
             <div className="flex h-20 items-center justify-between">
               {/* Logo */}
               <div className="flex items-center space-x-2">
-                <a href="/theme/str">
+                <a href={getHomeUrl()}>
                   <img 
                     src={logoSrc}
                     alt={siteName}
@@ -354,7 +355,7 @@ const ThankYouPage: React.FC<TenantLandingProps> = ({
               ))}
               <Button
                 className="bg-[#E00000] text-white hover:bg-[#E00000]/90 font-bold uppercase px-6 py-2 rounded-lg text-sm transition-all duration-300"
-                onClick={() => window.location.href = '/theme/str/booking'}
+                onClick={() => window.location.href = getPageUrl('booking')}
               >
                 Get Started
               </Button>
@@ -388,7 +389,7 @@ const ThankYouPage: React.FC<TenantLandingProps> = ({
                 className="w-full bg-[#E00000] text-white hover:bg-[#E00000]/90 font-bold uppercase px-6 py-3 rounded-lg text-sm transition-all duration-300 mt-4"
                 onClick={() => {
                   setIsMenuOpen(false);
-                  window.location.href = '/theme/str/booking';
+                  window.location.href = getPageUrl('booking');
                 }}
               >
                 Get Started
@@ -427,7 +428,7 @@ const ThankYouPage: React.FC<TenantLandingProps> = ({
               <Button
                 size="lg"
                 className="bg-[#E00000] text-white hover:bg-[#E00000]/90 font-bold uppercase px-8 py-6 rounded-lg transition-all duration-300 hover:scale-105"
-                onClick={() => window.location.href = '/theme/str'}
+                onClick={() => window.location.href = getHomeUrl()}
               >
                 Back to Home
               </Button>

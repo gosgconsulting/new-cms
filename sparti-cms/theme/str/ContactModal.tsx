@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { getPageUrl } from './utils/urls';
 
 interface ContactModalProps {
   isOpen: boolean;
@@ -38,7 +39,7 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
       setFormData({ name: '', email: '', phone: '', message: '' });
       onClose();
       // Redirect to thank you page
-      window.location.href = '/theme/str/thank-you';
+      window.location.href = getPageUrl('thank-you');
     }, 1000);
   };
 
@@ -50,7 +51,7 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
       message: message,
     });
     onClose();
-    window.location.href = `/theme/str/thank-you?${params.toString()}`;
+    window.location.href = `${getPageUrl('thank-you')}?${params.toString()}`;
   };
 
   if (!isOpen) return null;

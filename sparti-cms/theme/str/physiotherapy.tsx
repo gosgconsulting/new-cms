@@ -15,6 +15,7 @@ import { SEOHead } from './components/SEOHead';
 import { GTM } from './components/GTM';
 import { GoogleAnalytics } from './components/GoogleAnalytics';
 import { useCustomCode } from './hooks/useCustomCode';
+import { getHomeUrl } from './utils/urls';
 
 interface TenantLandingProps {
   tenantName?: string;
@@ -375,7 +376,7 @@ const PhysiotherapyPage: React.FC<TenantLandingProps> = ({
             <div className="flex h-20 items-center justify-between">
               {/* Logo */}
               <div className="flex items-center space-x-2">
-                <a href="/theme/str">
+                <a href={getHomeUrl()}>
                   <img 
                     src={logoSrc}
                     alt={siteName}

@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Menu, X } from 'lucide-react';
 import { extractPropsFromItems, getImage, getHeading, getButton, getTextByKey, SchemaItem } from '../utils/schemaHelpers';
 import { STR_ASSETS } from '../config/assets';
+import { getThemeUrl, getPageUrl, getHomeUrl } from '../utils/urls';
 
 interface NavItem {
   name: string;
@@ -69,7 +70,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
   const finalImageSrc = imageSrc || heroImage?.src || extractedProps.imageSrc || STR_ASSETS.hero.background;
   const finalImageAlt = imageAlt || heroImage?.alt || extractedProps.imageAlt || 'STR Fitness Gym';
   const finalButtonText = buttonText || heroButton?.text || extractedProps.buttonText || 'EXPLORE OUR PROGRAMMES';
-  const finalButtonUrl = buttonUrl || heroButton?.url || extractedProps.buttonUrl || '/theme/str#programmes';
+  const finalButtonUrl = buttonUrl || heroButton?.url || extractedProps.buttonUrl || getThemeUrl('#programmes');
 
   const handleButtonClick = () => {
     if (onButtonClick) {
@@ -94,7 +95,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
               <div className={`flex items-center ${isHomepage ? 'pt-8 sm:pt-10 md:pt-12' : ''}`}>
                 {isHomepage ? (
                   // Circular logo on homepage (larger size, transparent background)
-                  <a href="/theme/str">
+                  <a href={getHomeUrl()}>
                     <img 
                       src={circularLogoSrc || STR_ASSETS.logos.circular} 
                       alt={`${tenantName} Logo`} 
@@ -114,7 +115,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
                   </a>
                 ) : (
                   // Regular header logo on other pages
-                  <a href="/theme/str">
+                  <a href={getHomeUrl()}>
                     <img 
                       src={logoSrc || STR_ASSETS.logos.header} 
                       alt={tenantName} 
@@ -148,7 +149,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
                 ))}
                 <Button
                   className="bg-[#E00000] text-white hover:bg-[#E00000]/90 font-bold uppercase px-6 py-2 rounded-lg text-sm transition-all duration-300"
-                  onClick={onButtonClick || (() => window.location.href = '/theme/str/booking')}
+                  onClick={onButtonClick || (() => window.location.href = getPageUrl('booking'))}
                 >
                   Get Started
                 </Button>
@@ -185,7 +186,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
                     if (onButtonClick) {
                       onButtonClick();
                     } else {
-                      window.location.href = '/theme/str/booking';
+                      window.location.href = getPageUrl('booking');
                     }
                   }}
                 >
