@@ -28,35 +28,6 @@ const ContactModal = ({ open, onOpenChange }: ContactModalProps) => {
     }
   }, [open]);
 
-  // custom slide-in-from-right animations (for sidebar drawer)
-  useEffect(() => {
-    const styleId = "contact-modal-animations";
-    if (document.getElementById(styleId)) return;
-    const style = document.createElement("style");
-    style.id = styleId;
-    style.textContent = `
-      @keyframes slideInFromRight {
-        from { transform: translateX(100%); }
-        to { transform: translateX(0); }
-      }
-      @keyframes slideOutToRight {
-        from { transform: translateX(0); }
-        to { transform: translateX(100%); }
-      }
-      .contact-modal-content[data-state="open"] {
-        animation: slideInFromRight 300ms cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
-      }
-      .contact-modal-content[data-state="closed"] {
-        animation: slideOutToRight 300ms cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
-      }
-    `;
-    document.head.appendChild(style);
-    return () => {
-      const existingStyle = document.getElementById(styleId);
-      if (existingStyle) document.head.removeChild(existingStyle);
-    };
-  }, []);
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogPrimitive.Portal>
@@ -69,11 +40,18 @@ const ContactModal = ({ open, onOpenChange }: ContactModalProps) => {
           )}
         />
 
-        {/* Sidebar drawer content */}
+        {/* Centered modal content */}
         <DialogPrimitive.Content
           className={cn(
-            "contact-modal-content",
-            "fixed inset-y-0 right-0 z-50 w-full sm:w-[420px] lg:w-[520px] h-full bg-white shadow-2xl p-6 overflow-y-auto"
+            "fixed left-[50%] top-[50%] z-50 w-full max-w-lg translate-x-[-50%] translate-y-[-50%]",
+            "bg-white shadow-2xl rounded-lg p-6 overflow-y-auto",
+            "max-h-[90vh]",
+            "data-[state=open]:animate-in data-[state=closed]:animate-out",
+            "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+            "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
+            "data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%]",
+            "data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]",
+            "duration-200"
           )}
         >
           {/* Close button */}
@@ -81,14 +59,14 @@ const ContactModal = ({ open, onOpenChange }: ContactModalProps) => {
             type="button"
             variant="ghost"
             onClick={() => onOpenChange(false)}
-            className="absolute right-3 top-3 rounded-full text-neutral-700 hover:text-neutral-900 p-2"
+            className="absolute right-4 top-4 rounded-sm opacity-70 hover:opacity-100 p-2 text-neutral-700 hover:text-neutral-900"
             aria-label="Close"
           >
-            <X className="h-5 w-5" />
+            <X className="h-4 w-4" />
           </Button>
 
           {/* Title */}
-          <div className="text-center mb-4">
+          <div className="text-center mb-4 pr-8">
             <span className="text-gray-900 font-semibold text-xl">Contact us</span>
             <p className="text-gray-600 text-sm mt-2">
               Tell us about your goals — we'll tailor the scope after a quick consultation.

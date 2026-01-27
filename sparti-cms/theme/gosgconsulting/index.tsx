@@ -194,6 +194,25 @@ const GOSGContent: React.FC<TenantLandingProps> = ({
     setContactModalOpen(true);
   };
 
+  // Global handler to intercept #contact links and open modal
+  useEffect(() => {
+    const handleContactLinkClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      const link = target.closest('a[href="#contact"], a[href*="#contact"]');
+      if (link) {
+        e.preventDefault();
+        e.stopPropagation();
+        handleContactClick();
+        return false;
+      }
+    };
+
+    document.addEventListener('click', handleContactLinkClick, true);
+    return () => {
+      document.removeEventListener('click', handleContactLinkClick, true);
+    };
+  }, [handleContactClick]);
+
   // Complete homepage data with all GOSG sections
   // Use dynamic site name and tagline from branding settings
   const homepageData = {
@@ -1039,6 +1058,25 @@ const PaidAdsPage: React.FC<PaidAdsPageProps> = ({
   const handleContactClick = () => {
     setContactModalOpen(true);
   };
+
+  // Global handler to intercept #contact links and open modal
+  useEffect(() => {
+    const handleContactLinkClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      const link = target.closest('a[href="#contact"], a[href*="#contact"]');
+      if (link) {
+        e.preventDefault();
+        e.stopPropagation();
+        handleContactClick();
+        return false;
+      }
+    };
+
+    document.addEventListener('click', handleContactLinkClick, true);
+    return () => {
+      document.removeEventListener('click', handleContactLinkClick, true);
+    };
+  }, [handleContactClick]);
 
   // Recreate homepageData structure using MasterTheme Flowbite components with gosgconsulting content
   const homepageData = {

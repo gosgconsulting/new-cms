@@ -41,21 +41,24 @@ const FlowbiteBannerSectionWrapper: React.FC<{ items?: any[]; onContactClick?: (
       const target = e.target as HTMLElement;
       const button = target.closest('a.btn-cta, button.btn-cta');
       if (button) {
-        const href = (button as HTMLAnchorElement).href;
-        if (href && (href.includes('#contact') || href.endsWith('#contact'))) {
+        const href = (button as HTMLAnchorElement).getAttribute('href');
+        if (href === '#contact' || href?.endsWith('#contact')) {
           e.preventDefault();
+          e.stopPropagation();
           if (onPopupOpen) {
             onPopupOpen('contact');
           } else if (onContactClick) {
             onContactClick();
           }
+          return false;
         }
       }
     };
 
-    document.addEventListener('click', handleButtonClick);
+    // Use capture phase to intercept before default behavior
+    document.addEventListener('click', handleButtonClick, true);
     return () => {
-      document.removeEventListener('click', handleButtonClick);
+      document.removeEventListener('click', handleButtonClick, true);
     };
   }, [onContactClick, onPopupOpen]);
   
