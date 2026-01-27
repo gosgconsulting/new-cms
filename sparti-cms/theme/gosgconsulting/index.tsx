@@ -18,7 +18,6 @@ import CheckoutSuccess from './pages/CheckoutSuccess';
 import NotFound from './pages/NotFound';
 import { ThankYouPage } from './components/ThankYouPage';
 import Blog from './components/Blog';
-import MasterTheme from '../master/index';
 
 interface TenantLandingProps {
   tenantName?: string;
@@ -121,6 +120,76 @@ const GOSGContent: React.FC<TenantLandingProps> = ({
     }
   }, [branding, brandingError]);
 
+  // Apply branding colors as CSS variables (similar to MasterTheme)
+  useEffect(() => {
+    if (branding) {
+      const root = document.documentElement;
+      const brandingColors = branding as any;
+
+      // Helper function to adjust color brightness
+      const adjustColorBrightness = (hex: string, percent: number): string => {
+        const num = parseInt(hex.replace("#", ""), 16);
+        const amt = Math.round(2.55 * percent);
+        const R = Math.min(255, Math.max(0, (num >> 16) + amt));
+        const G = Math.min(255, Math.max(0, ((num >> 8) & 0x00ff) + amt));
+        const B = Math.min(255, Math.max(0, (num & 0x0000ff) + amt));
+        return "#" + (0x1000000 + R * 0x10000 + G * 0x100 + B).toString(16).slice(1);
+      };
+
+      if (brandingColors.color_primary) {
+        const primaryColor = String(brandingColors.color_primary);
+        root.style.setProperty("--brand-primary", primaryColor);
+        const darker = adjustColorBrightness(primaryColor, -10);
+        root.style.setProperty("--brand-primary-dark", darker);
+        const lighter = adjustColorBrightness(primaryColor, 20);
+        root.style.setProperty("--brand-primary-light", lighter);
+      }
+
+      if (brandingColors.color_secondary) {
+        const secondaryColor = String(brandingColors.color_secondary);
+        root.style.setProperty("--brand-secondary", secondaryColor);
+        const darker = adjustColorBrightness(secondaryColor, -10);
+        root.style.setProperty("--brand-secondary-dark", darker);
+        const lighter = adjustColorBrightness(secondaryColor, 20);
+        root.style.setProperty("--brand-secondary-light", lighter);
+      }
+
+      if (brandingColors.color_accent) {
+        const accentColor = String(brandingColors.color_accent);
+        root.style.setProperty("--brand-accent", accentColor);
+        const darker = adjustColorBrightness(accentColor, -10);
+        root.style.setProperty("--brand-accent-dark", darker);
+        const lighter = adjustColorBrightness(accentColor, 20);
+        root.style.setProperty("--brand-accent-light", lighter);
+      }
+
+      if (brandingColors.color_text) {
+        root.style.setProperty("--brand-text", String(brandingColors.color_text));
+      }
+
+      if (brandingColors.color_background) {
+        root.style.setProperty(
+          "--brand-background",
+          String(brandingColors.color_background)
+        );
+      }
+
+      if (brandingColors.color_gradient_start) {
+        root.style.setProperty(
+          "--brand-gradient-start",
+          String(brandingColors.color_gradient_start)
+        );
+      }
+
+      if (brandingColors.color_gradient_end) {
+        root.style.setProperty(
+          "--brand-gradient-end",
+          String(brandingColors.color_gradient_end)
+        );
+      }
+    }
+  }, [branding]);
+
   const handleContactClick = () => {
     setContactModalOpen(true);
   };
@@ -135,21 +204,36 @@ const GOSGContent: React.FC<TenantLandingProps> = ({
       keywords: 'digital marketing, SEO, SEM, social media ads, website design, graphic design, Singapore, full-stack',
     },
     components: [
-      // Section 1 — Hero
+      // Section 1 — Hero (using MasterTheme BannerSection design)
       {
         key: "MainHeroSection",
         name: "Hero",
-        type: "HomeHeroSection",
+        type: "flowbite-banner-section",
         items: [
-          { key: "headingPrefix", type: "heading", level: 1, content: "Turn traffic into revenue with a" },
-          { key: "headingEmphasis", type: "heading", level: 1, content: "Full‑Stack Growth Engine" }
+          { 
+            key: "title", 
+            type: "heading", 
+            level: 1, 
+            content: "Turn traffic into revenue with a Full‑Stack Growth Engine" 
+          },
+          { 
+            key: "description", 
+            type: "text", 
+            content: "We craft high‑performance pages using Flowbite components, strong messaging, and conversion-first UX — so every visit has a clear path to revenue." 
+          },
+          { 
+            key: "cta", 
+            type: "button", 
+            content: "Get Started", 
+            link: "#contact" 
+          }
         ]
       },
-      // Section 2 — Challenge
+      // Section 2 — Challenge (using MasterTheme FlowbitePainPointSection design)
       {
         key: "ProblemSection",
         name: "Problem",
-        type: "ChallengeSection",
+        type: "flowbite-pain-point-section",
         items: [
           { key: "hint", type: "text", content: "You have a great business but struggle online?" },
           { key: "heading", type: "heading", level: 2, content: "Your Business Works… Your Marketing Doesn't" },
@@ -239,8 +323,31 @@ const GOSGContent: React.FC<TenantLandingProps> = ({
           },
         ],
       },
-      // Section 4 — Animated headline
-      { key: "AnimatedAboutSection", name: "Animated About", type: "AboutSection2", items: [] },
+      // Section 4 — About (using MasterTheme FlowbiteContentSection design)
+      {
+        key: "AnimatedAboutSection",
+        name: "About",
+        type: "flowbite-content-section",
+        items: [
+          {
+            key: "title",
+            type: "heading",
+            level: 2,
+            content: "We Are Your Growth Team And We Will Take You Further"
+          },
+          {
+            key: "content",
+            type: "text",
+            content: "We handle the full funnel end-to-end: positioning, website conversion, SEO, paid ads, creatives, and tracking—so every channel works together to drive revenue.\n\nOur proven systems generate leads and revenue month after month, while you stay focused on running the business."
+          },
+          {
+            key: "button",
+            type: "button",
+            content: "Get Started",
+            link: "#contact"
+          }
+        ]
+      },
       // Section 4 — Full-stack growth package (replaced PricingPageSection)
       {
         key: "GrowthPackageSection",
@@ -315,40 +422,106 @@ const GOSGContent: React.FC<TenantLandingProps> = ({
       },
       // Section 5 — Gallery4 services
       { key: "Gallery4Section", name: "Our Services", type: "Gallery4Section", items: [] },
-      // FAQ
+      // FAQ (using MasterTheme FlowbiteFAQSection design)
       {
         key: "FAQSection",
         name: "FAQ",
-        type: "FAQSection",
+        type: "flowbite-faq-section",
         items: [
           {
-            question: "What does 'full‑stack growth' mean?",
-            answer: "We handle the full funnel end-to-end: positioning, website conversion, SEO, paid ads, creatives, and tracking—so every channel works together to drive revenue."
+            key: "title",
+            type: "heading",
+            level: 2,
+            content: "Frequently Asked Questions"
           },
           {
-            question: "How fast will I see results?",
-            answer: "Paid ads can generate leads quickly, while SEO compounds over time. We'll align the plan to your goals and share clear performance reporting month-to-month."
+            key: "faq1",
+            type: "array",
+            items: [
+              {
+                key: "question",
+                type: "text",
+                content: "What does 'full‑stack growth' mean?"
+              },
+              {
+                key: "answer",
+                type: "text",
+                content: "We handle the full funnel end-to-end: positioning, website conversion, SEO, paid ads, creatives, and tracking—so every channel works together to drive revenue."
+              }
+            ]
           },
           {
-            question: "Do you work with my existing website?",
-            answer: "Yes. We can optimize your current site for conversions and SEO, or rebuild key pages where needed—without disrupting your brand."
+            key: "faq2",
+            type: "array",
+            items: [
+              {
+                key: "question",
+                type: "text",
+                content: "How fast will I see results?"
+              },
+              {
+                key: "answer",
+                type: "text",
+                content: "Paid ads can generate leads quickly, while SEO compounds over time. We'll align the plan to your goals and share clear performance reporting month-to-month."
+              }
+            ]
           },
           {
-            question: "Is this a good fit for small businesses?",
-            answer: "Yes. We tailor scopes to your stage—whether you need a consistent lead pipeline, better conversion rates, or a complete growth system."
+            key: "faq3",
+            type: "array",
+            items: [
+              {
+                key: "question",
+                type: "text",
+                content: "Do you work with my existing website?"
+              },
+              {
+                key: "answer",
+                type: "text",
+                content: "Yes. We can optimize your current site for conversions and SEO, or rebuild key pages where needed—without disrupting your brand."
+              }
+            ]
+          },
+          {
+            key: "faq4",
+            type: "array",
+            items: [
+              {
+                key: "question",
+                type: "text",
+                content: "Is this a good fit for small businesses?"
+              },
+              {
+                key: "answer",
+                type: "text",
+                content: "Yes. We tailor scopes to your stage—whether you need a consistent lead pipeline, better conversion rates, or a complete growth system."
+              }
+            ]
           }
         ]
       },
-      // Pre-footer CTA banner
+      // Pre-footer CTA banner (using MasterTheme FlowbiteCTASection design)
       {
         key: "PreFooterCTA",
         name: "CTA",
-        type: "CTASection",
+        type: "flowbite-cta-section",
         items: [
           {
-            heading: "Ready to turn traffic into revenue?",
-            description: "Get a clear growth plan tailored to your business in a free strategy call.",
-            primaryLabel: "Get free consultation"
+            key: "title",
+            type: "heading",
+            level: 2,
+            content: "Ready to turn traffic into revenue?"
+          },
+          {
+            key: "description",
+            type: "text",
+            content: "Get a clear growth plan tailored to your business in a free strategy call."
+          },
+          {
+            key: "cta",
+            type: "button",
+            content: "Get free consultation",
+            link: "#contact"
           }
         ]
       }
@@ -702,7 +875,7 @@ const mapHomepageToMasterSchemas = (homepageComponents: any[]): {
 
 /**
  * Paid Ads Page Component
- * Uses MasterTheme layout with GOSG homepage content
+ * Uses DynamicPageRenderer to render GOSG homepage content with custom components
  */
 interface PaidAdsPageProps {
   tenantName?: string;
@@ -713,17 +886,161 @@ const PaidAdsPage: React.FC<PaidAdsPageProps> = ({
   tenantName = 'GO SG Consulting',
   tenantId = 'tenant-gosg',
 }) => {
-  // Load branding to get logo
-  const { branding } = useThemeBranding('gosgconsulting', tenantId);
-  const logoSrc = getLogoSrc(branding);
+  const { contactModalOpen, setContactModalOpen, openPopup } = usePopup();
+  
+  // Load branding settings from database
+  const { branding, loading: brandingLoading, error: brandingError } = useThemeBranding('gosgconsulting', tenantId);
+  
+  // Load theme styles from database
+  const { styles, loading: stylesLoading, error: stylesError } = useThemeStyles('gosgconsulting', tenantId);
+  
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    
+    // Add event listener for pricing card contact modal
+    const handleOpenContactModal = () => {
+      setContactModalOpen(true);
+    };
+    
+    window.addEventListener('openContactModal', handleOpenContactModal);
+    
+    return () => {
+      window.removeEventListener('openContactModal', handleOpenContactModal);
+    };
+  }, [setContactModalOpen]);
+  
+  // Apply theme styles when they load
+  useEffect(() => {
+    if (styles) {
+      applyThemeStyles(styles);
+      console.log('[testing] Applied theme styles from database');
+    } else if (stylesError) {
+      console.error('[testing] Error loading theme styles:', stylesError);
+    }
+    
+    // Cleanup on unmount
+    return () => {
+      // Note: We don't remove styles on unmount as they should persist
+    };
+  }, [styles, stylesError]);
 
-  // Get homepage content from GOSGContent's homepageData structure
-  // We'll recreate the homepageData structure here to extract content
+  // Get settings from database with fallback to defaults using utility functions
   const siteName = getSiteName(branding, tenantName);
   const siteTagline = getSiteTagline(branding, 'Full-Stack Digital Growth Solution');
   const siteDescription = getSiteDescription(branding, 'Helping brands grow their revenue and leads through comprehensive digital marketing services including SEO, SEM, Social Media Ads, Website Design, and Graphic Design.');
+  const logoSrc = getLogoSrc(branding);
+  const faviconSrc = getFaviconSrc(branding);
+  
+  // Apply favicon when branding loads
+  useEffect(() => {
+    if (faviconSrc && !brandingLoading) {
+      // Apply favicon after a delay to ensure it runs after SEOHead
+      const timeoutId1 = setTimeout(() => {
+        applyFavicon(faviconSrc);
+      }, 100);
+      
+      // Also apply after a longer delay to ensure it persists
+      const timeoutId2 = setTimeout(() => {
+        applyFavicon(faviconSrc);
+      }, 500);
+      
+      return () => {
+        clearTimeout(timeoutId1);
+        clearTimeout(timeoutId2);
+        // Clean up observer if it exists
+        if ((window as any).__faviconObserver) {
+          (window as any).__faviconObserver.disconnect();
+          delete (window as any).__faviconObserver;
+        }
+      };
+    }
+  }, [faviconSrc, brandingLoading]);
+  
+  // Log branding loading state for debugging
+  useEffect(() => {
+    if (brandingError) {
+      console.error('[testing] Error loading branding settings:', brandingError);
+    }
+    if (branding) {
+      console.log('[testing] Branding settings loaded:', branding);
+    }
+  }, [branding, brandingError]);
 
-  // Recreate homepageData structure (matching GOSGContent)
+  // Apply branding colors as CSS variables (similar to MasterTheme)
+  useEffect(() => {
+    if (branding) {
+      const root = document.documentElement;
+      const brandingColors = branding as any;
+
+      // Helper function to adjust color brightness
+      const adjustColorBrightness = (hex: string, percent: number): string => {
+        const num = parseInt(hex.replace("#", ""), 16);
+        const amt = Math.round(2.55 * percent);
+        const R = Math.min(255, Math.max(0, (num >> 16) + amt));
+        const G = Math.min(255, Math.max(0, ((num >> 8) & 0x00ff) + amt));
+        const B = Math.min(255, Math.max(0, (num & 0x0000ff) + amt));
+        return "#" + (0x1000000 + R * 0x10000 + G * 0x100 + B).toString(16).slice(1);
+      };
+
+      if (brandingColors.color_primary) {
+        const primaryColor = String(brandingColors.color_primary);
+        root.style.setProperty("--brand-primary", primaryColor);
+        const darker = adjustColorBrightness(primaryColor, -10);
+        root.style.setProperty("--brand-primary-dark", darker);
+        const lighter = adjustColorBrightness(primaryColor, 20);
+        root.style.setProperty("--brand-primary-light", lighter);
+      }
+
+      if (brandingColors.color_secondary) {
+        const secondaryColor = String(brandingColors.color_secondary);
+        root.style.setProperty("--brand-secondary", secondaryColor);
+        const darker = adjustColorBrightness(secondaryColor, -10);
+        root.style.setProperty("--brand-secondary-dark", darker);
+        const lighter = adjustColorBrightness(secondaryColor, 20);
+        root.style.setProperty("--brand-secondary-light", lighter);
+      }
+
+      if (brandingColors.color_accent) {
+        const accentColor = String(brandingColors.color_accent);
+        root.style.setProperty("--brand-accent", accentColor);
+        const darker = adjustColorBrightness(accentColor, -10);
+        root.style.setProperty("--brand-accent-dark", darker);
+        const lighter = adjustColorBrightness(accentColor, 20);
+        root.style.setProperty("--brand-accent-light", lighter);
+      }
+
+      if (brandingColors.color_text) {
+        root.style.setProperty("--brand-text", String(brandingColors.color_text));
+      }
+
+      if (brandingColors.color_background) {
+        root.style.setProperty(
+          "--brand-background",
+          String(brandingColors.color_background)
+        );
+      }
+
+      if (brandingColors.color_gradient_start) {
+        root.style.setProperty(
+          "--brand-gradient-start",
+          String(brandingColors.color_gradient_start)
+        );
+      }
+
+      if (brandingColors.color_gradient_end) {
+        root.style.setProperty(
+          "--brand-gradient-end",
+          String(brandingColors.color_gradient_end)
+        );
+      }
+    }
+  }, [branding]);
+
+  const handleContactClick = () => {
+    setContactModalOpen(true);
+  };
+
+  // Recreate homepageData structure using MasterTheme Flowbite components with gosgconsulting content
   const homepageData = {
     slug: 'home',
     meta: {
@@ -732,21 +1049,36 @@ const PaidAdsPage: React.FC<PaidAdsPageProps> = ({
       keywords: 'digital marketing, SEO, SEM, social media ads, website design, graphic design, Singapore, full-stack',
     },
     components: [
-      // Section 1 — Hero
+      // Section 1 — Hero (using MasterTheme BannerSection design)
       {
         key: "MainHeroSection",
         name: "Hero",
-        type: "HomeHeroSection",
+        type: "flowbite-banner-section",
         items: [
-          { key: "headingPrefix", type: "heading", level: 1, content: "Turn traffic into revenue with a" },
-          { key: "headingEmphasis", type: "heading", level: 1, content: "Full‑Stack Growth Engine" }
+          { 
+            key: "title", 
+            type: "heading", 
+            level: 1, 
+            content: "Turn traffic into revenue with a Full‑Stack Growth Engine" 
+          },
+          { 
+            key: "description", 
+            type: "text", 
+            content: "We craft high‑performance pages using Flowbite components, strong messaging, and conversion-first UX — so every visit has a clear path to revenue." 
+          },
+          { 
+            key: "cta", 
+            type: "button", 
+            content: "Get Started", 
+            link: "#contact" 
+          }
         ]
       },
-      // Section 2 — Challenge
+      // Section 2 — Challenge (using MasterTheme FlowbitePainPointSection design)
       {
         key: "ProblemSection",
         name: "Problem",
-        type: "ChallengeSection",
+        type: "flowbite-pain-point-section",
         items: [
           { key: "hint", type: "text", content: "You have a great business but struggle online?" },
           { key: "heading", type: "heading", level: 2, content: "Your Business Works… Your Marketing Doesn't" },
@@ -836,7 +1168,32 @@ const PaidAdsPage: React.FC<PaidAdsPageProps> = ({
           },
         ],
       },
-      // Section 4 — Full-stack growth package
+      // Section 4 — About (using MasterTheme FlowbiteContentSection design)
+      {
+        key: "AnimatedAboutSection",
+        name: "About",
+        type: "flowbite-content-section",
+        items: [
+          {
+            key: "title",
+            type: "heading",
+            level: 2,
+            content: "We Are Your Growth Team And We Will Take You Further"
+          },
+          {
+            key: "content",
+            type: "text",
+            content: "We handle the full funnel end-to-end: positioning, website conversion, SEO, paid ads, creatives, and tracking—so every channel works together to drive revenue.\n\nOur proven systems generate leads and revenue month after month, while you stay focused on running the business."
+          },
+          {
+            key: "button",
+            type: "button",
+            content: "Get Started",
+            link: "#contact"
+          }
+        ]
+      },
+      // Section 5 — Full-stack growth package
       {
         key: "GrowthPackageSection",
         name: "Growth Package",
@@ -908,62 +1265,146 @@ const PaidAdsPage: React.FC<PaidAdsPageProps> = ({
           },
         ],
       },
-      // FAQ
+      // FAQ (using MasterTheme FlowbiteFAQSection design)
       {
         key: "FAQSection",
         name: "FAQ",
-        type: "FAQSection",
+        type: "flowbite-faq-section",
         items: [
           {
-            question: "What does 'full‑stack growth' mean?",
-            answer: "We handle the full funnel end-to-end: positioning, website conversion, SEO, paid ads, creatives, and tracking—so every channel works together to drive revenue."
+            key: "title",
+            type: "heading",
+            level: 2,
+            content: "Frequently Asked Questions"
           },
           {
-            question: "How fast will I see results?",
-            answer: "Paid ads can generate leads quickly, while SEO compounds over time. We'll align the plan to your goals and share clear performance reporting month-to-month."
+            key: "faq1",
+            type: "array",
+            items: [
+              {
+                key: "question",
+                type: "text",
+                content: "What does 'full‑stack growth' mean?"
+              },
+              {
+                key: "answer",
+                type: "text",
+                content: "We handle the full funnel end-to-end: positioning, website conversion, SEO, paid ads, creatives, and tracking—so every channel works together to drive revenue."
+              }
+            ]
           },
           {
-            question: "Do you work with my existing website?",
-            answer: "Yes. We can optimize your current site for conversions and SEO, or rebuild key pages where needed—without disrupting your brand."
+            key: "faq2",
+            type: "array",
+            items: [
+              {
+                key: "question",
+                type: "text",
+                content: "How fast will I see results?"
+              },
+              {
+                key: "answer",
+                type: "text",
+                content: "Paid ads can generate leads quickly, while SEO compounds over time. We'll align the plan to your goals and share clear performance reporting month-to-month."
+              }
+            ]
           },
           {
-            question: "Is this a good fit for small businesses?",
-            answer: "Yes. We tailor scopes to your stage—whether you need a consistent lead pipeline, better conversion rates, or a complete growth system."
+            key: "faq3",
+            type: "array",
+            items: [
+              {
+                key: "question",
+                type: "text",
+                content: "Do you work with my existing website?"
+              },
+              {
+                key: "answer",
+                type: "text",
+                content: "Yes. We can optimize your current site for conversions and SEO, or rebuild key pages where needed—without disrupting your brand."
+              }
+            ]
+          },
+          {
+            key: "faq4",
+            type: "array",
+            items: [
+              {
+                key: "question",
+                type: "text",
+                content: "Is this a good fit for small businesses?"
+              },
+              {
+                key: "answer",
+                type: "text",
+                content: "Yes. We tailor scopes to your stage—whether you need a consistent lead pipeline, better conversion rates, or a complete growth system."
+              }
+            ]
           }
         ]
       },
-      // Pre-footer CTA banner
+      // Pre-footer CTA banner (using MasterTheme FlowbiteCTASection design)
       {
         key: "PreFooterCTA",
         name: "CTA",
-        type: "CTASection",
+        type: "flowbite-cta-section",
         items: [
           {
-            heading: "Ready to turn traffic into revenue?",
-            description: "Get a clear growth plan tailored to your business in a free strategy call.",
-            primaryLabel: "Get free consultation"
+            key: "title",
+            type: "heading",
+            level: 2,
+            content: "Ready to turn traffic into revenue?"
+          },
+          {
+            key: "description",
+            type: "text",
+            content: "Get a clear growth plan tailored to your business in a free strategy call."
+          },
+          {
+            key: "cta",
+            type: "button",
+            content: "Get free consultation",
+            link: "#contact"
           }
         ]
       }
     ]
   };
 
-  // Map homepage content to MasterTheme schemas
-  const contentSchemas = mapHomepageToMasterSchemas(homepageData.components);
-
   return (
-    <MasterTheme
-      basePath="/theme/gosgconsulting"
-      tenantName={tenantName}
-      tenantSlug="master"
-      tenantId={tenantId}
-      logoSrc={logoSrc}
-      heroSchemaOverride={contentSchemas.heroSchema}
-      challengeSchemaOverride={contentSchemas.challengeSchema}
-      servicesSchemaOverride={contentSchemas.servicesSchema}
-      faqSchemaOverride={contentSchemas.faqSchema}
-      ctaSchemaOverride={contentSchemas.ctaSchema}
-    />
+    <div className="min-h-screen flex flex-col w-full max-w-full overflow-x-hidden">
+      {/* SEO metadata */}
+      <SEOHead meta={homepageData.meta} favicon={faviconSrc || undefined} />
+      
+      {/* Header */}
+      <Header 
+        tenantName={siteName}
+        tenantSlug="gosgconsulting"
+        logoSrc={logoSrc}
+        onContactClick={handleContactClick}
+      />
+      
+      {/* Main content: Dynamic page rendering */}
+      <main className="grow w-full">
+        <DynamicPageRenderer
+          schema={homepageData}
+          onContactClick={handleContactClick}
+          onPopupOpen={openPopup}
+        />
+      </main>
+      
+      {/* Footer */}
+      <Footer 
+        tenantName={siteName}
+        tenantSlug="gosgconsulting"
+        logoSrc={logoSrc}
+        companyDescription={getSiteDescription(branding, "Full-stack digital growth solution helping brands grow their revenue and leads through comprehensive digital marketing services.")}
+        onContactClick={handleContactClick}
+      />
+      
+      {/* Contact Modal */}
+      <ContactModal open={contactModalOpen} onOpenChange={setContactModalOpen} />
+    </div>
   );
 };
 

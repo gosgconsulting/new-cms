@@ -68,6 +68,11 @@ import WhatsIncludedSection from './WhatsIncludedSection';
 import WhyChooseUsSection from './WhyChooseUsSection';
 
 // Flowbite components
+import FlowbiteBannerSectionWrapper from './FlowbiteBannerSectionWrapper';
+import FlowbitePainPointSectionWrapper from './FlowbitePainPointSectionWrapper';
+import FlowbiteContentSectionWrapper from './FlowbiteContentSectionWrapper';
+import FlowbiteFAQSectionWrapper from './FlowbiteFAQSectionWrapper';
+import FlowbiteCTASectionWrapper from './FlowbiteCTASectionWrapper';
 import FlowbiteWhatsIncludedSectionWrapper from './FlowbiteWhatsIncludedSectionWrapper';
 
 /**
@@ -143,6 +148,11 @@ export const componentRegistry = {
   WhyChooseUsSection,
 
   // Flowbite components
+  'flowbite-banner-section': FlowbiteBannerSectionWrapper,
+  'flowbite-pain-point-section': FlowbitePainPointSectionWrapper,
+  'flowbite-content-section': FlowbiteContentSectionWrapper,
+  'flowbite-faq-section': FlowbiteFAQSectionWrapper,
+  'flowbite-cta-section': FlowbiteCTASectionWrapper,
   'flowbite-whats-included-section': FlowbiteWhatsIncludedSectionWrapper,
 };
 
