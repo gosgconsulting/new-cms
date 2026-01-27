@@ -233,12 +233,18 @@ const GroupClassPage: React.FC<TenantLandingProps> = ({
   const programmes = [
     {
       title: 'HYROX APEX',
-      description: `HYROX APEX is a group class that combines running with HYROX stations in a structured training format. Sessions involve compromised runs paired with station-based work, as well as EMOM-style blocks. Training is organised into clearly labelled sections such as 1.1 and 1.2, allowing participants to move through running and station work in a defined sequence within each session.`,
+      description: `Build HYROX race-day resilience by increasing your ability to sustain threshold intensity. This class is designed to replicate the flow and fatigue of race day.
+
+      The class helps to develop sustainable pacing and stronger recovery between high-output efforts – ideal for anyone looking to optimise their performance when it matters most.`,
       content: '',
     },
     {
       title: 'Run & Develop',
-      description: `Run & Develop is offered as a group class at STR. The class is presented as part of the overall program lineup, however no specific exercise breakdown, training format, or session structure is defined here. As such, this class is described at a high level without detailing individual movements or programming structure.`,
+      description: `Run & Develop is a structured performance running class designed by experienced marathoner and 2019 SEA Games Athlete, Gordon Lim.
+
+      Designed to help you build the complete engine, combining tempo runs, interval training, threshold efforts to enhance both your speed and efficiency.
+
+      Whether you're training for HYROX, your next 10k or marathon race, or just want to become a better runner, this class focuses on progressive run development, not just random sweat sessions.`,
       content: '',
     },
     {
