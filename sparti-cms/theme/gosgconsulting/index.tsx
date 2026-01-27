@@ -466,18 +466,6 @@ const GOSGContent: React.FC<TenantLandingProps> = ({
                   },
                 ],
               },
-              {
-                key: "s4",
-                type: "feature",
-                items: [
-                  { key: "title", type: "heading", level: 3, content: "Everything included" },
-                  {
-                    key: "description",
-                    type: "text",
-                    content: "Full tracking setup, transparent reporting, and ongoing optimisation — so you stay focused on running the business while we focus on growth.",
-                  },
-                ],
-              },
             ],
           },
           {
@@ -1418,18 +1406,6 @@ const PaidAdsPage: React.FC<PaidAdsPageProps> = ({
                     key: "description",
                     type: "text",
                     content: "Creative assets and copy that tell your story clearly, elevate your brand, and convert attention into demand.",
-                  },
-                ],
-              },
-              {
-                key: "s4",
-                type: "feature",
-                items: [
-                  { key: "title", type: "heading", level: 3, content: "Everything included" },
-                  {
-                    key: "description",
-                    type: "text",
-                    content: "Full tracking setup, transparent reporting, and ongoing optimisation — so you stay focused on running the business while we focus on growth.",
                   },
                 ],
               },
