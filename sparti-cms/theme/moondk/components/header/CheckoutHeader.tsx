@@ -19,7 +19,11 @@ const CheckoutHeader = () => {
 
           {/* Center - Logo */}
           <ThemeLink to="/" className="absolute left-1/2 transform -translate-x-1/2">
-            <img src={logoSrc} alt="MOONDK" className="h-8 w-auto" />
+            <img
+              src={logoSrc}
+              alt="MOONDK"
+              className="h-10 w-auto object-contain block"
+            />
           </ThemeLink>
 
           {/* Right side - Support */}

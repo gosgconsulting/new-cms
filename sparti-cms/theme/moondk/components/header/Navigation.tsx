@@ -230,7 +230,7 @@ const Navigation = () => {
               <img
                 src={logoSrc}
                 alt="MOONDK"
-                className="block h-12 md:h-14 w-auto object-contain"
+                className="block h-14 md:h-16 w-auto object-contain"
               />
             </ThemeLink>
           </div>

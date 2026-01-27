@@ -10,7 +10,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-12">
           {/* Brand - Left side */}
           <div>
-            <img src={logoSrc} alt="MOONDK" className="mb-6 h-8 w-auto" />
+            <img src={logoSrc} alt="MOONDK" className="mb-6 h-10 w-auto object-contain block" />
             <p className="text-sm font-body font-light text-foreground/70 leading-relaxed max-w-md mb-6">
               Korean home dining, chef-led, curated products. Cook like a chef at home with our premium selection of ingredients, tools, and recipe collections.
             </p>
