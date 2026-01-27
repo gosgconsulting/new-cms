@@ -88,7 +88,16 @@ export const ThankYouPage: React.FC<ThankYouPageProps> = ({
             <div className="mt-10">
               <button
                 onClick={handleGoHome}
-                className="px-6 py-3 bg-brandPurple text-white rounded-2xl font-semibold hover:bg-violet-700 transition-colors"
+                className="px-6 py-3 text-white rounded-full font-semibold transition-all border-0 shadow-sm"
+                style={{ 
+                  background: 'linear-gradient(to right, #FF6B35, #FFA500)',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'linear-gradient(to right, #FF5722, #FF9800)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'linear-gradient(to right, #FF6B35, #FFA500)';
+                }}
               >
                 Return to Homepage
               </button>
@@ -162,13 +171,35 @@ export const ThankYouPage: React.FC<ThankYouPageProps> = ({
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button
               onClick={handleGoHome}
-              className="px-6 py-3 bg-brandPurple text-white rounded-2xl font-semibold hover:bg-violet-700 transition-colors"
+              className="px-6 py-3 text-white rounded-full font-semibold transition-all border-0 shadow-sm"
+              style={{ 
+                background: 'linear-gradient(to right, #FF6B35, #FFA500)',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'linear-gradient(to right, #FF5722, #FF9800)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'linear-gradient(to right, #FF6B35, #FFA500)';
+              }}
             >
               Return to Homepage
             </button>
             <button
               onClick={() => window.history.back()}
-              className="px-6 py-3 border-2 border-violet-200 bg-white text-violet-700 rounded-2xl font-semibold hover:bg-violet-50 transition-colors"
+              className="px-6 py-3 border-2 rounded-full font-semibold transition-all"
+              style={{ 
+                borderColor: '#FF6B35',
+                backgroundColor: 'white',
+                color: '#FF6B35',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#FFF5F0';
+                e.currentTarget.style.borderColor = '#FF5722';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'white';
+                e.currentTarget.style.borderColor = '#FF6B35';
+              }}
             >
               Go Back
             </button>

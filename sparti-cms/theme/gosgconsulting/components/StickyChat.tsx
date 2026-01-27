@@ -38,7 +38,17 @@ const StickyChat: React.FC<StickyChatProps> = ({ onChatClick }) => {
     <div className="fixed bottom-6 right-6 z-50">
       <Button
         onClick={onChatClick}
-        className="relative rounded-full bg-violet-600 hover:bg-violet-700 text-white px-6 py-4 font-semibold shadow-[0_18px_45px_-10px_rgba(124,58,237,0.75)] transition-all duration-300 hover:scale-105"
+        className="relative rounded-full text-white px-6 py-4 font-semibold shadow-lg transition-all duration-300 hover:scale-105"
+        style={{
+          background: 'linear-gradient(to right, #FF6B35, #FFA500)',
+          boxShadow: '0 18px 45px -10px rgba(255, 107, 53, 0.5)',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.background = 'linear-gradient(to right, #FF5722, #FF9800)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.background = 'linear-gradient(to right, #FF6B35, #FFA500)';
+        }}
         aria-label="Chat with us"
       >
         <span className="flex items-center gap-2">

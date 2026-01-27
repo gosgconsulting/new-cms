@@ -7,6 +7,7 @@ import { getTenantId } from "../../../utils/tenantConfig";
 
 type ModalContactFormProps = {
   className?: string;
+  initialEmail?: string;
 };
 
 type ContactMethod = "form" | "whatsapp";
@@ -26,14 +27,21 @@ function getThankYouPath(): string {
   return "/thank-you";
 }
 
-const ModalContactForm: React.FC<ModalContactFormProps> = ({ className = "" }) => {
+const ModalContactForm: React.FC<ModalContactFormProps> = ({ className = "", initialEmail }) => {
   const [step, setStep] = useState<1 | 2 | 3>(1);
 
   // Step 1 fields
   const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(initialEmail || "");
   const [phone, setPhone] = useState("");
   const [company, setCompany] = useState("");
+
+  // Update email when initialEmail prop changes
+  useEffect(() => {
+    if (initialEmail) {
+      setEmail(initialEmail);
+    }
+  }, [initialEmail]);
 
   // Step 2
   const [method, setMethod] = useState<ContactMethod | null>(null);
@@ -171,26 +179,26 @@ const ModalContactForm: React.FC<ModalContactFormProps> = ({ className = "" }) =
   };
 
   return (
-    <div className={`w-full ${className}`}>
+    <div className={`w-full overflow-x-hidden ${className}`}>
       <form
         onSubmit={handleSubmit}
         className={
           "w-full rounded-[28px] border border-neutral-200 bg-white/80 backdrop-blur-sm " +
-          "shadow-[0_14px_40px_rgba(0,0,0,0.12)] p-6 sm:p-8"
+          "shadow-[0_14px_40px_rgba(0,0,0,0.12)] p-6 sm:p-8 md:p-10 overflow-x-hidden"
         }
       >
         {/* Step 1 */}
         {step === 1 && (
-          <div className="space-y-6">
-            <div className="space-y-2">
+          <div className="space-y-6 sm:space-y-8">
+            <div className="space-y-2 sm:space-y-3">
               <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-neutral-900">
                 1. Let's start with your details
               </h2>
-              <p className="text-sm text-neutral-600">Name and email are required.</p>
+              <p className="text-sm sm:text-base text-neutral-600">Name and email are required.</p>
             </div>
 
             {/* Always 1 column (no 2-col layout) */}
-            <div className="space-y-4">
+            <div className="space-y-5 sm:space-y-6">
               <div>
                 <label htmlFor="name" className="block text-sm font-medium text-neutral-800 mb-2">
                   Full Name *
@@ -251,27 +259,36 @@ const ModalContactForm: React.FC<ModalContactFormProps> = ({ className = "" }) =
             </div>
 
             {submitStatus === "error" && errorMessage && (
-              <div className="rounded-xl bg-red-50 border border-red-200 p-4 text-red-800 text-sm">
+              <div className="rounded-xl bg-red-50 border border-red-200 p-4 text-red-800 text-sm w-full break-words overflow-wrap-anywhere">
                 <p className="font-medium">Error</p>
-                <p className="text-red-600 mt-1">{errorMessage}</p>
+                <p className="text-red-600 mt-1 break-words overflow-wrap-anywhere">{errorMessage}</p>
               </div>
             )}
 
-            <div className="flex items-center justify-between pt-2">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center sm:justify-end pt-4 sm:pt-6 gap-4 w-full">
               <Button
                 type="button"
                 variant="outline"
                 disabled
-                className="rounded-full px-6 py-5 opacity-60"
+                className="rounded-full px-6 py-5 opacity-60 w-full sm:w-auto sm:mr-auto shrink-0 min-w-0"
               >
-                <ArrowLeft className="h-4 w-4 mr-2" /> Back
+                <ArrowLeft className="h-4 w-4 mr-2 shrink-0" /> <span className="truncate">Back</span>
               </Button>
               <Button
                 type="button"
                 onClick={goNext}
-                className="rounded-full bg-neutral-900 text-white hover:bg-neutral-800 px-7 py-5"
+                className="rounded-full text-white px-7 py-5 transition-all shadow-sm w-full sm:w-auto shrink-0 min-w-0 flex-shrink-0"
+                style={{
+                  background: 'linear-gradient(to right, #FF6B35, #FFA500)',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'linear-gradient(to right, #FF5722, #FF9800)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'linear-gradient(to right, #FF6B35, #FFA500)';
+                }}
               >
-                Next <ArrowRight className="h-4 w-4 ml-2" />
+                <span className="truncate">Next</span> <ArrowRight className="h-4 w-4 ml-2 shrink-0" />
               </Button>
             </div>
           </div>
@@ -279,7 +296,7 @@ const ModalContactForm: React.FC<ModalContactFormProps> = ({ className = "" }) =
 
         {/* Step 2 */}
         {step === 2 && (
-          <div className="space-y-6">
+          <div className="space-y-6 sm:space-y-8">
             <div className="space-y-2">
               <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-neutral-900">
                 2. How would you like to contact us?
@@ -333,23 +350,36 @@ const ModalContactForm: React.FC<ModalContactFormProps> = ({ className = "" }) =
             </div>
 
             {submitStatus === "error" && errorMessage && (
-              <div className="rounded-xl bg-red-50 border border-red-200 p-4 text-red-800 text-sm">
+              <div className="rounded-xl bg-red-50 border border-red-200 p-4 text-red-800 text-sm w-full break-words overflow-wrap-anywhere">
                 <p className="font-medium">Error</p>
-                <p className="text-red-600 mt-1">{errorMessage}</p>
+                <p className="text-red-600 mt-1 break-words overflow-wrap-anywhere">{errorMessage}</p>
               </div>
             )}
 
-            <div className="flex items-center justify-between pt-2">
-              <Button type="button" variant="outline" onClick={goBack} className="rounded-full px-6 py-5">
-                <ArrowLeft className="h-4 w-4 mr-2" /> Back
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center sm:justify-end pt-4 sm:pt-6 gap-4 w-full">
+              <Button type="button" variant="outline" onClick={goBack} className="rounded-full px-6 py-5 w-full sm:w-auto sm:mr-auto shrink-0 min-w-0">
+                <ArrowLeft className="h-4 w-4 mr-2 shrink-0" /> <span className="truncate">Back</span>
               </Button>
               <Button
                 type="button"
                 onClick={goNext}
                 disabled={!canGoNextFromStep2}
-                className="rounded-full bg-neutral-900 text-white hover:bg-neutral-800 px-7 py-5 disabled:opacity-50"
+                className="rounded-full text-white px-7 py-5 disabled:opacity-50 transition-all shadow-sm w-full sm:w-auto shrink-0 min-w-0 flex-shrink-0"
+                style={{
+                  background: !canGoNextFromStep2 ? '#ccc' : 'linear-gradient(to right, #FF6B35, #FFA500)',
+                }}
+                onMouseEnter={(e) => {
+                  if (canGoNextFromStep2) {
+                    e.currentTarget.style.background = 'linear-gradient(to right, #FF5722, #FF9800)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (canGoNextFromStep2) {
+                    e.currentTarget.style.background = 'linear-gradient(to right, #FF6B35, #FFA500)';
+                  }
+                }}
               >
-                Next <ArrowRight className="h-4 w-4 ml-2" />
+                <span className="truncate">Next</span> <ArrowRight className="h-4 w-4 ml-2 shrink-0" />
               </Button>
             </div>
           </div>
@@ -357,7 +387,7 @@ const ModalContactForm: React.FC<ModalContactFormProps> = ({ className = "" }) =
 
         {/* Step 3 */}
         {step === 3 && (
-          <div className="space-y-6">
+          <div className="space-y-6 sm:space-y-8">
             <div className="space-y-2">
               <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-neutral-900">
                 3. What can we help you with?
@@ -384,35 +414,48 @@ const ModalContactForm: React.FC<ModalContactFormProps> = ({ className = "" }) =
             </div>
 
             {submitStatus === "error" && errorMessage && (
-              <div className="rounded-xl bg-red-50 border border-red-200 p-4 text-red-800 text-sm">
+              <div className="rounded-xl bg-red-50 border border-red-200 p-4 text-red-800 text-sm w-full break-words overflow-wrap-anywhere">
                 <p className="font-medium">Error</p>
-                <p className="text-red-600 mt-1">{errorMessage}</p>
+                <p className="text-red-600 mt-1 break-words overflow-wrap-anywhere">{errorMessage}</p>
               </div>
             )}
 
-            <div className="flex items-center justify-between pt-2">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center sm:justify-end pt-4 sm:pt-6 gap-4 w-full">
               <Button
                 type="button"
                 variant="outline"
                 onClick={goBack}
-                className="rounded-full px-6 py-5"
+                className="rounded-full px-6 py-5 w-full sm:w-auto sm:mr-auto shrink-0 min-w-0"
                 disabled={isSubmitting}
               >
-                <ArrowLeft className="h-4 w-4 mr-2" /> Back
+                <ArrowLeft className="h-4 w-4 mr-2 shrink-0" /> <span className="truncate">Back</span>
               </Button>
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="rounded-full bg-neutral-900 text-white hover:bg-neutral-800 px-7 py-5"
+                className="rounded-full text-white px-7 py-5 transition-all shadow-sm w-full sm:w-auto shrink-0 min-w-0 flex-shrink-0"
+                style={{
+                  background: isSubmitting ? '#ccc' : 'linear-gradient(to right, #FF6B35, #FFA500)',
+                }}
+                onMouseEnter={(e) => {
+                  if (!isSubmitting) {
+                    e.currentTarget.style.background = 'linear-gradient(to right, #FF5722, #FF9800)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isSubmitting) {
+                    e.currentTarget.style.background = 'linear-gradient(to right, #FF6B35, #FFA500)';
+                  }
+                }}
               >
                 {isSubmitting ? (
                   <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Sending...
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin shrink-0" />
+                    <span className="truncate">Sending...</span>
                   </>
                 ) : (
                   <>
-                    Send <ArrowRight className="h-4 w-4 ml-2" />
+                    <span className="truncate">Send</span> <ArrowRight className="h-4 w-4 ml-2 shrink-0" />
                   </>
                 )}
               </Button>

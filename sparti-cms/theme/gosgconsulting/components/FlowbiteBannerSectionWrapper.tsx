@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect } from 'react';
-import BannerSection from '../../master/components/BannerSection';
+import ModernHeroSection from './ModernHeroSection';
 import type { ComponentSchema } from '../../../types/schema';
 
 /**
@@ -9,31 +9,15 @@ import type { ComponentSchema } from '../../../types/schema';
  * Adapts DynamicPageRenderer props (which passes items) to BannerSection's expected format (component prop)
  */
 const FlowbiteBannerSectionWrapper: React.FC<{ items?: any[]; onContactClick?: () => void; onPopupOpen?: (popupName: string) => void }> = ({ items = [], onContactClick, onPopupOpen }) => {
-  // Use brand colors from CSS variables, fallback to default
-  // For banner, use a darker version of primary or a dark neutral for better text contrast
-  const getBrandColor = (varName: string, fallback: string) => {
-    if (typeof window !== 'undefined') {
-      const root = getComputedStyle(document.documentElement);
-      const color = root.getPropertyValue(varName).trim();
-      if (color) {
-        // If we have a primary color, make it darker for banner background
-        if (varName === '--brand-primary') {
-          // Convert hex to RGB, darken it, convert back
-          const hex = color.replace('#', '');
-          const r = parseInt(hex.substr(0, 2), 16);
-          const g = parseInt(hex.substr(2, 2), 16);
-          const b = parseInt(hex.substr(4, 2), 16);
-          const darker = `#${Math.max(0, Math.floor(r * 0.6)).toString(16).padStart(2, '0')}${Math.max(0, Math.floor(g * 0.6)).toString(16).padStart(2, '0')}${Math.max(0, Math.floor(b * 0.6)).toString(16).padStart(2, '0')}`;
-          return darker;
-        }
-        return color;
-      }
-    }
-    return fallback;
+  // Extract person image from items (if provided)
+  const getImage = (key: string) => {
+    const item = items.find(
+      (i) => i.key?.toLowerCase() === key.toLowerCase() && i.type === "image"
+    ) as any;
+    return item?.src || "";
   };
-
-  // Use darker version of primary color for banner background, or fallback to dark neutral
-  const backgroundColor = getBrandColor('--brand-primary', '#2A2C2E');
+  
+  const personImage = getImage("personImage") || getImage("image") || getImage("heroImage") || "";
   
   // Intercept clicks on buttons with #contact links to open modal
   useEffect(() => {
@@ -65,12 +49,11 @@ const FlowbiteBannerSectionWrapper: React.FC<{ items?: any[]; onContactClick?: (
   const componentSchema: ComponentSchema = {
     type: 'banner-section',
     props: {
-      backgroundColor: backgroundColor,
-      backgroundImage: `/theme/gosgconsulting/assets/placeholder.svg`,
+      personImage: personImage || "/theme/gosgconsulting/assets/hero-person.png",
     },
     items: items,
   };
-  return <BannerSection component={componentSchema} />;
+  return <ModernHeroSection component={componentSchema} onContactClick={onContactClick} onPopupOpen={onPopupOpen} />;
 };
 
 export default FlowbiteBannerSectionWrapper;

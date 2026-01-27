@@ -43,8 +43,19 @@ const CTASection: React.FC<CTASectionProps> = ({ items = [], onContactClick }) =
           <div className="flex justify-center">
             <Button
               onClick={onContactClick}
-              className="h-12 md:h-14 px-8 md:px-10 bg-white rounded-xl !font-bold hover:bg-gray-100 transition-colors border-0 shadow-sm"
-              style={{ color: "#000000", fontWeight: "700", fontSize: "17px" }}
+              className="h-12 md:h-14 px-8 md:px-10 rounded-full !font-bold transition-all border-0 shadow-sm"
+              style={{ 
+                background: 'linear-gradient(to right, #FF6B35, #FFA500)',
+                color: "#ffffff",
+                fontWeight: "700",
+                fontSize: "17px"
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'linear-gradient(to right, #FF5722, #FF9800)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'linear-gradient(to right, #FF6B35, #FFA500)';
+              }}
             >
               {primaryLabel}
               <ArrowRight className="ml-2 h-5 w-5" />

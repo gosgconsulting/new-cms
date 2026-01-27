@@ -17,6 +17,7 @@ interface DynamicPageRendererProps {
   };
   onContactClick?: () => void; // Keep for backward compatibility
   onPopupOpen?: (popupName: string) => void; // New prop for popup handling
+  tenantSlug?: string; // Theme/tenant slug for components that need it
 }
 
 /**
@@ -25,7 +26,7 @@ interface DynamicPageRendererProps {
  * Renders components dynamically based on the provided schema
  * Each component in the schema is mapped to a real React component from the registry
  */
-export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({ schema, onContactClick, onPopupOpen }) => {
+export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({ schema, onContactClick, onPopupOpen, tenantSlug }) => {
   if (!schema?.components) {
     console.warn('[testing] No components found in schema');
     return null;
@@ -76,10 +77,11 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({ schema
           );
         }
         
-        // Default props: popup handlers, contact, and items (for components that expect items)
+        // Default props: popup handlers, contact, items, and tenantSlug (for components that need it)
         let componentProps: any = {
           ...(onContactClick && { onContactClick }), // Backward compatibility
           ...(onPopupOpen && { onPopupOpen }), // New popup handler
+          tenantSlug: tenantSlug || 'gosgconsulting', // Always pass tenantSlug with fallback
         };
 
         // Default: pass items for components that accept schema-based rendering

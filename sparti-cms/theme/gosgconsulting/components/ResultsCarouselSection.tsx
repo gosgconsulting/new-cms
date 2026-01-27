@@ -98,17 +98,32 @@ const ResultsCarouselSection: React.FC<ResultsCarouselSectionProps> = ({
   const defaultCaseStudies: CaseStudy[] = [
     {
       companyName: "Selenightco",
-      tags: ["3 MARKETS", "STRATEGY", "PERFORMANCE", "CREATIVE", "DATA", "6 MONTHS"],
+      tags: ["META ADS", "FACEBOOK", "INSTAGRAM", "PERFORMANCE", "ROAS", "6 MONTHS"],
       description:
-        "Selenightco generated 60k revenue with a ROI of x60. Primal developed a targeted strategy using Facebook Advertising to drive revenue growth, focusing on CPAS campaigns (Lazada, Shopee) and Brand.com for the SEA market.",
+        "Selenightco generated 60k revenue with a ROI of x60. We developed a targeted Meta Ads strategy using Facebook and Instagram Advertising to drive revenue growth. Our focus was on optimizing campaigns for maximum ROAS, with comprehensive A/B testing on creatives and key messages to ensure peak performance.",
       metrics: [
-        { value: "4.5x", label1: "CPO", label2: "Decrease", color: "pink" },
-        { value: "3.5x", label1: "Increase", label2: "Reach", color: "orange" },
-        { value: "26x", label1: "Brand", label2: "Recall", color: "teal" },
+        { value: "60x", label1: "ROAS", label2: "Return", color: "cyan" },
+        { value: "60k", label1: "Revenue", label2: "Generated", color: "teal" },
+        { value: "1k", label1: "Ad", label2: "Spend", color: "orange" },
       ],
       screenshot: {
-        src: "/placeholder.svg",
-        alt: "Selenightco results screenshot",
+        src: "/theme/gosgconsulting/assets/selenightco-meta-ads-results.png",
+        alt: "Selenightco Meta Ads performance results",
+      },
+    },
+    {
+      companyName: "Elizabeth Little",
+      tags: ["META ADS", "FACEBOOK", "INSTAGRAM", "PERFORMANCE", "ROAS", "2 MONTHS"],
+      description:
+        "Elizabeth Little achieved 19.9k revenue from 2.8k ad spend, delivering a ROAS of 7. We developed a targeted Meta Ads strategy using Facebook and Instagram Advertising to drive revenue growth. Our focus was on optimizing campaigns for maximum ROAS and efficient budget allocation.",
+      metrics: [
+        { value: "7x", label1: "ROAS", label2: "Return", color: "cyan" },
+        { value: "19.9k", label1: "Revenue", label2: "Generated", color: "teal" },
+        { value: "2.8k", label1: "Ad", label2: "Spend", color: "orange" },
+      ],
+      screenshot: {
+        src: "/theme/gosgconsulting/assets/elizabeth-little-meta-ads-results.png",
+        alt: "Elizabeth Little Meta Ads performance results",
       },
     },
   ];
@@ -227,7 +242,7 @@ const ResultsCarouselSection: React.FC<ResultsCarouselSectionProps> = ({
                                 <img
                                   src={study.screenshot.src}
                                   alt={study.screenshot.alt}
-                                  className="w-full h-full object-cover"
+                                  className="w-full h-full object-contain bg-white"
                                   onError={(e) => {
                                     (e.target as HTMLImageElement).src =
                                       "/placeholder.svg";

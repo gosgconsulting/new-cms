@@ -177,8 +177,19 @@ function PricingCard({
       <div className="mt-auto">
         <Button 
           onClick={onButtonClick}
-          className="w-full h-12 bg-white rounded-xl font-bold! hover:bg-gray-100 transition-colors border-0 shadow-sm"
-          style={{ color: '#000000', fontWeight: '700', fontSize: '17px' }}
+          className="w-full h-12 rounded-full font-bold transition-all border-0 shadow-sm"
+          style={{ 
+            background: 'linear-gradient(to right, #FF6B35, #FFA500)',
+            color: '#ffffff',
+            fontWeight: '700',
+            fontSize: '17px'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'linear-gradient(to right, #FF5722, #FF9800)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'linear-gradient(to right, #FF6B35, #FFA500)';
+          }}
         >
           {buttonText}
         </Button>

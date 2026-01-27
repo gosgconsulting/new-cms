@@ -125,20 +125,38 @@
     color: var(--brand-text);
   }
 
-  /* Global button styles using brand colors */
+  /* Global button styles using orange gradient */
   .btn-primary, button[data-variant="default"] {
-    background-color: var(--brand-primary);
-    color: white;
+    background: linear-gradient(to right, #FF6B35, #FFA500) !important;
+    color: white !important;
+    border-radius: 9999px !important;
+    border: none !important;
+  }
+
+  .btn-primary:hover, button[data-variant="default"]:hover {
+    background: linear-gradient(to right, #FF5722, #FF9800) !important;
   }
 
   .btn-secondary, button[data-variant="secondary"] {
-    background-color: var(--brand-secondary);
-    color: white;
+    background: linear-gradient(to right, #FF6B35, #FFA500) !important;
+    color: white !important;
+    border-radius: 9999px !important;
+    border: none !important;
+  }
+
+  .btn-secondary:hover, button[data-variant="secondary"]:hover {
+    background: linear-gradient(to right, #FF5722, #FF9800) !important;
   }
 
   .btn-accent {
-    background-color: var(--brand-accent);
-    color: white;
+    background: linear-gradient(to right, #FF6B35, #FFA500) !important;
+    color: white !important;
+    border-radius: 9999px !important;
+    border: none !important;
+  }
+
+  .btn-accent:hover {
+    background: linear-gradient(to right, #FF5722, #FF9800) !important;
   }
 
   /* Label styling using global label color */
@@ -443,29 +461,29 @@
   }
 }
 
-/* CTA Buttons - Complete styling matching MasterTheme */
+/* CTA Buttons - Orange gradient rounded style */
 .btn-cta {
   height: 3rem !important;
   padding-left: 1.5rem !important;
   padding-right: 1.5rem !important;
-  border-radius: 0.75rem !important;
+  border-radius: 9999px !important;
   font-weight: 700 !important;
-  background-color: var(--brand-primary) !important;
+  background: linear-gradient(to right, #FF6B35, #FFA500) !important;
   color: white !important;
-  transition: background-color 0.2s ease, transform 0.18s ease, box-shadow 0.2s ease !important;
+  transition: all 0.2s ease, transform 0.18s ease, box-shadow 0.2s ease !important;
   border: none !important;
   cursor: pointer !important;
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
-  box-shadow: 0 10px 40px -18px rgba(2, 6, 23, 0.22) !important;
+  box-shadow: 0 10px 40px -18px rgba(255, 107, 53, 0.3) !important;
   text-decoration: none !important;
 }
 
 .btn-cta:hover {
-  background-color: var(--brand-primary-dark, var(--brand-secondary)) !important;
+  background: linear-gradient(to right, #FF5722, #FF9800) !important;
   transform: translateY(-1px) scale(1.03) !important;
-  box-shadow: 0 24px 80px -24px rgba(2, 6, 23, 0.28) !important;
+  box-shadow: 0 24px 80px -24px rgba(255, 107, 53, 0.4) !important;
 }
 
 .btn-cta:active {
@@ -473,28 +491,29 @@
   box-shadow: 0 1px 2px 0 rgba(2, 6, 23, 0.06) !important;
 }
 
-/* Secondary CTA Button */
+/* Secondary CTA Button - Orange gradient with border */
 .btn-cta-secondary {
   height: 3rem !important;
   padding-left: 1.5rem !important;
   padding-right: 1.5rem !important;
-  border-radius: 0.75rem !important;
+  border-radius: 9999px !important;
   font-weight: 700 !important;
-  background-color: transparent !important;
-  color: var(--brand-secondary) !important;
-  border: 1px solid color-mix(in srgb, var(--brand-secondary) 55%, transparent) !important;
-  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease !important;
+  background: linear-gradient(to right, #FF6B35, #FFA500) !important;
+  color: white !important;
+  border: none !important;
+  transition: all 0.2s ease, transform 0.18s ease, box-shadow 0.2s ease !important;
   cursor: pointer !important;
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
+  box-shadow: 0 10px 40px -18px rgba(255, 107, 53, 0.3) !important;
   text-decoration: none !important;
 }
 
 .btn-cta-secondary:hover {
-  background-color: color-mix(in srgb, var(--brand-secondary) 10%, white) !important;
-  border-color: color-mix(in srgb, var(--brand-secondary) 35%, transparent) !important;
-  color: var(--brand-secondary-dark) !important;
+  background: linear-gradient(to right, #FF5722, #FF9800) !important;
+  transform: translateY(-1px) scale(1.03) !important;
+  box-shadow: 0 24px 80px -24px rgba(255, 107, 53, 0.4) !important;
 }
 
 /* Light CTA Button (for gradient/dark backgrounds) */
@@ -608,20 +627,21 @@ section.bg-brand-gradient-animated {
   --brand-accent-dark: var(--brand-secondary);
 }
 
-/* Streamline button - use brand primary color with smooth transitions */
+/* Streamline button - use orange gradient with smooth transitions */
 .gosg-growth-package-section a.btn-cta,
 .gosg-growth-package-section button.btn-cta {
-  background-color: var(--brand-primary) !important;
+  background: linear-gradient(to right, #FF6B35, #FFA500) !important;
   color: #ffffff !important;
   border: none !important;
+  border-radius: 9999px !important;
   font-weight: 600 !important;
   transition: all 0.3s ease !important;
-  box-shadow: 0 4px 12px rgba(155, 135, 245, 0.25) !important;
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3) !important;
 }
 
 .gosg-growth-package-section a.btn-cta:hover,
 .gosg-growth-package-section button.btn-cta:hover {
-  background-color: var(--brand-secondary) !important;
+  background: linear-gradient(to right, #FF5722, #FF9800) !important;
   transform: translateY(-2px) !important;
   box-shadow: 0 8px 24px rgba(155, 135, 245, 0.4) !important;
 }
@@ -646,4 +666,19 @@ section.bg-brand-gradient-animated {
 
 .gosg-growth-package-section [class*="icon-container-secondary"] svg {
   color: var(--brand-primary) !important;
+}
+
+/* Section label styling - ensure border is visible */
+.label-section {
+  border: 1px solid var(--border-color, hsl(var(--border))) !important;
+  border-radius: 9999px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  padding: 0.4rem 0.9rem !important;
+  font-size: 0.75rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.02em !important;
+  text-transform: none !important;
+  background-color: rgba(255, 255, 255, 0.7) !important;
+  color: var(--brand-secondary, hsl(var(--muted-foreground))) !important;
 }

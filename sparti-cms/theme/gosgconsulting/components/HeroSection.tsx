@@ -40,11 +40,11 @@ const HeroSection: React.FC<HeroSectionProps> = ({
   const heroTitle = items ? getHeading(items, 'title') : null;
   
   // Use extracted values or fallback to props
-  const finalTitle = title || extractedProps.title || heroTitle || 'Turn traffic into revenue with a Full‑Stack Growth Engine';
+  const finalTitle = title || extractedProps.title || heroTitle || 'Turn traffic into revenue with a dedicated team';
   const finalDescription = description || extractedProps.description || 'Helping brands grow their revenue and leads through comprehensive digital marketing services.';
   const finalImageSrc = imageSrc || heroImage?.src || extractedProps.imageSrc;
   const finalImageAlt = imageAlt || heroImage?.alt || 'Hero image';
-  const finalButtonText = buttonText || heroButton?.text || extractedProps.buttonText || 'Get Started';
+  const finalButtonText = buttonText || heroButton?.text || extractedProps.buttonText || 'I want more sales';
   const finalButtonUrl = buttonUrl || heroButton?.url || extractedProps.buttonUrl || '#';
   const finalShowScrollArrow = showScrollArrow || items?.find(i => i.key === 'showScrollArrow')?.value || false;
 

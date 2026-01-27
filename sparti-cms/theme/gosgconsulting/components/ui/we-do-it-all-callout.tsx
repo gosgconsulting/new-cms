@@ -86,7 +86,16 @@ const WeDoItAllCallout: React.FC<WeDoItAllCalloutProps> = ({
           <Button
             onClick={() => onChatClick && onChatClick()}
             aria-label="Chat with us"
-            className="relative rounded-full bg-brandPurple text-white hover:bg-brandPurple hover:text-white border border-brandPurple px-10 md:px-12 py-5 md:py-6 text-xl md:text-2xl font-semibold transition-colors"
+            className="relative rounded-full text-white border-0 px-10 md:px-12 py-5 md:py-6 text-xl md:text-2xl font-semibold transition-all shadow-sm"
+            style={{ 
+              background: 'linear-gradient(to right, #FF6B35, #FFA500)',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'linear-gradient(to right, #FF5722, #FF9800)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'linear-gradient(to right, #FF6B35, #FFA500)';
+            }}
           >
             <span className="flex items-center gap-3">
               <span className="relative inline-flex items-center justify-center w-9 h-9 rounded-full bg-white/20">

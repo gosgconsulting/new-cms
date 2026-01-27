@@ -129,7 +129,16 @@ const Gallery4Section: React.FC<Gallery4SectionProps> = ({ items = [], onContact
                     <div className="pt-2">
                       <button
                         onClick={handleLearnMore}
-                        className="inline-flex items-center px-5 py-2.5 rounded-md bg-brandPurple text-white border border-brandPurple hover:bg-brandPurple hover:text-white transition-colors"
+                        className="inline-flex items-center px-5 py-2.5 rounded-full text-white font-semibold transition-all border-0 shadow-sm"
+                        style={{ 
+                          background: 'linear-gradient(to right, #FF6B35, #FFA500)',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = 'linear-gradient(to right, #FF5722, #FF9800)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = 'linear-gradient(to right, #FF6B35, #FFA500)';
+                        }}
                       >
                         Learn more
                       </button>

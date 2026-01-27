@@ -57,7 +57,16 @@ const ContactForm: React.FC<ContactFormProps> = ({ items = [] }) => {
             <div className="text-center">
               <Button
                 type="submit"
-                className="bg-gradient-to-r from-purple-500 to-cyan-500 hover:from-purple-600 hover:to-cyan-600 text-white font-medium px-8 py-3 text-lg rounded-lg transition-all duration-300"
+                className="text-white font-medium px-8 py-3 text-lg rounded-full transition-all duration-300 shadow-sm"
+                style={{
+                  background: 'linear-gradient(to right, #FF6B35, #FFA500)',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'linear-gradient(to right, #FF5722, #FF9800)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'linear-gradient(to right, #FF6B35, #FFA500)';
+                }}
               >
                 Send Message
               </Button>

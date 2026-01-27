@@ -1,11 +1,13 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
 interface PopupContextType {
-  openPopup: (popupName: string) => void;
+  openPopup: (popupName: string, initialEmail?: string) => void;
   closePopup: (popupName: string) => void;
   isOpen: (popupName: string) => boolean;
   contactModalOpen: boolean;
   setContactModalOpen: (open: boolean) => void;
+  initialEmail: string | null;
+  setInitialEmail: (email: string | null) => void;
 }
 
 const PopupContext = createContext<PopupContextType | undefined>(undefined);
@@ -13,9 +15,13 @@ const PopupContext = createContext<PopupContextType | undefined>(undefined);
 export const PopupProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [contactModalOpen, setContactModalOpen] = useState(false);
   const [openPopups, setOpenPopups] = useState<Set<string>>(new Set());
+  const [initialEmail, setInitialEmail] = useState<string | null>(null);
 
-  const openPopup = (popupName: string) => {
+  const openPopup = (popupName: string, email?: string) => {
     if (popupName === 'contact') {
+      if (email) {
+        setInitialEmail(email);
+      }
       setContactModalOpen(true);
     }
     setOpenPopups(prev => new Set(prev).add(popupName));
@@ -46,6 +52,8 @@ export const PopupProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       isOpen,
       contactModalOpen,
       setContactModalOpen,
+      initialEmail,
+      setInitialEmail,
     }}>
       {children}
     </PopupContext.Provider>

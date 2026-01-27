@@ -36,7 +36,7 @@ const GOSGContent: React.FC<TenantLandingProps> = ({
   tenantSlug = 'gosgconsulting',
   pageSlug
 }) => {
-  const { contactModalOpen, setContactModalOpen, openPopup } = usePopup();
+  const { contactModalOpen, setContactModalOpen, openPopup, initialEmail, setInitialEmail } = usePopup();
   
   // Load branding settings from database
   // Note: The API expects tenantId in the query string, but the hook uses tenantSlug
@@ -223,7 +223,7 @@ const GOSGContent: React.FC<TenantLandingProps> = ({
       keywords: 'digital marketing, SEO, SEM, social media ads, website design, graphic design, Singapore, full-stack',
     },
     components: [
-      // Section 1 — Hero (using MasterTheme BannerSection design)
+      // Section 1 — Hero (Modern Hero Section)
       {
         key: "MainHeroSection",
         name: "Hero",
@@ -233,39 +233,32 @@ const GOSGContent: React.FC<TenantLandingProps> = ({
             key: "title", 
             type: "heading", 
             level: 1, 
-            content: "Turn traffic into revenue with a Full‑Stack Growth Engine" 
+            content: "Turn Every Visitor Into Revenue — Starting Day 1" 
           },
           { 
             key: "description", 
             type: "text", 
-            content: "We craft high‑performance pages using Flowbite components, strong messaging, and conversion-first UX — so every visit has a clear path to revenue." 
+            content: "Our dedicated team works inside your brand, crafting high-converting pages and campaigns that turn traffic into sales. We handle the full funnel — from acquisition to conversion — so every visitor has a clear path to revenue. See results immediately, not months from now." 
           },
           { 
-            key: "cta", 
-            type: "button", 
-            content: "Get Started", 
-            link: "#contact" 
+            key: "emailPlaceholder", 
+            type: "text", 
+            content: "Enter your email" 
+          },
+          {
+            key: "personImage",
+            type: "image",
+            src: "/theme/gosgconsulting/assets/hero-person.png",
+            alt: "Team member"
           }
         ]
       },
-      // Section 2 — Challenge (using MasterTheme FlowbitePainPointSection design)
+      // Section 2 — Our Services (using MasterTheme OurServicesSection design)
       {
-        key: "ProblemSection",
-        name: "Problem",
-        type: "flowbite-pain-point-section",
-        items: [
-          { key: "hint", type: "text", content: "You have a great business but struggle online?" },
-          { key: "heading", type: "heading", level: 2, content: "Your Business Works… Your Marketing Doesn't" },
-          {
-            key: "bullets",
-            type: "array",
-            items: [
-              { key: "b1", type: "text", content: "You know your craft — but not SEO, ads, funnels", icon: "x" },
-              { key: "b2", type: "text", content: "Leads don't grow month after month", icon: "sparkles" },
-              { key: "b3", type: "text", content: "Ad money burns without profit", icon: "barChart3" }
-            ]
-          }
-        ]
+        key: "OurServicesSection",
+        name: "Our Services",
+        type: "OurServicesSection",
+        items: []
       },
       // Section 3 — Results Carousel
       {
@@ -286,11 +279,11 @@ const GOSGContent: React.FC<TenantLandingProps> = ({
                     key: "tags",
                     type: "array",
                     items: [
-                      { key: "tag1", type: "text", content: "3 MARKETS" },
-                      { key: "tag2", type: "text", content: "STRATEGY" },
-                      { key: "tag3", type: "text", content: "PERFORMANCE" },
-                      { key: "tag4", type: "text", content: "CREATIVE" },
-                      { key: "tag5", type: "text", content: "DATA" },
+                      { key: "tag1", type: "text", content: "META ADS" },
+                      { key: "tag2", type: "text", content: "FACEBOOK" },
+                      { key: "tag3", type: "text", content: "INSTAGRAM" },
+                      { key: "tag4", type: "text", content: "PERFORMANCE" },
+                      { key: "tag5", type: "text", content: "ROAS" },
                       { key: "tag6", type: "text", content: "6 MONTHS" },
                     ],
                   },
@@ -298,7 +291,7 @@ const GOSGContent: React.FC<TenantLandingProps> = ({
                     key: "description",
                     type: "text",
                     content:
-                      "Selenightco generated 60k revenue with a ROI of x60. Primal developed a targeted strategy using Facebook Advertising to drive revenue growth, focusing on CPAS campaigns (Lazada, Shopee) and Brand.com for the SEA market. Understanding the variation in consumer behavior across different regions, we emphasised comprehensive A/B testing on creatives and key messages.",
+                      "Selenightco generated 60k revenue with a ROI of x60. We developed a targeted Meta Ads strategy using Facebook and Instagram Advertising to drive revenue growth. Our focus was on optimizing campaigns for maximum ROAS, with comprehensive A/B testing on creatives and key messages to ensure peak performance.",
                   },
                   {
                     key: "metrics",
@@ -307,65 +300,101 @@ const GOSGContent: React.FC<TenantLandingProps> = ({
                       {
                         key: "metric1",
                         type: "metric",
-                        value: "4.5x",
-                        label1: "CPO",
-                        label2: "Decrease",
-                        color: "pink",
+                        value: "60x",
+                        label1: "ROAS",
+                        label2: "Return",
+                        color: "cyan",
                       },
                       {
                         key: "metric2",
                         type: "metric",
-                        value: "3.5x",
-                        label1: "Increase",
-                        label2: "Reach",
-                        color: "orange",
+                        value: "60k",
+                        label1: "Revenue",
+                        label2: "Generated",
+                        color: "teal",
                       },
                       {
                         key: "metric3",
                         type: "metric",
-                        value: "26x",
-                        label1: "Brand",
-                        label2: "Recall",
-                        color: "teal",
+                        value: "1k",
+                        label1: "Ad",
+                        label2: "Spend",
+                        color: "orange",
                       },
                     ],
                   },
                   {
                     key: "screenshot",
                     type: "image",
-                    src: "/placeholder.svg",
-                    alt: "Selenightco results screenshot",
+                    src: "/theme/gosgconsulting/assets/selenightco-meta-ads-results.png",
+                    alt: "Selenightco Meta Ads performance results",
+                  },
+                ],
+              },
+              {
+                key: "case2",
+                type: "caseStudy",
+                items: [
+                  { key: "companyName", type: "text", content: "Elizabeth Little" },
+                  {
+                    key: "tags",
+                    type: "array",
+                    items: [
+                      { key: "tag1", type: "text", content: "META ADS" },
+                      { key: "tag2", type: "text", content: "FACEBOOK" },
+                      { key: "tag3", type: "text", content: "INSTAGRAM" },
+                      { key: "tag4", type: "text", content: "PERFORMANCE" },
+                      { key: "tag5", type: "text", content: "ROAS" },
+                      { key: "tag6", type: "text", content: "2 MONTHS" },
+                    ],
+                  },
+                  {
+                    key: "description",
+                    type: "text",
+                    content:
+                      "Elizabeth Little achieved 19.9k revenue from 2.8k ad spend, delivering a ROAS of 7. We developed a targeted Meta Ads strategy using Facebook and Instagram Advertising to drive revenue growth. Our focus was on optimizing campaigns for maximum ROAS and efficient budget allocation.",
+                  },
+                  {
+                    key: "metrics",
+                    type: "array",
+                    items: [
+                      {
+                        key: "metric1",
+                        type: "metric",
+                        value: "7x",
+                        label1: "ROAS",
+                        label2: "Return",
+                        color: "cyan",
+                      },
+                      {
+                        key: "metric2",
+                        type: "metric",
+                        value: "19.9k",
+                        label1: "Revenue",
+                        label2: "Generated",
+                        color: "teal",
+                      },
+                      {
+                        key: "metric3",
+                        type: "metric",
+                        value: "2.8k",
+                        label1: "Ad",
+                        label2: "Spend",
+                        color: "orange",
+                      },
+                    ],
+                  },
+                  {
+                    key: "screenshot",
+                    type: "image",
+                    src: "/theme/gosgconsulting/assets/elizabeth-little-meta-ads-results.png",
+                    alt: "Elizabeth Little Meta Ads performance results",
                   },
                 ],
               },
             ],
           },
         ],
-      },
-      // Section 4 — About (using MasterTheme FlowbiteContentSection design)
-      {
-        key: "AnimatedAboutSection",
-        name: "About",
-        type: "flowbite-content-section",
-        items: [
-          {
-            key: "title",
-            type: "heading",
-            level: 2,
-            content: "We Are Your Growth Team And We Will Take You Further"
-          },
-          {
-            key: "content",
-            type: "text",
-            content: "We handle the full funnel end-to-end: positioning, website conversion, SEO, paid ads, creatives, and tracking—so every channel works together to drive revenue.\n\nOur proven systems generate leads and revenue month after month, while you stay focused on running the business."
-          },
-          {
-            key: "button",
-            type: "button",
-            content: "Get Started",
-            link: "#contact"
-          }
-        ]
       },
       // Section 4 — Full-stack growth package (replaced PricingPageSection)
       {
@@ -713,6 +742,7 @@ const GOSGContent: React.FC<TenantLandingProps> = ({
           schema={pageData}
           onContactClick={handleContactClick}
           onPopupOpen={openPopup}
+          tenantSlug={tenantSlug}
         />
       </main>
       
@@ -726,7 +756,16 @@ const GOSGContent: React.FC<TenantLandingProps> = ({
       />
       
       {/* Contact Modal */}
-      <ContactModal open={contactModalOpen} onOpenChange={setContactModalOpen} />
+      <ContactModal 
+        open={contactModalOpen} 
+        onOpenChange={(open) => {
+          setContactModalOpen(open);
+          if (!open) {
+            setInitialEmail(null); // Clear initial email when modal closes
+          }
+        }}
+        initialEmail={initialEmail}
+      />
     </div>
   );
 };
@@ -899,13 +938,15 @@ const mapHomepageToMasterSchemas = (homepageComponents: any[]): {
 interface PaidAdsPageProps {
   tenantName?: string;
   tenantId?: string;
+  tenantSlug?: string;
 }
 
 const PaidAdsPage: React.FC<PaidAdsPageProps> = ({
   tenantName = 'GO SG Consulting',
   tenantId = 'tenant-gosg',
+  tenantSlug = 'gosgconsulting',
 }) => {
-  const { contactModalOpen, setContactModalOpen, openPopup } = usePopup();
+  const { contactModalOpen, setContactModalOpen, openPopup, initialEmail, setInitialEmail } = usePopup();
   
   // Load branding settings from database
   const { branding, loading: brandingLoading, error: brandingError } = useThemeBranding('gosgconsulting', tenantId);
@@ -1087,7 +1128,7 @@ const PaidAdsPage: React.FC<PaidAdsPageProps> = ({
       keywords: 'digital marketing, SEO, SEM, social media ads, website design, graphic design, Singapore, full-stack',
     },
     components: [
-      // Section 1 — Hero (using MasterTheme BannerSection design)
+      // Section 1 — Hero (Modern Hero Section)
       {
         key: "MainHeroSection",
         name: "Hero",
@@ -1097,39 +1138,32 @@ const PaidAdsPage: React.FC<PaidAdsPageProps> = ({
             key: "title", 
             type: "heading", 
             level: 1, 
-            content: "Turn traffic into revenue with a Full‑Stack Growth Engine" 
+            content: "Turn Every Visitor Into Revenue — Starting Day 1" 
           },
           { 
             key: "description", 
             type: "text", 
-            content: "We craft high‑performance pages using Flowbite components, strong messaging, and conversion-first UX — so every visit has a clear path to revenue." 
+            content: "Our dedicated team works inside your brand, crafting high-converting pages and campaigns that turn traffic into sales. We handle the full funnel — from acquisition to conversion — so every visitor has a clear path to revenue. See results immediately, not months from now." 
           },
           { 
-            key: "cta", 
-            type: "button", 
-            content: "Get Started", 
-            link: "#contact" 
+            key: "emailPlaceholder", 
+            type: "text", 
+            content: "Enter your email" 
+          },
+          {
+            key: "personImage",
+            type: "image",
+            src: "/theme/gosgconsulting/assets/hero-person.png",
+            alt: "Team member"
           }
         ]
       },
-      // Section 2 — Challenge (using MasterTheme FlowbitePainPointSection design)
+      // Section 2 — Our Services (using MasterTheme OurServicesSection design)
       {
-        key: "ProblemSection",
-        name: "Problem",
-        type: "flowbite-pain-point-section",
-        items: [
-          { key: "hint", type: "text", content: "You have a great business but struggle online?" },
-          { key: "heading", type: "heading", level: 2, content: "Your Business Works… Your Marketing Doesn't" },
-          {
-            key: "bullets",
-            type: "array",
-            items: [
-              { key: "b1", type: "text", content: "You know your craft — but not SEO, ads, funnels", icon: "x" },
-              { key: "b2", type: "text", content: "Leads don't grow month after month", icon: "sparkles" },
-              { key: "b3", type: "text", content: "Ad money burns without profit", icon: "barChart3" }
-            ]
-          }
-        ]
+        key: "OurServicesSection",
+        name: "Our Services",
+        type: "OurServicesSection",
+        items: []
       },
       // Section 3 — Results Carousel
       {
@@ -1150,11 +1184,11 @@ const PaidAdsPage: React.FC<PaidAdsPageProps> = ({
                     key: "tags",
                     type: "array",
                     items: [
-                      { key: "tag1", type: "text", content: "3 MARKETS" },
-                      { key: "tag2", type: "text", content: "STRATEGY" },
-                      { key: "tag3", type: "text", content: "PERFORMANCE" },
-                      { key: "tag4", type: "text", content: "CREATIVE" },
-                      { key: "tag5", type: "text", content: "DATA" },
+                      { key: "tag1", type: "text", content: "META ADS" },
+                      { key: "tag2", type: "text", content: "FACEBOOK" },
+                      { key: "tag3", type: "text", content: "INSTAGRAM" },
+                      { key: "tag4", type: "text", content: "PERFORMANCE" },
+                      { key: "tag5", type: "text", content: "ROAS" },
                       { key: "tag6", type: "text", content: "6 MONTHS" },
                     ],
                   },
@@ -1162,7 +1196,7 @@ const PaidAdsPage: React.FC<PaidAdsPageProps> = ({
                     key: "description",
                     type: "text",
                     content:
-                      "Selenightco generated 60k revenue with a ROI of x60. Primal developed a targeted strategy using Facebook Advertising to drive revenue growth, focusing on CPAS campaigns (Lazada, Shopee) and Brand.com for the SEA market. Understanding the variation in consumer behavior across different regions, we emphasised comprehensive A/B testing on creatives and key messages.",
+                      "Selenightco generated 60k revenue with a ROI of x60. We developed a targeted Meta Ads strategy using Facebook and Instagram Advertising to drive revenue growth. Our focus was on optimizing campaigns for maximum ROAS, with comprehensive A/B testing on creatives and key messages to ensure peak performance.",
                   },
                   {
                     key: "metrics",
@@ -1171,34 +1205,95 @@ const PaidAdsPage: React.FC<PaidAdsPageProps> = ({
                       {
                         key: "metric1",
                         type: "metric",
-                        value: "4.5x",
-                        label1: "CPO",
-                        label2: "Decrease",
-                        color: "pink",
+                        value: "60x",
+                        label1: "ROAS",
+                        label2: "Return",
+                        color: "cyan",
                       },
                       {
                         key: "metric2",
                         type: "metric",
-                        value: "3.5x",
-                        label1: "Increase",
-                        label2: "Reach",
-                        color: "orange",
+                        value: "60k",
+                        label1: "Revenue",
+                        label2: "Generated",
+                        color: "teal",
                       },
                       {
                         key: "metric3",
                         type: "metric",
-                        value: "26x",
-                        label1: "Brand",
-                        label2: "Recall",
-                        color: "teal",
+                        value: "1k",
+                        label1: "Ad",
+                        label2: "Spend",
+                        color: "orange",
                       },
                     ],
                   },
                   {
                     key: "screenshot",
                     type: "image",
-                    src: "/placeholder.svg",
-                    alt: "Selenightco results screenshot",
+                    src: "/theme/gosgconsulting/assets/selenightco-meta-ads-results.png",
+                    alt: "Selenightco Meta Ads performance results",
+                  },
+                ],
+              },
+              {
+                key: "case2",
+                type: "caseStudy",
+                items: [
+                  { key: "companyName", type: "text", content: "Elizabeth Little" },
+                  {
+                    key: "tags",
+                    type: "array",
+                    items: [
+                      { key: "tag1", type: "text", content: "META ADS" },
+                      { key: "tag2", type: "text", content: "FACEBOOK" },
+                      { key: "tag3", type: "text", content: "INSTAGRAM" },
+                      { key: "tag4", type: "text", content: "PERFORMANCE" },
+                      { key: "tag5", type: "text", content: "ROAS" },
+                      { key: "tag6", type: "text", content: "2 MONTHS" },
+                    ],
+                  },
+                  {
+                    key: "description",
+                    type: "text",
+                    content:
+                      "Elizabeth Little achieved 19.9k revenue from 2.8k ad spend, delivering a ROAS of 7. We developed a targeted Meta Ads strategy using Facebook and Instagram Advertising to drive revenue growth. Our focus was on optimizing campaigns for maximum ROAS and efficient budget allocation.",
+                  },
+                  {
+                    key: "metrics",
+                    type: "array",
+                    items: [
+                      {
+                        key: "metric1",
+                        type: "metric",
+                        value: "7x",
+                        label1: "ROAS",
+                        label2: "Return",
+                        color: "cyan",
+                      },
+                      {
+                        key: "metric2",
+                        type: "metric",
+                        value: "19.9k",
+                        label1: "Revenue",
+                        label2: "Generated",
+                        color: "teal",
+                      },
+                      {
+                        key: "metric3",
+                        type: "metric",
+                        value: "2.8k",
+                        label1: "Ad",
+                        label2: "Spend",
+                        color: "orange",
+                      },
+                    ],
+                  },
+                  {
+                    key: "screenshot",
+                    type: "image",
+                    src: "/theme/gosgconsulting/assets/elizabeth-little-meta-ads-results.png",
+                    alt: "Elizabeth Little Meta Ads performance results",
                   },
                 ],
               },
@@ -1428,6 +1523,7 @@ const PaidAdsPage: React.FC<PaidAdsPageProps> = ({
           schema={homepageData}
           onContactClick={handleContactClick}
           onPopupOpen={openPopup}
+          tenantSlug={tenantSlug}
         />
       </main>
       
@@ -1441,7 +1537,16 @@ const PaidAdsPage: React.FC<PaidAdsPageProps> = ({
       />
       
       {/* Contact Modal */}
-      <ContactModal open={contactModalOpen} onOpenChange={setContactModalOpen} />
+      <ContactModal 
+        open={contactModalOpen} 
+        onOpenChange={(open) => {
+          setContactModalOpen(open);
+          if (!open) {
+            setInitialEmail(null); // Clear initial email when modal closes
+          }
+        }}
+        initialEmail={initialEmail}
+      />
     </div>
   );
 };
@@ -1556,12 +1661,12 @@ const GOSGTheme: React.FC<TenantLandingProps> = ({
       case '':
       case undefined:
         // Homepage now uses PaidAdsPage content
-        return <PaidAdsPage tenantName={tenantName} tenantId={tenantId || 'tenant-gosg'} />;
+        return <PaidAdsPage tenantName={tenantName} tenantId={tenantId || 'tenant-gosg'} tenantSlug={tenantSlug} />;
       case 'seo':
         return <GOSGContent tenantName={tenantName} tenantSlug={tenantSlug} pageSlug="seo" />;
       case 'paid-ads':
         // Render master theme with GOSG homepage content and branding
-        return <PaidAdsPage tenantName={tenantName} tenantId={tenantId || 'tenant-gosg'} />;
+        return <PaidAdsPage tenantName={tenantName} tenantId={tenantId || 'tenant-gosg'} tenantSlug={tenantSlug} />;
       case 'blog':
         // theme blog index
         return <Blog tenantName={tenantName} tenantSlug={tenantSlug} />;

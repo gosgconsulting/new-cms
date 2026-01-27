@@ -41,7 +41,7 @@ const FlowbiteContentSectionWrapper: React.FC<{ items?: any[]; onContactClick?: 
     props: {
       variant: "about",
       badge: "About us",
-      imageSrc: `/theme/gosgconsulting/assets/placeholder.svg`,
+      imageSrc: `/theme/gosgconsulting/assets/team-about.png`,
       reviewLabel: "5 Star",
       reviewSub: "Review",
     },
