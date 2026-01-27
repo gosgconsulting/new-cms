@@ -58,7 +58,7 @@ const Navigation = () => {
       images: [],
     },
     {
-      name: "BEOK",
+      name: "Beok Home Dining",
       href: "/beok",
       submenuItems: [],
       images: [],

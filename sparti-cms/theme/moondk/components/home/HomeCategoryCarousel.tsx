@@ -22,11 +22,10 @@ type CategoryItem = {
 };
 
 const categories: CategoryItem[] = [
-  { title: "Curated Sets", to: "/category/curated-sets", image: img1 },
-  { title: "Ingredients", to: "/category/ingredients", image: img2 },
-  { title: "Tools", to: "/category/tools", image: img3 },
-  { title: "Recipe Collections", to: "/category/recipe-collections", image: img4 },
-  { title: "Essentials", to: "/category/essentials", image: img2 },
+  { title: "Tea", to: "/category/tea", image: img1 },
+  { title: "Oil", to: "/category/oil", image: img2 },
+  { title: "Noodle", to: "/category/noodle", image: img3 },
+  { title: "Alcohol", to: "/category/alcohol", image: img4 },
 ];
 
 export default function HomeCategoryCarousel() {
@@ -83,7 +82,7 @@ export default function HomeCategoryCarousel() {
               {categories.map((c) => (
                 <CarouselItem
                   key={c.title}
-                  className="basis-[85%] sm:basis-1/2 md:basis-1/3 lg:basis-1/4 xl:basis-1/5"
+                  className="basis-full sm:basis-1/2 md:basis-1/3 lg:basis-1/3"
                 >
                   <ThemeLink to={c.to} className="block">
                     <div className="relative overflow-hidden rounded-[1.75rem] bg-[#F7E6E6]">

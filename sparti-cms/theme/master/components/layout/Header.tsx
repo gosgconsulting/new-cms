@@ -66,19 +66,6 @@ const Header: React.FC<HeaderProps> = ({
             </button>
           </div>
 
-          {/* Simple nav */}
-          <nav className="hidden md:flex items-center gap-6 text-sm font-semibold text-slate-700">
-            <a href={resolvedBasePath} className="hover:text-slate-900 transition-colors">
-              Home
-            </a>
-            <a
-              href={`${normalizePath(resolvedBasePath)}/blog`}
-              className="hover:text-slate-900 transition-colors"
-            >
-              Blog
-            </a>
-          </nav>
-
           {/* Contact Button */}
           <div className="flex items-center gap-3">
             <button onClick={onContactClick} className="btn-cta">

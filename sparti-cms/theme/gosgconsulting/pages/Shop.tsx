@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShoppingBag, Search, Loader2 } from 'lucide-react';
-import { getProducts } from '../services/shopApi';
+import { ShoppingBag, Search, Loader2, ChevronDown } from 'lucide-react';
+import { getProducts, getCategories } from '../services/shopApi';
 
 interface Product {
   product_id: number;
@@ -10,37 +10,79 @@ interface Product {
   price: number;
   description: string;
   image_url: string | null;
+  categories?: number[];
+}
+
+interface Category {
+  id: number;
+  name: string;
+  slug: string;
+  description?: string;
 }
 
 const Shop: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<number | 'all'>('all');
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
         setError(null);
-        const data = await getProducts();
-        setProducts(data);
+        const [productsData, categoriesData] = await Promise.all([
+          getProducts(),
+          getCategories()
+        ]);
+        
+        // Try to fetch product-category relationships and merge with products
+        // If products already have categories, use them; otherwise try to fetch relationships
+        const productsWithCategories = productsData.map((product: any) => {
+          // If product already has categories array, use it
+          if (product.categories && Array.isArray(product.categories)) {
+            return {
+              ...product,
+              categories: product.categories.map((c: any) => typeof c === 'number' ? c : c.id || c)
+            };
+          }
+          // Otherwise, return product without categories (will show in "All")
+          return product;
+        });
+        
+        setProducts(productsWithCategories);
+        setCategories(categoriesData);
       } catch (err: any) {
-        console.error('Error fetching products:', err);
-        setError(err.message || 'Failed to load products');
+        console.error('Error fetching data:', err);
+        setError(err.message || 'Failed to load data');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchProducts();
+    fetchData();
   }, []);
 
-  const filteredProducts = products.filter((product) =>
-    product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.description.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredProducts = products.filter((product) => {
+    // Filter by search term
+    const matchesSearch = 
+      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      product.description.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    // Filter by category
+    // If selectedCategory is 'all', show all products
+    // Otherwise, check if product has the selected category
+    // Note: Products may not have categories array yet - filtering will work once API includes category data
+    const matchesCategory = 
+      selectedCategory === 'all' ||
+      (product.categories && Array.isArray(product.categories) && product.categories.includes(selectedCategory as number));
+    
+    return matchesSearch && matchesCategory;
+  });
 
   const handleProductClick = (slug: string) => {
     navigate(`/theme/gosgconsulting/product/${slug}`);
@@ -81,9 +123,10 @@ const Shop: React.FC = () => {
           </p>
         </div>
 
-        {/* Search */}
-        <div className="mb-8">
-          <div className="relative max-w-md">
+        {/* Search and Category Filter */}
+        <div className="mb-8 flex flex-col sm:flex-row gap-4">
+          {/* Search */}
+          <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
             <input
               type="text"
@@ -92,6 +135,57 @@ const Shop: React.FC = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
+          </div>
+
+          {/* Category Dropdown */}
+          <div className="relative">
+            <button
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              className="w-full sm:w-64 px-4 py-2 border border-border rounded-lg bg-background hover:bg-muted focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center justify-between"
+            >
+              <span>
+                {selectedCategory === 'all' 
+                  ? 'All Categories' 
+                  : categories.find(c => c.id === selectedCategory)?.name || 'All Categories'}
+              </span>
+              <ChevronDown className={`h-4 w-4 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+            </button>
+            
+            {isDropdownOpen && (
+              <>
+                <div 
+                  className="fixed inset-0 z-10" 
+                  onClick={() => setIsDropdownOpen(false)}
+                />
+                <div className="absolute top-full left-0 right-0 mt-1 bg-background border border-border rounded-lg shadow-lg z-20 max-h-60 overflow-y-auto">
+                  <button
+                    onClick={() => {
+                      setSelectedCategory('all');
+                      setIsDropdownOpen(false);
+                    }}
+                    className={`w-full text-left px-4 py-2 hover:bg-muted transition-colors ${
+                      selectedCategory === 'all' ? 'bg-muted font-semibold' : ''
+                    }`}
+                  >
+                    All
+                  </button>
+                  {categories.map((category) => (
+                    <button
+                      key={category.id}
+                      onClick={() => {
+                        setSelectedCategory(category.id);
+                        setIsDropdownOpen(false);
+                      }}
+                      className={`w-full text-left px-4 py-2 hover:bg-muted transition-colors ${
+                        selectedCategory === category.id ? 'bg-muted font-semibold' : ''
+                      }`}
+                    >
+                      {category.name}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         </div>
 

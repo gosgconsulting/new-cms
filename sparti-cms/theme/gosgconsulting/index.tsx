@@ -465,6 +465,359 @@ const GOSGContent: React.FC<TenantLandingProps> = ({
 };
 
 /**
+ * Helper function to map GOSG homepage content to MasterTheme schemas
+ */
+const mapHomepageToMasterSchemas = (homepageComponents: any[]): {
+  heroSchema?: any;
+  challengeSchema?: any;
+  aboutSchema?: any;
+  servicesSchema?: any;
+  faqSchema?: any;
+  ctaSchema?: any;
+} => {
+  const schemas: any = {};
+
+  // Find and map hero section
+  const heroComponent = homepageComponents.find(c => c.type === 'HomeHeroSection');
+  if (heroComponent) {
+    const headingPrefix = heroComponent.items?.find((i: any) => i.key === 'headingPrefix')?.content || '';
+    const headingEmphasis = heroComponent.items?.find((i: any) => i.key === 'headingEmphasis')?.content || '';
+    schemas.heroSchema = {
+      type: "banner-section",
+      props: {
+        backgroundColor: "#2A2C2E",
+        backgroundImage: `/theme/gosgconsulting/assets/placeholder.svg`,
+      },
+      items: [
+        {
+          key: "title",
+          type: "heading",
+          level: 1,
+          content: `${headingPrefix} ${headingEmphasis}`.trim(),
+        },
+        {
+          key: "description",
+          type: "text",
+          content: "We craft high‑performance pages using Flowbite components, strong messaging, and conversion-first UX — so every visit has a clear path to revenue.",
+        },
+        {
+          key: "cta",
+          type: "button",
+          content: "Get Started",
+          link: "#contact",
+        },
+      ],
+    };
+  }
+
+  // Find and map challenge section
+  const challengeComponent = homepageComponents.find(c => c.type === 'ChallengeSection');
+  if (challengeComponent) {
+    const hint = challengeComponent.items?.find((i: any) => i.key === 'hint')?.content || '';
+    const heading = challengeComponent.items?.find((i: any) => i.key === 'heading')?.content || '';
+    const bullets = challengeComponent.items?.find((i: any) => i.key === 'bullets')?.items || [];
+    
+    schemas.challengeSchema = {
+      type: "flowbite-pain-point-section",
+      props: {},
+      items: [
+        {
+          key: "hint",
+          type: "text",
+          content: hint,
+        },
+        {
+          key: "heading",
+          type: "heading",
+          level: 2,
+          content: heading,
+        },
+        {
+          key: "bullets",
+          type: "array",
+          items: bullets.map((b: any, idx: number) => ({
+            key: `b${idx + 1}`,
+            type: "text",
+            content: b.content || '',
+            icon: b.icon || 'x',
+          })),
+        },
+      ],
+    };
+  }
+
+  // Find and map services section (flowbite-whats-included-section)
+  const servicesComponent = homepageComponents.find(c => c.type === 'flowbite-whats-included-section');
+  if (servicesComponent) {
+    schemas.servicesSchema = {
+      type: "flowbite-whats-included-section",
+      props: {},
+      items: servicesComponent.items || [],
+    };
+  }
+
+  // Find and map FAQ section
+  const faqComponent = homepageComponents.find(c => c.type === 'FAQSection');
+  if (faqComponent && faqComponent.items) {
+    const faqItems = faqComponent.items.filter((item: any) => item.question && item.answer);
+    schemas.faqSchema = {
+      type: "flowbite-faq-section",
+      props: {},
+      items: [
+        {
+          key: "title",
+          type: "heading",
+          level: 2,
+          content: "Frequently Asked Questions",
+        },
+        ...faqItems.map((item: any, idx: number) => ({
+          key: `faq${idx}`,
+          type: "array",
+          items: [
+            {
+              key: "question",
+              type: "text",
+              content: item.question,
+            },
+            {
+              key: "answer",
+              type: "text",
+              content: item.answer,
+            },
+          ],
+        })),
+      ],
+    };
+  }
+
+  // Find and map CTA section
+  const ctaComponent = homepageComponents.find(c => c.type === 'CTASection');
+  if (ctaComponent && ctaComponent.items && ctaComponent.items[0]) {
+    const ctaItem = ctaComponent.items[0];
+    schemas.ctaSchema = {
+      type: "flowbite-cta-section",
+      props: {
+        ctaVariant: "primary",
+        ctaFullWidth: false,
+      },
+      items: [
+        {
+          key: "title",
+          type: "heading",
+          level: 2,
+          content: ctaItem.heading || "Ready to turn traffic into revenue?",
+        },
+        {
+          key: "description",
+          type: "text",
+          content: ctaItem.description || "Get a clear growth plan tailored to your business in a free strategy call.",
+        },
+        {
+          key: "cta",
+          type: "button",
+          content: ctaItem.primaryLabel || "Get free consultation",
+          link: "#contact",
+        },
+      ],
+    };
+  }
+
+  return schemas;
+};
+
+/**
+ * Paid Ads Page Component
+ * Uses MasterTheme layout with GOSG homepage content
+ */
+interface PaidAdsPageProps {
+  tenantName?: string;
+  tenantId?: string;
+}
+
+const PaidAdsPage: React.FC<PaidAdsPageProps> = ({
+  tenantName = 'GO SG Consulting',
+  tenantId = 'tenant-gosg',
+}) => {
+  // Load branding to get logo
+  const { branding } = useThemeBranding('gosgconsulting', tenantId);
+  const logoSrc = getLogoSrc(branding);
+
+  // Get homepage content from GOSGContent's homepageData structure
+  // We'll recreate the homepageData structure here to extract content
+  const siteName = getSiteName(branding, tenantName);
+  const siteTagline = getSiteTagline(branding, 'Full-Stack Digital Growth Solution');
+  const siteDescription = getSiteDescription(branding, 'Helping brands grow their revenue and leads through comprehensive digital marketing services including SEO, SEM, Social Media Ads, Website Design, and Graphic Design.');
+
+  // Recreate homepageData structure (matching GOSGContent)
+  const homepageData = {
+    slug: 'home',
+    meta: {
+      title: siteTagline ? `${siteName} - ${siteTagline}` : siteName,
+      description: siteDescription,
+      keywords: 'digital marketing, SEO, SEM, social media ads, website design, graphic design, Singapore, full-stack',
+    },
+    components: [
+      // Section 1 — Hero
+      {
+        key: "MainHeroSection",
+        name: "Hero",
+        type: "HomeHeroSection",
+        items: [
+          { key: "headingPrefix", type: "heading", level: 1, content: "Turn traffic into revenue with a" },
+          { key: "headingEmphasis", type: "heading", level: 1, content: "Full‑Stack Growth Engine" }
+        ]
+      },
+      // Section 2 — Challenge
+      {
+        key: "ProblemSection",
+        name: "Problem",
+        type: "ChallengeSection",
+        items: [
+          { key: "hint", type: "text", content: "You have a great business but struggle online?" },
+          { key: "heading", type: "heading", level: 2, content: "Your Business Works… Your Marketing Doesn't" },
+          {
+            key: "bullets",
+            type: "array",
+            items: [
+              { key: "b1", type: "text", content: "You know your craft — but not SEO, ads, funnels", icon: "x" },
+              { key: "b2", type: "text", content: "Leads don't grow month after month", icon: "sparkles" },
+              { key: "b3", type: "text", content: "Ad money burns without profit", icon: "barChart3" }
+            ]
+          }
+        ]
+      },
+      // Section 4 — Full-stack growth package
+      {
+        key: "GrowthPackageSection",
+        name: "Growth Package",
+        type: "flowbite-whats-included-section",
+        items: [
+          {
+            key: "badge",
+            type: "text",
+            content: "Services",
+          },
+          {
+            key: "title",
+            type: "heading",
+            level: 2,
+            content: "Increase your revenue with a full‑stack growth package",
+          },
+          {
+            key: "description",
+            type: "text",
+            content: "A focused breakdown of the core areas driving results, each tailored to your goals.",
+          },
+          {
+            key: "features",
+            type: "array",
+            items: [
+              {
+                key: "s1",
+                type: "feature",
+                items: [
+                  { key: "title", type: "heading", level: 3, content: "Website & Conversion" },
+                  {
+                    key: "description",
+                    type: "text",
+                    content: "High‑converting landing pages, A/B test ideas, and conversion tracking.",
+                  },
+                ],
+              },
+              {
+                key: "s2",
+                type: "feature",
+                items: [
+                  { key: "title", type: "heading", level: 3, content: "Acquisition" },
+                  {
+                    key: "description",
+                    type: "text",
+                    content: "SEM + social ads, plus smart retargeting that doesn't waste spend.",
+                  },
+                ],
+              },
+              {
+                key: "s3",
+                type: "feature",
+                items: [
+                  { key: "title", type: "heading", level: 3, content: "Creative & Content" },
+                  {
+                    key: "description",
+                    type: "text",
+                    content: "Creative assets and copy that match your brand and convert.",
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            key: "cta",
+            type: "button",
+            content: "Get free consultation",
+            link: "#contact",
+          },
+        ],
+      },
+      // FAQ
+      {
+        key: "FAQSection",
+        name: "FAQ",
+        type: "FAQSection",
+        items: [
+          {
+            question: "What does 'full‑stack growth' mean?",
+            answer: "We handle the full funnel end-to-end: positioning, website conversion, SEO, paid ads, creatives, and tracking—so every channel works together to drive revenue."
+          },
+          {
+            question: "How fast will I see results?",
+            answer: "Paid ads can generate leads quickly, while SEO compounds over time. We'll align the plan to your goals and share clear performance reporting month-to-month."
+          },
+          {
+            question: "Do you work with my existing website?",
+            answer: "Yes. We can optimize your current site for conversions and SEO, or rebuild key pages where needed—without disrupting your brand."
+          },
+          {
+            question: "Is this a good fit for small businesses?",
+            answer: "Yes. We tailor scopes to your stage—whether you need a consistent lead pipeline, better conversion rates, or a complete growth system."
+          }
+        ]
+      },
+      // Pre-footer CTA banner
+      {
+        key: "PreFooterCTA",
+        name: "CTA",
+        type: "CTASection",
+        items: [
+          {
+            heading: "Ready to turn traffic into revenue?",
+            description: "Get a clear growth plan tailored to your business in a free strategy call.",
+            primaryLabel: "Get free consultation"
+          }
+        ]
+      }
+    ]
+  };
+
+  // Map homepage content to MasterTheme schemas
+  const contentSchemas = mapHomepageToMasterSchemas(homepageData.components);
+
+  return (
+    <MasterTheme
+      basePath="/theme/gosgconsulting"
+      tenantName={tenantName}
+      tenantSlug="master"
+      tenantId={tenantId}
+      logoSrc={logoSrc}
+      heroSchemaOverride={contentSchemas.heroSchema}
+      challengeSchemaOverride={contentSchemas.challengeSchema}
+      servicesSchemaOverride={contentSchemas.servicesSchema}
+      faqSchemaOverride={contentSchemas.faqSchema}
+      ctaSchemaOverride={contentSchemas.ctaSchema}
+    />
+  );
+};
+
+/**
  * GO SG Consulting Theme
  * Full-stack digital growth solution theme with blog functionality and e-commerce
  */
@@ -573,21 +926,13 @@ const GOSGTheme: React.FC<TenantLandingProps> = ({
     switch (currentPage) {
       case '':
       case undefined:
-        return <GOSGContent tenantName={tenantName} tenantSlug={tenantSlug} />;
+        // Homepage now uses PaidAdsPage content
+        return <PaidAdsPage tenantName={tenantName} tenantId={tenantId || 'tenant-gosg'} />;
       case 'seo':
         return <GOSGContent tenantName={tenantName} tenantSlug={tenantSlug} pageSlug="seo" />;
       case 'paid-ads':
-        // Render master theme homepage design exactly as it is
-        // Use tenantSlug="master" to get master theme branding, but override basePath for asset paths
-        // Use tenantId if available, otherwise fallback to 'tenant-gosg' (same as GOSGContent uses)
-        return (
-          <MasterTheme
-            basePath="/theme/gosgconsulting"
-            tenantName={tenantName}
-            tenantSlug="master"
-            tenantId={tenantId || 'tenant-gosg'}
-          />
-        );
+        // Render master theme with GOSG homepage content and branding
+        return <PaidAdsPage tenantName={tenantName} tenantId={tenantId || 'tenant-gosg'} />;
       case 'blog':
         // theme blog index
         return <Blog tenantName={tenantName} tenantSlug={tenantSlug} />;

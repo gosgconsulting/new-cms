@@ -326,3 +326,54 @@ export async function getReviews(productId: number, tenantId: string = TENANT_ID
     throw error;
   }
 }
+
+/**
+ * Get all product categories
+ */
+export async function getCategories(tenantId: string = TENANT_ID) {
+  try {
+    const response = await api.get('/api/shop/categories', { tenantId });
+    if (!response.ok) {
+      throw new Error('Failed to fetch categories');
+    }
+    const result = await response.json();
+    return result.data || [];
+  } catch (error) {
+    console.error('[testing] Error fetching categories:', error);
+    throw error;
+  }
+}
+
+/**
+ * Get product-category relationships for all products
+ * Returns a map of product_id -> category_ids[]
+ */
+export async function getProductCategoryRelations(tenantId: string = TENANT_ID): Promise<Record<number, number[]>> {
+  try {
+    // Fetch product-category relationships
+    // Note: This requires a backend endpoint that returns product_category_relations
+    // For now, we'll fetch products with categories if the API supports it
+    // Otherwise, return empty object and filtering will show all products
+    const response = await api.get('/api/shop/products?with_categories=true', { tenantId });
+    if (response.ok) {
+      const result = await response.json();
+      // If API returns products with categories, extract the mapping
+      if (result.data && Array.isArray(result.data)) {
+        const mapping: Record<number, number[]> = {};
+        result.data.forEach((product: any) => {
+          if (product.product_id && product.categories) {
+            mapping[product.product_id] = Array.isArray(product.categories) 
+              ? product.categories.map((c: any) => typeof c === 'number' ? c : c.id)
+              : [];
+          }
+        });
+        return mapping;
+      }
+    }
+    return {};
+  } catch (error) {
+    console.error('[testing] Error fetching product categories:', error);
+    // Return empty mapping - filtering will show all products
+    return {};
+  }
+}
