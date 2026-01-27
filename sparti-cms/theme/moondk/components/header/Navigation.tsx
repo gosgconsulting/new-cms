@@ -122,7 +122,7 @@ const Navigation = () => {
             </button>
 
             {/* Desktop nav items */}
-            <div className="hidden lg:flex items-center gap-8">
+            <div className="hidden lg:flex items-center gap-8 ml-8">
               {navItems.map((item) => (
                 <div
                   key={item.name}
@@ -162,9 +162,13 @@ const Navigation = () => {
                   {/* Simple dropdown below menu item */}
                   {activeDropdown === item.name && item.submenuItems && item.submenuItems.length > 0 && (
                     <div
-                      className="absolute top-full left-0 mt-1 bg-white border border-border shadow-lg z-50 min-w-[200px] py-2"
+                      className="absolute top-full left-0 mt-2 bg-white border border-border/30 shadow-xl rounded-2xl z-50 min-w-[200px] py-2 overflow-hidden transition-all duration-300 ease-out"
                       onMouseEnter={() => setActiveDropdown(item.name)}
                       onMouseLeave={() => setActiveDropdown(null)}
+                      style={{
+                        backdropFilter: 'blur(10px)',
+                        boxShadow: '0 10px 40px rgba(0, 0, 0, 0.08)',
+                      }}
                     >
                       <ul className="space-y-0">
                         {item.submenuItems.map((subItem, index) => {
@@ -177,7 +181,7 @@ const Navigation = () => {
                             <li key={index}>
                               <ThemeLink
                                 to={to}
-                                className="text-nav-foreground hover:text-primary transition-colors duration-200 text-sm font-body font-light block px-4 py-2 hover:bg-muted/50"
+                                className="text-nav-foreground hover:text-primary transition-all duration-300 ease-out text-sm font-body font-light block px-5 py-2.5 hover:bg-muted/30 rounded-lg mx-1"
                               >
                                 {subItem}
                               </ThemeLink>

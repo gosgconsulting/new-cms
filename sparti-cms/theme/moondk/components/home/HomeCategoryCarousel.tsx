@@ -10,10 +10,10 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import { ThemeLink } from "../ThemeLink";
 
-import img1 from "../../assets/slider-1.png";
-import img2 from "../../assets/slider-2.png";
-import img3 from "../../assets/slider-3.png";
-import img4 from "../../assets/slider-4.png";
+import teaImg from "../../assets/tea.jpg";
+import oilImg from "../../assets/oil.jpg";
+import noodleImg from "../../assets/noodle.jpg";
+import alcImg from "../../assets/alc.jpg";
 
 type CategoryItem = {
   title: string;
@@ -22,10 +22,10 @@ type CategoryItem = {
 };
 
 const categories: CategoryItem[] = [
-  { title: "Tea", to: "/category/tea", image: img1 },
-  { title: "Oil", to: "/category/oil", image: img2 },
-  { title: "Noodle", to: "/category/noodle", image: img3 },
-  { title: "Alcohol", to: "/category/alcohol", image: img4 },
+  { title: "Tea", to: "/category/tea", image: teaImg },
+  { title: "Oil", to: "/category/oil", image: oilImg },
+  { title: "Noodle", to: "/category/noodle", image: noodleImg },
+  { title: "Alcohol", to: "/category/alcohol", image: alcImg },
 ];
 
 export default function HomeCategoryCarousel() {
