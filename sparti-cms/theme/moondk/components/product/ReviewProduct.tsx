@@ -53,7 +53,7 @@ const ReviewProduct = () => {
       <DialogTrigger asChild>
         <Button
           variant="outline"
-          className="w-full h-12 font-body font-medium rounded-none border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+          className="w-full h-12 font-body font-medium rounded-full border-primary text-primary hover:bg-primary hover:text-white"
         >
           Review product
         </Button>
@@ -89,7 +89,7 @@ const ReviewProduct = () => {
           <Button
             onClick={submitReview}
             disabled={rating === 0 || review.trim() === ""}
-            className="w-full h-12 bg-primary text-primary-foreground hover:bg-primary-hover font-body font-medium rounded-none"
+            className="w-full h-12 bg-primary !text-white hover:bg-primary-hover font-body font-medium rounded-full"
           >
             Submit review
           </Button>

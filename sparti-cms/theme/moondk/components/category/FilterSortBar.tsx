@@ -126,7 +126,7 @@ const FilterSortBar = ({ filtersOpen, setFiltersOpen, itemCount }: FilterSortBar
 
                 <div className="flex flex-col gap-2 pt-4">
                   <Button
-                    className="w-full bg-primary text-primary-foreground hover:bg-primary-hover font-body font-medium rounded-none"
+                    className="w-full bg-primary !text-white hover:bg-primary-hover font-body font-medium rounded-full"
                   >
                     Apply Filters
                   </Button>

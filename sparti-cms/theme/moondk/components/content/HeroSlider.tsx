@@ -122,10 +122,7 @@ const HeroSlider = () => {
               )}
               <ThemeLink
                 to={slide.ctaLink}
-                className="inline-block bg-[#2F5C3E] text-white hover:bg-[#1F3D2A] px-8 py-3 lg:px-10 lg:py-4 font-medium transition-colors duration-200 rounded-full w-fit"
-                style={{
-                  borderRadius: "9999px", // Fully rounded pill shape
-                }}
+                className="inline-block bg-primary !text-white hover:bg-primary-hover px-8 py-3 lg:px-10 lg:py-4 font-medium transition-colors duration-200 rounded-full w-fit"
               >
                 {slide.ctaText}
               </ThemeLink>

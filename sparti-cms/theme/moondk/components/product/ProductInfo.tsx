@@ -32,27 +32,27 @@ const ProductInfo = () => {
             <BreadcrumbSeparator />
             <BreadcrumbItem>
               <BreadcrumbLink asChild>
-                <ThemeLink to="/category/curated-sets" className="font-body font-light text-foreground/70 hover:text-primary">
-                  Curated Sets
+                <ThemeLink to="/category/ingredients" className="font-body font-light text-foreground/70 hover:text-primary">
+                  Ingredients
                 </ThemeLink>
               </BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage className="font-body font-light text-foreground">Chef's Selection Box</BreadcrumbPage>
+              <BreadcrumbPage className="font-body font-light text-foreground">Hovenia Dulcis Extract (헛개수)</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
       </div>
 
-      <div className="space-y-3">
+        <div className="space-y-3">
         <div className="flex justify-between items-start">
           <div>
-            <p className="text-sm font-body font-light text-muted-foreground mb-2">Curated Sets</p>
-            <h1 className="text-3xl md:text-4xl font-heading font-medium text-foreground leading-tight">Chef's Selection Box</h1>
+            <p className="text-sm font-body font-light text-muted-foreground mb-2">Ingredients</p>
+            <h1 className="text-3xl md:text-4xl font-heading font-medium text-foreground leading-tight">Hovenia Dulcis Extract (헛개수)</h1>
           </div>
           <div className="text-right">
-            <p className="text-2xl font-body font-light text-foreground">€45</p>
+            <p className="text-2xl font-body font-light text-foreground">€24</p>
           </div>
         </div>
       </div>
@@ -61,23 +61,25 @@ const ProductInfo = () => {
         <div className="space-y-2">
           <h3 className="text-sm font-heading font-medium text-foreground">Description</h3>
           <p className="text-sm font-body font-light text-foreground/70 leading-relaxed">
-            A carefully curated selection of premium Korean ingredients and essentials, handpicked by our chef partners. 
-            This box includes everything you need to create authentic Korean home dining experiences.
+            Premium Hovenia Dulcis extract (헛개수), a traditional Korean beverage concentrate known for its refreshing taste 
+            and health benefits. This premium extract is made from 100% domestic Hovenia Dulcis fruit, carefully processed 
+            to preserve its natural flavor and nutrients.
           </p>
         </div>
 
         <div className="space-y-2">
-          <h3 className="text-sm font-heading font-medium text-foreground">Contents</h3>
+          <h3 className="text-sm font-heading font-medium text-foreground">Product Details</h3>
           <p className="text-sm font-body font-light text-foreground/70">
-            Premium Gochujang, Traditional Kimchi, Sesame Oil, Doenjang Paste, Korean Spice Mix, and Chef's Recipe Guide
+            Net Weight: 420g (875kcal). Made with 100% domestic Korean Hovenia Dulcis. Ready to mix with water for a 
+            refreshing traditional Korean beverage.
           </p>
         </div>
 
         <div className="space-y-2">
           <h3 className="text-sm font-heading font-medium text-foreground">Chef's Notes</h3>
           <p className="text-sm font-body font-light text-foreground/70 italic leading-relaxed">
-            "This selection represents the foundation of Korean home cooking. Each ingredient is sourced from trusted 
-            producers and selected for its authentic flavor and quality."
+            "Hovenia Dulcis has been cherished in Korean tradition for generations. This premium extract captures the 
+            essence of this unique fruit, perfect for creating authentic Korean home dining experiences."
           </p>
         </div>
       </div>
@@ -108,7 +110,7 @@ const ProductInfo = () => {
           </div>
         </div>
 
-        <Button className="w-full h-12 bg-primary text-primary-foreground hover:bg-primary-hover font-body font-medium rounded-none">
+        <Button className="w-full h-12 bg-primary !text-white hover:bg-primary-hover font-body font-medium rounded-full">
           Add to Bag
         </Button>
       </div>

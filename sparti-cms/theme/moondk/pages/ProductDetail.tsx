@@ -34,12 +34,12 @@ export default function ProductDetailPage({ productId }: { productId: string }) 
                 <BreadcrumbSeparator />
                 <BreadcrumbItem>
                   <BreadcrumbLink asChild>
-                    <ThemeLink to="/category/curated-sets" className="font-body font-light text-foreground/70 hover:text-primary">Curated Sets</ThemeLink>
+                    <ThemeLink to="/category/ingredients" className="font-body font-light text-foreground/70 hover:text-primary">Ingredients</ThemeLink>
                   </BreadcrumbLink>
                 </BreadcrumbItem>
                 <BreadcrumbSeparator />
                 <BreadcrumbItem>
-                  <BreadcrumbPage className="font-body font-light text-foreground">{productId || "Chef's Selection Box"}</BreadcrumbPage>
+                  <BreadcrumbPage className="font-body font-light text-foreground">{productId || "Hovenia Dulcis Extract (헛개수)"}</BreadcrumbPage>
                 </BreadcrumbItem>
               </BreadcrumbList>
             </Breadcrumb>

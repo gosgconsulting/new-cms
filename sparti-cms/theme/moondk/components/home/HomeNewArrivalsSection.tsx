@@ -36,9 +36,6 @@ export default function HomeNewArrivalsSection() {
               <CardContent className="p-0">
                 <ThemeLink to={`/product/${p.id}`} className="block">
                   <div className="relative rounded-t-[1.5rem] overflow-hidden bg-white">
-                    <div className="absolute top-4 left-4 text-xs font-body font-medium text-primary">
-                      NEW
-                    </div>
                     <img
                       src={p.image}
                       alt={p.name}
@@ -48,20 +45,20 @@ export default function HomeNewArrivalsSection() {
                 </ThemeLink>
 
                 <div className="p-4">
-                  <div className="flex items-center justify-between gap-3 text-xs text-foreground/60 font-body">
-                    <span className="truncate">{p.category}</span>
-                    <span className="whitespace-nowrap">{p.price}</span>
-                  </div>
-
-                  <ThemeLink to={`/product/${p.id}`} className="block mt-2">
-                    <h3 className="text-base font-heading leading-tight hover:underline underline-offset-4">
-                      {p.name}
-                    </h3>
+                  <ThemeLink to={`/product/${p.id}`} className="block">
+                    <div className="flex items-start justify-between gap-3">
+                      <h3 className="text-base font-heading leading-tight hover:underline underline-offset-4 flex-1">
+                        {p.name}
+                      </h3>
+                      <span className="text-lg font-body font-medium text-foreground whitespace-nowrap">
+                        {p.price}
+                      </span>
+                    </div>
                   </ThemeLink>
 
                   <div className="mt-4">
-                    <Button asChild className="rounded-full w-full bg-primary hover:bg-primary/90">
-                      <ThemeLink to={`/product/${p.id}`}>View product</ThemeLink>
+                    <Button asChild className="rounded-full w-full bg-primary hover:bg-primary-hover !text-white">
+                      <ThemeLink to={`/product/${p.id}`} className="!text-white">View product</ThemeLink>
                     </Button>
                   </div>
                 </div>

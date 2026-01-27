@@ -15,6 +15,7 @@ import PrivacyPolicyPage from "./pages/PrivacyPolicy";
 import TermsOfServicePage from "./pages/TermsOfService";
 import NotFoundPage from "./pages/NotFound";
 import RecipesPage from "./pages/Recipes";
+import RecipeDetailPage from "./pages/RecipeDetail";
 
 interface MoondkThemeProps {
   tenantName?: string;
@@ -89,6 +90,11 @@ const MoondkTheme: React.FC<MoondkThemeProps> = ({
 
     if (current === "recipes") {
       return <RecipesPage />;
+    }
+
+    if (current.startsWith("recipes/")) {
+      const recipeSlug = current.split("/").slice(1).join("/") || "";
+      return <RecipeDetailPage recipeSlug={recipeSlug} />;
     }
 
     return <NotFoundPage />;

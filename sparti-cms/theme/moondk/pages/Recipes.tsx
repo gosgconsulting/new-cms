@@ -95,12 +95,9 @@ export default function RecipesPage() {
                     <h2 className="mt-2 text-lg font-heading leading-snug">{r.title}</h2>
                     <p className="mt-2 text-sm font-body text-foreground/70">{r.excerpt}</p>
 
-                    <div className="mt-4 flex gap-2">
-                      <Button disabled className="rounded-full">
-                        Coming soon
-                      </Button>
-                      <Button asChild variant="outline" className="rounded-full">
-                        <ThemeLink to="/category/ingredients">Shop ingredients</ThemeLink>
+                    <div className="mt-4">
+                      <Button asChild className="rounded-full w-full bg-primary hover:bg-primary-hover !text-white">
+                        <ThemeLink to={`/recipes/${r.slug}`} className="!text-white">View recipe</ThemeLink>
                       </Button>
                     </div>
                   </div>

@@ -181,7 +181,7 @@ const ShoppingBag = ({
 
                 {/* Checkout button */}
                 <ThemeLink to="/checkout" className="block" onClick={onClose}>
-                  <Button className="w-full rounded-full bg-[#1A1A1A] hover:bg-[#2F2F2F] text-white font-medium h-12">
+                  <Button className="w-full rounded-full bg-primary hover:bg-primary-hover !text-white font-medium h-12">
                     Go to Checkout
                   </Button>
                 </ThemeLink>

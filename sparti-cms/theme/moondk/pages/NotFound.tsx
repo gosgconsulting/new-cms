@@ -10,7 +10,7 @@ export default function NotFoundPage() {
         </p>
         <ThemeLink
           to="/"
-          className="inline-flex items-center justify-center px-8 h-12 bg-primary text-primary-foreground hover:bg-primary-hover transition-colors rounded-none font-body font-medium"
+          className="inline-flex items-center justify-center px-8 h-12 bg-primary !text-white hover:bg-primary-hover transition-colors rounded-full font-body font-medium"
         >
           Back to Home
         </ThemeLink>

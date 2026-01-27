@@ -1,13 +1,13 @@
 import { useState } from "react";
-import pantheonImage from "../../../e-shop/assets/pantheon.jpg";
-import eclipseImage from "../../../e-shop/assets/eclipse.jpg";
-import haloImage from "../../../e-shop/assets/halo.jpg";
-import obliqueImage from "../../../e-shop/assets/oblique.jpg";
+import hoveniaDulcisImage from "../../../e-shop/assets/hovenia-dulcis.png";
+import cornExtractImage from "../../../e-shop/assets/corn-extract.png";
+import blackBeanTeaImage from "../../../e-shop/assets/black-bean-tea.png";
+import barleyTeaImage from "../../../e-shop/assets/barley-tea.png";
 
 const ProductImageGallery = () => {
-  const [selectedImage, setSelectedImage] = useState(pantheonImage);
+  const [selectedImage, setSelectedImage] = useState(hoveniaDulcisImage);
 
-  const images = [pantheonImage, eclipseImage, haloImage, obliqueImage];
+  const images = [hoveniaDulcisImage, cornExtractImage, blackBeanTeaImage, barleyTeaImage];
 
   return (
     <div className="space-y-4">

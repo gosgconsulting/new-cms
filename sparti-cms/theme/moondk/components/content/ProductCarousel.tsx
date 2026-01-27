@@ -1,30 +1,7 @@
 import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 import { Card, CardContent } from "@/components/ui/card";
 import { ThemeLink } from "../ThemeLink";
-
-import pantheonImage from "../../../e-shop/assets/pantheon.jpg";
-import eclipseImage from "../../../e-shop/assets/eclipse.jpg";
-import haloImage from "../../../e-shop/assets/halo.jpg";
-import obliqueImage from "../../../e-shop/assets/oblique.jpg";
-import lintelImage from "../../../e-shop/assets/lintel.jpg";
-import shadowlineImage from "../../../e-shop/assets/shadowline.jpg";
-
-interface Product {
-  id: number;
-  name: string;
-  category: string;
-  price: string;
-  image: string;
-}
-
-const products: Product[] = [
-  { id: 1, name: "Chef's Selection Box", category: "Curated Sets", price: "€45", image: pantheonImage },
-  { id: 2, name: "Korean Essentials Kit", category: "Essentials", price: "€32", image: eclipseImage },
-  { id: 3, name: "Premium Gochujang", category: "Ingredients", price: "€18", image: haloImage },
-  { id: 4, name: "Traditional Kimchi", category: "Ingredients", price: "€22", image: obliqueImage },
-  { id: 5, name: "Chef's Tool Set", category: "Tools", price: "€65", image: lintelImage },
-  { id: 6, name: "Recipe Collection", category: "Collections", price: "€28", image: shadowlineImage },
-];
+import { products } from "../category/products";
 
 const ProductCarousel = () => {
   return (
@@ -52,7 +29,7 @@ const ProductCarousel = () => {
                         className="w-full h-full object-cover transition-all duration-300 group-hover:opacity-90"
                       />
                       <div className="absolute inset-0 bg-black/[0.02]"></div>
-                      {(product.id === 1 || product.id === 3) && (
+                      {product.isNew && (
                         <div className="absolute top-2 left-2 px-2 py-1 text-xs font-body font-medium text-primary bg-background/90">
                           NEW
                         </div>
@@ -73,8 +50,6 @@ const ProductCarousel = () => {
         </CarouselContent>
       </Carousel>
 
-      {/* Keep this import used so tree-shaking doesn't drop images when tweaking */}
-      <img src={shadowlineImage} alt="" className="hidden" />
     </section>
   );
 };

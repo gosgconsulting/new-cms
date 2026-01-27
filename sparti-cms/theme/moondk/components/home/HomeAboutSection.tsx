@@ -54,8 +54,8 @@ export default function HomeAboutSection() {
               </p>
 
               <div className="mt-6">
-                <Button asChild className="rounded-full px-6">
-                  <ThemeLink to="/about/our-story">
+                <Button asChild className="rounded-full px-6 bg-primary hover:bg-primary-hover !text-white">
+                  <ThemeLink to="/about/our-story" className="!text-white">
                     Learn more
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </ThemeLink>

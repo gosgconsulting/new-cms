@@ -54,8 +54,8 @@ export default function HomeFineDiningSection() {
               </p>
 
               <div className="mt-6 flex flex-wrap gap-3">
-                <Button asChild className="rounded-full px-6">
-                  <ThemeLink to="/beok">
+                <Button asChild className="rounded-full px-6 bg-primary hover:bg-primary-hover !text-white">
+                  <ThemeLink to="/beok" className="!text-white">
                     Book a table
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </ThemeLink>

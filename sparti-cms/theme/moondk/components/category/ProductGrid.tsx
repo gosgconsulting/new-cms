@@ -43,11 +43,6 @@ export default function ProductGrid({
             <CardContent className="p-0">
               <ThemeLink to={`/product/${product.id}`} className="block">
                 <div className="relative rounded-t-[1.5rem] overflow-hidden bg-white">
-                  {product.isNew && (
-                    <div className="absolute top-4 left-4 text-xs font-body font-medium text-primary">
-                      NEW
-                    </div>
-                  )}
                   <img
                     src={product.image}
                     alt={product.name}
@@ -57,24 +52,20 @@ export default function ProductGrid({
               </ThemeLink>
 
               <div className="p-4">
-                <div className="flex items-center justify-between gap-3 text-xs text-foreground/60 font-body">
-                  <span className="truncate">{product.category}</span>
-                  <span className="whitespace-nowrap">{product.price}</span>
-                </div>
-
-                <ThemeLink to={`/product/${product.id}`} className="block mt-2">
-                  <h3 className="text-base font-heading leading-tight hover:underline underline-offset-4">
-                    {product.name}
-                  </h3>
+                <ThemeLink to={`/product/${product.id}`} className="block">
+                  <div className="flex items-start justify-between gap-3">
+                    <h3 className="text-base font-heading leading-tight hover:underline underline-offset-4 flex-1">
+                      {product.name}
+                    </h3>
+                    <span className="text-lg font-body font-medium text-foreground whitespace-nowrap">
+                      {product.price}
+                    </span>
+                  </div>
                 </ThemeLink>
 
-                <p className="mt-2 text-sm font-body text-foreground/70">
-                  Chef-curated essentials for Korean home dining.
-                </p>
-
                 <div className="mt-4">
-                  <Button asChild className="rounded-full w-full bg-primary hover:bg-primary/90">
-                    <ThemeLink to={`/product/${product.id}`}>View product</ThemeLink>
+                  <Button asChild className="rounded-full w-full bg-primary hover:bg-primary-hover !text-white">
+                    <ThemeLink to={`/product/${product.id}`} className="!text-white">View product</ThemeLink>
                   </Button>
                 </div>
               </div>

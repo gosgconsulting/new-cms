@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight, MoreVertical } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { ThemeLink } from "../ThemeLink";
@@ -119,52 +119,11 @@ export default function HomeHeroSlider() {
           <div className="mt-8">
             <Button
               asChild
-              className="rounded-full px-10 h-12 text-base uppercase tracking-wide"
-              style={{ backgroundColor: slide.accent }}
+              className="rounded-full px-10 h-12 text-base uppercase tracking-wide bg-primary hover:bg-primary-hover !text-white"
             >
-              <ThemeLink to={slide.ctaTo}>{slide.ctaText}</ThemeLink>
+              <ThemeLink to={slide.ctaTo} className="!text-white">{slide.ctaText}</ThemeLink>
             </Button>
           </div>
-        </div>
-
-        {/* Review badge (bottom-right) */}
-        <div className="absolute bottom-6 right-6 hidden md:block">
-          <div className="flex items-center gap-4 rounded-2xl bg-white/25 backdrop-blur-md border border-white/25 px-5 py-4">
-            <div className="flex items-baseline gap-2">
-              <div className="text-3xl font-body font-medium text-white">70K</div>
-              <div className="text-xs font-body tracking-wide text-white/90">
-                5-STAR REVIEWS<br />FROM WOMEN
-              </div>
-            </div>
-            <div className="h-10 w-px bg-white/30" />
-            <button
-              className="text-white/90 hover:text-white transition-colors"
-              aria-label="More"
-              type="button"
-            >
-              <MoreVertical className="h-5 w-5" />
-            </button>
-          </div>
-        </div>
-
-        {/* Controls */}
-        <div className="absolute top-1/2 -translate-y-1/2 left-3 right-3 flex items-center justify-between pointer-events-none">
-          <button
-            type="button"
-            className="pointer-events-auto h-10 w-10 rounded-full bg-white/60 hover:bg-white/80 border border-white/40 flex items-center justify-center transition-colors"
-            onClick={prev}
-            aria-label="Previous slide"
-          >
-            <ChevronLeft className="h-5 w-5 text-[#1A1A1A]" />
-          </button>
-          <button
-            type="button"
-            className="pointer-events-auto h-10 w-10 rounded-full bg-white/60 hover:bg-white/80 border border-white/40 flex items-center justify-center transition-colors"
-            onClick={next}
-            aria-label="Next slide"
-          >
-            <ChevronRight className="h-5 w-5 text-[#1A1A1A]" />
-          </button>
         </div>
 
         {/* Dots */}
@@ -186,6 +145,24 @@ export default function HomeHeroSlider() {
           })}
         </div>
       </div>
+
+      {/* Slide Navigation Buttons - Positioned on left and right edges */}
+      <button
+        type="button"
+        className="absolute left-4 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-white/60 hover:bg-white/80 border border-white/40 flex items-center justify-center transition-colors z-10"
+        onClick={prev}
+        aria-label="Previous slide"
+      >
+        <ChevronLeft className="h-5 w-5 text-[#1A1A1A]" />
+      </button>
+      <button
+        type="button"
+        className="absolute right-4 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-white/60 hover:bg-white/80 border border-white/40 flex items-center justify-center transition-colors z-10"
+        onClick={next}
+        aria-label="Next slide"
+      >
+        <ChevronRight className="h-5 w-5 text-[#1A1A1A]" />
+      </button>
     </section>
   );
 }

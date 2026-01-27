@@ -103,8 +103,8 @@ export default function HomeRecipesSection() {
                   <p className="mt-2 text-sm font-body text-foreground/70">{r.excerpt}</p>
 
                   <div className="mt-4">
-                    <Button asChild className="rounded-full w-full">
-                      <ThemeLink to="/recipes">Read recipe</ThemeLink>
+                    <Button asChild className="rounded-full w-full bg-primary hover:bg-primary-hover !text-white">
+                      <ThemeLink to="/recipes" className="!text-white">Read recipe</ThemeLink>
                     </Button>
                   </div>
                 </div>

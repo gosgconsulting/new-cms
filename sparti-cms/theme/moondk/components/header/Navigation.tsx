@@ -497,13 +497,13 @@ const Navigation = () => {
               <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
-                  className="rounded-none"
+                  className="rounded-full"
                   onClick={() => setOffCanvasType(null)}
                 >
                   Close
                 </Button>
                 <Button
-                  className="rounded-none bg-primary hover:bg-primary-hover"
+                  className="rounded-full bg-primary hover:bg-primary-hover !text-white"
                   onClick={() => {
                     setOffCanvasType(null);
                     setIsShoppingBagOpen(true);
