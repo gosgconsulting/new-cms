@@ -15,24 +15,24 @@ const OurServicesSection: React.FC<OurServicesSectionProps> = ({ themeSlug }) =>
   const services = useMemo<Service[]>(
     () => [
       {
-        title: "Website & conversion",
+        title: "I want more traffic to my website",
         description:
-          "High‑converting landing pages, clear messaging, and conversion tracking so traffic turns into leads.",
+          "Boost your organic visibility with proven SEO strategies, targeted content, and search engine optimization that drives qualified visitors to your site. We'll help you rank higher and attract the right audience.",
       },
       {
-        title: "Acquisition",
+        title: "I want more leads",
         description:
-          "SEM + social ads, plus smart retargeting that reduces wasted spend and increases qualified enquiries.",
+          "Convert visitors into customers with high-converting landing pages, strategic paid ads, and smart retargeting campaigns. We optimize every touchpoint to turn traffic into qualified leads and sales.",
       },
       {
-        title: "Creative & content",
+        title: "I want more revenue",
         description:
-          "Brand‑aligned creative assets and copy that build trust and move visitors to action.",
+          "Maximize your ROI with data-driven strategies that grow your bottom line. From funnel optimization to conversion rate improvements, we focus on what directly impacts your revenue and profit margins.",
       },
       {
-        title: "Analytics & reporting",
+        title: "What are the best strategies for my business?",
         description:
-          "Clear monthly reporting with the metrics that matter — so you always know what's working and why.",
+          "Get expert consultation tailored to your unique business goals. We'll analyze your current setup, identify opportunities, and recommend the most effective marketing strategies to accelerate your growth.",
       },
     ],
     []

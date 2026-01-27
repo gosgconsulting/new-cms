@@ -45,7 +45,7 @@ const ContactModal = ({ open, onOpenChange, initialEmail }: ContactModalProps) =
         <DialogPrimitive.Content
           className={cn(
             "fixed inset-0 z-50 w-full h-full",
-            "bg-white overflow-y-auto overflow-x-hidden",
+            "bg-white overflow-hidden",
             "data-[state=open]:animate-in data-[state=closed]:animate-out",
             "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
             "data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom",
@@ -53,16 +53,16 @@ const ContactModal = ({ open, onOpenChange, initialEmail }: ContactModalProps) =
           )}
         >
           {/* Container with max-width for content */}
-          <div className="container mx-auto max-w-4xl h-full flex flex-col px-4 sm:px-6 md:px-8 lg:px-10 py-4 sm:py-6 md:py-8 lg:py-10">
-            {/* Close button */}
+          <div className="container mx-auto max-w-4xl h-full flex flex-col px-4 sm:px-6 md:px-8 lg:px-10 py-4 sm:py-6 md:py-8 lg:py-10 overflow-y-auto">
+            {/* Close button - Increased size */}
             <Button
               type="button"
               variant="ghost"
               onClick={() => onOpenChange(false)}
-              className="absolute right-4 sm:right-6 md:right-8 top-4 sm:top-6 md:top-8 rounded-sm opacity-70 hover:opacity-100 p-2 text-neutral-700 hover:text-neutral-900 z-10"
+              className="absolute right-4 sm:right-6 md:right-8 top-4 sm:top-6 md:top-8 rounded-sm opacity-70 hover:opacity-100 p-3 text-neutral-700 hover:text-neutral-900 z-10"
               aria-label="Close"
             >
-              <X className="h-4 w-4" />
+              <X className="h-6 w-6" />
             </Button>
 
             {/* Title */}
@@ -74,7 +74,7 @@ const ContactModal = ({ open, onOpenChange, initialEmail }: ContactModalProps) =
             </div>
 
             {/* Multi-step contact form (includes WhatsApp option) */}
-            <div className="mb-6 sm:mb-8 overflow-x-hidden flex-1">
+            <div className="mb-6 sm:mb-8 overflow-x-hidden flex-1 min-h-0">
               <ModalContactForm initialEmail={initialEmail || undefined} />
             </div>
 

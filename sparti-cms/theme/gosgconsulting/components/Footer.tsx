@@ -9,13 +9,16 @@ interface FooterProps {
 }
 
 const Footer: React.FC<FooterProps> = ({ 
-  tenantName = 'GO SG Consulting',
+  tenantName = 'GO SG',
   tenantSlug = 'gosgconsulting',
   logoSrc,
   companyDescription = 'Full-stack digital growth solution helping brands grow their revenue and leads through comprehensive digital marketing services.',
   onContactClick 
 }) => {
   const currentYear = new Date().getFullYear();
+  
+  // Replace any instance of "sparti" (case-insensitive) with "GO SG"
+  const displayName = tenantName?.replace(/sparti/gi, 'GO SG') || 'GO SG';
 
   return (
     <footer className="bg-slate-900 text-white py-16 px-4">
@@ -36,7 +39,7 @@ const Footer: React.FC<FooterProps> = ({
             </div>
             
             <p className="text-sm text-gray-400">
-              © {currentYear} {tenantName}. All rights reserved.
+              © {currentYear} {displayName}. All rights reserved.
             </p>
           </div>
         </div>

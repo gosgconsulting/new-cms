@@ -18,6 +18,7 @@ import SimpleTextSection from './SimpleTextSection';
 import SimpleListSection from './SimpleListSection';
 import SimpleStatsSection from './SimpleStatsSection';
 import ResultsCarouselSection from './ResultsCarouselSection';
+import CaseStudyBanner from './CaseStudyBanner';
 import OurServicesSectionWrapper from './OurServicesSectionWrapper';
 
 // Auto-generated component imports
@@ -86,6 +87,7 @@ export const componentRegistry = {
   HomeHeroSection,
   ChallengeSection,
   ResultsCarouselSection,
+  CaseStudyBanner,
   OurServicesSection: OurServicesSectionWrapper,
   Gallery4Section,
   BlogSection,

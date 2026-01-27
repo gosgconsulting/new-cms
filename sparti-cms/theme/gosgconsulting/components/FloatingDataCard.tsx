@@ -63,10 +63,10 @@ const FloatingDataCard: React.FC<FloatingDataCardProps> = ({ type, position }) =
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1">
           <p className="text-xs text-gray-500 mb-1">Today's Sale</p>
-          <p className="text-2xl font-bold text-gray-800">$150.000</p>
+          <p className="text-2xl font-bold text-gray-800">$8,549</p>
           <div className="flex items-center gap-1 mt-1">
-            <MiniChart type="line" trend="down" color="#ef4444" />
-            <span className="text-xs text-red-500">-0.95% This Week</span>
+            <MiniChart type="line" trend="up" color="#10b981" />
+            <span className="text-xs text-green-500">+20% This Week</span>
           </div>
         </div>
         <div className="shrink-0">

@@ -179,17 +179,18 @@ const ModalContactForm: React.FC<ModalContactFormProps> = ({ className = "", ini
   };
 
   return (
-    <div className={`w-full overflow-x-hidden ${className}`}>
+    <div className={`w-full overflow-x-hidden flex flex-col h-full ${className}`}>
       <form
         onSubmit={handleSubmit}
         className={
-          "w-full rounded-[28px] border border-neutral-200 bg-white/80 backdrop-blur-sm " +
-          "shadow-[0_14px_40px_rgba(0,0,0,0.12)] p-6 sm:p-8 md:p-10 overflow-x-hidden"
+          "w-full p-6 sm:p-8 md:p-10 overflow-x-hidden flex flex-col flex-1 min-h-0"
         }
       >
-        {/* Step 1 */}
-        {step === 1 && (
-          <div className="space-y-6 sm:space-y-8">
+        {/* Step Content Container */}
+        <div className="flex-1 min-h-0 overflow-y-auto">
+          {/* Step 1 */}
+          {step === 1 && (
+            <div className="space-y-6 sm:space-y-8">
             <div className="space-y-2 sm:space-y-3">
               <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-neutral-900">
                 1. Let's start with your details
@@ -258,39 +259,12 @@ const ModalContactForm: React.FC<ModalContactFormProps> = ({ className = "", ini
               </div>
             </div>
 
-            {submitStatus === "error" && errorMessage && (
+            {submitStatus === "error" && errorMessage && step === 1 && (
               <div className="rounded-xl bg-red-50 border border-red-200 p-4 text-red-800 text-sm w-full break-words overflow-wrap-anywhere">
                 <p className="font-medium">Error</p>
                 <p className="text-red-600 mt-1 break-words overflow-wrap-anywhere">{errorMessage}</p>
               </div>
             )}
-
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center sm:justify-end pt-4 sm:pt-6 gap-4 w-full">
-              <Button
-                type="button"
-                variant="outline"
-                disabled
-                className="rounded-full px-6 py-5 opacity-60 w-full sm:w-auto sm:mr-auto shrink-0 min-w-0"
-              >
-                <ArrowLeft className="h-4 w-4 mr-2 shrink-0" /> <span className="truncate">Back</span>
-              </Button>
-              <Button
-                type="button"
-                onClick={goNext}
-                className="rounded-full text-white px-7 py-5 transition-all shadow-sm w-full sm:w-auto shrink-0 min-w-0 flex-shrink-0"
-                style={{
-                  background: 'linear-gradient(to right, #FF6B35, #FFA500)',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'linear-gradient(to right, #FF5722, #FF9800)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'linear-gradient(to right, #FF6B35, #FFA500)';
-                }}
-              >
-                <span className="truncate">Next</span> <ArrowRight className="h-4 w-4 ml-2 shrink-0" />
-              </Button>
-            </div>
           </div>
         )}
 
@@ -349,39 +323,12 @@ const ModalContactForm: React.FC<ModalContactFormProps> = ({ className = "", ini
               </button>
             </div>
 
-            {submitStatus === "error" && errorMessage && (
+            {submitStatus === "error" && errorMessage && step === 2 && (
               <div className="rounded-xl bg-red-50 border border-red-200 p-4 text-red-800 text-sm w-full break-words overflow-wrap-anywhere">
                 <p className="font-medium">Error</p>
                 <p className="text-red-600 mt-1 break-words overflow-wrap-anywhere">{errorMessage}</p>
               </div>
             )}
-
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center sm:justify-end pt-4 sm:pt-6 gap-4 w-full">
-              <Button type="button" variant="outline" onClick={goBack} className="rounded-full px-6 py-5 w-full sm:w-auto sm:mr-auto shrink-0 min-w-0">
-                <ArrowLeft className="h-4 w-4 mr-2 shrink-0" /> <span className="truncate">Back</span>
-              </Button>
-              <Button
-                type="button"
-                onClick={goNext}
-                disabled={!canGoNextFromStep2}
-                className="rounded-full text-white px-7 py-5 disabled:opacity-50 transition-all shadow-sm w-full sm:w-auto shrink-0 min-w-0 flex-shrink-0"
-                style={{
-                  background: !canGoNextFromStep2 ? '#ccc' : 'linear-gradient(to right, #FF6B35, #FFA500)',
-                }}
-                onMouseEnter={(e) => {
-                  if (canGoNextFromStep2) {
-                    e.currentTarget.style.background = 'linear-gradient(to right, #FF5722, #FF9800)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (canGoNextFromStep2) {
-                    e.currentTarget.style.background = 'linear-gradient(to right, #FF6B35, #FFA500)';
-                  }
-                }}
-              >
-                <span className="truncate">Next</span> <ArrowRight className="h-4 w-4 ml-2 shrink-0" />
-              </Button>
-            </div>
           </div>
         )}
 
@@ -413,55 +360,81 @@ const ModalContactForm: React.FC<ModalContactFormProps> = ({ className = "", ini
               />
             </div>
 
-            {submitStatus === "error" && errorMessage && (
+            {submitStatus === "error" && errorMessage && step === 3 && (
               <div className="rounded-xl bg-red-50 border border-red-200 p-4 text-red-800 text-sm w-full break-words overflow-wrap-anywhere">
                 <p className="font-medium">Error</p>
                 <p className="text-red-600 mt-1 break-words overflow-wrap-anywhere">{errorMessage}</p>
               </div>
             )}
-
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center sm:justify-end pt-4 sm:pt-6 gap-4 w-full">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={goBack}
-                className="rounded-full px-6 py-5 w-full sm:w-auto sm:mr-auto shrink-0 min-w-0"
-                disabled={isSubmitting}
-              >
-                <ArrowLeft className="h-4 w-4 mr-2 shrink-0" /> <span className="truncate">Back</span>
-              </Button>
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                className="rounded-full text-white px-7 py-5 transition-all shadow-sm w-full sm:w-auto shrink-0 min-w-0 flex-shrink-0"
-                style={{
-                  background: isSubmitting ? '#ccc' : 'linear-gradient(to right, #FF6B35, #FFA500)',
-                }}
-                onMouseEnter={(e) => {
-                  if (!isSubmitting) {
-                    e.currentTarget.style.background = 'linear-gradient(to right, #FF5722, #FF9800)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!isSubmitting) {
-                    e.currentTarget.style.background = 'linear-gradient(to right, #FF6B35, #FFA500)';
-                  }
-                }}
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin shrink-0" />
-                    <span className="truncate">Sending...</span>
-                  </>
-                ) : (
-                  <>
-                    <span className="truncate">Send</span> <ArrowRight className="h-4 w-4 ml-2 shrink-0" />
-                  </>
-                )}
-              </Button>
-            </div>
           </div>
         )}
+        </div>
+
+        {/* Navigation Buttons - Always Visible */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center sm:justify-end pt-4 sm:pt-6 gap-4 w-full border-t border-neutral-200 mt-4 sm:mt-6">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={goBack}
+            disabled={step === 1 || isSubmitting}
+            className="rounded-full px-6 py-5 w-full sm:w-auto sm:mr-auto shrink-0 min-w-0"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2 shrink-0" /> <span className="truncate">Back</span>
+          </Button>
+          {step === 3 ? (
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className="rounded-full text-white px-7 py-5 transition-all shadow-sm w-full sm:w-auto shrink-0 min-w-0 flex-shrink-0"
+              style={{
+                background: isSubmitting ? '#ccc' : 'linear-gradient(to right, #FF6B35, #FFA500)',
+              }}
+              onMouseEnter={(e) => {
+                if (!isSubmitting) {
+                  e.currentTarget.style.background = 'linear-gradient(to right, #FF5722, #FF9800)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isSubmitting) {
+                  e.currentTarget.style.background = 'linear-gradient(to right, #FF6B35, #FFA500)';
+                }
+              }}
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin shrink-0" />
+                  <span className="truncate">Sending...</span>
+                </>
+              ) : (
+                <>
+                  <span className="truncate">Send</span> <ArrowRight className="h-4 w-4 ml-2 shrink-0" />
+                </>
+              )}
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              onClick={goNext}
+              disabled={(step === 2 && !canGoNextFromStep2) || isSubmitting}
+              className="rounded-full text-white px-7 py-5 disabled:opacity-50 transition-all shadow-sm w-full sm:w-auto shrink-0 min-w-0 flex-shrink-0"
+              style={{
+                background: (step === 2 && !canGoNextFromStep2) || isSubmitting ? '#ccc' : 'linear-gradient(to right, #FF6B35, #FFA500)',
+              }}
+              onMouseEnter={(e) => {
+                if ((step === 2 && canGoNextFromStep2) || step === 1) {
+                  e.currentTarget.style.background = 'linear-gradient(to right, #FF5722, #FF9800)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if ((step === 2 && canGoNextFromStep2) || step === 1) {
+                  e.currentTarget.style.background = 'linear-gradient(to right, #FF6B35, #FFA500)';
+                }
+              }}
+            >
+              <span className="truncate">Next</span> <ArrowRight className="h-4 w-4 ml-2 shrink-0" />
+            </Button>
+          )}
+        </div>
       </form>
     </div>
   );

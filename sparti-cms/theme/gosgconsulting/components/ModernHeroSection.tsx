@@ -96,8 +96,26 @@ const ModernHeroSection: React.FC<ModernHeroSectionProps> = ({
           <div className="space-y-6">
             {/* Main Heading */}
             <Reveal direction="up" delayMs={0}>
-              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-tight" style={{ color: '#2D1C59' }}>
-                {title}
+              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-tight">
+                {title.includes('Revenue') ? (
+                  <>
+                    <span style={{ color: '#2D1C59' }}>
+                      {title.split('Revenue')[0]}
+                    </span>
+                    <span 
+                      className="bg-gradient-to-r from-[#FF6B35] to-[#FFA500] bg-clip-text text-transparent"
+                    >
+                      Revenue
+                    </span>
+                    {title.split('Revenue')[1] && (
+                      <span style={{ color: '#2D1C59' }}>
+                        {title.split('Revenue')[1]}
+                      </span>
+                    )}
+                  </>
+                ) : (
+                  <span style={{ color: '#2D1C59' }}>{title}</span>
+                )}
               </h1>
             </Reveal>
 
@@ -166,14 +184,24 @@ const ModernHeroSection: React.FC<ModernHeroSectionProps> = ({
 
                 {/* Person Image */}
                 <div className="relative z-10">
-                  <img
-                    src={personImage}
-                    alt="Team member"
-                    className="w-full h-auto object-contain relative z-10"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = '/placeholder.svg';
-                    }}
-                  />
+                  <div className="relative overflow-hidden" style={{ borderRadius: '0 3rem 3rem 0' }}>
+                    <img
+                      src={personImage}
+                      alt="Team member"
+                      className="w-full h-auto object-contain relative z-10"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = '/placeholder.svg';
+                      }}
+                    />
+                    {/* Gradient overlay on right side for blending */}
+                    <div 
+                      className="absolute inset-0 pointer-events-none"
+                      style={{
+                        background: 'linear-gradient(to right, transparent 70%, rgba(255, 229, 212, 0.6) 85%, rgba(240, 249, 232, 0.4) 100%)',
+                        borderRadius: '0 3rem 3rem 0',
+                      }}
+                    />
+                  </div>
                 </div>
 
                 {/* Floating Data Cards */}

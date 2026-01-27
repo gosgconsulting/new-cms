@@ -6,6 +6,7 @@ import { SEOHead } from './components/SEOHead';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import ContactModal from './components/ContactModal';
+import SocialProofNotification from './components/SocialProofNotification';
 import { PopupProvider, usePopup } from './contexts/PopupContext';
 import { useThemeBranding, useThemeStyles } from '../../hooks/useThemeSettings';
 import { applyThemeStyles } from '../../utils/applyThemeStyles';
@@ -233,7 +234,7 @@ const GOSGContent: React.FC<TenantLandingProps> = ({
             key: "title", 
             type: "heading", 
             level: 1, 
-            content: "Turn Every Visitor Into Revenue — Starting Day 1" 
+            content: "Turn Every Visitor Into Revenue" 
           },
           { 
             key: "description", 
@@ -291,7 +292,7 @@ const GOSGContent: React.FC<TenantLandingProps> = ({
                     key: "description",
                     type: "text",
                     content:
-                      "Selenightco generated 60k revenue with a ROI of x60. We developed a targeted Meta Ads strategy using Facebook and Instagram Advertising to drive revenue growth. Our focus was on optimizing campaigns for maximum ROAS, with comprehensive A/B testing on creatives and key messages to ensure peak performance.",
+                      "Selenightco generated 62k revenue from 9.8k ad spend, delivering a ROAS of 6.3x. We developed a targeted Meta Ads strategy using Facebook and Instagram Advertising to drive revenue growth. Our focus was on optimizing campaigns for maximum ROAS, with comprehensive A/B testing on creatives and key messages to ensure peak performance.",
                   },
                   {
                     key: "metrics",
@@ -300,7 +301,7 @@ const GOSGContent: React.FC<TenantLandingProps> = ({
                       {
                         key: "metric1",
                         type: "metric",
-                        value: "60x",
+                        value: "6.3x",
                         label1: "ROAS",
                         label2: "Return",
                         color: "cyan",
@@ -308,7 +309,7 @@ const GOSGContent: React.FC<TenantLandingProps> = ({
                       {
                         key: "metric2",
                         type: "metric",
-                        value: "60k",
+                        value: "62k",
                         label1: "Revenue",
                         label2: "Generated",
                         color: "teal",
@@ -316,7 +317,7 @@ const GOSGContent: React.FC<TenantLandingProps> = ({
                       {
                         key: "metric3",
                         type: "metric",
-                        value: "1k",
+                        value: "9.8k",
                         label1: "Ad",
                         label2: "Spend",
                         color: "orange",
@@ -395,6 +396,13 @@ const GOSGContent: React.FC<TenantLandingProps> = ({
             ],
           },
         ],
+      },
+      // Section 3.5 — Case Study Banner
+      {
+        key: "CaseStudyBanner",
+        name: "Case Study Banner",
+        type: "CaseStudyBanner",
+        items: [],
       },
       // Section 4 — Full-stack growth package (replaced PricingPageSection)
       {
@@ -1138,7 +1146,7 @@ const PaidAdsPage: React.FC<PaidAdsPageProps> = ({
             key: "title", 
             type: "heading", 
             level: 1, 
-            content: "Turn Every Visitor Into Revenue — Starting Day 1" 
+            content: "Turn Every Visitor Into Revenue" 
           },
           { 
             key: "description", 
@@ -1196,7 +1204,7 @@ const PaidAdsPage: React.FC<PaidAdsPageProps> = ({
                     key: "description",
                     type: "text",
                     content:
-                      "Selenightco generated 60k revenue with a ROI of x60. We developed a targeted Meta Ads strategy using Facebook and Instagram Advertising to drive revenue growth. Our focus was on optimizing campaigns for maximum ROAS, with comprehensive A/B testing on creatives and key messages to ensure peak performance.",
+                      "Selenightco generated 62k revenue from 9.8k ad spend, delivering a ROAS of 6.3x. We developed a targeted Meta Ads strategy using Facebook and Instagram Advertising to drive revenue growth. Our focus was on optimizing campaigns for maximum ROAS, with comprehensive A/B testing on creatives and key messages to ensure peak performance.",
                   },
                   {
                     key: "metrics",
@@ -1205,7 +1213,7 @@ const PaidAdsPage: React.FC<PaidAdsPageProps> = ({
                       {
                         key: "metric1",
                         type: "metric",
-                        value: "60x",
+                        value: "6.3x",
                         label1: "ROAS",
                         label2: "Return",
                         color: "cyan",
@@ -1213,7 +1221,7 @@ const PaidAdsPage: React.FC<PaidAdsPageProps> = ({
                       {
                         key: "metric2",
                         type: "metric",
-                        value: "60k",
+                        value: "62k",
                         label1: "Revenue",
                         label2: "Generated",
                         color: "teal",
@@ -1221,7 +1229,7 @@ const PaidAdsPage: React.FC<PaidAdsPageProps> = ({
                       {
                         key: "metric3",
                         type: "metric",
-                        value: "1k",
+                        value: "9.8k",
                         label1: "Ad",
                         label2: "Spend",
                         color: "orange",
@@ -1300,6 +1308,13 @@ const PaidAdsPage: React.FC<PaidAdsPageProps> = ({
             ],
           },
         ],
+      },
+      // Section 3.5 — Case Study Banner
+      {
+        key: "CaseStudyBanner",
+        name: "Case Study Banner",
+        type: "CaseStudyBanner",
+        items: [],
       },
       // Section 4 — About (using MasterTheme FlowbiteContentSection design)
       {
@@ -1547,6 +1562,9 @@ const PaidAdsPage: React.FC<PaidAdsPageProps> = ({
         }}
         initialEmail={initialEmail}
       />
+
+      {/* Social Proof Notification */}
+      <SocialProofNotification onLearnHow={handleContactClick} />
     </div>
   );
 };
@@ -1778,6 +1796,9 @@ const ShopPageLayout: React.FC<ShopPageLayoutProps> = ({
         onContactClick={handleContactClick}
       />
       <ContactModal open={contactModalOpen} onOpenChange={setContactModalOpen} />
+      
+      {/* Social Proof Notification */}
+      <SocialProofNotification onLearnHow={handleContactClick} />
     </div>
   );
 };
