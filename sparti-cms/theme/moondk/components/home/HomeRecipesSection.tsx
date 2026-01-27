@@ -3,10 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ThemeLink } from "../ThemeLink";
 
-import img1 from "../../assets/slider-1.png";
-import img2 from "../../assets/slider-2.png";
-import img3 from "../../assets/slider-3.png";
-import img4 from "../../assets/slider-4.png";
+import potatoNoodleImg from "../../assets/potato_noodle.jpg";
+import saladImg from "../../assets/salad.jpg";
+import pureeImg from "../../assets/puree.jpg";
+import blossomImg from "../../assets/blossom.jpg";
 
 type Recipe = {
   slug: string;
@@ -19,40 +19,40 @@ type Recipe = {
 
 const recipes: Recipe[] = [
   {
-    slug: "midnight-kimchi-noodles",
-    title: "Midnight Kimchi Noodles",
-    image: img1,
+    slug: "Chilled-Barley-Tea-Broth-Potato-Noodles",
+    title: "Chilled Barley Tea Broth Potato Noodles",
+    image: potatoNoodleImg,
     time: "10 min",
     tags: ["Comfort", "Quick"],
     excerpt:
-      "A fast, deeply satisfying bowl that balances spice and tang—perfect for late-night cravings.",
+      "Some cravings hit hardest in warm weather. This chilled noodle bowl is clean, tangy, and deeply refreshing, built on roasted barley tea for a gentle nutty finish.",
   },
   {
-    slug: "everyday-gochujang-rice-bowl",
-    title: "Everyday Gochujang Rice Bowl",
-    image: img2,
+    slug: "MoonDk-Sesame-Perilla-Garden-Saladl",
+    title: "MoonDk Sesame Perilla Garden Salad",
+    image: saladImg,
     time: "15 min",
     tags: ["Balanced", "Pantry"],
     excerpt:
-      "Clean and balanced flavours with pantry-friendly ingredients—our go-to weekday bowl.",
+      "Fresh, crunchy, and quietly addictive. This salad is built around two Korean favourites, sesame oil for warmth and perilla oil for that herby, slightly minty aroma that makes you go, oh, I missed this.",
   },
   {
-    slug: "seasonal-banchan-collection",
-    title: "Seasonal Banchan Collection",
-    image: img3,
+    slug: "Autumn-Bingtteok-with-Charcoal-Grilled-Chestnut-Purée",
+    title: "Autumn Bingtteok with Charcoal Grilled Chestnut Purée",
+    image: pureeImg,
     time: "25 min",
     tags: ["Sharing", "Heritage"],
     excerpt:
-      "A small spread of seasonal sides to share—gentle, comforting, and distinctly Korean.",
+      "Bingtteok is a traditional Jeju dish made by wrapping stir fried radish in a thin buckwheat pancake. Lightly seasoned to let the ingredients speak, it is a dish often served for gatherings and special occasions.",
   },
   {
-    slug: "soy-sesame-cold-noodles",
-    title: "Soy & Sesame Cold Noodles",
-    image: img4,
+    slug: "Makgeolli-Milk-Bread-with-Cherry-Blossom-Butter",
+    title: "Makgeolli Milk Bread with Cherry Blossom Butter",
+    image: blossomImg,
     time: "20 min",
     tags: ["Light", "Refreshing"],
     excerpt:
-      "Bright, chilled noodles with clean finishes—for quiet afternoons and warm evenings.",
+      "Soft, slightly tangy, and gently sweet. This makgeolli milk bread bakes up plush and aromatic, then gets paired with a cherry blossom butter that tastes like spring in one bite.",
   },
 ];
 
@@ -76,15 +76,15 @@ export default function HomeRecipesSection() {
 
         <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {recipes.map((r) => (
-            <Card key={r.slug} className="rounded-[1.5rem] border-border/40 shadow-none hover:shadow-sm transition-shadow">
-              <CardContent className="p-0">
+            <Card key={r.slug} className="rounded-[1.5rem] border-border/40 shadow-none hover:shadow-sm transition-shadow flex flex-col">
+              <CardContent className="p-0 flex flex-col flex-1">
                 <ThemeLink to="/recipes" className="block">
                   <div className="rounded-t-[1.5rem] overflow-hidden">
                     <img src={r.image} alt={r.title} className="w-full h-48 md:h-52 object-cover" />
                   </div>
                 </ThemeLink>
 
-                <div className="p-4">
+                <div className="p-4 flex flex-col flex-1">
                   <div className="flex items-center gap-3 text-xs text-foreground/60 font-body">
                     <span className="inline-flex items-center gap-1">
                       <Clock className="h-3.5 w-3.5" /> {r.time}
@@ -100,7 +100,7 @@ export default function HomeRecipesSection() {
                     </h3>
                   </ThemeLink>
 
-                  <p className="mt-2 text-sm font-body text-foreground/70">{r.excerpt}</p>
+                  <p className="mt-2 text-sm font-body text-foreground/70 flex-1">{r.excerpt}</p>
 
                   <div className="mt-4">
                     <Button asChild className="rounded-full w-full bg-primary hover:bg-primary-hover !text-white">

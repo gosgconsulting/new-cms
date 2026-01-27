@@ -2,20 +2,13 @@ import { ArrowRight, Utensils } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeLink } from "../ThemeLink";
 
-import imgMain from "../../assets/slider-4.png";
-import imgStack from "../../assets/slider-1.png";
+import imgMain from "../../assets/rice.jpg";
+import imgStack from "../../assets/small_bowl.jpg";
 
 export default function HomeFineDiningSection() {
   return (
     <section className="px-6 pb-16">
       <div className="mx-auto max-w-6xl">
-        <div className="text-center mb-8">
-          <h2 className="text-3xl md:text-4xl font-body tracking-tight">Fine Dining at Beok</h2>
-          <p className="mt-3 text-sm md:text-base font-body text-foreground/70 max-w-2xl mx-auto">
-            At Beok, we explore natural flavour through Korean contemporary cuisine. Balanced, comforting, and ingredient-forward—with modern sensibility and seasonal courses served in Singapore.
-          </p>
-        </div>
-
         <div className="rounded-[2rem] bg-[#EAE2E3] p-6 md:p-8 border border-border/40">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10 items-center">
             {/* Left: stacked images */}
@@ -47,10 +40,10 @@ export default function HomeFineDiningSection() {
               </div>
 
               <h3 className="text-2xl md:text-3xl font-heading leading-tight">
-                Experience fine dining, ingredient-forward.
+                Experience fine dining at Beok, ingredient-forward.
               </h3>
               <p className="mt-4 text-sm md:text-base font-body text-foreground/70">
-                Expect clean finishes and subtle layers that let each ingredient speak—nights that begin as a craving and end as a memory.
+              At Beok, we explore natural flavour through Korean contemporary cuisine. Balanced, comforting, and ingredient-forward—with modern sensibility and seasonal courses served in Singapore.
               </p>
 
               <div className="mt-6 flex flex-wrap gap-3">

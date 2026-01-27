@@ -47,6 +47,8 @@ export const STR_ASSETS = {
     `${ASSET_BASE_PATH}/gallery/group-class-4.png`,
     `${ASSET_BASE_PATH}/gallery/group-class-5.png`,
     `${ASSET_BASE_PATH}/gallery/group-class-6.png`,
+    `${ASSET_BASE_PATH}/gallery/group-class-7.jpg`,
+    `${ASSET_BASE_PATH}/gallery/group-class-8.jpg`
   ],
   
   // Gallery Images - Physiotherapy Gallery

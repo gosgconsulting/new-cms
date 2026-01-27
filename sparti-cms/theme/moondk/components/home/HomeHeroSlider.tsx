@@ -4,9 +4,9 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeLink } from "../ThemeLink";
 
-import slide1 from "../../assets/slider-2.png";
-import slide2 from "../../assets/slider-3.png";
-import slide3 from "../../assets/slider-4.png";
+import slide1 from "../../assets/green_hero.jpeg";
+import slide2 from "../../assets/steak_hero.jpeg";
+import slide3 from "../../assets/structure_hero.jpeg";
 
 type Slide = {
   id: number;
@@ -19,27 +19,29 @@ type Slide = {
   image: string;
   bg: string;
   accent: string;
+  gradient: string;
 };
 
 const slides: Slide[] = [
   {
     id: 1,
-    titleStart: "Care for",
-    emphasized: "women",
-    titleEnd: "done better",
+    titleStart: "Curated",
+    emphasized: "Korean",
+    titleEnd: "Taste",
     description:
-      "Clinically-backed essentials—held to higher standards for everyday wellbeing.",
+      "A journey through Korea, poured with intention, shaped by tradition and quiet craftsmanship.",
     ctaText: "Shop all",
     ctaTo: "/category/shop",
     image: slide1,
     bg: "#F6B7C1",
     accent: "#B2458A",
+    gradient: "linear-gradient(90deg, rgba(246,183,193,0.55) 0%, rgba(246,183,193,0.40) 40%, rgba(246,183,193,0.12) 70%, rgba(246,183,193,0.00) 100%)",
   },
   {
     id: 2,
-    titleStart: "Chef-curated",
+    titleStart: "Natural Flavours",
     emphasized: "Korean",
-    titleEnd: "home dining",
+    titleEnd: "Contemporary Cuisine",
     description:
       "Premium ingredients and tools to make restaurant-quality meals at home.",
     ctaText: "Explore",
@@ -47,19 +49,21 @@ const slides: Slide[] = [
     image: slide2,
     bg: "#F3C3B4",
     accent: "#2F5C3E",
+    gradient: "linear-gradient(90deg, rgba(243,195,180,0.55) 0%, rgba(243,195,180,0.40) 40%, rgba(243,195,180,0.12) 70%, rgba(243,195,180,0.00) 100%)",
   },
   {
     id: 3,
-    titleStart: "New",
-    emphasized: "essentials",
-    titleEnd: "for your pantry",
+    titleStart: "Opening",
+    emphasized: "Offers",
+    titleEnd: "available for a limited time",
     description:
-      "Discover fresh drops and bestsellers—beautifully packaged and gift-ready.",
+      "PROMO CODE: moondk10 Minimum order $88 Valid until November 2025",
     ctaText: "Shop new",
     ctaTo: "/category/new-in",
     image: slide3,
     bg: "#E9C5C9",
     accent: "#2F5C3E",
+    gradient: "linear-gradient(90deg, rgba(233,197,201,0.55) 0%, rgba(233,197,201,0.40) 40%, rgba(233,197,201,0.12) 70%, rgba(233,197,201,0.00) 100%)",
   },
 ];
 
@@ -86,30 +90,49 @@ export default function HomeHeroSlider() {
       className="relative w-full overflow-hidden"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
-      style={{ backgroundColor: slide.bg }}
+      style={{ 
+        backgroundColor: slide.bg,
+        transition: 'background-color 0.8s ease-in-out'
+      }}
     >
-      <div className="absolute inset-0">
-        <img
-          src={slide.image}
-          alt=""
-          className="h-full w-full object-cover object-[70%_center]"
-        />
-        {/* Soft overlay to keep text readable */}
-        <div className="absolute inset-0 bg-white/10" />
+      {/* Render all slides with smooth transitions */}
+      {slides.map((s, i) => (
         <div
-          className="absolute inset-0"
-          style={{
-            background:
-              "linear-gradient(90deg, rgba(246,183,193,0.92) 0%, rgba(246,183,193,0.75) 40%, rgba(246,183,193,0.20) 70%, rgba(246,183,193,0.00) 100%)",
-          }}
-        />
-      </div>
+          key={s.id}
+          className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
+            i === index ? "opacity-100 z-10" : "opacity-0 z-0"
+          }`}
+        >
+          <img
+            src={s.image}
+            alt=""
+            className="h-full w-full object-cover object-[70%_center]"
+          />
+          {/* Soft overlay to keep text readable */}
+          <div className="absolute inset-0 bg-white/10" />
+          <div
+            className="absolute inset-0 transition-opacity duration-700 ease-in-out"
+            style={{
+              background: s.gradient,
+            }}
+          />
+        </div>
+      ))}
 
-      <div className="relative mx-auto max-w-6xl px-6 py-14 md:py-20 min-h-[520px] flex items-end">
-        <div className="max-w-xl">
+      <div className="relative mx-auto max-w-6xl px-6 py-14 md:py-20 min-h-[600px] flex items-center z-20">
+        <div className="max-w-xl transition-opacity duration-500 ease-in-out">
           <h1 className="font-body text-5xl md:text-6xl leading-[0.95] tracking-tight text-[#1A1A1A]">
-            {slide.titleStart} <span className="font-heading italic font-normal">{slide.emphasized}</span>
-            <span className="block">{slide.titleEnd}</span>
+            {slide.id === 3 ? (
+              <>
+                <span className="whitespace-nowrap">{slide.titleStart} <span className="font-heading italic font-normal text-white">{slide.emphasized}</span> {slide.titleEnd.split(' ')[0]}</span>
+                <span className="block">{slide.titleEnd.split(' ').slice(1).join(' ')}</span>
+              </>
+            ) : (
+              <>
+                <span className="whitespace-nowrap">{slide.titleStart} <span className="font-heading italic font-normal text-white">{slide.emphasized}</span></span>
+                <span className="block">{slide.titleEnd}</span>
+              </>
+            )}
           </h1>
 
           <p className="mt-6 text-base md:text-lg font-body text-[#1A1A1A]/80 max-w-md">
