@@ -26,8 +26,8 @@ const CheckoutHeader = () => {
             />
           </ThemeLink>
 
-          {/* Right side - Support */}
-          <div className="text-sm font-body font-light text-foreground">Support</div>
+          {/* Right side - Empty spacer to maintain layout */}
+          <div className="w-0 sm:w-auto"></div>
         </div>
       </div>
     </header>
