@@ -265,7 +265,18 @@ const GroupClassPage: React.FC<TenantLandingProps> = ({
   ];
 
   // Gallery images - loaded from centralized asset config
-  const galleryImages = getGroupClassGalleryImages();
+  const baseGalleryImages = getGroupClassGalleryImages();
+  const galleryImages = [
+    ...baseGalleryImages,
+    {
+      src: '/theme/str/assets/gallery/TYY02449.jpg',
+      alt: 'STR Group Class - Group training session with instructor demonstrating exercises on turf floor with STRENGTH THROUGH STR RANGE branding',
+    },
+    {
+      src: '/theme/str/assets/gallery/TYY02602.jpg',
+      alt: 'STR Group Class - Coach instructing group class participants seated on gym floor with fitness equipment visible',
+    },
+  ];
 
   // Team members
   const teamMembers = [
@@ -572,7 +583,7 @@ const GroupClassPage: React.FC<TenantLandingProps> = ({
               {/* Programmes Image */}
               <div className="w-full max-w-xl">
                 <img 
-                  src={STR_ASSETS.images.programmes}
+                  src="/theme/str/assets/programmes/Group.png"
                   alt="STR Fitness Gym Facilities - Group Class Training Area"
                   className="w-full h-auto rounded-lg object-cover shadow-lg"
                   onError={(e) => {
@@ -585,7 +596,7 @@ const GroupClassPage: React.FC<TenantLandingProps> = ({
             </div>
 
             {/* Right Column - Accordion */}
-            <div className="space-y-0 sticky top-20 self-start">
+            <div className="space-y-0 self-start">
               {programmes.map((programme, index) => {
                 const isActive = activeProgramme === index;
                 return (
