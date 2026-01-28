@@ -159,6 +159,21 @@ const ResultsCarouselSection: React.FC<ResultsCarouselSectionProps> = ({
       },
       deviceType: 'tablet',
     },
+    {
+      companyName: "Spirit Stretch",
+      tags: ["META ADS", "LEAD GENERATION", "YOGA STUDIO", "PERFORMANCE"],
+      description:
+        "At Spirit Stretch Immersive Yoga, we guide you towards inner balance, regardless of your background or experience. We helped Spirit Stretch generate quality leads through targeted Meta Ads campaigns, achieving consistent lead generation with optimized cost per lead.",
+      metrics: [
+        { value: "215+", label1: "Leads", label2: "Generated", color: "cyan" },
+        { value: "$14.50", label1: "Cost", label2: "per Lead", color: "teal" },
+      ],
+      screenshot: {
+        src: "/theme/gosgconsulting/assets/spirit-stretch-results.png",
+        alt: "Spirit Stretch lead generation results",
+      },
+      deviceType: 'tablet',
+    },
   ];
 
   const studies = caseStudies.length > 0 ? caseStudies : defaultCaseStudies;

@@ -502,6 +502,62 @@ const GOSGContent: React.FC<TenantLandingProps> = ({
                   },
                 ],
               },
+              {
+                key: "case5",
+                type: "caseStudy",
+                items: [
+                  { key: "companyName", type: "text", content: "Spirit Stretch" },
+                  {
+                    key: "tags",
+                    type: "array",
+                    items: [
+                      { key: "tag1", type: "text", content: "META ADS" },
+                      { key: "tag2", type: "text", content: "LEAD GENERATION" },
+                      { key: "tag3", type: "text", content: "YOGA STUDIO" },
+                      { key: "tag4", type: "text", content: "PERFORMANCE" },
+                    ],
+                  },
+                  {
+                    key: "description",
+                    type: "text",
+                    content:
+                      "At Spirit Stretch Immersive Yoga, we guide you towards inner balance, regardless of your background or experience. We helped Spirit Stretch generate quality leads through targeted Meta Ads campaigns, achieving consistent lead generation with optimized cost per lead.",
+                  },
+                  {
+                    key: "metrics",
+                    type: "array",
+                    items: [
+                      {
+                        key: "metric1",
+                        type: "metric",
+                        value: "215+",
+                        label1: "Leads",
+                        label2: "Generated",
+                        color: "cyan",
+                      },
+                      {
+                        key: "metric2",
+                        type: "metric",
+                        value: "$14.50",
+                        label1: "Cost",
+                        label2: "per Lead",
+                        color: "teal",
+                      },
+                    ],
+                  },
+                  {
+                    key: "screenshot",
+                    type: "image",
+                    src: "/theme/gosgconsulting/assets/spirit-stretch-results.png",
+                    alt: "Spirit Stretch lead generation results",
+                  },
+                  {
+                    key: "deviceType",
+                    type: "text",
+                    content: "tablet",
+                  },
+                ],
+              },
             ],
           },
         ],
@@ -1521,6 +1577,62 @@ const PaidAdsPage: React.FC<PaidAdsPageProps> = ({
                     type: "image",
                     src: "/theme/gosgconsulting/assets/art-in-bloom-results.png",
                     alt: "Art in Bloom Meta Ads performance results",
+                  },
+                  {
+                    key: "deviceType",
+                    type: "text",
+                    content: "tablet",
+                  },
+                ],
+              },
+              {
+                key: "case5",
+                type: "caseStudy",
+                items: [
+                  { key: "companyName", type: "text", content: "Spirit Stretch" },
+                  {
+                    key: "tags",
+                    type: "array",
+                    items: [
+                      { key: "tag1", type: "text", content: "META ADS" },
+                      { key: "tag2", type: "text", content: "LEAD GENERATION" },
+                      { key: "tag3", type: "text", content: "YOGA STUDIO" },
+                      { key: "tag4", type: "text", content: "PERFORMANCE" },
+                    ],
+                  },
+                  {
+                    key: "description",
+                    type: "text",
+                    content:
+                      "At Spirit Stretch Immersive Yoga, we guide you towards inner balance, regardless of your background or experience. We helped Spirit Stretch generate quality leads through targeted Meta Ads campaigns, achieving consistent lead generation with optimized cost per lead.",
+                  },
+                  {
+                    key: "metrics",
+                    type: "array",
+                    items: [
+                      {
+                        key: "metric1",
+                        type: "metric",
+                        value: "215+",
+                        label1: "Leads",
+                        label2: "Generated",
+                        color: "cyan",
+                      },
+                      {
+                        key: "metric2",
+                        type: "metric",
+                        value: "$14.50",
+                        label1: "Cost",
+                        label2: "per Lead",
+                        color: "teal",
+                      },
+                    ],
+                  },
+                  {
+                    key: "screenshot",
+                    type: "image",
+                    src: "/theme/gosgconsulting/assets/spirit-stretch-results.png",
+                    alt: "Spirit Stretch lead generation results",
                   },
                   {
                     key: "deviceType",
