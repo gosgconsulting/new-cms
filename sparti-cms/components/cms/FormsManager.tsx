@@ -267,6 +267,7 @@ const FormsManager: React.FC = () => {
         notification_emails: settings.notification_emails,
         notification_subject: settings.notification_subject,
         notification_template: settings.notification_template,
+        notification_from_email: settings.notification_from_email,
         auto_reply_enabled: settings.auto_reply_enabled,
         auto_reply_subject: settings.auto_reply_subject,
         auto_reply_template: settings.auto_reply_template,
