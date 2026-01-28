@@ -182,7 +182,7 @@ const BookingPage: React.FC<TenantLandingProps> = ({
                 className="bg-[#E00000] text-white hover:bg-[#E00000]/90 font-bold uppercase px-6 py-2 rounded-lg text-sm transition-all duration-300"
                 onClick={() => window.location.href = getPageUrl('booking')}
               >
-                Get Started
+                Book a class
               </Button>
             </nav>
 
@@ -217,7 +217,7 @@ const BookingPage: React.FC<TenantLandingProps> = ({
                   window.location.href = getPageUrl('booking');
                 }}
               >
-                Get Started
+                Book a class
               </Button>
             </div>
           </div>
@@ -232,7 +232,7 @@ const BookingPage: React.FC<TenantLandingProps> = ({
             <div className="space-y-8">
               <div className="text-center">
                 <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold uppercase text-foreground mb-4 leading-tight">
-                  Get Started
+                  Book a class
                 </h1>
                 <p className="text-lg md:text-xl text-muted-foreground">
                   Choose an option to continue

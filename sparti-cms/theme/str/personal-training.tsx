@@ -411,7 +411,7 @@ const PersonalTrainingPage: React.FC<TenantLandingProps> = ({
                   className="bg-[#E00000] text-white hover:bg-[#E00000]/90 font-bold uppercase px-6 py-2 rounded-lg text-sm transition-all duration-300"
                   onClick={() => setIsContactModalOpen(true)}
                 >
-                  Get Started
+                  Book a class
                 </Button>
               </nav>
 
@@ -446,7 +446,7 @@ const PersonalTrainingPage: React.FC<TenantLandingProps> = ({
                     setIsContactModalOpen(true);
                   }}
                 >
-                  Get Started
+                  Book a class
                 </Button>
               </div>
             </div>
