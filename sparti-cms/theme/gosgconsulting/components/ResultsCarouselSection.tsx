@@ -194,7 +194,7 @@ const ResultsCarouselSection: React.FC<ResultsCarouselSectionProps> = ({
 
   return (
     <section className="w-full bg-white py-16 md:py-24 px-4 md:px-6">
-      <div className="mx-auto max-w-7xl">
+      <div className="mx-auto max-w-7xl relative">
         <Carousel
           setApi={setApi}
           opts={{
@@ -393,26 +393,50 @@ const ResultsCarouselSection: React.FC<ResultsCarouselSectionProps> = ({
           </CarouselContent>
         </Carousel>
 
-        {/* 6. Arrows - All the way below */}
+        {/* 6. Arrows - Left/Right on desktop, below on mobile */}
         {studies.length > 1 && (
-          <div className="flex justify-center items-center gap-4 mt-8 md:mt-12">
-            <button
-              onClick={() => api?.scrollPrev()}
-              disabled={!canScrollPrev}
-              className="h-12 w-12 rounded-lg bg-teal-500 hover:bg-teal-600 disabled:opacity-50 disabled:cursor-not-allowed text-white border-0 shadow-lg flex items-center justify-center transition-colors"
-              aria-label="Previous case study"
-            >
-              <ChevronLeft className="h-6 w-6" />
-            </button>
-            <button
-              onClick={() => api?.scrollNext()}
-              disabled={!canScrollNext}
-              className="h-12 w-12 rounded-lg bg-teal-500 hover:bg-teal-600 disabled:opacity-50 disabled:cursor-not-allowed text-white border-0 shadow-lg flex items-center justify-center transition-colors"
-              aria-label="Next case study"
-            >
-              <ChevronRight className="h-6 w-6" />
-            </button>
-          </div>
+          <>
+            {/* Desktop: Left and Right arrows */}
+            <div className="hidden lg:flex absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 xl:-translate-x-8 z-10">
+              <button
+                onClick={() => api?.scrollPrev()}
+                disabled={!canScrollPrev}
+                className="h-12 w-12 rounded-lg bg-teal-500 hover:bg-teal-600 disabled:opacity-50 disabled:cursor-not-allowed text-white border-0 shadow-lg flex items-center justify-center transition-colors"
+                aria-label="Previous case study"
+              >
+                <ChevronLeft className="h-6 w-6" />
+              </button>
+            </div>
+            <div className="hidden lg:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 xl:translate-x-8 z-10">
+              <button
+                onClick={() => api?.scrollNext()}
+                disabled={!canScrollNext}
+                className="h-12 w-12 rounded-lg bg-teal-500 hover:bg-teal-600 disabled:opacity-50 disabled:cursor-not-allowed text-white border-0 shadow-lg flex items-center justify-center transition-colors"
+                aria-label="Next case study"
+              >
+                <ChevronRight className="h-6 w-6" />
+              </button>
+            </div>
+            {/* Mobile: Below arrows */}
+            <div className="flex lg:hidden justify-center items-center gap-4 mt-8 md:mt-12">
+              <button
+                onClick={() => api?.scrollPrev()}
+                disabled={!canScrollPrev}
+                className="h-12 w-12 rounded-lg bg-teal-500 hover:bg-teal-600 disabled:opacity-50 disabled:cursor-not-allowed text-white border-0 shadow-lg flex items-center justify-center transition-colors"
+                aria-label="Previous case study"
+              >
+                <ChevronLeft className="h-6 w-6" />
+              </button>
+              <button
+                onClick={() => api?.scrollNext()}
+                disabled={!canScrollNext}
+                className="h-12 w-12 rounded-lg bg-teal-500 hover:bg-teal-600 disabled:opacity-50 disabled:cursor-not-allowed text-white border-0 shadow-lg flex items-center justify-center transition-colors"
+                aria-label="Next case study"
+              >
+                <ChevronRight className="h-6 w-6" />
+              </button>
+            </div>
+          </>
         )}
       </div>
     </section>
