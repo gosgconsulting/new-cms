@@ -198,19 +198,6 @@ const ResultsCarouselSection: React.FC<ResultsCarouselSectionProps> = ({
                     {study.companyName}
                   </h2>
 
-                  {/* 2. Labels/Tags */}
-                  {study.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-2 justify-center">
-                      {study.tags.map((tag, tagIndex) => (
-                        <span
-                          key={tagIndex}
-                          className="px-3 py-1.5 bg-gray-800 text-white text-xs font-medium rounded-md"
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  )}
 
                   {/* 3. Image - Device Frame (Phone or Tablet) */}
                   <div className="flex justify-center">
@@ -300,19 +287,6 @@ const ResultsCarouselSection: React.FC<ResultsCarouselSectionProps> = ({
                       {study.companyName}
                     </h2>
 
-                    {/* Tags */}
-                    {study.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-2">
-                        {study.tags.map((tag, tagIndex) => (
-                          <span
-                            key={tagIndex}
-                            className="px-3 py-1.5 bg-gray-800 text-white text-xs font-medium rounded-md"
-                          >
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-                    )}
 
                     {/* Description */}
                     {study.description && (
