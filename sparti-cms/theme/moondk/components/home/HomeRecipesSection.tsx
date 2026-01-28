@@ -76,7 +76,7 @@ export default function HomeRecipesSection() {
 
         <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {recipes.map((r) => (
-            <Card key={r.slug} className="rounded-[1.5rem] border-border/40 shadow-none hover:shadow-sm transition-shadow flex flex-col">
+            <Card key={r.slug} className="rounded-[1.5rem] border-none shadow-md hover:shadow-lg transition-shadow flex flex-col">
               <CardContent className="p-0 flex flex-col flex-1">
                 <ThemeLink to="/recipes" className="block">
                   <div className="rounded-t-[1.5rem] overflow-hidden">

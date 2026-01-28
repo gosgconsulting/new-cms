@@ -76,7 +76,7 @@ export default function RecipesPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {recipes.map((r) => (
-              <Card key={r.slug} className="rounded-[1.5rem] border-border/40 shadow-none hover:shadow-sm transition-shadow">
+              <Card key={r.slug} className="rounded-[1.5rem] border-none shadow-md hover:shadow-lg transition-shadow">
                 <CardContent className="p-0">
                   <div className="rounded-t-[1.5rem] overflow-hidden">
                     <img src={r.image} alt={r.title} className="w-full h-56 object-cover" />

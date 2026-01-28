@@ -152,26 +152,28 @@
 /* Card Styles for Clean, Airy Layout - Rounded */
 .moondk-theme .card-clean {
   background-color: var(--moondk-card);
-  border: 1px solid var(--moondk-border-light);
+  border: none;
   border-radius: var(--radius-card);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
   transition: var(--transition-smooth);
 }
 
 .moondk-theme .card-clean:hover {
   background-color: var(--moondk-card-hover);
-  border-color: var(--moondk-border);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
 }
 
 .moondk-theme .card-cream {
   background-color: var(--moondk-card-cream);
-  border: 1px solid var(--moondk-border-light);
+  border: none;
   border-radius: var(--radius-card);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
   transition: var(--transition-smooth);
 }
 
 .moondk-theme .card-cream:hover {
   background-color: #F5F0E0;
-  border-color: var(--moondk-border);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
 }
 
 /* Button Styles - Fully Rounded */

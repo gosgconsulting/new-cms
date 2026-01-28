@@ -9,11 +9,11 @@ export default function HomeFineDiningSection() {
   return (
     <section className="px-6 pb-16">
       <div className="mx-auto max-w-6xl">
-        <div className="rounded-[2rem] bg-[#EAE2E3] p-6 md:p-8 border border-border/40">
+        <div className="rounded-[2rem] bg-[#EAE2E3] p-6 md:p-8 border-none shadow-md">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10 items-center">
             {/* Left: stacked images */}
             <div className="relative order-2 md:order-1">
-              <div className="rounded-[1.5rem] overflow-hidden bg-white shadow-sm border border-border/40">
+              <div className="rounded-[1.5rem] overflow-hidden bg-white shadow-md">
                 <img
                   src={imgMain}
                   alt="Beok seasonal courses"
@@ -22,7 +22,7 @@ export default function HomeFineDiningSection() {
               </div>
 
               <div className="hidden sm:block absolute -bottom-6 -left-6 w-40">
-                <div className="rounded-[1.25rem] overflow-hidden bg-white shadow-sm border border-border/40">
+                <div className="rounded-[1.25rem] overflow-hidden bg-white shadow-md">
                   <img
                     src={imgStack}
                     alt="Ingredient-forward cooking"
@@ -33,7 +33,7 @@ export default function HomeFineDiningSection() {
             </div>
 
             {/* Right: content card */}
-            <div className="rounded-[1.75rem] bg-white/90 backdrop-blur p-6 md:p-8 border border-border/40 order-1 md:order-2">
+            <div className="rounded-[1.75rem] bg-white/90 backdrop-blur p-6 md:p-8 border-none shadow-md order-1 md:order-2">
               <div className="flex items-center gap-2 text-primary mb-4">
                 <Utensils className="h-5 w-5" />
                 <span className="text-sm font-body">Modern Korean</span>

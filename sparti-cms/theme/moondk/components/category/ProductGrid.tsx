@@ -34,13 +34,13 @@ export default function ProductGrid({
   return (
     <section className="w-full px-6 pb-12">
       {/* Recipe-style product cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="flex flex-wrap justify-center gap-6">
         {products.map((product) => (
           <Card
             key={product.id}
-            className="rounded-[1.5rem] border-border/40 shadow-none hover:shadow-sm transition-shadow"
+            className="rounded-[1.5rem] border-none shadow-md hover:shadow-lg transition-shadow w-full max-w-[280px] flex flex-col"
           >
-            <CardContent className="p-0">
+            <CardContent className="p-0 flex flex-col flex-1">
               <ThemeLink to={`/product/${product.id}`} className="block">
                 <div className="relative rounded-t-[1.5rem] overflow-hidden bg-white">
                   <img
@@ -51,7 +51,7 @@ export default function ProductGrid({
                 </div>
               </ThemeLink>
 
-              <div className="p-4">
+              <div className="p-4 flex flex-col flex-1">
                 <ThemeLink to={`/product/${product.id}`} className="block">
                   <div className="flex items-start justify-between gap-3">
                     <h3 className="text-base font-heading leading-tight hover:underline underline-offset-4 flex-1">
@@ -63,7 +63,7 @@ export default function ProductGrid({
                   </div>
                 </ThemeLink>
 
-                <div className="mt-4">
+                <div className="mt-auto pt-4">
                   <Button asChild className="rounded-full w-full bg-primary hover:bg-primary-hover !text-white">
                     <ThemeLink to={`/product/${product.id}`} className="!text-white">View product</ThemeLink>
                   </Button>

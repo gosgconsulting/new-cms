@@ -31,7 +31,7 @@ export default function HomeNewArrivalsSection() {
           {newArrivals.map((p) => (
             <Card
               key={p.id}
-              className="rounded-[1.5rem] border-border/40 shadow-none hover:shadow-sm transition-shadow"
+              className="rounded-[1.5rem] border-none shadow-md hover:shadow-lg transition-shadow"
             >
               <CardContent className="p-0">
                 <ThemeLink to={`/product/${p.id}`} className="block">

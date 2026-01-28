@@ -12,10 +12,10 @@ export default function HomeAboutSection() {
         <div className="mb-6">
           <h2 className="text-3xl md:text-4xl font-body tracking-tight">about and Experience</h2>
         </div>
-        <div className="rounded-[2rem] bg-[#F2EFDC] p-6 md:p-8 border border-border/40">
+        <div className="rounded-[2rem] bg-[#F2EFDC] p-6 md:p-8 border-none shadow-md">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10 items-center">
             {/* Left: content card */}
-            <div className="rounded-[1.75rem] bg-white/90 backdrop-blur p-6 md:p-8 border border-border/40 md:order-1">
+            <div className="rounded-[1.75rem] bg-white/90 backdrop-blur p-6 md:p-8 border-none shadow-md md:order-1">
               <div className="flex items-center gap-2 text-primary mb-4">
                 <Heart className="h-5 w-5" />
                 <span className="text-sm font-body">Comfort first</span>
@@ -40,7 +40,7 @@ export default function HomeAboutSection() {
 
             {/* Right: stacked images */}
             <div className="relative md:order-2">
-              <div className="rounded-[1.5rem] overflow-hidden bg-white shadow-sm border border-border/40">
+              <div className="rounded-[1.5rem] overflow-hidden bg-white shadow-md">
                 <img
                   src={imgMain}
                   alt="Home dining comfort"
@@ -49,7 +49,7 @@ export default function HomeAboutSection() {
               </div>
 
               <div className="hidden sm:block absolute -bottom-6 -left-6 w-40">
-                <div className="rounded-[1.25rem] overflow-hidden bg-white shadow-sm border border-border/40">
+                <div className="rounded-[1.25rem] overflow-hidden bg-white shadow-md">
                   <img
                     src={imgStack}
                     alt="Everyday Korean flavours"

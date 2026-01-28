@@ -278,7 +278,7 @@ export default function RecipeDetailPage({ recipeSlug }: { recipeSlug: string })
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 {recipeProducts.map((product) => (
-                  <Card key={product.id} className="rounded-[1.5rem] border-border/40 shadow-none hover:shadow-sm transition-shadow">
+                  <Card key={product.id} className="rounded-[1.5rem] border-none shadow-md hover:shadow-lg transition-shadow">
                     <CardContent className="p-0">
                       <ThemeLink to={`/product/${product.id}`} className="block">
                         <div className="rounded-t-[1.5rem] overflow-hidden bg-white">

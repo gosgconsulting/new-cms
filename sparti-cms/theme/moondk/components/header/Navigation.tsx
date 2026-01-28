@@ -314,9 +314,9 @@ const Navigation = () => {
 
       {/* Mobile navigation menu */}
       {isMobileMenuOpen && (
-        <div className="lg:hidden absolute top-full left-0 right-0 bg-background border-b border-border z-50">
+        <div className="lg:hidden absolute top-full left-0 right-0 bg-white border-b border-border z-50">
           <div className="px-6 py-8">
-            <div className="space-y-6">
+            <div className="space-y-4">
               {navItems.map((item) => (
                 <div key={item.name}>
                   <ThemeLink
@@ -326,25 +326,27 @@ const Navigation = () => {
                   >
                     {item.name}
                   </ThemeLink>
-                  <div className="mt-3 pl-4 space-y-2">
-                    {item.submenuItems.map((subItem, subIndex) => {
-                      const to =
-                        item.name === "SHOP"
-                          ? `/category/${subItem.toLowerCase().replace(/\s+/g, "-")}`
-                          : `/category/${subItem.toLowerCase().replace(/\s+/g, "-")}`;
+                  {item.submenuItems && item.submenuItems.length > 0 && (
+                    <div className="space-y-1">
+                      {item.submenuItems.map((subItem, subIndex) => {
+                        const to =
+                          item.name === "SHOP"
+                            ? `/category/${subItem.toLowerCase().replace(/\s+/g, "-")}`
+                            : `/category/${subItem.toLowerCase().replace(/\s+/g, "-")}`;
 
-                      return (
-                        <ThemeLink
-                          key={subIndex}
-                          to={to}
-                          className="text-nav-foreground/70 hover:text-primary text-sm font-body font-light block py-1"
-                          onClick={() => setIsMobileMenuOpen(false)}
-                        >
-                          {subItem}
-                        </ThemeLink>
-                      );
-                    })}
-                  </div>
+                        return (
+                          <ThemeLink
+                            key={subIndex}
+                            to={to}
+                            className="text-nav-foreground/70 hover:text-primary text-sm font-body font-light block py-1.5 pl-0"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                          >
+                            {subItem}
+                          </ThemeLink>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
