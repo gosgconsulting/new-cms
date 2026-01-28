@@ -116,11 +116,7 @@ const ModalContactForm: React.FC<ModalContactFormProps> = ({ className = "", ini
       return;
     }
 
-    if (message.trim().length === 0) {
-      setSubmitStatus("error");
-      setErrorMessage("Please enter your message.");
-      return;
-    }
+    // Message is prefilled, so we don't need to check if it's empty
 
     setIsSubmitting(true);
     setSubmitStatus("idle");
@@ -364,19 +360,8 @@ const ModalContactForm: React.FC<ModalContactFormProps> = ({ className = "", ini
           </div>
         )}
 
-        {/* Navigation Buttons - Stacked vertically */}
+        {/* Navigation Buttons - Stacked vertically, Next/Send on top, Back below */}
         <div className="flex flex-col pt-4 sm:pt-6 gap-4 w-full border-t border-neutral-200 mt-4 sm:mt-6">
-          {step !== 1 && (
-            <Button
-              type="button"
-              variant="outline"
-              onClick={goBack}
-              disabled={isSubmitting}
-              className="rounded-full px-6 py-5 w-full shrink-0"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2 shrink-0" /> <span>Back</span>
-            </Button>
-          )}
           {step === 3 ? (
             <Button
               type="submit"
@@ -428,6 +413,17 @@ const ModalContactForm: React.FC<ModalContactFormProps> = ({ className = "", ini
               }}
             >
               <span>Next</span> <ArrowRight className="h-4 w-4 ml-2 shrink-0" />
+            </Button>
+          )}
+          {step !== 1 && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={goBack}
+              disabled={isSubmitting}
+              className="rounded-full px-6 py-5 w-full shrink-0"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2 shrink-0" /> <span>Back</span>
             </Button>
           )}
         </div>
