@@ -364,76 +364,72 @@ const ModalContactForm: React.FC<ModalContactFormProps> = ({ className = "", ini
           </div>
         )}
 
-        {/* Navigation Buttons - Not sticky, allow scrolling */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center sm:justify-between pt-4 sm:pt-6 gap-4 w-full border-t border-neutral-200 mt-4 sm:mt-6">
-          {step === 1 ? (
-            <div className="hidden sm:block"></div>
-          ) : (
+        {/* Navigation Buttons - Stacked vertically */}
+        <div className="flex flex-col pt-4 sm:pt-6 gap-4 w-full border-t border-neutral-200 mt-4 sm:mt-6">
+          {step !== 1 && (
             <Button
               type="button"
               variant="outline"
               onClick={goBack}
               disabled={isSubmitting}
-              className="rounded-full px-6 py-5 w-full sm:w-auto shrink-0"
+              className="rounded-full px-6 py-5 w-full shrink-0"
             >
               <ArrowLeft className="h-4 w-4 mr-2 shrink-0" /> <span>Back</span>
             </Button>
           )}
-          <div className="w-full sm:w-auto">
-            {step === 3 ? (
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                className="rounded-full text-white px-7 py-5 transition-all shadow-sm w-full sm:w-auto shrink-0"
-                style={{
-                  background: isSubmitting ? '#ccc' : 'linear-gradient(to right, #FF6B35, #FFA500)',
-                }}
-                onMouseEnter={(e) => {
-                  if (!isSubmitting) {
-                    e.currentTarget.style.background = 'linear-gradient(to right, #FF5722, #FF9800)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!isSubmitting) {
-                    e.currentTarget.style.background = 'linear-gradient(to right, #FF6B35, #FFA500)';
-                  }
-                }}
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin shrink-0" />
-                    <span>Sending...</span>
-                  </>
-                ) : (
-                  <>
-                    <span>Send</span> <ArrowRight className="h-4 w-4 ml-2 shrink-0" />
-                  </>
-                )}
-              </Button>
-            ) : (
-              <Button
-                type="button"
-                onClick={goNext}
-                disabled={(step === 2 && !canGoNextFromStep2) || isSubmitting}
-                className="rounded-full text-white px-7 py-5 disabled:opacity-50 transition-all shadow-sm w-full sm:w-auto shrink-0"
-                style={{
-                  background: (step === 2 && !canGoNextFromStep2) || isSubmitting ? '#ccc' : 'linear-gradient(to right, #FF6B35, #FFA500)',
-                }}
-                onMouseEnter={(e) => {
-                  if ((step === 2 && canGoNextFromStep2) || step === 1) {
-                    e.currentTarget.style.background = 'linear-gradient(to right, #FF5722, #FF9800)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if ((step === 2 && canGoNextFromStep2) || step === 1) {
-                    e.currentTarget.style.background = 'linear-gradient(to right, #FF6B35, #FFA500)';
-                  }
-                }}
-              >
-                <span>Next</span> <ArrowRight className="h-4 w-4 ml-2 shrink-0" />
-              </Button>
-            )}
-          </div>
+          {step === 3 ? (
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className="rounded-full text-white px-7 py-5 transition-all shadow-sm w-full shrink-0"
+              style={{
+                background: isSubmitting ? '#ccc' : 'linear-gradient(to right, #FF6B35, #FFA500)',
+              }}
+              onMouseEnter={(e) => {
+                if (!isSubmitting) {
+                  e.currentTarget.style.background = 'linear-gradient(to right, #FF5722, #FF9800)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isSubmitting) {
+                  e.currentTarget.style.background = 'linear-gradient(to right, #FF6B35, #FFA500)';
+                }
+              }}
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin shrink-0" />
+                  <span>Sending...</span>
+                </>
+              ) : (
+                <>
+                  <span>Send</span> <ArrowRight className="h-4 w-4 ml-2 shrink-0" />
+                </>
+              )}
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              onClick={goNext}
+              disabled={(step === 2 && !canGoNextFromStep2) || isSubmitting}
+              className="rounded-full text-white px-7 py-5 disabled:opacity-50 transition-all shadow-sm w-full shrink-0"
+              style={{
+                background: (step === 2 && !canGoNextFromStep2) || isSubmitting ? '#ccc' : 'linear-gradient(to right, #FF6B35, #FFA500)',
+              }}
+              onMouseEnter={(e) => {
+                if ((step === 2 && canGoNextFromStep2) || step === 1) {
+                  e.currentTarget.style.background = 'linear-gradient(to right, #FF5722, #FF9800)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if ((step === 2 && canGoNextFromStep2) || step === 1) {
+                  e.currentTarget.style.background = 'linear-gradient(to right, #FF6B35, #FFA500)';
+                }
+              }}
+            >
+              <span>Next</span> <ArrowRight className="h-4 w-4 ml-2 shrink-0" />
+            </Button>
+          )}
         </div>
     </form>
   );
