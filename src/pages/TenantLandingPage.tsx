@@ -92,7 +92,17 @@ const TenantLandingPage: React.FC = () => {
   // Handle root-level blog routes (/blog or /blog/:slug)
   // If there's no tenantSlug but pathname starts with /blog, use landingpage theme
   const isRootBlogRoute = !tenantSlug && (location.pathname === '/blog' || location.pathname.startsWith('/blog/'));
-  const slug = tenantSlug || 'landingpage';
+  
+  // Handle root-level STR theme routes (booking, packages, etc.)
+  // If there's no tenantSlug but pathname starts with /booking or /packages, use str theme
+  const isRootSTRRoute = !tenantSlug && (
+    location.pathname === '/booking' || 
+    location.pathname.startsWith('/booking/') ||
+    location.pathname === '/packages' ||
+    location.pathname.startsWith('/packages/')
+  );
+  
+  const slug = tenantSlug || (isRootSTRRoute ? 'str' : 'landingpage');
   const [tenantId, setTenantId] = useState<string | undefined>(undefined);
   
   // Fetch tenant ID from database based on slug

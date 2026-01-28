@@ -111,8 +111,10 @@ const STRTheme: React.FC<TenantLandingProps> = ({
 
     if (tenantIndex < 0) {
       const firstPart = pathParts[0];
+      // For known route prefixes, return the full path to support nested routes
       if (firstPart === 'booking' || firstPart === 'packages') {
-        return firstPart;
+        // Return full path to support nested routes like 'booking/classes'
+        return pathParts.join('/');
       }
       return firstPart || '';
     }
@@ -586,7 +588,7 @@ const STRTheme: React.FC<TenantLandingProps> = ({
                           {/* CTA Button */}
                           <Button
                             className="bg-[#E00000] text-white hover:bg-[#E00000]/90 font-bold uppercase px-6 py-3 rounded-lg text-sm transition-all duration-300 hover:scale-105"
-                            onClick={() => setIsContactModalOpen(true)}
+                            onClick={() => window.location.href = getPageUrl('booking')}
                           >
                             GET STARTED
                           </Button>

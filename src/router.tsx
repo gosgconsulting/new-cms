@@ -293,6 +293,27 @@ export const router = createBrowserRouter(
       path: "/demo-hero",
       element: <RootLayout><DemoHero /></RootLayout>,
     },
+    // Root-level routes for deployed STR theme (booking/classes, packages, etc.)
+    {
+      path: "/booking/*",
+      element: (
+        <RootLayout>
+          <ErrorBoundary>
+            <TenantLandingPage />
+          </ErrorBoundary>
+        </RootLayout>
+      ),
+    },
+    {
+      path: "/packages",
+      element: (
+        <RootLayout>
+          <ErrorBoundary>
+            <TenantLandingPage />
+          </ErrorBoundary>
+        </RootLayout>
+      ),
+    },
     {
       path: "*",
       element: <RootLayout><NotFound /></RootLayout>,
