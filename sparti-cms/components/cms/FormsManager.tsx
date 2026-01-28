@@ -60,6 +60,7 @@ interface EmailSettings {
   notification_emails: string[];
   notification_subject: string;
   notification_template: string;
+  notification_from_email?: string;
   auto_reply_enabled: boolean;
   auto_reply_subject: string;
   auto_reply_template: string;
@@ -832,6 +833,7 @@ const EmailSettingsModal: React.FC<{
     notification_emails: emailSettings?.notification_emails || ['admin@gosg.com.sg'],
     notification_subject: emailSettings?.notification_subject || 'New Form Submission',
     notification_template: emailSettings?.notification_template || 'You have received a new form submission from {{name}} ({{email}}).\n\nMessage:\n{{message}}',
+    notification_from_email: emailSettings?.notification_from_email || '',
     auto_reply_enabled: emailSettings?.auto_reply_enabled ?? false,
     auto_reply_subject: emailSettings?.auto_reply_subject || 'Thank you for your submission',
     auto_reply_template: emailSettings?.auto_reply_template || 'Dear {{name}},\n\nThank you for contacting us. We have received your message and will get back to you within 24 hours.\n\nBest regards,\nGOSG Team',
@@ -931,6 +933,20 @@ const EmailSettingsModal: React.FC<{
                     className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-brandPurple"
                     placeholder="Email subject"
                   />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">From Email (Optional)</label>
+                  <input
+                    type="email"
+                    value={emailData.notification_from_email || ''}
+                    onChange={(e) => setEmailData({ ...emailData, notification_from_email: e.target.value })}
+                    className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-brandPurple"
+                    placeholder="noreply@example.com"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Leave empty to use default SMTP_FROM_EMAIL
+                  </p>
                 </div>
 
                 <div>

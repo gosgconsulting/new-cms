@@ -440,6 +440,7 @@ router.put('/forms/:id/email-settings', async (req, res) => {
       notification_emails,
       notification_subject,
       notification_template,
+      notification_from_email,
       auto_reply_enabled,
       auto_reply_subject,
       auto_reply_template,
@@ -456,13 +457,13 @@ router.put('/forms/:id/email-settings', async (req, res) => {
       result = await query(`
         UPDATE email_settings 
         SET notification_enabled = $1, notification_emails = $2, notification_subject = $3,
-            notification_template = $4, auto_reply_enabled = $5, auto_reply_subject = $6,
-            auto_reply_template = $7, from_email = $8, from_name = $9, updated_at = NOW()
-        WHERE form_id = $10
+            notification_template = $4, notification_from_email = $5, auto_reply_enabled = $6, 
+            auto_reply_subject = $7, auto_reply_template = $8, from_email = $9, from_name = $10, updated_at = NOW()
+        WHERE form_id = $11
         RETURNING *
       `, [
         notification_enabled, notification_emails, notification_subject, notification_template,
-        auto_reply_enabled, auto_reply_subject, auto_reply_template, from_email, from_name,
+        notification_from_email, auto_reply_enabled, auto_reply_subject, auto_reply_template, from_email, from_name,
         req.params.id
       ]);
     } else {
@@ -470,15 +471,15 @@ router.put('/forms/:id/email-settings', async (req, res) => {
       result = await query(`
         INSERT INTO email_settings (
           form_id, notification_enabled, notification_emails, notification_subject,
-          notification_template, auto_reply_enabled, auto_reply_subject, auto_reply_template,
-          from_email, from_name
+          notification_template, notification_from_email, auto_reply_enabled, auto_reply_subject, 
+          auto_reply_template, from_email, from_name
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
         RETURNING *
       `, [
         req.params.id, notification_enabled, notification_emails, notification_subject,
-        notification_template, auto_reply_enabled, auto_reply_subject, auto_reply_template,
-        from_email, from_name
+        notification_template, notification_from_email, auto_reply_enabled, auto_reply_subject, 
+        auto_reply_template, from_email, from_name
       ]);
     }
     

@@ -114,8 +114,14 @@ export async function sendFormNotificationEmails(formSubmission, emailSettings) 
     const textContent = replaceTemplatePlaceholders(template, templateData);
     const htmlContent = textToHtml(textContent);
 
+    // Determine from email (use notification_from_email if set, otherwise fallback to SMTP_FROM_EMAIL)
+    const fromEmail = emailSettings.notification_from_email || SMTP_FROM_EMAIL;
+
+    console.log('[testing] Sending notification email from:', fromEmail, '(notification_from_email:', emailSettings.notification_from_email || 'not set, using SMTP_FROM_EMAIL:', SMTP_FROM_EMAIL, ')');
+
     // Send email to all notification recipients
     const emailData = {
+      from: fromEmail,
       to: emailSettings.notification_emails,
       subject,
       html: htmlContent,
