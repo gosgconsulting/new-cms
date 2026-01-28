@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { getPageUrl } from './utils/urls';
+import { getTenantId } from '../../utils/tenantConfig';
 
 interface ContactModalProps {
   isOpen: boolean;
@@ -17,6 +18,7 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -24,23 +26,56 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
       ...prev,
       [name]: value
     }));
+    // Clear error message when user starts typing
+    if (errorMessage) {
+      setErrorMessage('');
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setErrorMessage('');
     
-    // TODO: Implement form submission logic
-    // For now, just log and redirect to thank you page
-    console.log('Form submitted:', formData);
-    
-    setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      const tenantId = getTenantId();
+
+      const response = await fetch('/api/form-submissions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          form_id: 88,
+          form_name: 'Contact Modal Form - STR Fitness',
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone || null,
+          message: formData.message,
+          tenant_id: tenantId,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response
+          .json()
+          .catch(() => ({ error: 'Failed to submit form' }));
+        throw new Error(errorData.error || 'Failed to submit form');
+      }
+
+      // Reset form and close modal
       setFormData({ name: '', email: '', phone: '', message: '' });
       onClose();
+      
       // Redirect to thank you page
       window.location.href = getPageUrl('thank-you');
-    }, 1000);
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : 'Failed to submit form. Please try again.'
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleWhatsAppClick = () => {
@@ -181,11 +216,18 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
                 />
               </div>
 
+              {/* Error Message */}
+              {errorMessage && (
+                <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="text-sm text-red-600">{errorMessage}</p>
+                </div>
+              )}
+
               {/* Submit Button */}
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full bg-[#E00000] hover:bg-[#E00000]/90 text-white font-bold uppercase px-6 py-4 rounded-lg transition-all duration-300 mt-6"
+                className="w-full bg-[#E00000] hover:bg-[#E00000]/90 text-white font-bold uppercase px-6 py-4 rounded-lg transition-all duration-300 mt-6 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? 'Sending...' : 'Send Message'}
               </Button>
