@@ -20,7 +20,7 @@ const SocialProofNotification: React.FC<SocialProofNotificationProps> = ({ onLea
   const [currentScenario, setCurrentScenario] = useState<NotificationScenario | null>(null);
   const [notificationQueue, setNotificationQueue] = useState<NotificationScenario[]>([]);
   const [shownIndices, setShownIndices] = useState<Set<number>>(new Set());
-  const autoCloseDelay = 5000; // 5 seconds
+  const autoCloseDelay = 6000; // 6 seconds
   
   // Use refs to access current state in callbacks
   const queueRef = React.useRef<NotificationScenario[]>([]);
@@ -660,10 +660,10 @@ const SocialProofNotification: React.FC<SocialProofNotificationProps> = ({ onLea
 
   const handleClose = React.useCallback(() => {
     setIsVisible(false);
-    // Show next notification after a short delay
+    // Show next notification after a delay
     setTimeout(() => {
       showNextNotification();
-    }, 500); // Small delay for smooth transition
+    }, 1500); // 1.5 second delay between notifications
   }, [showNextNotification]);
 
   useEffect(() => {
