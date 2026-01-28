@@ -189,3 +189,19 @@
 .str-theme [data-state="closed"] .minus-icon {
   display: none;
 }
+
+/* Hide scrollbar for gallery tabs on mobile */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari and Opera */
+}
+
+/* Smooth scrolling for horizontal scroll */
+.scrollbar-hide {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+}

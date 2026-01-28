@@ -634,32 +634,34 @@ const STRTheme: React.FC<TenantLandingProps> = ({
 
           {/* Gallery Tabs */}
           <Tabs value={activeGalleryTab} onValueChange={setActiveGalleryTab} className="w-full">
-            <TabsList className="grid w-full max-w-3xl mx-auto mb-8 grid-cols-4 bg-gray-800/60">
-              <TabsTrigger 
-                value="all" 
-                className="data-[state=active]:bg-[#E00000] data-[state=active]:text-white uppercase font-bold"
-              >
-                All
-              </TabsTrigger>
-              <TabsTrigger 
-                value="group-class" 
-                className="data-[state=active]:bg-[#E00000] data-[state=active]:text-white uppercase font-bold"
-              >
-                Group Class
-              </TabsTrigger>
-              <TabsTrigger 
-                value="physiotherapy" 
-                className="data-[state=active]:bg-[#E00000] data-[state=active]:text-white uppercase font-bold"
-              >
-                Physiotherapy
-              </TabsTrigger>
-              <TabsTrigger 
-                value="personal-training" 
-                className="data-[state=active]:bg-[#E00000] data-[state=active]:text-white uppercase font-bold"
-              >
-                Personal Training
-              </TabsTrigger>
-            </TabsList>
+            <div className="w-full max-w-3xl mx-auto mb-8 overflow-x-auto scrollbar-hide px-4 md:px-0">
+              <TabsList className="inline-flex md:grid w-full md:max-w-3xl md:grid-cols-4 bg-gray-800/60 min-w-max md:min-w-0 gap-0 md:gap-0">
+                <TabsTrigger 
+                  value="all" 
+                  className="data-[state=active]:bg-[#E00000] data-[state=active]:text-white uppercase font-bold whitespace-nowrap flex-shrink-0 px-6 py-2 md:px-4"
+                >
+                  All
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="group-class" 
+                  className="data-[state=active]:bg-[#E00000] data-[state=active]:text-white uppercase font-bold whitespace-nowrap flex-shrink-0 px-6 py-2 md:px-4"
+                >
+                  Group Class
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="physiotherapy" 
+                  className="data-[state=active]:bg-[#E00000] data-[state=active]:text-white uppercase font-bold whitespace-nowrap flex-shrink-0 px-6 py-2 md:px-4"
+                >
+                  Physiotherapy
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="personal-training" 
+                  className="data-[state=active]:bg-[#E00000] data-[state=active]:text-white uppercase font-bold whitespace-nowrap flex-shrink-0 px-6 py-2 md:px-4"
+                >
+                  Personal Training
+                </TabsTrigger>
+              </TabsList>
+            </div>
 
             {/* All Gallery */}
             <TabsContent value="all" className="mt-0">
