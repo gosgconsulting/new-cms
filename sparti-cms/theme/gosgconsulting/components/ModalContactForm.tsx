@@ -179,15 +179,10 @@ const ModalContactForm: React.FC<ModalContactFormProps> = ({ className = "", ini
   };
 
   return (
-    <div className={`w-full overflow-x-hidden flex flex-col h-full ${className}`}>
-      <form
-        onSubmit={handleSubmit}
-        className={
-          "w-full p-6 sm:p-8 md:p-10 overflow-x-hidden flex flex-col flex-1 min-h-0"
-        }
-      >
-        {/* Step Content Container */}
-        <div className="flex-1 min-h-0 overflow-y-auto">
+    <form
+      onSubmit={handleSubmit}
+      className={`w-full ${className}`}
+    >
           {/* Step 1 */}
           {step === 1 && (
             <div className="space-y-6 sm:space-y-8">
@@ -198,8 +193,8 @@ const ModalContactForm: React.FC<ModalContactFormProps> = ({ className = "", ini
               <p className="text-sm sm:text-base text-neutral-600">Name and email are required.</p>
             </div>
 
-            {/* Always 1 column (no 2-col layout) */}
-            <div className="space-y-5 sm:space-y-6">
+            {/* 2 columns on desktop, 1 column on mobile */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
               <div>
                 <label htmlFor="name" className="block text-sm font-medium text-neutral-800 mb-2">
                   Full Name *
@@ -210,7 +205,7 @@ const ModalContactForm: React.FC<ModalContactFormProps> = ({ className = "", ini
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   disabled={isSubmitting}
-                  className="h-11 rounded-xl bg-white border border-neutral-300 focus-visible:ring-2 focus-visible:ring-neutral-900/20 focus-visible:border-neutral-900"
+                  className="w-full h-11 rounded-xl bg-white border border-neutral-300 focus-visible:ring-2 focus-visible:ring-neutral-900/20 focus-visible:border-neutral-900"
                 />
               </div>
 
@@ -225,7 +220,7 @@ const ModalContactForm: React.FC<ModalContactFormProps> = ({ className = "", ini
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={isSubmitting}
-                  className="h-11 rounded-xl bg-white border border-neutral-300 focus-visible:ring-2 focus-visible:ring-neutral-900/20 focus-visible:border-neutral-900"
+                  className="w-full h-11 rounded-xl bg-white border border-neutral-300 focus-visible:ring-2 focus-visible:ring-neutral-900/20 focus-visible:border-neutral-900"
                 />
               </div>
 
@@ -240,7 +235,7 @@ const ModalContactForm: React.FC<ModalContactFormProps> = ({ className = "", ini
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   disabled={isSubmitting}
-                  className="h-11 rounded-xl bg-white border border-neutral-300 focus-visible:ring-2 focus-visible:ring-neutral-900/20 focus-visible:border-neutral-900"
+                  className="w-full h-11 rounded-xl bg-white border border-neutral-300 focus-visible:ring-2 focus-visible:ring-neutral-900/20 focus-visible:border-neutral-900"
                 />
               </div>
 
@@ -254,7 +249,7 @@ const ModalContactForm: React.FC<ModalContactFormProps> = ({ className = "", ini
                   value={company}
                   onChange={(e) => setCompany(e.target.value)}
                   disabled={isSubmitting}
-                  className="h-11 rounded-xl bg-white border border-neutral-300 focus-visible:ring-2 focus-visible:ring-neutral-900/20 focus-visible:border-neutral-900"
+                  className="w-full h-11 rounded-xl bg-white border border-neutral-300 focus-visible:ring-2 focus-visible:ring-neutral-900/20 focus-visible:border-neutral-900"
                 />
               </div>
             </div>
@@ -368,75 +363,79 @@ const ModalContactForm: React.FC<ModalContactFormProps> = ({ className = "", ini
             )}
           </div>
         )}
-        </div>
 
-        {/* Navigation Buttons - Always Visible */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center sm:justify-end pt-4 sm:pt-6 gap-4 w-full border-t border-neutral-200 mt-4 sm:mt-6">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={goBack}
-            disabled={step === 1 || isSubmitting}
-            className="rounded-full px-6 py-5 w-full sm:w-auto sm:mr-auto shrink-0 min-w-0"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2 shrink-0" /> <span className="truncate">Back</span>
-          </Button>
-          {step === 3 ? (
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-              className="rounded-full text-white px-7 py-5 transition-all shadow-sm w-full sm:w-auto shrink-0 min-w-0 flex-shrink-0"
-              style={{
-                background: isSubmitting ? '#ccc' : 'linear-gradient(to right, #FF6B35, #FFA500)',
-              }}
-              onMouseEnter={(e) => {
-                if (!isSubmitting) {
-                  e.currentTarget.style.background = 'linear-gradient(to right, #FF5722, #FF9800)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!isSubmitting) {
-                  e.currentTarget.style.background = 'linear-gradient(to right, #FF6B35, #FFA500)';
-                }
-              }}
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin shrink-0" />
-                  <span className="truncate">Sending...</span>
-                </>
-              ) : (
-                <>
-                  <span className="truncate">Send</span> <ArrowRight className="h-4 w-4 ml-2 shrink-0" />
-                </>
-              )}
-            </Button>
+        {/* Navigation Buttons - Not sticky, allow scrolling */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center sm:justify-between pt-4 sm:pt-6 gap-4 w-full border-t border-neutral-200 mt-4 sm:mt-6">
+          {step === 1 ? (
+            <div className="hidden sm:block"></div>
           ) : (
             <Button
               type="button"
-              onClick={goNext}
-              disabled={(step === 2 && !canGoNextFromStep2) || isSubmitting}
-              className="rounded-full text-white px-7 py-5 disabled:opacity-50 transition-all shadow-sm w-full sm:w-auto shrink-0 min-w-0 flex-shrink-0"
-              style={{
-                background: (step === 2 && !canGoNextFromStep2) || isSubmitting ? '#ccc' : 'linear-gradient(to right, #FF6B35, #FFA500)',
-              }}
-              onMouseEnter={(e) => {
-                if ((step === 2 && canGoNextFromStep2) || step === 1) {
-                  e.currentTarget.style.background = 'linear-gradient(to right, #FF5722, #FF9800)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if ((step === 2 && canGoNextFromStep2) || step === 1) {
-                  e.currentTarget.style.background = 'linear-gradient(to right, #FF6B35, #FFA500)';
-                }
-              }}
+              variant="outline"
+              onClick={goBack}
+              disabled={isSubmitting}
+              className="rounded-full px-6 py-5 w-full sm:w-auto shrink-0"
             >
-              <span className="truncate">Next</span> <ArrowRight className="h-4 w-4 ml-2 shrink-0" />
+              <ArrowLeft className="h-4 w-4 mr-2 shrink-0" /> <span>Back</span>
             </Button>
           )}
+          <div className="w-full sm:w-auto">
+            {step === 3 ? (
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="rounded-full text-white px-7 py-5 transition-all shadow-sm w-full sm:w-auto shrink-0"
+                style={{
+                  background: isSubmitting ? '#ccc' : 'linear-gradient(to right, #FF6B35, #FFA500)',
+                }}
+                onMouseEnter={(e) => {
+                  if (!isSubmitting) {
+                    e.currentTarget.style.background = 'linear-gradient(to right, #FF5722, #FF9800)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isSubmitting) {
+                    e.currentTarget.style.background = 'linear-gradient(to right, #FF6B35, #FFA500)';
+                  }
+                }}
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin shrink-0" />
+                    <span>Sending...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Send</span> <ArrowRight className="h-4 w-4 ml-2 shrink-0" />
+                  </>
+                )}
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                onClick={goNext}
+                disabled={(step === 2 && !canGoNextFromStep2) || isSubmitting}
+                className="rounded-full text-white px-7 py-5 disabled:opacity-50 transition-all shadow-sm w-full sm:w-auto shrink-0"
+                style={{
+                  background: (step === 2 && !canGoNextFromStep2) || isSubmitting ? '#ccc' : 'linear-gradient(to right, #FF6B35, #FFA500)',
+                }}
+                onMouseEnter={(e) => {
+                  if ((step === 2 && canGoNextFromStep2) || step === 1) {
+                    e.currentTarget.style.background = 'linear-gradient(to right, #FF5722, #FF9800)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if ((step === 2 && canGoNextFromStep2) || step === 1) {
+                    e.currentTarget.style.background = 'linear-gradient(to right, #FF6B35, #FFA500)';
+                  }
+                }}
+              >
+                <span>Next</span> <ArrowRight className="h-4 w-4 ml-2 shrink-0" />
+              </Button>
+            )}
+          </div>
         </div>
-      </form>
-    </div>
+    </form>
   );
 };
 

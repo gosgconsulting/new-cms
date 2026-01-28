@@ -52,8 +52,8 @@ const ContactModal = ({ open, onOpenChange, initialEmail }: ContactModalProps) =
             "duration-200"
           )}
         >
-          {/* Container with max-width for content */}
-          <div className="container mx-auto max-w-4xl h-full flex flex-col px-4 sm:px-6 md:px-8 lg:px-10 py-4 sm:py-6 md:py-8 lg:py-10 overflow-y-auto">
+          {/* Unified container - single scrollable area */}
+          <div className="container mx-auto max-w-4xl h-full overflow-y-auto px-4 sm:px-6 md:px-8 lg:px-10 py-4 sm:py-6 md:py-8 lg:py-10">
             {/* Close button - Increased size */}
             <Button
               type="button"
@@ -74,12 +74,10 @@ const ContactModal = ({ open, onOpenChange, initialEmail }: ContactModalProps) =
             </div>
 
             {/* Multi-step contact form (includes WhatsApp option) */}
-            <div className="mb-6 sm:mb-8 overflow-x-hidden flex-1 min-h-0">
-              <ModalContactForm initialEmail={initialEmail || undefined} />
-            </div>
-
+            <ModalContactForm initialEmail={initialEmail || undefined} />
+            
             {/* Optional trust/avatars below form, subtle */}
-            <div className="mt-8 sm:mt-10 flex flex-col items-center gap-3 sm:gap-4">
+            <div className="mt-8 sm:mt-10 flex flex-col items-center gap-3 sm:gap-4 pb-4">
               <AvatarGroup size="md" />
               <p className="text-xs sm:text-sm text-neutral-500">We reply within 24 hours.</p>
             </div>
