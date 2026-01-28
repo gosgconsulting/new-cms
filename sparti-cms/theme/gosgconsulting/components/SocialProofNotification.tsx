@@ -18,6 +18,22 @@ type NotificationScenario = {
 const SocialProofNotification: React.FC<SocialProofNotificationProps> = ({ onLearnHow }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [currentScenario, setCurrentScenario] = useState<NotificationScenario | null>(null);
+  const [notificationQueue, setNotificationQueue] = useState<NotificationScenario[]>([]);
+  const [shownIndices, setShownIndices] = useState<Set<number>>(new Set());
+  const autoCloseDelay = 5000; // 5 seconds
+  
+  // Use refs to access current state in callbacks
+  const queueRef = React.useRef<NotificationScenario[]>([]);
+  const shownIndicesRef = React.useRef<Set<number>>(new Set());
+  
+  // Keep refs in sync with state
+  React.useEffect(() => {
+    queueRef.current = notificationQueue;
+  }, [notificationQueue]);
+  
+  React.useEffect(() => {
+    shownIndicesRef.current = shownIndices;
+  }, [shownIndices]);
 
   const scenarios: NotificationScenario[] = [
     // Service Providers - Leads
@@ -556,22 +572,146 @@ const SocialProofNotification: React.FC<SocialProofNotificationProps> = ({ onLea
     }
   ];
 
-  useEffect(() => {
-    // Show notification after 10 seconds
-    const timer = setTimeout(() => {
-      // Randomly select a scenario
-      const randomIndex = Math.floor(Math.random() * scenarios.length);
-      setCurrentScenario(scenarios[randomIndex]);
-      setIsVisible(true);
-    }, 10000);
-
-    return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  // Function to prepare queue with up to 4 more notifications
+  const prepareNotificationQueue = React.useCallback(() => {
+    const currentShown = shownIndicesRef.current;
+    const availableIndices = scenarios
+      .map((_, index) => index)
+      .filter(index => !currentShown.has(index));
+    
+    if (availableIndices.length === 0) {
+      // Reset if all scenarios have been shown
+      setShownIndices(new Set());
+      shownIndicesRef.current = new Set();
+      return;
+    }
+    
+    const queue: NotificationScenario[] = [];
+    const maxQueueSize = 4;
+    
+    // Shuffle available indices
+    const shuffled = [...availableIndices].sort(() => Math.random() - 0.5);
+    
+    for (let i = 0; i < Math.min(maxQueueSize, shuffled.length); i++) {
+      const index = shuffled[i];
+      queue.push(scenarios[index]);
+      currentShown.add(index);
+    }
+    
+    const newShown = new Set(currentShown);
+    shownIndicesRef.current = newShown;
+    setShownIndices(newShown);
+    
+    const currentQueue = queueRef.current;
+    const newQueue = [...currentQueue, ...queue];
+    queueRef.current = newQueue;
+    setNotificationQueue(newQueue);
   }, []);
 
-  const handleClose = () => {
+  // Function to show next notification from queue or get a new one
+  const showNextNotification = React.useCallback(() => {
+    const currentQueue = queueRef.current;
+    const currentShown = shownIndicesRef.current;
+    
+    let nextScenario: NotificationScenario | null = null;
+    
+    if (currentQueue.length > 0) {
+      // Show next from queue
+      nextScenario = currentQueue[0];
+      const newQueue = currentQueue.slice(1);
+      queueRef.current = newQueue;
+      setNotificationQueue(newQueue);
+      
+      // Refill queue if it's getting low
+      if (newQueue.length <= 1) {
+        prepareNotificationQueue();
+      }
+    } else {
+      // Get a new random scenario
+      const unshownIndices = scenarios
+        .map((_, index) => index)
+        .filter(index => !currentShown.has(index));
+      
+      if (unshownIndices.length === 0) {
+        // Reset if all scenarios have been shown
+        setShownIndices(new Set());
+        shownIndicesRef.current = new Set();
+        const resetIndex = Math.floor(Math.random() * scenarios.length);
+        nextScenario = scenarios[resetIndex];
+        shownIndicesRef.current.add(resetIndex);
+        setShownIndices(new Set([resetIndex]));
+      } else {
+        const randomIndex = unshownIndices[Math.floor(Math.random() * unshownIndices.length)];
+        nextScenario = scenarios[randomIndex];
+        const newShown = new Set([...currentShown, randomIndex]);
+        shownIndicesRef.current = newShown;
+        setShownIndices(newShown);
+      }
+      
+      // Prepare queue for next notifications
+      prepareNotificationQueue();
+    }
+    
+    if (nextScenario) {
+      setCurrentScenario(nextScenario);
+      setIsVisible(true);
+    }
+  }, []);
+
+  const handleClose = React.useCallback(() => {
     setIsVisible(false);
-  };
+    // Show next notification after a short delay
+    setTimeout(() => {
+      showNextNotification();
+    }, 500); // Small delay for smooth transition
+  }, [showNextNotification]);
+
+  useEffect(() => {
+    // Show first notification after 10 seconds
+    const initialTimer = setTimeout(() => {
+      const currentShown = shownIndicesRef.current;
+      const unshownIndices = scenarios
+        .map((_, index) => index)
+        .filter(index => !currentShown.has(index));
+      
+      if (unshownIndices.length === 0) {
+        // Reset if all scenarios have been shown
+        setShownIndices(new Set());
+        shownIndicesRef.current = new Set();
+        const resetIndex = Math.floor(Math.random() * scenarios.length);
+        const firstScenario = scenarios[resetIndex];
+        shownIndicesRef.current.add(resetIndex);
+        setShownIndices(new Set([resetIndex]));
+        setCurrentScenario(firstScenario);
+        setIsVisible(true);
+        prepareNotificationQueue();
+      } else {
+        const randomIndex = unshownIndices[Math.floor(Math.random() * unshownIndices.length)];
+        const firstScenario = scenarios[randomIndex];
+        const newShown = new Set([...currentShown, randomIndex]);
+        shownIndicesRef.current = newShown;
+        setShownIndices(newShown);
+        setCurrentScenario(firstScenario);
+        setIsVisible(true);
+        // Prepare queue for next notifications
+        prepareNotificationQueue();
+      }
+    }, 10000);
+
+    return () => clearTimeout(initialTimer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prepareNotificationQueue]);
+
+  // Auto-close timer effect
+  useEffect(() => {
+    if (isVisible && currentScenario) {
+      const autoCloseTimer = setTimeout(() => {
+        handleClose();
+      }, autoCloseDelay);
+
+      return () => clearTimeout(autoCloseTimer);
+    }
+  }, [isVisible, currentScenario, handleClose]);
 
   const handleLearnHow = () => {
     if (onLearnHow) {

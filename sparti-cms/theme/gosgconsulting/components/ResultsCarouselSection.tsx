@@ -40,6 +40,7 @@ interface CaseStudy {
     src: string;
     alt: string;
   };
+  deviceType?: 'phone' | 'tablet'; // Optional device type, defaults to 'phone'
 }
 
 const metricColors: Record<string, { bg: string; text: string }> = {
@@ -62,6 +63,7 @@ const parseCaseStudies = (items: Item[]): CaseStudy[] => {
     const descriptionItem = caseItem.items?.find((i) => i.key === "description");
     const metricsItem = caseItem.items?.find((i) => i.key === "metrics");
     const screenshotItem = caseItem.items?.find((i) => i.key === "screenshot");
+    const deviceTypeItem = caseItem.items?.find((i) => i.key === "deviceType");
 
     const tags = tagsItem?.items?.map((tag) => tag.content || tag) || [];
     const metrics =
@@ -81,6 +83,7 @@ const parseCaseStudies = (items: Item[]): CaseStudy[] => {
         src: screenshotItem?.src || "",
         alt: screenshotItem?.alt || "Case study screenshot",
       },
+      deviceType: (deviceTypeItem?.content as 'phone' | 'tablet') || 'phone',
     };
   });
 };
@@ -100,11 +103,10 @@ const ResultsCarouselSection: React.FC<ResultsCarouselSectionProps> = ({
       companyName: "Selenightco",
       tags: ["META ADS", "FACEBOOK", "INSTAGRAM", "PERFORMANCE", "ROAS", "6 MONTHS"],
       description:
-        "Selenightco generated 62k revenue from 9.8k ad spend, delivering a ROAS of 6.3x. We developed a targeted Meta Ads strategy using Facebook and Instagram Advertising to drive revenue growth. Our focus was on optimizing campaigns for maximum ROAS, with comprehensive A/B testing on creatives and key messages to ensure peak performance.",
+        "Selenightco generated incremental revenues at a Return on Ad Spend of 6.3x. That means, for every 1,000 spent, it generated 6.3k revenue. We developed a targeted Meta Ads strategy using Facebook and Instagram Advertising to drive revenue growth. Our focus was on optimizing campaigns for maximum ROAS, with comprehensive A/B testing on creatives and key messages to ensure peak performance.",
       metrics: [
-        { value: "6.3x", label1: "ROAS", label2: "Return", color: "cyan" },
-        { value: "62k", label1: "Revenue", label2: "Generated", color: "teal" },
-        { value: "9.8k", label1: "Ad", label2: "Spend", color: "orange" },
+        { value: "6.3x", label1: "ROAS", label2: "Return on Ad Spend", color: "cyan" },
+        { value: "6.3k", label1: "Revenue", label2: "per 1k Ad Spend", color: "teal" },
       ],
       screenshot: {
         src: "/theme/gosgconsulting/assets/selenightco-meta-ads-results.png",
@@ -115,16 +117,47 @@ const ResultsCarouselSection: React.FC<ResultsCarouselSectionProps> = ({
       companyName: "Elizabeth Little",
       tags: ["META ADS", "FACEBOOK", "INSTAGRAM", "PERFORMANCE", "ROAS", "2 MONTHS"],
       description:
-        "Elizabeth Little achieved 19.9k revenue from 2.8k ad spend, delivering a ROAS of 7. We developed a targeted Meta Ads strategy using Facebook and Instagram Advertising to drive revenue growth. Our focus was on optimizing campaigns for maximum ROAS and efficient budget allocation.",
+        "Elizabeth Little generated incremental revenues at a Return on Ad Spend of 7x. That means, for every 1,000 spent, it generated 7k revenue. We developed a targeted Meta Ads strategy using Facebook and Instagram Advertising to drive revenue growth. Our focus was on optimizing campaigns for maximum ROAS and efficient budget allocation.",
       metrics: [
-        { value: "7x", label1: "ROAS", label2: "Return", color: "cyan" },
-        { value: "19.9k", label1: "Revenue", label2: "Generated", color: "teal" },
-        { value: "2.8k", label1: "Ad", label2: "Spend", color: "orange" },
+        { value: "7x", label1: "ROAS", label2: "Return on Ad Spend", color: "cyan" },
+        { value: "7k", label1: "Revenue", label2: "per 1k Ad Spend", color: "teal" },
       ],
       screenshot: {
         src: "/theme/gosgconsulting/assets/elizabeth-little-meta-ads-results.png",
         alt: "Elizabeth Little Meta Ads performance results",
       },
+      deviceType: 'tablet',
+    },
+    {
+      companyName: "Global Modul",
+      tags: ["META ADS", "LEAD GENERATION", "CONVERSIONS", "30 DAYS"],
+      description:
+        "Global Modul generated 63 leads within 30 days, with only 350 euros spent, with 2 conversions worth 7k euros. They are selling Modulable houses, and we helped them generate 5-10 leads everyday through targeted Meta Ads campaigns.",
+      metrics: [
+        { value: "63", label1: "Leads", label2: "in 30 Days", color: "cyan" },
+        { value: "€5.6", label1: "Cost", label2: "per Lead", color: "teal" },
+        { value: "7k€", label1: "Conversion", label2: "Value", color: "orange" },
+      ],
+      screenshot: {
+        src: "/theme/gosgconsulting/assets/global-modul-results.png",
+        alt: "Global Modul lead generation results",
+      },
+      deviceType: 'tablet',
+    },
+    {
+      companyName: "Art in Bloom",
+      tags: ["META ADS", "E-COMMERCE", "A/B TESTING", "COMPETITIVE MARKET"],
+      description:
+        "Art in Bloom, a florist shop offering flowers for grand openings, business openings, and flower gifts, operates in an extremely competitive market. Through comprehensive A/B testing of products, assets, and design, we found winning campaigns and achieved an average ROAS of 3x.",
+      metrics: [
+        { value: "3x", label1: "ROAS", label2: "Return on Ad Spend", color: "cyan" },
+        { value: "3k", label1: "Revenue", label2: "per 1k Ad Spend", color: "teal" },
+      ],
+      screenshot: {
+        src: "/theme/gosgconsulting/assets/art-in-bloom-results.png",
+        alt: "Art in Bloom Meta Ads performance results",
+      },
+      deviceType: 'tablet',
     },
   ];
 
@@ -179,29 +212,56 @@ const ResultsCarouselSection: React.FC<ResultsCarouselSectionProps> = ({
                     </div>
                   )}
 
-                  {/* 3. Image - Mobile Device Frame */}
+                  {/* 3. Image - Device Frame (Phone or Tablet) */}
                   <div className="flex justify-center">
-                    <div className="relative w-full max-w-sm">
-                      <div className="relative bg-white rounded-[2.5rem] p-2 shadow-2xl border-8 border-gray-900">
-                        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 w-12 h-6 bg-gray-900 rounded-full"></div>
-                        <div className="rounded-[2rem] overflow-hidden bg-gray-100 aspect-[9/16]">
-                          {study.screenshot.src ? (
-                            <img
-                              src={study.screenshot.src}
-                              alt={study.screenshot.alt}
-                              className="w-full h-full object-contain bg-white"
-                              onError={(e) => {
-                                (e.target as HTMLImageElement).src = "/placeholder.svg";
-                              }}
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-gray-200">
-                              <span className="text-gray-400 text-sm">Screenshot</span>
-                            </div>
-                          )}
+                    {study.deviceType === 'tablet' ? (
+                      // Tablet Mockup - Horizontal
+                      <div className="relative w-full max-w-2xl">
+                        <div className="relative bg-white rounded-2xl p-3 shadow-2xl border-4 border-gray-900">
+                          {/* Tablet home button */}
+                          <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 w-16 h-1 bg-gray-900 rounded-full"></div>
+                          <div className="rounded-xl overflow-hidden bg-gray-100 aspect-[16/10]">
+                            {study.screenshot.src ? (
+                              <img
+                                src={study.screenshot.src}
+                                alt={study.screenshot.alt}
+                                className="w-full h-full object-contain bg-white"
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).src = "/placeholder.svg";
+                                }}
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center bg-gray-200">
+                                <span className="text-gray-400 text-sm">Screenshot</span>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    ) : (
+                      // Phone Mockup - Vertical
+                      <div className="relative w-full max-w-sm">
+                        <div className="relative bg-white rounded-[2.5rem] p-2 shadow-2xl border-8 border-gray-900">
+                          <div className="absolute top-4 left-1/2 transform -translate-x-1/2 w-12 h-6 bg-gray-900 rounded-full"></div>
+                          <div className="rounded-[2rem] overflow-hidden bg-gray-100 aspect-[9/16]">
+                            {study.screenshot.src ? (
+                              <img
+                                src={study.screenshot.src}
+                                alt={study.screenshot.alt}
+                                className="w-full h-full object-contain bg-white"
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).src = "/placeholder.svg";
+                                }}
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center bg-gray-200">
+                                <span className="text-gray-400 text-sm">Screenshot</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* 4. Text/Description */}
@@ -213,7 +273,7 @@ const ResultsCarouselSection: React.FC<ResultsCarouselSectionProps> = ({
 
                   {/* 5. KPI Cards */}
                   {study.metrics.length > 0 && (
-                    <div className="grid grid-cols-3 gap-3 max-w-2xl mx-auto">
+                    <div className={`grid gap-3 max-w-2xl mx-auto ${study.metrics.length === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
                       {study.metrics.map((metric, metricIndex) => {
                         const colorClass = metricColors[metric.color] || metricColors.pink;
                         return (
@@ -263,7 +323,7 @@ const ResultsCarouselSection: React.FC<ResultsCarouselSectionProps> = ({
 
                     {/* KPI Metrics */}
                     {study.metrics.length > 0 && (
-                      <div className="grid grid-cols-3 gap-4 pt-4">
+                      <div className={`grid gap-4 pt-4 ${study.metrics.length === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
                         {study.metrics.map((metric, metricIndex) => {
                           const colorClass = metricColors[metric.color] || metricColors.pink;
                           return (
@@ -287,29 +347,56 @@ const ResultsCarouselSection: React.FC<ResultsCarouselSectionProps> = ({
                     )}
                   </div>
 
-                  {/* Right Column - Mobile Device Frame */}
+                  {/* Right Column - Device Frame (Phone or Tablet) */}
                   <div className="flex justify-center lg:justify-end">
-                    <div className="relative w-full max-w-sm">
-                      <div className="relative bg-white rounded-[2.5rem] p-2 shadow-2xl border-8 border-gray-900">
-                        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 w-12 h-6 bg-gray-900 rounded-full"></div>
-                        <div className="rounded-[2rem] overflow-hidden bg-gray-100 aspect-[9/16]">
-                          {study.screenshot.src ? (
-                            <img
-                              src={study.screenshot.src}
-                              alt={study.screenshot.alt}
-                              className="w-full h-full object-contain bg-white"
-                              onError={(e) => {
-                                (e.target as HTMLImageElement).src = "/placeholder.svg";
-                              }}
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-gray-200">
-                              <span className="text-gray-400 text-sm">Screenshot</span>
-                            </div>
-                          )}
+                    {study.deviceType === 'tablet' ? (
+                      // Tablet Mockup - Horizontal
+                      <div className="relative w-full max-w-2xl">
+                        <div className="relative bg-white rounded-2xl p-3 shadow-2xl border-4 border-gray-900">
+                          {/* Tablet home button */}
+                          <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 w-16 h-1 bg-gray-900 rounded-full"></div>
+                          <div className="rounded-xl overflow-hidden bg-gray-100 aspect-[16/10]">
+                            {study.screenshot.src ? (
+                              <img
+                                src={study.screenshot.src}
+                                alt={study.screenshot.alt}
+                                className="w-full h-full object-contain bg-white"
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).src = "/placeholder.svg";
+                                }}
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center bg-gray-200">
+                                <span className="text-gray-400 text-sm">Screenshot</span>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    ) : (
+                      // Phone Mockup - Vertical
+                      <div className="relative w-full max-w-sm">
+                        <div className="relative bg-white rounded-[2.5rem] p-2 shadow-2xl border-8 border-gray-900">
+                          <div className="absolute top-4 left-1/2 transform -translate-x-1/2 w-12 h-6 bg-gray-900 rounded-full"></div>
+                          <div className="rounded-[2rem] overflow-hidden bg-gray-100 aspect-[9/16]">
+                            {study.screenshot.src ? (
+                              <img
+                                src={study.screenshot.src}
+                                alt={study.screenshot.alt}
+                                className="w-full h-full object-contain bg-white"
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).src = "/placeholder.svg";
+                                }}
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center bg-gray-200">
+                                <span className="text-gray-400 text-sm">Screenshot</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </CarouselItem>
