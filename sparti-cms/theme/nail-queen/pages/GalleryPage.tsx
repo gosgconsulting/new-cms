@@ -35,13 +35,13 @@ export default function GalleryPage({ basePath }: { basePath: string }) {
         id: 2,
         category: "manicures",
         title: "Metalic",
-        image: asset("gallery/manicures/metalic.png"),
+        image: asset("gallery/Nail_Queen/Metalic/a2_2.jpg"),
       },
       {
         id: 3,
         category: "manicures",
         title: "3D",
-        image: asset("gallery/manicures/3d.JPG"),
+        image: asset("gallery/Nail_Queen/3d/4.jpg"),
       },
       {
         id: 4,
@@ -53,7 +53,7 @@ export default function GalleryPage({ basePath }: { basePath: string }) {
         id: 5,
         category: "manicures",
         title: "Extension",
-        image: asset("gallery/manicures/extension.png"),
+        image: asset("gallery/Nail_Queen/extension/11.jpg"),
       },
       {
         id: 6,
@@ -77,7 +77,7 @@ export default function GalleryPage({ basePath }: { basePath: string }) {
         id: 9,
         category: "manicures",
         title: "Crystal",
-        image: asset("gallery/manicures/crytal.jpg"),
+        image: asset("gallery/Nail_Queen/crystal/IMG_6364.jpg"),
       },
       {
         id: 10,
@@ -95,64 +95,55 @@ export default function GalleryPage({ basePath }: { basePath: string }) {
         id: 12,
         category: "pedicures",
         title: "Pedicure Service",
-        image:
-          "https://images.unsplash.com/photo-1595348020949-87cdfbb44174?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
+        image: "https://spongelle.com/cdn/shop/articles/pedicure-types.jpg?v=1689702966",
       },
       {
         id: 13,
         category: "pedicures",
         title: "Foot Care",
-        image:
-          "https://images.unsplash.com/photo-1595348020949-87cdfbb44174?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
+        image: "https://images.unsplash.com/photo-1519415510236-718bdfcd89c8?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
       },
       {
         id: 14,
         category: "pedicures",
         title: "Spa Treatment",
-        image:
-          "https://images.unsplash.com/photo-1595348020949-87cdfbb44174?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
+        image: "https://cdn.prod.website-files.com/630f3c750051ac8f612287b7/630f3dfac4aaa11685865a0f_What%20is%20a%20pedicure.jpg",
       },
       {
         id: 15,
         category: "eyebrows",
         title: "Brow Shaping",
-        image:
-          "https://images.unsplash.com/photo-1516975080664-ed2fc6a32937?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
+        image: "https://www.thelashlounge.com/wp-content/uploads/2021/12/Oneupweb_TLL_WhatDoesYourEyebrowShapeSayAboutYou_January_body.jpg",
       },
       {
         id: 16,
         category: "eyebrows",
         title: "Threading",
-        image:
-          "https://images.unsplash.com/photo-1516975080664-ed2fc6a32937?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
+        image: "https://cdn.shopify.com/s/files/1/0602/2437/2993/files/glamour-1024x537_2048x2048.jpg?v=1644234212",
       },
       {
         id: 17,
         category: "eyelashes",
         title: "Lash Extensions",
-        image:
-          "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
+        image: "https://www.ibeautycode.ca/wp-content/uploads/2023/11/Wet-Effect-eyelash-extensions-cat-eye-style-1-1.jpg",
       },
       {
         id: 18,
         category: "eyelashes",
         title: "Volume Lashes",
-        image:
-          "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
+        image: "https://charmlash.com/wp-content/uploads/2025/08/Dramatic-wispy-cat-eye-eyelash-extensions-614x734.jpg",
       },
       {
         id: 19,
-        category: "treatment",
+        category: "nail-treatment",
         title: "Nail Treatment",
-        image:
-          "https://images.unsplash.com/photo-1560066984-138dadb4c035?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
+        image: "https://media.istockphoto.com/id/1308840699/photo/woman-doing-manicure.jpg?s=612x612&w=0&k=20&c=kD5tBjVGPqEkZVGy9MDlXWt0M8rUGO8Kb-pdpICttOU=",
       },
       {
         id: 20,
-        category: "treatment",
+        category: "hand-care",
         title: "Hand Care",
-        image:
-          "https://images.unsplash.com/photo-1560066984-138dadb4c035?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
+        image: "https://uk.elemis.com/media/aw_blog/1-Hand_Foot_Care_category_1.jpg",
       },
     ],
     [basePath]
@@ -166,7 +157,11 @@ export default function GalleryPage({ basePath }: { basePath: string }) {
     { id: "treatment", label: "Treatment" },
   ];
 
-  const filteredItems = galleryItems.filter((item) => item.category === activeFilter);
+  const filteredItems = galleryItems.filter((item) =>
+    activeFilter === "treatment"
+      ? item.category === "nail-treatment" || item.category === "hand-care"
+      : item.category === activeFilter
+  );
 
   // Generate carousel images for a gallery item
   // For "French tips", use all images from the french_tips directory
@@ -657,6 +652,77 @@ export default function GalleryPage({ basePath }: { basePath: string }) {
           thumb: imagePath,
         };
       });
+    }
+
+    // Special handling for Pedicures - 3 photos per carousel popup, main image first
+    if (item.category === "pedicures") {
+      const pedicureCarouselImages = [
+        "https://spongelle.com/cdn/shop/articles/pedicure-types.jpg?v=1689702966",
+        "https://images.unsplash.com/photo-1519415510236-718bdfcd89c8?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+        "https://cdn.prod.website-files.com/630f3c750051ac8f612287b7/630f3dfac4aaa11685865a0f_What%20is%20a%20pedicure.jpg",
+        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRsvxC7r4Tb-qmUqPccD5qjbIfafA-uLY0QPw&s",
+        "https://i.pinimg.com/564x/66/33/80/66338044526ff5580e47b01a2c71f2ec.jpg",
+        "https://elegancybeautybar.com/wp-content/uploads/2024/04/feet1-a.jpg",
+        "https://classpass.com/blog/wp-content/uploads/2022/04/Pedicures-ClassPass-1200x800.jpg",
+        "https://i.ytimg.com/vi/WGwe_gAFN3M/hq720.jpg?sqp=-oaymwEhCK4FEIIDSFryq4qpAxMIARUAAAAAGAElAADIQj0AgKJD&rs=AOn4CLDagU3Exzur3keoHpS5v2YX_N4XJg",
+        "https://dss.fosterwebmarketing.com/upload/fixingfeet.com/AdobeStock_112199486.jpeg",
+      ];
+      const index = item.id - 12; // 0, 1, 2 for the 3 pedicure cards
+      const slice = pedicureCarouselImages.slice(index * 3, index * 3 + 3);
+      const withMainFirst = [item.image, ...slice.filter((url) => url !== item.image)];
+      return withMainFirst.map((url) => ({ full: url, thumb: url }));
+    }
+
+    // Special handling for Eyebrows - 2 photos per carousel popup, main image first
+    if (item.category === "eyebrows") {
+      const eyebrowCarouselImages = [
+        "https://www.thelashlounge.com/wp-content/uploads/2021/12/Oneupweb_TLL_WhatDoesYourEyebrowShapeSayAboutYou_January_body.jpg",
+        "https://cdn.shopify.com/s/files/1/0602/2437/2993/files/glamour-1024x537_2048x2048.jpg?v=1644234212",
+        "https://nanolash.co.th/assets/img/products/nanobrow/eyebrow-pomade/nanobrow-eyebrow-pomade-effects-after.jpg",
+        "https://lirp.cdn-website.com/fb9659cf/dms3rep/multi/opt/AdobeStock_578978383-fd7a1751-640w.jpeg",
+      ];
+      const index = item.id - 15; // 0, 1 for the 2 eyebrow cards
+      const slice = eyebrowCarouselImages.slice(index * 2, index * 2 + 2);
+      const withMainFirst = [item.image, ...slice.filter((url) => url !== item.image)];
+      return withMainFirst.map((url) => ({ full: url, thumb: url }));
+    }
+
+    // Special handling for Eyelashes - 2 photos per carousel popup, main image first
+    if (item.category === "eyelashes") {
+      const eyelashCarouselImages = [
+        "https://www.ibeautycode.ca/wp-content/uploads/2023/11/Wet-Effect-eyelash-extensions-cat-eye-style-1-1.jpg",
+        "https://charmlash.com/wp-content/uploads/2025/08/Dramatic-wispy-cat-eye-eyelash-extensions-614x734.jpg",
+        "https://heymebeauty.com/wp-content/uploads/2025/01/What-is-Doll-Eye-Lashes-1024x576.webp",
+        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQiRXWO1MuCVEfNdyGrWxSvdNheAGuJaDJo-g&s",
+      ];
+      const index = item.id - 17; // 0, 1 for the 2 eyelash cards
+      const slice = eyelashCarouselImages.slice(index * 2, index * 2 + 2);
+      const withMainFirst = [item.image, ...slice.filter((url) => url !== item.image)];
+      return withMainFirst.map((url) => ({ full: url, thumb: url }));
+    }
+
+    // Special handling for Nail treatment - 4 photos in carousel popup, main image first
+    if (item.category === "nail-treatment") {
+      const nailTreatmentCarouselImages = [
+        "https://media.istockphoto.com/id/1308840699/photo/woman-doing-manicure.jpg?s=612x612&w=0&k=20&c=kD5tBjVGPqEkZVGy9MDlXWt0M8rUGO8Kb-pdpICttOU=",
+        "https://www.vodex.co.uk/wp-content/uploads/Nail-salon-health-treatments.jpg",
+        "https://nailology.london/cdn/shop/files/menicure_1.jpg?v=1678144026",
+        "https://media.istockphoto.com/id/1176491163/photo/woman-using-a-buffer-to-file-nail.jpg?s=612x612&w=0&k=20&c=4LNh8l5gXyxHuUPoy0eqs_0p-lvTeGgeAFjZALeYhzU=",
+      ];
+      const withMainFirst = [item.image, ...nailTreatmentCarouselImages.filter((url) => url !== item.image)];
+      return withMainFirst.map((url) => ({ full: url, thumb: url }));
+    }
+
+    // Special handling for Hand care - 4 photos in carousel popup, main image first
+    if (item.category === "hand-care") {
+      const handCareCarouselImages = [
+        "https://uk.elemis.com/media/aw_blog/1-Hand_Foot_Care_category_1.jpg",
+        "https://thumbs.dreamstime.com/b/woman-hand-care-hands-spa-relaxing-beauty-woman-nails-woman-hand-care-hands-spa-relaxing-beauty-woman-nails-208947488.jpg",
+        "https://berelax.com/wp-content/uploads/2025/02/hand-spa-treatment-philip-martins-937x1024.webp",
+        "https://thumbs.dreamstime.com/b/hands-spa-beautiful-woman-s-hands-bowl-water-female-flowers-hand-care-nail-salon-relaxing-manicure-pink-rose-73334452.jpg",
+      ];
+      const withMainFirst = [item.image, ...handCareCarouselImages.filter((url) => url !== item.image)];
+      return withMainFirst.map((url) => ({ full: url, thumb: url }));
     }
 
     // For other items, use the same image multiple times
