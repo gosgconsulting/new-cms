@@ -1079,7 +1079,7 @@ const PersonalTrainingPage: React.FC<TenantLandingProps> = ({
                   <Instagram className="h-5 w-5 text-foreground group-hover:text-[#E00000] transition-colors" />
                 </a>
                 <a
-                  href="https://wa.me/6588411329"
+                  href="https://wa.me/6588390204"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-10 h-10 rounded-full border-2 border-foreground/30 flex items-center justify-center hover:border-[#E00000] hover:bg-[#E00000]/10 transition-all duration-300 group"
