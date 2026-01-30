@@ -528,8 +528,25 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
       
       if (response.ok) {
         const result = await response.json();
-        // Update the array item with the new image URL
-        updateArrayItem(itemIndex, arrayProp, arrayItemIndex, 'url', result.url);
+        const newUrl = result.url;
+        if (!newUrl) {
+          console.error('Upload response missing url');
+          alert('Failed to upload image. Please try again.');
+          return;
+        }
+        // Update all image-related fields in one go so both editor (url) and frontend (src/image/imageSrc) stay in sync
+        const items = safeSchema.items || [];
+        const parentItem = items[itemIndex] as unknown as Record<string, unknown>;
+        const currentArray = (parentItem[arrayProp] as Record<string, unknown>[]) || [];
+        const currentItem = { ...(currentArray[arrayItemIndex] as Record<string, unknown>) };
+        const updatedItem = {
+          ...currentItem,
+          url: newUrl,
+          src: newUrl,
+          image: newUrl,
+          imageSrc: newUrl,
+        };
+        setArrayItemObject(itemIndex, arrayProp, arrayItemIndex, updatedItem);
       } else {
         console.error('Upload failed');
         alert('Failed to upload image. Please try again.');
