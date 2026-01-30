@@ -534,18 +534,12 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
           alert('Failed to upload image. Please try again.');
           return;
         }
-        // Update all image-related fields in one go so both editor (url) and frontend (src/image/imageSrc) stay in sync
+        // Save only src
         const items = safeSchema.items || [];
         const parentItem = items[itemIndex] as unknown as Record<string, unknown>;
         const currentArray = (parentItem[arrayProp] as Record<string, unknown>[]) || [];
         const currentItem = { ...(currentArray[arrayItemIndex] as Record<string, unknown>) };
-        const updatedItem = {
-          ...currentItem,
-          url: newUrl,
-          src: newUrl,
-          image: newUrl,
-          imageSrc: newUrl,
-        };
+        const updatedItem = { ...currentItem, src: newUrl };
         setArrayItemObject(itemIndex, arrayProp, arrayItemIndex, updatedItem);
       } else {
         console.error('Upload failed');
@@ -725,8 +719,7 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
                       >
                         {isImageItem(arrayProp, currentArrayItem) ? (
                           (() => {
-                            const imgUrl = (currentArrayItem as any).url || (currentArrayItem as any).src || (currentArrayItem as any).image || '';
-                            const urlKey = (currentArrayItem as any).url !== undefined ? 'url' : ((currentArrayItem as any).src !== undefined ? 'src' : 'image');
+                            const imgUrl = (currentArrayItem as any).src ?? '';
                             // Get all fields that should be displayed
                             const item = currentArrayItem as any;
                             // Check if fields exist (even if empty string - they're still valid fields)
@@ -757,7 +750,7 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
                                     <input
                                       type="url"
                                       value={imgUrl}
-                                      onChange={(e) => updateArrayItem(index, arrayProp, currentTab, urlKey, e.target.value)}
+                                      onChange={(e) => updateArrayItem(index, arrayProp, currentTab, 'src', e.target.value)}
                                       className="w-full p-2 rounded-md border"
                                       placeholder="Enter image URL"
                                     />
