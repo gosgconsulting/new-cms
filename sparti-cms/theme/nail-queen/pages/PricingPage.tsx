@@ -87,7 +87,7 @@ export default function PricingPage({ basePath }: { basePath: string }) {
                     </p>
                   </div>
                   <div className="text-right ml-4">
-                    <span className="font-bold">$74.12</span>
+                    <span className="font-bold">$97.2</span>
                     <p className="text-xs text-gray-500">(inclusive of GST)</p>
                   </div>
                 </div>
@@ -100,7 +100,7 @@ export default function PricingPage({ basePath }: { basePath: string }) {
                     </p>
                   </div>
                   <div className="text-right ml-4">
-                    <span className="font-bold">$74.12</span>
+                    <span className="font-bold">$41.42</span>
                     <p className="text-xs text-gray-500">(inclusive of GST)</p>
                   </div>
                 </div>
@@ -111,7 +111,7 @@ export default function PricingPage({ basePath }: { basePath: string }) {
                     <p className="text-sm text-gray-600">Fill up the growing gap part and create a smooth nail surface.</p>
                   </div>
                   <div className="text-right ml-4">
-                    <span className="font-bold">extra $95.92/set</span>
+                    <span className="font-bold">extra $65.4/set</span>
                     <p className="text-xs text-gray-500">(inclusive of GST)</p>
                   </div>
                 </div>
