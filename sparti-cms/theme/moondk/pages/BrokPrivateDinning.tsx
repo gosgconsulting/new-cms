@@ -53,12 +53,19 @@ export default function BrokPrivateDinningPage() {
 
                   {/* Buttons */}
                   <div className="flex items-center justify-center gap-4 flex-wrap">
-                    <ThemeLink 
-                      to="/category/shop"
+                    <a 
+                      href="#menu"
                       className="px-8 py-3 rounded-full bg-transparent border border-white/30 !text-white font-normal text-sm transition-all duration-300 hover:bg-white/20 hover:border-white/70 hover:scale-105 hover:shadow-lg cursor-pointer inline-flex items-center"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        const menuSection = document.getElementById('menu');
+                        if (menuSection) {
+                          menuSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                      }}
                     >
                       View Menu
-                    </ThemeLink>
+                    </a>
                     <ThemeLink 
                       to="/about/customer-care"
                       className="px-8 py-3 rounded-full bg-white text-black font-normal text-sm transition-all duration-300 hover:bg-white/90 hover:scale-105 hover:shadow-lg cursor-pointer inline-flex items-center gap-2 group"
@@ -243,6 +250,74 @@ Reservations are confirmed upon payment of deposit within 12 hours. Otherwise, t
               </div>
             </motion.div>
           </div>
+        </div>
+      </section>
+
+      {/* Menu Section */}
+      <section id="menu" className="px-2 py-16">
+        <div className="mx-auto max-w-4xl">
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+          >
+            <div className="text-center mb-12">
+              <h2 className="text-3xl md:text-4xl font-heading tracking-tight mb-2">Beok</h2>
+              <p className="text-lg font-body text-foreground/70">Winter Menu</p>
+            </div>
+
+            <div className="space-y-8">
+              {/* Menu Item 1 */}
+              <div className="border-b border-border pb-6">
+                <h3 className="text-xl md:text-2xl font-heading mb-2">막걸리빵 / 호박범벅 / 닭보김치</h3>
+                <p className="text-base md:text-lg font-body text-foreground/80 mb-2">Makgeolli Bread / Hobak Beombeok / Chicken Bo Kimchi</p>
+                <p className="text-sm md:text-base font-body text-foreground/60">Burdock Butter / Red Bean & Mung Bean / Mustard Pearl</p>
+              </div>
+
+              {/* Menu Item 2 */}
+              <div className="border-b border-border pb-6">
+                <h3 className="text-xl md:text-2xl font-heading mb-2">참깨두부</h3>
+                <p className="text-base md:text-lg font-body text-foreground/80 mb-2">Sesame Dubu</p>
+                <p className="text-sm md:text-base font-body text-foreground/60">Tot Seaweed, Celeriac, Kale, Soy Sauce Foam</p>
+              </div>
+
+              {/* Menu Item 3 */}
+              <div className="border-b border-border pb-6">
+                <h3 className="text-xl md:text-2xl font-heading mb-2">잔치 국수</h3>
+                <p className="text-base md:text-lg font-body text-foreground/80 mb-2">Janchi Guksu</p>
+                <p className="text-sm md:text-base font-body text-foreground/60">Korean Noodle, Jeju Golden Flounder, Korean Zucchini</p>
+              </div>
+
+              {/* Menu Item 4 */}
+              <div className="border-b border-border pb-6">
+                <h3 className="text-xl md:text-2xl font-heading mb-2">오징어순대</h3>
+                <p className="text-base md:text-lg font-body text-foreground/80 mb-2">Squid Sundae</p>
+                <p className="text-sm md:text-base font-body text-foreground/60">Jeyuk Pork, Kimchi Caper Beurre Blanc, Sunchoke Crumble</p>
+              </div>
+
+              {/* Menu Item 5 */}
+              <div className="border-b border-border pb-6">
+                <h3 className="text-xl md:text-2xl font-heading mb-2">돼지보쌈</h3>
+                <p className="text-base md:text-lg font-body text-foreground/80 mb-2">Pork Bossam</p>
+                <p className="text-sm md:text-base font-body text-foreground/60">Iberico Pork Collar, Anchovy Chili Jang, Nuruk Salt Paste</p>
+              </div>
+
+              {/* Menu Item 6 */}
+              <div className="border-b border-border pb-6">
+                <h3 className="text-xl md:text-2xl font-heading mb-2">갈비찜반상</h3>
+                <p className="text-base md:text-lg font-body text-foreground/80 mb-2">Galbij-Jim Bansang</p>
+                <p className="text-sm md:text-base font-body text-foreground/60">USA Prime Beef Short Rib, Raisin, Red Wine, Wild Mountain Vegetable Rice & Maesaengi Seaweed Soup</p>
+              </div>
+
+              {/* Menu Item 7 - Dessert */}
+              <div className="pb-6">
+                <h3 className="text-xl md:text-2xl font-heading mb-2">인절미파이</h3>
+                <p className="text-base md:text-lg font-body text-foreground/80 mb-2">Injeolmi Pie</p>
+                <p className="text-sm md:text-base font-body text-foreground/60">Injeolmi Ice Cream, Strawberry, Italian Meringue, Overproof Rum</p>
+              </div>
+            </div>
+          </motion.div>
         </div>
       </section>
 
