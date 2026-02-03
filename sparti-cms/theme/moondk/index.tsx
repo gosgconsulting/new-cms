@@ -17,6 +17,7 @@ import TermsOfServicePage from "./pages/TermsOfService";
 import NotFoundPage from "./pages/NotFound";
 import RecipesPage from "./pages/Recipes";
 import RecipeDetailPage from "./pages/RecipeDetail";
+import BrokPrivateDinningPage from "./pages/BrokPrivateDinning";
 
 interface MoondkThemeProps {
   tenantName?: string;
@@ -96,6 +97,10 @@ const MoondkTheme: React.FC<MoondkThemeProps> = ({
     if (current.startsWith("recipes/")) {
       const recipeSlug = current.split("/").slice(1).join("/") || "";
       return <RecipeDetailPage recipeSlug={recipeSlug} />;
+    }
+
+    if (current === "brok-private-dinning") {
+      return <BrokPrivateDinningPage />;
     }
 
     return <NotFoundPage />;

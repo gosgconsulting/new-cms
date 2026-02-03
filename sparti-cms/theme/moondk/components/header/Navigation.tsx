@@ -1,5 +1,5 @@
 import { X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 
 import { ThemeLink } from "../ThemeLink";
@@ -19,6 +19,7 @@ const Navigation = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [offCanvasType, setOffCanvasType] = useState<"favorites" | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   const { cartItems, updateQuantity, totalItems, isCartOpen, openCart, closeCart } = useCart();
 
@@ -31,6 +32,34 @@ const Navigation = () => {
       img.src = src;
     });
   }, []);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (closeTimeoutRef.current) {
+        clearTimeout(closeTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // Helper function to handle delayed dropdown close
+  const handleDropdownClose = () => {
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current);
+    }
+    closeTimeoutRef.current = setTimeout(() => {
+      setActiveDropdown(null);
+    }, 250); // 250ms delay for better UX
+  };
+
+  // Helper function to cancel dropdown close
+  const handleDropdownOpen = (itemName: string) => {
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current);
+      closeTimeoutRef.current = null;
+    }
+    setActiveDropdown(itemName);
+  };
 
   const navItems = [
     {
@@ -129,12 +158,12 @@ const Navigation = () => {
                   className="relative"
                   onMouseEnter={() => {
                     if (item.submenuItems && item.submenuItems.length > 0) {
-                      setActiveDropdown(item.name);
+                      handleDropdownOpen(item.name);
                     } else {
                       setActiveDropdown(null);
                     }
                   }}
-                  onMouseLeave={() => setActiveDropdown(null)}
+                  onMouseLeave={handleDropdownClose}
                 >
                   <ThemeLink
                     to={item.href}
@@ -163,8 +192,8 @@ const Navigation = () => {
                   {activeDropdown === item.name && item.submenuItems && item.submenuItems.length > 0 && (
                     <div
                       className="absolute top-full left-0 mt-2 bg-white border border-border/30 shadow-xl rounded-2xl z-50 min-w-[200px] py-2 overflow-hidden transition-all duration-300 ease-out"
-                      onMouseEnter={() => setActiveDropdown(item.name)}
-                      onMouseLeave={() => setActiveDropdown(null)}
+                      onMouseEnter={() => handleDropdownOpen(item.name)}
+                      onMouseLeave={handleDropdownClose}
                       style={{
                         backdropFilter: 'blur(10px)',
                         boxShadow: '0 10px 40px rgba(0, 0, 0, 0.08)',

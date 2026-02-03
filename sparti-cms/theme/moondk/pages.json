@@ -10,6 +10,7 @@
     { "id": "about-customer-care", "name": "Customer Care", "slug": "about/customer-care", "component": "CustomerCare" },
     { "id": "about-store-locator", "name": "Store Locator", "slug": "about/store-locator", "component": "StoreLocator" },
     { "id": "privacy-policy", "name": "Privacy Policy", "slug": "privacy-policy", "component": "PrivacyPolicy" },
-    { "id": "terms-of-service", "name": "Terms of Service", "slug": "terms-of-service", "component": "TermsOfService" }
+    { "id": "terms-of-service", "name": "Terms of Service", "slug": "terms-of-service", "component": "TermsOfService" },
+    { "id": "brok-private-dinning", "name": "Brok Private Dining", "slug": "brok-private-dinning", "component": "BrokPrivateDinning" }
   ]
 }
