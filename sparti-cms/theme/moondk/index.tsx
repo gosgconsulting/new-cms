@@ -99,7 +99,7 @@ const MoondkTheme: React.FC<MoondkThemeProps> = ({
       return <RecipeDetailPage recipeSlug={recipeSlug} />;
     }
 
-    if (current === "brok-private-dinning") {
+    if (current === "beok-private-dinning") {
       return <BrokPrivateDinningPage />;
     }
 

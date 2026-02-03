@@ -148,7 +148,7 @@ export default function BrokPrivateDinningPage() {
                 transition={{ duration: 0.6, ease: "easeOut" }}
               >
                 <h2 className="text-3xl md:text-4xl font-body !text-white mb-8 tracking-tight">
-                  Book your seat at BROK
+                  Book your seat at BEOK
                 </h2>
                 <div>
                   <ThemeLink 

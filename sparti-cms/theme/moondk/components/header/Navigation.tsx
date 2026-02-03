@@ -88,7 +88,7 @@ const Navigation = () => {
     },
     {
       name: "Beok Home Dining",
-      href: "/brok-private-dinning",
+      href: "/beok-private-dinning",
       submenuItems: [],
       images: [],
     },
