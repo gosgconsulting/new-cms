@@ -113,25 +113,19 @@ export default function GalleryPage({ basePath }: { basePath: string }) {
         id: 15,
         category: "eyebrows",
         title: "Brow Shaping",
-        image: "https://www.thelashlounge.com/wp-content/uploads/2021/12/Oneupweb_TLL_WhatDoesYourEyebrowShapeSayAboutYou_January_body.jpg",
+        image: asset("browshaping/13.png"),
       },
       {
         id: 16,
         category: "eyebrows",
         title: "Threading",
-        image: "https://cdn.shopify.com/s/files/1/0602/2437/2993/files/glamour-1024x537_2048x2048.jpg?v=1644234212",
+        image: asset("eye_brow_threading/7.png"),
       },
       {
         id: 17,
         category: "eyelashes",
         title: "Lash Extensions",
-        image: "https://www.ibeautycode.ca/wp-content/uploads/2023/11/Wet-Effect-eyelash-extensions-cat-eye-style-1-1.jpg",
-      },
-      {
-        id: 18,
-        category: "eyelashes",
-        title: "Volume Lashes",
-        image: "https://charmlash.com/wp-content/uploads/2025/08/Dramatic-wispy-cat-eye-eyelash-extensions-614x734.jpg",
+        image: asset("lash/23.png"),
       },
       {
         id: 19,
@@ -673,6 +667,48 @@ export default function GalleryPage({ basePath }: { basePath: string }) {
       return withMainFirst.map((url) => ({ full: url, thumb: url }));
     }
 
+    // Special handling for Brow Shaping - use all images from the browshaping directory
+    if (item.title === "Brow Shaping") {
+      const browShapingImages = [
+        "8.png",
+        "9.png",
+        "10.png",
+        "11.png",
+        "12.png",
+        "13.png",
+      ];
+
+      return browShapingImages.map((filename) => {
+        const imagePath = asset(`browshaping/${filename}`);
+        return {
+          full: imagePath,
+          thumb: imagePath,
+        };
+      });
+    }
+
+    // Special handling for Threading - use all images from the eye_brow_threading directory
+    if (item.title === "Threading") {
+      const threadingImages = [
+        "1.png",
+        "2.png",
+        "3.png",
+        "4.png",
+        "5.png",
+        "6.png",
+        "7.png",
+        "8.png",
+      ];
+
+      return threadingImages.map((filename) => {
+        const imagePath = asset(`eye_brow_threading/${filename}`);
+        return {
+          full: imagePath,
+          thumb: imagePath,
+        };
+      });
+    }
+
     // Special handling for Eyebrows - 2 photos per carousel popup, main image first
     if (item.category === "eyebrows") {
       const eyebrowCarouselImages = [
@@ -687,18 +723,29 @@ export default function GalleryPage({ basePath }: { basePath: string }) {
       return withMainFirst.map((url) => ({ full: url, thumb: url }));
     }
 
-    // Special handling for Eyelashes - 2 photos per carousel popup, main image first
+    // Special handling for Eyelashes - use all images from the lash directory
     if (item.category === "eyelashes") {
-      const eyelashCarouselImages = [
-        "https://www.ibeautycode.ca/wp-content/uploads/2023/11/Wet-Effect-eyelash-extensions-cat-eye-style-1-1.jpg",
-        "https://charmlash.com/wp-content/uploads/2025/08/Dramatic-wispy-cat-eye-eyelash-extensions-614x734.jpg",
-        "https://heymebeauty.com/wp-content/uploads/2025/01/What-is-Doll-Eye-Lashes-1024x576.webp",
-        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQiRXWO1MuCVEfNdyGrWxSvdNheAGuJaDJo-g&s",
+      const lashImages = [
+        "14.png",
+        "15.png",
+        "16.png",
+        "17.png",
+        "18.png",
+        "19.png",
+        "20.png",
+        "21.png",
+        "22.png",
+        "23.png",
+        "24.png",
       ];
-      const index = item.id - 17; // 0, 1 for the 2 eyelash cards
-      const slice = eyelashCarouselImages.slice(index * 2, index * 2 + 2);
-      const withMainFirst = [item.image, ...slice.filter((url) => url !== item.image)];
-      return withMainFirst.map((url) => ({ full: url, thumb: url }));
+
+      return lashImages.map((filename) => {
+        const imagePath = asset(`lash/${filename}`);
+        return {
+          full: imagePath,
+          thumb: imagePath,
+        };
+      });
     }
 
     // Special handling for Nail treatment - 4 photos in carousel popup, main image first
