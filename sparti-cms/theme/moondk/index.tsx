@@ -10,7 +10,6 @@ import CheckoutPage from "./pages/Checkout";
 import OurStoryPage from "./pages/about/OurStory";
 import SustainabilityPage from "./pages/about/Sustainability";
 import SizeGuidePage from "./pages/about/SizeGuide";
-import CustomerCarePage from "./pages/about/CustomerCare";
 import StoreLocatorPage from "./pages/about/StoreLocator";
 import PrivacyPolicyPage from "./pages/PrivacyPolicy";
 import TermsOfServicePage from "./pages/TermsOfService";
@@ -80,10 +79,6 @@ const MoondkTheme: React.FC<MoondkThemeProps> = ({
 
     if (current === "about/size-guide") {
       return <SizeGuidePage />;
-    }
-
-    if (current === "about/customer-care") {
-      return <CustomerCarePage />;
     }
 
     if (current === "about/store-locator") {

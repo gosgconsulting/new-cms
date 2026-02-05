@@ -1,3 +1,4 @@
+import { useState } from "react";
 import Header from "../components/header/Header";
 import Footer from "../components/footer/Footer";
 import { ThemeLink } from "../components/ThemeLink";
@@ -13,8 +14,10 @@ import steakHero from "../assets/steak_hero.jpeg";
 import aboutBrokImage from "../assets/IMG_20240523_135412_907.jpg";
 import reserveImage from "../assets/IMG_20240521_161614_496_1.jpg";
 import riceImage from "../assets/rice.jpg";
+import ContactFormSheet from "../components/ContactFormSheet";
 
 export default function BrokPrivateDinningPage() {
+  const [isContactFormOpen, setIsContactFormOpen] = useState(false);
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -66,13 +69,13 @@ export default function BrokPrivateDinningPage() {
                     >
                       View Menu
                     </a>
-                    <ThemeLink 
-                      to="/about/customer-care"
+                    <button
+                      onClick={() => setIsContactFormOpen(true)}
                       className="px-8 py-3 rounded-full bg-white text-black font-normal text-sm transition-all duration-300 hover:bg-white/90 hover:scale-105 hover:shadow-lg cursor-pointer inline-flex items-center gap-2 group"
                     >
                       Book Now
                       <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
-                    </ThemeLink>
+                    </button>
                   </div>
                 </motion.div>
               </main>
@@ -151,13 +154,13 @@ export default function BrokPrivateDinningPage() {
                   Book your seat at BEOK
                 </h2>
                 <div>
-                  <ThemeLink 
-                    to="/about/customer-care"
+                  <button
+                    onClick={() => setIsContactFormOpen(true)}
                     className="px-8 py-3 rounded-full bg-white text-black font-normal text-sm transition-all duration-300 hover:bg-white/90 hover:scale-105 hover:shadow-lg cursor-pointer inline-flex items-center gap-2 group"
                   >
                     Reserve Now
                     <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
-                  </ThemeLink>
+                  </button>
                 </div>
               </motion.div>
             </div>
@@ -322,6 +325,11 @@ Reservations are confirmed upon payment of deposit within 12 hours. Otherwise, t
       </section>
 
       <Footer />
+
+      <ContactFormSheet
+        open={isContactFormOpen}
+        onOpenChange={setIsContactFormOpen}
+      />
     </div>
   );
 }

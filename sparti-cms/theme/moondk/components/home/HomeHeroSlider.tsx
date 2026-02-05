@@ -124,12 +124,12 @@ export default function HomeHeroSlider() {
           <h1 className="font-body text-5xl md:text-6xl leading-[0.95] tracking-tight text-[#1A1A1A]">
             {slide.id === 3 ? (
               <>
-                <span className="whitespace-nowrap">{slide.titleStart} <span className="font-heading italic font-normal text-white">{slide.emphasized}</span> {slide.titleEnd.split(' ')[0]}</span>
+                <span className="whitespace-nowrap">{slide.titleStart} <span className="font-heading italic font-normal text-black">{slide.emphasized}</span> {slide.titleEnd.split(' ')[0]}</span>
                 <span className="block">{slide.titleEnd.split(' ').slice(1).join(' ')}</span>
               </>
             ) : (
               <>
-                <span className="whitespace-nowrap">{slide.titleStart} <span className="font-heading italic font-normal text-white">{slide.emphasized}</span></span>
+                <span className="whitespace-nowrap">{slide.titleStart} <span className="font-heading italic font-normal text-black">{slide.emphasized}</span></span>
                 <span className="block">{slide.titleEnd}</span>
               </>
             )}

@@ -7,7 +7,6 @@
     { "id": "about-our-story", "name": "Our Story", "slug": "about/our-story", "component": "OurStory" },
     { "id": "about-sustainability", "name": "Sustainability", "slug": "about/sustainability", "component": "Sustainability" },
     { "id": "about-size-guide", "name": "Size Guide", "slug": "about/size-guide", "component": "SizeGuide" },
-    { "id": "about-customer-care", "name": "Customer Care", "slug": "about/customer-care", "component": "CustomerCare" },
     { "id": "about-store-locator", "name": "Store Locator", "slug": "about/store-locator", "component": "StoreLocator" },
     { "id": "privacy-policy", "name": "Privacy Policy", "slug": "privacy-policy", "component": "PrivacyPolicy" },
     { "id": "terms-of-service", "name": "Terms of Service", "slug": "terms-of-service", "component": "TermsOfService" },

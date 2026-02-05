@@ -82,36 +82,24 @@ const Footer = () => {
               <h4 className="text-sm font-heading font-medium mb-4 text-foreground">Support</h4>
               <ul className="space-y-2">
                 <li>
-                  <a
-                    href={themeHref(basePath, "/about/customer-care")}
-                    className="text-sm font-body font-light text-foreground/70 hover:text-primary transition-colors"
-                  >
+                  <span className="text-sm font-body font-light text-foreground/50">
                     Customer Care
-                  </a>
+                  </span>
                 </li>
                 <li>
-                  <a
-                    href={themeHref(basePath, "/about/customer-care")}
-                    className="text-sm font-body font-light text-foreground/70 hover:text-primary transition-colors"
-                  >
+                  <span className="text-sm font-body font-light text-foreground/50">
                     Returns
-                  </a>
+                  </span>
                 </li>
                 <li>
-                  <a
-                    href={themeHref(basePath, "/about/customer-care")}
-                    className="text-sm font-body font-light text-foreground/70 hover:text-primary transition-colors"
-                  >
+                  <span className="text-sm font-body font-light text-foreground/50">
                     Shipping
-                  </a>
+                  </span>
                 </li>
                 <li>
-                  <a
-                    href={themeHref(basePath, "/about/customer-care")}
-                    className="text-sm font-body font-light text-foreground/70 hover:text-primary transition-colors"
-                  >
+                  <span className="text-sm font-body font-light text-foreground/50">
                     Contact
-                  </a>
+                  </span>
                 </li>
               </ul>
             </div>
