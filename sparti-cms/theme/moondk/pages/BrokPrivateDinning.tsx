@@ -186,7 +186,7 @@ export default function BrokPrivateDinningPage() {
               <h2 className="text-3xl md:text-4xl font-body text-primary mb-8 tracking-tight">
                 QUICK QUESTION
               </h2>
-              <Accordion type="single" collapsible defaultValue="item-1" className="w-full">
+              <Accordion type="single" collapsible className="w-full">
                 <AccordionItem value="item-1" className="border-b border-border">
                   <AccordionTrigger className="text-left font-body text-base md:text-lg text-foreground hover:no-underline py-4">
                     WHAT KIND OF CUISINE DO YOU SERVE?
