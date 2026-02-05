@@ -92,12 +92,6 @@ const Navigation = () => {
       submenuItems: [],
       images: [],
     },
-    {
-      name: "CONTACT US",
-      href: "/contact",
-      submenuItems: [],
-      images: [],
-    },
   ];
 
   return (
