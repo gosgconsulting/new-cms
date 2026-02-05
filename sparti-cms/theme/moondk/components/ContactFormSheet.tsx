@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Sheet,
   SheetContent,
@@ -38,6 +38,27 @@ export default function ContactFormSheet({
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Ensure body scroll is restored when sheet closes
+  useEffect(() => {
+    if (!open) {
+      // Force remove any potential scroll locks
+      document.body.style.overflow = "";
+      document.body.style.paddingRight = "";
+    }
+  }, [open]);
+
+  const handleOpenChange = (newOpen: boolean) => {
+    onOpenChange(newOpen);
+    // Ensure cleanup when closing
+    if (!newOpen) {
+      // Small delay to ensure animation completes
+      setTimeout(() => {
+        document.body.style.overflow = "";
+        document.body.style.paddingRight = "";
+      }, 300);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -58,7 +79,7 @@ export default function ContactFormSheet({
         message: "",
       });
       // Close sheet after successful submission
-      onOpenChange(false);
+      handleOpenChange(false);
       // You could add a toast notification here
     }, 1000);
   };
@@ -71,18 +92,18 @@ export default function ContactFormSheet({
   };
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
+    <Sheet open={open} onOpenChange={handleOpenChange}>
       <SheetContent 
         side="right" 
-        className="w-full sm:max-w-lg overflow-y-auto bg-[#FAF9F6] p-0 border-0 [&>button]:hidden"
+        className="w-full sm:max-w-lg overflow-hidden bg-[#FAF9F6] p-0 border-0 [&>button]:hidden"
       >
         {/* Premium Card Container */}
-        <div className="h-full flex flex-col">
+        <div className="h-full flex flex-col overflow-y-auto overflow-x-hidden">
           {/* Card with rounded corners and soft shadow */}
-          <div className="flex-1 m-4 sm:m-6 bg-white rounded-[20px] shadow-[0_4px_24px_rgba(0,0,0,0.08)] overflow-hidden flex flex-col relative">
+          <div className="flex-1 m-4 sm:m-6 bg-white rounded-[20px] shadow-[0_4px_24px_rgba(0,0,0,0.08)] overflow-hidden flex flex-col relative will-change-transform">
             {/* Custom Close Button */}
             <button
-              onClick={() => onOpenChange(false)}
+              onClick={() => handleOpenChange(false)}
               className="absolute top-6 right-6 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-white/90 hover:bg-white border border-[#E0DDD5] text-[#5A5A5A] hover:text-[#2F5C3E] transition-all duration-200 hover:scale-105 shadow-sm"
               aria-label="Close"
             >

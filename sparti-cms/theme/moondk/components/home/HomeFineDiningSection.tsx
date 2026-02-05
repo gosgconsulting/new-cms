@@ -1,11 +1,15 @@
+import { useState } from "react";
 import { ArrowRight, Utensils } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeLink } from "../ThemeLink";
+import ContactFormSheet from "../ContactFormSheet";
 
 import imgMain from "../../assets/rice.jpg";
 import imgStack from "../../assets/small_bowl.jpg";
 
 export default function HomeFineDiningSection() {
+  const [isContactFormOpen, setIsContactFormOpen] = useState(false);
+
   return (
     <section className="px-6 pb-16">
       <div className="mx-auto max-w-6xl">
@@ -47,20 +51,26 @@ export default function HomeFineDiningSection() {
               </p>
 
               <div className="mt-6 flex flex-wrap gap-3">
-                <Button asChild className="rounded-full px-6 bg-primary hover:bg-primary-hover !text-white">
-                  <ThemeLink to="/beok" className="!text-white">
-                    Book a table
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </ThemeLink>
+                <Button 
+                  onClick={() => setIsContactFormOpen(true)}
+                  className="rounded-full px-6 bg-primary hover:bg-primary-hover !text-white"
+                >
+                  Book a table
+                  <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
                 <Button asChild variant="outline" className="rounded-full px-6">
-                  <ThemeLink to="/about/our-story">Learn more</ThemeLink>
+                  <ThemeLink to="/beok-private-dinning">Learn more</ThemeLink>
                 </Button>
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      <ContactFormSheet
+        open={isContactFormOpen}
+        onOpenChange={setIsContactFormOpen}
+      />
     </section>
   );
 }
