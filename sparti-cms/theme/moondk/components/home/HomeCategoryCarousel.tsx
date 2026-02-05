@@ -22,10 +22,10 @@ type CategoryItem = {
 };
 
 const categories: CategoryItem[] = [
-  { title: "Tea", to: "/category/tea", image: teaImg },
-  { title: "Oil", to: "/category/oil", image: oilImg },
-  { title: "Noodle", to: "/category/noodle", image: noodleImg },
-  { title: "Alcohol", to: "/category/alcohol", image: alcImg },
+  { title: "Tea", to: "/category/all-products?filter=Tea", image: teaImg },
+  { title: "Oil", to: "/category/all-products?filter=Oil", image: oilImg },
+  { title: "Noodle", to: "/category/all-products?filter=Noodles", image: noodleImg },
+  { title: "Soju", to: "/category/all-products?filter=Soju", image: alcImg },
 ];
 
 export default function HomeCategoryCarousel() {

@@ -20,7 +20,11 @@ export default function ProductGrid({
 }: ProductGridProps) {
   const filtered =
     activeTab && activeTab !== "All"
-      ? allProducts.filter((p) => p.category === activeTab)
+      ? activeTab === "Foods"
+        ? allProducts.filter((p) => p.category === "Oil" || p.category === "Noodles")
+        : activeTab === "Drinks"
+        ? allProducts.filter((p) => p.category === "Soju" || p.category === "Tea")
+        : allProducts.filter((p) => p.category === activeTab)
       : allProducts;
 
   const products = [...filtered].sort((a, b) => {
@@ -34,19 +38,24 @@ export default function ProductGrid({
   return (
     <section className="w-full px-6 pb-12">
       {/* Recipe-style product cards */}
-      <div className="flex flex-wrap justify-center gap-6">
+      <div className="mx-auto max-w-6xl">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {products.map((product) => (
           <Card
             key={product.id}
-            className="rounded-[1.5rem] border-none shadow-md hover:shadow-lg transition-shadow w-full max-w-[280px] flex flex-col"
+            className="rounded-[1.5rem] border-none shadow-md hover:shadow-lg transition-shadow flex flex-col"
           >
             <CardContent className="p-0 flex flex-col flex-1">
               <ThemeLink to={`/product/${product.id}`} className="block">
-                <div className="relative rounded-t-[1.5rem] overflow-hidden bg-white">
+                <div className={`relative rounded-t-[1.5rem] overflow-hidden bg-white aspect-square ${
+                  product.category === "Tea" ? "p-8" : ""
+                }`}>
                   <img
                     src={product.image}
                     alt={product.name}
-                    className="w-full h-52 md:h-56 object-contain p-10"
+                    className={`w-full h-full ${
+                      product.category === "Tea" ? "object-contain" : "object-cover"
+                    }`}
                   />
                 </div>
               </ThemeLink>
@@ -72,9 +81,10 @@ export default function ProductGrid({
             </CardContent>
           </Card>
         ))}
-      </div>
+        </div>
 
-      <Pagination />
+        <Pagination />
+      </div>
     </section>
   );
 }
