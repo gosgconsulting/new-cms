@@ -3,7 +3,21 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ThemeLink } from "../ThemeLink";
 import { products } from "../category/products";
 
-const ProductCarousel = () => {
+interface ProductCarouselProps {
+  excludeProductId?: string | number;
+}
+
+const ProductCarousel = ({ excludeProductId }: ProductCarouselProps) => {
+  // Filter out the current product if excludeProductId is provided
+  const displayProducts = excludeProductId
+    ? products.filter((product) => {
+        const currentId = typeof excludeProductId === 'string' 
+          ? parseInt(excludeProductId, 10) 
+          : excludeProductId;
+        return product.id !== currentId;
+      })
+    : products;
+
   return (
     <section className="w-full mb-20 px-6">
       <Carousel
@@ -14,7 +28,7 @@ const ProductCarousel = () => {
         className="w-full"
       >
         <CarouselContent>
-          {products.map((product) => (
+          {displayProducts.map((product) => (
             <CarouselItem
               key={product.id}
               className="basis-1/2 md:basis-1/3 lg:basis-1/4 pr-2 md:pr-4"

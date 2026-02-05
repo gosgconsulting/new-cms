@@ -24,6 +24,7 @@ import Terms from "./pages/Terms";
 import DesignSystems from "./pages/DesignSystems";
 import Kanban from "./pages/Kanban";
 import FeatureKanban from "./pages/FeatureKanban";
+import ProductPage from "./pages/ProductPage";
 
 // Component to handle theme sub-routes - checks if it's a known theme
 const ThemeRouteHandler: React.FC = () => {
@@ -153,6 +154,16 @@ export const router = createBrowserRouter(
         <RootLayout>
           <ErrorBoundary>
             <TenantLandingPage />
+          </ErrorBoundary>
+        </RootLayout>
+      ),
+    },
+    {
+      path: "/product/:id",
+      element: (
+        <RootLayout>
+          <ErrorBoundary>
+            <ProductPage />
           </ErrorBoundary>
         </RootLayout>
       ),

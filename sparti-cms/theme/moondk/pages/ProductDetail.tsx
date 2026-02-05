@@ -59,7 +59,7 @@ export default function ProductDetailPage({ productId }: { productId: string }) 
           <div className="mb-6 px-6">
             <h2 className="text-lg font-heading font-medium text-foreground">You might also like</h2>
           </div>
-          <ProductCarousel />
+          <ProductCarousel excludeProductId={productId} />
         </section>
       </main>
 
