@@ -10,7 +10,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { motion } from "framer-motion";
-import steakHero from "../assets/steak_hero.jpeg";
+import steakHero from "../assets/small_bowl.jpg";
 import aboutBrokImage from "../assets/IMG_20240523_135412_907.jpg";
 import reserveImage from "../assets/IMG_20240521_161614_496_1.jpg";
 import riceImage from "../assets/rice.jpg";

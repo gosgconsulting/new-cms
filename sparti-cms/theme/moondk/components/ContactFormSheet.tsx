@@ -113,10 +113,10 @@ export default function ContactFormSheet({
             {/* Header Section with more padding */}
             <SheetHeader className="px-8 pt-10 pb-6 border-b border-[#E8E6E0]">
               <SheetTitle className="text-3xl font-heading tracking-tight text-[#2F5C3E] mb-3">
-                Request Reservation
+                Contact Us
               </SheetTitle>
               <SheetDescription className="text-sm font-body text-[#6B6B6B] leading-relaxed">
-                We'd love to welcome you. Share your details and we'll be in touch to confirm your private dining experience.
+              We’re here to assist you. Share your details and we’ll get back to you as soon as possible.
               </SheetDescription>
             </SheetHeader>
 
@@ -214,7 +214,7 @@ export default function ContactFormSheet({
                   value={formData.message}
                   onChange={handleChange}
                   className="w-full min-h-[140px] resize-none bg-[#FAF9F6] border-[#E0DDD5] rounded-lg text-[#1A1A1A] placeholder:text-[#9A9A9A] focus-visible:ring-2 focus-visible:ring-[#2F5C3E]/20 focus-visible:border-[#4A7A5E] transition-all duration-200"
-                  placeholder="Preferred date, number of guests, dietary requirements, or any special requests..."
+                  placeholder="How can we help you? Feel free to include any questions or requests."
                 />
               </div>
 
@@ -225,7 +225,7 @@ export default function ContactFormSheet({
                   disabled={isSubmitting}
                   className="w-full h-12 rounded-full bg-[#2F5C3E] hover:bg-[#1F3D2A] text-white font-medium text-sm tracking-wide transition-all duration-300 hover:shadow-md hover:shadow-[#2F5C3E]/20 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isSubmitting ? "Sending..." : "Request Reservation"}
+                  {isSubmitting ? "Sending..." : "Contact Us"}
                 </Button>
               </div>
             </form>

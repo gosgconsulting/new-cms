@@ -1,11 +1,14 @@
+import { useState } from "react";
 import { ArrowRight, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ThemeLink } from "../ThemeLink";
+import ContactFormSheet from "../ContactFormSheet";
 
 import imgMain from "../../assets/IMG_20240521_161614_496_1.jpg";
 import imgStack from "../../assets/about_small.jpg";
 
 export default function HomeAboutSection() {
+  const [isContactFormOpen, setIsContactFormOpen] = useState(false);
+
   return (
     <section className="px-6 py-16">
       <div className="mx-auto max-w-6xl">
@@ -29,11 +32,12 @@ export default function HomeAboutSection() {
               </p>
 
               <div className="mt-6">
-                <Button asChild className="rounded-full px-6 bg-primary hover:bg-primary-hover !text-white">
-                  <ThemeLink to="/about/our-story" className="!text-white">
-                    Learn more
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </ThemeLink>
+                <Button 
+                  onClick={() => setIsContactFormOpen(true)}
+                  className="rounded-full px-6 bg-primary hover:bg-primary-hover !text-white"
+                >
+                  Learn more
+                  <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </div>
             </div>
@@ -61,6 +65,11 @@ export default function HomeAboutSection() {
           </div>
         </div>
       </div>
+
+      <ContactFormSheet
+        open={isContactFormOpen}
+        onOpenChange={setIsContactFormOpen}
+      />
     </section>
   );
 }
