@@ -1,3 +1,4 @@
+import React from "react";
 import { Layout } from "../components/Layout";
 
 export default function PricingPage({ basePath }: { basePath: string }) {
@@ -96,7 +97,7 @@ export default function PricingPage({ basePath }: { basePath: string }) {
                   <div className="flex-1">
                     <h3 className="font-bold text-nail-queen-brown">RUSSIAN MANICURE</h3>
                     <p className="text-sm text-gray-600">
-                      Precision cuticle care using specialized tools for a clean, polished look around the nail bed.
+                      Precision cuticle care using specialized tools for a clean, polished look around the nail bed. (dry cuticle care and trimming only)
                     </p>
                   </div>
                   <div className="text-right ml-4">
@@ -118,7 +119,7 @@ export default function PricingPage({ basePath }: { basePath: string }) {
 
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
-                    <h3 className="font-bold text-nail-queen-brown">HARD GEL/ACRYLIC EXTENSION</h3>
+                    <h3 className="font-bold text-nail-queen-brown">GEL X/HARD GEL/ACRYLIC EXTENSION</h3>
                     <p className="text-sm text-gray-600">
                       Make your short nails longer and create an apex for your nails using nail tip extension.
                     </p>
@@ -251,11 +252,11 @@ export default function PricingPage({ basePath }: { basePath: string }) {
                   <div className="flex-1">
                     <h3 className="font-bold text-nail-queen-brown">FUNGUS TREATMENT</h3>
                     <p className="text-sm text-gray-600">
-                      A targeted solution for early-stage fungal infections. Helps restore nail clarity and prevent further spread — clean, safe, and professionally handled.
+                      A targeted solution for early-stage fungal infections. Helps restore nail clarity and prevent further spread — clean, safe, and professionally handled. (includes an antibacterial soak tablet and a topical spray)
                     </p>
                   </div>
                   <div className="text-right ml-4">
-                    <span className="font-bold">$59.95</span>
+                    <span className="font-bold">$106.82</span>
                     <p className="text-xs text-gray-500">(inclusive of GST)</p>
                   </div>
                 </div>
@@ -281,7 +282,7 @@ export default function PricingPage({ basePath }: { basePath: string }) {
                     </p>
                   </div>
                   <div className="text-right ml-4">
-                    <span className="font-bold">$27.25</span>
+                    <span className="font-bold">$16.35</span>
                     <p className="text-xs text-gray-500">(inclusive of GST)</p>
                   </div>
                 </div>
