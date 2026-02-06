@@ -1,13 +1,25 @@
+import { useState, useEffect } from "react";
+import type { CarouselApi } from "@/components/ui/carousel";
 import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 import { Card, CardContent } from "@/components/ui/card";
 import { ThemeLink } from "../ThemeLink";
 import { products } from "../category/products";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface ProductCarouselProps {
   excludeProductId?: string | number;
+  onApiChange?: (api: CarouselApi | undefined) => void;
 }
 
-const ProductCarousel = ({ excludeProductId }: ProductCarouselProps) => {
+const ProductCarousel = ({ excludeProductId, onApiChange }: ProductCarouselProps) => {
+  const [api, setApi] = useState<CarouselApi>();
+
+  useEffect(() => {
+    if (onApiChange) {
+      onApiChange(api);
+    }
+  }, [api, onApiChange]);
+
   // Filter out the current product if excludeProductId is provided
   const displayProducts = excludeProductId
     ? products.filter((product) => {
@@ -18,9 +30,14 @@ const ProductCarousel = ({ excludeProductId }: ProductCarouselProps) => {
       })
     : products;
 
+  useEffect(() => {
+    if (!api) return;
+  }, [api]);
+
   return (
     <section className="w-full mb-20 px-6">
       <Carousel
+        setApi={setApi}
         opts={{
           align: "start",
           loop: false,
@@ -63,7 +80,6 @@ const ProductCarousel = ({ excludeProductId }: ProductCarouselProps) => {
           ))}
         </CarouselContent>
       </Carousel>
-
     </section>
   );
 };
