@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import hoveniaDulcisImage from "../../../e-shop/assets/hovenia-dulcis.png";
 import cornExtractImage from "../../../e-shop/assets/corn-extract.png";
 import blackBeanTeaImage from "../../../e-shop/assets/black-bean-tea.png";
@@ -56,14 +57,6 @@ const ProductImageGallery = ({ productId }: ProductImageGalleryProps) => {
   
   const [selectedImage, setSelectedImage] = useState(getDefaultImage());
 
-  // Update selected image when productId changes
-  useEffect(() => {
-    const imageForProduct = productImageMap[productId || ""];
-    if (imageForProduct) {
-      setSelectedImage(imageForProduct);
-    }
-  }, [productId]);
-
   // For products with multiple images, show all available images
   // For other products 1-13, only show their specific image
   // Otherwise, show all default images
@@ -86,15 +79,61 @@ const ProductImageGallery = ({ productId }: ProductImageGalleryProps) => {
     ? [specificImage]
     : [hoveniaDulcisImage, cornExtractImage, blackBeanTeaImage, barleyTeaImage];
 
+  // Update selected image when productId changes
+  useEffect(() => {
+    const imageForProduct = productImageMap[productId || ""];
+    if (imageForProduct) {
+      setSelectedImage(imageForProduct);
+    }
+  }, [productId]);
+
+  // Navigation functions
+  const currentIndex = images.findIndex((img) => img === selectedImage);
+  const hasMultipleImages = images.length > 1;
+
+  const goToPrevious = () => {
+    if (hasMultipleImages) {
+      const prevIndex = currentIndex > 0 ? currentIndex - 1 : images.length - 1;
+      setSelectedImage(images[prevIndex]);
+    }
+  };
+
+  const goToNext = () => {
+    if (hasMultipleImages) {
+      const nextIndex = currentIndex < images.length - 1 ? currentIndex + 1 : 0;
+      setSelectedImage(images[nextIndex]);
+    }
+  };
+
   return (
     <div className="space-y-4">
       {/* Main image */}
-      <div className="aspect-square overflow-hidden bg-muted/5">
+      <div className="aspect-square overflow-hidden bg-muted/5 relative group">
         <img
           src={selectedImage}
           alt="Product"
           className="w-full h-full object-cover"
         />
+        
+        {/* Navigation Arrows - Only show if multiple images */}
+        {hasMultipleImages && (
+          <>
+            <button
+              onClick={goToPrevious}
+              className="absolute left-4 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-white/80 hover:bg-white border border-border/60 shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100 z-10"
+              aria-label="Previous image"
+            >
+              <ChevronLeft className="h-5 w-5 text-foreground" />
+            </button>
+            <button
+              onClick={goToNext}
+              className="absolute right-4 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-white/80 hover:bg-white border border-border/60 shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100 z-10"
+              aria-label="Next image"
+            >
+              <ChevronRight className="h-5 w-5 text-foreground" />
+            </button>
+          </>
+        )}
       </div>
 
       {/* Thumbnail gallery */}

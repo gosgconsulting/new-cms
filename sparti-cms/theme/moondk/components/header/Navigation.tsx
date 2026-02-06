@@ -77,6 +77,7 @@ const Navigation = () => {
         "Oil",
         "Noodles",
         "Alcohol",
+        "Personal care",
       ],
       images: [],
     },

@@ -31,9 +31,9 @@ export default function HomeNewArrivalsSection() {
           {newArrivals.map((p) => (
             <Card
               key={p.id}
-              className="rounded-[1.5rem] border-none shadow-md hover:shadow-lg transition-shadow"
+              className="rounded-[1.5rem] border-none shadow-md hover:shadow-lg transition-shadow flex flex-col h-full"
             >
-              <CardContent className="p-0">
+              <CardContent className="p-0 flex flex-col h-full">
                 <ThemeLink to={`/product/${p.id}`} className="block">
                   <div className="relative rounded-t-[1.5rem] overflow-hidden bg-white">
                     <img
@@ -44,8 +44,8 @@ export default function HomeNewArrivalsSection() {
                   </div>
                 </ThemeLink>
 
-                <div className="p-4">
-                  <ThemeLink to={`/product/${p.id}`} className="block">
+                <div className="p-4 flex flex-col flex-1">
+                  <ThemeLink to={`/product/${p.id}`} className="block flex-1">
                     <div className="flex items-start justify-between gap-3">
                       <h3 className="text-base font-heading leading-tight hover:underline underline-offset-4 flex-1">
                         {p.name}

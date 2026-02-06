@@ -5,8 +5,8 @@ import { Button } from "@/components/ui/button";
 import { ThemeLink } from "../ThemeLink";
 
 import slide1 from "../../assets/green_hero.jpeg";
-import slide2 from "../../assets/steak_hero.jpeg";
-import slide3 from "../../assets/structure_hero.jpeg";
+import slide2 from "../../assets/20240514_161154.jpg";
+import slide3 from "../../assets/roof.png";
 
 type Slide = {
   id: number;

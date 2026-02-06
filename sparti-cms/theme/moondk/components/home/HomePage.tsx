@@ -14,11 +14,11 @@ export default function HomePage() {
       {/* Product categories */}
       <HomeCategoryCarousel />
 
-      {/* New arrivals */}
-      <HomeNewArrivalsSection />
-
       {/* About MoonDk */}
       <HomeAboutSection />
+
+      {/* New arrivals */}
+      <HomeNewArrivalsSection />
 
       {/* Fine Dining at Beok */}
       <HomeFineDiningSection />

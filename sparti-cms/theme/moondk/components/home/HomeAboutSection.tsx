@@ -2,7 +2,7 @@ import { ArrowRight, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeLink } from "../ThemeLink";
 
-import imgMain from "../../assets/about.png";
+import imgMain from "../../assets/IMG_20240521_161614_496_1.jpg";
 import imgStack from "../../assets/about_small.jpg";
 
 export default function HomeAboutSection() {

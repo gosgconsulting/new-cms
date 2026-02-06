@@ -14,6 +14,7 @@ import teaImg from "../../assets/tea.jpg";
 import oilImg from "../../assets/oil.jpg";
 import noodleImg from "../../assets/noodle.jpg";
 import alcImg from "../../assets/alc.jpg";
+import personalCareImg from "../../assets/blossom.jpg";
 
 type CategoryItem = {
   title: string;
@@ -26,6 +27,7 @@ const categories: CategoryItem[] = [
   { title: "Oil", to: "/category/all-products?filter=Oil", image: oilImg },
   { title: "Noodle", to: "/category/all-products?filter=Noodles", image: noodleImg },
   { title: "Soju", to: "/category/all-products?filter=Soju", image: alcImg },
+  { title: "Personal care", to: "/category/all-products?filter=Personal%20care", image: personalCareImg },
 ];
 
 export default function HomeCategoryCarousel() {
