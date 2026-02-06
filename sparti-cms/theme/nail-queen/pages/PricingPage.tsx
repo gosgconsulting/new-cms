@@ -88,7 +88,7 @@ export default function PricingPage({ basePath }: { basePath: string }) {
                     </p>
                   </div>
                   <div className="text-right ml-4">
-                    <span className="font-bold">$97.2</span>
+                    <span className="font-bold">$87.2</span>
                     <p className="text-xs text-gray-500">(inclusive of GST)</p>
                   </div>
                 </div>
