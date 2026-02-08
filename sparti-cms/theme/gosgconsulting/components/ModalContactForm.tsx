@@ -99,9 +99,7 @@ const ModalContactForm: React.FC<ModalContactFormProps> = ({ className = "", ini
     if (step === 3) setStep(2);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
+  const submitAndRedirect = async () => {
     if (!canGoNextFromStep1) {
       setSubmitStatus("error");
       setErrorMessage("Please fill in your name and email.");
@@ -115,8 +113,6 @@ const ModalContactForm: React.FC<ModalContactFormProps> = ({ className = "", ini
       setStep(2);
       return;
     }
-
-    // Message is prefilled, so we don't need to check if it's empty
 
     setIsSubmitting(true);
     setSubmitStatus("idle");
@@ -151,7 +147,6 @@ const ModalContactForm: React.FC<ModalContactFormProps> = ({ className = "", ini
       const thankYouPath = getThankYouPath();
 
       if (method === "whatsapp") {
-        // Redirect to thank-you first (for tracking), then thank-you page redirects to WhatsApp.
         const params = new URLSearchParams({
           via: "whatsapp",
           message,
@@ -159,7 +154,6 @@ const ModalContactForm: React.FC<ModalContactFormProps> = ({ className = "", ini
         });
         window.location.href = `${thankYouPath}?${params.toString()}`;
       } else {
-        // Normal thank-you flow
         window.location.href = thankYouPath;
       }
     } catch (error) {
@@ -174,9 +168,22 @@ const ModalContactForm: React.FC<ModalContactFormProps> = ({ className = "", ini
     }
   };
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (step !== 3) return;
+    submitAndRedirect();
+  };
+
+  const handleFormKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
+    if (step !== 3 && e.key === "Enter") {
+      e.preventDefault();
+    }
+  };
+
   return (
     <form
       onSubmit={handleSubmit}
+      onKeyDown={handleFormKeyDown}
       className={`w-full ${className}`}
     >
           {/* Step 1 */}
@@ -273,7 +280,10 @@ const ModalContactForm: React.FC<ModalContactFormProps> = ({ className = "", ini
             <div className="grid grid-cols-1 gap-3">
               <button
                 type="button"
-                onClick={() => setMethod("whatsapp")}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setMethod("whatsapp");
+                }}
                 className={
                   "text-left rounded-2xl border p-4 transition-colors " +
                   (method === "whatsapp"
@@ -294,7 +304,10 @@ const ModalContactForm: React.FC<ModalContactFormProps> = ({ className = "", ini
 
               <button
                 type="button"
-                onClick={() => setMethod("form")}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setMethod("form");
+                }}
                 className={
                   "text-left rounded-2xl border p-4 transition-colors " +
                   (method === "form"
@@ -364,8 +377,13 @@ const ModalContactForm: React.FC<ModalContactFormProps> = ({ className = "", ini
         <div className="flex flex-col pt-4 sm:pt-6 gap-4 w-full border-t border-neutral-200 mt-4 sm:mt-6">
           {step === 3 ? (
             <Button
-              type="submit"
+              type="button"
               disabled={isSubmitting}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                submitAndRedirect();
+              }}
               className="rounded-full text-white px-7 py-5 transition-all shadow-sm w-full shrink-0"
               style={{
                 background: isSubmitting ? '#ccc' : 'linear-gradient(to right, #FF6B35, #FFA500)',
