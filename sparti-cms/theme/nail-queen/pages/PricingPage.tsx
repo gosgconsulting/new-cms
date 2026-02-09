@@ -239,7 +239,7 @@ export default function PricingPage({ basePath }: { basePath: string }) {
                   <div className="flex-1">
                     <h3 className="font-bold text-nail-queen-brown">BIAB PEDICURE</h3>
                     <p className="text-sm text-gray-600">
-                      Our premium pedicure combines the full spa experience — sea-salt soak, cuticle care, foot scrub, and massage — with Builder in a Bottle gel on toes. BIAB adds strength and a natural, glossy finish that lasts, ideal for weak or brittle toenails or anyone wanting long-lasting colour and protection.
+                      Full pedicure with Builder in a Bottle gel on toes for stronger nails and a long-lasting, natural-looking finish.
                     </p>
                   </div>
                   <div className="text-right ml-4">
