@@ -11,6 +11,8 @@ import BlogPage from "./pages/BlogPage";
 import BlogPostPage from "./pages/BlogPostPage";
 import FindUsPage from "./pages/FindUsPage";
 import LegalPlaceholderPage from "./pages/LegalPlaceholderPage";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsAndConditions from "./pages/TermsAndConditions";
 import NotFoundPage from "./pages/NotFoundPage";
 import { ThankYouPage } from "./components/ThankYouPage";
 
@@ -76,18 +78,14 @@ const NailQueenTheme: React.FC<NailQueenThemeProps> = ({
         );
       case "privacy":
         return (
-          <LegalPlaceholderPage
+          <PrivacyPolicy
             basePath={resolvedBasePath}
-            title="Privacy Policy"
-            description="Our privacy policy details how we handle your personal information."
           />
         );
       case "terms":
         return (
-          <LegalPlaceholderPage
+          <TermsAndConditions
             basePath={resolvedBasePath}
-            title="Terms & Conditions"
-            description="Please read our terms and conditions carefully."
           />
         );
       default:
