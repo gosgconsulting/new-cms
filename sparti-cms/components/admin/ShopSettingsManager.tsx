@@ -398,6 +398,11 @@ export default function ShopSettingsManager({ currentTenantId, activeTab: propAc
   };
 
   const renderStripeConnect = () => {
+    // Sentinel: when state is this value, "keep current key" (don't send in update).
+    // User must clear the masked field and type a new key to replace.
+    const KEEP_CURRENT_SENTINEL = '__KEEP_CURRENT__';
+    const MASK_PREFIX = '••••••••••••'; // 12 dots; last 4 chars of key shown after for verification
+
     // Stripe Configuration state
     const [stripeSecretKey, setStripeSecretKey] = useState('');
     const [stripePublishableKey, setStripePublishableKey] = useState('');
@@ -423,14 +428,12 @@ export default function ShopSettingsManager({ currentTenantId, activeTab: propAc
       enabled: !!currentTenantId,
     });
 
-    // Reset edit mode when config changes
+    // When config loads: use sentinel for existing keys so "leave as-is" = keep current
     useEffect(() => {
       if (stripeConfig) {
-        // Don't populate actual values for security, just show placeholder if configured
-        setStripeSecretKey('');
-        setStripePublishableKey('');
-        setStripeWebhookSecret('');
-        // Exit edit mode after successful save (when config is updated)
+        setStripeSecretKey(stripeConfig.has_stripe_secret_key ? KEEP_CURRENT_SENTINEL : '');
+        setStripePublishableKey(stripeConfig.has_stripe_publishable_key ? KEEP_CURRENT_SENTINEL : '');
+        setStripeWebhookSecret(stripeConfig.has_stripe_webhook_secret ? KEEP_CURRENT_SENTINEL : '');
         if (configMessage?.type === 'success') {
           setIsEditingConfig(false);
         }
@@ -464,9 +467,23 @@ export default function ShopSettingsManager({ currentTenantId, activeTab: propAc
       },
     });
 
+    // New value = user entered a key (replace). Removal = had key, user cleared field (empty string).
+    const isNewKey = (value: string) => value && value !== KEEP_CURRENT_SENTINEL;
+    const isRemoval = (value: string, hadKey: boolean) => hadKey && value === '';
+    const hasAnyChange =
+      isNewKey(stripeSecretKey) ||
+      isNewKey(stripePublishableKey) ||
+      isNewKey(stripeWebhookSecret) ||
+      isRemoval(stripeSecretKey, !!stripeConfig?.has_stripe_secret_key) ||
+      isRemoval(stripePublishableKey, !!stripeConfig?.has_stripe_publishable_key) ||
+      isRemoval(stripeWebhookSecret, !!stripeConfig?.has_stripe_webhook_secret);
+
     const handleSaveConfig = async () => {
-      if (!stripeSecretKey && !stripePublishableKey && !stripeWebhookSecret) {
-        setConfigMessage({ type: 'error', text: 'Please provide at least one key to update' });
+      if (!hasAnyChange) {
+        setConfigMessage({
+          type: 'error',
+          text: 'Clear the current key and enter a new value to update, clear a key to remove it, or leave as-is to keep the current key.',
+        });
         return;
       }
 
@@ -475,14 +492,20 @@ export default function ShopSettingsManager({ currentTenantId, activeTab: propAc
 
       try {
         const updateData: { stripe_secret_key?: string; stripe_publishable_key?: string; stripe_webhook_secret?: string } = {};
-        if (stripeSecretKey) {
+        if (isNewKey(stripeSecretKey)) {
           updateData.stripe_secret_key = stripeSecretKey;
+        } else if (isRemoval(stripeSecretKey, !!stripeConfig?.has_stripe_secret_key)) {
+          updateData.stripe_secret_key = '';
         }
-        if (stripePublishableKey) {
+        if (isNewKey(stripePublishableKey)) {
           updateData.stripe_publishable_key = stripePublishableKey;
+        } else if (isRemoval(stripePublishableKey, !!stripeConfig?.has_stripe_publishable_key)) {
+          updateData.stripe_publishable_key = '';
         }
-        if (stripeWebhookSecret) {
+        if (isNewKey(stripeWebhookSecret)) {
           updateData.stripe_webhook_secret = stripeWebhookSecret;
+        } else if (isRemoval(stripeWebhookSecret, !!stripeConfig?.has_stripe_webhook_secret)) {
+          updateData.stripe_webhook_secret = '';
         }
 
         await updateConfigMutation.mutateAsync(updateData);
@@ -495,10 +518,38 @@ export default function ShopSettingsManager({ currentTenantId, activeTab: propAc
 
     const handleCancelEdit = () => {
       setIsEditingConfig(false);
-      setStripeSecretKey('');
-      setStripeWebhookSecret('');
+      setStripeSecretKey(stripeConfig?.has_stripe_secret_key ? KEEP_CURRENT_SENTINEL : '');
+      setStripePublishableKey(stripeConfig?.has_stripe_publishable_key ? KEEP_CURRENT_SENTINEL : '');
+      setStripeWebhookSecret(stripeConfig?.has_stripe_webhook_secret ? KEEP_CURRENT_SENTINEL : '');
       setConfigMessage(null);
     };
+
+    // When field shows "current key" (sentinel), user must clear then type. First keypress replaces mask with that char.
+    const handleKeyFieldChange = (
+      currentValue: string,
+      newValue: string,
+      setter: (v: string) => void,
+      currentDisplay: string,
+    ) => {
+      if (currentValue === KEEP_CURRENT_SENTINEL) {
+        if (newValue === '') {
+          setter('');
+          return;
+        }
+        if (newValue !== currentDisplay) {
+          const replaced = newValue.startsWith(currentDisplay)
+            ? newValue.slice(currentDisplay.length)
+            : newValue.replace(/^\.+/, '');
+          setter(replaced || '');
+          return;
+        }
+        return;
+      }
+      setter(newValue);
+    };
+
+    const displayKeyValue = (value: string, last4: string | null | undefined) =>
+      value === KEEP_CURRENT_SENTINEL ? MASK_PREFIX + (last4 || '') : value;
 
     const handleStartEdit = () => {
       setIsEditingConfig(true);
@@ -544,9 +595,9 @@ export default function ShopSettingsManager({ currentTenantId, activeTab: propAc
                     <div className="relative">
                       <input
                         type={showSecretKey ? 'text' : 'password'}
-                        value={stripeSecretKey}
-                        onChange={(e) => setStripeSecretKey(e.target.value)}
-                        placeholder={stripeConfig?.has_stripe_secret_key ? 'Enter new key to update' : 'sk_test_... or sk_live_...'}
+                        value={displayKeyValue(stripeSecretKey, stripeConfig?.stripe_secret_key_last4)}
+                        onChange={(e) => handleKeyFieldChange(stripeSecretKey, e.target.value, setStripeSecretKey, displayKeyValue(stripeSecretKey, stripeConfig?.stripe_secret_key_last4))}
+                        placeholder={stripeConfig?.has_stripe_secret_key ? undefined : 'sk_test_... or sk_live_...'}
                         className="w-full px-3 py-2 pr-10 border border-border rounded-lg focus:ring-2 focus:ring-brandPurple focus:border-transparent"
                       />
                       <button
@@ -558,7 +609,9 @@ export default function ShopSettingsManager({ currentTenantId, activeTab: propAc
                       </button>
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">
-                      Your Stripe secret key (starts with sk_test_ or sk_live_)
+                      {stripeConfig?.has_stripe_secret_key
+                        ? 'Clear the field and enter a new key to replace, or leave as-is to keep the current key.'
+                        : 'Your Stripe secret key (starts with sk_test_ or sk_live_)'}
                     </p>
                   </div>
 
@@ -569,9 +622,9 @@ export default function ShopSettingsManager({ currentTenantId, activeTab: propAc
                     <div className="relative">
                       <input
                         type={showPublishableKey ? 'text' : 'password'}
-                        value={stripePublishableKey}
-                        onChange={(e) => setStripePublishableKey(e.target.value)}
-                        placeholder={stripeConfig?.has_stripe_publishable_key ? 'Enter new key to update' : 'pk_test_... or pk_live_...'}
+                        value={displayKeyValue(stripePublishableKey, stripeConfig?.stripe_publishable_key_last4)}
+                        onChange={(e) => handleKeyFieldChange(stripePublishableKey, e.target.value, setStripePublishableKey, displayKeyValue(stripePublishableKey, stripeConfig?.stripe_publishable_key_last4))}
+                        placeholder={stripeConfig?.has_stripe_publishable_key ? undefined : 'pk_test_... or pk_live_...'}
                         className="w-full px-3 py-2 pr-10 border border-border rounded-lg focus:ring-2 focus:ring-brandPurple focus:border-transparent"
                       />
                       <button
@@ -583,7 +636,9 @@ export default function ShopSettingsManager({ currentTenantId, activeTab: propAc
                       </button>
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">
-                      Your Stripe publishable key (starts with pk_test_ or pk_live_). Required for frontend payment forms.
+                      {stripeConfig?.has_stripe_publishable_key
+                        ? 'Clear the field and enter a new key to replace, or leave as-is to keep the current key.'
+                        : 'Your Stripe publishable key (starts with pk_test_ or pk_live_). Required for frontend payment forms.'}
                     </p>
                   </div>
 
@@ -594,9 +649,9 @@ export default function ShopSettingsManager({ currentTenantId, activeTab: propAc
                     <div className="relative">
                       <input
                         type={showWebhookSecret ? 'text' : 'password'}
-                        value={stripeWebhookSecret}
-                        onChange={(e) => setStripeWebhookSecret(e.target.value)}
-                        placeholder={stripeConfig?.has_stripe_webhook_secret ? 'Enter new secret to update' : 'whsec_...'}
+                        value={displayKeyValue(stripeWebhookSecret, stripeConfig?.stripe_webhook_secret_last4)}
+                        onChange={(e) => handleKeyFieldChange(stripeWebhookSecret, e.target.value, setStripeWebhookSecret, displayKeyValue(stripeWebhookSecret, stripeConfig?.stripe_webhook_secret_last4))}
+                        placeholder={stripeConfig?.has_stripe_webhook_secret ? undefined : 'whsec_...'}
                         className="w-full px-3 py-2 pr-10 border border-border rounded-lg focus:ring-2 focus:ring-brandPurple focus:border-transparent"
                       />
                       <button
@@ -608,7 +663,9 @@ export default function ShopSettingsManager({ currentTenantId, activeTab: propAc
                       </button>
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">
-                      Optional: Your Stripe webhook signing secret (starts with whsec_). Used for webhook signature verification and automatic order status updates.
+                      {stripeConfig?.has_stripe_webhook_secret
+                        ? 'Clear the field and enter a new secret to replace, or leave as-is to keep the current one.'
+                        : 'Optional: Your Stripe webhook signing secret (starts with whsec_). Used for webhook signature verification and automatic order status updates.'}
                     </p>
                   </div>
 
@@ -645,7 +702,7 @@ export default function ShopSettingsManager({ currentTenantId, activeTab: propAc
                     )}
                     <Button
                       onClick={handleSaveConfig}
-                      disabled={isSavingConfig || (!stripeSecretKey && !stripePublishableKey && !stripeWebhookSecret)}
+                      disabled={isSavingConfig || !hasAnyChange}
                     >
                       {isSavingConfig ? 'Saving...' : 'Save Configuration'}
                     </Button>
@@ -669,7 +726,7 @@ export default function ShopSettingsManager({ currentTenantId, activeTab: propAc
                         <div className="font-medium text-foreground">Stripe Secret Key</div>
                         <div className="text-sm text-muted-foreground">
                           {stripeConfig?.has_stripe_secret_key ? (
-                            <span className="font-mono text-xs">sk_***...****</span>
+                            <span className="font-mono text-xs">sk_***…{stripeConfig.stripe_secret_key_last4 ?? '****'}</span>
                           ) : (
                             <span className="text-amber-600">Not configured</span>
                           )}
@@ -691,7 +748,7 @@ export default function ShopSettingsManager({ currentTenantId, activeTab: propAc
                         <div className="font-medium text-foreground">Stripe Publishable Key</div>
                         <div className="text-sm text-muted-foreground">
                           {stripeConfig?.has_stripe_publishable_key ? (
-                            <span className="font-mono text-xs">pk_***...****</span>
+                            <span className="font-mono text-xs">pk_***…{stripeConfig.stripe_publishable_key_last4 ?? '****'}</span>
                           ) : (
                             <span className="text-amber-600">Not configured</span>
                           )}
@@ -713,7 +770,7 @@ export default function ShopSettingsManager({ currentTenantId, activeTab: propAc
                         <div className="font-medium text-foreground">Stripe Webhook Secret</div>
                         <div className="text-sm text-muted-foreground">
                           {stripeConfig?.has_stripe_webhook_secret ? (
-                            <span className="font-mono text-xs">whsec_***...****</span>
+                            <span className="font-mono text-xs">whsec_***…{stripeConfig.stripe_webhook_secret_last4 ?? '****'}</span>
                           ) : (
                             <span className="text-amber-600">Not configured</span>
                           )}

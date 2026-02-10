@@ -2010,8 +2010,11 @@ router.put('/stripe/config', authenticateTenantApiKey, async (req, res) => {
     const tenantId = req.tenantId;
     const { stripe_secret_key, stripe_publishable_key, stripe_webhook_secret } = req.body;
 
-    // Validate that at least one key is provided
-    if (!stripe_secret_key && !stripe_publishable_key && !stripe_webhook_secret) {
+    // Validate that at least one key is present in the body (value can be empty string to clear that key)
+    const hasSecret = stripe_secret_key !== undefined;
+    const hasPublishable = stripe_publishable_key !== undefined;
+    const hasWebhook = stripe_webhook_secret !== undefined;
+    if (!hasSecret && !hasPublishable && !hasWebhook) {
       return res.status(400).json({
         success: false,
         error: 'At least one of stripe_secret_key, stripe_publishable_key, or stripe_webhook_secret must be provided'
@@ -2025,22 +2028,22 @@ router.put('/stripe/config', authenticateTenantApiKey, async (req, res) => {
 
     if (stripe_secret_key !== undefined) {
       updates.push(`stripe_secret_key = $${paramIndex}`);
-      values.push(stripe_secret_key);
+      values.push(stripe_secret_key === '' ? null : stripe_secret_key);
       paramIndex++;
-      
+
       // Clear cached Stripe instance for this tenant
       stripeInstances.delete(tenantId);
     }
 
     if (stripe_publishable_key !== undefined) {
       updates.push(`stripe_publishable_key = $${paramIndex}`);
-      values.push(stripe_publishable_key);
+      values.push(stripe_publishable_key === '' ? null : stripe_publishable_key);
       paramIndex++;
     }
 
     if (stripe_webhook_secret !== undefined) {
       updates.push(`stripe_webhook_secret = $${paramIndex}`);
-      values.push(stripe_webhook_secret);
+      values.push(stripe_webhook_secret === '' ? null : stripe_webhook_secret);
       paramIndex++;
     }
 
@@ -2065,16 +2068,16 @@ router.put('/stripe/config', authenticateTenantApiKey, async (req, res) => {
   }
 });
 
-// Get tenant Stripe configuration (without exposing secrets)
+// Get tenant Stripe configuration (without exposing full secrets; only last 4 chars for verification)
 router.get('/stripe/config', authenticateTenantApiKey, async (req, res) => {
   try {
     const tenantId = req.tenantId;
 
     const result = await query(`
       SELECT 
-        stripe_secret_key IS NOT NULL as has_stripe_secret_key,
-        stripe_publishable_key IS NOT NULL as has_stripe_publishable_key,
-        stripe_webhook_secret IS NOT NULL as has_stripe_webhook_secret,
+        stripe_secret_key,
+        stripe_publishable_key,
+        stripe_webhook_secret,
         stripe_connect_account_id,
         stripe_connect_onboarding_completed
       FROM tenants
@@ -2088,9 +2091,21 @@ router.get('/stripe/config', authenticateTenantApiKey, async (req, res) => {
       });
     }
 
+    const row = result.rows[0];
+    const safeConfig = {
+      has_stripe_secret_key: !!row.stripe_secret_key,
+      stripe_secret_key_last4: row.stripe_secret_key ? String(row.stripe_secret_key).slice(-4) : null,
+      has_stripe_publishable_key: !!row.stripe_publishable_key,
+      stripe_publishable_key_last4: row.stripe_publishable_key ? String(row.stripe_publishable_key).slice(-4) : null,
+      has_stripe_webhook_secret: !!row.stripe_webhook_secret,
+      stripe_webhook_secret_last4: row.stripe_webhook_secret ? String(row.stripe_webhook_secret).slice(-4) : null,
+      stripe_connect_account_id: row.stripe_connect_account_id,
+      stripe_connect_onboarding_completed: row.stripe_connect_onboarding_completed,
+    };
+
     res.json({
       success: true,
-      data: result.rows[0]
+      data: safeConfig
     });
   } catch (error) {
     console.error('[testing] Error fetching Stripe configuration:', error);
