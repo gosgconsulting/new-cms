@@ -5,10 +5,13 @@ import { cn } from "@/lib/utils";
 import { SocialMediaSticky } from "./SocialMediaSticky";
 import { useEffect, useState } from "react";
 import ContactPanel from "./ContactPanel";
+import { useThemeBranding } from "../../../hooks/useThemeSettings";
+import { getSiteName, getLogoSrc } from "../utils/settings";
 
 interface LayoutProps {
   basePath: string;
   children: React.ReactNode;
+  tenantId?: string;
 }
 
 const joinPath = (basePath: string, subPath: string) => {
@@ -17,8 +20,15 @@ const joinPath = (basePath: string, subPath: string) => {
   return subPath === "" ? base : `${base}${sub}`;
 };
 
-export function Layout({ basePath, children }: LayoutProps) {
+export function Layout({ basePath, children, tenantId }: LayoutProps) {
   const location = useLocation();
+
+  // Load branding settings from database
+  const { branding, loading: brandingLoading } = useThemeBranding('nail-queen', tenantId);
+  
+  // Get settings from database with fallback to defaults
+  const siteName = getSiteName(branding, 'Nail Queen');
+  const logoSrc = getLogoSrc(branding);
 
   const [isContactOpen, setIsContactOpen] = useState(false);
   useEffect(() => {
@@ -49,9 +59,31 @@ export function Layout({ basePath, children }: LayoutProps) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <Link to={joinPath(basePath, "")} className="flex items-center space-x-2">
-              <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center">
-                <span className="text-white font-bold text-sm">NQ</span>
-              </div>
+              {brandingLoading ? (
+                <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center">
+                  <span className="text-white font-bold text-sm">NQ</span>
+                </div>
+              ) : (
+                <img 
+                  src={logoSrc} 
+                  alt={siteName} 
+                  className="h-12 w-auto"
+                  onError={(e) => {
+                    // Fallback to NQ badge if image not found
+                    const target = e.target as HTMLImageElement;
+                    if (target.dataset.fallbackAdded) return;
+                    target.style.display = 'none';
+                    target.dataset.fallbackAdded = 'true';
+                    const fallback = document.createElement('div');
+                    fallback.className = 'w-10 h-10 rounded-full bg-primary flex items-center justify-center';
+                    const text = document.createElement('span');
+                    text.className = 'text-white font-bold text-sm';
+                    text.textContent = 'NQ';
+                    fallback.appendChild(text);
+                    target.parentElement?.appendChild(fallback);
+                  }}
+                />
+              )}
             </Link>
 
             <div className="hidden md:flex items-center space-x-8">
@@ -108,7 +140,7 @@ export function Layout({ basePath, children }: LayoutProps) {
                 Terms & Conditions
               </Link>
             </div>
-            <p className="text-sm text-gray-600">Copyright © 2025 Nail Queen</p>
+            <p className="text-sm text-gray-600">Copyright © 2025 {siteName}</p>
           </div>
         </div>
       </footer>

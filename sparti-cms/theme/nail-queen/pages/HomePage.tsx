@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Layout } from "../components/Layout";
 
-export default function HomePage({ basePath }: { basePath: string }) {
+export default function HomePage({ basePath, tenantId }: { basePath: string; tenantId?: string }) {
   const asset = (path: string) => `${basePath.replace(/\/+$/, "")}/assets/${path.replace(/^\/+/, "")}`;
   
   // Adjustable gap between text and vertical line in "Our Services" section
@@ -127,7 +127,7 @@ export default function HomePage({ basePath }: { basePath: string }) {
   }, []);
 
   return (
-    <Layout basePath={basePath}>
+    <Layout basePath={basePath} tenantId={tenantId}>
       {/* Hero Section */}
       <section className="bg-background py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

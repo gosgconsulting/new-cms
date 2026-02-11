@@ -2,12 +2,14 @@ import { Layout } from "../components/Layout.tsx";
 
 export default function PrivacyPolicy({
     basePath,
+    tenantId,
 }: {
     basePath: string;
+    tenantId?: string;
 }) {
 
     return (
-      <Layout basePath={basePath}>
+      <Layout basePath={basePath} tenantId={tenantId}>
         {/* Header */}
       <section className="py-16 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

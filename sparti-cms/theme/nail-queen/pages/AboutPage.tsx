@@ -317,7 +317,7 @@ const teamMembersData: Record<
   },
 };
 
-export default function AboutPage({ basePath }: { basePath: string }) {
+export default function AboutPage({ basePath, tenantId }: { basePath: string; tenantId?: string }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [api, setApi] = useState<any>();
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
@@ -385,7 +385,7 @@ export default function AboutPage({ basePath }: { basePath: string }) {
   const asset = (path: string) => `${basePath.replace(/\/+$/, "")}/assets/${path.replace(/^\/+/, "")}`;
 
   return (
-    <Layout basePath={basePath}>
+    <Layout basePath={basePath} tenantId={tenantId}>
       <section className="pt-16 pb-6 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h1 className="text-6xl font-bold text-center text-nail-queen-brown mb-8">MEET OUR TEAM</h1>

@@ -36,7 +36,7 @@ interface TenantLandingProps {
 const STRTheme: React.FC<TenantLandingProps> = ({
   tenantName = 'STR',
   tenantSlug = 'str',
-  tenantId,
+  tenantId = "tenant-d52afbe4",
   pageSlug
 }) => {
   const location = useLocation();

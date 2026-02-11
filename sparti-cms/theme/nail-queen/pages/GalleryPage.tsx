@@ -17,7 +17,7 @@ type GalleryItem = {
   image: string;
 };
 
-export default function GalleryPage({ basePath }: { basePath: string }) {
+export default function GalleryPage({ basePath, tenantId }: { basePath: string; tenantId?: string }) {
   const [activeFilter, setActiveFilter] = useState("manicures");
   const [selectedItem, setSelectedItem] = useState<GalleryItem | null>(null);
 
@@ -791,7 +791,7 @@ export default function GalleryPage({ basePath }: { basePath: string }) {
   };
 
   return (
-    <Layout basePath={basePath}>
+    <Layout basePath={basePath} tenantId={tenantId}>
       <style>{`
         [data-radix-dialog-content][data-state="open"] {
           animation: dialog-enter 200ms ease-out !important;

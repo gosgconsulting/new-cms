@@ -234,7 +234,7 @@ export default function BlogPage({ basePath, tenantId }: { basePath: string; ten
   };
 
   return (
-    <Layout basePath={basePath}>
+    <Layout basePath={basePath} tenantId={tenantId}>
       <section className="py-16 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h1 className="text-6xl font-bold text-center text-nail-queen-brown mb-8">Our Blog</h1>

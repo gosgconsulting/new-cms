@@ -1,8 +1,8 @@
 import { Layout } from "../components/Layout";
 
-export default function FindUsPage({ basePath }: { basePath: string }) {
+export default function FindUsPage({ basePath, tenantId }: { basePath: string; tenantId?: string }) {
   return (
-    <Layout basePath={basePath}>
+    <Layout basePath={basePath} tenantId={tenantId}>
       <section className="relative h-screen">
         <div className="absolute inset-0 w-full h-full">
           <iframe

@@ -2,13 +2,15 @@ import { Layout } from "../components/Layout";
 
 export default function TermsAndConditions({
     basePath,
+    tenantId,
 }: {
     basePath: string;
+    tenantId?: string;
 }) {
     const asset = (path: string) => `${basePath.replace(/\/+$/, "")}/assets/${path.replace(/^\/+/, "")}`;
 
   return (
-    <Layout basePath={basePath}>
+    <Layout basePath={basePath} tenantId={tenantId}>
       {/* Header */}
       <section className="py-16 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
