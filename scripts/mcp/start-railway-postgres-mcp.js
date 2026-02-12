@@ -45,7 +45,6 @@ const args = [
 
 console.log('Starting MCP Database Server for PostgreSQL...');
 console.log(`Connecting to: ${config.host}:${config.port}/${config.database}`);
-console.log('SSL config:', JSON.stringify(config.ssl));
 
 // Spawn the process
 const serverProcess = spawn('node', args, {

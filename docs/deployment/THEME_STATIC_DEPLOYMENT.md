@@ -1,10 +1,10 @@
 # Theme Static Deployment Guide
 
-This guide explains how to deploy a standalone static frontend for a specific theme using Railway environment variables.
+This guide explains how to deploy a standalone static frontend for a specific theme using Vercel (or host) environment variables.
 
 ## Overview
 
-You can deploy a specific theme page as a standalone static frontend by setting the `DEPLOY_THEME_SLUG` environment variable in Railway. This creates a lightweight, static-only deployment without the full CMS backend.
+You can deploy a specific theme page as a standalone static frontend by setting the `DEPLOY_THEME_SLUG` environment variable in Vercel. This creates a lightweight, static-only deployment without the full CMS backend.
 
 ## How It Works
 
@@ -18,28 +18,25 @@ You can deploy a specific theme page as a standalone static frontend by setting 
 - `sparti-seo-landing` - Sparti SEO Landing theme
 - `gosgconsulting` - GO SG Consulting theme
 
-## Railway Setup
+## Vercel Setup
 
 ### Step 1: Set Environment Variable
 
-In your Railway project dashboard:
+In your Vercel project:
 
-1. Go to your service → **Variables** tab
-2. Add a new variable:
+1. Go to Project → **Settings** → **Environment Variables**
+2. Add:
    - **Name**: `DEPLOY_THEME_SLUG`
    - **Value**: `landingpage` (or your desired theme slug)
 
 ### Step 2: Deploy
 
-Railway will automatically:
-1. Detect the `DEPLOY_THEME_SLUG` variable
-2. Build the static theme export
-3. Serve it on port 4173
+Vercel will use your build command; ensure theme build runs when `DEPLOY_THEME_SLUG` is set. The static theme export is served from the build output.
 
 ### Step 3: Access Your Theme
 
-Once deployed, your theme will be available at:
-- `https://your-railway-app.railway.app/`
+Once deployed, your theme will be available at your Vercel URL, e.g.:
+- `https://your-app.vercel.app/`
 
 The theme will be served as a static site with the slug as the index route.
 
@@ -78,11 +75,11 @@ This feature is useful for:
 
 ### Deploy Full CMS
 - Remove or unset `DEPLOY_THEME_SLUG` environment variable
-- Railway will build and deploy the full CMS with database support
+- Vercel will build and deploy the full CMS with database support
 
 ### Deploy Theme-Only
 - Set `DEPLOY_THEME_SLUG` to your desired theme slug
-- Railway will build and deploy only the static theme
+- Build will produce only the static theme
 
 ## Troubleshooting
 
@@ -94,7 +91,7 @@ If you get a "Theme not found" error:
 
 ### Build Fails
 If the build fails:
-1. Check Railway logs for specific error messages
+1. Check Vercel (or host) logs for specific error messages
 2. Verify all theme dependencies are in `package.json`
 3. Ensure the theme component exports correctly
 
@@ -106,10 +103,10 @@ If you see a blank page:
 
 ## Advanced: Custom Domain
 
-You can configure a custom domain in Railway:
-1. Go to your service → **Settings** → **Domains**
+You can configure a custom domain in Vercel:
+1. Go to Project → **Settings** → **Domains**
 2. Add your custom domain
-3. Railway will automatically configure SSL
+3. Vercel will automatically configure SSL
 
 ## Notes
 

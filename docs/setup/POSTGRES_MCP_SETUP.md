@@ -1,6 +1,6 @@
-# PostgreSQL MCP Setup Guide for GO SG Website
+# PostgreSQL MCP Setup Guide
 
-This guide explains how to set up and use the MCP Database Server for connecting Claude to your GO SG website's PostgreSQL database.
+This guide explains how to set up and use the MCP Database Server for connecting Claude to your PostgreSQL database (e.g. Vercel Postgres, Neon, or self-hosted).
 
 ## 1. Prerequisites
 
@@ -26,30 +26,14 @@ The MCP configuration file is located at:
 - macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
 - Linux: `~/.config/Claude/claude_desktop_config.json`
 
-Add the following configuration to your MCP config file:
+Set `DATABASE_URL` (or `DATABASE_PUBLIC_URL`) in your environment or `.env`, then add the MCP server to your config. Use the path to your `mcp-database-server/dist/src/index.js` and pass connection details from your URL, or use the project script that reads from `DATABASE_URL`:
 
-```json
-{
-  "mcpServers": {
-    "gosg-postgres": {
-      "command": "node",
-      "args": [
-        "C:\\Oliver-dev\\gosgwebsite\\mcp-database-server\\dist\\src\\index.js",
-        "--postgresql",
-        "--host", "trolley.proxy.rlwy.net",
-        "--port", "58867",
-        "--database", "railway",
-        "--user", "postgres",
-        "--password", "bFiBuCeLqCnTWwMEAQxnVJWGPZZkHXkG",
-        "--ssl", "true",
-        "--connection-timeout", "30000"
-      ]
-    }
-  }
-}
+```bash
+# From project root, with DATABASE_URL in .env
+node scripts/mcp/start-mcp-postgres.js
 ```
 
-Alternatively, you can use the provided starter script:
+Or add a custom command in your MCP config that runs that script. For cloud Postgres with self-signed certs, use `--ssl '{"rejectUnauthorized":false}'`.
 
 ```bash
 node start-mcp-postgres.js
@@ -109,8 +93,8 @@ To initialize or migrate your database schema:
 # For local development
 npm run migrate
 
-# For production
-npm run migrate:railway
+# For production (requires DATABASE_URL)
+npm run migrate:production
 ```
 
 ## 6. Troubleshooting

@@ -31,7 +31,6 @@ if (!config) {
 // Path to the MCP Database Server
 const serverPath = path.join(__dirname, '../../mcp-database-server', 'dist', 'src', 'index.js');
 
-// Build command arguments
 const args = [
   serverPath,
   '--postgresql',
@@ -40,11 +39,11 @@ const args = [
   '--database', config.database,
   '--user', config.user,
   '--password', config.password,
-  '--ssl', config.ssl.toString(),
-  '--connection-timeout', config.connectionTimeout.toString()
+  '--ssl', '{"rejectUnauthorized":false}',
+  '--connection-timeout', '30000'
 ];
 
-console.log('Starting MCP Database Server for GO SG Website PostgreSQL...');
+console.log('Starting MCP Database Server for PostgreSQL...');
 console.log(`Connecting to: ${config.host}:${config.port}/${config.database}`);
 
 // Spawn the process

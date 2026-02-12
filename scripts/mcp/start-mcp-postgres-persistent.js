@@ -1,12 +1,11 @@
 #!/usr/bin/env node
 
 /**
- * Persistent MCP Database Server for Railway PostgreSQL
- * 
- * This script starts and maintains the MCP Database Server connection
- * to Railway PostgreSQL, automatically restarting on failures.
+ * Persistent MCP Database Server for PostgreSQL
+ * Uses DATABASE_URL (or DATABASE_PUBLIC_URL); restarts on failures.
  */
 
+import 'dotenv/config';
 import { spawn } from 'child_process';
 import path from 'path';
 import fs from 'fs';
@@ -15,16 +14,24 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Railway PostgreSQL connection details
-const config = {
-  host: 'trolley.proxy.rlwy.net',
-  port: '58867',
-  database: 'railway',
-  user: 'postgres',
-  password: 'bFiBuCeLqCnTWwMEAQxnVJWGPZZkHXkG',
-  ssl: { rejectUnauthorized: false },
-  connectionTimeout: 30000
-};
+function parseDatabaseUrl(url) {
+  if (!url || !url.startsWith('postgres')) return null;
+  const u = new URL(url.replace(/^postgres(ql)?:\/\//, 'http://'));
+  return {
+    host: u.hostname,
+    port: u.port || '5432',
+    database: u.pathname.slice(1) || 'postgres',
+    user: u.username,
+    password: u.password,
+  };
+}
+
+const connectionString = process.env.DATABASE_PUBLIC_URL || process.env.DATABASE_URL;
+const config = connectionString ? parseDatabaseUrl(connectionString) : null;
+if (!config) {
+  console.error('Set DATABASE_URL or DATABASE_PUBLIC_URL in .env or environment.');
+  process.exit(1);
+}
 
 // Configuration
 const MAX_RESTARTS = 10;
@@ -64,8 +71,8 @@ function startServer() {
     '--database', config.database,
     '--user', config.user,
     '--password', config.password,
-    '--ssl', JSON.stringify(config.ssl),
-    '--connection-timeout', config.connectionTimeout.toString()
+    '--ssl', '{"rejectUnauthorized":false}',
+    '--connection-timeout', '30000'
   ];
 
   log(`Starting MCP Database Server (attempt ${restartCount + 1}/${MAX_RESTARTS})`);
@@ -165,7 +172,7 @@ process.on('unhandledRejection', (reason, promise) => {
 // Initialize log file
 log('INFO: Starting MCP PostgreSQL Persistent Service');
 log(`INFO: Log file: ${LOG_FILE}`);
-log(`INFO: Configuration: ${JSON.stringify(config, null, 2)}`);
+log(`INFO: Connecting to ${config.host}:${config.port}/${config.database}`);
 
 // Start the server
 startServer();

@@ -149,8 +149,8 @@ docker exec <container-id> whoami  # Should be 'nodejs', not 'root'
 
 ## Known Limitations
 
-1. **Environment Variables**: Still requires manual setup in Railway
-   - `VITE_API_BASE_URL` must be set before first build
+1. **Environment Variables**: Manual setup in Vercel (or host)
+   - `VITE_API_BASE_URL` can be set before first build (or use VERCEL_URL fallback)
    - No automatic fallback
 
 2. **Migration Failures**: Don't fail deployment (by design)
@@ -184,12 +184,12 @@ If issues occur:
 
 1. **Quick Rollback**:
    ```bash
-   # In Railway, change dockerfilePath back or use old Dockerfile
+   # Change dockerfilePath back or use old Dockerfile
    ```
 
 2. **Full Rollback**:
    - Restore `Dockerfile.backup`
-   - Update `railway.toml` if needed
+   - Update deployment config if needed
    - Redeploy
 
 ## Conclusion

@@ -68,7 +68,7 @@ All critical and high-priority issues identified in the QA review have been addr
 - [ ] Test healthcheck
 
 ### Staging Deployment
-- [ ] Deploy to Railway staging
+- [ ] Deploy to Vercel staging
 - [ ] Verify healthcheck passes
 - [ ] Test theme at `/`
 - [ ] Test admin at `/admin`
@@ -94,7 +94,7 @@ docker build -f Dockerfile.optimized \
 ### Step 2: Deploy to Staging
 1. Rename: `cp Dockerfile Dockerfile.backup`
 2. Replace: `cp Dockerfile.optimized Dockerfile`
-3. Deploy to Railway staging
+3. Deploy to Vercel staging
 4. Test thoroughly
 
 ### Step 3: Production
@@ -116,7 +116,7 @@ cp Dockerfile.backup Dockerfile
 For questions or issues:
 1. Check `docs/deployment/QA_REPORT.md` for detailed findings
 2. Review `docs/deployment/FIXES_APPLIED.md` for quick reference
-3. Check Railway logs for deployment errors
+3. Check Vercel logs for deployment errors
 
 ## Conclusion
 
