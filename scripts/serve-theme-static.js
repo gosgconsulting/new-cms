@@ -111,7 +111,7 @@ async function getCustomCodeSettingsDirect(tenantId) {
 // Parse JSON bodies for API requests
 app.use(express.json());
 
-// Health check endpoint (required by Railway) - must be first for fast response
+// Health check endpoint - must be first for fast response
 app.get('/health', (req, res) => {
   res.status(200).json({ 
     status: 'healthy', 

@@ -58,7 +58,7 @@ This project supports hybrid SSR with full-page caching for fast, static-like de
 
 This guide covers how to deploy the GO SG website to production using Vite for the frontend build and Node.js/Express for the backend server.
 
-**Vercel**: Vercel always runs the full CMS (SPA + serverless API). Theme-only static deploys are a separate flow (e.g. `npm run build:theme` and deploy the `dist/` output elsewhere).
+**Recommended deployment: Vercel.** This project is configured for Vercel by default (no Nixpacks or Railway config in the repo). Vercel runs the full CMS (SPA + serverless API). Theme-only static deploys are a separate flow (e.g. `npm run build:theme` and deploy the `dist/` output elsewhere).
 
 ## Development vs Production
 
@@ -148,7 +148,62 @@ VITE_API_BASE_URL=https://your-domain.com
 
 ## Deployment Options
 
-### Option 1: Traditional VPS/Dedicated Server
+### Option 1: Vercel (recommended)
+
+The backend runs as Vercel Serverless Functions. There is no always-on Node server; the Express app is invoked per request via `api/index` (built from `api/index.source.js`). Static files from `dist/` are served by the CDN; only API, health, theme, SSR, and SPA fallback routes hit the function.
+
+#### Why Vercel (best practice)
+
+We deploy without Docker using Vercel’s build system: the frontend builds to static assets; API and server logic run as Vercel Functions (serverless). This is preferred because it gives the fastest deploys and caching, preview URLs, automatic scaling, no container management, and tight integration with Vercel routing, environment variables, logs, and analytics. This project matches that pattern: Vite build outputs to `dist/` (static); the Express app is bundled as a single serverless handler (`api/index`); the default flow uses no Docker.
+
+#### Quick Vercel deploy
+
+1. **Connect repo**: In Vercel, import your Git repository. No `railway.toml` or `nixpacks.toml` is used; build and rewrites are defined in `vercel.json`.
+2. **Environment variables**: In the Vercel project, set: `DATABASE_URL`, `BLOB_READ_WRITE_TOKEN` (Vercel Blob), `RESEND_API_KEY`, `SMTP_FROM_EMAIL`, `NODE_ENV=production`. Prefer `DATABASE_PUBLIC_URL` and `DATABASE_POOL_MAX=5` for serverless.
+3. **Deploy**: Vercel runs `npm install` then `npm run build && npm run build:api` and deploys `dist/` plus the serverless `api/index.js`. All set.
+
+#### Full Vercel setup (details)
+
+1. **Setup Vercel**:
+   ```bash
+   npm install -g vercel
+   vercel login
+   vercel
+   ```
+
+2. **Build settings** (in `vercel.json`):
+   - Build Command: `npm run build && npm run build:api`
+   - Output Directory: `dist`
+   - The `build:api` step bundles the serverless entry and server code into `api/index.js`.
+
+3. **Environment Variables** (Vercel Dashboard):
+   ```
+   DATABASE_URL=postgresql://...
+   DATABASE_PUBLIC_URL=postgresql://...   # optional, preferred for serverless
+   DATABASE_POOL_MAX=5                    # recommended for serverless (default 20)
+   BLOB_READ_WRITE_TOKEN=vercel_blob_rw_...  # required for file uploads (Vercel Blob)
+   RESEND_API_KEY=your_key
+   SMTP_FROM_EMAIL=noreply@gosg.com
+   NODE_ENV=production
+   ```
+   - **Uploads**: When `BLOB_READ_WRITE_TOKEN` (or `VERCEL`) is set, file uploads go to Vercel Blob; otherwise they use disk (`public/uploads/`). On Vercel the filesystem is read-only, so Blob is required for uploads.
+   - **Database pool**: Set `DATABASE_POOL_MAX=5` (or lower) so many concurrent invocations do not exhaust Postgres connections. For larger scale, consider a serverless Postgres provider (e.g. Neon, Supabase) with connection pooling.
+
+#### Vercel serverless behaviour
+
+- **Entry point**: Only `server/app.js` is loaded; `server/index.js` (and its `app.listen()`, DB init, theme sync on startup) is not run. The handler is `api/index.source.js` → `app(req, res)`.
+- **Database**: The pool is created lazily on first query (`sparti-cms/db/connection.js`). No startup DB init is required.
+- **Theme sync**: Theme sync does not run at "startup" on Vercel. It runs on-demand when the themes API is used (e.g. listing or syncing themes). Rely on that for serverless.
+- **Page cache**: SSR page cache (`/r/:slug`) is in-memory and per serverless instance. For shared cache across instances, you can add Vercel KV later and wire it in `sparti-cms/cache`.
+- **Static files**: Vercel serves files from `dist/` before applying rewrites, so `/assets/*` and other built assets are served from the CDN, not the function.
+
+4. **Testing and rollout**:
+   - Run `vercel dev` locally (or deploy to a preview) and smoke-test: `GET /health`, login, key API routes, theme routes, and SPA load. Confirm static assets are served from the CDN (no function logs for `/assets/*`).
+   - Test file uploads end-to-end with `BLOB_READ_WRITE_TOKEN` set; responses should return Blob URLs.
+   - Optionally run backend tests with `VERCEL=1` and `DATABASE_POOL_MAX=2` to catch serverless-specific issues.
+   - Deploy to Vercel and validate, then switch traffic (domain or feature flag) as needed.
+
+### Option 2: Traditional VPS/Dedicated Server
 
 1. **Setup Server**:
    ```bash
@@ -201,67 +256,7 @@ VITE_API_BASE_URL=https://your-domain.com
    }
    ```
 
-### Option 2: Railway Deployment
-
-1. **Connect Repository**:
-   - Connect your GitHub repository to Railway
-   - Set environment variables in Railway dashboard
-
-2. **Deploy**:
-   - Railway automatically detects the `package.json`
-   - Runs `npm install` and `npm run build`
-   - Starts the server with `npm start`
-
-3. **Environment Variables** (Railway Dashboard):
-   ```
-   DATABASE_URL=postgresql://...
-   RESEND_API_KEY=your_key
-   SMTP_FROM_EMAIL=noreply@gosg.com
-   NODE_ENV=production
-   ```
-
-### Option 3: Vercel Deployment (serverless backend)
-
-The backend runs as Vercel Serverless Functions. There is no always-on Node server; the Express app is invoked per request via `api/index` (built from `api/index.source.js`). Static files from `dist/` are served by the CDN; only API, health, theme, SSR, and SPA fallback routes hit the function.
-
-1. **Setup Vercel**:
-   ```bash
-   npm install -g vercel
-   vercel login
-   vercel
-   ```
-
-2. **Build settings** (in `vercel.json`):
-   - Build Command: `npm run build && npm run build:api`
-   - Output Directory: `dist`
-   - The `build:api` step bundles the serverless entry and server code into `api/index.js`.
-
-3. **Environment Variables** (Vercel Dashboard):
-   ```
-   DATABASE_URL=postgresql://...
-   DATABASE_PUBLIC_URL=postgresql://...   # optional, preferred for serverless
-   DATABASE_POOL_MAX=5                    # recommended for serverless (default 20)
-   BLOB_READ_WRITE_TOKEN=vercel_blob_rw_...  # required for file uploads (Vercel Blob)
-   RESEND_API_KEY=your_key
-   SMTP_FROM_EMAIL=noreply@gosg.com
-   NODE_ENV=production
-   ```
-   - **Uploads**: When `BLOB_READ_WRITE_TOKEN` (or `VERCEL`) is set, file uploads go to Vercel Blob; otherwise they use disk (`public/uploads/`). On Vercel the filesystem is read-only, so Blob is required for uploads.
-   - **Database pool**: Set `DATABASE_POOL_MAX=5` (or lower) so many concurrent invocations do not exhaust Postgres connections. For larger scale, consider a serverless Postgres provider (e.g. Neon, Supabase) with connection pooling.
-
-#### Vercel serverless behaviour
-
-- **Entry point**: Only `server/app.js` is loaded; `server/index.js` (and its `app.listen()`, DB init, theme sync on startup) is not run. The handler is `api/index.source.js` → `app(req, res)`.
-- **Database**: The pool is created lazily on first query (`sparti-cms/db/connection.js`). No startup DB init is required.
-- **Theme sync**: Theme sync does not run at “startup” on Vercel. It runs on-demand when the themes API is used (e.g. listing or syncing themes). Rely on that for serverless.
-- **Page cache**: SSR page cache (`/r/:slug`) is in-memory and per serverless instance. For shared cache across instances, you can add Vercel KV later and wire it in `sparti-cms/cache`.
-- **Static files**: Vercel serves files from `dist/` before applying rewrites, so `/assets/*` and other built assets are served from the CDN, not the function.
-
-4. **Testing and rollout**:
-   - Run `vercel dev` locally (or deploy to a preview) and smoke-test: `GET /health`, login, key API routes, theme routes, and SPA load. Confirm static assets are served from the CDN (no function logs for `/assets/*`).
-   - Test file uploads end-to-end with `BLOB_READ_WRITE_TOKEN` set; responses should return Blob URLs.
-   - Optionally run backend tests with `VERCEL=1` and `DATABASE_POOL_MAX=2` to catch serverless-specific issues.
-   - Deploy to Vercel and keep your existing host (e.g. Railway) as fallback until validated, then switch traffic (domain or feature flag).
+For non-Vercel hosts, use the same environment variables (e.g. `DATABASE_URL`, `VITE_API_BASE_URL`) and run a Node server; see Option 2 (VPS) for a traditional setup.
 
 ## Performance Optimization
 

@@ -187,8 +187,8 @@ async function syncAllTenants() {
 
     console.log('\n✓ All tenants are now using the new structure!');
     console.log('\nNext steps:');
-    console.log('  1. Configure storage_name for each tenant (via Railway env or database)');
-    console.log('  2. Set RAILWAY_STORAGE_{TENANT_ID} environment variables if using Railway');
+    console.log('  1. Configure storage_name for each tenant (via Vercel env or database)');
+    console.log('  2. Set STORAGE_{TENANT_ID} environment variables (e.g. in Vercel) if using per-tenant storage');
     console.log('  3. Verify media folders are accessible for each tenant');
 
   } catch (error) {

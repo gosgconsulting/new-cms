@@ -197,7 +197,7 @@ const IntegrationsTab: React.FC<IntegrationsTabProps> = ({ currentTenantId, curr
                   </p>
                   <div className="flex gap-4 text-xs text-muted-foreground">
                     <span>Type: Database</span>
-                    <span>Provider: Railway</span>
+                    <span>Provider: Postgres</span>
                   </div>
                   <p className="text-xs text-amber-600 mt-2">
                     {mode === 'theme' 
@@ -912,7 +912,7 @@ const RulesTab: React.FC = () => {
             <li className="text-gray-700">• Create small, focused components instead of large monolithic files</li>
             <li className="text-gray-700">• Follow React best practices (hooks, functional components)</li>
             <li className="text-gray-700">• Implement proper error handling and loading states</li>
-            <li className="text-gray-700">• Use Railway PostgreSQL for database operations</li>
+            <li className="text-gray-700">• Use PostgreSQL for database operations</li>
             <li className="text-gray-700">• Keep API routes in server.js with proper error handling</li>
             <li className="text-gray-700">• Write clean, self-documenting code with minimal comments</li>
           </ul>
@@ -926,7 +926,7 @@ const RulesTab: React.FC = () => {
         
         <div className="bg-white rounded-lg p-4 border border-gray-200">
           <ul className="space-y-2 text-sm">
-            <li className="text-gray-700">• Use Railway PostgreSQL as primary database</li>
+            <li className="text-gray-700">• Use PostgreSQL as primary database</li>
             <li className="text-gray-700">• All database queries should use parameterized statements to prevent SQL injection</li>
             <li className="text-gray-700">• Implement proper indexing for frequently queried columns</li>
             <li className="text-gray-700">• Use transactions for multi-step operations</li>

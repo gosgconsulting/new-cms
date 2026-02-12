@@ -60,9 +60,9 @@ The script provides detailed output showing:
 
 ## After Running
 
-1. **Configure Storage Names** (if using Railway):
-   - Set `RAILWAY_STORAGE_{TENANT_ID}` environment variables
-   - Example: `RAILWAY_STORAGE_TENANT_GOSG=storage-gosg`
+1. **Configure Storage Names** (e.g. in Vercel):
+   - Set `STORAGE_{TENANT_ID}` environment variables
+   - Example: `STORAGE_TENANT_GOSG=storage-gosg`
 
 2. **Or Update Database**:
    ```sql

@@ -25,13 +25,11 @@ if %errorlevel%==0 (
 )
 
 echo.
-echo [2/3] Starting MCP PostgreSQL server...
-echo    Host: trolley.proxy.rlwy.net:58867
-echo    Database: railway
-echo    SSL: rejectUnauthorized=false
+echo [2/3] Starting MCP PostgreSQL server (using DATABASE_URL from .env)...
 echo.
 
-start "MCP PostgreSQL Server" cmd /k "node mcp-database-server/dist/src/index.js --postgresql --host trolley.proxy.rlwy.net --database railway --user postgres --password bFiBuCeLqCnTWwMEAQxnVJWGPZZkHXkG --port 58867 --ssl \"{\"rejectUnauthorized\":false}\" --connection-timeout 30000"
+cd /d "%~dp0..\.."
+start "MCP PostgreSQL Server" cmd /k "node scripts/setup/fix-database-viewer.js"
 
 timeout /t 3 > nul
 

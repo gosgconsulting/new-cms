@@ -40,7 +40,7 @@ const FormLeadsView: React.FC<FormLeadsViewProps> = ({ form, onBack }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Fetch submissions from Railway PostgreSQL via API
+    // Fetch submissions from Postgres via API
     const fetchSubmissions = async () => {
       setIsLoading(true);
       try {

@@ -30,7 +30,7 @@ if (!connectionString) {
 const config = parseConnectionString(connectionString);
 
 // Determine if we should use SSL
-// Use SSL for remote connections (Railway, cloud), but make it optional for localhost
+// Use SSL for remote/cloud connections; optional for localhost
 const isLocalhost = config.host === 'localhost' || 
                    config.host === '127.0.0.1' || 
                    config.host === '::1' ||

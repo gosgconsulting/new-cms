@@ -5,7 +5,7 @@ import { PORT } from '../config/constants.js';
 
 const router = express.Router();
 
-// Simple health check endpoint for Railway
+// Health check endpoint
 router.get('/health', (req, res) => {
   const { dbInitialized } = getDatabaseState();
   const mock = isMockDatabaseEnabled();

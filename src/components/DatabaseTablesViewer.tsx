@@ -186,7 +186,7 @@ const DatabaseTablesViewer: React.FC<DatabaseTablesViewerProps> = ({ onClose }) 
           <Database className="h-8 w-8 text-brandPurple" />
           <div>
             <h1 className="text-3xl font-bold text-foreground">PostgreSQL Database</h1>
-            <p className="text-muted-foreground">Railway • Connected • {tables.length} tables</p>
+            <p className="text-muted-foreground">Database • Connected • {tables.length} tables</p>
           </div>
         </div>
         <div className="flex items-center space-x-2">

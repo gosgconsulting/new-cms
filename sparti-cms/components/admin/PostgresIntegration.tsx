@@ -201,7 +201,7 @@ export const PostgresIntegration: React.FC<PostgresIntegrationProps> = ({ tenant
             </p>
             <div className="flex gap-4 text-xs text-muted-foreground">
               <span>Type: Database</span>
-              <span>Provider: Railway</span>
+              <span>Provider: Postgres</span>
             </div>
           </div>
         </div>

@@ -14,14 +14,12 @@ RUN npm ci
 # Copy application code
 COPY . .
 
-# Build arguments (Railway environment variables)
+# Build arguments
 ARG DEPLOY_THEME_SLUG
 ARG VITE_API_BASE_URL
-ARG RAILWAY_PUBLIC_DOMAIN
 
 ENV DEPLOY_THEME_SLUG=${DEPLOY_THEME_SLUG}
 ENV VITE_API_BASE_URL=${VITE_API_BASE_URL}
-ENV RAILWAY_PUBLIC_DOMAIN=${RAILWAY_PUBLIC_DOMAIN}
 ENV NODE_ENV=production
 
 RUN npm run build:production
@@ -72,7 +70,7 @@ USER nodejs
 # Expose port
 EXPOSE 4173
 
-# Healthcheck (Railway also has healthcheck configured in railway.toml)
+# Healthcheck
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
   CMD node -e "require('http').get('http://localhost:4173/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)}).on('error', () => process.exit(1))"
 

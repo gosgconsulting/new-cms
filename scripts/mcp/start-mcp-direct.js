@@ -1,11 +1,13 @@
 #!/usr/bin/env node
 
 /**
- * Direct MCP Database Server for Railway PostgreSQL
- * 
- * Simple script to start MCP Database Server with proper Railway SSL configuration
+ * Direct MCP Database Server for PostgreSQL
+ *
+ * Uses DATABASE_URL (or DATABASE_PUBLIC_URL) from environment or .env.
+ * SSL rejectUnauthorized: false for cloud Postgres with self-signed certs.
  */
 
+import 'dotenv/config';
 import { spawn } from 'child_process';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -13,24 +15,32 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Railway PostgreSQL connection details
-const config = {
-  host: 'trolley.proxy.rlwy.net',
-  port: '58867',
-  database: 'railway',
-  user: 'postgres',
-  password: 'bFiBuCeLqCnTWwMEAQxnVJWGPZZkHXkG'
-};
+function parseDatabaseUrl(url) {
+  if (!url || !url.startsWith('postgres')) return null;
+  const u = new URL(url.replace(/^postgres(ql)?:\/\//, 'http://'));
+  return {
+    host: u.hostname,
+    port: u.port || '5432',
+    database: u.pathname.slice(1) || 'postgres',
+    user: u.username,
+    password: u.password,
+  };
+}
 
-console.log('🚀 Starting MCP Database Server for Railway PostgreSQL...');
-console.log(`📡 Connecting to: ${config.host}:${config.port}/${config.database}`);
-console.log('🔒 SSL: Configured for Railway (rejectUnauthorized: false)');
-console.log('');
+const connectionString = process.env.DATABASE_PUBLIC_URL || process.env.DATABASE_URL;
+const config = connectionString ? parseDatabaseUrl(connectionString) : null;
 
-// Path to the MCP Database Server
+if (!config) {
+  console.error('Set DATABASE_URL or DATABASE_PUBLIC_URL in .env or environment.');
+  process.exit(1);
+}
+
+console.log('Starting MCP Database Server for PostgreSQL...');
+console.log(`Connecting to: ${config.host}:${config.port}/${config.database}`);
+console.log('SSL: rejectUnauthorized=false');
+
 const serverPath = path.join(__dirname, '../../mcp-database-server', 'dist', 'src', 'index.js');
 
-// Command arguments with proper SSL configuration for Railway
 const args = [
   serverPath,
   '--postgresql',
@@ -43,44 +53,20 @@ const args = [
   '--connection-timeout', '30000'
 ];
 
-console.log('🔧 Starting MCP server with Railway SSL configuration...');
-
-// Start the MCP server
 const serverProcess = spawn('node', args, {
   stdio: 'inherit'
 });
 
-// Handle process events
 serverProcess.on('error', (error) => {
-  console.error('❌ Failed to start MCP Database Server:', error.message);
+  console.error('Failed to start MCP Database Server:', error.message);
   process.exit(1);
 });
 
 serverProcess.on('close', (code, signal) => {
   if (signal) {
-    console.log(`\n📴 MCP Database Server terminated by signal: ${signal}`);
-  } else {
-    console.log(`\n📴 MCP Database Server exited with code: ${code}`);
-  }
-  process.exit(code || 0);
-});
-
-// Handle termination signals
-process.on('SIGINT', () => {
-  console.log('\n🛑 Received SIGINT. Shutting down gracefully...');
-  if (serverProcess && !serverProcess.killed) {
-    serverProcess.kill('SIGTERM');
+    console.log(`MCP server stopped (${signal})`);
+  } else if (code !== 0) {
+    console.error(`MCP server exited with code ${code}`);
+    process.exit(code);
   }
 });
-
-process.on('SIGTERM', () => {
-  console.log('\n🛑 Received SIGTERM. Shutting down gracefully...');
-  if (serverProcess && !serverProcess.killed) {
-    serverProcess.kill('SIGTERM');
-  }
-});
-
-console.log('✅ MCP Database Server started successfully!');
-console.log('💡 Press Ctrl+C to stop the server');
-console.log('🔗 You can now use Claude Desktop to query your database');
-console.log('');

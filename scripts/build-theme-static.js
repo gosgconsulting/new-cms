@@ -30,14 +30,15 @@ if (!themeSlug) {
   process.exit(1);
 }
 
-// Auto-detect VITE_API_BASE_URL from Railway if not set
+// Auto-detect VITE_API_BASE_URL from Vercel if not set
 let viteApiBaseUrl = process.env.VITE_API_BASE_URL;
-if (!viteApiBaseUrl && process.env.RAILWAY_PUBLIC_DOMAIN) {
-  viteApiBaseUrl = `https://${process.env.RAILWAY_PUBLIC_DOMAIN}`;
-  console.log(`[testing] Auto-detected VITE_API_BASE_URL from Railway: ${viteApiBaseUrl}`);
+const vercelUrl = process.env.VERCEL_URL || process.env.VERCEL_PROJECT_PRODUCTION_URL;
+if (!viteApiBaseUrl && vercelUrl) {
+  viteApiBaseUrl = vercelUrl.startsWith('http') ? vercelUrl : `https://${vercelUrl}`;
+  console.log(`[testing] Auto-detected VITE_API_BASE_URL from Vercel: ${viteApiBaseUrl}`);
 } else if (!viteApiBaseUrl) {
   console.warn('[testing] WARNING: VITE_API_BASE_URL is not set');
-  console.warn('[testing] Frontend API calls may fail. Set VITE_API_BASE_URL in Railway variables.');
+  console.warn('[testing] Frontend API calls may fail. Set VITE_API_BASE_URL in Vercel (or .env).');
 } else {
   console.log(`[testing] VITE_API_BASE_URL: ${viteApiBaseUrl}`);
 }

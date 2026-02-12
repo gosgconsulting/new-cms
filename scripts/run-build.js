@@ -1,9 +1,8 @@
 #!/usr/bin/env node
 /**
- * Conditional production build (Docker-agnostic).
+ * Conditional production build (Vercel / generic).
  * If DEPLOY_THEME_SLUG or VITE_DEPLOY_THEME_SLUG is set, runs npm run build:theme.
  * Otherwise runs npm run build.
- * Used by Railway Nixpacks and by Dockerfile when simplified.
  */
 
 import 'dotenv/config';
@@ -11,11 +10,12 @@ import { spawnSync } from 'child_process';
 
 const deployThemeSlug = process.env.DEPLOY_THEME_SLUG || process.env.VITE_DEPLOY_THEME_SLUG;
 
-// Auto-detect VITE_API_BASE_URL from Railway domain if not set
+// Auto-detect VITE_API_BASE_URL from Vercel URL if not set
 if (!process.env.VITE_API_BASE_URL) {
-  if (process.env.RAILWAY_PUBLIC_DOMAIN) {
-    process.env.VITE_API_BASE_URL = `https://${process.env.RAILWAY_PUBLIC_DOMAIN}`;
-    console.log('[testing] Auto-detected VITE_API_BASE_URL from Railway domain:', process.env.VITE_API_BASE_URL);
+  const vercelUrl = process.env.VERCEL_URL || process.env.VERCEL_PROJECT_PRODUCTION_URL;
+  if (vercelUrl) {
+    process.env.VITE_API_BASE_URL = vercelUrl.startsWith('http') ? vercelUrl : `https://${vercelUrl}`;
+    console.log('[testing] Auto-detected VITE_API_BASE_URL from Vercel:', process.env.VITE_API_BASE_URL);
   } else {
     process.env.VITE_API_BASE_URL = 'http://localhost:4173';
     console.warn('[testing] WARNING: VITE_API_BASE_URL not set, using fallback:', process.env.VITE_API_BASE_URL);

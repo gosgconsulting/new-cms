@@ -6,7 +6,7 @@ Database design and query standards for Sparti CMS development.
 ## Core Database Principles
 
 ### Database Platform
-- **Use Railway PostgreSQL** as primary database
+- **Use PostgreSQL** as primary database (e.g. via Vercel or local)
 - All database operations through Express.js API (server.js)
 - Server-side only database access (never client-side)
 
@@ -217,7 +217,7 @@ const createUser = async (req, res) => {
 #### Optimization Tools
 - PostgreSQL EXPLAIN ANALYZE
 - pg_stat_statements extension
-- Railway metrics dashboard
+- Database/metrics dashboard
 - Custom logging for slow queries
 
 ## Schema Conventions

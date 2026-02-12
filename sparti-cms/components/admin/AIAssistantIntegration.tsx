@@ -24,11 +24,11 @@ export const AIAssistantIntegration: React.FC = () => {
             </Badge>
           </div>
           <p className="text-sm text-muted-foreground mb-1">
-            Anthropic Claude API integration for AI-powered assistance via Railway
+            Anthropic Claude API integration for AI-powered assistance
           </p>
           <div className="flex gap-4 text-xs text-muted-foreground">
             <span>Type: AI Service</span>
-            <span>Provider: Anthropic (Railway)</span>
+            <span>Provider: Anthropic</span>
           </div>
           <div className="mt-3 text-xs text-muted-foreground">
             <p>{apiKeyExists 
@@ -49,7 +49,7 @@ export const AIAssistantIntegrationListItem: React.FC = () => {
   return (
     <li className="flex items-center space-x-2">
       <Bot className="h-4 w-4 text-purple-600" />
-      <span>• AI Assistant (Anthropic Claude API via Railway)</span>
+      <span>• AI Assistant (Anthropic Claude API)</span>
     </li>
   );
 };

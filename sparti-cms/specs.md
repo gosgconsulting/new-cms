@@ -126,7 +126,7 @@ function App() {
 ## Development Workflow (SOP)
 
 ### 1. Server Setup
-- Duplicate Railway template
+- Set up database (e.g. Postgres on Vercel or external provider)
 - Duplicate Git repository
 - Configure environment variables
 
@@ -171,7 +171,7 @@ function App() {
 - **Content Integration**: Upload logo, favicon, client assets
 
 ### 4. Deployment
-- Deploy to Railway/production environment
+- Deploy to Vercel (or production environment)
 - Verify all integrations working
 - Test email delivery and forms
 
@@ -330,14 +330,14 @@ See `sparti-cms/docs/ux-ui-guidelines.md` for complete UX/UI standards.
 - Create small, focused components instead of large monolithic files
 - Follow React best practices (hooks, functional components)
 - Implement proper error handling and loading states
-- Use Railway PostgreSQL for database operations
+- Use PostgreSQL for database operations
 - Keep API routes in server.js with proper error handling
 - Write clean, self-documenting code with minimal comments
 
 See `sparti-cms/docs/development-rules.md` for complete development standards.
 
 ### Database Rules
-- Use Railway PostgreSQL as primary database
+- Use PostgreSQL as primary database
 - All database queries should use parameterized statements to prevent SQL injection
 - Implement proper indexing for frequently queried columns
 - Use transactions for multi-step operations

@@ -162,8 +162,7 @@ async function verifyTenantConnection() {
     // Step 5: Verify storage configuration
     console.log(`[5/5] Verifying storage configuration...`);
     try {
-      // Check Railway storage env variable
-      const storageEnvKey = `RAILWAY_STORAGE_${tenantId.toUpperCase().replace(/-/g, '_')}`;
+      const storageEnvKey = `STORAGE_${tenantId.toUpperCase().replace(/-/g, '_')}`;
       const storageEnv = process.env[storageEnvKey];
       
       const tenantResult = await query(`

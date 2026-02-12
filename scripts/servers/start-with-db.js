@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 
 /**
- * Startup script for the GOSG website with database connection
- * This script sets the required environment variables and starts the server
+ * Startup script for the GOSG website with database connection.
+ * Requires DATABASE_URL in .env (local) or Vercel environment.
  */
 
-// Set environment variables for Railway PostgreSQL connection
-process.env.DATABASE_URL = process.env.DATABASE_URL || 'postgresql://postgres:bFiBuCeLqCnTWwMEAQxnVJWGPZZkHXkG@trolley.proxy.rlwy.net:58867/railway';
+import 'dotenv/config';
+
 process.env.NODE_ENV = process.env.NODE_ENV || 'development';
 
 console.log('[testing] Starting GOSG website server...');

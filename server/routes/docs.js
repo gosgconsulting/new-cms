@@ -160,7 +160,7 @@ async function buildDatabaseOverviewActions() {
     join(process.cwd(), 'sparti-cms', 'docs', 'database-rules.md'),
     join(process.cwd(), 'docs', 'development', 'database-audit-implementation-plan.md'),
     join(process.cwd(), 'docs', 'setup', 'POSTGRES_MCP_SETUP.md'),
-    join(process.cwd(), 'docs', 'setup', 'POSTGRES_MCP_SETUP_RAILWAY.md'),
+    join(process.cwd(), 'docs', 'setup', 'POSTGRES_MCP_SETUP.md'),
   ];
 
   const actions = [];
@@ -246,7 +246,7 @@ router.get('/api/docs/brief', async (req, res) => {
         join(process.cwd(), 'docs', 'implementation', 'DATABASE_VIEWER_FIX.md'),
         join(process.cwd(), 'docs', 'implementation', 'DATABASE_TABLES_SYNC_FIX.md'),
         join(process.cwd(), 'docs', 'setup', 'POSTGRES_MCP_SETUP.md'),
-        join(process.cwd(), 'docs', 'setup', 'POSTGRES_MCP_SETUP_RAILWAY.md'),
+        join(process.cwd(), 'docs', 'setup', 'POSTGRES_MCP_SETUP.md'),
       ];
       let combined = '';
       for (const file of candidates) {

@@ -304,7 +304,7 @@ router.post('/auth/login', asyncHandler(async (req, res) => {
       }
       
       if (connectionTestError?.code === 'ECONNREFUSED' || connectionTestError?.code === 'ETIMEDOUT' || connectionTestError?.code === 'ECONNRESET') {
-        const baseMessage = 'Unable to connect to database. If DATABASE_URL points to localhost, ensure Postgres is running locally. For cloud/Railway databases, use the full remote connection string in DATABASE_PUBLIC_URL or DATABASE_URL.';
+        const baseMessage = 'Unable to connect to database. If DATABASE_URL points to localhost, ensure Postgres is running locally. For cloud databases, use the full connection string in DATABASE_PUBLIC_URL or DATABASE_URL.';
         return res.status(503).json({
           success: false,
           error: 'Database connection failed',

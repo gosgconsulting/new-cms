@@ -1,9 +1,9 @@
 # MCP PostgreSQL Persistent Service Starter
-# This script starts the MCP Database Server for Railway PostgreSQL
+# This script starts the MCP Database Server (uses DATABASE_URL from .env)
 
 Write-Host "Starting MCP PostgreSQL Persistent Service..." -ForegroundColor Green
 Write-Host ""
-Write-Host "This will start the MCP Database Server for Railway PostgreSQL" -ForegroundColor Yellow
+Write-Host "This will start the MCP Database Server (ensure DATABASE_URL is in .env)" -ForegroundColor Yellow
 Write-Host "and keep it running in the background with automatic restart on failure." -ForegroundColor Yellow
 Write-Host ""
 Write-Host "Press Ctrl+C to stop the service." -ForegroundColor Cyan

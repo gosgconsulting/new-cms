@@ -1,13 +1,19 @@
+import 'dotenv/config';
 import { spawn } from 'child_process';
 
-// Set environment variables for Railway PostgreSQL
-process.env.DATABASE_URL = 'postgresql://postgres:bFiBuCeLqCnTWwMEAQxnVJWGPZZkHXkG@trolley.proxy.rlwy.net:58867/railway';
-process.env.DATABASE_PUBLIC_URL = 'postgresql://postgres:bFiBuCeLqCnTWwMEAQxnVJWGPZZkHXkG@trolley.proxy.rlwy.net:58867/railway';
-process.env.NODE_ENV = 'development';
+// Use DATABASE_URL from .env (or Vercel). Set in .env for local dev.
+if (!process.env.DATABASE_URL) {
+  console.error('DATABASE_URL is not set. Add it to .env for local development or use Vercel env in production.');
+  process.exit(1);
+}
+process.env.NODE_ENV = process.env.NODE_ENV || 'development';
+if (process.env.DATABASE_URL && !process.env.DATABASE_PUBLIC_URL) {
+  process.env.DATABASE_PUBLIC_URL = process.env.DATABASE_URL;
+}
 
-console.log('🚀 Starting development server with Railway PostgreSQL...');
-console.log('📊 Database:', 'trolley.proxy.rlwy.net:58867/railway');
-console.log('🔧 Environment: development');
+console.log('🚀 Starting development server with database...');
+console.log('📊 Database: configured via DATABASE_URL');
+console.log('🔧 Environment:', process.env.NODE_ENV);
 console.log('');
 
 // Start the development server

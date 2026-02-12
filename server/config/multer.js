@@ -11,12 +11,11 @@ const memoryStorage = multer.memoryStorage();
 
 /**
  * Get tenant storage path based on storage_name
- * Uses Railway env variable or falls back to tenant_id
+ * Uses STORAGE_{TENANT_ID} env (e.g. on Vercel) or falls back to tenant_id / database
  */
 async function getTenantStoragePath(tenantId) {
   try {
-    // Check Railway environment variable: RAILWAY_STORAGE_{TENANT_ID}
-    const envKey = `RAILWAY_STORAGE_${tenantId.toUpperCase().replace(/-/g, '_')}`;
+    const envKey = `STORAGE_${tenantId.toUpperCase().replace(/-/g, '_')}`;
     const envStorageName = process.env[envKey];
     
     let storageName = envStorageName;

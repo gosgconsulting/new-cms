@@ -125,7 +125,7 @@ process.on('SIGTERM', () => {
   process.exit(0);
 });
 
-// Simple health check endpoint for Railway
+// Simple health check endpoint for monitoring
 app.get('/health', (req, res) => {
   res.status(200).json({ 
     status: 'healthy', 

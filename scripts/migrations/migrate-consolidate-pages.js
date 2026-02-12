@@ -15,12 +15,15 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Database configuration
+// Database configuration (use DATABASE_URL or DATABASE_PUBLIC_URL; no default)
+const connectionString = process.env.DATABASE_PUBLIC_URL || process.env.DATABASE_URL;
+if (!connectionString) {
+  console.error('DATABASE_URL or DATABASE_PUBLIC_URL must be set.');
+  process.exit(1);
+}
 const dbConfig = {
-  connectionString: process.env.DATABASE_PUBLIC_URL || 
-                   process.env.DATABASE_URL || 
-                   'postgresql://postgres:bFiBuCeLqCnTWwMEAQxnVJWGPZZkHXkG@trolley.proxy.rlwy.net:58867/railway',
-  ssl: { rejectUnauthorized: false }, // Always use SSL with Railway
+  connectionString,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
 };
 
 const pool = new Pool(dbConfig);

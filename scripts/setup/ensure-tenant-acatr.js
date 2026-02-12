@@ -92,7 +92,7 @@ async function ensureTenantACATR() {
 
     // Step 4: Verify storage configuration
     console.log(`[4/4] Verifying storage configuration...`);
-    const storageEnvKey = `RAILWAY_STORAGE_${tenantId.toUpperCase().replace(/-/g, '_')}`;
+    const storageEnvKey = `STORAGE_${tenantId.toUpperCase().replace(/-/g, '_')}`;
     const storageEnv = process.env[storageEnvKey];
     
     const tenantResult = await query(`
@@ -114,7 +114,7 @@ async function ensureTenantACATR() {
       }
     } else if (currentStorage) {
       console.log(`  ✅ Storage configured in database: ${currentStorage}`);
-      console.log(`  💡 Tip: Set ${storageEnvKey} environment variable for Railway storage\n`);
+      console.log(`  💡 Tip: Set ${storageEnvKey} environment variable (e.g. in Vercel) for custom storage\n`);
     } else {
       console.log(`  ⚠️  No storage configured`);
       console.log(`  💡 Tip: Set ${storageEnvKey} environment variable or update database\n`);

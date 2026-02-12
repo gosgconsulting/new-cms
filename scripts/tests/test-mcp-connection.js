@@ -2,11 +2,11 @@
 
 /**
  * Test MCP PostgreSQL Connection
- * 
- * This script tests the connection to Railway PostgreSQL with the exact
- * same parameters used by the MCP server to verify connectivity.
+ *
+ * Uses DATABASE_URL from .env to test the same connection the MCP server uses.
  */
 
+import 'dotenv/config';
 import { spawn } from 'child_process';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -14,16 +14,20 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+function parseDatabaseUrl(url) {
+  if (!url || !url.startsWith('postgres')) return null;
+  const u = new URL(url.replace(/^postgres(ql)?:\/\//, 'http://'));
+  return { host: u.hostname, port: u.port || '5432', database: u.pathname.slice(1), user: u.username, password: u.password };
+}
+
 console.log('🧪 Testing MCP PostgreSQL Connection...\n');
 
-// Railway PostgreSQL connection details
-const config = {
-  host: 'trolley.proxy.rlwy.net',
-  port: '58867',
-  database: 'railway',
-  user: 'postgres',
-  password: 'bFiBuCeLqCnTWwMEAQxnVJWGPZZkHXkG'
-};
+const dbUrl = process.env.DATABASE_URL;
+const config = dbUrl ? parseDatabaseUrl(dbUrl) : null;
+if (!config) {
+  console.error('DATABASE_URL is not set. Add it to .env for local development.');
+  process.exit(1);
+}
 
 console.log('📋 Connection Parameters:');
 console.log(`   Host: ${config.host}`);
@@ -91,22 +95,22 @@ testProcess.on('close', (code) => {
     console.log('✅ Connection Status: CONNECTED');
   } else if (output.includes('self-signed certificate')) {
     console.log('🔒 SSL Issue: Self-signed certificate error detected');
-    console.log('💡 Solution: Using rejectUnauthorized:false for Railway');
+    console.log('💡 Solution: Using rejectUnauthorized:false for cloud Postgres');
   } else if (errorOutput.includes('ENOTFOUND') || errorOutput.includes('ECONNREFUSED')) {
-    console.log('🌐 Network Issue: Cannot reach Railway PostgreSQL server');
-    console.log('💡 Check: Internet connection and Railway service status');
+    console.log('🌐 Network Issue: Cannot reach Postgres server');
+    console.log('💡 Check: Internet connection and database service status');
   } else if (errorOutput.includes('authentication failed')) {
     console.log('🔑 Auth Issue: PostgreSQL authentication failed');
-    console.log('💡 Check: Database credentials in Railway dashboard');
+    console.log('💡 Check: DATABASE_URL credentials in .env or Vercel');
   }
-  
+
   console.log('\n📖 Next Steps:');
   if (code === 0) {
     console.log('1. Start MCP server: npm run mcp:start');
     console.log('2. Test with Claude: "List all tables in my gosg-postgres database"');
   } else {
-    console.log('1. Check Railway PostgreSQL service status');
-    console.log('2. Verify database credentials');
+    console.log('1. Check Postgres service status');
+    console.log('2. Verify DATABASE_URL in .env or Vercel');
     console.log('3. Check network connectivity');
   }
   

@@ -9,12 +9,11 @@ import { query } from '../connection.js';
 import pool from '../connection.js';
 
 /**
- * Get tenant's storage name from Railway env or database
+ * Get tenant's storage name from STORAGE_{TENANT_ID} env (e.g. Vercel) or database
  */
 export async function getTenantStorageName(tenantId) {
   try {
-    // First check Railway environment variable: RAILWAY_STORAGE_{TENANT_ID}
-    const envKey = `RAILWAY_STORAGE_${tenantId.toUpperCase().replace(/-/g, '_')}`;
+    const envKey = `STORAGE_${tenantId.toUpperCase().replace(/-/g, '_')}`;
     const envStorageName = process.env[envKey];
     
     if (envStorageName) {

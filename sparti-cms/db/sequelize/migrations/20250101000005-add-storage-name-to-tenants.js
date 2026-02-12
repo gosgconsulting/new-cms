@@ -3,8 +3,8 @@
  * Migration: Add storage_name to tenants table
  * 
  * This migration adds storage_name column to tenants table to connect
- * each tenant to an individual storage (e.g., Railway storage).
- * The storage_name can be set via Railway environment variable.
+ * each tenant to an individual storage.
+ * The storage_name can be set via STORAGE_{TENANT_ID} env (e.g. on Vercel).
  */
 export default {
   async up(queryInterface, Sequelize) {
@@ -13,7 +13,7 @@ export default {
       await queryInterface.addColumn('tenants', 'storage_name', {
         type: Sequelize.STRING(255),
         allowNull: true, // Allow NULL for tenants without storage configured
-        comment: 'Storage name for connecting tenant to individual storage (e.g., Railway storage)',
+        comment: 'Storage name for connecting tenant to individual storage',
       });
 
       // Add index on storage_name for faster lookups

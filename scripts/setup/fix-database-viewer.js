@@ -2,17 +2,24 @@
 
 /**
  * Database Viewer Fix Script
- * 
+ *
  * This script diagnoses and fixes issues with table data loading
- * in the Claude Desktop Database Viewer.
+ * in the Claude Desktop Database Viewer. Uses DATABASE_URL from .env.
  */
 
+import 'dotenv/config';
 import { spawn } from 'child_process';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+function parseDatabaseUrl(url) {
+  if (!url || !url.startsWith('postgres')) return null;
+  const u = new URL(url.replace(/^postgres(ql)?:\/\//, 'http://'));
+  return { host: u.hostname, port: u.port || '5432', database: u.pathname.slice(1), user: u.username, password: u.password };
+}
 
 console.log('🔧 Database Viewer Fix Script');
 console.log('═'.repeat(50));
@@ -39,21 +46,28 @@ function killNodeProcesses() {
 async function startMCPServer() {
   console.log('\n2️⃣ Starting fresh MCP server...');
   
+  const dbUrl = process.env.DATABASE_URL;
+  const parsed = dbUrl ? parseDatabaseUrl(dbUrl) : null;
+  if (!parsed) {
+    console.log('   ❌ DATABASE_URL is not set. Add it to .env for local development.');
+    throw new Error('DATABASE_URL required');
+  }
+
   const serverPath = path.join(__dirname, 'mcp-database-server', 'dist', 'src', 'index.js');
   
   const args = [
     serverPath,
     '--postgresql',
-    '--host', 'trolley.proxy.rlwy.net',
-    '--port', '58867',
-    '--database', 'railway',
-    '--user', 'postgres',
-    '--password', 'bFiBuCeLqCnTWwMEAQxnVJWGPZZkHXkG',
+    '--host', parsed.host,
+    '--port', parsed.port,
+    '--database', parsed.database,
+    '--user', parsed.user,
+    '--password', parsed.password,
     '--ssl', '{"rejectUnauthorized":false}',
     '--connection-timeout', '30000'
   ];
   
-  console.log('   📡 Connecting to Railway PostgreSQL...');
+  console.log('   📡 Connecting to Postgres...');
   console.log('   🔒 SSL: rejectUnauthorized=false');
   
   const serverProcess = spawn('node', args, {
@@ -165,7 +179,7 @@ async function main() {
   } catch (error) {
     console.log(`\n❌ Error: ${error.message}`);
     console.log('\n🔧 Troubleshooting:');
-    console.log('1. Check Railway PostgreSQL service status');
+    console.log('1. Check Postgres service status and DATABASE_URL in .env');
     console.log('2. Verify internet connection');
     console.log('3. Ensure MCP database server is built');
     console.log('4. Try running: npm run mcp:build');

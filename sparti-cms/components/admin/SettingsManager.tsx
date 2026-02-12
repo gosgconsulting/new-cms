@@ -1429,7 +1429,7 @@ const DomainTab: React.FC = () => {
             <div className="grid grid-cols-3 gap-4">
               <span>CNAME</span>
               <span>www</span>
-              <span>your-app-production.up.railway.app</span>
+              <span>your-app.vercel.app</span>
             </div>
             <div className="grid grid-cols-3 gap-4 mt-1">
               <span>A</span>

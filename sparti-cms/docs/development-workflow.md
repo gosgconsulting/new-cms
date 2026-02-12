@@ -24,9 +24,9 @@ This guide outlines the standard operating procedure (SOP) for developing websit
 
 **Time Estimate:** 15-30 minutes
 
-1. **Duplicate Railway Template**
-   - Use existing Railway PostgreSQL template
-   - Configure environment variables
+1. **Set up database**
+   - Use Postgres (e.g. Vercel Postgres, Neon, or local)
+   - Configure DATABASE_URL in Vercel or .env
    - Note database credentials
 
 2. **Duplicate Git Repository**
@@ -248,14 +248,14 @@ CREATE POLICY "Users can view components in their tenant"
    - [ ] Assets uploaded
    - [ ] SEO metadata configured
 
-2. **Deploy to Railway:**
+2. **Deploy to Vercel:**
    ```bash
    git push origin main
-   # Railway auto-deploys from main branch
+   # Vercel auto-deploys from main branch
    ```
 
 3. **Verify Deployment:**
-   - Check Railway logs for errors
+   - Check Vercel logs for errors
    - Visit production URL
    - Test critical paths
    - Verify forms and email delivery
@@ -287,7 +287,7 @@ CREATE POLICY "Users can view components in their tenant"
 
 2. **Run Database Migration**
    ```bash
-   # Run migrations.sql on Railway database
+   # Run migrations on production database
    # This creates cms_components table and RLS policies
    ```
 
@@ -411,8 +411,7 @@ npm run build
 # Preview production build
 npm run preview
 
-# Run database migrations (Railway)
-# Use Railway dashboard SQL editor
+# Run database migrations (e.g. Vercel Postgres or dashboard SQL)
 
 # Export component registry
 # Use browser console in /admin

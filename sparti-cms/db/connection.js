@@ -127,7 +127,7 @@ const getPool = () => {
     
     try {
       // Determine if we should use SSL
-      // Use SSL for remote connections (Railway, cloud), but make it optional for localhost
+      // Use SSL for remote/cloud connections; optional for localhost
       const connString = getConnectionString();
       if (!connString) {
         // Should not happen due to isMockMode guard above, but keep as safety
@@ -265,7 +265,7 @@ export async function query(text, params, retries = 3) {
             debugError('  - Network connectivity issues');
             debugError('  - Incorrect connection string or credentials');
             debugError('  - Firewall blocking the connection');
-            debugError('  - Database server may be paused (Railway free tier)');
+            debugError('  - Database server may be paused or unreachable');
           }
         }
       }
@@ -300,7 +300,7 @@ export async function query(text, params, retries = 3) {
     debugError('1. Check if your database server is running');
     debugError('2. Verify DATABASE_URL or DATABASE_PUBLIC_URL env var');
     debugError('3. Check network connectivity');
-    debugError('4. For Railway: ensure database is not paused');
+    debugError('4. For cloud DB: ensure database is not paused');
     debugError('============================================');
   }
   throw lastError;

@@ -1,25 +1,32 @@
 #!/usr/bin/env node
 
 /**
- * Script to start MCP Database Server for GO SG Website PostgreSQL
- * 
- * This script starts the MCP Database Server with the correct configuration
- * for connecting to the GO SG website's PostgreSQL database.
+ * Start MCP Database Server for PostgreSQL
+ * Uses DATABASE_URL (or DATABASE_PUBLIC_URL) from environment or .env.
  */
 
+require('dotenv').config();
 const { spawn } = require('child_process');
 const path = require('path');
 
-// PostgreSQL connection details
-const config = {
-  host: 'trolley.proxy.rlwy.net',
-  port: '58867',
-  database: 'railway',
-  user: 'postgres',
-  password: 'bFiBuCeLqCnTWwMEAQxnVJWGPZZkHXkG',
-  ssl: true,
-  connectionTimeout: 30000
-};
+function parseDatabaseUrl(url) {
+  if (!url || !url.startsWith('postgres')) return null;
+  const u = new URL(url.replace(/^postgres(ql)?:\/\//, 'http://'));
+  return {
+    host: u.hostname,
+    port: u.port || '5432',
+    database: u.pathname.slice(1) || 'postgres',
+    user: u.username,
+    password: u.password,
+  };
+}
+
+const connectionString = process.env.DATABASE_PUBLIC_URL || process.env.DATABASE_URL;
+const config = connectionString ? parseDatabaseUrl(connectionString) : null;
+if (!config) {
+  console.error('Set DATABASE_URL or DATABASE_PUBLIC_URL in .env or environment.');
+  process.exit(1);
+}
 
 // Path to the MCP Database Server
 const serverPath = path.join(__dirname, '../../mcp-database-server', 'dist', 'src', 'index.js');

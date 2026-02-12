@@ -201,7 +201,7 @@ async function runDiagnostics() {
   console.log('- Check server logs for detailed error messages');
   console.log('- Visit /health/database endpoint for real-time diagnostics');
   console.log('- Ensure DATABASE_URL is set correctly in your .env file');
-  console.log('- For Railway: ensure database service is not paused');
+  console.log('- For cloud DB: ensure database service is not paused');
   console.log('');
 
   process.exit(allChecksPassed ? 0 : 1);
