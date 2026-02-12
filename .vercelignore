@@ -11,5 +11,7 @@ server/tests/
 **/*.test.ts
 **/*.spec.ts
 
-# Optional: uncomment to exclude theme assets if serving themes from CDN (breaks /theme/* reading from disk)
-# sparti-cms/theme/
+# Theme folders: exclude from deployment for CMS-only (theme served from Blob).
+# Set EXCLUDE_THEME_FROM_DEPLOYMENT=1 on Vercel and use BLOB_THEME_MANIFEST_URL.
+sparti-cms/theme/
+public/theme/
