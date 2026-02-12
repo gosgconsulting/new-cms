@@ -1,6 +1,3 @@
-# Frontend source (Vite builds to dist; not needed at runtime)
-src/
-
 # Static assets (build produces dist on Vercel; do not ignore dist or static hosting breaks)
 public/
 
