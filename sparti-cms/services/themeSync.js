@@ -13,6 +13,22 @@ const EXCLUDED_THEME_SLUGS = new Set([
   'masterastrowind',
 ]);
 
+/**
+ * Resolve the theme root directory (sparti-cms/theme).
+ * Uses process.cwd() so it works in both dev and when bundled (e.g. Vercel serverless).
+ */
+function getThemesDir() {
+  return path.join(process.cwd(), 'sparti-cms', 'theme');
+}
+
+/**
+ * Resolve the project public directory (public/).
+ * Uses process.cwd() for consistency with getThemesDir when bundled.
+ */
+function getProjectPublicDir() {
+  return path.join(process.cwd(), 'public');
+}
+
 function ensureDir(dirPath) {
   if (!fs.existsSync(dirPath)) {
     fs.mkdirSync(dirPath, { recursive: true });
@@ -83,7 +99,7 @@ function formatThemeName(slug) {
  */
 function readThemeConfig(slug) {
   try {
-    const themesDir = path.join(__dirname, '../theme');
+    const themesDir = getThemesDir();
     const themePath = path.join(themesDir, slug);
     const configPath = path.join(themePath, 'theme.json');
     
@@ -128,7 +144,7 @@ function readThemeConfig(slug) {
  */
 export function readThemePages(slug) {
   try {
-    const themesDir = path.join(__dirname, '../theme');
+    const themesDir = getThemesDir();
     const themePath = path.join(themesDir, slug);
     const pagesPath = path.join(themePath, 'pages.json');
     
@@ -183,7 +199,7 @@ export function readThemePages(slug) {
  */
 function writeThemeConfig(slug, config) {
   try {
-    const themesDir = path.join(__dirname, '../theme');
+    const themesDir = getThemesDir();
     const themePath = path.join(themesDir, slug);
     const configPath = path.join(themePath, 'theme.json');
     
@@ -273,8 +289,8 @@ export function getThemePagesFromFileSystem(themeSlug) {
  */
 export function getThemesFromFileSystem() {
   try {
-    const themesDir = path.join(__dirname, '../theme');
-    
+    const themesDir = getThemesDir();
+
     // Check if themes directory exists
     if (!fs.existsSync(themesDir)) {
       console.log('[testing] Themes directory does not exist:', themesDir);
@@ -337,8 +353,8 @@ export function getThemesFromFileSystem() {
  */
 export async function syncThemesFromFileSystem() {
   try {
-    const themesDir = path.join(__dirname, '../theme');
-    
+    const themesDir = getThemesDir();
+
     // Check if themes directory exists
     if (!fs.existsSync(themesDir)) {
       console.log('[testing] Themes directory does not exist:', themesDir);
@@ -1133,8 +1149,8 @@ export async function getThemeBySlug(slug) {
  */
 export async function createTheme(slug, name, description) {
   try {
-    const themesDir = path.join(__dirname, '../theme');
-    
+    const themesDir = getThemesDir();
+
     // Ensure themes directory exists
     if (!fs.existsSync(themesDir)) {
       fs.mkdirSync(themesDir, { recursive: true });
@@ -1182,7 +1198,7 @@ export async function createTheme(slug, name, description) {
     // Ensure a public asset folder exists for the theme.
     // Convention: /public/theme/<themeSlug>/assets
     // This makes it easy to hardcode asset paths during early development and carry assets when duplicating the master theme.
-    const projectPublicDir = path.join(__dirname, '../../public');
+    const projectPublicDir = getProjectPublicDir();
     const themePublicDir = path.join(projectPublicDir, 'theme', slug);
     const themeAssetsDir = path.join(themePublicDir, 'assets');
     ensureDir(themeAssetsDir);
