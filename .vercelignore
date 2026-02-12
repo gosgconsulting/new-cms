@@ -11,7 +11,6 @@ server/tests/
 **/*.test.ts
 **/*.spec.ts
 
-# Theme folders: excluded from deployment for CMS (theme served from Blob via BLOB_THEME_MANIFEST_URL).
-# Tenants deploying with the theme folder on disk can do so in their own environment (e.g. self-hosted or by changing ignore rules).
+# Theme folders: excluded from upload. Build uses src/theme-stubs when VERCEL=1 or VITE_SKIP_THEMES=1 so all themes (including sparti-seo-landing) are stubbed and build succeeds without theme folder.
 sparti-cms/theme/
 public/theme/

@@ -57,6 +57,16 @@ export default defineConfig(({ mode }) => {
     plugins.push(themeDevPlugin(themeSlug, tenantId));
   }
   
+  // When theme folder is excluded (Vercel CMS-only or VITE_SKIP_THEMES), resolve sparti-cms/theme to stubs so build succeeds.
+  const useThemeStubs = envVars.VERCEL === '1' || envVars.VITE_SKIP_THEMES === '1';
+  const themeStubsPath = path.resolve(__dirname, 'src/theme-stubs');
+  const resolveAlias: Array<{ find: string | RegExp; replacement: string }> = [
+    { find: '@', replacement: path.resolve(__dirname, './src') },
+  ];
+  if (useThemeStubs) {
+    resolveAlias.push({ find: /sparti-cms\/theme(.*)/, replacement: themeStubsPath + '$1' });
+  }
+
   return {
   server: {
     host: "::",
@@ -98,9 +108,7 @@ export default defineConfig(({ mode }) => {
   },
   plugins,
   resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "./src"),
-    },
+    alias: resolveAlias,
     dedupe: ['react', 'react-dom'],
   },
   optimizeDeps: {
