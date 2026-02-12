@@ -1,5 +1,5 @@
 import express from 'express';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import { query } from '../../sparti-cms/db/index.js';
 import { authenticateUser } from '../middleware/auth.js';
 import { generateToken } from '../utils/auth.js';

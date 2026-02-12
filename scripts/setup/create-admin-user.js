@@ -3,7 +3,7 @@
 
 import 'dotenv/config';
 import { query } from '../../sparti-cms/db/index.js';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 
 async function createAdminUser() {
   try {

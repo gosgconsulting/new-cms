@@ -272,7 +272,7 @@ router.post('/users', authenticateUser, async (req, res) => {
     console.log(`[testing] API: Creating user for tenant: ${req.tenantId || req.user.tenant_id}`);
 
     // Hash password
-    const bcrypt = await import('bcrypt');
+    const bcrypt = await import('bcryptjs');
     const password_hash = await bcrypt.hash(password, 10);
 
     // Determine tenant_id based on permissions
@@ -421,7 +421,7 @@ router.put('/users/:id', authenticateUser, async (req, res) => {
           error: 'Password must be at least 8 characters long'
         });
       }
-      const bcrypt = await import('bcrypt');
+      const bcrypt = await import('bcryptjs');
       updateData.password_hash = await bcrypt.hash(password, 10);
     }
     
@@ -544,7 +544,7 @@ router.put('/users/:id/password', authenticateUser, async (req, res) => {
     }
 
     // Verify current password
-    const bcrypt = await import('bcrypt');
+    const bcrypt = await import('bcryptjs');
     const isValidPassword = await bcrypt.compare(current_password, user.password_hash);
     
     if (!isValidPassword) {

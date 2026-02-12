@@ -9,7 +9,7 @@ import request from 'supertest';
 import express from 'express';
 import authRoutes from '../routes/auth.js';
 import { query } from '../../sparti-cms/db/index.js';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import { isMockDatabaseEnabled, getDatabaseState } from '../utils/database.js';
 
 // Create test app

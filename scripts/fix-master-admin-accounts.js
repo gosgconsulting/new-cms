@@ -45,7 +45,7 @@ async function fixMasterAdminAccounts() {
     if (adminUsers.rows.length === 0) {
       console.log('[testing] ⚠️  No admin users found. Creating default admin user...');
       
-      const bcrypt = await import('bcrypt');
+      const bcrypt = await import('bcryptjs');
       const passwordHash = await bcrypt.hash('admin123', 10);
       
       // Check if password_salt column exists

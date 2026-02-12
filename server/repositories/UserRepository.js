@@ -1,6 +1,6 @@
 import { BaseRepository } from './BaseRepository.js';
 import { query } from '../../sparti-cms/db/index.js';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 
 /**
  * User Repository

@@ -18,7 +18,6 @@ const outfile = join(rootDir, 'api', 'index.js');
 const externals = [
   'pg',
   'pg-native',
-  'bcrypt',
   'sequelize',
   '@anthropic-ai/sdk',
   '@vercel/blob',

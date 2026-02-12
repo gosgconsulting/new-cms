@@ -1,5 +1,7 @@
-import sharp from 'sharp';
 import { readdir, stat, readFile, writeFile } from 'fs/promises';
+
+/** @type {import('sharp') | null} - Loaded dynamically so install succeeds when sharp is optional */
+let sharp = null;
 import { join, extname, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -156,6 +158,14 @@ async function compressImage(inputPath, targetSizeBytes = TARGET_SIZE_BYTES) {
 
 // Main function
 async function main() {
+  try {
+    sharp = (await import('sharp')).default;
+  } catch (err) {
+    console.error('sharp is not installed (optional dependency). Install with: npm install sharp');
+    console.error('Or run: pnpm add sharp');
+    process.exit(1);
+  }
+
   console.log('🔍 Finding all images in gallery directory...');
   console.log(`Path: ${GALLERY_PATH}\n`);
   
