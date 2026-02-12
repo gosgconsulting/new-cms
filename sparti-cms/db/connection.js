@@ -138,11 +138,12 @@ const getPool = () => {
       // Increase timeout for localhost connections to allow more time for PostgreSQL to respond
       const connectionTimeout = isLocalhost ? 30000 : 10000;
       
-      // Database configuration
+      // Database configuration (max pool size env-driven for serverless, e.g. DATABASE_POOL_MAX=5 on Vercel)
+      const poolMax = parseInt(process.env.DATABASE_POOL_MAX || '20', 10);
       const dbConfig = {
         connectionString: connString,
         ...(useSSL ? { ssl: { rejectUnauthorized: false } } : {}),
-        max: 20,
+        max: poolMax,
         idleTimeoutMillis: 30000,
         connectionTimeoutMillis: connectionTimeout,
       };

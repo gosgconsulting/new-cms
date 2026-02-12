@@ -20,6 +20,7 @@ import {
   getTenantStorageName
 } from '../../sparti-cms/db/modules/media.js';
 import { authenticateUser } from '../middleware/auth.js';
+import { uploadBufferToBlob } from '../utils/blobStorage.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
@@ -153,7 +154,7 @@ router.get('/files/:id', authenticateUser, async (req, res) => {
   }
 });
 
-// Upload a media file
+// Upload a media file (disk or Vercel Blob when BLOB_READ_WRITE_TOKEN/VERCEL set)
 router.post('/upload', authenticateUser, upload.single('file'), async (req, res) => {
   try {
     if (!req.file) {
@@ -165,39 +166,44 @@ router.post('/upload', authenticateUser, upload.single('file'), async (req, res)
       return res.status(400).json({ error: 'Tenant ID is required' });
     }
 
-    // Get storage name for tenant
     const storageName = await getTenantStorageName(tenantId);
-    
-    // Generate slug from filename
+    const fileExtension = path.extname(req.file.originalname).slice(1).toLowerCase();
+    const filename = req.file.filename || `file-${Date.now()}-${Math.round(Math.random() * 1E9)}.${fileExtension}`;
+
+    let url;
+    let relativePath;
+    if (req.file.buffer) {
+      const pathname = `uploads/${storageName}/${filename}`;
+      url = await uploadBufferToBlob(req.file.buffer, pathname, req.file.mimetype);
+      if (!url) {
+        return res.status(503).json({ error: 'Blob storage unavailable' });
+      }
+      relativePath = url;
+    } else {
+      relativePath = `/uploads/${storageName}/${filename}`;
+      url = relativePath;
+    }
+
     const slug = req.file.originalname
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-+|-+$/g, '')
       + '-' + Date.now();
 
-    // Determine media type
     let mediaType = 'other';
     if (req.file.mimetype.startsWith('image/')) mediaType = 'image';
     else if (req.file.mimetype.startsWith('video/')) mediaType = 'video';
     else if (req.file.mimetype.startsWith('audio/')) mediaType = 'audio';
     else if (req.file.mimetype.includes('pdf') || req.file.mimetype.includes('document') || req.file.mimetype.includes('text')) mediaType = 'document';
 
-    // Get file extension
-    const fileExtension = path.extname(req.file.originalname).slice(1).toLowerCase();
-
-    // Create relative path based on storage
-    const relativePath = `/uploads/${storageName}/${req.file.filename}`;
-    const url = relativePath; // Can be updated to use CDN URL if configured
-
-    // Create media file record
     const mediaData = {
-      filename: req.file.filename,
+      filename,
       original_filename: req.file.originalname,
-      slug: slug,
+      slug,
       alt_text: req.body.alt_text || '',
       title: req.body.title || req.file.originalname,
       description: req.body.description || '',
-      url: url,
+      url,
       relative_path: relativePath,
       mime_type: req.file.mimetype,
       file_extension: fileExtension,
@@ -215,7 +221,7 @@ router.post('/upload', authenticateUser, upload.single('file'), async (req, res)
     res.status(201).json({
       success: true,
       file: mediaFile,
-      url: url
+      url
     });
   } catch (error) {
     console.error('[testing] Error uploading media file:', error);

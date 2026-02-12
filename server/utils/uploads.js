@@ -11,8 +11,11 @@ export const getUploadsDir = () => {
   return uploadsDir;
 };
 
-// Ensure uploads directory exists
+// Ensure uploads directory exists (no-op on Vercel when using Blob storage)
 export const ensureUploadsDir = () => {
+  if (process.env.VERCEL || process.env.BLOB_READ_WRITE_TOKEN) {
+    return null;
+  }
   const uploadsDir = getUploadsDir();
   console.log(`[Uploads Directory] The upload directory is located at: ${uploadsDir}`);
   if (!existsSync(uploadsDir)) {

@@ -21,6 +21,7 @@ const externals = [
   'bcrypt',
   'sequelize',
   '@anthropic-ai/sdk',
+  '@vercel/blob',
 ];
 
 async function main() {

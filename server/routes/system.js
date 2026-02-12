@@ -2,6 +2,7 @@ import express from 'express';
 import { query } from '../../sparti-cms/db/index.js';
 import { pool } from '../../sparti-cms/db/index.js';
 import { simpleUpload } from '../config/multer.js';
+import { uploadBufferToBlob } from '../utils/blobStorage.js';
 import { RESEND_API_KEY, SMTP_FROM_EMAIL } from '../config/constants.js';
 import { invalidateAll, invalidateBySlug } from '../../sparti-cms/cache/index.js';
 
@@ -135,26 +136,37 @@ router.get('/database/tables/:tableName/data', async (req, res) => {
 
 // ===== FILE UPLOAD ROUTES =====
 
-// File upload endpoint - simple upload to public/uploads/ (no tenant subdirectories)
-router.post('/upload', simpleUpload.single('file'), (req, res) => {
+// File upload endpoint - disk (public/uploads/) or Vercel Blob when BLOB_READ_WRITE_TOKEN/VERCEL set
+router.post('/upload', simpleUpload.single('file'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
     }
-    
-    // Simple URL format: /uploads/filename (matches old working format)
-    const fileUrl = `/uploads/${req.file.filename}`;
-    
+
+    const ext = req.file.originalname.split('.').pop();
+    const filename = req.file.filename || `file-${Date.now()}-${Math.round(Math.random() * 1E9)}.${ext}`;
+    let fileUrl;
+
+    if (req.file.buffer) {
+      const pathname = `uploads/${filename}`;
+      fileUrl = await uploadBufferToBlob(req.file.buffer, pathname, req.file.mimetype);
+      if (!fileUrl) {
+        return res.status(503).json({ error: 'Blob storage unavailable' });
+      }
+    } else {
+      fileUrl = `/uploads/${filename}`;
+    }
+
     console.log('[testing] File uploaded:', {
-      filename: req.file.filename,
+      filename,
       url: fileUrl,
       size: req.file.size
     });
-    
-    res.json({ 
-      success: true, 
+
+    res.json({
+      success: true,
       url: fileUrl,
-      filename: req.file.filename,
+      filename,
       originalName: req.file.originalname,
       size: req.file.size
     });

@@ -2,9 +2,12 @@ import multer from 'multer';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { existsSync, mkdirSync } from 'fs';
+import { useBlobStorage } from '../utils/blobStorage.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+
+const memoryStorage = multer.memoryStorage();
 
 /**
  * Get tenant storage path based on storage_name
@@ -52,19 +55,15 @@ async function getTenantStoragePath(tenantId) {
   }
 }
 
-// Configure multer for file uploads with tenant-based storage
-const storage = multer.diskStorage({
+// Configure multer for file uploads with tenant-based storage (disk or memory for Vercel Blob)
+const tenantDiskStorage = multer.diskStorage({
   destination: async function (req, file, cb) {
     try {
-      // Get tenant ID from request
       const tenantId = req.tenantId || req.query.tenantId || req.user?.tenant_id || 'tenant-gosg';
-      
-      // Get tenant-specific storage path
       const tenantUploadsDir = await getTenantStoragePath(tenantId);
       cb(null, tenantUploadsDir);
     } catch (error) {
       console.error('[testing] Error setting upload destination:', error);
-      // Fallback to default directory
       const defaultDir = join(__dirname, '..', '..', 'public', 'uploads');
       if (!existsSync(defaultDir)) {
         mkdirSync(defaultDir, { recursive: true });
@@ -79,8 +78,8 @@ const storage = multer.diskStorage({
   }
 });
 
-// Simple storage for basic uploads (saves directly to public/uploads/)
-const simpleStorage = multer.diskStorage({
+// Simple disk storage for basic uploads (public/uploads/)
+const simpleDiskStorage = multer.diskStorage({
   destination: function (req, file, cb) {
     const uploadsDir = join(__dirname, '..', '..', 'public', 'uploads');
     if (!existsSync(uploadsDir)) {
@@ -95,6 +94,9 @@ const simpleStorage = multer.diskStorage({
     cb(null, file.fieldname + '-' + uniqueSuffix + '.' + ext);
   }
 });
+
+const storage = useBlobStorage() ? memoryStorage : tenantDiskStorage;
+const simpleStorage = useBlobStorage() ? memoryStorage : simpleDiskStorage;
 
 // Tenant-based storage (for media management)
 export const upload = multer({ 
