@@ -18,6 +18,9 @@ import { ThankYouPage } from "./components/ThankYouPage";
 import { useThemeBranding } from '../../hooks/useThemeSettings';
 import { getSiteName, getSiteDescription, getLogoSrc, getFaviconSrc, applyFavicon } from './utils/settings';
 import { SEOHead } from './components/SEOHead';
+import { GTM } from './components/GTM';
+import { GoogleAnalytics } from './components/GoogleAnalytics';
+import { useCustomCode } from './hooks/useCustomCode';
 
 interface NailQueenThemeProps {
   basePath?: string;
@@ -49,6 +52,9 @@ const NailQueenTheme: React.FC<NailQueenThemeProps> = ({
 
   // Load branding settings from database
   const { branding, loading: brandingLoading, error: brandingError } = useThemeBranding('nail-queen', tenantId);
+  
+  // Load custom code settings (for GTM, GA, etc.)
+  const { customCode } = useCustomCode(tenantId);
   
   // Get settings from database with fallback to defaults
   const siteName = getSiteName(branding, tenantName);
@@ -171,6 +177,10 @@ const NailQueenTheme: React.FC<NailQueenThemeProps> = ({
     <div className="nail-queen-theme">
       {/* SEO metadata */}
       <SEOHead meta={pageMeta} favicon={faviconSrc || undefined} />
+      
+      {/* Tracking scripts */}
+      <GTM gtmId={customCode?.gtmId} />
+      <GoogleAnalytics gaId={customCode?.gaId} />
       
       {/* Keeping the tenantName prop available for future integration */}
       <div data-theme-slug={themeSlug} data-tenant-name={siteName}>
