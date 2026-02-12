@@ -1,9 +1,21 @@
 // API utility for consistent API calls
 // In development, use relative URLs to leverage Vite proxy
-// In production, use VITE_API_BASE_URL or fallback to localhost
-const API_BASE_URL = import.meta.env.DEV 
-  ? '' // Use relative URLs in development (Vite proxy handles /api)
-  : (import.meta.env.VITE_API_BASE_URL || 'http://localhost:4173');
+// In production, default to same-origin unless VITE_API_BASE_URL is explicitly set
+const getApiBaseUrl = () => {
+  if (import.meta.env.DEV) return '';
+
+  const raw = String(import.meta.env.VITE_API_BASE_URL || '').trim();
+  if (!raw) return '';
+
+  // If a domain is provided without protocol, assume https
+  if (!raw.startsWith('http://') && !raw.startsWith('https://')) {
+    return `https://${raw}`;
+  }
+
+  return raw;
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 // Get JWT token from localStorage
 const getAuthToken = () => {

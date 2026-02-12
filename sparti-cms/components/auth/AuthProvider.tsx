@@ -28,6 +28,20 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
+function getApiBaseUrl() {
+  if (import.meta.env.DEV) return '';
+
+  const raw = String(import.meta.env.VITE_API_BASE_URL || '').trim();
+  if (!raw) return ''; // same-origin (recommended on Vercel)
+
+  // If user provided a domain without protocol (e.g. "cms.sparti.ai"), assume https.
+  if (!raw.startsWith('http://') && !raw.startsWith('https://')) {
+    return `https://${raw}`;
+  }
+
+  return raw;
+}
+
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -48,10 +62,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const initializeAuth = async () => {
       setLoading(true);
       let validatedUser: User | null = null;
-      // In development, use relative URLs to leverage Vite proxy
-      const API_BASE_URL = import.meta.env.DEV 
-        ? '' // Use relative URLs in development (Vite proxy handles /api)
-        : (import.meta.env.VITE_API_BASE_URL || 'http://localhost:4173');
+      const API_BASE_URL = getApiBaseUrl();
 
       // 1. Verify session with backend or use local data for demo
       const session = localStorage.getItem('sparti-user-session');
@@ -149,10 +160,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
-        // In development, use relative URLs to leverage Vite proxy
-        const API_BASE_URL = import.meta.env.DEV 
-          ? '' // Use relative URLs in development (Vite proxy handles /api)
-          : (import.meta.env.VITE_API_BASE_URL || 'http://localhost:4173');
+        const API_BASE_URL = getApiBaseUrl();
         
         // Include themeSlug in query string if provided (for backend validation)
         const loginUrl = themeSlug
@@ -180,7 +188,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             // ignore JSON parse errors
           }
 
-          // Map common statuses to friendly messages
+          // Prefer server-provided messages if available
           let errorMessage =
             errorData.message ||
             errorData.error ||
@@ -189,9 +197,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           if (response.status === 401) {
             errorMessage = 'Invalid email or password.';
           } else if (response.status === 503) {
-            errorMessage = 'Database is unavailable. Please try again shortly.';
+            errorMessage = errorData.message || 'Database is unavailable. Please try again shortly.';
           } else if (response.status >= 500) {
-            errorMessage = 'Server error. Please try again in a moment.';
+            // Only override if server did not provide a helpful message.
+            if (!errorData.message && !errorData.error) {
+              errorMessage = 'Server error. Please try again in a moment.';
+            }
           }
 
           console.error('[testing] Login failed:', errorMessage);
@@ -287,10 +298,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const signInWithAccessKey = useCallback(async (accessKey: string): Promise<{ success: boolean; error?: string }> => {
     try {
-      // In development, use relative URLs to leverage Vite proxy
-      const API_BASE_URL = import.meta.env.DEV 
-        ? '' // Use relative URLs in development (Vite proxy handles /api)
-        : (import.meta.env.VITE_API_BASE_URL || 'http://localhost:4173');
+      const API_BASE_URL = getApiBaseUrl();
       const response = await fetch(`${API_BASE_URL}/api/auth/verify-access-key?access_key=${encodeURIComponent(accessKey)}`, {
         method: 'GET',
         headers: {
