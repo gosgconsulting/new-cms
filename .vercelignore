@@ -1,0 +1,19 @@
+# Frontend source (Vite builds to dist; not needed at runtime)
+src/
+
+# Static assets (build produces dist on Vercel; do not ignore dist or static hosting breaks)
+public/
+
+# Docs, scripts, tests (not needed for serverless function)
+docs/
+scripts/
+server/tests/
+
+# Test and spec files
+**/*.test.js
+**/*.spec.js
+**/*.test.ts
+**/*.spec.ts
+
+# Optional: uncomment to exclude theme assets if serving themes from CDN (breaks /theme/* reading from disk)
+# sparti-cms/theme/
