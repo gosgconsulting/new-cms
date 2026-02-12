@@ -44,4 +44,5 @@ When `DEPLOY_THEME_SLUG` is set, the theme build script runs instead of the full
 
 - **Database**: Ensure `DATABASE_URL` is set and the database is reachable (e.g. connection pooling for serverless).
 - **API base URL**: On Vercel, `VERCEL_URL` is used when `VITE_API_BASE_URL` is not set.
-- **Uploads**: On Vercel, set `BLOB_READ_WRITE_TOKEN` for file uploads.
+- **Uploads**: On Vercel, set `BLOB_READ_WRITE_TOKEN` for file uploads. Never commit this token; use only in Vercel env or .env.
+- **Theme assets on Vercel**: Theme dirs are not bundled into the serverless function (to stay under size limits). To serve theme images and assets, run `npm run upload:theme-assets` (requires `BLOB_READ_WRITE_TOKEN`), then set the printed URL as `BLOB_THEME_MANIFEST_URL` in Vercel and optionally in .env.

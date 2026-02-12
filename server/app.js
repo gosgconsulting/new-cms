@@ -20,7 +20,7 @@ app.use(routes);
 
 // Serve theme assets from sparti-cms/theme and public/theme directories
 // Only serve actual asset files (with extensions), not HTML routes or directories
-app.use('/theme', (req, res, next) => {
+app.use('/theme', async (req, res, next) => {
   // Skip if this looks like a route (no file extension) - let route handlers deal with it
   const path = req.path;
   // Only serve files with extensions (assets like .js, .css, .png, etc.)
@@ -62,7 +62,7 @@ app.use('/theme', (req, res, next) => {
     }
   }
   
-  // Serve the file if found, otherwise return 404
+  // Serve the file if found
   if (filePath) {
     return res.sendFile(filePath, (err) => {
       if (err && !res.headersSent) {
@@ -71,8 +71,31 @@ app.use('/theme', (req, res, next) => {
       }
     });
   }
-  
-  // File not found - return 404 instead of 500
+
+  // File not found on disk: fallback to Vercel Blob manifest if configured
+  const manifestUrl = process.env.BLOB_THEME_MANIFEST_URL;
+  if (manifestUrl) {
+    const CACHE_TTL_MS = 5 * 60 * 1000;
+    if (!app._themeBlobManifestCache || Date.now() - app._themeBlobManifestCache.ts > CACHE_TTL_MS) {
+      try {
+        const resp = await fetch(manifestUrl);
+        if (resp.ok) {
+          const data = await resp.json();
+          app._themeBlobManifestCache = { data, ts: Date.now() };
+        }
+      } catch (e) {
+        if (!app._themeBlobManifestCache?.data) {
+          return res.status(404).send('Not Found');
+        }
+      }
+    }
+    const manifest = app._themeBlobManifestCache?.data;
+    const blobUrl = manifest && manifest[normalizedPath];
+    if (blobUrl) {
+      return res.redirect(302, blobUrl);
+    }
+  }
+
   return res.status(404).send('Not Found');
 });
 

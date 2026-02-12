@@ -13,6 +13,7 @@
     "build:api": "node scripts/bundle-vercel-api.js",
     "build:dev": "vite build --mode development",
     "build:theme": "node scripts/build-theme-static.js",
+    "upload:theme-assets": "node scripts/upload-theme-assets-to-blob.js",
     "dev:theme": "node scripts/dev-theme.js",
     "test:theme:local": "bash scripts/test-theme-local.sh",
     "lint": "eslint .",
