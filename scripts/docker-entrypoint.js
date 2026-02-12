@@ -10,13 +10,15 @@
 process.env.NODE_ENV = process.env.NODE_ENV || 'production';
 
 import 'dotenv/config';
-import { runMigrations } from '../sparti-cms/db/sequelize/run-migrations.js';
-import { query } from '../sparti-cms/db/index.js';
 
-// Wait for database to be available
+// DB modules are loaded dynamically inside main() so a broken DB module does not
+// risk affecting top-level load and causing Host Error before the server starts.
+
+// Wait for database to be available (uses dynamically imported query)
 async function waitForDatabase(maxRetries = 30, retryDelay = 2000) {
+  const { query } = await import('../sparti-cms/db/index.js');
   let attempt = 0;
-  
+
   while (attempt < maxRetries) {
     attempt++;
     try {
@@ -32,10 +34,11 @@ async function waitForDatabase(maxRetries = 30, retryDelay = 2000) {
   }
 }
 
-// Run migrations with retry logic
+// Run migrations with retry logic (uses dynamically imported runMigrations)
 async function runDatabaseMigrations(maxRetries = 3, retryDelay = 5000) {
+  const { runMigrations } = await import('../sparti-cms/db/sequelize/run-migrations.js');
   let attempt = 0;
-  
+
   while (attempt < maxRetries) {
     attempt++;
     try {
@@ -49,7 +52,7 @@ async function runDatabaseMigrations(maxRetries = 3, retryDelay = 5000) {
       await new Promise(resolve => setTimeout(resolve, retryDelay));
     }
   }
-  
+
   return false;
 }
 
