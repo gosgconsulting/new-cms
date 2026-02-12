@@ -23,7 +23,7 @@ All critical and high-priority issues identified in the QA review have been addr
   - Cleanup on failure
 
 ### 3. Improved Entrypoint
-- **File**: `scripts/docker-entrypoint.js`
+- **File**: `scripts/entrypoint.js`
 - **Improvements**:
   - Migration retry logic
   - Better error handling

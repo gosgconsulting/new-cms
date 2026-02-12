@@ -58,6 +58,8 @@ This project supports hybrid SSR with full-page caching for fast, static-like de
 
 This guide covers how to deploy the GO SG website to production using Vite for the frontend build and Node.js/Express for the backend server.
 
+**Vercel**: Vercel always runs the full CMS (SPA + serverless API). Theme-only static deploys are a separate flow (e.g. `npm run build:theme` and deploy the `dist/` output elsewhere).
+
 ## Development vs Production
 
 ### Development Mode

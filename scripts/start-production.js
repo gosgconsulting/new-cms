@@ -1,21 +1,21 @@
 #!/usr/bin/env node
 /**
- * Docker startup script (Node.js version for better error handling)
- * If DEPLOY_THEME_SLUG is set, serve standalone theme frontend (no backend, no CMS)
- * Otherwise, start the full CMS server
+ * Production startup script (Docker-agnostic).
+ * If DEPLOY_THEME_SLUG is set, serve standalone theme frontend (no backend, no CMS).
+ * Otherwise, start the full CMS server via entrypoint.js.
  */
 
 // Load environment variables from .env file first
 import 'dotenv/config';
 
 // Check environment variable - be explicit about checking for truthy values
-// Check DEPLOY_THEME_SLUG first (set by Dockerfile), then fall back to VITE_DEPLOY_THEME_SLUG
+// Check DEPLOY_THEME_SLUG first, then fall back to VITE_DEPLOY_THEME_SLUG
 const deployThemeSlug = process.env.DEPLOY_THEME_SLUG || process.env.VITE_DEPLOY_THEME_SLUG;
 const port = process.env.PORT || 4173;
 
 // Log all environment variables for debugging (but not sensitive ones)
 console.log('[testing] ========================================');
-console.log('[testing] Docker Theme Start Script');
+console.log('[testing] Production Start Script');
 console.log('[testing] ========================================');
 console.log('[testing] DEPLOY_THEME_SLUG:', deployThemeSlug || '(not set)');
 console.log('[testing] CMS_TENANT:', process.env.CMS_TENANT || '(not set)');
@@ -37,13 +37,11 @@ console.log('[testing] ========================================');
       console.log('[testing] No admin/CMS routes will be available');
       
       // Import and execute the serve script directly
-      // This ensures proper signal handling and process management
       await import('./serve-theme-static.js');
     } else {
       console.log('[testing] ⚠️  DEPLOY_THEME_SLUG not set - Starting full CMS server');
       console.log('[testing] Full CMS with admin routes will be available');
-      // Import and execute the entrypoint script directly
-      await import('./docker-entrypoint.js');
+      await import('./entrypoint.js');
     }
   } catch (error) {
     console.error('[testing] ❌ Failed to start server:', error);
@@ -52,4 +50,3 @@ console.log('[testing] ========================================');
     process.exit(1);
   }
 })();
-

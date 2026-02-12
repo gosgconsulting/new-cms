@@ -14,7 +14,7 @@ This document summarizes all improvements made during the QA review of the Docke
 
 ### Modified Files
 1. **`scripts/build-theme-static.js`** - Added error handling, validation, and cleanup
-2. **`scripts/docker-entrypoint.js`** - Added retry logic for migrations
+2. **`scripts/entrypoint.js`** - Added retry logic for migrations
 3. **`.dockerignore`** - Enhanced exclusions for better build performance
 
 ## Critical Issues Fixed
@@ -70,7 +70,7 @@ This document summarizes all improvements made during the QA review of the Docke
 
 **Impact**: More resilient to transient database issues
 
-**Location**: `scripts/docker-entrypoint.js` lines 38-66
+**Location**: `scripts/entrypoint.js` lines 38-66
 
 ## Performance Optimizations
 

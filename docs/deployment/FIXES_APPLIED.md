@@ -36,7 +36,7 @@ All critical and high-priority issues from the QA review have been addressed. Th
   - Cleanup on failure (lines 212-220)
 
 ### 6. Migration Retry Logic
-- **File**: `scripts/docker-entrypoint.js`
+- **File**: `scripts/entrypoint.js`
 - **Fix**: Added retry logic (3 attempts)
 - **Lines**: 38-66
 

@@ -15,6 +15,6 @@ if [ -n "$DEPLOY_THEME_SLUG" ]; then
   exec node scripts/serve-theme-static.js
 else
   echo "[testing] Starting full CMS server"
-  exec node scripts/docker-entrypoint.js
+  exec node scripts/entrypoint.js
 fi
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Docker entrypoint script that:
+ * Production entrypoint (Docker-agnostic).
  * 1. Waits for database to be available
  * 2. Runs database migrations
  * 3. Starts the production server
@@ -132,21 +132,18 @@ async function main() {
     }
     
     // Wait for database and run migrations in parallel (non-blocking)
-    // This allows healthchecks to pass even if DB is still initializing
     waitForDatabase()
       .then(() => {
         return runDatabaseMigrations();
       })
       .catch((error) => {
         console.error('Database setup error (non-fatal):', error.message);
-        // Don't exit - server continues running
       });
     
   } catch (error) {
     console.error('Fatal error in entrypoint:', error.message);
     console.error('Error stack:', error.stack);
     
-    // Give a moment for logs to flush
     await new Promise(resolve => setTimeout(resolve, 1000));
     process.exit(1);
   }
@@ -166,4 +163,3 @@ process.on('unhandledRejection', (reason, promise) => {
 
 // Run entrypoint
 main();
-

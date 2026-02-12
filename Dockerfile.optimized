@@ -17,25 +17,14 @@ COPY . .
 # Build arguments (Railway environment variables)
 ARG DEPLOY_THEME_SLUG
 ARG VITE_API_BASE_URL
+ARG RAILWAY_PUBLIC_DOMAIN
 
-# Set build-time environment variables
 ENV DEPLOY_THEME_SLUG=${DEPLOY_THEME_SLUG}
 ENV VITE_API_BASE_URL=${VITE_API_BASE_URL}
+ENV RAILWAY_PUBLIC_DOMAIN=${RAILWAY_PUBLIC_DOMAIN}
 ENV NODE_ENV=production
 
-# Build based on DEPLOY_THEME_SLUG
-# When DEPLOY_THEME_SLUG is set, build standalone theme (no admin/CMS routes)
-# Otherwise, build the full CMS application
-# VITE_API_BASE_URL must be available at build time for frontend API calls
-RUN if [ -n "${DEPLOY_THEME_SLUG}" ]; then \
-      echo "Building standalone theme: Theme at / (no admin/CMS) for: ${DEPLOY_THEME_SLUG}" && \
-      echo "VITE_API_BASE_URL=${VITE_API_BASE_URL}" && \
-      DEPLOY_THEME_SLUG=${DEPLOY_THEME_SLUG} VITE_API_BASE_URL=${VITE_API_BASE_URL} npm run build:theme || exit 1; \
-    else \
-      echo "Building full CMS application" && \
-      echo "VITE_API_BASE_URL=${VITE_API_BASE_URL}" && \
-      VITE_API_BASE_URL=${VITE_API_BASE_URL} npm run build || exit 1; \
-    fi
+RUN npm run build:production
 
 # Verify build output exists
 RUN if [ ! -d "dist" ] || [ -z "$(ls -A dist)" ]; then \
@@ -71,7 +60,8 @@ COPY --from=builder /app/.sequelizerc ./.sequelizerc
 COPY --from=builder /app/server.js ./server.js
 
 # Make scripts executable and set ownership (must be done as root)
-RUN chmod +x scripts/docker-entrypoint.js && \
+RUN chmod +x scripts/entrypoint.js && \
+    chmod +x scripts/start-production.js && \
     chmod +x scripts/docker-theme-start.sh && \
     chmod +x scripts/serve-theme-static.js && \
     chown -R nodejs:nodejs /app
@@ -87,5 +77,5 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
   CMD node -e "require('http').get('http://localhost:4173/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)}).on('error', () => process.exit(1))"
 
 # Start command
-CMD ["sh", "scripts/docker-theme-start.sh"]
+CMD ["node", "scripts/start-production.js"]
 

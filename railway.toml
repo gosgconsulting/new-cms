@@ -1,9 +1,10 @@
 [build]
-builder = "DOCKERFILE"
-dockerfilePath = "Dockerfile"
+builder = "nixpacks"
+buildCommand = "npm run build:production"
+startCommand = "node scripts/start-production.js"
 
 [deploy]
-# startCommand is handled by Dockerfile CMD based on DEPLOY_THEME_SLUG
+# startCommand runs start-production.js (theme-only or full server per DEPLOY_THEME_SLUG)
 healthcheckPath = "/health"
 healthcheckTimeout = 60
 healthcheckInterval = 10
