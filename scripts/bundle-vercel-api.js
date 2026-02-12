@@ -21,6 +21,14 @@ const externals = [
   'sequelize',
   '@anthropic-ai/sdk',
   '@vercel/blob',
+  'uuid',
+  'bcryptjs',
+  'multer',
+  'stripe',
+  'jsonwebtoken',
+  'dotenv',
+  'fast-xml-parser',
+  'rate-limiter-flexible',
 ];
 
 async function main() {
