@@ -11,7 +11,7 @@ server/tests/
 **/*.test.ts
 **/*.spec.ts
 
-# Theme folders: exclude from deployment for CMS-only (theme served from Blob).
-# Set EXCLUDE_THEME_FROM_DEPLOYMENT=1 on Vercel and use BLOB_THEME_MANIFEST_URL.
+# Theme folders: excluded from deployment for CMS (theme served from Blob via BLOB_THEME_MANIFEST_URL).
+# Tenants deploying with the theme folder on disk can do so in their own environment (e.g. self-hosted or by changing ignore rules).
 sparti-cms/theme/
 public/theme/
