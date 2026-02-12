@@ -285,7 +285,7 @@ Add the design system package to your project:
 ```bash
 npm install daisyui
 # or
-pnpm add daisyui
+npm install daisyui
 ```
 
 Verify it appears in `package.json` dependencies.
