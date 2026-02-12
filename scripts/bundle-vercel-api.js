@@ -18,14 +18,8 @@ const outfile = join(rootDir, 'api', 'index.js');
 const externals = [
   'pg',
   'pg-native',
-  'sharp',
   'bcrypt',
-  'express',
   'sequelize',
-  'multer',
-  'stripe',
-  'nodemailer',
-  'jsonwebtoken',
   '@anthropic-ai/sdk',
 ];
 
