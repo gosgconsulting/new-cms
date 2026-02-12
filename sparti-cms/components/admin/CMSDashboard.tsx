@@ -223,6 +223,18 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({ hideSidebar = false, themeS
   const { signOut, user, currentTenantId, handleTenantChange } = useAuth();
   const navigate = useNavigate();
 
+  // In production tenant-scoped deployments (CMS_TENANT / VITE_DEPLOY_TENANT_ID),
+  // theme management should be hidden.
+  const isTenantScopedDeploy =
+    (typeof window !== 'undefined' && !!(window as any).__CMS_TENANT__) ||
+    !!import.meta.env.VITE_DEPLOY_TENANT_ID;
+
+  // Theme admin tools are hidden by default in production.
+  // Enable explicitly with VITE_ENABLE_THEME_ADMIN=1 (dev always shows).
+  const showThemeAdmin =
+    !isTenantScopedDeploy &&
+    (import.meta.env.DEV || import.meta.env.VITE_ENABLE_THEME_ADMIN === '1');
+
   // Reset activeTab when switching modes
   useEffect(() => {
     if (mode === 'cms') {
@@ -431,7 +443,9 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({ hideSidebar = false, themeS
       case 'tenants':
         return <TenantsManager />;
       case 'themes':
-        return <ThemesManager />;
+        // Theme management is often excluded in production deployments.
+        // Keep the route guarded so deep-links/old state don't break.
+        return showThemeAdmin ? <ThemesManager /> : <div className="text-muted-foreground">Not available in this deployment.</div>;
       default:
         return <div className="text-muted-foreground">Select a section from the sidebar</div>;
     }
@@ -445,7 +459,10 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({ hideSidebar = false, themeS
     { id: 'developer', label: 'Developer', icon: Code },
     { id: 'tenants', label: 'Tenants', icon: Building2 },
     { id: 'themes', label: 'Themes', icon: Palette },
-  ].filter(item => user?.is_super_admin || (item.id !== 'tenants' && item.id !== 'themes'));
+  ]
+    // Hide themes by default (enable via env var); keep existing permission gating.
+    .filter(item => showThemeAdmin || item.id !== 'themes')
+    .filter(item => user?.is_super_admin || (item.id !== 'tenants' && item.id !== 'themes'));
 
   const shopNavItems = [
     { id: 'products', label: 'Products', icon: Package },
