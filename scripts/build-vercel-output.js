@@ -101,6 +101,17 @@ const funcPkg = {
 writeFileSync(join(funcDir, 'package.json'), JSON.stringify(funcPkg, null, 2) + '\n');
 console.log('[build:vercel] Wrote .vercel/output/functions/api/index.func/package.json');
 
+// Step 5c: Run npm install in func dir so node_modules is included (Vercel does not install for Build Output API)
+const installResult = spawnSync('npm', ['install', '--omit=dev', '--no-package-lock'], {
+  stdio: 'inherit',
+  cwd: funcDir,
+  env: { ...process.env, npm_config_engine_strict: 'false' },
+});
+if (installResult.status !== 0) {
+  process.exit(installResult.status ?? 1);
+}
+console.log('[build:vercel] Installed dependencies in .vercel/output/functions/api/index.func/');
+
 // Step 6: Write config.json (routes)
 // Function routes first (phase 1). Then handle: "filesystem" so SPA fallback
 // only runs after static files are checked - otherwise /assets/*.js gets index.html (wrong MIME).
