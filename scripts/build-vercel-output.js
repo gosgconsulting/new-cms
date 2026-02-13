@@ -5,9 +5,10 @@
  */
 import 'dotenv/config';
 import { spawnSync } from 'child_process';
-import { cpSync, mkdirSync, writeFileSync } from 'fs';
+import { cpSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import { EXTERNALS_TO_INSTALL } from './vercel-api-externals.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const rootDir = join(__dirname, '..');
@@ -85,6 +86,20 @@ const vcConfig = {
 };
 writeFileSync(join(funcDir, '.vc-config.json'), JSON.stringify(vcConfig, null, 2) + '\n');
 console.log('[build:vercel] Wrote .vercel/output/functions/api/index.func/.vc-config.json');
+
+// Step 5b: Write package.json so Vercel installs external deps; "type": "module" for ESM
+const rootPkg = JSON.parse(readFileSync(join(rootDir, 'package.json'), 'utf8'));
+const funcDeps = {};
+for (const name of EXTERNALS_TO_INSTALL) {
+  const ver = rootPkg.dependencies?.[name] ?? rootPkg.devDependencies?.[name];
+  if (ver) funcDeps[name] = ver;
+}
+const funcPkg = {
+  type: 'module',
+  dependencies: funcDeps,
+};
+writeFileSync(join(funcDir, 'package.json'), JSON.stringify(funcPkg, null, 2) + '\n');
+console.log('[build:vercel] Wrote .vercel/output/functions/api/index.func/package.json');
 
 // Step 6: Write config.json (routes)
 // Function routes first (phase 1). Then handle: "filesystem" so SPA fallback

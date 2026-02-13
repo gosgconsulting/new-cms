@@ -9,28 +9,13 @@ import * as esbuild from 'esbuild';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { mkdirSync } from 'fs';
+import { EXTERNALS } from './vercel-api-externals.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const rootDir = join(__dirname, '..');
 
 const entry = join(rootDir, 'server', 'vercel-handler.js');
 const outfile = join(rootDir, '.vercel', 'output', 'functions', 'api', 'index.func', 'index.js');
-
-const externals = [
-  'pg',
-  'pg-native',
-  'sequelize',
-  '@anthropic-ai/sdk',
-  '@vercel/blob',
-  'uuid',
-  'bcryptjs',
-  'multer',
-  'stripe',
-  'jsonwebtoken',
-  'dotenv',
-  'fast-xml-parser',
-  'rate-limiter-flexible',
-];
 
 async function main() {
   try {
@@ -41,7 +26,7 @@ async function main() {
       platform: 'node',
       format: 'esm',
       outfile,
-      external: externals,
+      external: EXTERNALS,
       target: 'node20',
     });
     console.log('[build:api] Bundled .vercel/output/functions/api/index.func/index.js');
