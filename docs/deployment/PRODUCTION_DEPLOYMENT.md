@@ -150,17 +150,17 @@ VITE_API_BASE_URL=https://your-domain.com
 
 ### Option 1: Vercel (recommended)
 
-The backend runs as Vercel Serverless Functions. There is no always-on Node server; the Express app is invoked per request via `api/index` (built from `api/index.source.js`). Static files from `dist/` are served by the CDN; only API, health, theme, SSR, and SPA fallback routes hit the function.
+The backend runs as Vercel Serverless Functions. There is no always-on Node server; the Express app is invoked per request via the Build Output API handler at `server/vercel-handler.js`, bundled into `.vercel/output/functions/api/index.func/`. Static files are copied to `.vercel/output/static/` and served by the CDN; only API, health, theme, SSR, and SPA fallback routes hit the function.
 
 #### Why Vercel (best practice)
 
-We deploy without Docker using Vercel’s build system: the frontend builds to static assets; API and server logic run as Vercel Functions (serverless). This is preferred because it gives the fastest deploys and caching, preview URLs, automatic scaling, no container management, and tight integration with Vercel routing, environment variables, logs, and analytics. This project matches that pattern: Vite build outputs to `dist/` (static); the Express app is bundled as a single serverless handler (`api/index`); the default flow uses no Docker.
+We deploy without Docker using Vercel’s build system: the frontend builds to static assets; API and server logic run as Vercel Functions (serverless). This is preferred because it gives the fastest deploys and caching, preview URLs, automatic scaling, no container management, and tight integration with Vercel routing, environment variables, logs, and analytics. This project matches that pattern: the build script (`scripts/build-vercel-output.js`) runs Vite (or theme build), copies output to `.vercel/output/static/`, and bundles the Express app into `.vercel/output/functions/api/index.func/` (Build Output API); the default flow uses no Docker.
 
 #### Quick Vercel deploy
 
 1. **Connect repo**: In Vercel, import your Git repository. No `railway.toml` or `nixpacks.toml` is used; build and rewrites are defined in `vercel.json`.
 2. **Environment variables**: In the Vercel project, set: `DATABASE_URL`, `BLOB_READ_WRITE_TOKEN` (Vercel Blob), `RESEND_API_KEY`, `SMTP_FROM_EMAIL`, `NODE_ENV=production`. Prefer `DATABASE_PUBLIC_URL` and `DATABASE_POOL_MAX=5` for serverless.
-3. **Deploy**: Vercel runs `npm install` then `npm run build && npm run build:api` and deploys `dist/` plus the serverless `api/index.js`. All set.
+3. **Deploy**: Vercel runs `npm install` then the build command (`node scripts/build-vercel-output.js`), which produces `.vercel/output/` (static + serverless function). All set.
 
 #### Full Vercel setup (details)
 
@@ -172,9 +172,9 @@ We deploy without Docker using Vercel’s build system: the frontend builds to s
    ```
 
 2. **Build settings** (in `vercel.json`):
-   - Build Command: `npm run build && npm run build:api`
-   - Output Directory: `dist`
-   - The `build:api` step bundles the serverless entry and server code into `api/index.js`.
+   - Build Command: `node scripts/build-vercel-output.js`
+   - Output Directory: `.vercel/output`
+   - The build script runs Vite (or theme build), copies `dist/` to `.vercel/output/static/`, bundles the serverless entry (`server/vercel-handler.js`) into `.vercel/output/functions/api/index.func/`, and writes `config.json` and `.vc-config.json` (Build Output API).
 
 3. **Environment Variables** (Vercel Dashboard):
    ```
@@ -191,11 +191,11 @@ We deploy without Docker using Vercel’s build system: the frontend builds to s
 
 #### Vercel serverless behaviour
 
-- **Entry point**: Only `server/app.js` is loaded; `server/index.js` (and its `app.listen()`, DB init, theme sync on startup) is not run. The handler is `api/index.source.js` → `app(req, res)`.
+- **Entry point**: Only `server/app.js` is loaded; `server/index.js` (and its `app.listen()`, DB init, theme sync on startup) is not run. The handler is `server/vercel-handler.js` (bundled into `api/index.func`) → `app(req, res)`.
 - **Database**: The pool is created lazily on first query (`sparti-cms/db/connection.js`). No startup DB init is required.
 - **Theme sync**: Theme sync does not run at "startup" on Vercel. It runs on-demand when the themes API is used (e.g. listing or syncing themes). Rely on that for serverless.
 - **Page cache**: SSR page cache (`/r/:slug`) is in-memory and per serverless instance. For shared cache across instances, you can add Vercel KV later and wire it in `sparti-cms/cache`.
-- **Static files**: Vercel serves files from `dist/` before applying rewrites, so `/assets/*` and other built assets are served from the CDN, not the function.
+- **Static files**: Vercel serves files from `.vercel/output/static/` (a copy of `dist/`) before applying rewrites, so `/assets/*` and other built assets are served from the CDN, not the function.
 
 4. **Testing and rollout**:
    - Run `vercel dev` locally (or deploy to a preview) and smoke-test: `GET /health`, login, key API routes, theme routes, and SPA load. Confirm static assets are served from the CDN (no function logs for `/assets/*`).

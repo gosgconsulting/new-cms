@@ -10,6 +10,7 @@
     "dev:frontend": "vite",
     "build": "vite build",
     "build:production": "node scripts/run-build.js",
+    "build:vercel": "node scripts/build-vercel-output.js",
     "build:api": "node scripts/bundle-vercel-api.js",
     "build:dev": "vite build --mode development",
     "build:theme": "node scripts/build-theme-static.js",

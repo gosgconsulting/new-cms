@@ -1,7 +1,7 @@
 # Static assets (build produces dist on Vercel; do not ignore dist or static hosting breaks)
 public/
 
-# Docs and server tests (not needed for build; scripts/ is required for build:api)
+# Docs and server tests (not needed for build; scripts/ is required for build:vercel)
 docs/
 server/tests/
 
