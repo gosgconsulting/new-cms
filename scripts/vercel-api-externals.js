@@ -4,6 +4,7 @@
  * pg-native is excluded from install (native addon, often fails in serverless; pg works without it).
  */
 export const EXTERNALS = [
+  'express', // CJS package with dynamic requires; keep external so it uses native require
   'pg',
   'pg-native', // external in bundle, but we don't install - pg works without it
   'sequelize',
