@@ -1,10 +1,10 @@
 // CORS middleware to handle OPTIONS requests and CORS headers
 export const corsMiddleware = (req, res, next) => {
   try {
-    // Get the origin from the request, or use '*' if not present
-    // Note: If credentials are needed, we must use the specific origin, not '*'
-    const origin = req.headers.origin || '*';
-    
+    // For /api/* endpoints: allow any origin. Otherwise, reflect request origin.
+    const isApiPath = req.path.startsWith('/api') || req.originalUrl.startsWith('/api');
+    const origin = isApiPath ? '*' : (req.headers.origin || '*');
+
     // Set CORS headers - use res.header() which works consistently in Express
     res.header('Access-Control-Allow-Origin', origin);
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
