@@ -132,6 +132,19 @@ export default function PricingPage({ basePath, tenantId }: { basePath: string; 
 
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
+                    <h3 className="font-bold text-nail-queen-brown">GEL X EXTENSION + COLOUR (FOR STUDENT ONLY)</h3>
+                    <p className="text-sm text-gray-600">
+                      Full set of Gel X extensions with your choice of gel colour. Valid student ID required.
+                    </p>
+                  </div>
+                  <div className="text-right ml-4">
+                    <span className="font-bold">$95.92</span>
+                    <p className="text-xs text-gray-500">(inclusive of GST)</p>
+                  </div>
+                </div>
+
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
                     <h3 className="font-bold text-nail-queen-brown">STRENGTHENER</h3>
                     <p className="text-sm text-gray-600">Restore a balanced nail surface with our nail hardening technology.</p>
                   </div>
@@ -157,6 +170,9 @@ export default function PricingPage({ basePath, tenantId }: { basePath: string; 
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
                     <h3 className="font-bold text-nail-queen-brown">SOFT GEL/BIAB soak off</h3>
+                    <p className="text-sm text-gray-600">
+                      Safe removal of soft gel or Builder in a Bottle without filing down the natural nail.
+                    </p>
                   </div>
                   <div className="text-right ml-4">
                     <span className="font-bold">$16.35/set</span>
@@ -167,6 +183,9 @@ export default function PricingPage({ basePath, tenantId }: { basePath: string; 
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
                     <h3 className="font-bold text-nail-queen-brown">HARD GEL/ACRYLIC/DIP POWDER soak off</h3>
+                    <p className="text-sm text-gray-600">
+                      Professional removal of hard gel, acrylic, or dip powder extensions to minimise damage to the natural nail.
+                    </p>
                   </div>
                   <div className="text-right ml-4">
                     <span className="font-bold">$27.25/set</span>
