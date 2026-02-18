@@ -426,7 +426,7 @@ export const VisualEditorJSONDialog: React.FC<VisualEditorJSONDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl h-[80vh] flex flex-col">
+      <DialogContent className="max-w-4xl h-[80vh] flex flex-col" translate="no">
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between">
             <span>Page Schema JSON Editor</span>
@@ -460,25 +460,29 @@ export const VisualEditorJSONDialog: React.FC<VisualEditorJSONDialogProps> = ({
             )}
           </DialogDescription>
         </DialogHeader>
-        <div className="flex-1 overflow-auto p-4 bg-gray-50">
-          {loading ? (
-            <div className="flex items-center justify-center h-full">
-              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-            </div>
-          ) : (
-            <div
-              ref={setEditorRef}
-              className="w-full h-full p-4 outline-none font-mono text-sm border border-gray-300 rounded bg-white"
-              style={{
-                minHeight: JSON_EDITOR_CONFIG.MIN_HEIGHT,
-                whiteSpace: 'pre-wrap',
-                wordBreak: 'break-word',
-                tabSize: JSON_EDITOR_CONFIG.TAB_SIZE,
-              }}
-              spellCheck="false"
-              dir="ltr"
-            />
-          )}
+        <div className="flex-1 overflow-auto p-4 bg-gray-50 relative">
+          {/* Editor: always in DOM when not loading so CodeJar can own it. Hidden during load to avoid ref thrashing. */}
+          <div
+            ref={loading ? undefined : setEditorRef}
+            className="w-full h-full p-4 outline-none font-mono text-sm border border-gray-300 rounded bg-white"
+            style={{
+              minHeight: JSON_EDITOR_CONFIG.MIN_HEIGHT,
+              whiteSpace: 'pre-wrap',
+              wordBreak: 'break-word',
+              tabSize: JSON_EDITOR_CONFIG.TAB_SIZE,
+              ...(loading && { visibility: 'hidden' as const }),
+            }}
+            spellCheck="false"
+            dir="ltr"
+          />
+          {/* Loader: kept in DOM and toggled via opacity to avoid removeChild errors with Radix Dialog portals */}
+          <div
+            className="absolute inset-4 flex items-center justify-center bg-gray-50 rounded transition-opacity"
+            style={{ opacity: loading ? 1 : 0, pointerEvents: loading ? 'auto' : 'none' }}
+            aria-hidden={!loading}
+          >
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
           {jsonError && <p className="text-destructive text-sm mt-2">{jsonError}</p>}
         </div>
         <DialogFooter>
