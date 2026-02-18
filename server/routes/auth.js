@@ -8,7 +8,7 @@ import { debugLog, debugError } from '../../sparti-cms/utils/debugLogger.js';
 
 // Helper function to check if database connection is to localhost
 const isLocalhostConnection = () => {
-  const connString = process.env.DATABASE_PUBLIC_URL || process.env.DATABASE_URL || '';
+  const connString = process.env.DATABASE_URL || '';
   return connString.includes('localhost') || 
          connString.includes('127.0.0.1') || 
          connString.includes('::1');
@@ -25,7 +25,7 @@ const getLocalhostErrorMessage = (errorCode, baseMessage) => {
     '   - Windows: Check Services or run: net start postgresql-x64-XX',
     '   - Mac/Linux: Check with: pg_isready or systemctl status postgresql',
     '2. Verify your connection string format in .env:',
-    '   DATABASE_PUBLIC_URL=postgresql://username:password@localhost:5432/database_name',
+    '   DATABASE_URL=postgresql://username:password@localhost:5432/database_name',
     '3. Check PostgreSQL credentials (username, password, database name)',
     '4. If SSL errors occur, add DATABASE_SSL=false to your .env file',
     '5. Verify PostgreSQL is listening on the correct port (default: 5432)'
@@ -161,7 +161,7 @@ router.post('/auth/login', asyncHandler(async (req, res) => {
         return res.status(503).json({
           success: false,
           error: 'Database initialization failed',
-          message: `Database connection failed: ${dbInitializationError.message}. Check DATABASE_URL or DATABASE_PUBLIC_URL environment variable in your .env file.`,
+          message: `Database connection failed: ${dbInitializationError.message}. Check DATABASE_URL environment variable in your .env file.`,
           diagnostic: '/health/database'
         });
       }
@@ -268,7 +268,7 @@ router.post('/auth/login', asyncHandler(async (req, res) => {
       
       // Provide specific error messages based on error type
       if (checkError?.code === 'ECONNREFUSED' || checkError?.code === 'ETIMEDOUT' || checkError?.code === 'ECONNRESET') {
-        const baseMessage = 'Unable to connect to database. Check DATABASE_URL or DATABASE_PUBLIC_URL environment variable in your .env file and ensure database server is running.';
+        const baseMessage = 'Unable to connect to database. Check DATABASE_URL environment variable in your .env file and ensure database server is running.';
         return res.status(503).json({
           success: false,
           error: 'Database connection failed',
@@ -304,7 +304,7 @@ router.post('/auth/login', asyncHandler(async (req, res) => {
       }
       
       if (connectionTestError?.code === 'ECONNREFUSED' || connectionTestError?.code === 'ETIMEDOUT' || connectionTestError?.code === 'ECONNRESET') {
-        const baseMessage = 'Unable to connect to database. If DATABASE_URL points to localhost, ensure Postgres is running locally. For cloud databases, use the full connection string in DATABASE_PUBLIC_URL or DATABASE_URL.';
+        const baseMessage = 'Unable to connect to database. If DATABASE_URL points to localhost, ensure Postgres is running locally. For cloud databases, use the full connection string in DATABASE_URL.';
         return res.status(503).json({
           success: false,
           error: 'Database connection failed',
@@ -317,7 +317,7 @@ router.post('/auth/login', asyncHandler(async (req, res) => {
       return res.status(503).json({
         success: false,
         error: 'Database connection error',
-          message: `Database connection test failed: ${connectionTestError?.message || 'Unknown error'}. Check DATABASE_URL or DATABASE_PUBLIC_URL environment variable in your .env file.`,
+          message: `Database connection test failed: ${connectionTestError?.message || 'Unknown error'}. Check DATABASE_URL environment variable in your .env file.`,
         diagnostic: '/health/database',
         errorCode: connectionTestError?.code
       });
@@ -385,7 +385,7 @@ router.post('/auth/login', asyncHandler(async (req, res) => {
       }
       
       if (queryError?.code === 'ECONNREFUSED' || queryError?.code === 'ETIMEDOUT' || queryError?.code === 'ECONNRESET') {
-        const baseMessage = 'Unable to connect to database. Check DATABASE_URL or DATABASE_PUBLIC_URL environment variable in your .env file and ensure database server is running.';
+        const baseMessage = 'Unable to connect to database. Check DATABASE_URL environment variable in your .env file and ensure database server is running.';
         return res.status(503).json({
           success: false,
           error: 'Database connection failed',
@@ -559,7 +559,7 @@ router.post('/auth/login', asyncHandler(async (req, res) => {
         }
         
         if (themeCheckError?.code === 'ECONNREFUSED' || themeCheckError?.code === 'ETIMEDOUT' || themeCheckError?.code === 'ECONNRESET') {
-          const baseMessage = 'Unable to connect to database. Check DATABASE_URL or DATABASE_PUBLIC_URL environment variable in your .env file and ensure database server is running.';
+          const baseMessage = 'Unable to connect to database. Check DATABASE_URL environment variable in your .env file and ensure database server is running.';
           return res.status(503).json({
             success: false,
             error: 'Database connection failed',
@@ -651,7 +651,7 @@ router.post('/auth/login', asyncHandler(async (req, res) => {
     
     // Handle database connection errors
     if (error?.code === 'ECONNREFUSED' || error?.code === 'ETIMEDOUT' || error?.code === 'ENOTFOUND' || error?.code === 'ECONNRESET' || error?.code === 'ENETUNREACH') {
-      const baseMessage = `Unable to connect to database (${error.code}). Check DATABASE_URL or DATABASE_PUBLIC_URL environment variable in your .env file and ensure database server is running.`;
+      const baseMessage = `Unable to connect to database (${error.code}). Check DATABASE_URL environment variable in your .env file and ensure database server is running.`;
       return res.status(503).json({
         success: false,
         error: 'Database connection failed',

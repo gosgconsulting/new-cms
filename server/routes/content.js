@@ -1975,9 +1975,9 @@ router.get('/blog/posts', async (req, res) => {
         p.created_at as date,
         '5 min read' as "readTime",
         COALESCE(
-          (SELECT t.name FROM post_terms pt 
-           JOIN terms t ON pt.term_id = t.id 
-           WHERE pt.post_id = p.id AND t.taxonomy = 'category' 
+          (SELECT c.name FROM post_categories pc 
+           JOIN categories c ON pc.category_id = c.id 
+           WHERE pc.post_id = p.id 
            LIMIT 1),
           'Uncategorized'
         ) as category
@@ -2020,9 +2020,9 @@ router.get('/blog/posts/:slug', async (req, res) => {
         p.created_at as date,
         '5 min read' as "readTime",
         COALESCE(
-          (SELECT t.name FROM post_terms pt 
-           JOIN terms t ON pt.term_id = t.id 
-           WHERE pt.post_id = p.id AND t.taxonomy = 'category' 
+          (SELECT c.name FROM post_categories pc 
+           JOIN categories c ON pc.category_id = c.id 
+           WHERE pc.post_id = p.id 
            LIMIT 1),
           'Uncategorized'
         ) as category
@@ -2040,9 +2040,9 @@ router.get('/blog/posts/:slug', async (req, res) => {
     // Get post tags
     const tagsQuery = `
       SELECT t.name
-      FROM post_terms pt
-      JOIN terms t ON pt.term_id = t.id
-      WHERE pt.post_id = $1 AND t.taxonomy = 'post_tag'
+      FROM post_tags pt
+      JOIN tags t ON pt.tag_id = t.id
+      WHERE pt.post_id = $1
     `;
     
     const tagsResult = await query(tagsQuery, [result.rows[0].id]);

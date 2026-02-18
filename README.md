@@ -89,7 +89,6 @@ The application will be available at `http://localhost:4173`
 1. **Create a Railway project** with PostgreSQL service
 2. **Set environment variables** (see `docs/deployment/` for details):
    ```
-   DATABASE_PUBLIC_URL=${{Postgres.DATABASE_PUBLIC_URL}}
    DATABASE_URL=${{Postgres.DATABASE_URL}}
    POSTGRES_DB=${{Postgres.POSTGRES_DB}}
    POSTGRES_USER=${{Postgres.POSTGRES_USER}}

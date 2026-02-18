@@ -39,7 +39,7 @@ Make sure ALL these are set in Railway:
 DEPLOY_THEME_SLUG="landingpage"
 
 # Database (auto-filled by Railway)
-DATABASE_PUBLIC_URL="${{Postgres-33yU.DATABASE_PUBLIC_URL}}"
+# Use internal URL when app runs on Railway; use DATABASE_PUBLIC_URL when connecting from external (e.g. Vercel)
 DATABASE_URL="${{Postgres-33yU.DATABASE_URL}}"
 POSTGRES_DB="${{Postgres-33yU.POSTGRES_DB}}"
 POSTGRES_PASSWORD="${{Postgres-33yU.POSTGRES_PASSWORD}}"

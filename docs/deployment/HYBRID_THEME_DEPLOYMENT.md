@@ -24,7 +24,6 @@ Set these variables in Railway:
 
 ```bash
 DEPLOY_THEME_SLUG="landingpage"
-DATABASE_PUBLIC_URL="${{Postgres-33yU.DATABASE_PUBLIC_URL}}"
 DATABASE_URL="${{Postgres-33yU.DATABASE_URL}}"
 POSTGRES_DB="${{Postgres-33yU.POSTGRES_DB}}"
 POSTGRES_PASSWORD="${{Postgres-33yU.POSTGRES_PASSWORD}}"

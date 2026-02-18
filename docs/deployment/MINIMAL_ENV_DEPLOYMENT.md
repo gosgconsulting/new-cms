@@ -5,7 +5,7 @@
 This guide shows how to deploy with a minimal set of environment variables (Vercel or local).
 
 1. `DATABASE_URL` - Database connection (required)
-2. `DATABASE_PUBLIC_URL` - Optional; used for serverless (e.g. Vercel)
+2. `DATABASE_URL` - Required for database connections
 3. `VITE_API_BASE_URL` - Optional; auto-detected from `VERCEL_URL` on Vercel if not set
 4. For theme-only builds: `DEPLOY_THEME_SLUG`, `CMS_TENANT`
 
@@ -13,7 +13,7 @@ This guide shows how to deploy with a minimal set of environment variables (Verc
 
 ```bash
 DATABASE_URL=postgresql://...
-DATABASE_PUBLIC_URL=postgresql://...   # optional, preferred for serverless
+DATABASE_URL=postgresql://...
 DATABASE_POOL_MAX=5
 BLOB_READ_WRITE_TOKEN=...             # Vercel Blob for uploads
 RESEND_API_KEY=...

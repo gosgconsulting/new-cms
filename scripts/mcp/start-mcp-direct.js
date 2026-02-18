@@ -3,7 +3,7 @@
 /**
  * Direct MCP Database Server for PostgreSQL
  *
- * Uses DATABASE_URL (or DATABASE_PUBLIC_URL) from environment or .env.
+ * Uses DATABASE_URL from environment or .env.
  * SSL rejectUnauthorized: false for cloud Postgres with self-signed certs.
  */
 
@@ -27,11 +27,11 @@ function parseDatabaseUrl(url) {
   };
 }
 
-const connectionString = process.env.DATABASE_PUBLIC_URL || process.env.DATABASE_URL;
+const connectionString = process.env.DATABASE_URL;
 const config = connectionString ? parseDatabaseUrl(connectionString) : null;
 
 if (!config) {
-  console.error('Set DATABASE_URL or DATABASE_PUBLIC_URL in .env or environment.');
+  console.error('Set DATABASE_URL in .env or environment.');
   process.exit(1);
 }
 

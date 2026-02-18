@@ -10,7 +10,7 @@ To set up PostgreSQL for local development:
 
 ```
 # PostgreSQL Database Configuration for Local Development
-VITE_DATABASE_PUBLIC_URL=postgresql://gosg:gosg@localhost:5432/gosg
+VITE_DATABASE_URL=postgresql://gosg:gosg@localhost:5432/gosg
 VITE_POSTGRES_DB=gosg
 VITE_POSTGRES_USER=gosg
 VITE_POSTGRES_PASSWORD=gosg

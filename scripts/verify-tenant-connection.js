@@ -28,7 +28,6 @@ async function verifyTenantConnection() {
     const envVars = {
       DEPLOY_THEME_SLUG: process.env.VITE_DEPLOY_THEME_SLUG,
       CMS_TENANT: process.env.CMS_TENANT,
-      DATABASE_PUBLIC_URL: process.env.DATABASE_PUBLIC_URL ? 'Set ✅' : 'Missing ❌',
       DATABASE_URL: process.env.DATABASE_URL ? 'Set ✅' : 'Missing ❌',
       NODE_ENV: process.env.NODE_ENV,
       VITE_BACKEND_SERVER_URL: process.env.VITE_BACKEND_SERVER_URL,
@@ -45,7 +44,7 @@ async function verifyTenantConnection() {
     });
 
     // Check for required variables
-    const requiredVars = ['DATABASE_PUBLIC_URL', 'DATABASE_URL', 'NODE_ENV', 'PORT'];
+    const requiredVars = ['DATABASE_URL', 'NODE_ENV', 'PORT'];
     const missingVars = requiredVars.filter(v => !process.env[v]);
     
     if (missingVars.length > 0) {

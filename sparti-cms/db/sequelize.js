@@ -5,7 +5,7 @@ dotenv.config();
 
 // Get connection string from environment
 const getConnectionString = () => {
-  return process.env.DATABASE_PUBLIC_URL || process.env.DATABASE_URL;
+  return process.env.DATABASE_URL;
 };
 
 // Parse connection string to extract components
@@ -30,12 +30,10 @@ const createSequelizeInstance = () => {
   const connectionString = getConnectionString();
   
   if (!connectionString) {
-    console.error('[testing] WARNING: DATABASE_URL or DATABASE_PUBLIC_URL environment variable is required');
+    console.error('[testing] WARNING: DATABASE_URL environment variable is required');
     console.error('[testing] Please create a .env file in the project root with:');
-    console.error('[testing] DATABASE_PUBLIC_URL=postgresql://user:password@host:port/database');
-    console.error('[testing] OR');
     console.error('[testing] DATABASE_URL=postgresql://user:password@host:port/database');
-    throw new Error('DATABASE_URL or DATABASE_PUBLIC_URL environment variable is required. Please create a .env file in the project root.');
+    throw new Error('DATABASE_URL environment variable is required. Please create a .env file in the project root.');
   }
 
   const config = parseConnectionString(connectionString);

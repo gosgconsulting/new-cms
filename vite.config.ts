@@ -93,6 +93,12 @@ export default defineConfig(({ mode }) => {
         secure: false,
         ws: true, // Enable WebSocket proxying for HMR
       },
+      // Proxy health endpoints to backend (e.g. /health, /health/detailed, /health/database)
+      '/health': {
+        target: 'http://localhost:4173',
+        changeOrigin: true,
+        secure: false,
+      },
       // Allow frontend dev server to load theme assets directly from the backend.
       // Needed for themes whose assets are served by Express (e.g. Nail Queen imported assets).
       // Only proxy theme assets (files with extensions), not routes - let Vite handle SPA routing

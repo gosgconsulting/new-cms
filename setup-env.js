@@ -13,7 +13,6 @@ import { resolve } from 'path';
 
 const envContent = `# Database (REQUIRED) - Set in Vercel or .env for local dev
 DATABASE_URL="postgresql://user:password@host:5432/database"
-DATABASE_PUBLIC_URL="postgresql://user:password@host:5432/database"
 
 # Server
 PORT=4173

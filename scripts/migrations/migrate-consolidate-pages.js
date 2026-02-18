@@ -15,10 +15,10 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Database configuration (use DATABASE_URL or DATABASE_PUBLIC_URL; no default)
-const connectionString = process.env.DATABASE_PUBLIC_URL || process.env.DATABASE_URL;
+// Database configuration (use DATABASE_URL; no default)
+const connectionString = process.env.DATABASE_URL;
 if (!connectionString) {
-  console.error('DATABASE_URL or DATABASE_PUBLIC_URL must be set.');
+  console.error('DATABASE_URL must be set.');
   process.exit(1);
 }
 const dbConfig = {

@@ -24,7 +24,7 @@ Create a `.env` file in the project root with the following variables:
 VITE_API_BASE_URL=
 
 # Backend Database Configuration (REQUIRED)
-DATABASE_PUBLIC_URL=postgresql://username:password@hostname:port/database
+DATABASE_URL=postgresql://username:password@hostname:port/database
 # OR use individual connection variables:
 DATABASE_URL=postgresql://username:password@hostname:port/database
 
@@ -64,7 +64,7 @@ SMTP_FROM_EMAIL=noreply@gosg.com
 3. The `VITE_API_BASE_URL` is used by the ContactModal component to determine where to send form submissions
 4. If `VITE_API_BASE_URL` is not set, it defaults to an empty string (relative path)
 5. **Vite Proxy**: In development, Vite automatically proxies `/api/*` requests to `http://localhost:4173`
-6. **Database Connection**: Either `DATABASE_URL` or `DATABASE_PUBLIC_URL` is required for the backend to work
+6. **Database Connection**: `DATABASE_URL` is required for the backend to work
 7. **SMTP**: Required for email functionality (contact form notifications, etc.)
 
 ## Variables NOT Needed

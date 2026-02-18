@@ -48,8 +48,8 @@ If you prefer to set up manually, create a `.env` file in the project root with 
 
 ```bash
 # Railway PostgreSQL Database Configuration
-DATABASE_PUBLIC_URL="postgresql://postgres:bFiBuCeLqCnTWwMEAQxnVJWGPZZkHXkG@mainline.proxy.rlwy.net:37013/railway"
-DATABASE_URL="postgresql://postgres:bFiBuCeLqCnTWwMEAQxnVJWGPZZkHXkG@postgres-33yu.railway.internal:5432/railway"
+# Use DATABASE_URL - for local dev use Railway's public URL; for Railway deployment use internal URL
+DATABASE_URL="postgresql://postgres:bFiBuCeLqCnTWwMEAQxnVJWGPZZkHXkG@mainline.proxy.rlwy.net:37013/railway"
 
 # PostgreSQL Individual Settings
 PGDATABASE="railway"
@@ -110,13 +110,13 @@ Railway will automatically replace `${{}}` placeholders with actual values.
 
 The application uses a smart connection strategy:
 
-1. **Local Development**: Uses `DATABASE_PUBLIC_URL` (external proxy connection)
-2. **Railway Production**: Uses `DATABASE_URL` (internal network connection)
+1. **Local Development**: Use the public/external connection URL in `DATABASE_URL`
+2. **Railway Production**: Use the internal network URL in `DATABASE_URL` when deploying on Railway
 
-This is handled automatically in `sparti-cms/db/sequelize/config.js`:
+Set in `sparti-cms/db/sequelize/config.js` or `.env`:
 
 ```javascript
-const connectionString = process.env.DATABASE_PUBLIC_URL || process.env.DATABASE_URL;
+const connectionString = process.env.DATABASE_URL;
 ```
 
 ### Environment Variable Types
@@ -131,7 +131,7 @@ const connectionString = process.env.DATABASE_PUBLIC_URL || process.env.DATABASE
 ### 1. Test Environment Variables
 
 ```bash
-node -e "require('dotenv').config(); console.log('DATABASE_PUBLIC_URL:', process.env.DATABASE_PUBLIC_URL ? 'Set ✅' : 'Not set ❌');"
+node -e "require('dotenv').config(); console.log('DATABASE_URL:', process.env.DATABASE_URL ? 'Set ✅' : 'Not set ❌');"
 ```
 
 ### 2. Test Database Connection
@@ -157,7 +157,7 @@ This starts both frontend (port 8082) and backend (port 4173).
 ### Common Issues
 
 1. **Database Connection Failed**
-   - Verify `DATABASE_PUBLIC_URL` is correct
+   - Verify `DATABASE_URL` is correct
    - Check if Railway PostgreSQL service is running
    - Ensure your IP is whitelisted (Railway usually allows all)
 
@@ -181,7 +181,7 @@ ls -la .env
 node -e "require('dotenv').config(); console.log(Object.keys(process.env).filter(k => k.includes('DATABASE')));"
 
 # Test database connection directly
-node -e "require('dotenv').config(); const { Pool } = require('pg'); const pool = new Pool({connectionString: process.env.DATABASE_PUBLIC_URL}); pool.query('SELECT NOW()', (err, res) => { console.log(err ? 'Error:' + err : 'Success:' + res.rows[0].now); pool.end(); });"
+node -e "require('dotenv').config(); const { Pool } = require('pg'); const pool = new Pool({connectionString: process.env.DATABASE_URL}); pool.query('SELECT NOW()', (err, res) => { console.log(err ? 'Error:' + err : 'Success:' + res.rows[0].now); pool.end(); });"
 ```
 
 ## Security Notes

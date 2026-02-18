@@ -3,18 +3,16 @@ import { debugLog, debugError } from '../utils/debugLogger.js';
 
 // Get connection string from environment or use default
 const getConnectionString = () => {
-  const connString = process.env.DATABASE_PUBLIC_URL || process.env.DATABASE_URL;
+  const connString = process.env.DATABASE_URL;
   
   // Log which connection string source is being used (without exposing credentials)
-  if (process.env.DATABASE_PUBLIC_URL) {
-    debugLog('Using DATABASE_PUBLIC_URL for connection');
-  } else if (process.env.DATABASE_URL) {
+  if (process.env.DATABASE_URL) {
     debugLog('Using DATABASE_URL for connection');
   } else {
-    debugError('WARNING: No DATABASE_URL or DATABASE_PUBLIC_URL found in environment variables!');
+    debugError('WARNING: No DATABASE_URL found in environment variables!');
     debugError('Falling back to MOCK DATABASE mode so the app can run without a real DB.');
-    debugError('To fix: Set DATABASE_PUBLIC_URL or DATABASE_URL in your .env file');
-    debugError('Example: DATABASE_PUBLIC_URL=postgresql://user:password@host:port/database');
+    debugError('To fix: Set DATABASE_URL in your .env file');
+    debugError('Example: DATABASE_URL=postgresql://user:password@host:port/database');
     // In mock mode we won't throw here; upstream handles gracefully
     return null;
   }
@@ -34,11 +32,10 @@ const getConnectionString = () => {
 
 // Get connection info for diagnostics (without exposing credentials)
 export function getConnectionInfo() {
-  const connString = process.env.DATABASE_PUBLIC_URL || process.env.DATABASE_URL;
+  const connString = process.env.DATABASE_URL;
   const info = {
     hasConnectionString: !!connString,
-    source: process.env.DATABASE_PUBLIC_URL ? 'DATABASE_PUBLIC_URL' : 
-            (process.env.DATABASE_URL ? 'DATABASE_URL' : 'none'),
+    source: process.env.DATABASE_URL ? 'DATABASE_URL' : 'none',
     host: null,
     port: null,
     database: null,
@@ -64,7 +61,7 @@ export function getConnectionInfo() {
 let pool = null;
 
 // Determine mock mode
-const isMockMode = process.env.MOCK_DATABASE === 'true' || (!process.env.DATABASE_PUBLIC_URL && !process.env.DATABASE_URL);
+const isMockMode = process.env.MOCK_DATABASE === 'true' || !process.env.DATABASE_URL;
 
 // Simple mock client/pool to allow app to run without real DB
 class MockClient {
@@ -186,7 +183,7 @@ export async function query(text, params, retries = 3) {
   let lastError;
   
   // Determine if this is a localhost connection for enhanced retry logic
-  const connString = process.env.DATABASE_PUBLIC_URL || process.env.DATABASE_URL || '';
+  const connString = process.env.DATABASE_URL || '';
   const isLocalhost = connString.includes('localhost') || 
                      connString.includes('127.0.0.1') || 
                      connString.includes('::1');
@@ -298,7 +295,7 @@ export async function query(text, params, retries = 3) {
     debugError('');
     debugError('To fix this:');
     debugError('1. Check if your database server is running');
-    debugError('2. Verify DATABASE_URL or DATABASE_PUBLIC_URL env var');
+    debugError('2. Verify DATABASE_URL env var');
     debugError('3. Check network connectivity');
     debugError('4. For cloud DB: ensure database is not paused');
     debugError('============================================');

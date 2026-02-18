@@ -23,7 +23,7 @@ const parseConnectionString = (connectionString) => {
   }
 };
 
-const connectionString = process.env.DATABASE_PUBLIC_URL || process.env.DATABASE_URL;
+const connectionString = process.env.DATABASE_URL;
 const config = parseConnectionString(connectionString);
 
 module.exports = {

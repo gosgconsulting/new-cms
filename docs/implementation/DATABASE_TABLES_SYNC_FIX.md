@@ -43,8 +43,7 @@ The CMS Dashboard "Tables" section was showing **mock data** with 6 tables inclu
 **Solution:** Updated database configuration to use Railway by default:
 ```javascript
 const dbConfig = {
-  connectionString: process.env.DATABASE_PUBLIC_URL || 
-                   process.env.DATABASE_URL || 
+  connectionString: process.env.DATABASE_URL || 
                    'postgresql://postgres:bFiBuCeLqCnTWwMEAQxnVJWGPZZkHXkG@trolley.proxy.rlwy.net:58867/railway',
   ssl: { rejectUnauthorized: false }, // Always use SSL with Railway
 };

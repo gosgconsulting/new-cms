@@ -48,7 +48,7 @@ body: JSON.stringify({
 **`start-server-with-db.bat` (Windows Batch):**
 ```batch
 set DATABASE_URL=postgresql://postgres:bFiBuCeLqCnTWwMEAQxnVJWGPZZkHXkG@trolley.proxy.rlwy.net:58867/railway
-set DATABASE_PUBLIC_URL=postgresql://postgres:bFiBuCeLqCnTWwMEAQxnVJWGPZZkHXkG@trolley.proxy.rlwy.net:58867/railway
+set DATABASE_URL=postgresql://postgres:bFiBuCeLqCnTWwMEAQxnVJWGPZZkHXkG@trolley.proxy.rlwy.net:58867/railway
 set NODE_ENV=development
 npm run dev
 ```
@@ -56,7 +56,7 @@ npm run dev
 **`start-server-with-db.ps1` (PowerShell):**
 ```powershell
 $env:DATABASE_URL = "postgresql://postgres:bFiBuCeLqCnTWwMEAQxnVJWGPZZkHXkG@trolley.proxy.rlwy.net:58867/railway"
-$env:DATABASE_PUBLIC_URL = "postgresql://postgres:bFiBuCeLqCnTWwMEAQxnVJWGPZZkHXkG@trolley.proxy.rlwy.net:58867/railway"
+$env:DATABASE_URL = "postgresql://postgres:bFiBuCeLqCnTWwMEAQxnVJWGPZZkHXkG@trolley.proxy.rlwy.net:58867/railway"
 $env:NODE_ENV = "development"
 npm run dev
 ```

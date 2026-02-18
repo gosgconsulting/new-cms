@@ -6,7 +6,7 @@ Configure in Vercel project → Settings → Environment Variables:
 
 ### Required
 
-- `DATABASE_URL`, `DATABASE_PUBLIC_URL` (or one of them)
+- `DATABASE_URL`
 - `CMS_TENANT=tenant-acatr`
 - `DEPLOY_THEME_SLUG=landingpage` (if theme-only)
 - `NODE_ENV=production`

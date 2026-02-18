@@ -25,7 +25,7 @@ async function fixLoginIssue() {
       console.log('[testing] ✅ Database connection successful\n');
     } catch (error) {
       console.error('[testing] ❌ Database connection failed:', error.message);
-      console.error('[testing] Please check your DATABASE_URL or DATABASE_PUBLIC_URL in .env file');
+      console.error('[testing] Please check your DATABASE_URL in .env file');
       process.exit(1);
     }
 

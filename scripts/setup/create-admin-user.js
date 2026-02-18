@@ -108,7 +108,7 @@ async function createAdminUser() {
     if (error.code === 'ECONNREFUSED' || error.code === 'ETIMEDOUT') {
       console.error('[testing]');
       console.error('[testing] Database connection failed. Please check:');
-      console.error('[testing] 1. DATABASE_URL or DATABASE_PUBLIC_URL is set in .env');
+      console.error('[testing] 1. DATABASE_URL is set in .env');
       console.error('[testing] 2. Database server is running');
       console.error('[testing] 3. Network connectivity');
     }

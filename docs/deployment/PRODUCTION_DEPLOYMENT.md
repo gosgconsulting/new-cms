@@ -159,7 +159,7 @@ We deploy without Docker using Vercel’s build system: the frontend builds to s
 #### Quick Vercel deploy
 
 1. **Connect repo**: In Vercel, import your Git repository. No `railway.toml` or `nixpacks.toml` is used; build and rewrites are defined in `vercel.json`.
-2. **Environment variables**: In the Vercel project, set: `DATABASE_URL`, `BLOB_READ_WRITE_TOKEN` (Vercel Blob), `RESEND_API_KEY`, `SMTP_FROM_EMAIL`, `NODE_ENV=production`. Prefer `DATABASE_PUBLIC_URL` and `DATABASE_POOL_MAX=5` for serverless.
+2. **Environment variables**: In the Vercel project, set: `DATABASE_URL`, `BLOB_READ_WRITE_TOKEN` (Vercel Blob), `RESEND_API_KEY`, `SMTP_FROM_EMAIL`, `NODE_ENV=production`. Set `DATABASE_POOL_MAX=5` for serverless.
 3. **Deploy**: Vercel runs `npm install` then the build command (`node scripts/build-vercel-output.js`), which produces `.vercel/output/` (static + serverless function). All set.
 
 #### Full Vercel setup (details)
@@ -179,7 +179,7 @@ We deploy without Docker using Vercel’s build system: the frontend builds to s
 3. **Environment Variables** (Vercel Dashboard):
    ```
    DATABASE_URL=postgresql://...
-   DATABASE_PUBLIC_URL=postgresql://...   # optional, preferred for serverless
+   DATABASE_URL=postgresql://...
    DATABASE_POOL_MAX=5                    # recommended for serverless (default 20)
    BLOB_READ_WRITE_TOKEN=vercel_blob_rw_...  # required for file uploads (Vercel Blob)
    RESEND_API_KEY=your_key

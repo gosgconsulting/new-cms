@@ -11,7 +11,7 @@ The database connection is configured in `server.js` and uses the PostgreSQL con
 The following environment variables are required in Railway:
 
 - `DATABASE_URL` - Primary PostgreSQL connection string
-- `DATABASE_PUBLIC_URL` - Public PostgreSQL connection string (fallback)
+- `DATABASE_URL` - PostgreSQL connection string
 - `NODE_ENV` - Set to 'production' for SSL connection
 
 ### Database Schema

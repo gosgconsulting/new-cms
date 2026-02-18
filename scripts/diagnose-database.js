@@ -33,10 +33,10 @@ async function runDiagnostics() {
   results.environment = connInfo;
   
   if (!connInfo.hasConnectionString) {
-    console.error('   ❌ ERROR: No DATABASE_URL or DATABASE_PUBLIC_URL found!');
+    console.error('   ❌ ERROR: No DATABASE_URL found!');
     results.recommendations.push({
       issue: 'Missing database connection string',
-      solution: 'Set DATABASE_URL or DATABASE_PUBLIC_URL environment variable',
+      solution: 'Set DATABASE_URL environment variable',
       command: 'Add to .env file: DATABASE_URL=postgresql://user:password@host:port/database'
     });
   } else {

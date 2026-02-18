@@ -2,7 +2,7 @@
 
 /**
  * Persistent MCP Database Server for PostgreSQL
- * Uses DATABASE_URL (or DATABASE_PUBLIC_URL); restarts on failures.
+ * Uses DATABASE_URL; restarts on failures.
  */
 
 import 'dotenv/config';
@@ -26,10 +26,10 @@ function parseDatabaseUrl(url) {
   };
 }
 
-const connectionString = process.env.DATABASE_PUBLIC_URL || process.env.DATABASE_URL;
+const connectionString = process.env.DATABASE_URL;
 const config = connectionString ? parseDatabaseUrl(connectionString) : null;
 if (!config) {
-  console.error('Set DATABASE_URL or DATABASE_PUBLIC_URL in .env or environment.');
+  console.error('Set DATABASE_URL in .env or environment.');
   process.exit(1);
 }
 

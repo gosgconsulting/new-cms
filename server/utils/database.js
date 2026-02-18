@@ -18,7 +18,7 @@ export const setDatabaseState = (initialized, error = null) => {
 
 // Helper: detect mock DB mode
 export const isMockDatabaseEnabled = () => {
-  return process.env.MOCK_DATABASE === 'true' || (!process.env.DATABASE_URL && !process.env.DATABASE_PUBLIC_URL);
+  return process.env.MOCK_DATABASE === 'true' || !process.env.DATABASE_URL;
 };
 
 // Initialize database in the background with retry logic
@@ -35,12 +35,11 @@ export async function initializeDatabaseInBackground(maxRetries = 5, retryDelay 
   }
   
   // Log connection details for diagnostics
-  const connString = process.env.DATABASE_PUBLIC_URL || process.env.DATABASE_URL || '';
+  const connString = process.env.DATABASE_URL || '';
   const isLocalhost = connString.includes('localhost') || 
                      connString.includes('127.0.0.1') || 
                      connString.includes('::1');
-  const connectionSource = process.env.DATABASE_PUBLIC_URL ? 'DATABASE_PUBLIC_URL' : 
-                           (process.env.DATABASE_URL ? 'DATABASE_URL' : 'none');
+  const connectionSource = process.env.DATABASE_URL ? 'DATABASE_URL' : 'none';
   const useSSL = !isLocalhost || process.env.DATABASE_SSL === 'true';
   
   // Extract host and port for logging (without exposing credentials)
@@ -151,11 +150,7 @@ export async function getDatabaseDiagnostics() {
     sampleQuery: null,
     environment: {
       hasDatabaseUrl: !!process.env.DATABASE_URL,
-      hasDatabasePublicUrl: !!process.env.DATABASE_PUBLIC_URL,
-      connectionSource: mock
-        ? 'mock'
-        : (process.env.DATABASE_PUBLIC_URL ? 'DATABASE_PUBLIC_URL' : 
-           (process.env.DATABASE_URL ? 'DATABASE_URL' : 'none')),
+      connectionSource: mock ? 'mock' : (process.env.DATABASE_URL ? 'DATABASE_URL' : 'none'),
       mockMode: mock
     }
   };

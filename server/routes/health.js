@@ -118,10 +118,10 @@ router.get('/health/database', async (req, res) => {
 function getRecommendations(diagnostics) {
   const recommendations = [];
   
-  if (!diagnostics.environment.hasDatabaseUrl && !diagnostics.environment.hasDatabasePublicUrl) {
+  if (!diagnostics.environment.hasDatabaseUrl) {
     recommendations.push({
       issue: 'Missing database connection string',
-      solution: 'Set DATABASE_URL or DATABASE_PUBLIC_URL environment variable',
+      solution: 'Set DATABASE_URL environment variable',
       command: 'Check your .env file or environment variables'
     });
   }

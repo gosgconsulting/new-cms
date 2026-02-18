@@ -26,7 +26,7 @@ The MCP configuration file is located at:
 - macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
 - Linux: `~/.config/Claude/claude_desktop_config.json`
 
-Set `DATABASE_URL` (or `DATABASE_PUBLIC_URL`) in your environment or `.env`, then add the MCP server to your config. Use the path to your `mcp-database-server/dist/src/index.js` and pass connection details from your URL, or use the project script that reads from `DATABASE_URL`:
+Set `DATABASE_URL` in your environment or `.env`, then add the MCP server to your config. Use the path to your `mcp-database-server/dist/src/index.js` and pass connection details from your URL, or use the project script that reads from `DATABASE_URL`:
 
 ```bash
 # From project root, with DATABASE_URL in .env

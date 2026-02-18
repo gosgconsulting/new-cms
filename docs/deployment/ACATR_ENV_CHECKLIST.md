@@ -8,7 +8,7 @@ Set these in the Vercel project dashboard:
 
 ```bash
 DATABASE_URL=postgresql://...
-DATABASE_PUBLIC_URL=postgresql://...   # optional, preferred for serverless
+DATABASE_URL=postgresql://...
 CMS_TENANT=tenant-acatr
 DEPLOY_THEME_SLUG=landingpage          # if deploying theme only
 NODE_ENV=production

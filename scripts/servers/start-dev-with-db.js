@@ -7,9 +7,6 @@ if (!process.env.DATABASE_URL) {
   process.exit(1);
 }
 process.env.NODE_ENV = process.env.NODE_ENV || 'development';
-if (process.env.DATABASE_URL && !process.env.DATABASE_PUBLIC_URL) {
-  process.env.DATABASE_PUBLIC_URL = process.env.DATABASE_URL;
-}
 
 console.log('🚀 Starting development server with database...');
 console.log('📊 Database: configured via DATABASE_URL');
