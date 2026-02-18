@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Image as ImageIcon, Upload, X } from 'lucide-react';
-import api from '../../utils/api';
+import { uploadFile } from '../../utils/uploadToBlob';
 
 interface ImageEditorProps {
   imageUrl?: string;
@@ -60,48 +60,14 @@ export const ImageEditor: React.FC<ImageEditorProps> = ({
     const files = event.target.files;
     if (!files || files.length === 0) return;
     
-    const file = files[0]; // Take only the first file
-    
-    // Create FormData for upload
-    const formData = new FormData();
-    formData.append('file', file);
+    const file = files[0];
     
     try {
-      // For file uploads, we need to bypass the api utility and use fetch directly
-      // because the api utility automatically sets Content-Type: application/json
-      const token = localStorage.getItem('sparti-user-session');
-      const authToken = token ? JSON.parse(token).token : null;
-      
-      const response = await fetch(`${api.getBaseUrl()}/api/upload`, {
-        method: 'POST',
-        headers: {
-          ...(authToken && { 'Authorization': `Bearer ${authToken}` })
-          // Don't set Content-Type - let the browser set it with boundary for FormData
-        },
-        body: formData
-      });
-      
-      if (!response.ok) {
-        throw new Error('Upload failed');
-      }
-      
-      const result = await response.json();
-      let newImageUrl = result.url;
-      
-      // Ensure the URL is a full URL with domain
-      if (newImageUrl && !newImageUrl.startsWith('http')) {
-        // If it's a relative path, make it absolute with the current domain
-        const baseUrl = window.location.origin;
-        newImageUrl = `${baseUrl}${newImageUrl.startsWith('/') ? '' : '/'}${newImageUrl}`;
-      }
-      
-      // Auto-fill the image title with the file name (without extension)
-      const fileName = file.name.replace(/\.[^/.]+$/, ""); // Remove extension
-      
-      // Update local state for immediate preview
+      const result = await uploadFile(file);
+      const newImageUrl = result.url;
+      const fileName = file.name.replace(/\.[^/.]+$/, "");
       setSelectedImage(newImageUrl);
       setTitle(fileName);
-      
       onImageChange?.(newImageUrl);
     } catch (error) {
       console.error('Error uploading image:', error);

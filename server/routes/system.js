@@ -5,8 +5,24 @@ import { simpleUpload } from '../config/multer.js';
 import { uploadBufferToBlob } from '../utils/blobStorage.js';
 import { RESEND_API_KEY, SMTP_FROM_EMAIL } from '../config/constants.js';
 import { invalidateAll, invalidateBySlug } from '../../sparti-cms/cache/index.js';
+import { handleUpload } from '@vercel/blob/client';
+import { verifyAccessToken } from '../services/authService.js';
 
 const router = express.Router();
+
+/** Allowed MIME types for client blob uploads */
+const BLOB_ALLOWED_CONTENT_TYPES = [
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'image/gif',
+  'image/svg+xml',
+  'image/bmp',
+  'image/avif',
+  'application/pdf',
+  'text/plain',
+  'text/csv',
+];
 
 // ===== DATABASE VIEWER ROUTES =====
 
@@ -173,6 +189,65 @@ router.post('/upload', simpleUpload.single('file'), async (req, res) => {
   } catch (error) {
     console.error('[testing] Error uploading file:', error);
     res.status(500).json({ error: 'Failed to upload file' });
+  }
+});
+
+// Vercel Blob client upload: token exchange for browser → Blob direct upload
+router.post('/blob-upload', async (req, res) => {
+  if (!process.env.BLOB_READ_WRITE_TOKEN) {
+    return res.status(503).json({
+      error: 'Blob storage not configured',
+      message: 'Set BLOB_READ_WRITE_TOKEN for uploads (e.g. vercel env pull for local dev)',
+    });
+  }
+
+  const body = req.body;
+  if (!body || typeof body !== 'object') {
+    return res.status(400).json({ error: 'Invalid request body' });
+  }
+
+  try {
+    const jsonResponse = await handleUpload({
+      body,
+      request: req,
+      token: process.env.BLOB_READ_WRITE_TOKEN,
+      onBeforeGenerateToken: async (pathname, clientPayload, multipart) => {
+        let payload = {};
+        if (clientPayload) {
+          try {
+            payload = JSON.parse(clientPayload);
+          } catch {
+            throw new Error('Invalid client payload');
+          }
+        }
+        const token = payload.token;
+        if (!token) {
+          throw new Error('Not authenticated');
+        }
+        try {
+          verifyAccessToken(token);
+        } catch {
+          throw new Error('Invalid or expired token');
+        }
+        return {
+          allowedContentTypes: BLOB_ALLOWED_CONTENT_TYPES,
+          addRandomSuffix: true,
+          tokenPayload: clientPayload,
+        };
+      },
+      onUploadCompleted: async ({ blob }) => {
+        console.log('[testing] Blob upload completed:', blob.url);
+      },
+    });
+
+    res.status(200).json(jsonResponse);
+  } catch (error) {
+    const message = error?.message || 'Blob upload failed';
+    if (message === 'Not authenticated' || message === 'Invalid or expired token' || message === 'Invalid client payload') {
+      return res.status(401).json({ error: message });
+    }
+    console.error('[testing] Blob handleUpload error:', error);
+    res.status(400).json({ error: message });
   }
 });
 

@@ -23,6 +23,7 @@ import FAQItemEditor from './FAQItemEditor';
 import OfficeHoursItemEditor from './OfficeHoursItemEditor';
 import FAQArrayEditor from './FAQArrayEditor';
 import ImageThumbnail from './ImageThumbnail';
+import { uploadFile as uploadFileToBlob } from '../../utils/uploadToBlob';
 
 interface ItemEditorProps {
   item: SchemaItem;
@@ -206,13 +207,13 @@ export const ImageEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemov
   };
 
   const uploadFile = async (file: File) => {
-    const formData = new FormData();
-    formData.append('file', file);
-    const res = await fetch('/api/upload', { method: 'POST', body: formData });
-    if (!res.ok) return;
-    const result = await res.json();
-    if (result?.url) {
-      onChange({ ...item, src: result.url });
+    try {
+      const result = await uploadFileToBlob(file);
+      if (result?.url) {
+        onChange({ ...item, src: result.url });
+      }
+    } catch {
+      // Error already surfaced by uploadFileToBlob
     }
   };
 

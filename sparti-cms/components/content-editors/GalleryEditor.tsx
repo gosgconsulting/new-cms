@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Grid, Upload, X, Plus } from 'lucide-react';
-import api from '../../utils/api';
+import { uploadFile } from '../../utils/uploadToBlob';
 
 interface GalleryImage {
   id: string;
@@ -36,33 +36,9 @@ export const GalleryEditor: React.FC<GalleryEditorProps> = ({
     const files = event.target.files;
     if (!files || files.length === 0) return;
     
-    // Create FormData for upload
-    const formData = new FormData();
-    
-    // Upload files one by one
     const uploadPromises = Array.from(files).map(async (file, index) => {
-      const fileFormData = new FormData();
-      fileFormData.append('file', file);
-      
       try {
-        // For file uploads, we need to bypass the api utility and use fetch directly
-        const token = localStorage.getItem('sparti-user-session');
-        const authToken = token ? JSON.parse(token).token : null;
-        
-        const response = await fetch(`${api.getBaseUrl()}/api/upload`, {
-          method: 'POST',
-          headers: {
-            ...(authToken && { 'Authorization': `Bearer ${authToken}` })
-            // Don't set Content-Type - let the browser set it with boundary for FormData
-          },
-          body: fileFormData
-        });
-        
-        if (!response.ok) {
-          throw new Error('Upload failed');
-        }
-        
-        const result = await response.json();
+        const result = await uploadFile(file);
         return {
           id: `new-img-${Date.now()}-${index}`,
           url: result.url,

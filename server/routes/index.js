@@ -51,6 +51,10 @@ router.use('/api', (req, res, next) => {
   if (req.path.startsWith('/v1')) {
     return next();
   }
+  // Blob client upload: auth is done via clientPayload (JWT) in the handler
+  if (req.path === '/blob-upload') {
+    return next();
+  }
   return authenticateWithAccessKey(req, res, next);
 });
 

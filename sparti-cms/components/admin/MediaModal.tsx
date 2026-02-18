@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Upload, Search, Grid, List, Image as ImageIcon, FileText, Film, Music, File, Check, X } from 'lucide-react';
 import { useCMSSettings } from '../../context/CMSSettingsContext';
+import { uploadFile } from '../../utils/uploadToBlob';
 
 interface MediaItem {
   id: string;
@@ -85,42 +86,14 @@ const MediaModal: React.FC<MediaModalProps> = ({
     setUploadProgress(0);
 
     try {
-      // Create FormData for file upload
-      const formData = new FormData();
-      formData.append('file', file);
-
-      // Simulate upload progress
-      const progressInterval = setInterval(() => {
-        setUploadProgress(prev => {
-          if (prev >= 90) {
-            clearInterval(progressInterval);
-            return prev;
-          }
-          return prev + 10;
-        });
-      }, 100);
-
-      // Upload to server
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
-
-      clearInterval(progressInterval);
+      const result = await uploadFile(file);
       setUploadProgress(100);
 
-      if (!response.ok) {
-        throw new Error('Upload failed');
-      }
-
-      const result = await response.json();
-      
-      // Create media item
       const newMediaItem: MediaItem = {
         id: Date.now().toString(),
         name: file.name,
         type: getFileType(file.type),
-        url: result.url || `/uploads/${file.name}`,
+        url: result.url,
         size: file.size,
         dateUploaded: new Date().toISOString(),
         folderId: null

@@ -1049,30 +1049,48 @@ const MediaManager: React.FC = () => {
         )}
         
         {/* Media Stats */}
-        <div className="mt-6 flex flex-wrap gap-4">
-          <div className="bg-gray-50 rounded-md p-4 flex-1">
-            <p className="text-sm text-gray-500">Total Files</p>
-            <p className="text-xl font-bold text-gray-900">{mediaItems.length}</p>
-          </div>
-          <div className="bg-gray-50 rounded-md p-4 flex-1">
-            <p className="text-sm text-gray-500">Images</p>
-            <p className="text-xl font-bold text-gray-900">
-              {mediaItems.filter(item => item.type === 'image').length}
-            </p>
-          </div>
-          <div className="bg-gray-50 rounded-md p-4 flex-1">
-            <p className="text-sm text-gray-500">Documents</p>
-            <p className="text-xl font-bold text-gray-900">
-              {mediaItems.filter(item => item.type === 'document').length}
-            </p>
-          </div>
-          <div className="bg-gray-50 rounded-md p-4 flex-1">
-            <p className="text-sm text-gray-500">Total Size</p>
-            <p className="text-xl font-bold text-gray-900">
-              {formatFileSize(mediaItems.reduce((acc, item) => acc + item.size, 0))}
-            </p>
-          </div>
-        </div>
+        {(() => {
+          const blobItems = mediaItems.filter(item =>
+            item.url && typeof item.url === 'string' && item.url.includes('blob.vercel-storage.com')
+          );
+          const blobCount = blobItems.length;
+          const blobSize = blobItems.reduce((acc, item) => acc + (item.size || 0), 0);
+          return (
+            <div className="mt-6 flex flex-wrap gap-4">
+              <div className="bg-gray-50 rounded-md p-4 flex-1">
+                <p className="text-sm text-gray-500">Total Files</p>
+                <p className="text-xl font-bold text-gray-900">{mediaItems.length}</p>
+              </div>
+              <div className="bg-gray-50 rounded-md p-4 flex-1">
+                <p className="text-sm text-gray-500">Images</p>
+                <p className="text-xl font-bold text-gray-900">
+                  {mediaItems.filter(item => item.type === 'image').length}
+                </p>
+              </div>
+              <div className="bg-gray-50 rounded-md p-4 flex-1">
+                <p className="text-sm text-gray-500">Documents</p>
+                <p className="text-xl font-bold text-gray-900">
+                  {mediaItems.filter(item => item.type === 'document').length}
+                </p>
+              </div>
+              <div className="bg-gray-50 rounded-md p-4 flex-1">
+                <p className="text-sm text-gray-500">Total Size</p>
+                <p className="text-xl font-bold text-gray-900">
+                  {formatFileSize(mediaItems.reduce((acc, item) => acc + item.size, 0))}
+                </p>
+              </div>
+              <div className="bg-blue-50 rounded-md p-4 flex-1 border border-blue-100">
+                <p className="text-sm text-blue-700">Blob storage</p>
+                <p className="text-xl font-bold text-blue-900">
+                  {blobCount} file{blobCount !== 1 ? 's' : ''}
+                </p>
+                <p className="text-xs text-blue-600 mt-0.5">
+                  {formatFileSize(blobSize)} in Vercel Blob
+                </p>
+              </div>
+            </div>
+          );
+        })()}
         
         <div className="mt-4 text-center">
           <button 

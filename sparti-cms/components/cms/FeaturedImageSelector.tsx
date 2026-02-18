@@ -4,7 +4,7 @@ import { Button } from '../../../src/components/ui/button';
 import { Input } from '../../../src/components/ui/input';
 import { Label } from '../../../src/components/ui/label';
 import MediaModal from '../admin/MediaModal';
-import api from '../../utils/api';
+import { uploadFile } from '../../utils/uploadToBlob';
 import { useAuth } from '../auth/AuthProvider';
 
 interface FeaturedImageSelectorProps {
@@ -42,35 +42,8 @@ export const FeaturedImageSelector: React.FC<FeaturedImageSelectorProps> = ({
 
     setIsUploading(true);
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-
-      const token = localStorage.getItem('sparti-user-session');
-      const authToken = token ? JSON.parse(token).token : null;
-
-      const response = await fetch(`${api.getBaseUrl()}/api/upload`, {
-        method: 'POST',
-        headers: {
-          ...(authToken && { 'Authorization': `Bearer ${authToken}` }),
-          ...(currentTenantId && { 'X-Tenant-Id': currentTenantId }),
-        },
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error('Upload failed');
-      }
-
-      const result = await response.json();
-      let imageUrl = result.url;
-
-      // Ensure the URL is a full URL with domain
-      if (imageUrl && !imageUrl.startsWith('http')) {
-        const baseUrl = window.location.origin;
-        imageUrl = `${baseUrl}${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}`;
-      }
-
-      onImageChange(imageUrl, result.id);
+      const result = await uploadFile(file, { tenantId: currentTenantId ?? undefined });
+      onImageChange(result.url, undefined);
     } catch (error) {
       console.error('[testing] Error uploading image:', error);
       alert('Failed to upload image. Please try again.');

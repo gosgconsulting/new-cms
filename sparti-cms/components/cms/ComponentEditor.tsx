@@ -30,6 +30,7 @@ import {
 } from 'lucide-react';
 import ImageThumbnail from './ImageThumbnail';
 import { Textarea } from '../../../src/components/ui/textarea';
+import { uploadFile } from '../../utils/uploadToBlob';
 
 interface ComponentEditorProps {
   schema: ComponentSchema;
@@ -531,35 +532,19 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
   // Helper function to handle image upload
   const handleImageUpload = async (itemIndex: number, arrayProp: string, arrayItemIndex: number, file: File) => {
     try {
-      // Create FormData for upload
-      const formData = new FormData();
-      formData.append('file', file);
-      
-      // Upload to your image service (adjust URL as needed)
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
-      
-      if (response.ok) {
-        const result = await response.json();
-        const newUrl = result.url;
-        if (!newUrl) {
-          console.error('Upload response missing url');
-          alert('Failed to upload image. Please try again.');
-          return;
-        }
-        // Save only src
-        const items = safeSchema.items || [];
-        const parentItem = items[itemIndex] as unknown as Record<string, unknown>;
-        const currentArray = (parentItem[arrayProp] as Record<string, unknown>[]) || [];
-        const currentItem = { ...(currentArray[arrayItemIndex] as Record<string, unknown>) };
-        const updatedItem = { ...currentItem, src: newUrl };
-        setArrayItemObject(itemIndex, arrayProp, arrayItemIndex, updatedItem);
-      } else {
-        console.error('Upload failed');
+      const result = await uploadFile(file);
+      const newUrl = result.url;
+      if (!newUrl) {
+        console.error('Upload response missing url');
         alert('Failed to upload image. Please try again.');
+        return;
       }
+      const items = safeSchema.items || [];
+      const parentItem = items[itemIndex] as unknown as Record<string, unknown>;
+      const currentArray = (parentItem[arrayProp] as Record<string, unknown>[]) || [];
+      const currentItem = { ...(currentArray[arrayItemIndex] as Record<string, unknown>) };
+      const updatedItem = { ...currentItem, src: newUrl };
+      setArrayItemObject(itemIndex, arrayProp, arrayItemIndex, updatedItem);
     } catch (error) {
       console.error('Error uploading image:', error);
       alert('Failed to upload image. Please try again.');
