@@ -224,17 +224,18 @@ router.get('/blog/posts', async (req, res) => {
         p.published_at,
         p.view_count,
         COALESCE(
-          (SELECT JSON_AGG(
-            JSON_BUILD_OBJECT(
-              'id', t.id,
-              'name', t.name,
-              'slug', t.slug,
-              'taxonomy', t.taxonomy
-            )
-          )
-          FROM post_terms pt
-          JOIN terms t ON pt.term_id = t.id
-          WHERE pt.post_id = p.id),
+          (SELECT JSON_AGG(JSON_BUILD_OBJECT('id', tr.id, 'name', tr.name, 'slug', tr.slug, 'taxonomy', tr.taxonomy))
+          FROM (
+            SELECT c.id, c.name, c.slug, 'category'::text AS taxonomy
+            FROM post_categories pc
+            JOIN categories c ON pc.category_id = c.id
+            WHERE pc.post_id = p.id
+            UNION ALL
+            SELECT t.id, t.name, t.slug, 'post_tag'::text AS taxonomy
+            FROM post_tags pt
+            JOIN tags t ON pt.tag_id = t.id
+            WHERE pt.post_id = p.id
+          ) AS tr),
           '[]'::json
         ) as terms
       FROM posts p
@@ -331,15 +332,16 @@ router.get('/blog/posts/:slug', async (req, res) => {
     
     const post = postResult.rows[0];
     
-    // Get terms (categories and tags)
+    // Get terms (categories and tags) from post_categories / post_tags
     const termsQuery = `
-      SELECT 
-        t.id,
-        t.name,
-        t.slug,
-        t.taxonomy
-      FROM post_terms pt
-      JOIN terms t ON pt.term_id = t.id
+      SELECT c.id, c.name, c.slug, 'category'::text AS taxonomy
+      FROM post_categories pc
+      JOIN categories c ON pc.category_id = c.id
+      WHERE pc.post_id = $1
+      UNION ALL
+      SELECT t.id, t.name, t.slug, 'post_tag'::text AS taxonomy
+      FROM post_tags pt
+      JOIN tags t ON pt.tag_id = t.id
       WHERE pt.post_id = $1
     `;
     
