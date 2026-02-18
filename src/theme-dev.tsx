@@ -18,7 +18,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import ErrorBoundary from "./components/ErrorBoundary";
+import { RouteErrorElement } from "./components/RouteErrorElement";
 import './index.css';
 import '../sparti-cms/styles/modal-sparti-fix.css';
 import '../sparti-cms/styles/rich-text-editor.css';
@@ -98,16 +98,15 @@ const createThemeRouter = () => {
       {
         path: "/",
         element: (
-          <ErrorBoundary>
-            <Suspense fallback={<div />}>
-              <ThemeComponent 
-                tenantName={themeName} 
-                tenantSlug={themeSlug}
-                tenantId={tenantId}
-              />
-            </Suspense>
-          </ErrorBoundary>
+          <Suspense fallback={<div />}>
+            <ThemeComponent
+              tenantName={themeName}
+              tenantSlug={themeSlug}
+              tenantId={tenantId}
+            />
+          </Suspense>
         ),
+        errorElement: <RouteErrorElement />,
       },
       {
         path: "*",
@@ -124,6 +123,7 @@ const createThemeRouter = () => {
             </div>
           </div>
         ),
+        errorElement: <RouteErrorElement />,
       },
     ],
     {

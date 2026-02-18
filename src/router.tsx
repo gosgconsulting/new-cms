@@ -4,7 +4,7 @@ import React from "react";
 import AdminTopBar from "@/components/AdminTopBar";
 import { useSEO } from "@/hooks/useSEO";
 import { AuthProvider } from "../sparti-cms/components/auth/AuthProvider";
-import ErrorBoundary from "./components/ErrorBoundary";
+import { RouteErrorElement } from "./components/RouteErrorElement";
 import EmbedPagesManager from "../sparti-cms/components/embed/EmbedPagesManager";
 import SuperAdminRoute from "../sparti-cms/components/auth/SuperAdminRoute";
 import NotFound from "./pages/NotFound";
@@ -95,239 +95,182 @@ const RootRedirect: React.FC = () => {
   return <Navigate to="/admin" replace />;
 };
 
+const routeErrorElement = (
+  <RootLayout>
+    <RouteErrorElement />
+  </RootLayout>
+);
+
 // Create router with future flags to eliminate v7 warnings
 export const router = createBrowserRouter(
   [
     {
       path: "/",
       element: <RootLayout><RootRedirect /></RootLayout>,
+      errorElement: routeErrorElement,
     },
     {
       path: "/master/*",
       element: <RootLayout><MasterAliasRoute /></RootLayout>,
+      errorElement: routeErrorElement,
     },
     {
       path: "/admin/*",
       element: <RootLayout><Admin /></RootLayout>,
+      errorElement: routeErrorElement,
     },
     {
       path: "/dashboard/*",
       element: <RootLayout><PublicDashboard /></RootLayout>,
+      errorElement: routeErrorElement,
     },
     {
       path: "/theme/template/:templateName",
-      element: (
-        <RootLayout>
-          <ErrorBoundary>
-            <TemplateDynamic />
-          </ErrorBoundary>
-        </RootLayout>
-      ),
+      element: <RootLayout><TemplateDynamic /></RootLayout>,
+      errorElement: routeErrorElement,
     },
     {
       path: "/theme/template/:templateName/*",
-      element: (
-        <RootLayout>
-          <ErrorBoundary>
-            <TemplateDynamic />
-          </ErrorBoundary>
-        </RootLayout>
-      ),
+      element: <RootLayout><TemplateDynamic /></RootLayout>,
+      errorElement: routeErrorElement,
     },
     {
       path: "/embed/pages",
       element: <RootLayout><EmbedPagesManager /></RootLayout>,
+      errorElement: routeErrorElement,
     },
     {
       path: "/blog",
-      element: (
-        <RootLayout>
-          <ErrorBoundary>
-            <TenantLandingPage />
-          </ErrorBoundary>
-        </RootLayout>
-      ),
+      element: <RootLayout><TenantLandingPage /></RootLayout>,
+      errorElement: routeErrorElement,
     },
     {
       path: "/blog/:slug",
-      element: (
-        <RootLayout>
-          <ErrorBoundary>
-            <TenantLandingPage />
-          </ErrorBoundary>
-        </RootLayout>
-      ),
+      element: <RootLayout><TenantLandingPage /></RootLayout>,
+      errorElement: routeErrorElement,
     },
     {
       path: "/product/:id",
-      element: (
-        <RootLayout>
-          <ErrorBoundary>
-            <ProductPage />
-          </ErrorBoundary>
-        </RootLayout>
-      ),
+      element: <RootLayout><ProductPage /></RootLayout>,
+      errorElement: routeErrorElement,
     },
     {
       path: "/theme/:tenantSlug/product/:productname",
-      element: (
-        <RootLayout>
-          <ErrorBoundary>
-            <ThemeRouteHandler />
-          </ErrorBoundary>
-        </RootLayout>
-      ),
+      element: <RootLayout><ThemeRouteHandler /></RootLayout>,
+      errorElement: routeErrorElement,
     },
     {
       path: "/theme/:tenantSlug/blog/:slug",
-      element: (
-        <RootLayout>
-          <ErrorBoundary>
-            <ThemeRouteHandler />
-          </ErrorBoundary>
-        </RootLayout>
-      ),
+      element: <RootLayout><ThemeRouteHandler /></RootLayout>,
+      errorElement: routeErrorElement,
     },
     {
       path: "/theme/:tenantSlug",
-      element: (
-        <RootLayout>
-          <ErrorBoundary>
-            <TenantLandingPage />
-          </ErrorBoundary>
-        </RootLayout>
-      ),
+      element: <RootLayout><TenantLandingPage /></RootLayout>,
+      errorElement: routeErrorElement,
     },
     {
       path: "/theme/:tenantSlug/:pageSlug",
-      element: (
-        <RootLayout>
-          <ErrorBoundary>
-            <TenantLandingPage />
-          </ErrorBoundary>
-        </RootLayout>
-      ),
+      element: <RootLayout><TenantLandingPage /></RootLayout>,
+      errorElement: routeErrorElement,
     },
     {
       path: "/theme/:tenantSlug/*",
-      element: (
-        <RootLayout>
-          <ErrorBoundary>
-            <TenantLandingPage />
-          </ErrorBoundary>
-        </RootLayout>
-      ),
+      element: <RootLayout><TenantLandingPage /></RootLayout>,
+      errorElement: routeErrorElement,
     },
     {
       path: "/tenant/:tenantSlug/:pageSlug",
-      element: (
-        <RootLayout>
-          <ErrorBoundary>
-            <TenantPage />
-          </ErrorBoundary>
-        </RootLayout>
-      ),
+      element: <RootLayout><TenantPage /></RootLayout>,
+      errorElement: routeErrorElement,
     },
     {
       path: "/theme/:themeSlug/auth",
-      element: (
-        <RootLayout>
-          <ErrorBoundary>
-            <Auth />
-          </ErrorBoundary>
-        </RootLayout>
-      ),
+      element: <RootLayout><Auth /></RootLayout>,
+      errorElement: routeErrorElement,
     },
     {
       path: "/auth",
       element: <RootLayout><Auth /></RootLayout>,
+      errorElement: routeErrorElement,
     },
     {
       path: "/privacy",
       element: <RootLayout><Privacy /></RootLayout>,
+      errorElement: routeErrorElement,
     },
     {
       path: "/terms",
       element: <RootLayout><Terms /></RootLayout>,
+      errorElement: routeErrorElement,
     },
     {
       path: "/thank-you",
       element: <RootLayout><ThankYou /></RootLayout>,
+      errorElement: routeErrorElement,
     },
     {
       path: "/shop",
-      element: (
-        <RootLayout>
-          <ErrorBoundary>
-            <Shop />
-          </ErrorBoundary>
-        </RootLayout>
-      ),
+      element: <RootLayout><Shop /></RootLayout>,
+      errorElement: routeErrorElement,
     },
     {
       path: "/database-viewer",
       element: <RootLayout><DatabaseViewer /></RootLayout>,
+      errorElement: routeErrorElement,
     },
     {
       path: "/design-systems",
       element: <RootLayout><DesignSystems /></RootLayout>,
+      errorElement: routeErrorElement,
     },
     {
       path: "/components-viewer",
       element: <RootLayout><Navigate to="/design-systems" replace /></RootLayout>,
+      errorElement: routeErrorElement,
     },
     {
       path: "/dev",
       element: (
         <RootLayout>
-          <ErrorBoundary>
-            <SuperAdminRoute>
-              <Kanban />
-            </SuperAdminRoute>
-          </ErrorBoundary>
+          <SuperAdminRoute>
+            <Kanban />
+          </SuperAdminRoute>
         </RootLayout>
       ),
+      errorElement: routeErrorElement,
     },
     {
       path: "/dev/:featureId",
       element: (
         <RootLayout>
-          <ErrorBoundary>
-            <SuperAdminRoute>
-              <FeatureKanban />
-            </SuperAdminRoute>
-          </ErrorBoundary>
+          <SuperAdminRoute>
+            <FeatureKanban />
+          </SuperAdminRoute>
         </RootLayout>
       ),
+      errorElement: routeErrorElement,
     },
     {
       path: "/demo-hero",
       element: <RootLayout><DemoHero /></RootLayout>,
+      errorElement: routeErrorElement,
     },
     // Root-level routes for deployed STR theme (booking/classes, packages, etc.)
     {
       path: "/booking/*",
-      element: (
-        <RootLayout>
-          <ErrorBoundary>
-            <TenantLandingPage />
-          </ErrorBoundary>
-        </RootLayout>
-      ),
+      element: <RootLayout><TenantLandingPage /></RootLayout>,
+      errorElement: routeErrorElement,
     },
     {
       path: "/packages",
-      element: (
-        <RootLayout>
-          <ErrorBoundary>
-            <TenantLandingPage />
-          </ErrorBoundary>
-        </RootLayout>
-      ),
+      element: <RootLayout><TenantLandingPage /></RootLayout>,
+      errorElement: routeErrorElement,
     },
     {
       path: "*",
       element: <RootLayout><NotFound /></RootLayout>,
+      errorElement: routeErrorElement,
     },
   ],
   {
