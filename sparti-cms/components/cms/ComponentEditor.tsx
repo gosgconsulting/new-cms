@@ -323,6 +323,9 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
     return 'items';
   };
 
+  // Keys to preserve when copying array items (structural fields needed for ItemEditor routing)
+  const PRESERVE_WHEN_COPYING = ['type', 'key'];
+
   // Add array item
   const addArrayItem = (itemIndex: number, arrayProp: string) => {
     const updatedItems = [...safeSchema.items];
@@ -331,19 +334,33 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
     
     // Create a default item based on existing items or original schema structure
     let defaultItem: Record<string, unknown> = {};
-    if (currentArray.length > 0) {
-      // Use existing item structure
-      defaultItem = { ...(currentArray[0] as Record<string, unknown>) };
-      // Clear values but keep structure
-      Object.keys(defaultItem).forEach(key => {
-        if (typeof defaultItem[key] === 'string') defaultItem[key] = '';
-        else if (typeof defaultItem[key] === 'number') defaultItem[key] = 0;
-        else if (typeof defaultItem[key] === 'boolean') defaultItem[key] = false;
-        else if (Array.isArray(defaultItem[key])) defaultItem[key] = [];
-        else if (typeof defaultItem[key] === 'object' && defaultItem[key] !== null) {
-          defaultItem[key] = {};
+    const clearValuesButPreserveStructure = (obj: Record<string, unknown>) => {
+      const result = { ...obj };
+      Object.keys(result).forEach(key => {
+        if (PRESERVE_WHEN_COPYING.includes(key)) {
+          // Preserve type; for key, generate unique value
+          if (key === 'type') return; // keep as-is
+          if (key === 'key') {
+            result[key] = `${arrayProp === 'slides' || arrayProp === 'images' ? 'slide' : 'item'}_${Date.now()}`;
+            return;
+          }
+        }
+        if (typeof result[key] === 'string') result[key] = '';
+        else if (typeof result[key] === 'number') result[key] = 0;
+        else if (typeof result[key] === 'boolean') result[key] = false;
+        else if (Array.isArray(result[key])) result[key] = [];
+        else if (typeof result[key] === 'object' && result[key] !== null) {
+          result[key] = typeof (result[key] as Record<string, unknown>) === 'object' && !Array.isArray(result[key])
+            ? { ...(result[key] as Record<string, unknown>) }
+            : {};
         }
       });
+      return result;
+    };
+
+    if (currentArray.length > 0) {
+      // Use existing item structure
+      defaultItem = clearValuesButPreserveStructure(currentArray[0] as Record<string, unknown>);
     } else {
       // Array is empty - try to get structure from original schema
       if (originalSchemaRef.current) {
@@ -353,25 +370,23 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
           const originalArray = (originalItem as unknown as Record<string, unknown>)[arrayProp] as unknown[] || [];
           if (originalArray.length > 0) {
             // Use original schema structure
-            defaultItem = { ...(originalArray[0] as Record<string, unknown>) };
-            // Clear values but keep structure
-            Object.keys(defaultItem).forEach(key => {
-              if (typeof defaultItem[key] === 'string') defaultItem[key] = '';
-              else if (typeof defaultItem[key] === 'number') defaultItem[key] = 0;
-              else if (typeof defaultItem[key] === 'boolean') defaultItem[key] = false;
-              else if (Array.isArray(defaultItem[key])) defaultItem[key] = [];
-              else if (typeof defaultItem[key] === 'object' && defaultItem[key] !== null) {
-                defaultItem[key] = {};
-              }
-            });
+            defaultItem = clearValuesButPreserveStructure(originalArray[0] as Record<string, unknown>);
           }
         }
       }
       
       // Fallback to default structures if original schema doesn't have the structure
-      if (Object.keys(defaultItem).length === 0) {
+      if (Object.keys(defaultItem).length === 0 || !defaultItem.type) {
         if (arrayProp === 'slides' || arrayProp === 'images') {
-          defaultItem = { url: '', alt: '', title: '', text: '', image: '' };
+          defaultItem = {
+            type: 'image',
+            key: `slide_${Date.now()}`,
+            src: '',
+            url: '',
+            alt: '',
+            title: '',
+            settings: { layout: 'full' }
+          };
         } else if (arrayProp === 'testimonials') {
           defaultItem = { name: '', content: '', role: '', company: '' };
         } else if (arrayProp === 'faqs') {
@@ -748,9 +763,10 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
                                   <div>
                                     <Label className="text-sm font-medium mb-2 block">Image URL</Label>
                                     <input
+                                      key={`src-${index}-${arrayProp}-${currentTab}`}
                                       type="url"
-                                      value={imgUrl}
-                                      onChange={(e) => updateArrayItem(index, arrayProp, currentTab, 'src', e.target.value)}
+                                      defaultValue={imgUrl}
+                                      onBlur={(e) => updateArrayItem(index, arrayProp, currentTab, 'src', e.target.value)}
                                       className="w-full p-2 rounded-md border"
                                       placeholder="Enter image URL"
                                     />
@@ -761,9 +777,10 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
                                       {hasTitle ? 'Title' : (hasText ? 'Text' : (hasContent ? 'Content' : 'Content'))}
                                     </Label>
                                     <input
+                                      key={`text-${index}-${arrayProp}-${currentTab}-${textKey}`}
                                       type="text"
-                                      value={item[textKey] || ''}
-                                      onChange={(e) => updateArrayItem(index, arrayProp, currentTab, textKey, e.target.value)}
+                                      defaultValue={item[textKey] || ''}
+                                      onBlur={(e) => updateArrayItem(index, arrayProp, currentTab, textKey, e.target.value)}
                                       className="w-full p-2 rounded-md border"
                                       placeholder="Enter text or title"
                                     />
@@ -773,9 +790,10 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
                                     <div>
                                       <Label className="text-sm font-medium mb-2 block">Link URL</Label>
                                       <input
+                                        key={`link-${index}-${arrayProp}-${currentTab}`}
                                         type="url"
-                                        value={item.link || ''}
-                                        onChange={(e) => updateArrayItem(index, arrayProp, currentTab, 'link', e.target.value)}
+                                        defaultValue={item.link || ''}
+                                        onBlur={(e) => updateArrayItem(index, arrayProp, currentTab, 'link', e.target.value)}
                                         className="w-full p-2 rounded-md border"
                                         placeholder="Enter link URL"
                                       />
@@ -786,9 +804,10 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
                                     <div>
                                       <Label className="text-sm font-medium mb-2 block">Alt Text</Label>
                                       <input
+                                        key={`alt-${index}-${arrayProp}-${currentTab}`}
                                         type="text"
-                                        value={item.alt || ''}
-                                        onChange={(e) => updateArrayItem(index, arrayProp, currentTab, 'alt', e.target.value)}
+                                        defaultValue={item.alt || ''}
+                                        onBlur={(e) => updateArrayItem(index, arrayProp, currentTab, 'alt', e.target.value)}
                                         className="w-full p-2 rounded-md border"
                                         placeholder="Describe the image"
                                       />
