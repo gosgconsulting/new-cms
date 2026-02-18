@@ -454,9 +454,9 @@ export const VisualEditorJSONDialog: React.FC<VisualEditorJSONDialogProps> = ({
           <DialogDescription>
             Edit the complete page structure. Be careful with this editor.
             {connectionInfo && (
-              <div className="mt-2 text-xs text-muted-foreground">
+              <span className="mt-2 block text-xs text-muted-foreground">
                 Connected to {connectionInfo.type === 'tenant' ? 'Tenant' : connectionInfo.type === 'theme' ? 'Theme' : ''}: <span className="font-semibold">{connectionInfo.name}</span>
-              </div>
+              </span>
             )}
           </DialogDescription>
         </DialogHeader>

@@ -674,8 +674,9 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
                   <div className="flex gap-1 mb-4">
                     {(() => {
                       const currentTab = (activeArrayTab[index] ?? 0);
-                      const makeTab = (label: string, isActive: boolean, onClick: () => void) => (
+                      const makeTab = (label: string, isActive: boolean, onClick: () => void, tabKey: string | number) => (
                         <button
+                          key={tabKey}
                           className={`px-3 py-2 text-sm font-medium border-b-2 transition-colors ${
                             isActive 
                               ? 'border-blue-500 text-blue-600' 
@@ -689,11 +690,12 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
                           {label}
                         </button>
                       );
-                      return arrayItems.map((_, tabIndex) =>
+                      return arrayItems.map((arrItem, tabIndex) =>
                         makeTab(
                           arrayProp === 'slides' || arrayProp === 'images' ? `Slide ${tabIndex + 1}` : `Item ${tabIndex + 1}`,
                           currentTab === tabIndex,
-                          () => setActiveArrayTab(prev => ({ ...prev, [index]: tabIndex }))
+                          () => setActiveArrayTab(prev => ({ ...prev, [index]: tabIndex })),
+                          (arrItem as { key?: string })?.key ?? `${index}-${tabIndex}`
                         )
                       );
                     })()}
