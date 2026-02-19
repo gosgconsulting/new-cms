@@ -156,7 +156,7 @@ const MediaModal: React.FC<MediaModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-4xl max-h-[80vh] p-0">
+      <DialogContent className="max-w-4xl max-h-[80vh] p-0 overflow-hidden">
         <DialogHeader className="p-6 pb-4 border-b border-border">
           <DialogTitle className="flex items-center justify-between">
             <span>{title}</span>
@@ -166,7 +166,7 @@ const MediaModal: React.FC<MediaModalProps> = ({
           </DialogTitle>
         </DialogHeader>
 
-        <div className="flex flex-col h-full">
+        <div className="flex flex-col h-[60vh] max-h-[calc(80vh-8rem)] overflow-hidden">
           {/* Toolbar */}
           <div className="flex items-center justify-between p-4 border-b border-border">
             <div className="flex items-center gap-4">
@@ -222,7 +222,7 @@ const MediaModal: React.FC<MediaModalProps> = ({
           </div>
 
           {/* Media Grid/List */}
-          <ScrollArea className="flex-1 p-4">
+          <ScrollArea className="flex-1 min-h-0 p-4">
             {filteredItems.length === 0 ? (
               <div className="text-center py-12">
                 <ImageIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
