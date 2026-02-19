@@ -380,7 +380,7 @@ router.get('/blog/posts/:slug', async (req, res) => {
   try {
     const tenantId = req.tenantId;
     const slug = req.params.slug;
-    const { models } = await loadSequelizeModels();
+    const { models, Op } = await loadSequelizeModels();
     const { Post, Category, Tag } = models;
     
     // Build where clause
