@@ -56,6 +56,7 @@ import ThemesManager from './ThemesManager';
 
 import BrandingSettingsPage from './BrandingSettingsPage';
 import StylesSettingsPage from './StylesSettingsPage';
+import ImportExportTab from './ImportExportTab';
 import TenantSelector from './TenantSelector';
 import ThemeSelector from './ThemeSelector';
 import { CodeTab } from './DeveloperManager';
@@ -155,6 +156,8 @@ const SettingsManager: React.FC<SettingsManagerProps> = ({ currentTenantId }) =>
         return <StylesSettingsPage currentTenantId={currentTenantId} />;
       case 'code':
         return <CodeTab currentTenantId={currentTenantId} />;
+      case 'import-export':
+        return <ImportExportTab currentTenantId={currentTenantId} />;
       default:
         return <BrandingSettingsPage currentTenantId={currentTenantId} />;
     }
@@ -195,6 +198,14 @@ const SettingsManager: React.FC<SettingsManagerProps> = ({ currentTenantId }) =>
                 : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'}`}
             >
               Code
+            </button>
+            <button 
+              onClick={() => setActiveSettingsTab('import-export')}
+              className={`px-4 py-2.5 text-sm font-medium transition-all ${activeSettingsTab === 'import-export' 
+                ? 'text-brandPurple border-b-2 border-brandPurple bg-brandPurple/5' 
+                : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'}`}
+            >
+              Import/Export
             </button>
           </div>
           
