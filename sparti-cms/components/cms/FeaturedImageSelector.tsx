@@ -193,6 +193,7 @@ export const FeaturedImageSelector: React.FC<FeaturedImageSelectorProps> = ({
         onSelect={handleMediaSelect}
         title="Select Featured Image"
         acceptedTypes={['image/*']}
+        tenantId={currentTenantId}
       />
     </div>
   );

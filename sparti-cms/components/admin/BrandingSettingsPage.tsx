@@ -775,6 +775,7 @@ const BrandingSettingsPage: React.FC<BrandingSettingsPageProps> = ({ currentTena
         title="Select Logo"
         acceptedTypes={['image/*']}
         maxFileSize={2 * 1024 * 1024} // 2MB
+        tenantId={currentTenantId}
       />
 
       <MediaModal
@@ -784,6 +785,7 @@ const BrandingSettingsPage: React.FC<BrandingSettingsPageProps> = ({ currentTena
         title="Select Favicon"
         acceptedTypes={['image/png', 'image/x-icon', 'image/vnd.microsoft.icon']}
         maxFileSize={1 * 1024 * 1024} // 1MB
+        tenantId={currentTenantId}
       />
     </div>
   );

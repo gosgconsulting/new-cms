@@ -3,19 +3,7 @@ import { useCMSSettings } from '../../context/CMSSettingsContext';
 import { useAuth } from '../auth/AuthProvider';
 import { Upload, Trash2, Search, Grid, List, Image as ImageIcon, FileText, Film, Music, File, Folder, FolderPlus, X, RefreshCw, Eye, Edit3, Save } from 'lucide-react';
 import { api } from '../../utils/api';
-
-interface MediaItem {
-  id: string;
-  name: string;
-  type: 'image' | 'document' | 'video' | 'audio' | 'other';
-  url: string;
-  size: number;
-  dateUploaded: string;
-  folderId: string | null;
-  alt?: string;
-  title?: string;
-  description?: string;
-}
+import { uploadMediaFiles, type MediaItem } from '../../utils/uploadMediaFile';
 
 interface MediaFolder {
   id: string;
@@ -381,57 +369,15 @@ const MediaManager: React.FC = () => {
 
     try {
       const files = Array.from(e.target.files);
-      
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        const formData = new FormData();
-        formData.append('file', file);
-        if (selectedFolder) {
-          formData.append('folder_id', selectedFolder);
-        }
-        formData.append('tenantId', currentTenantId);
-
-        // Update progress
-        setUploadProgress(Math.round(((i + 1) / files.length) * 100));
-
-        // For FormData, we need to let the browser set Content-Type
-        const token = localStorage.getItem('sparti-user-session') ? JSON.parse(localStorage.getItem('sparti-user-session') || '{}').token : null;
-        const headers: Record<string, string> = {};
-        if (token) {
-          headers['Authorization'] = `Bearer ${token}`;
-        }
-        // Don't set Content-Type - browser will set it with boundary for FormData
-        
-        const response = await fetch(`${api.getBaseUrl()}/api/media/upload?tenantId=${encodeURIComponent(currentTenantId)}`, {
-          method: 'POST',
-          headers: headers,
-          body: formData
-        });
-
-        if (response.ok) {
-          const result = await response.json();
-          if (result.file) {
-            const mediaItem: MediaItem = {
-              id: result.file.id.toString(),
-              name: result.file.filename || result.file.original_filename,
-              type: result.file.media_type || getFileType(file.type),
-              url: result.file.url || result.url,
-              size: result.file.file_size || file.size,
-              dateUploaded: result.file.created_at ? new Date(result.file.created_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-              folderId: result.file.folder_id ? result.file.folder_id.toString() : null,
-              alt: result.file.alt_text || '',
-              title: result.file.title || '',
-              description: result.file.description || ''
-            };
-            addMediaItem(mediaItem);
-          }
-        } else {
-          const errorText = await response.text();
-          console.error('[testing] Error uploading file:', errorText);
-          throw new Error(`Failed to upload ${file.name}`);
-        }
-      }
-
+      const items = await uploadMediaFiles(
+        files,
+        {
+          tenantId: currentTenantId,
+          folderId: selectedFolder,
+        },
+        (uploaded, total) => setUploadProgress(Math.round((uploaded / total) * 100))
+      );
+      items.forEach((item) => addMediaItem(item));
       setUploadProgress(100);
       setTimeout(() => {
         setUploading(false);
@@ -441,10 +387,10 @@ const MediaManager: React.FC = () => {
       console.error('[testing] Error uploading files:', error);
       setUploading(false);
       setUploadProgress(0);
-      alert('Failed to upload files. Please try again.');
+      alert(error instanceof Error ? error.message : 'Failed to upload files. Please try again.');
     }
   };
-  
+
   const getFileType = (mimeType: string): MediaItem['type'] => {
     if (mimeType.startsWith('image/')) return 'image';
     if (mimeType.startsWith('video/')) return 'video';

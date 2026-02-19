@@ -5,17 +5,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Upload, Search, Grid, List, Image as ImageIcon, FileText, Film, Music, File, Check, X } from 'lucide-react';
 import { useCMSSettings } from '../../context/CMSSettingsContext';
-import { uploadFile } from '../../utils/uploadToBlob';
-
-interface MediaItem {
-  id: string;
-  name: string;
-  type: 'image' | 'document' | 'video' | 'audio' | 'other';
-  url: string;
-  size: number;
-  dateUploaded: string;
-  folderId: string | null;
-}
+import { uploadMediaFile, type MediaItem } from '../../utils/uploadMediaFile';
 
 interface MediaModalProps {
   isOpen: boolean;
@@ -24,6 +14,8 @@ interface MediaModalProps {
   title?: string;
   acceptedTypes?: string[];
   maxFileSize?: number;
+  /** Required for upload (uses /api/media/upload). */
+  tenantId?: string | null;
 }
 
 const MediaModal: React.FC<MediaModalProps> = ({
@@ -32,7 +24,8 @@ const MediaModal: React.FC<MediaModalProps> = ({
   onSelect,
   title = "Select Media",
   acceptedTypes = ['image/*'],
-  maxFileSize = 2 * 1024 * 1024 // 2MB default
+  maxFileSize = 2 * 1024 * 1024, // 2MB default
+  tenantId = null
 }) => {
   const { settings, addMediaItem } = useCMSSettings();
   const mediaItems = Array.isArray(settings.mediaItems) ? settings.mediaItems : [];
@@ -59,9 +52,13 @@ const MediaModal: React.FC<MediaModalProps> = ({
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (!files || files.length === 0) return;
+    if (!tenantId) {
+      alert('Tenant is required to upload. Please select a tenant.');
+      return;
+    }
 
     const file = files[0];
-    
+
     // Validate file size
     if (file.size > maxFileSize) {
       alert(`File size must be less than ${Math.round(maxFileSize / 1024 / 1024)}MB`);
@@ -86,28 +83,13 @@ const MediaModal: React.FC<MediaModalProps> = ({
     setUploadProgress(0);
 
     try {
-      const result = await uploadFile(file);
+      const newMediaItem = await uploadMediaFile(file, { tenantId });
       setUploadProgress(100);
-
-      const newMediaItem: MediaItem = {
-        id: Date.now().toString(),
-        name: file.name,
-        type: getFileType(file.type),
-        url: result.url,
-        size: file.size,
-        dateUploaded: new Date().toISOString(),
-        folderId: null
-      };
-
-      // Add to media items
       addMediaItem(newMediaItem);
-      
-      // Auto-select the uploaded item
       setSelectedItem(newMediaItem.url);
-      
     } catch (error) {
       console.error('Upload error:', error);
-      alert('Upload failed. Please try again.');
+      alert(error instanceof Error ? error.message : 'Upload failed. Please try again.');
     } finally {
       setUploading(false);
       setUploadProgress(0);
