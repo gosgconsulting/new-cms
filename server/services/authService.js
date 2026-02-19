@@ -9,8 +9,8 @@ import { query } from '../../sparti-cms/db/index.js';
  * Separates auth logic from routes and middleware
  */
 
-// Token expiration times
-const ACCESS_TOKEN_EXPIRY = '15m';
+// Token expiration times (supports env override: JWT_ACCESS_TOKEN_EXPIRY, e.g. '7d', '24h')
+const ACCESS_TOKEN_EXPIRY = process.env.JWT_ACCESS_TOKEN_EXPIRY || '7d';
 const REFRESH_TOKEN_EXPIRY = '7d';
 
 // Store refresh tokens in memory (in production, use Redis or database)
