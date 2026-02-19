@@ -19,6 +19,7 @@ const BLOB_ALLOWED_CONTENT_TYPES = [
   'image/svg+xml',
   'image/bmp',
   'image/avif',
+  'image/x-icon',
   'application/pdf',
   'text/plain',
   'text/csv',
@@ -192,8 +193,13 @@ router.post('/upload', simpleUpload.single('file'), async (req, res) => {
   }
 });
 
-// Vercel Blob client upload: token exchange for browser → Blob direct upload
-router.post('/blob-upload', async (req, res) => {
+// Blob upload: multipart .ico → put() with contentType; else → handleUpload token exchange
+router.post('/blob-upload', (req, res, next) => {
+  if (req.is('multipart/form-data')) {
+    return simpleUpload.single('file')(req, res, next);
+  }
+  next();
+}, async (req, res) => {
   if (!process.env.BLOB_READ_WRITE_TOKEN) {
     return res.status(503).json({
       error: 'Blob storage not configured',
@@ -201,6 +207,41 @@ router.post('/blob-upload', async (req, res) => {
     });
   }
 
+  // Multipart with .ico file: server-side put() with contentType: 'image/x-icon'
+  if (req.file) {
+    const name = (req.file.originalname || '').toLowerCase();
+    if (!name.endsWith('.ico')) {
+      return res.status(400).json({ error: 'For multipart uploads only .ico files are accepted' });
+    }
+    const authHeader = req.headers.authorization;
+    const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
+    if (!token) {
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+    try {
+      verifyAccessToken(token);
+    } catch {
+      return res.status(401).json({ error: 'Invalid or expired token' });
+    }
+    const tenantId = (req.body?.tenantId || req.headers['x-tenant-id'] || 'default').replace(/[^a-zA-Z0-9-_]/g, '') || 'default';
+    const pathname = `upload/${tenantId}/${req.file.originalname}`;
+    if (!req.file.buffer) {
+      return res.status(400).json({ error: 'File buffer required (Blob upload only)' });
+    }
+    try {
+      const { put } = await import('@vercel/blob');
+      const blob = await put(pathname, req.file.buffer, {
+        access: 'public',
+        contentType: 'image/x-icon',
+      });
+      return res.json({ url: blob.url });
+    } catch (error) {
+      console.error('[testing] Blob .ico upload error:', error);
+      return res.status(500).json({ error: error?.message || 'Upload failed' });
+    }
+  }
+
+  // Token exchange for client upload()
   const body = req.body;
   if (!body || typeof body !== 'object') {
     return res.status(400).json({ error: 'Invalid request body' });
@@ -229,9 +270,13 @@ router.post('/blob-upload', async (req, res) => {
         } catch {
           throw new Error('Invalid or expired token');
         }
+        const filename = pathname.split('/').pop() || `file-${Date.now()}`;
+        const tenantId = (payload.tenantId && String(payload.tenantId).replace(/[^a-zA-Z0-9-_]/g, '')) || 'default';
+        const blobPathname = `uploads/${tenantId}/${filename}`;
         return {
           allowedContentTypes: BLOB_ALLOWED_CONTENT_TYPES,
           addRandomSuffix: true,
+          pathname: blobPathname,
           tokenPayload: clientPayload,
         };
       },

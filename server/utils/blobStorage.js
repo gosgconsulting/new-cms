@@ -25,9 +25,10 @@ export async function uploadBufferToBlob(buffer, pathname, contentType) {
   }
   try {
     const { put } = await import('@vercel/blob');
+    const isIco = pathname.toLowerCase().endsWith('.ico');
     const blob = await put(pathname, buffer, {
       access: 'public',
-      ...(contentType ? { contentType } : {}),
+      ...(isIco ? { contentType: 'image/x-icon' } : contentType ? { contentType } : {}),
     });
     return blob.url;
   } catch (error) {

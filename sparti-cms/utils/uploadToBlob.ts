@@ -27,10 +27,11 @@ function getAuthToken(): string | null {
 
 /**
  * Upload a file to Vercel Blob using the client SDK.
+ * Files are stored under upload/{tenantId}/{filename}.ext (tenantId from options; default "default" if omitted).
  * Auth and tenantId are sent via clientPayload; server validates before issuing token.
  *
  * @param file - File to upload
- * @param options - Optional tenantId for path prefix
+ * @param options - Optional tenantId for path prefix (uploads/{tenantId}/file-name.ext)
  * @returns Promise<{ url: string }> - Public URL of the uploaded blob
  * @throws On upload or token exchange failure
  */
