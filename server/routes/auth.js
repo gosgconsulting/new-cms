@@ -1074,17 +1074,9 @@ router.get('/access-keys', authenticateUser, async (req, res) => {
 
     const result = await query(queryStr, queryParams);
 
-    // Mask the access keys for security
-    const maskedKeys = result.rows.map(key => ({
-      ...key,
-      access_key: key.access_key.length > 8 
-        ? key.access_key.substring(0, 4) + '...' + key.access_key.substring(key.access_key.length - 4)
-        : '****'
-    }));
-
     res.json({
       success: true,
-      access_keys: maskedKeys
+      access_keys: result.rows
     });
 
   } catch (error) {

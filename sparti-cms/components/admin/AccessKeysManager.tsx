@@ -337,7 +337,11 @@ export const AccessKeysManager: React.FC = () => {
                       
                       <div className="flex items-center gap-2 mb-2">
                         <code className="bg-gray-100 px-3 py-1 rounded text-sm font-mono text-gray-700">
-                          {showFullKeys[key.id] ? key.access_key : key.access_key}
+                          {showFullKeys[key.id]
+                            ? key.access_key
+                            : key.access_key.length > 8
+                              ? key.access_key.substring(0, 4) + '......' + key.access_key.substring(key.access_key.length - 4)
+                              : '****'}
                         </code>
                         <Button
                           size="sm"
