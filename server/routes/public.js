@@ -6,7 +6,9 @@ import {
   getSiteSettingByKey,
   getsitesettingsbytenant,
   getThemeSettings,
-  getBrandingSettings
+  getBrandingSettings,
+  setPostCategories,
+  setPostTags
 } from '../../sparti-cms/db/index.js';
 
 // Lazy-load Sequelize and models inside handlers to avoid boot-time crashes if DATABASE_URL is missing
@@ -44,6 +46,41 @@ const errorResponse = (error, code, status = 500) => {
     code: code || 'ERROR'
   };
 };
+
+/**
+ * GET /api/v1/me
+ * Return current tenant and current user. req.tenantId and req.user are set by authenticateTenantApiKey.
+ */
+router.get('/me', async (req, res) => {
+  try {
+    const tenantId = req.tenantId;
+    if (!tenantId) {
+      return res.status(401).json(
+        errorResponse(new Error('API key or tenant ID required'), 'MISSING_AUTH', 401)
+      );
+    }
+
+    const tenantResult = await query(
+      `SELECT id, name, slug FROM tenants WHERE id = $1 LIMIT 1`,
+      [tenantId]
+    );
+    const tenantRow = tenantResult.rows[0];
+    const data = {
+      tenant_id: tenantId,
+      tenant: tenantRow
+        ? { id: tenantRow.id, name: tenantRow.name, slug: tenantRow.slug }
+        : null
+    };
+    if (req.user) {
+      data.user = req.user;
+    }
+
+    res.json(successResponse(data, tenantId));
+  } catch (error) {
+    console.error('[testing] Error in GET /me:', error);
+    res.status(500).json(errorResponse(error, 'ME_ERROR'));
+  }
+});
 
 /**
  * GET /api/v1/pages
@@ -373,6 +410,57 @@ router.get('/blog/posts', async (req, res) => {
 });
 
 /**
+ * GET /api/v1/blog/posts/id/:id
+ * Get single blog post by numeric id (must be before :slug route)
+ */
+router.get('/blog/posts/id/:id', async (req, res) => {
+  try {
+    const tenantId = req.tenantId;
+    const id = parseInt(req.params.id, 10);
+    if (Number.isNaN(id)) {
+      return res.status(400).json(errorResponse('Invalid post id', 'INVALID_ID', 400));
+    }
+    const { models, Op } = await loadSequelizeModels();
+    const { Post, Category, Tag } = models;
+
+    const whereClause = { id };
+    if (tenantId) {
+      whereClause[Op.or] = [
+        { tenant_id: tenantId },
+        { tenant_id: null }
+      ];
+    }
+
+    const post = await Post.findOne({
+      where: whereClause,
+      include: [
+        { model: Category, as: 'categories', through: { attributes: [] }, attributes: ['id', 'name', 'slug'] },
+        { model: Tag, as: 'tags', through: { attributes: [] }, attributes: ['id', 'name', 'slug'] }
+      ],
+      attributes: [
+        'id', 'title', 'slug', 'excerpt', 'content', 'status', 'post_type',
+        'created_at', 'updated_at', 'published_at', 'view_count', 'meta_title', 'meta_description',
+        'featured_image_id', 'tenant_id', 'author_id'
+      ]
+    });
+
+    if (!post) {
+      return res.status(404).json(errorResponse('Post not found', 'POST_NOT_FOUND', 404));
+    }
+
+    const postJson = post.toJSON();
+    const terms = [
+      ...(postJson.categories || []).map(cat => ({ id: cat.id, name: cat.name, slug: cat.slug, taxonomy: 'category' })),
+      ...(postJson.tags || []).map(tag => ({ id: tag.id, name: tag.name, slug: tag.slug, taxonomy: 'post_tag' }))
+    ];
+    res.json(successResponse({ ...postJson, terms }, tenantId));
+  } catch (error) {
+    console.error('[testing] Error fetching blog post by id:', error);
+    res.status(500).json(errorResponse(error, 'FETCH_POST_ERROR'));
+  }
+});
+
+/**
  * GET /api/v1/blog/posts/:slug
  * Get single blog post by slug
  */
@@ -457,6 +545,249 @@ router.get('/blog/posts/:slug', async (req, res) => {
   } catch (error) {
     console.error('[testing] Error fetching blog post:', error);
     res.status(500).json(errorResponse(error, 'FETCH_POST_ERROR'));
+  }
+});
+
+/**
+ * POST /api/v1/blog/posts
+ * Create a new blog post
+ */
+router.post('/blog/posts', async (req, res) => {
+  try {
+    const tenantId = req.tenantId;
+    if (!tenantId) {
+      return res.status(400).json(errorResponse('Tenant ID is required', 'TENANT_ID_REQUIRED', 400));
+    }
+
+    const {
+      title,
+      slug,
+      content,
+      excerpt,
+      status,
+      author_id,
+      published_at,
+      categories = [],
+      tags = [],
+      meta_title,
+      meta_description,
+      meta_keywords,
+      og_title,
+      og_description,
+      twitter_title,
+      twitter_description,
+      featured_image_id
+    } = req.body;
+
+    if (!title || !slug) {
+      return res.status(400).json(errorResponse('Title and slug are required', 'VALIDATION_ERROR', 400));
+    }
+
+    const { models } = await loadSequelizeModels();
+    const { Post, Category, Tag } = models;
+
+    const post = await Post.create({
+      title,
+      slug,
+      content: content || '',
+      excerpt: excerpt || '',
+      status: status || 'draft',
+      post_type: 'post',
+      author_id: author_id || 1,
+      meta_title: meta_title || '',
+      meta_description: meta_description || '',
+      meta_keywords: meta_keywords || '',
+      canonical_url: '',
+      og_title: og_title || '',
+      og_description: og_description || '',
+      twitter_title: twitter_title || '',
+      twitter_description: twitter_description || '',
+      published_at: published_at || null,
+      tenant_id: tenantId,
+      featured_image_id: featured_image_id || null
+    });
+
+    const categoryIds = Array.isArray(categories) ? categories : [];
+    const tagIds = Array.isArray(tags) ? tags : [];
+    try {
+      await setPostCategories(post.id, categoryIds);
+    } catch (err) {
+      console.log('[testing] Note setting post categories:', err.message);
+    }
+    try {
+      await setPostTags(post.id, tagIds);
+    } catch (err) {
+      console.log('[testing] Note setting post tags:', err.message);
+    }
+
+    const newPost = await Post.findByPk(post.id, {
+      include: [
+        { model: Category, as: 'categories', through: { attributes: [] } },
+        { model: Tag, as: 'tags', through: { attributes: [] } }
+      ]
+    });
+    const postData = newPost ? newPost.toJSON() : post.toJSON();
+    const terms = [
+      ...(postData.categories || []).map(cat => ({ id: cat.id, name: cat.name, slug: cat.slug, taxonomy: 'category' })),
+      ...(postData.tags || []).map(tag => ({ id: tag.id, name: tag.name, slug: tag.slug, taxonomy: 'post_tag' }))
+    ];
+    res.status(201).json(successResponse({ ...postData, terms }, tenantId));
+  } catch (error) {
+    console.error('[testing] Error creating blog post:', error);
+    if (error.code === '23505' || error.message?.includes('unique')) {
+      return res.status(409).json(errorResponse('A post with this slug already exists', 'DUPLICATE_SLUG', 409));
+    }
+    res.status(500).json(errorResponse(error, 'CREATE_POST_ERROR'));
+  }
+});
+
+/**
+ * PUT /api/v1/blog/posts/:id
+ * Update an existing blog post
+ */
+router.put('/blog/posts/:id', async (req, res) => {
+  try {
+    const tenantId = req.tenantId;
+    if (!tenantId) {
+      return res.status(400).json(errorResponse('Tenant ID is required', 'TENANT_ID_REQUIRED', 400));
+    }
+
+    const id = parseInt(req.params.id, 10);
+    if (Number.isNaN(id)) {
+      return res.status(400).json(errorResponse('Invalid post id', 'INVALID_ID', 400));
+    }
+
+    const {
+      title,
+      slug,
+      content,
+      excerpt,
+      status,
+      author_id,
+      published_at,
+      categories = [],
+      tags = [],
+      meta_title,
+      meta_description,
+      meta_keywords,
+      og_title,
+      og_description,
+      twitter_title,
+      twitter_description,
+      featured_image_id
+    } = req.body;
+
+    if (!title || !slug) {
+      return res.status(400).json(errorResponse('Title and slug are required', 'VALIDATION_ERROR', 400));
+    }
+
+    const { models, Op } = await loadSequelizeModels();
+    const { Post, Category, Tag } = models;
+
+    const post = await Post.findOne({
+      where: {
+        id,
+        [Op.or]: [
+          { tenant_id: tenantId },
+          { tenant_id: null }
+        ]
+      }
+    });
+
+    if (!post) {
+      return res.status(404).json(errorResponse('Post not found', 'POST_NOT_FOUND', 404));
+    }
+
+    await post.update({
+      title,
+      slug,
+      content: content || '',
+      excerpt: excerpt || '',
+      status: status || 'draft',
+      author_id: author_id || post.author_id,
+      meta_title: meta_title || '',
+      meta_description: meta_description || '',
+      meta_keywords: meta_keywords || '',
+      og_title: og_title || '',
+      og_description: og_description || '',
+      twitter_title: twitter_title || '',
+      twitter_description: twitter_description || '',
+      featured_image_id: featured_image_id !== undefined ? featured_image_id : post.featured_image_id,
+      published_at: published_at || null
+    });
+
+    const categoryIds = Array.isArray(categories) ? categories : [];
+    const tagIds = Array.isArray(tags) ? tags : [];
+    try {
+      await setPostCategories(id, categoryIds);
+    } catch (err) {
+      console.log('[testing] Note setting post categories:', err.message);
+    }
+    try {
+      await setPostTags(id, tagIds);
+    } catch (err) {
+      console.log('[testing] Note setting post tags:', err.message);
+    }
+
+    const updatedPost = await Post.findByPk(id, {
+      include: [
+        { model: Category, as: 'categories', through: { attributes: [] } },
+        { model: Tag, as: 'tags', through: { attributes: [] } }
+      ]
+    });
+    const postData = updatedPost ? updatedPost.toJSON() : post.toJSON();
+    const terms = [
+      ...(postData.categories || []).map(cat => ({ id: cat.id, name: cat.name, slug: cat.slug, taxonomy: 'category' })),
+      ...(postData.tags || []).map(tag => ({ id: tag.id, name: tag.name, slug: tag.slug, taxonomy: 'post_tag' }))
+    ];
+    res.json(successResponse({ ...postData, terms }, tenantId));
+  } catch (error) {
+    console.error('[testing] Error updating blog post:', error);
+    if (error.code === '23505' || error.message?.includes('unique')) {
+      return res.status(409).json(errorResponse('A post with this slug already exists', 'DUPLICATE_SLUG', 409));
+    }
+    res.status(500).json(errorResponse(error, 'UPDATE_POST_ERROR'));
+  }
+});
+
+/**
+ * DELETE /api/v1/blog/posts/:id
+ * Delete a blog post
+ */
+router.delete('/blog/posts/:id', async (req, res) => {
+  try {
+    const tenantId = req.tenantId;
+    if (!tenantId) {
+      return res.status(400).json(errorResponse('Tenant ID is required', 'TENANT_ID_REQUIRED', 400));
+    }
+
+    const id = parseInt(req.params.id, 10);
+    if (Number.isNaN(id)) {
+      return res.status(400).json(errorResponse('Invalid post id', 'INVALID_ID', 400));
+    }
+
+    const { models, Op } = await loadSequelizeModels();
+    const { Post } = models;
+
+    const post = await Post.findOne({
+      where: {
+        id,
+        [Op.or]: [
+          { tenant_id: tenantId },
+          { tenant_id: null }
+        ]
+      }
+    });
+
+    if (!post) {
+      return res.status(404).json(errorResponse('Post not found', 'POST_NOT_FOUND', 404));
+    }
+
+    await post.destroy();
+    res.json(successResponse({ message: 'Post deleted successfully' }, tenantId));
+  } catch (error) {
+    console.error('[testing] Error deleting blog post:', error);
+    res.status(500).json(errorResponse(error, 'DELETE_POST_ERROR'));
   }
 });
 

@@ -122,16 +122,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         hasSetTenantFromSignIn.current = true;
       }
 
-      // Development fallback: set a default tenant to improve DX
-      if (!tenantIdToSet && import.meta.env.DEV) {
-        tenantIdToSet = 'tenant-gosg';
-        try {
-          localStorage.setItem('sparti-current-tenant-id', tenantIdToSet);
-        } catch {}
+      if (!tenantIdToSet) {
+        console.log('tenantIdToSet', tenantIdToSet);
+        setCurrentTenantId(tenantIdToSet);
       }
-
-      console.log('tenantIdToSet', tenantIdToSet);
-      setCurrentTenantId(tenantIdToSet);
 
       setLoading(false);
     };
