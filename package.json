@@ -68,7 +68,9 @@
     "db:export": "node scripts/db/export-data.js",
     "db:import": "node scripts/db/import-data.js",
     "db:drop-all-tables": "node scripts/db/drop-all-tables.js",
-    "db:migrate-and-import": "npm run sequelize:migrate:production && node scripts/db/import-data.js"
+    "db:migrate-and-import": "npm run sequelize:migrate:production && node scripts/db/import-data.js",
+    "check:db": "node scripts/check-db-connection.js",
+    "predeploy": "node scripts/check-db-connection.js && npm run migrate:production"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.71.2",
