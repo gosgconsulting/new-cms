@@ -1,5 +1,17 @@
 {
   "buildCommand": "node scripts/build-vercel-output.js",
   "installCommand": "npm install",
-  "outputDirectory": ".vercel/output"
+  "outputDirectory": ".vercel/output",
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET, POST, PUT, DELETE, PATCH, OPTIONS" },
+        { "key": "Access-Control-Allow-Headers", "value": "Origin, X-Requested-With, Content-Type, Accept, Authorization, X-Tenant-Id, X-Access-Key, X-API-Key, x-api-key" },
+        { "key": "Access-Control-Expose-Headers", "value": "Content-Type, Content-Length, Authorization, X-Requested-With" },
+        { "key": "Access-Control-Max-Age", "value": "86400" }
+      ]
+    }
+  ]
 }

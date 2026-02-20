@@ -118,7 +118,17 @@ console.log('[build:vercel] Installed dependencies in .vercel/output/functions/a
 const config = {
   version: 3,
   routes: [
-    { src: '/api/(.*)', dest: '/api/index' },
+    {
+      src: '/api/(.*)',
+      dest: '/api/index',
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
+        'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-Tenant-Id, X-Access-Key, X-API-Key, x-api-key',
+        'Access-Control-Expose-Headers': 'Content-Type, Content-Length, Authorization, X-Requested-With',
+        'Access-Control-Max-Age': '86400',
+      },
+    },
     { src: '/health', dest: '/api/index' },
     { src: '/health/(.*)', dest: '/api/index' },
     { src: '/robots.txt', dest: '/api/index' },
