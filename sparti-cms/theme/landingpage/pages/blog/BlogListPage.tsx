@@ -127,8 +127,7 @@ export default function BlogListPage({
   const [categories, setCategories] = useState(BLOG_CATEGORIES);
 
   useEffect(() => {
-    const effectiveTenantId =
-      tenantId || (typeof window !== "undefined" ? (window as any).__CMS_TENANT__ : undefined);
+    const effectiveTenantId = import.meta.env.VITE_DEPLOY_TENANT_ID;
 
     if (!effectiveTenantId) {
       setPosts(BLOG_POSTS);
