@@ -52,7 +52,11 @@ export async function uploadFile(
     tenantId: options?.tenantId ?? undefined,
   });
 
-  const blob = await upload(file.name, file, {
+  const tenantId = options?.tenantId || 'default';
+  const safeTenantId = tenantId.replace(/[^a-zA-Z0-9-_]/g, '') || 'default';
+  const blobPathname = `uploads/${safeTenantId}/${file.name}`;
+
+  const blob = await upload(blobPathname, file, {
     access: 'public',
     handleUploadUrl: absoluteHandleUploadUrl,
     clientPayload,
