@@ -80,7 +80,7 @@ export default function BlogPostPage({
   const staticPost = useMemo(() => BLOG_POSTS.find((p) => p.slug === slug), [slug]);
 
   useEffect(() => {
-    const effectiveTenantId = import.meta.env.VITE_DEPLOY_TENANT_ID;
+    const effectiveTenantId = tenantId || import.meta.env.VITE_DEPLOY_TENANT_ID;
 
     if (!effectiveTenantId || !slug) {
       setCmsPost(null);
