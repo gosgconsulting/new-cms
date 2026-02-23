@@ -123,8 +123,8 @@ export default function BlogListPage({
   onContactClick?: () => void;
 }) {
   const [category, setCategory] = useState<"all" | BlogCategory>("all");
-  const [posts, setPosts] = useState<BlogPost[]>(BLOG_POSTS);
-  const [categories, setCategories] = useState(BLOG_CATEGORIES);
+  const [posts, setPosts] = useState<BlogPost[]>([]);
+  const [categories, setCategories] = useState<{ label: string; value: "all" | BlogCategory }[]>([]);
 
   useEffect(() => {
     const effectiveTenantId = tenantId || import.meta.env.VITE_DEPLOY_TENANT_ID;
