@@ -23,6 +23,7 @@ import aiAssistantRoutes from './ai-assistant.js';
 import shopRoutes from './shop.js';
 import mediaRoutes from './media.js';
 import tenantImportExportRoutes from './tenant-import-export.js';
+import backupRoutes from './backup.js';
 import docsRoutes from './docs.js';
 import woocommerceSyncRoutes from './woocommerce-sync.js';
 import wordpressSyncRoutes from './wordpress-sync.js';
@@ -56,6 +57,10 @@ router.use('/api', (req, res, next) => {
   if (req.path === '/blob-upload') {
     return next();
   }
+  // Cron endpoints use their own CRON_SECRET authentication
+  if (req.path.startsWith('/cron')) {
+    return next();
+  }
   return authenticateWithAccessKey(req, res, next);
 });
 
@@ -85,6 +90,7 @@ router.use('/api', aiAssistantRoutes);
 router.use('/api/shop', shopRoutes);
 router.use('/api/media', mediaRoutes);
 router.use('/api', tenantImportExportRoutes);
+router.use('/api', backupRoutes);
 router.use('/api/woocommerce', woocommerceSyncRoutes);
 router.use('/api/wordpress', wordpressSyncRoutes);
 router.use('/api', docsRoutes);
@@ -113,12 +119,12 @@ router.use('/theme', themeRoutes);
 router.get('/robots.txt', (req, res) => {
   const deployThemeSlug = process.env.VITE_DEPLOY_THEME_SLUG;
   const cmsTenant = process.env.CMS_TENANT;
-  
+
   // Check if this is a theme deployment (both DEPLOY_THEME_SLUG and CMS_TENANT should be set)
   const isThemeDeployment = deployThemeSlug && cmsTenant;
-  
+
   res.setHeader('Content-Type', 'text/plain');
-  
+
   if (isThemeDeployment) {
     // Allow indexing for theme deployments
     res.send(`User-agent: *

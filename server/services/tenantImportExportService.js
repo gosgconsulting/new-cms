@@ -185,6 +185,9 @@ export async function streamTenantExport(tenantId, res, baseUrl = '') {
  * @param {Object} payload - Parsed export JSON: { version, tenantId, exportedAt, counts, pages, media, ... }
  * @returns {Promise<{ success: boolean, stats: Object, errors: string[] }>}
  */
+// Re-export fetchTenantData for use by backupService (avoids duplicating the query logic).
+export { fetchTenantData as fetchTenantDataForBackup };
+
 export async function importTenantData(tenantId, payload) {
   const errors = [];
   const stats = {

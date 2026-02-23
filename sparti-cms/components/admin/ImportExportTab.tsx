@@ -1,13 +1,20 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Download, Upload, Loader2 } from 'lucide-react';
+import { Download, Upload, Loader2, RefreshCw, Trash2, Clock, HardDrive } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { api } from '../../utils/api';
 import { uploadFile } from '../../utils/uploadToBlob';
 
 interface ImportExportTabProps {
   currentTenantId: string;
+}
+
+interface BackupEntry {
+  url: string;
+  pathname: string;
+  size: number;
+  uploadedAt: string;
 }
 
 /**
@@ -24,10 +31,25 @@ function replaceUrlsInString(str: string, urlMap: Record<string, string>): strin
   return out;
 }
 
+function formatBytes(bytes: number): string {
+  if (bytes === 0) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+}
+
+function formatDate(iso: string): string {
+  const d = new Date(iso);
+  return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) +
+    ' ' + d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+}
+
 /**
- * Settings tab for tenant data import/export.
+ * Settings tab for tenant data import/export + backup history.
  * Export: single JSON (metadata + data; all media URLs absolute).
  * Import: user picks JSON; frontend downloads each media URL, uploads to Vercel Blob, replaces URLs in payload, POSTs JSON.
+ * Backups: automatic daily backups stored in Vercel Blob, viewable/downloadable/deletable.
  */
 export default function ImportExportTab({ currentTenantId }: ImportExportTabProps) {
   const [exporting, setExporting] = useState(false);
@@ -35,6 +57,32 @@ export default function ImportExportTab({ currentTenantId }: ImportExportTabProp
   const [importProgress, setImportProgress] = useState<{ percent: number; label: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+
+  // Backup state
+  const [backups, setBackups] = useState<BackupEntry[]>([]);
+  const [loadingBackups, setLoadingBackups] = useState(false);
+  const [triggeringBackup, setTriggeringBackup] = useState(false);
+  const [deletingBackup, setDeletingBackup] = useState<string | null>(null);
+
+  const fetchBackups = useCallback(async () => {
+    if (!currentTenantId) return;
+    setLoadingBackups(true);
+    try {
+      const res = await api.get(`/api/backups?tenantId=${currentTenantId}`);
+      if (res.ok) {
+        const data = await res.json();
+        setBackups(data.backups || []);
+      }
+    } catch {
+      // Silently fail — backups may not be configured yet
+    } finally {
+      setLoadingBackups(false);
+    }
+  }, [currentTenantId]);
+
+  useEffect(() => {
+    fetchBackups();
+  }, [fetchBackups]);
 
   useEffect(() => {
     if (!importing) return;
@@ -170,6 +218,46 @@ export default function ImportExportTab({ currentTenantId }: ImportExportTabProp
     }
   };
 
+  const handleTriggerBackup = async () => {
+    if (!currentTenantId) return;
+    setTriggeringBackup(true);
+    try {
+      const res = await api.post('/api/backups/trigger', { tenantId: currentTenantId });
+      const data = await res.json();
+      if (data.success) {
+        toast({ title: 'Backup created', description: 'Your backup has been stored successfully.' });
+        fetchBackups();
+      } else {
+        toast({ title: 'Backup failed', description: data.error || 'Could not create backup.', variant: 'destructive' });
+      }
+    } catch (e: any) {
+      toast({ title: 'Backup failed', description: e?.message || 'Could not create backup.', variant: 'destructive' });
+    } finally {
+      setTriggeringBackup(false);
+    }
+  };
+
+  const handleDeleteBackup = async (backup: BackupEntry) => {
+    setDeletingBackup(backup.url);
+    try {
+      const res = await api.delete('/api/backups', {
+        body: JSON.stringify({ url: backup.url, tenantId: currentTenantId }),
+        headers: { 'Content-Type': 'application/json' },
+      });
+      const data = await res.json();
+      if (data.success) {
+        setBackups((prev) => prev.filter((b) => b.url !== backup.url));
+        toast({ title: 'Backup deleted' });
+      } else {
+        toast({ title: 'Delete failed', description: 'Could not delete backup.', variant: 'destructive' });
+      }
+    } catch {
+      toast({ title: 'Delete failed', description: 'Could not delete backup.', variant: 'destructive' });
+    } finally {
+      setDeletingBackup(null);
+    }
+  };
+
   return (
     <div className="space-y-8 relative">
       {importProgress !== null && (
@@ -224,6 +312,99 @@ export default function ImportExportTab({ currentTenantId }: ImportExportTabProp
           <span className="text-xs text-muted-foreground">JSON from export</span>
         </div>
       </div>
+
+      {/* Backup History Section */}
+      <div>
+        <div className="flex items-center justify-between mb-1">
+          <h3 className="text-lg font-medium text-foreground">Backup history</h3>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={fetchBackups}
+              disabled={loadingBackups}
+              className="gap-1.5"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${loadingBackups ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
+            <Button
+              size="sm"
+              onClick={handleTriggerBackup}
+              disabled={triggeringBackup || !currentTenantId}
+              className="gap-1.5"
+            >
+              {triggeringBackup ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <HardDrive className="h-3.5 w-3.5" />}
+              {triggeringBackup ? 'Backing up…' : 'Backup now'}
+            </Button>
+          </div>
+        </div>
+        <p className="text-sm text-muted-foreground mb-4">
+          Automatic daily backups are stored in Vercel Blob. Backups older than 30 days are automatically cleaned up.
+        </p>
+
+        {loadingBackups && backups.length === 0 ? (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground py-6 justify-center">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Loading backups…
+          </div>
+        ) : backups.length === 0 ? (
+          <div className="text-sm text-muted-foreground py-6 text-center border border-dashed border-border rounded-lg">
+            No backups yet. Click "Backup now" to create your first backup.
+          </div>
+        ) : (
+          <div className="border border-border rounded-lg divide-y divide-border">
+            {backups.map((backup) => {
+              const dateStr = formatDate(backup.uploadedAt);
+              const sizeStr = formatBytes(backup.size);
+              const isDeleting = deletingBackup === backup.url;
+
+              return (
+                <div
+                  key={backup.url}
+                  className="flex items-center justify-between px-4 py-3 hover:bg-muted/50 transition-colors"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <Clock className="h-4 w-4 text-muted-foreground shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-foreground truncate">
+                        {backup.pathname.split('/').pop()}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {dateStr} · {sizeStr}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1.5 shrink-0 ml-3">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="gap-1.5 text-xs"
+                      asChild
+                    >
+                      <a href={backup.url} download target="_blank" rel="noopener noreferrer">
+                        <Download className="h-3.5 w-3.5" />
+                        Download
+                      </a>
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="gap-1.5 text-xs text-destructive hover:text-destructive"
+                      onClick={() => handleDeleteBackup(backup)}
+                      disabled={isDeleting}
+                    >
+                      {isDeleting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+                      Delete
+                    </Button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
+
