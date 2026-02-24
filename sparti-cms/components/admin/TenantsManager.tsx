@@ -10,7 +10,10 @@ import {
   AlertCircle,
   CheckCircle,
   Bug,
-  RefreshCw
+  RefreshCw,
+  Eye,
+  EyeOff,
+  Copy
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -29,12 +32,22 @@ import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../auth/AuthProvider';
 import { api } from '../../utils/api';
 
+// Tenant API key (returned by backend when using getAllTenants / getTenantById)
+interface TenantApiKey {
+  id: number;
+  api_key: string;
+  description?: string | null;
+  expires_at?: string | null;
+  created_at: string;
+}
+
 // Simplified Tenant type definition
 interface Tenant {
   id: string;
   name: string;
   createdAt: string;
   theme_id?: string | null;
+  apiKeys?: TenantApiKey[];
 }
 
 const TenantsManager: React.FC = () => {
@@ -52,7 +65,22 @@ const TenantsManager: React.FC = () => {
   const [syncingTenantId, setSyncingTenantId] = useState<string | null>(null);
   const [debugMode, setDebugMode] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
+  const [showFullTenantKeys, setShowFullTenantKeys] = useState<Record<string, boolean>>({});
   const { toast } = useToast();
+
+  const toggleTenantKeyVisibility = (tenantId: string, keyId: number) => {
+    const k = `${tenantId}-${keyId}`;
+    setShowFullTenantKeys(prev => ({ ...prev, [k]: !prev[k] }));
+  };
+
+  const copyTenantKeyToClipboard = async (apiKey: string) => {
+    try {
+      await navigator.clipboard.writeText(apiKey);
+      toast({ title: 'Copied', description: 'API key copied to clipboard.' });
+    } catch {
+      toast({ title: 'Copy failed', description: 'Could not copy to clipboard.', variant: 'destructive' });
+    }
+  };
 
   // Fetch themes from API
   const { data: themesData = [], isLoading: themesLoading } = useQuery<Array<{ id: string; name: string; slug: string }>>({
@@ -560,6 +588,45 @@ const TenantsManager: React.FC = () => {
                   <div>
                     <span className="font-medium">Theme:</span> {getThemeDisplayName(tenant.theme_id)}
                   </div>
+                  {user?.is_super_admin && tenant.apiKeys && tenant.apiKeys.length > 0 && (
+                    <div className="mt-3 pt-3 border-t border-gray-200 space-y-2">
+                      <span className="font-medium block">API Key(s):</span>
+                      {tenant.apiKeys.map((key) => {
+                        const visibleKey = `${tenant.id}-${key.id}`;
+                        const isVisible = showFullTenantKeys[visibleKey];
+                        const displayKey = isVisible
+                          ? key.api_key
+                          : key.api_key.length > 8
+                            ? key.api_key.substring(0, 4) + '......' + key.api_key.substring(key.api_key.length - 4)
+                            : '****';
+                        return (
+                          <div key={key.id} className="flex items-center gap-2 flex-wrap">
+                            <code className="bg-gray-100 px-2 py-1 rounded text-xs font-mono text-gray-700">
+                              {displayKey}
+                            </code>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-7 w-7 p-0"
+                              onClick={() => toggleTenantKeyVisibility(tenant.id, key.id)}
+                              title={isVisible ? 'Hide key' : 'Show full key'}
+                            >
+                              {isVisible ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-7 w-7 p-0"
+                              onClick={() => copyTenantKeyToClipboard(key.api_key)}
+                              title="Copy key"
+                            >
+                              <Copy className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
                 
                 <div className="flex flex-col gap-2">
