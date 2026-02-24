@@ -3,6 +3,7 @@ import { query } from '../../sparti-cms/db/index.js';
 import { authenticateUser } from '../middleware/auth.js';
 import { getDatabaseState } from '../utils/database.js';
 import { getThemePagesFromFileSystem } from '../../sparti-cms/services/themeSync.js';
+import { getTranslations } from '../../sparti-cms/services/translationService.js';
 import {
   getAllPagesWithTypes,
   updatePageSlug,
@@ -113,7 +114,7 @@ async function syncPostToWordPress(post, tenantId) {
     } else {
       // Create new WordPress post
       wpPost = await client.createPost(wpPostData);
-      
+
       // Update post with WordPress ID
       await post.update({
         wordpress_id: wpPost.id,
@@ -144,7 +145,7 @@ router.get('/pages/all', authenticateUser, async (req, res) => {
     const themeId = req.themeSlug || req.query.themeId || null;
     // Fix tenant ID detection - check multiple sources
     const tenantId = req.tenantId || req.query.tenantId || req.headers['x-tenant-id'] || (req.user?.tenant_id);
-    
+
     // Comprehensive debugging logs
     console.log(`[testing] API: ========== /pages/all Request ==========`);
     console.log(`[testing] API: req.tenantId: ${req.tenantId}`);
@@ -154,15 +155,15 @@ router.get('/pages/all', authenticateUser, async (req, res) => {
     console.log(`[testing] API: Final tenantId: ${tenantId}`);
     console.log(`[testing] API: themeId from query: ${themeId || 'custom'}`);
     console.log(`[testing] API: User is_super_admin: ${req.user?.is_super_admin || false}`);
-    
+
     // getAllPagesWithTypes already handles file system fallback for demo tenant
     let pages = [];
     let fromFilesystem = false;
-    
+
     try {
       pages = await getAllPagesWithTypes(tenantId, themeId || null);
       console.log(`[testing] API: getAllPagesWithTypes returned ${pages.length} page(s)`);
-      
+
       // Check if pages came from file system (they'll have from_filesystem flag)
       if (pages.length > 0 && pages[0].from_filesystem) {
         fromFilesystem = true;
@@ -170,7 +171,7 @@ router.get('/pages/all', authenticateUser, async (req, res) => {
       } else if (pages.length > 0) {
         console.log(`[testing] API: Pages came from database`);
       }
-      
+
       // Log page types for debugging
       if (pages.length > 0) {
         const pageTypes = pages.map(p => p.page_type).filter((v, i, a) => a.indexOf(v) === i);
@@ -192,7 +193,7 @@ router.get('/pages/all', authenticateUser, async (req, res) => {
       // it means the fallback also failed or it's a non-demo tenant
       throw error;
     }
-    
+
     // Validate and ensure pages have required fields
     const validatedPages = (pages || []).map((page, index) => {
       // Ensure required fields are present
@@ -222,16 +223,16 @@ router.get('/pages/all', authenticateUser, async (req, res) => {
       }
       return page;
     });
-    
-    const response = { 
-      success: true, 
+
+    const response = {
+      success: true,
       pages: validatedPages,
       total: validatedPages.length,
       tenantId: tenantId,
       themeId: themeId || 'custom',
       from_filesystem: fromFilesystem
     };
-    
+
     res.json(response);
   } catch (error) {
     console.error('[testing] API: Error in /pages/all:', error);
@@ -295,10 +296,10 @@ router.get('/pages/theme/:themeId', async (req, res) => {
   try {
     const { themeId } = req.params;
     console.log(`[testing] API: Fetching pages for theme: ${themeId}`);
-    
+
     let pages = [];
     let fromFilesystem = false;
-    
+
     try {
       // Try to fetch pages from database first
       const result = await query(`
@@ -318,7 +319,7 @@ router.get('/pages/theme/:themeId', async (req, res) => {
         WHERE theme_id = $1
         ORDER BY page_name ASC
       `, [themeId]);
-      
+
       pages = result.rows;
     } catch (dbError) {
       // If database query fails, fall back to file system
@@ -326,7 +327,7 @@ router.get('/pages/theme/:themeId', async (req, res) => {
       pages = getThemePagesFromFileSystem(themeId);
       fromFilesystem = true;
     }
-    
+
     // If database returned empty array, try file system as fallback
     if (pages.length === 0) {
       console.log('[testing] No pages in database, checking file system...');
@@ -336,7 +337,7 @@ router.get('/pages/theme/:themeId', async (req, res) => {
         fromFilesystem = true;
       }
     }
-    
+
     res.json({
       success: true,
       pages: pages,
@@ -372,15 +373,15 @@ router.get('/pages/:pageId', async (req, res) => {
   try {
     const { pageId } = req.params;
     const { tenantId, themeId } = req.query;
-    
+
     // Check if this is a theme page (pageId starts with "theme-") or if we're in theme mode
     const isThemePage = pageId.startsWith('theme-');
     const isThemeMode = themeId && !tenantId;
-    
+
     if ((isThemePage || isThemeMode) && themeId) {
       // Theme mode: query by theme_id
       console.log(`[testing] API: Fetching theme page ${pageId} for theme: ${themeId}`);
-      
+
       // First, try to query by page ID directly (works for both numeric IDs and theme- prefixed IDs)
       // Try as string first (most common case)
       let pageResult = await query(`
@@ -400,7 +401,7 @@ router.get('/pages/:pageId', async (req, res) => {
         WHERE id::text = $1 AND theme_id = $2
         LIMIT 1
       `, [pageId, themeId]);
-      
+
       // If not found and pageId is numeric, try as integer
       if (pageResult.rows.length === 0 && /^\d+$/.test(pageId)) {
         pageResult = await query(`
@@ -421,7 +422,7 @@ router.get('/pages/:pageId', async (req, res) => {
           LIMIT 1
         `, [parseInt(pageId), themeId]);
       }
-      
+
       // If not found by ID, try to extract slug from pageId and query by slug
       if (pageResult.rows.length === 0) {
         // Extract slug from pageId (format: theme-{themeSlug}-{pageSlug})
@@ -431,7 +432,7 @@ router.get('/pages/:pageId', async (req, res) => {
           const pageSlugPart = pageId.substring(prefix.length);
           // Convert hyphens back to slashes and ensure it starts with /
           const pageSlug = '/' + pageSlugPart.replace(/-/g, '/');
-          
+
           // Query by theme_id and slug
           pageResult = await query(`
             SELECT 
@@ -452,12 +453,12 @@ router.get('/pages/:pageId', async (req, res) => {
           `, [pageSlug, themeId]);
         }
       }
-      
+
       if (pageResult.rows.length === 0) {
         // Try to get from file system as fallback
         const fsPages = getThemePagesFromFileSystem(themeId);
         const fsPage = fsPages.find(p => p.id === pageId);
-        
+
         if (fsPage) {
           // Return file system page with empty layout
           return res.json({
@@ -468,15 +469,15 @@ router.get('/pages/:pageId', async (req, res) => {
             }
           });
         }
-        
+
         return res.status(404).json({
           success: false,
           error: 'Page not found'
         });
       }
-      
+
       const page = pageResult.rows[0];
-      
+
       // Get the layout data (default language)
       const layoutResult = await query(`
         SELECT layout_json, version, updated_at
@@ -485,10 +486,10 @@ router.get('/pages/:pageId', async (req, res) => {
         ORDER BY version DESC
         LIMIT 1
       `, [page.id]);
-      
+
       if (layoutResult.rows.length > 0) {
         let layout = layoutResult.rows[0].layout_json;
-        
+
         // Convert testimonials sections to proper items structure
         try {
           const { convertLayoutTestimonialsToItems } = await import('../../sparti-cms/utils/convertTestimonialsToItems.js');
@@ -496,12 +497,12 @@ router.get('/pages/:pageId', async (req, res) => {
         } catch (error) {
           console.log('[testing] Note: Could not convert testimonials structure:', error.message);
         }
-        
+
         page.layout = layout;
       } else {
         page.layout = { components: [] };
       }
-      
+
       return res.json({
         success: true,
         page: page
@@ -509,16 +510,16 @@ router.get('/pages/:pageId', async (req, res) => {
     } else {
       // Tenant mode: use existing logic
       console.log(`[testing] API: Fetching page ${pageId} for tenant: ${tenantId || 'default'}`);
-      
+
       const page = await getPageWithLayout(pageId, tenantId);
-      
+
       if (!page) {
         return res.status(404).json({
           success: false,
           error: 'Page not found'
         });
       }
-      
+
       // Convert testimonials sections to proper items structure
       if (page.layout && page.layout.components) {
         try {
@@ -528,7 +529,7 @@ router.get('/pages/:pageId', async (req, res) => {
           console.log('[testing] Note: Could not convert testimonials structure:', error.message);
         }
       }
-      
+
       res.json({
         success: true,
         page: page
@@ -550,16 +551,16 @@ router.put('/pages/:pageId', async (req, res) => {
     const { pageId } = req.params;
     const { page_name, meta_title, meta_description, seo_index, tenantId } = req.body;
     console.log(`[testing] API: Updating page ${pageId} for tenant: ${tenantId}`);
-    
+
     const success = await updatePageData(pageId, page_name, meta_title, meta_description, seo_index, tenantId);
-    
+
     if (!success) {
       return res.status(404).json({
         success: false,
         error: 'Page not found or update failed'
       });
     }
-    
+
     res.json({
       success: true,
       message: 'Page updated successfully'
@@ -600,7 +601,7 @@ router.put('/pages/:pageId/layout', authenticateUser, async (req, res) => {
   try {
     const { pageId } = req.params;
     const { layout_json, tenantId, themeId } = req.body;
-    
+
     console.log('[testing] Step 1: Extracted parameters:', {
       pageId: pageId,
       pageIdType: typeof pageId,
@@ -611,7 +612,7 @@ router.put('/pages/:pageId/layout', authenticateUser, async (req, res) => {
       layoutJsonKeys: layout_json ? Object.keys(layout_json) : [],
       componentsCount: layout_json?.components ? (Array.isArray(layout_json.components) ? layout_json.components.length : 'not array') : 'no components'
     });
-    
+
     // Validate tenant access: user can only update their own tenant unless they're a super admin
     console.log('[testing] Step 2: Validating tenant access...');
     if (!req.user.is_super_admin && tenantId !== req.user.tenant_id) {
@@ -627,17 +628,17 @@ router.put('/pages/:pageId/layout', authenticateUser, async (req, res) => {
       });
     }
     console.log('[testing] Step 2: Tenant access validated');
-    
+
     console.log('[testing] Step 3: Calling updatePageLayout...');
     const success = await updatePageLayout(pageId, layout_json, tenantId, 'default', themeId);
-    
+
     console.log('[testing] Step 3: updatePageLayout result:', {
       success: success,
       pageId: pageId,
       tenantId: tenantId,
       themeId: themeId
     });
-    
+
     if (!success) {
       console.error('[testing] Step 3: updatePageLayout returned false - page not found or update failed');
       return res.status(404).json({
@@ -645,7 +646,7 @@ router.put('/pages/:pageId/layout', authenticateUser, async (req, res) => {
         error: 'Page not found or layout update failed'
       });
     }
-    
+
     console.log('[testing] ========== API: Layout update successful ==========');
     res.json({
       success: true,
@@ -659,7 +660,7 @@ router.put('/pages/:pageId/layout', authenticateUser, async (req, res) => {
       stack: error.stack,
       name: error.name
     });
-    
+
     // Handle validation errors with 400 status
     if (error.code === 'VALIDATION_ERROR') {
       console.error('[testing] Validation error detected');
@@ -669,7 +670,7 @@ router.put('/pages/:pageId/layout', authenticateUser, async (req, res) => {
         message: error.message
       });
     }
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to update page layout',
@@ -684,7 +685,7 @@ router.post('/pages/:pageId/versions', authenticateUser, async (req, res) => {
     const { pageId } = req.params;
     const { pageData, layoutJson, comment, tenantId } = req.body;
     console.log(`[testing] API: Saving page version ${pageId} for tenant: ${tenantId}`);
-    
+
     // Validate tenant access: user can only save versions for their own tenant unless they're a super admin
     if (!req.user.is_super_admin && tenantId !== req.user.tenant_id) {
       return res.status(403).json({
@@ -693,7 +694,7 @@ router.post('/pages/:pageId/versions', authenticateUser, async (req, res) => {
         message: 'You can only save versions for your own tenant'
       });
     }
-    
+
     if (!pageData || !layoutJson) {
       return res.status(400).json({
         success: false,
@@ -701,7 +702,7 @@ router.post('/pages/:pageId/versions', authenticateUser, async (req, res) => {
         message: 'pageData and layoutJson are required'
       });
     }
-    
+
     const version = await savePageVersion(
       parseInt(pageId),
       tenantId,
@@ -710,7 +711,7 @@ router.post('/pages/:pageId/versions', authenticateUser, async (req, res) => {
       req.user.id,
       comment || null
     );
-    
+
     res.json({
       success: true,
       version: version,
@@ -718,7 +719,7 @@ router.post('/pages/:pageId/versions', authenticateUser, async (req, res) => {
     });
   } catch (error) {
     console.error('[testing] API: Error saving page version:', error);
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to save page version',
@@ -732,9 +733,9 @@ router.post('/pages/update-slug', async (req, res) => {
   try {
     const { pageId, pageType, newSlug, oldSlug, tenantId } = req.body;
     console.log(`[testing] API: Updating slug for tenant: ${tenantId || 'default'}`);
-    
+
     console.log('[testing] API: Updating page slug:', { pageId, pageType, newSlug, oldSlug });
-    
+
     // Validate required fields
     if (!pageId || !pageType || !newSlug || !oldSlug) {
       return res.status(400).json({
@@ -743,7 +744,7 @@ router.post('/pages/update-slug', async (req, res) => {
         message: 'pageId, pageType, newSlug, and oldSlug are required'
       });
     }
-    
+
     // Validate page type
     if (!['page', 'landing', 'legal'].includes(pageType)) {
       return res.status(400).json({
@@ -752,7 +753,7 @@ router.post('/pages/update-slug', async (req, res) => {
         message: 'pageType must be one of: page, landing, legal'
       });
     }
-    
+
     // Validate slug format
     try {
       const validatedSlug = validateSlug(newSlug);
@@ -764,7 +765,7 @@ router.post('/pages/update-slug', async (req, res) => {
         message: validationError.message
       });
     }
-    
+
     // Prevent homepage slug changes
     if (oldSlug === '/' && newSlug !== '/') {
       return res.status(400).json({
@@ -773,12 +774,12 @@ router.post('/pages/update-slug', async (req, res) => {
         message: 'The homepage slug cannot be modified'
       });
     }
-    
+
     // Update the slug
     const updatedPage = await updatePageSlug(pageId, pageType, newSlug, oldSlug, tenantId);
-    
+
     console.log('[testing] API: Page slug updated successfully:', updatedPage.id);
-    
+
     res.json({
       success: true,
       message: 'Slug updated successfully',
@@ -786,10 +787,10 @@ router.post('/pages/update-slug', async (req, res) => {
       oldSlug: oldSlug,
       newSlug: newSlug
     });
-    
+
   } catch (error) {
     console.error('[testing] API: Error updating page slug:', error);
-    
+
     // Handle specific error cases
     if (error.message.includes('already exists')) {
       return res.status(409).json({
@@ -798,7 +799,7 @@ router.post('/pages/update-slug', async (req, res) => {
         message: error.message
       });
     }
-    
+
     res.status(500).json({
       success: false,
       error: 'Failed to update slug',
@@ -812,9 +813,9 @@ router.post('/pages/update-name', async (req, res) => {
   try {
     const { pageId, pageType, newName, tenantId } = req.body;
     console.log(`[testing] API: Updating page name for tenant: ${tenantId || 'default'}`);
-    
+
     console.log('[testing] API: Updating page name:', { pageId, pageType, newName });
-    
+
     // Validate required fields
     if (!pageId || !pageType || !newName) {
       return res.status(400).json({
@@ -823,7 +824,7 @@ router.post('/pages/update-name', async (req, res) => {
         message: 'pageId, pageType, and newName are required'
       });
     }
-    
+
     // Validate page type
     if (!['page', 'landing', 'legal'].includes(pageType)) {
       return res.status(400).json({
@@ -832,10 +833,10 @@ router.post('/pages/update-name', async (req, res) => {
         message: 'pageType must be one of: page, landing, legal'
       });
     }
-    
+
     // Update the page name
     const success = await updatePageName(pageId, pageType, newName, tenantId);
-    
+
     if (!success) {
       return res.status(404).json({
         success: false,
@@ -843,16 +844,16 @@ router.post('/pages/update-name', async (req, res) => {
         message: 'The specified page could not be found'
       });
     }
-    
+
     console.log('[testing] API: Page name updated successfully');
-    
+
     res.json({
       success: true,
       message: 'Page name updated successfully',
       pageId: pageId,
       newName: newName
     });
-    
+
   } catch (error) {
     console.error('[testing] API: Error updating page name:', error);
     res.status(500).json({
@@ -868,9 +869,9 @@ router.post('/pages/toggle-seo-index', async (req, res) => {
   try {
     const { pageId, pageType, currentIndex, tenantId } = req.body;
     console.log(`[testing] API: Toggling SEO index for tenant: ${tenantId || 'default'}`);
-    
+
     console.log('[testing] API: Toggling SEO index:', { pageId, pageType, currentIndex });
-    
+
     // Validate required fields
     if (!pageId || !pageType || currentIndex === undefined) {
       return res.status(400).json({
@@ -879,7 +880,7 @@ router.post('/pages/toggle-seo-index', async (req, res) => {
         message: 'pageId, pageType, and currentIndex are required'
       });
     }
-    
+
     // Validate page type
     if (!['page', 'landing', 'legal'].includes(pageType)) {
       return res.status(400).json({
@@ -888,19 +889,19 @@ router.post('/pages/toggle-seo-index', async (req, res) => {
         message: 'pageType must be one of: page, landing, legal'
       });
     }
-    
+
     // Toggle the SEO index
     const newIndex = await toggleSEOIndex(pageId, pageType, currentIndex, tenantId);
-    
+
     console.log('[testing] API: SEO index toggled successfully');
-    
+
     res.json({
       success: true,
       message: 'SEO index toggled successfully',
       pageId: pageId,
       newIndex: newIndex
     });
-    
+
   } catch (error) {
     console.error('[testing] API: Error toggling SEO index:', error);
     res.status(500).json({
@@ -1000,7 +1001,7 @@ router.get('/terms', async (req, res) => {
 router.get('/categories', async (req, res) => {
   try {
     const tenantId = req.tenantId || req.user?.tenant_id || req.query.tenantId;
-    
+
     // Build where clause
     const whereClause = {};
     if (tenantId) {
@@ -1009,13 +1010,13 @@ router.get('/categories', async (req, res) => {
         { tenant_id: null }
       ];
     }
-    
+
     // Use Sequelize model to fetch categories filtered by tenant
     const categories = await Category.findAll({
       where: whereClause,
       order: [['created_at', 'DESC']]
     });
-    
+
     res.json(categories.map(cat => cat.toJSON()));
   } catch (error) {
     console.error('[testing] Error fetching categories:', error);
@@ -1028,7 +1029,7 @@ router.get('/categories/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const tenantId = req.tenantId || req.user?.tenant_id || req.query.tenantId;
-    
+
     // Build where clause
     const whereClause = { id: parseInt(id) };
     if (tenantId) {
@@ -1037,7 +1038,7 @@ router.get('/categories/:id', async (req, res) => {
         { tenant_id: null }
       ];
     }
-    
+
     const category = await Category.findOne({ where: whereClause });
     if (!category) {
       return res.status(404).json({ error: 'Category not found' });
@@ -1053,20 +1054,20 @@ router.get('/categories/:id', async (req, res) => {
 router.post('/categories', async (req, res) => {
   try {
     const tenantId = req.tenantId || req.user?.tenant_id || req.body.tenantId;
-    
+
     if (!tenantId) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: 'Tenant ID is required',
         message: 'Please provide tenant ID via authentication or request body'
       });
     }
-    
+
     // Use Sequelize model to create category with tenant_id
     const category = await Category.create({
       ...req.body,
       tenant_id: tenantId
     });
-    
+
     res.status(201).json(category.toJSON());
   } catch (error) {
     console.error('[testing] Error creating category:', error);
@@ -1082,35 +1083,35 @@ router.put('/categories/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const tenantId = req.tenantId || req.user?.tenant_id || req.body.tenantId;
-    
+
     if (!tenantId) {
       return res.status(400).json({ error: 'Tenant ID is required to update categories' });
     }
-    
+
     // Build where clause - only allow updating tenant-specific categories
-    const whereClause = { 
+    const whereClause = {
       id: parseInt(id),
       tenant_id: tenantId // Only tenant-specific categories can be updated
     };
-    
+
     const category = await Category.findOne({ where: whereClause });
     if (!category) {
       // Check if it's a master category
-      const masterCategory = await Category.findOne({ 
-        where: { id: parseInt(id), tenant_id: null } 
+      const masterCategory = await Category.findOne({
+        where: { id: parseInt(id), tenant_id: null }
       });
       if (masterCategory) {
-        return res.status(403).json({ 
-          error: 'Cannot update master category. Master data (tenant_id = NULL) is shared across all tenants. Create a tenant-specific category instead.' 
+        return res.status(403).json({
+          error: 'Cannot update master category. Master data (tenant_id = NULL) is shared across all tenants. Create a tenant-specific category instead.'
         });
       }
       return res.status(404).json({ error: 'Category not found' });
     }
-    
+
     // Update category (preserve tenant_id)
     const updateData = { ...req.body };
     delete updateData.tenant_id; // Never allow tenant_id changes via update
-    
+
     await category.update(updateData);
     res.json(category.toJSON());
   } catch (error) {
@@ -1127,7 +1128,7 @@ router.delete('/categories/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const tenantId = req.tenantId || req.user?.tenant_id || req.query.tenantId;
-    
+
     // Build where clause - only allow deletion of tenant-specific categories
     const whereClause = { id: parseInt(id) };
     if (tenantId) {
@@ -1136,17 +1137,17 @@ router.delete('/categories/:id', async (req, res) => {
     } else {
       return res.status(400).json({ error: 'Tenant ID is required to delete categories' });
     }
-    
+
     const category = await Category.findOne({ where: whereClause });
     if (!category) {
       return res.status(404).json({ error: 'Category not found or is a master category (cannot delete master data)' });
     }
-    
+
     // Prevent deletion of master categories (tenant_id = NULL)
     if (!category.tenant_id) {
       return res.status(403).json({ error: 'Cannot delete master category. Master data (tenant_id = NULL) is shared across all tenants.' });
     }
-    
+
     await category.destroy();
     res.json({ success: true, message: 'Category deleted successfully', category: category.toJSON() });
   } catch (error) {
@@ -1161,7 +1162,7 @@ router.delete('/categories/:id', async (req, res) => {
 router.get('/tags', async (req, res) => {
   try {
     const tenantId = req.tenantId || req.user?.tenant_id || req.query.tenantId;
-    
+
     // Build where clause
     const whereClause = {};
     if (tenantId) {
@@ -1170,13 +1171,13 @@ router.get('/tags', async (req, res) => {
         { tenant_id: null }
       ];
     }
-    
+
     // Use Sequelize model to fetch tags filtered by tenant
     const tags = await Tag.findAll({
       where: whereClause,
       order: [['created_at', 'DESC']]
     });
-    
+
     res.json(tags.map(tag => tag.toJSON()));
   } catch (error) {
     console.error('[testing] Error fetching tags:', error);
@@ -1189,7 +1190,7 @@ router.get('/tags/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const tenantId = req.tenantId || req.user?.tenant_id || req.query.tenantId;
-    
+
     // Build where clause
     const whereClause = { id: parseInt(id) };
     if (tenantId) {
@@ -1198,7 +1199,7 @@ router.get('/tags/:id', async (req, res) => {
         { tenant_id: null }
       ];
     }
-    
+
     const tag = await Tag.findOne({ where: whereClause });
     if (!tag) {
       return res.status(404).json({ error: 'Tag not found' });
@@ -1214,20 +1215,20 @@ router.get('/tags/:id', async (req, res) => {
 router.post('/tags', async (req, res) => {
   try {
     const tenantId = req.tenantId || req.user?.tenant_id || req.body.tenantId;
-    
+
     if (!tenantId) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: 'Tenant ID is required',
         message: 'Please provide tenant ID via authentication or request body'
       });
     }
-    
+
     // Use Sequelize model to create tag with tenant_id
     const tag = await Tag.create({
       ...req.body,
       tenant_id: tenantId
     });
-    
+
     res.status(201).json(tag.toJSON());
   } catch (error) {
     console.error('[testing] Error creating tag:', error);
@@ -1243,35 +1244,35 @@ router.put('/tags/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const tenantId = req.tenantId || req.user?.tenant_id || req.body.tenantId;
-    
+
     if (!tenantId) {
       return res.status(400).json({ error: 'Tenant ID is required to update tags' });
     }
-    
+
     // Build where clause - only allow updating tenant-specific tags
-    const whereClause = { 
+    const whereClause = {
       id: parseInt(id),
       tenant_id: tenantId // Only tenant-specific tags can be updated
     };
-    
+
     const tag = await Tag.findOne({ where: whereClause });
     if (!tag) {
       // Check if it's a master tag
-      const masterTag = await Tag.findOne({ 
-        where: { id: parseInt(id), tenant_id: null } 
+      const masterTag = await Tag.findOne({
+        where: { id: parseInt(id), tenant_id: null }
       });
       if (masterTag) {
-        return res.status(403).json({ 
-          error: 'Cannot update master tag. Master data (tenant_id = NULL) is shared across all tenants. Create a tenant-specific tag instead.' 
+        return res.status(403).json({
+          error: 'Cannot update master tag. Master data (tenant_id = NULL) is shared across all tenants. Create a tenant-specific tag instead.'
         });
       }
       return res.status(404).json({ error: 'Tag not found' });
     }
-    
+
     // Update tag (preserve tenant_id)
     const updateData = { ...req.body };
     delete updateData.tenant_id; // Never allow tenant_id changes via update
-    
+
     await tag.update(updateData);
     res.json(tag.toJSON());
   } catch (error) {
@@ -1288,7 +1289,7 @@ router.delete('/tags/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const tenantId = req.tenantId || req.user?.tenant_id || req.query.tenantId;
-    
+
     // Build where clause - only allow deletion of tenant-specific tags
     const whereClause = { id: parseInt(id) };
     if (tenantId) {
@@ -1297,17 +1298,17 @@ router.delete('/tags/:id', async (req, res) => {
     } else {
       return res.status(400).json({ error: 'Tenant ID is required to delete tags' });
     }
-    
+
     const tag = await Tag.findOne({ where: whereClause });
     if (!tag) {
       return res.status(404).json({ error: 'Tag not found or is a master tag (cannot delete master data)' });
     }
-    
+
     // Prevent deletion of master tags (tenant_id = NULL)
     if (!tag.tenant_id) {
       return res.status(403).json({ error: 'Cannot delete master tag. Master data (tenant_id = NULL) is shared across all tenants.' });
     }
-    
+
     await tag.destroy();
     res.json({ success: true, message: 'Tag deleted successfully', tag: tag.toJSON() });
   } catch (error) {
@@ -1322,7 +1323,7 @@ router.delete('/tags/:id', async (req, res) => {
 router.get('/posts', async (req, res) => {
   try {
     const { dbInitialized, dbInitializationError } = getDatabaseState();
-    
+
     // Check if database is ready
     if (!dbInitialized) {
       if (dbInitializationError) {
@@ -1339,7 +1340,7 @@ router.get('/posts', async (req, res) => {
 
     // Get tenant from authenticated user
     const tenantId = req.tenantId || req.user?.tenant_id || req.query.tenantId;
-    
+
     if (!tenantId) {
       return res.status(400).json({
         error: 'Tenant ID is required',
@@ -1348,7 +1349,7 @@ router.get('/posts', async (req, res) => {
     }
 
     console.log('[testing] Fetching all posts for tenant:', tenantId);
-    
+
     // Fetch posts using Sequelize with associations for new categories and tags tables
     const posts = await Post.findAll({
       where: {
@@ -1371,11 +1372,11 @@ router.get('/posts', async (req, res) => {
       ],
       order: [['created_at', 'DESC']]
     });
-    
+
     // Transform posts to include terms array for backward compatibility
     const postsWithTerms = posts.map(post => {
       const postJson = post.toJSON();
-      
+
       // Build terms array from categories and tags for backward compatibility
       const terms = [
         ...(postJson.categories || []).map(cat => ({
@@ -1389,17 +1390,17 @@ router.get('/posts', async (req, res) => {
           taxonomy: 'post_tag'
         }))
       ];
-      
+
       return {
         ...postJson,
         terms: terms
       };
     });
-    
+
     res.json(postsWithTerms);
   } catch (error) {
     console.error('[testing] Error fetching posts:', error);
-    
+
     // Handle database not ready errors
     const { dbInitialized } = getDatabaseState();
     if (error.code === '42P01' || error.message?.includes('does not exist')) {
@@ -1410,7 +1411,7 @@ router.get('/posts', async (req, res) => {
         });
       }
     }
-    
+
     res.status(500).json({ error: 'Failed to fetch posts' });
   }
 });
@@ -1419,7 +1420,7 @@ router.get('/posts', async (req, res) => {
 router.get('/posts/:id', async (req, res) => {
   try {
     const { dbInitialized, dbInitializationError } = getDatabaseState();
-    
+
     // Check if database is ready
     if (!dbInitialized) {
       if (dbInitializationError) {
@@ -1436,7 +1437,7 @@ router.get('/posts/:id', async (req, res) => {
 
     // Get tenant from authenticated user
     const tenantId = req.tenantId || req.user?.tenant_id || req.query.tenantId;
-    
+
     if (!tenantId) {
       return res.status(400).json({
         error: 'Tenant ID is required',
@@ -1446,7 +1447,7 @@ router.get('/posts/:id', async (req, res) => {
 
     const { id } = req.params;
     console.log('[testing] Fetching post:', id, 'for tenant:', tenantId);
-    
+
     // Fetch post using Sequelize with associations
     const post = await Post.findOne({
       where: {
@@ -1469,15 +1470,15 @@ router.get('/posts/:id', async (req, res) => {
         }
       ]
     });
-    
+
     if (!post) {
       return res.status(404).json({ error: 'Post not found' });
     }
-    
+
     res.json(post.toJSON());
   } catch (error) {
     console.error('[testing] Error fetching post:', error);
-    
+
     // Handle database not ready errors
     const { dbInitialized } = getDatabaseState();
     if (error.code === '42P01' || error.message?.includes('does not exist')) {
@@ -1488,7 +1489,7 @@ router.get('/posts/:id', async (req, res) => {
         });
       }
     }
-    
+
     res.status(500).json({ error: 'Failed to fetch post' });
   }
 });
@@ -1497,7 +1498,7 @@ router.get('/posts/:id', async (req, res) => {
 router.post('/posts', async (req, res) => {
   try {
     const { dbInitialized, dbInitializationError } = getDatabaseState();
-    
+
     // Check if database is ready
     if (!dbInitialized) {
       if (dbInitializationError) {
@@ -1523,7 +1524,7 @@ router.post('/posts', async (req, res) => {
       // Regular users or super admin without explicit tenantId in body
       tenantId = req.tenantId || req.user?.tenant_id || req.body.tenantId;
     }
-    
+
     if (!tenantId) {
       return res.status(400).json({
         error: 'Tenant ID is required',
@@ -1532,7 +1533,7 @@ router.post('/posts', async (req, res) => {
     }
 
     console.log('[testing] Creating new post for tenant:', tenantId, 'is_super_admin:', req.user?.is_super_admin);
-    
+
     const {
       title,
       slug,
@@ -1552,14 +1553,14 @@ router.post('/posts', async (req, res) => {
       twitter_description,
       featured_image_id
     } = req.body;
-    
+
     // Validate required fields
     if (!title || !slug) {
-      return res.status(400).json({ 
-        error: 'Title and slug are required' 
+      return res.status(400).json({
+        error: 'Title and slug are required'
       });
     }
-    
+
     // Create post using Sequelize
     const post = await Post.create({
       title,
@@ -1596,7 +1597,7 @@ router.post('/posts', async (req, res) => {
           const taxonomyResult = await query(`
             SELECT id FROM term_taxonomy WHERE term_id = $1 AND taxonomy = 'category'
           `, [categoryId]);
-          
+
           if (taxonomyResult.rows.length > 0) {
             await query(`
               INSERT INTO term_relationships (object_id, term_taxonomy_id)
@@ -1620,7 +1621,7 @@ router.post('/posts', async (req, res) => {
           const taxonomyResult = await query(`
             SELECT id FROM term_taxonomy WHERE term_id = $1 AND taxonomy = 'post_tag'
           `, [tagId]);
-          
+
           if (taxonomyResult.rows.length > 0) {
             await query(`
               INSERT INTO term_relationships (object_id, term_taxonomy_id)
@@ -1647,10 +1648,10 @@ router.post('/posts', async (req, res) => {
         }
       ]
     });
-    
+
     // Convert Sequelize model to plain object
     const postData = newPost ? newPost.toJSON() : post.toJSON();
-    
+
     // Sync to WordPress if enabled (non-blocking)
     if (req.body.wordpress_sync_enabled !== false) {
       // Set wordpress_sync_enabled if not explicitly set
@@ -1662,11 +1663,11 @@ router.post('/posts', async (req, res) => {
         console.error('[testing] WordPress sync error (non-blocking):', err);
       });
     }
-    
+
     res.status(201).json(postData);
   } catch (error) {
     console.error('[testing] Error creating post:', error);
-    
+
     // Handle database not ready errors
     const { dbInitialized } = getDatabaseState();
     if (error.code === '42P01' || error.message?.includes('does not exist')) {
@@ -1677,17 +1678,17 @@ router.post('/posts', async (req, res) => {
         });
       }
     }
-    
+
     // Handle unique constraint violations (duplicate slug)
     if (error.code === '23505' || error.message.includes('unique')) {
-      return res.status(409).json({ 
-        error: 'A post with this slug already exists' 
+      return res.status(409).json({
+        error: 'A post with this slug already exists'
       });
     }
-    
-    res.status(500).json({ 
+
+    res.status(500).json({
       error: 'Failed to create post',
-      message: error.message 
+      message: error.message
     });
   }
 });
@@ -1696,7 +1697,7 @@ router.post('/posts', async (req, res) => {
 router.put('/posts/:id', async (req, res) => {
   try {
     const { dbInitialized, dbInitializationError } = getDatabaseState();
-    
+
     // Check if database is ready
     if (!dbInitialized) {
       if (dbInitializationError) {
@@ -1722,7 +1723,7 @@ router.put('/posts/:id', async (req, res) => {
       // Regular users or super admin without explicit tenantId in body
       tenantId = req.tenantId || req.user?.tenant_id || req.body.tenantId;
     }
-    
+
     if (!tenantId) {
       return res.status(400).json({
         error: 'Tenant ID is required',
@@ -1732,7 +1733,7 @@ router.put('/posts/:id', async (req, res) => {
 
     const { id } = req.params;
     console.log('[testing] Updating post:', id, 'for tenant:', tenantId, 'is_super_admin:', req.user?.is_super_admin);
-    
+
     const {
       title,
       slug,
@@ -1752,33 +1753,33 @@ router.put('/posts/:id', async (req, res) => {
       twitter_description,
       featured_image_id
     } = req.body;
-    
+
     // Validate required fields
     if (!title || !slug) {
-      return res.status(400).json({ 
-        error: 'Title and slug are required' 
+      return res.status(400).json({
+        error: 'Title and slug are required'
       });
     }
-    
+
     // Find the post using Sequelize
     // For super admins, allow finding posts from any tenant
     // For regular users, only find posts from their tenant
     const whereClause = req.user?.is_super_admin
       ? { id: parseInt(id) } // Super admin can access any post
       : {
-          id: parseInt(id),
-          [Op.or]: [
-            { tenant_id: tenantId },
-            { tenant_id: null }
-          ]
-        };
-    
+        id: parseInt(id),
+        [Op.or]: [
+          { tenant_id: tenantId },
+          { tenant_id: null }
+        ]
+      };
+
     const post = await Post.findOne({ where: whereClause });
-    
+
     if (!post) {
       return res.status(404).json({ error: 'Post not found' });
     }
-    
+
     // Build update data
     const updateData = {
       title,
@@ -1797,12 +1798,12 @@ router.put('/posts/:id', async (req, res) => {
       featured_image_id: featured_image_id !== undefined ? featured_image_id : post.featured_image_id,
       published_at: published_at || null
     };
-    
+
     // For super admins, allow updating tenant_id if provided in body
     if (req.user?.is_super_admin && req.body.tenantId) {
       updateData.tenant_id = req.body.tenantId;
     }
-    
+
     // Update the post
     await post.update(updateData);
 
@@ -1821,7 +1822,7 @@ router.put('/posts/:id', async (req, res) => {
           const taxonomyResult = await query(`
             SELECT id FROM term_taxonomy WHERE term_id = $1 AND taxonomy = 'category'
           `, [categoryId]);
-          
+
           if (taxonomyResult.rows.length > 0) {
             await query(`
               INSERT INTO term_relationships (object_id, term_taxonomy_id)
@@ -1845,7 +1846,7 @@ router.put('/posts/:id', async (req, res) => {
           const taxonomyResult = await query(`
             SELECT id FROM term_taxonomy WHERE term_id = $1 AND taxonomy = 'post_tag'
           `, [tagId]);
-          
+
           if (taxonomyResult.rows.length > 0) {
             await query(`
               INSERT INTO term_relationships (object_id, term_taxonomy_id)
@@ -1872,7 +1873,7 @@ router.put('/posts/:id', async (req, res) => {
         }
       ]
     });
-    
+
     // Sync to WordPress if enabled (non-blocking)
     const finalPost = updatedPost || post;
     if (finalPost.wordpress_sync_enabled) {
@@ -1881,11 +1882,11 @@ router.put('/posts/:id', async (req, res) => {
         console.error('[testing] WordPress sync error (non-blocking):', err);
       });
     }
-    
+
     res.json(finalPost ? finalPost.toJSON() : post.toJSON());
   } catch (error) {
     console.error('[testing] Error updating post:', error);
-    
+
     // Handle database not ready errors
     const { dbInitialized } = getDatabaseState();
     if (error.code === '42P01' || error.message?.includes('does not exist')) {
@@ -1896,22 +1897,22 @@ router.put('/posts/:id', async (req, res) => {
         });
       }
     }
-    
+
     // Handle post not found
     if (error.message === 'Post not found') {
       return res.status(404).json({ error: 'Post not found' });
     }
-    
+
     // Handle unique constraint violations (duplicate slug)
     if (error.code === '23505' || error.message.includes('unique')) {
-      return res.status(409).json({ 
-        error: 'A post with this slug already exists' 
+      return res.status(409).json({
+        error: 'A post with this slug already exists'
       });
     }
-    
-    res.status(500).json({ 
+
+    res.status(500).json({
       error: 'Failed to update post',
-      message: error.message 
+      message: error.message
     });
   }
 });
@@ -1920,7 +1921,7 @@ router.put('/posts/:id', async (req, res) => {
 router.delete('/posts/:id', async (req, res) => {
   try {
     const { dbInitialized, dbInitializationError } = getDatabaseState();
-    
+
     // Check if database is ready
     if (!dbInitialized) {
       if (dbInitializationError) {
@@ -1937,7 +1938,7 @@ router.delete('/posts/:id', async (req, res) => {
 
     // Get tenant from authenticated user
     const tenantId = req.tenantId || req.user?.tenant_id || req.query.tenantId;
-    
+
     if (!tenantId) {
       return res.status(400).json({
         error: 'Tenant ID is required',
@@ -1947,10 +1948,10 @@ router.delete('/posts/:id', async (req, res) => {
 
     const { id } = req.params;
     console.log('[testing] Deleting post:', id, 'for tenant:', tenantId);
-    
+
     // Delete relationships first
     await query(`DELETE FROM term_relationships WHERE object_id = $1`, [parseInt(id)]);
-    
+
     // Delete the post (only if it belongs to this tenant)
     // Find and delete the post using Sequelize
     const post = await Post.findOne({
@@ -1962,20 +1963,20 @@ router.delete('/posts/:id', async (req, res) => {
         ]
       }
     });
-    
+
     if (!post) {
       return res.status(404).json({ error: 'Post not found' });
     }
-    
+
     await post.destroy();
-    
-    res.json({ 
+
+    res.json({
       success: true,
-      message: 'Post deleted successfully' 
+      message: 'Post deleted successfully'
     });
   } catch (error) {
     console.error('[testing] Error deleting post:', error);
-    
+
     // Handle database not ready errors
     const { dbInitialized } = getDatabaseState();
     if (error.code === '42P01' || error.message?.includes('does not exist')) {
@@ -1986,15 +1987,15 @@ router.delete('/posts/:id', async (req, res) => {
         });
       }
     }
-    
+
     // Handle post not found
     if (error.message === 'Post not found') {
       return res.status(404).json({ error: 'Post not found' });
     }
-    
-    res.status(500).json({ 
+
+    res.status(500).json({
       error: 'Failed to delete post',
-      message: error.message 
+      message: error.message
     });
   }
 });
@@ -2006,7 +2007,8 @@ router.get('/blog/posts', async (req, res) => {
   try {
     // Get tenant from request or use default
     const tenantId = req.query.tenant || 'tenant-gosg';
-    
+    const lang = req.query.lang || 'default';
+
     // Query posts from the database (using regular query instead of getDbForTenant)
     const queryText = `
       SELECT 
@@ -2030,15 +2032,28 @@ router.get('/blog/posts', async (req, res) => {
       ORDER BY p.created_at DESC
       LIMIT 20
     `;
-    
+
     const result = await query(queryText);
-    
-    // Format dates and ensure proper structure
-    const posts = result.rows.map(post => ({
-      ...post,
-      date: post.date ? new Date(post.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]
+
+    // Format dates and ensure proper structure, and apply translations
+    const posts = await Promise.all(result.rows.map(async post => {
+      let title = post.title;
+      let excerpt = post.excerpt;
+
+      if (lang !== 'default') {
+        const translations = await getTranslations('blog', post.id, lang, tenantId);
+        if (translations['title']?.value) title = translations['title'].value;
+        if (translations['excerpt']?.value) excerpt = translations['excerpt'].value;
+      }
+
+      return {
+        ...post,
+        title,
+        excerpt,
+        date: post.date ? new Date(post.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]
+      };
     }));
-    
+
     res.json(posts);
   } catch (error) {
     console.error('Error fetching blog posts:', error);
@@ -2051,7 +2066,8 @@ router.get('/blog/posts/:slug', async (req, res) => {
   try {
     const { slug } = req.params;
     const tenantId = req.query.tenant || 'tenant-gosg';
-    
+    const lang = req.query.lang || 'default';
+
     // Query post from the database (using regular query instead of getDbForTenant)
     const queryText = `
       SELECT 
@@ -2074,13 +2090,13 @@ router.get('/blog/posts/:slug', async (req, res) => {
       WHERE p.slug = $1 AND p.status = 'published'
       LIMIT 1
     `;
-    
+
     const result = await query(queryText, [slug]);
-    
+
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Post not found' });
     }
-    
+
     // Get post tags
     const tagsQuery = `
       SELECT t.name
@@ -2088,17 +2104,31 @@ router.get('/blog/posts/:slug', async (req, res) => {
       JOIN tags t ON pt.tag_id = t.id
       WHERE pt.post_id = $1
     `;
-    
+
     const tagsResult = await query(tagsQuery, [result.rows[0].id]);
     const tags = tagsResult.rows.map(row => row.name);
-    
+
+    let title = result.rows[0].title;
+    let excerpt = result.rows[0].excerpt;
+    let content = result.rows[0].content;
+
+    if (lang !== 'default') {
+      const translations = await getTranslations('blog', result.rows[0].id, lang, tenantId);
+      if (translations['title']?.value) title = translations['title'].value;
+      if (translations['excerpt']?.value) excerpt = translations['excerpt'].value;
+      if (translations['content']?.value) content = translations['content'].value;
+    }
+
     // Format post data
     const post = {
       ...result.rows[0],
+      title,
+      excerpt,
+      content,
       date: result.rows[0].date ? new Date(result.rows[0].date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
       tags: tags
     };
-    
+
     res.json(post);
   } catch (error) {
     console.error('Error fetching blog post:', error);
@@ -2114,7 +2144,7 @@ router.post('/pages/:pageId/migrate-schema', async (req, res) => {
     const { pageId } = req.params;
     const { tenantId } = req.body;
     console.log(`[testing] API: Migrating schema for page ${pageId} (tenant: ${tenantId})`);
-    
+
     // Get current page layout
     const page = await getPageWithLayout(pageId, tenantId);
     if (!page) {
@@ -2123,10 +2153,10 @@ router.post('/pages/:pageId/migrate-schema', async (req, res) => {
         error: 'Page not found'
       });
     }
-    
+
     // Import migration utilities
     const { migrateOldSchemaToNew, needsMigration } = await import('../../sparti-cms/utils/schema-migration.ts');
-    
+
     // Check if migration is needed
     if (!needsMigration(page.layout)) {
       return res.json({
@@ -2135,10 +2165,10 @@ router.post('/pages/:pageId/migrate-schema', async (req, res) => {
         migrated: false
       });
     }
-    
+
     // Migrate the schema
     const newSchema = migrateOldSchemaToNew(page.layout);
-    
+
     // Add version info
     const schemaWithVersion = {
       ...newSchema,
@@ -2148,17 +2178,17 @@ router.post('/pages/:pageId/migrate-schema', async (req, res) => {
         migratedFrom: '1.0'
       }
     };
-    
+
     // Update the database
     const success = await updatePageLayout(pageId, schemaWithVersion, tenantId);
-    
+
     if (!success) {
       return res.status(500).json({
         success: false,
         error: 'Failed to update page layout'
       });
     }
-    
+
     res.json({
       success: true,
       message: 'Schema migrated successfully',
@@ -2181,7 +2211,7 @@ router.post('/pages/:pageId/validate-schema', async (req, res) => {
     const { pageId } = req.params;
     const { tenantId } = req.body;
     console.log(`[testing] API: Validating schema for page ${pageId} (tenant: ${tenantId})`);
-    
+
     // Get current page layout
     const page = await getPageWithLayout(pageId, tenantId);
     if (!page) {
@@ -2190,14 +2220,14 @@ router.post('/pages/:pageId/validate-schema', async (req, res) => {
         error: 'Page not found'
       });
     }
-    
+
     // Import validation utilities
     const { validatePageSchema, getValidationSummary } = await import('../../sparti-cms/utils/schema-validator.ts');
-    
+
     // Validate the schema
     const validation = validatePageSchema(page.layout);
     const summary = getValidationSummary(page.layout);
-    
+
     res.json({
       success: true,
       validation: {
@@ -2269,7 +2299,7 @@ router.post('/import/wordpress', authenticateUser, upload.single('file'), async 
     // Extract and process categories
     const categoriesData = extractCategories(parsedData);
     const categoryMap = new Map(); // Map category name/slug to ID
-    
+
     for (const catData of categoriesData) {
       try {
         const slug = catData.slug || catData.name.toLowerCase().replace(/\s+/g, '-');
@@ -2291,7 +2321,7 @@ router.post('/import/wordpress', authenticateUser, upload.single('file'), async 
     // Extract and process tags
     const tagsData = extractTags(parsedData);
     const tagMap = new Map(); // Map tag name/slug to ID
-    
+
     for (const tagData of tagsData) {
       try {
         const slug = tagData.slug || tagData.name.toLowerCase().replace(/\s+/g, '-');
@@ -2312,7 +2342,7 @@ router.post('/import/wordpress', authenticateUser, upload.single('file'), async 
 
     // Extract and process posts
     const postsData = extractPosts(parsedData);
-    
+
     // Helper function to get or create category/tag from post
     const getOrCreateCategory = async (name) => {
       if (!name) return null;
@@ -2349,7 +2379,7 @@ router.post('/import/wordpress', authenticateUser, upload.single('file'), async 
         return null;
       }
     };
-    
+
     for (const postData of postsData) {
       try {
         // Check if post exists by slug
@@ -2371,10 +2401,10 @@ router.post('/import/wordpress', authenticateUser, upload.single('file'), async 
             const { imageMap, errors: imageErrors } = await downloadImages(imageUrls, tenantId);
             imagesDownloaded = Array.from(imageMap.values()).filter(url => url.startsWith('/uploads/')).length;
             summary.imagesDownloaded += imagesDownloaded;
-            
+
             // Update content with local image URLs
             updatedContent = updateImageReferences(postData.content, imageMap);
-            
+
             // Add image download errors to summary
             imageErrors.forEach(err => summary.errors.push(err));
           } catch (imageError) {
