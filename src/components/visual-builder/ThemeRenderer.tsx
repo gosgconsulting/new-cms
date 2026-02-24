@@ -31,6 +31,7 @@ const NailQueenTheme = lazy(() => import('../../../sparti-cms/theme/nail-queen')
 const OptimalConsultingTheme = lazy(() => import('../../../sparti-cms/theme/optimalconsulting'));
 const MasterTheme = lazy(() => import('../../../sparti-cms/theme/master'));
 const MoondkTheme = lazy(() => import('../../../sparti-cms/theme/moondk'));
+const StrTheme = lazy(() => import('../../../sparti-cms/theme/str'));
 
 /**
  * Map theme slugs to their display names and components
@@ -68,6 +69,14 @@ const themeConfig: Record<string, { name: string; component: React.LazyExoticCom
   'moondk': {
     name: 'Moondk',
     component: MoondkTheme
+  },
+  'master': {
+    name: 'Master',
+    component: MasterTheme
+  },
+  'str': {
+    name: 'STR Fitness',
+    component: StrTheme
   }
 };
 
