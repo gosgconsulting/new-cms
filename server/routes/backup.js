@@ -22,7 +22,7 @@ const router = express.Router();
 /*  Cron endpoint — Vercel sends Authorization: Bearer <CRON_SECRET>  */
 /* ------------------------------------------------------------------ */
 
-router.post('/cron/tenant-backup', async (req, res) => {
+router.all('/cron/tenant-backup', async (req, res) => {
     const secret = process.env.CRON_SECRET;
     if (!secret) {
         return res.status(500).json({ error: 'CRON_SECRET not configured' });
