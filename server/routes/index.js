@@ -27,6 +27,7 @@ import backupRoutes from './backup.js';
 import docsRoutes from './docs.js';
 import woocommerceSyncRoutes from './woocommerce-sync.js';
 import wordpressSyncRoutes from './wordpress-sync.js';
+import translationRoutes from './translations.js';
 
 const router = express.Router();
 
@@ -94,6 +95,7 @@ router.use('/api', backupRoutes);
 router.use('/api/woocommerce', woocommerceSyncRoutes);
 router.use('/api/wordpress', wordpressSyncRoutes);
 router.use('/api', docsRoutes);
+router.use('/api', translationRoutes);
 
 // Theme routes (mounted before other routes to catch /theme/* paths)
 // Theme auth routes (must come before general theme routes, but only handle specific paths)

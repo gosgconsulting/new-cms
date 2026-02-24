@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Save, 
+import {
+  Save,
   Send,
   X,
   Plus,
@@ -24,7 +24,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { 
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -39,6 +39,8 @@ import RichTextEditor from './RichTextEditor';
 import FeaturedImageSelector from './FeaturedImageSelector';
 import ExpandableCard from '../ui/ExpandableCard';
 import api from '../../utils/api';
+import TranslationLanguageSwitcher from './TranslationLanguageSwitcher';
+import { translateAllFields } from '../../services/translationApi';
 
 interface Category {
   id: number;
@@ -96,7 +98,7 @@ interface NewPostEditorProps {
 const NewPostEditor: React.FC<NewPostEditorProps> = ({ onBack, onSave, initialData }) => {
   const { user, currentTenantId } = useAuth();
   const [isSaving, setSaving] = useState(false);
-  
+
   // Form data state
   const [postData, setPostData] = useState<PostData>({
     title: '',
@@ -128,6 +130,56 @@ const NewPostEditor: React.FC<NewPostEditorProps> = ({ onBack, onSave, initialDa
   const [newTagName, setNewTagName] = useState('');
   const [editingField, setEditingField] = useState<string | null>(null);
 
+  // Translation state
+  const [translationLanguage, setTranslationLanguage] = useState<string>('default');
+  const [availableLanguages, setAvailableLanguages] = useState<string[]>([]);
+  const [translating, setTranslating] = useState(false);
+
+  // Fetch available languages
+  useEffect(() => {
+    const fetchLanguages = async () => {
+      try {
+        const defaultRes = await api.get(`/api/site-settings/site_language?tenantId=${currentTenantId}`);
+        const defaultData = await defaultRes.json();
+        const defaultLang = defaultData?.setting_value || 'en';
+
+        const contentRes = await api.get(`/api/site-settings/site_content_languages?tenantId=${currentTenantId}`);
+        const contentData = await contentRes.json();
+
+        if (contentData?.setting_value) {
+          const allLangs = contentData.setting_value.split(',').map((l: string) => l.trim()).filter(Boolean);
+          const additional = allLangs.filter((l: string) => l !== defaultLang);
+          setAvailableLanguages(additional);
+        }
+      } catch (err) {
+        console.log('[translation] Could not fetch languages:', err);
+      }
+    };
+    if (currentTenantId) fetchLanguages();
+  }, [currentTenantId]);
+
+  // Handle translate all post fields
+  const handleTranslateAll = async () => {
+    if (translationLanguage === 'default' || !initialData?.slug) return;
+    setTranslating(true);
+    try {
+      const fields: Record<string, string> = {};
+      if (postData.title) fields.title = postData.title;
+      if (postData.content) fields.content = postData.content;
+      if (postData.excerpt) fields.excerpt = postData.excerpt;
+      if (postData.meta_title) fields.meta_title = postData.meta_title;
+      if (postData.meta_description) fields.meta_description = postData.meta_description;
+      if (postData.og_title) fields.og_title = postData.og_title;
+      if (postData.og_description) fields.og_description = postData.og_description;
+      await translateAllFields('post', initialData.slug, translationLanguage, fields);
+      toast({ title: 'Translated', description: `AI translated ${Object.keys(fields).length} fields` });
+    } catch (err: any) {
+      toast({ title: 'Error', description: err.message || 'Translation failed', variant: 'destructive' });
+    } finally {
+      setTranslating(false);
+    }
+  };
+
   // Load data on component mount and when tenant changes
   useEffect(() => {
     if (currentTenantId) {
@@ -150,17 +202,17 @@ const NewPostEditor: React.FC<NewPostEditorProps> = ({ onBack, onSave, initialDa
   // Auto-generate meta fields from content
   useEffect(() => {
     if (postData.title && !postData.meta_title) {
-      setPostData(prev => ({ 
-        ...prev, 
+      setPostData(prev => ({
+        ...prev,
         meta_title: postData.title,
         og_title: postData.title,
         twitter_title: postData.title
       }));
     }
-    
+
     if (postData.excerpt && !postData.meta_description) {
-      setPostData(prev => ({ 
-        ...prev, 
+      setPostData(prev => ({
+        ...prev,
         meta_description: postData.excerpt,
         og_description: postData.excerpt,
         twitter_description: postData.excerpt
@@ -273,8 +325,8 @@ const NewPostEditor: React.FC<NewPostEditorProps> = ({ onBack, onSave, initialDa
   const handleSave = async (status?: 'draft' | 'published') => {
     setSaving(true);
     try {
-      const saveData = { 
-        ...postData, 
+      const saveData = {
+        ...postData,
         status: status || postData.status,
         published_at: status === 'published' ? new Date().toISOString() : postData.published_at,
         categories: Array.isArray(postData.categories) ? postData.categories : [],
@@ -283,9 +335,9 @@ const NewPostEditor: React.FC<NewPostEditorProps> = ({ onBack, onSave, initialDa
           tenantId: currentTenantId || user.tenant_id
         } : {})
       };
-      
+
       await onSave(saveData);
-      
+
       toast({
         title: "Post Saved",
         description: `Post has been saved as ${status || postData.status}.`
@@ -349,6 +401,27 @@ const NewPostEditor: React.FC<NewPostEditorProps> = ({ onBack, onSave, initialDa
           </Button>
         </div>
 
+        {/* Translation Switcher */}
+        {availableLanguages.length > 0 && (
+          <div className="mb-4">
+            <TranslationLanguageSwitcher
+              contentType="post"
+              contentId={initialData?.slug ? parseInt(String(initialData.slug)) : 0}
+              currentLanguage={translationLanguage}
+              defaultLanguage="default"
+              availableLanguages={availableLanguages}
+              onLanguageChange={setTranslationLanguage}
+              onTranslateAll={handleTranslateAll}
+            />
+            {translationLanguage !== 'default' && (
+              <div style={{ background: '#EEF2FF', border: '1px solid #C7D2FE', borderRadius: 8, padding: '6px 16px', fontSize: 13, color: '#4338CA', marginTop: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+                🌐 Editing translations for <strong>{translationLanguage.toUpperCase()}</strong>
+                {translating && <span style={{ marginLeft: 8 }}>⏳ Translating...</span>}
+              </div>
+            )}
+          </div>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Content Area */}
           <div className="lg:col-span-2 space-y-6">
@@ -398,8 +471,8 @@ const NewPostEditor: React.FC<NewPostEditorProps> = ({ onBack, onSave, initialDa
                   {renderEditButton('status')}
                 </div>
                 {editingField === 'status' && (
-                  <Select 
-                    value={postData.status} 
+                  <Select
+                    value={postData.status}
                     onValueChange={(value: any) => {
                       handleInputChange('status', value);
                       setEditingField(null);
@@ -425,8 +498,8 @@ const NewPostEditor: React.FC<NewPostEditorProps> = ({ onBack, onSave, initialDa
                   {renderEditButton('visibility')}
                 </div>
                 {editingField === 'visibility' && (
-                  <Select 
-                    value={postData.visibility || 'public'} 
+                  <Select
+                    value={postData.visibility || 'public'}
                     onValueChange={(value: any) => {
                       handleInputChange('visibility', value);
                       setEditingField(null);
@@ -473,8 +546,8 @@ const NewPostEditor: React.FC<NewPostEditorProps> = ({ onBack, onSave, initialDa
                   {renderEditButton('template')}
                 </div>
                 {editingField === 'template' && (
-                  <Select 
-                    value={postData.template || 'default'} 
+                  <Select
+                    value={postData.template || 'default'}
                     onValueChange={(value: any) => {
                       handleInputChange('template', value);
                       setEditingField(null);
@@ -578,8 +651,8 @@ const NewPostEditor: React.FC<NewPostEditorProps> = ({ onBack, onSave, initialDa
               <div className="space-y-4">
                 <div>
                   <Label htmlFor="author">Author</Label>
-                  <Select 
-                    value={postData.author_id.toString()} 
+                  <Select
+                    value={postData.author_id.toString()}
                     onValueChange={(value) => handleInputChange('author_id', parseInt(value))}
                   >
                     <SelectTrigger>
@@ -588,7 +661,7 @@ const NewPostEditor: React.FC<NewPostEditorProps> = ({ onBack, onSave, initialDa
                     <SelectContent>
                       {users.map(user => (
                         <SelectItem key={user.id} value={user.id.toString()}>
-                          {user.first_name || user.last_name 
+                          {user.first_name || user.last_name
                             ? `${user.first_name || ''} ${user.last_name || ''}`.trim()
                             : user.email
                           }
@@ -624,12 +697,12 @@ const NewPostEditor: React.FC<NewPostEditorProps> = ({ onBack, onSave, initialDa
                         <Plus className="h-4 w-4" />
                       </Button>
                     </div>
-                    
+
                     {getSelectedTags().length > 0 && (
                       <div className="flex flex-wrap gap-2">
                         {getSelectedTags().map(tag => (
-                          <Badge 
-                            key={tag.id} 
+                          <Badge
+                            key={tag.id}
                             variant="secondary"
                             className="flex items-center gap-1"
                           >
