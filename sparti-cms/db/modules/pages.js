@@ -829,9 +829,9 @@ async function ensurePageExists(pageId, tenantId, themeId = null) {
   
   if (themeId) {
     console.log('[testing] Checking page with theme_id...');
-    // Check with theme_id when provided
+    // Check with theme_id when provided; allow theme-template pages (tenant_id IS NULL)
     pageCheck = await query(`
-      SELECT id FROM pages WHERE id::text = $1 AND tenant_id = $2 AND theme_id = $3
+      SELECT id FROM pages WHERE id::text = $1 AND (tenant_id = $2 OR tenant_id IS NULL) AND theme_id = $3
     `, [pageId, tenantId, themeId]);
     
     console.log('[testing] Query result (text match):', {
@@ -843,7 +843,7 @@ async function ensurePageExists(pageId, tenantId, themeId = null) {
     if (pageCheck.rows.length === 0 && /^\d+$/.test(String(pageId))) {
       console.log('[testing] Retrying with integer pageId...');
       pageCheck = await query(`
-        SELECT id FROM pages WHERE id = $1 AND tenant_id = $2 AND theme_id = $3
+        SELECT id FROM pages WHERE id = $1 AND (tenant_id = $2 OR tenant_id IS NULL) AND theme_id = $3
       `, [parseInt(pageId), tenantId, themeId]);
       
       console.log('[testing] Query result (integer match):', {
@@ -853,9 +853,9 @@ async function ensurePageExists(pageId, tenantId, themeId = null) {
     }
   } else {
     console.log('[testing] Checking page without theme_id...');
-    // Check without theme_id (legacy behavior)
+    // Check without theme_id (legacy behavior); allow theme-template pages (tenant_id IS NULL)
     pageCheck = await query(`
-      SELECT id FROM pages WHERE id::text = $1 AND tenant_id = $2
+      SELECT id FROM pages WHERE id::text = $1 AND (tenant_id = $2 OR tenant_id IS NULL)
     `, [pageId, tenantId]);
     
     console.log('[testing] Query result (text match, no theme):', {
@@ -867,7 +867,7 @@ async function ensurePageExists(pageId, tenantId, themeId = null) {
     if (pageCheck.rows.length === 0 && /^\d+$/.test(String(pageId))) {
       console.log('[testing] Retrying with integer pageId (no theme)...');
       pageCheck = await query(`
-        SELECT id FROM pages WHERE id = $1 AND tenant_id = $2
+        SELECT id FROM pages WHERE id = $1 AND (tenant_id = $2 OR tenant_id IS NULL)
       `, [parseInt(pageId), tenantId]);
       
       console.log('[testing] Query result (integer match, no theme):', {

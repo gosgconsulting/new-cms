@@ -232,17 +232,61 @@ router.get('/pages/all', authenticateUser, async (req, res) => {
       from_filesystem: fromFilesystem
     };
     
-    console.log(`[testing] API: Sending response with ${validatedPages.length} validated page(s)`);
-    console.log(`[testing] API: ==========================================`);
-    
     res.json(response);
   } catch (error) {
-    console.error('[testing] API: Error fetching pages:', error);
-    res.status(500).json({ 
-      success: false, 
+    console.error('[testing] API: Error in /pages/all:', error);
+    res.status(500).json({
+      success: false,
       error: 'Failed to fetch pages',
-      message: error.message 
+      message: error.message
     });
+  }
+});
+
+// Create one or more pages (array) for a tenant/theme
+router.post('/pages', authenticateUser, async (req, res) => {
+  try {
+    const { pages: pagesPayload, tenantId, themeId } = req.body;
+    if (!Array.isArray(pagesPayload) || pagesPayload.length === 0 || !tenantId) {
+      return res.status(400).json({
+        success: false,
+        error: 'Bad Request',
+        message: 'pages (array) and tenantId are required'
+      });
+    }
+    if (!req.user.is_super_admin && tenantId !== req.user.tenant_id) {
+      return res.status(403).json({
+        success: false,
+        error: 'Forbidden',
+        message: 'You can only create pages for your own tenant'
+      });
+    }
+    const created = [];
+    const now = new Date().toISOString();
+    for (const p of pagesPayload) {
+      const result = await query(`
+        INSERT INTO pages (page_name, slug, meta_title, meta_description, seo_index, status, page_type, theme_id, tenant_id, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+        RETURNING id, page_name, slug, meta_title, meta_description, seo_index, status, page_type, theme_id, tenant_id, created_at, updated_at
+      `, [
+        p.page_name || 'Untitled',
+        p.slug || '/',
+        p.meta_title || null,
+        p.meta_description || null,
+        p.seo_index !== undefined ? p.seo_index : (p.page_type === 'legal' ? false : true),
+        p.status || 'draft',
+        p.page_type || 'page',
+        themeId && themeId !== 'custom' ? themeId : null,
+        tenantId,
+        now,
+        now
+      ]);
+      created.push(result.rows[0]);
+    }
+    res.json({ success: true, pages: created });
+  } catch (err) {
+    console.error('[testing] POST /pages error:', err);
+    res.status(500).json({ success: false, error: err.message, message: err.message });
   }
 });
 

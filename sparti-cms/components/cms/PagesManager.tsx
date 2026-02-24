@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Button } from '../../../src/components/ui/button';
 import { Card } from '../../../src/components/ui/card';
 import { Badge } from '../../../src/components/ui/badge';
-import { Edit, Eye, FileText, Rocket, Scale, Layout, Minus, Code, RefreshCw, History, Save, Loader2, Search } from 'lucide-react';
+import { Edit, Eye, FileText, Rocket, Scale, Layout, Minus, Code, RefreshCw, History, Save, Loader2, Search, Plus } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../src/components/ui/select';
 import ClassicRenderer from '../../../src/components/visual-builder/ClassicRenderer';
 import ThemeRenderer from '../../../src/components/visual-builder/ThemeRenderer';
@@ -20,6 +20,26 @@ import { isValidComponentsArray } from '../../utils/componentHelpers';
 import FlowbiteDioraRenderer from '../../../src/components/visual-builder/FlowbiteDioraRenderer';
 import { applyFlowbiteTheme } from '../../../src/utils/flowbiteThemeManager';
 import { ComponentSchema } from '../../types/schema';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from '../../../src/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '../../../src/components/ui/alert-dialog';
+import { Input } from '../../../src/components/ui/input';
+import { Label } from '../../../src/components/ui/label';
 
 interface PageItem {
   id: string;
@@ -138,6 +158,11 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
   const [showSEODialog, setShowSEODialog] = useState(false);
   const [selectedPageForSEO, setSelectedPageForSEO] = useState<PageItem | null>(null);
   const [activeTab, setActiveTab] = useState<'page' | 'landing' | 'legal' | 'header' | 'footer'>('page');
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [showHeaderFooterWarning, setShowHeaderFooterWarning] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [newPageName, setNewPageName] = useState('');
+  const [newPageSlug, setNewPageSlug] = useState('');
   const [previewMode, setPreviewMode] = useState<'flowbite' | 'classic' | 'theme'>('flowbite');
   const [previewThemeId, setPreviewThemeId] = useState<string | null>(null); // Theme selected in preview
 
@@ -182,6 +207,19 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
     { id: 'legal' as const, label: 'Legals', icon: Scale },
     { id: 'header' as const, label: 'Header', icon: Layout },
     { id: 'footer' as const, label: 'Footer', icon: Layout },
+  ];
+
+  const createButtonLabel: Record<'page' | 'landing' | 'legal' | 'header' | 'footer', string> = {
+    page: 'Create new Page',
+    legal: 'Create new Legal page',
+    header: 'Create new Header',
+    footer: 'Create new Footer',
+    landing: 'Create new Landing Page',
+  };
+
+  const LEGAL_PAGES = [
+    { page_name: 'Privacy Policy', slug: '/privacy-policy', page_type: 'legal' as const, status: 'draft' as const },
+    { page_name: 'Terms of Service', slug: '/terms-conditions', page_type: 'legal' as const, status: 'draft' as const },
   ];
 
   // Load pages from database for tenant + theme combination
@@ -733,6 +771,73 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
     }
   };
 
+  const createPages = async (pagesToCreate: Array<{ page_name: string; slug: string; page_type: string; status?: string }>) => {
+    if (!currentTenantId || pagesToCreate.length === 0) return;
+    try {
+      setCreating(true);
+      const res = await api.post('/api/pages', {
+        pages: pagesToCreate,
+        tenantId: currentTenantId,
+        themeId: currentThemeId && currentThemeId !== 'custom' ? currentThemeId : null,
+      }, { headers: { 'X-Tenant-Id': currentTenantId } });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || err.error || 'Failed to create page(s)');
+      }
+      await loadPages();
+      toast({
+        title: 'Page(s) created',
+        description: `Created ${pagesToCreate.length} page(s) successfully.`,
+      });
+      setShowCreateDialog(false);
+      setShowHeaderFooterWarning(false);
+      setNewPageName('');
+      setNewPageSlug('');
+    } catch (e: any) {
+      toast({
+        title: 'Error',
+        description: e?.message || 'Failed to create page(s)',
+        variant: 'destructive',
+      });
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const handleCreateClick = () => {
+    if (activeTab === 'page') {
+      setShowCreateDialog(true);
+      return;
+    }
+    if (activeTab === 'legal') {
+      createPages(LEGAL_PAGES);
+      return;
+    }
+    if (activeTab === 'header' || activeTab === 'footer') {
+      if (filteredPages.length > 0) {
+        setShowHeaderFooterWarning(true);
+      } else {
+        createPages([{
+          page_name: activeTab === 'header' ? 'Header' : 'Footer',
+          slug: activeTab === 'header' ? '/header' : '/footer',
+          page_type: activeTab,
+          status: 'draft',
+        }]);
+      }
+    }
+  };
+
+  const handleCreatePageSubmit = () => {
+    const name = (newPageName || '').trim();
+    const slug = (newPageSlug || '').trim();
+    if (!name || !slug) {
+      toast({ title: 'Validation', description: 'Page name and slug are required.', variant: 'destructive' });
+      return;
+    }
+    const normalizedSlug = slug.startsWith('/') ? slug : `/${slug}`;
+    createPages([{ page_name: name, slug: normalizedSlug, page_type: 'page', status: 'draft' }]);
+  };
+
   const getThemePageUrl = (slug: string): string => {
     if (!currentThemeId) return '';
     
@@ -1092,26 +1197,37 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
       {/* Tab Navigation */}
       <div className="bg-white rounded-lg border border-gray-200 mb-6">
         <div className="border-b border-gray-200">
-          <nav className="flex space-x-8 px-6">
-            {tabs.map((tab) => {
-              const Icon = tab.icon;
-              const isActive = activeTab === tab.id;
-              
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center space-x-2 py-4 px-2 border-b-2 font-medium text-sm transition-colors ${
-                    isActive
-                      ? 'border-purple-500 text-purple-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-                >
-                  <Icon className="h-5 w-5" />
-                  <span>{tab.label}</span>
-                </button>
-              );
-            })}
+          <nav className="flex items-center justify-between px-6">
+            <div className="flex space-x-8">
+              {tabs.map((tab) => {
+                const Icon = tab.icon;
+                const isActive = activeTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`flex items-center space-x-2 py-4 px-2 border-b-2 font-medium text-sm transition-colors ${
+                      isActive
+                        ? 'border-purple-500 text-purple-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    }`}
+                  >
+                    <Icon className="h-5 w-5" />
+                    <span>{tab.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleCreateClick}
+              disabled={creating}
+              className="flex items-center gap-2"
+            >
+              {creating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+              {createButtonLabel[activeTab]}
+            </Button>
           </nav>
         </div>
         
@@ -1182,6 +1298,72 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Create Page Dialog (Pages tab) */}
+      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Create new Page</DialogTitle>
+            <DialogDescription>Add a new page. Enter the page name and URL slug.</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="new-page-name">Page name</Label>
+              <Input
+                id="new-page-name"
+                value={newPageName}
+                onChange={(e) => setNewPageName(e.target.value)}
+                placeholder="e.g. About Us"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="new-page-slug">Slug</Label>
+              <Input
+                id="new-page-slug"
+                value={newPageSlug}
+                onChange={(e) => setNewPageSlug(e.target.value)}
+                placeholder="e.g. /about"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowCreateDialog(false)}>Cancel</Button>
+            <Button onClick={handleCreatePageSubmit} disabled={creating}>
+              {creating ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+              Create
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Header/Footer: confirm when one already exists */}
+      <AlertDialog open={showHeaderFooterWarning} onOpenChange={setShowHeaderFooterWarning}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Create another {activeTab === 'header' ? 'Header' : 'Footer'}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              A {activeTab} page already exists. Header and footer are typically global (one per site). Do you want to create another one?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                createPages([{
+                  page_name: activeTab === 'header' ? 'Header' : 'Footer',
+                  slug: activeTab === 'header' ? '/header' : '/footer',
+                  page_type: activeTab,
+                  status: 'draft',
+                }]);
+              }}
+              disabled={creating}
+            >
+              {creating ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+              Create
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
