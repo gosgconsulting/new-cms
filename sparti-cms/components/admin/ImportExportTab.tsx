@@ -340,7 +340,7 @@ export default function ImportExportTab({ currentTenantId }: ImportExportTabProp
           </div>
         </div>
         <p className="text-sm text-muted-foreground mb-4">
-          Automatic daily backups are stored in Vercel Blob. Backups older than 30 days are automatically cleaned up.
+          Automatic daily backups. Backups older than 30 days are automatically cleaned up.
         </p>
 
         {loadingBackups && backups.length === 0 ? (

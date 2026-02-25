@@ -40,6 +40,8 @@ import {
 } from '../../../src/components/ui/alert-dialog';
 import { Input } from '../../../src/components/ui/input';
 import { Label } from '../../../src/components/ui/label';
+import TranslationLanguageSwitcher from './TranslationLanguageSwitcher';
+import { translateAllFields, fetchTranslations, saveTranslations } from '../../services/translationApi';
 
 interface PageItem {
   id: string;
@@ -67,7 +69,7 @@ interface PagesManagerProps {
 // Hardcoded pages for themes (fallback when database and file system are unavailable)
 const getHardcodedThemePages = (themeId: string): PageItem[] => {
   const now = new Date().toISOString();
-  
+
   // Define hardcoded pages for each theme
   const themePagesMap: Record<string, PageItem[]> = {
     'landingpage': [
@@ -87,12 +89,12 @@ const getHardcodedThemePages = (themeId: string): PageItem[] => {
     // Add more themes here as needed
     // 'other-theme': [...]
   };
-  
+
   // Return hardcoded pages for the theme, or default homepage if not found
   if (themePagesMap[themeId]) {
     return themePagesMap[themeId];
   }
-  
+
   // Default: return a homepage for any theme that doesn't have specific pages defined
   return [
     {
@@ -116,18 +118,18 @@ const loadThemePages = async (themeId: string | null): Promise<PageItem[]> => {
   if (!themeId) {
     return [];
   }
-  
+
   try {
     const response = await api.get(`/api/pages/theme/${themeId}`);
     if (response.ok) {
       const data = await response.json();
       const pages = data.pages || [];
-      
+
       // If API returned pages, use them
       if (pages.length > 0) {
         return pages;
       }
-      
+
       // If API returned empty array, fallback to hardcoded pages
       console.log(`[testing] No pages from API for theme ${themeId}, using hardcoded pages`);
       return getHardcodedThemePages(themeId);
@@ -142,8 +144,8 @@ const loadThemePages = async (themeId: string | null): Promise<PageItem[]> => {
   }
 };
 
-export const PagesManager: React.FC<PagesManagerProps> = ({ 
-  onEditModeChange, 
+export const PagesManager: React.FC<PagesManagerProps> = ({
+  onEditModeChange,
   currentTenantId,
   currentThemeId
 }) => {
@@ -171,15 +173,241 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
   // Use a ref to track the latest components for save operations
   // This ensures we always have the most up-to-date value even if state hasn't updated yet
   const builderComponentsRef = useRef<ComponentSchema[]>([]);
-  
+
   // Keep ref in sync with state
   useEffect(() => {
     builderComponentsRef.current = builderComponents;
   }, [builderComponents]);
-  
+
   const [builderLoading, setBuilderLoading] = useState(false);
   const [builderError, setBuilderError] = useState<string | null>(null);
+
+  // Translation state
+  const [translationLanguage, setTranslationLanguage] = useState<string>('default');
+  const [availableLanguages, setAvailableLanguages] = useState<string[]>([]);
+  const [translating, setTranslating] = useState(false);
   const [savingLayout, setSavingLayout] = useState(false);
+
+  // Store original (default language) components so we can restore them
+  const originalComponentsRef = useRef<ComponentSchema[] | null>(null);
+
+  // When language changes, fetch & apply translations or restore originals
+  useEffect(() => {
+    if (!visualEditorPage || !visualEditorPage.id) return;
+
+    if (translationLanguage === 'default') {
+      // Restore original components
+      if (originalComponentsRef.current) {
+        setBuilderComponents(originalComponentsRef.current);
+        builderComponentsRef.current = originalComponentsRef.current;
+        originalComponentsRef.current = null;
+        console.log('[translation] Restored original components');
+      }
+      return;
+    }
+
+    // Save originals if not already saved
+    if (!originalComponentsRef.current) {
+      originalComponentsRef.current = JSON.parse(JSON.stringify(builderComponents));
+    }
+
+    const applyTranslations = async () => {
+      try {
+        const contentId = parseInt(visualEditorPage.id || '0');
+        const translationMap = await fetchTranslations('page', contentId, translationLanguage);
+        console.log('[translation] Fetched translations:', Object.keys(translationMap).length);
+
+        if (Object.keys(translationMap).length === 0) {
+          console.log('[translation-debug] No translations found for', translationLanguage, '- resetting to original components');
+          const original = JSON.parse(JSON.stringify(originalComponentsRef.current));
+          setBuilderComponents(original);
+          builderComponentsRef.current = original;
+          return;
+        }
+
+        // Deep clone original components and apply translations
+        const translated = JSON.parse(JSON.stringify(originalComponentsRef.current));
+
+        // Apply translation values back to the component tree
+        const applyToItem = (item: any, keyPrefix: string) => {
+          if (!item) return;
+          const textFields = ['content', 'title', 'description', 'label', 'buttonText', 'highlight', 'alt', 'address', 'phone', 'email'];
+          for (const field of textFields) {
+            const key = `${keyPrefix}.${field}`;
+            if (translationMap[key] && translationMap[key].value) {
+              item[field] = translationMap[key].value;
+            }
+          }
+          if (Array.isArray(item.items)) {
+            item.items.forEach((child: any, i: number) => {
+              applyToItem(child, `${keyPrefix}.items[${i}]`);
+            });
+          }
+          if (Array.isArray(item.tabs)) {
+            item.tabs.forEach((tab: any, i: number) => {
+              const tabLabelKey = `${keyPrefix}.tabs[${i}].label`;
+              if (translationMap[tabLabelKey] && translationMap[tabLabelKey].value) {
+                tab.label = translationMap[tabLabelKey].value;
+              }
+              if (Array.isArray(tab.content)) {
+                tab.content.forEach((child: any, j: number) => {
+                  applyToItem(child, `${keyPrefix}.tabs[${i}].content[${j}]`);
+                });
+              }
+            });
+          }
+          if (item.props && typeof item.props === 'object') {
+            for (const [propKey] of Object.entries(item.props)) {
+              const propsFieldKey = `${keyPrefix}.props.${propKey}`;
+              if (translationMap[propsFieldKey] && translationMap[propsFieldKey].value) {
+                item.props[propKey] = translationMap[propsFieldKey].value;
+              }
+            }
+          }
+        };
+
+        translated.forEach((comp: any, idx: number) => {
+          const prefix = `component_${comp.key || comp.type || idx}`;
+          if (Array.isArray(comp.items)) {
+            comp.items.forEach((item: any, i: number) => {
+              applyToItem(item, `${prefix}.items[${i}]`);
+            });
+          }
+          if (comp.props && typeof comp.props === 'object') {
+            for (const [propKey] of Object.entries(comp.props)) {
+              const propsFieldKey = `${prefix}.props.${propKey}`;
+              if (translationMap[propsFieldKey] && translationMap[propsFieldKey].value) {
+                comp.props[propKey] = translationMap[propsFieldKey].value;
+              }
+            }
+          }
+        });
+
+        console.log('[translation-debug] COMPLETED MAPPING. Translated Hero content:', translated.find((c: any) => c.key === 'HeroSection' || c.type === 'HeroSection')?.items?.[0]?.content);
+
+        setBuilderComponents(translated);
+        builderComponentsRef.current = translated;
+        console.log('[translation-debug] Applied translations to components!');
+      } catch (err) {
+        console.error('[translation] Failed to load translations:', err);
+      }
+    };
+
+    applyTranslations();
+  }, [translationLanguage, visualEditorPage]);
+
+  // Fetch available languages for translation
+  useEffect(() => {
+    const fetchLanguages = async () => {
+      try {
+        const defaultRes = await api.get(`/api/site-settings/site_language?tenantId=${currentTenantId}`);
+        const defaultData = await defaultRes.json();
+        const defaultLang = defaultData?.setting_value || 'en';
+
+        const contentRes = await api.get(`/api/site-settings/site_content_languages?tenantId=${currentTenantId}`);
+        const contentData = await contentRes.json();
+
+        if (contentData?.setting_value) {
+          const allLangs = contentData.setting_value.split(',').map((l: string) => l.trim()).filter(Boolean);
+          const additional = allLangs.filter((l: string) => l !== defaultLang);
+          setAvailableLanguages(additional);
+          console.log('[translation] Default:', defaultLang, 'Additional:', additional);
+        }
+      } catch (err) {
+        console.log('[translation] Could not fetch languages:', err);
+      }
+    };
+    if (currentTenantId) fetchLanguages();
+  }, [currentTenantId]);
+
+  // Handle translate all fields for current page
+  const handleTranslateAll = useCallback(async () => {
+    if (!visualEditorPage || translationLanguage === 'default') return;
+    setTranslating(true);
+    try {
+      const fields: Record<string, string> = {};
+
+      // Extract translatable text from a SchemaItem recursively
+      const extractFromItem = (item: any, keyPrefix: string) => {
+        if (!item) return;
+        // Direct text fields on SchemaItem
+        const textFields = ['content', 'title', 'description', 'label', 'buttonText', 'highlight', 'alt', 'address', 'phone', 'email'];
+        for (const field of textFields) {
+          if (item[field] && typeof item[field] === 'string' && item[field].trim().length > 0) {
+            fields[`${keyPrefix}.${field}`] = item[field];
+          }
+        }
+        // Nested items (array type)
+        if (Array.isArray(item.items)) {
+          item.items.forEach((child: any, i: number) => {
+            extractFromItem(child, `${keyPrefix}.items[${i}]`);
+          });
+        }
+        // Tabs
+        if (Array.isArray(item.tabs)) {
+          item.tabs.forEach((tab: any, i: number) => {
+            if (tab.label && typeof tab.label === 'string') {
+              fields[`${keyPrefix}.tabs[${i}].label`] = tab.label;
+            }
+            if (Array.isArray(tab.content)) {
+              tab.content.forEach((child: any, j: number) => {
+                extractFromItem(child, `${keyPrefix}.tabs[${i}].content[${j}]`);
+              });
+            }
+          });
+        }
+        // Hours
+        if (Array.isArray(item.hours)) {
+          item.hours.forEach((h: any, i: number) => {
+            if (h.day && typeof h.day === 'string') fields[`${keyPrefix}.hours[${i}].day`] = h.day;
+            if (h.time && typeof h.time === 'string') fields[`${keyPrefix}.hours[${i}].time`] = h.time;
+          });
+        }
+        // Props bag (if any)
+        if (item.props && typeof item.props === 'object') {
+          for (const [key, value] of Object.entries(item.props)) {
+            if (typeof value === 'string' && value.trim().length > 0) {
+              fields[`${keyPrefix}.props.${key}`] = value;
+            }
+          }
+        }
+      };
+
+      builderComponents.forEach((comp, idx) => {
+        const prefix = `component_${comp.key || comp.type || idx}`;
+        // Extract from items array (main content)
+        if (Array.isArray(comp.items)) {
+          comp.items.forEach((item, i) => {
+            extractFromItem(item, `${prefix}.items[${i}]`);
+          });
+        }
+        // Also extract from props bag if present
+        if (comp.props && typeof comp.props === 'object') {
+          for (const [key, value] of Object.entries(comp.props)) {
+            if (typeof value === 'string' && value.trim().length > 0) {
+              fields[`${prefix}.props.${key}`] = value;
+            }
+          }
+        }
+      });
+
+      console.log('[translation] Extracted fields:', Object.keys(fields).length, fields);
+      await translateAllFields('page', parseInt(visualEditorPage.id || '0'), translationLanguage, fields);
+      toast({
+        title: 'Translation Complete',
+        description: `AI translated ${Object.keys(fields).length} fields to ${translationLanguage}`,
+      });
+    } catch (err: any) {
+      console.error('[translation] Translate all failed:', err);
+      toast({
+        title: 'Translation Failed',
+        description: err.message || 'Translation failed',
+        variant: 'destructive',
+      });
+    } finally {
+      setTranslating(false);
+    }
+  }, [visualEditorPage, translationLanguage, builderComponents]);
 
   // Fetch available themes for preview selector
   const { data: availableThemes = [] } = useQuery<Array<{ id: string; name: string; slug: string }>>({
@@ -225,7 +453,7 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
   // Load pages from database for tenant + theme combination
   useEffect(() => {
     console.log('[testing] Loading pages for tenant:', currentTenantId, 'theme:', currentThemeId);
-    
+
     if (currentTenantId && currentThemeId) {
       // Load pages for tenant + theme combination
       loadPages();
@@ -241,14 +469,14 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
     try {
       setLoading(true);
       setError(null);
-      
+
       // Load pages for tenant + theme combination
       // If theme is 'custom', load tenant pages without theme filter
       // Otherwise, load pages filtered by both tenant and theme
-      const url = currentThemeId === 'custom' 
+      const url = currentThemeId === 'custom'
         ? `/api/pages/all?tenantId=${currentTenantId}`
         : `/api/pages/all?tenantId=${currentTenantId}&themeId=${currentThemeId}`;
-      
+
       console.log('[testing] Frontend: ========== Loading Pages ==========');
       console.log('[testing] Frontend: currentTenantId:', currentTenantId);
       console.log('[testing] Frontend: currentThemeId:', currentThemeId);
@@ -256,7 +484,7 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
       console.log('[testing] Frontend: Headers:', {
         'X-Tenant-Id': currentTenantId || ''
       });
-      
+
       let response;
       try {
         response = await api.get(url, {
@@ -267,7 +495,7 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
       } catch (apiError: any) {
         // If API call fails (e.g., database not ready), try to get theme pages from filesystem
         console.log('[testing] Frontend: API call failed, trying theme pages fallback:', apiError?.message);
-        
+
         if (currentThemeId && currentThemeId !== 'custom') {
           try {
             // Try to get theme pages directly (which falls back to filesystem)
@@ -284,7 +512,7 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
             console.log('[testing] Frontend: Theme pages API also failed:', themeError);
           }
         }
-        
+
         // If all else fails, use hardcoded pages for the theme
         console.log('[testing] Frontend: Using hardcoded pages as fallback');
         const hardcodedPages = getHardcodedThemePages(currentThemeId || '');
@@ -292,14 +520,14 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
         setError(null);
         return;
       }
-      
+
       console.log('[testing] Frontend: Response status:', response.status, response.statusText);
-      
+
       if (!response.ok) {
         // If API returned error, try filesystem fallback
         const errorText = await response.text();
         console.log('[testing] Frontend: API returned error, trying filesystem fallback:', errorText);
-        
+
         if (currentThemeId && currentThemeId !== 'custom') {
           try {
             const themePagesResponse = await api.get(`/api/pages/theme/${currentThemeId}`);
@@ -315,14 +543,14 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
             console.log('[testing] Frontend: Theme pages API also failed:', themeError);
           }
         }
-        
+
         // Last resort: use hardcoded pages
         const hardcodedPages = getHardcodedThemePages(currentThemeId || '');
         setPages(hardcodedPages);
         setError(null);
         return;
       }
-      
+
       const data = await response.json();
       console.log('[testing] Frontend: Response data:', {
         success: data.success,
@@ -332,10 +560,10 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
         themeId: data.themeId,
         from_filesystem: data.from_filesystem
       });
-      
+
       const receivedPages = data.pages || [];
       console.log('[testing] Frontend: Received pages:', receivedPages.length);
-      
+
       // If no pages from database, try filesystem fallback for theme
       if (receivedPages.length === 0 && currentThemeId && currentThemeId !== 'custom') {
         console.log('[testing] Frontend: No pages from database, trying filesystem fallback');
@@ -355,7 +583,7 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
           console.log('[testing] Frontend: Theme pages API failed:', themeError);
         }
       }
-      
+
       if (receivedPages.length > 0) {
         const pageTypes = receivedPages.map(p => p.page_type).filter((v, i, a) => a.indexOf(v) === i);
         console.log('[testing] Frontend: Page types received:', pageTypes.join(', '));
@@ -367,7 +595,7 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
           theme_id: receivedPages[0].theme_id
         });
       }
-      
+
       setPages(receivedPages);
       console.log('[testing] Frontend: Pages set in state:', receivedPages.length);
       console.log('[testing] Frontend: ====================================');
@@ -397,10 +625,10 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
       }
 
       const data = await response.json();
-      
+
       // Update the page in state
-      setPages(prevPages => 
-        prevPages.map(page => 
+      setPages(prevPages =>
+        prevPages.map(page =>
           page.id === pageId ? { ...page, seo_index: data.newIndex } : page
         )
       );
@@ -413,12 +641,12 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
 
   const handleViewPage = (slug: string) => {
     let url = slug;
-    
+
     if (currentThemeId && currentThemeId !== 'custom') {
       // Theme mode: use /theme/{themeId}/{slug} format
       // Remove leading slash from slug if present
       const cleanSlug = slug.startsWith('/') ? slug.slice(1) : slug;
-      
+
       if (cleanSlug === '' || cleanSlug === 'home' || cleanSlug === 'index') {
         // Homepage: /theme/{themeId}
         url = `/theme/${currentThemeId}`;
@@ -428,7 +656,7 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
       }
     }
     // For custom theme, use the slug as-is (existing behavior)
-    
+
     window.open(url, '_blank');
   };
 
@@ -476,7 +704,7 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
       // Add cache-busting parameter to ensure fresh data after save
       const cacheBuster = `&_t=${Date.now()}`;
       const url = `/api/pages/${visualEditorPage.id}?tenantId=${currentTenantId}${themeParam}${cacheBuster}`;
-      
+
       let response;
       try {
         response = await api.get(url, {
@@ -485,7 +713,7 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
       } catch (apiError: any) {
         // If API call fails (e.g., database not ready), try to get page from filesystem
         console.log('[testing] API call failed, attempting filesystem fallback:', apiError?.message);
-        
+
         // If we have a theme ID, try to get pages from filesystem
         if (effectiveThemeId && effectiveThemeId !== 'custom') {
           try {
@@ -495,7 +723,7 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
               const themePagesData = await themePagesResponse.json();
               const themePages = themePagesData.pages || [];
               const fsPage = themePages.find((p: any) => p.id === visualEditorPage.id);
-              
+
               if (fsPage) {
                 // Found page in filesystem, show builder with empty components
                 console.log('[testing] Found page in filesystem, showing builder with empty layout');
@@ -508,7 +736,7 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
             console.log('[testing] Filesystem fallback also failed:', fsError);
           }
         }
-        
+
         // If all else fails, show builder with empty components
         console.log('[testing] Showing builder with empty components due to database/API unavailability');
         setBuilderComponents([]);
@@ -532,7 +760,7 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
         hasComponents: !!data?.page?.layout?.components,
         componentsCount: data?.page?.layout?.components?.length || 0
       });
-      
+
       const comps = data?.page?.layout?.components || [];
       const validComps = isValidComponentsArray(comps) ? comps : [];
       console.log('[testing] Setting builder components:', validComps.length);
@@ -552,6 +780,144 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
       setBuilderLoading(false);
     }
   }, [visualEditorPage, currentTenantId, currentThemeId, previewThemeId]);
+
+  // Save translations when in non-default language mode
+  const handleSaveTranslations = useCallback(async () => {
+    if (!visualEditorPage || translationLanguage === 'default' || !originalComponentsRef.current) return;
+
+    try {
+      // Force blur any active input elements to ensure all pending changes are synced
+      // This is important because inputs only call onChange on blur
+      const activeElement = document.activeElement;
+      if (activeElement && (activeElement instanceof HTMLInputElement || activeElement instanceof HTMLTextAreaElement)) {
+        console.log('[testing] Blurring active input before translation save:', activeElement.tagName);
+        activeElement.blur();
+        // Wait longer for blur handlers to complete and all state updates to propagate
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+
+      // Give one more tick for React to process all state updates
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      setSavingLayout(true);
+      const fields: Record<string, { value: string; sourceText: string }> = {};
+      const originals = originalComponentsRef.current;
+
+      // Use ref value to ensure we have the latest components after blur
+      const componentsToSave = (builderComponentsRef.current.length > 0 || builderComponents.length === 0)
+        ? builderComponentsRef.current
+        : builderComponents;
+
+      // Compare current components against originals and collect changed fields
+      const collectChanges = (currentItem: any, originalItem: any, keyPrefix: string) => {
+        if (!currentItem || !originalItem) return;
+        const textFields = ['content', 'title', 'description', 'label', 'buttonText', 'highlight', 'alt', 'address', 'phone', 'email'];
+        for (const field of textFields) {
+          if (typeof currentItem[field] === 'string' && typeof originalItem[field] === 'string') {
+            if (currentItem[field] !== originalItem[field]) {
+              fields[`${keyPrefix}.${field}`] = {
+                value: currentItem[field],
+                sourceText: originalItem[field],
+              };
+            }
+          }
+        }
+        // Nested items
+        if (Array.isArray(currentItem.items) && Array.isArray(originalItem.items)) {
+          currentItem.items.forEach((child: any, i: number) => {
+            if (originalItem.items[i]) {
+              collectChanges(child, originalItem.items[i], `${keyPrefix}.items[${i}]`);
+            }
+          });
+        }
+        // Tabs
+        if (Array.isArray(currentItem.tabs) && Array.isArray(originalItem.tabs)) {
+          currentItem.tabs.forEach((tab: any, i: number) => {
+            if (originalItem.tabs[i]) {
+              if (tab.label !== originalItem.tabs[i].label) {
+                fields[`${keyPrefix}.tabs[${i}].label`] = {
+                  value: tab.label,
+                  sourceText: originalItem.tabs[i].label,
+                };
+              }
+              if (Array.isArray(tab.content) && Array.isArray(originalItem.tabs[i].content)) {
+                tab.content.forEach((child: any, j: number) => {
+                  if (originalItem.tabs[i].content[j]) {
+                    collectChanges(child, originalItem.tabs[i].content[j], `${keyPrefix}.tabs[${i}].content[${j}]`);
+                  }
+                });
+              }
+            }
+          });
+        }
+        // Props
+        if (currentItem.props && originalItem.props) {
+          for (const [propKey, value] of Object.entries(currentItem.props)) {
+            if (typeof value === 'string' && typeof originalItem.props[propKey] === 'string' && value !== originalItem.props[propKey]) {
+              fields[`${keyPrefix}.props.${propKey}`] = {
+                value: value,
+                sourceText: originalItem.props[propKey],
+              };
+            }
+          }
+        }
+      };
+
+      componentsToSave.forEach((comp, idx) => {
+        const origComp = originals[idx];
+        if (!origComp) return;
+        const prefix = `component_${comp.key || comp.type || idx}`;
+        if (Array.isArray(comp.items) && Array.isArray(origComp.items)) {
+          comp.items.forEach((item, i) => {
+            if (origComp.items[i]) {
+              collectChanges(item, origComp.items[i], `${prefix}.items[${i}]`);
+            }
+          });
+        }
+        if (comp.props && origComp.props) {
+          for (const [propKey, value] of Object.entries(comp.props)) {
+            if (typeof value === 'string' && typeof (origComp.props as any)[propKey] === 'string' && value !== (origComp.props as any)[propKey]) {
+              console.log('[translation-debug] Props diff found!', `${prefix}.props.${propKey}`, value, 'vs', (origComp.props as any)[propKey]);
+              fields[`${prefix}.props.${propKey}`] = {
+                value: value as string,
+                sourceText: (origComp.props as any)[propKey],
+              };
+            }
+          }
+        }
+      });
+
+      const fieldCount = Object.keys(fields).length;
+      console.log('[translation-debug] Diff result computed. Fields:', fieldCount, Object.keys(fields));
+      console.log('[translation] Saving manual translations:', fieldCount, 'fields');
+
+      if (fieldCount === 0) {
+        toast({
+          title: 'No changes detected',
+          description: 'No translation changes were made.',
+          variant: 'default',
+        });
+        return;
+      }
+
+      const contentId = parseInt(visualEditorPage.id || '0');
+      await saveTranslations('page', contentId, translationLanguage, fields);
+
+      toast({
+        title: 'Translations saved',
+        description: `Saved ${fieldCount} translated field(s) for ${translationLanguage.toUpperCase()}.`,
+      });
+    } catch (err: any) {
+      console.error('[translation] Save translations error:', err);
+      toast({
+        title: 'Error',
+        description: err.message || 'Failed to save translations',
+        variant: 'destructive',
+      });
+    } finally {
+      setSavingLayout(false);
+    }
+  }, [visualEditorPage, translationLanguage, builderComponents]);
 
   const handleSaveLayout = async () => {
     if (!Array.isArray(builderComponents) || builderComponents.length === 0) {
@@ -583,7 +949,7 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
         // The blur will trigger onChange -> updateComponent -> onComponentsChange -> setBuilderComponents -> builderComponentsRef
         await new Promise(resolve => setTimeout(resolve, 500));
       }
-      
+
       // Give one more tick for React to process all state updates
       await new Promise(resolve => setTimeout(resolve, 100));
 
@@ -594,10 +960,10 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
       // Use ref value to ensure we have the latest components after blur
       // The ref is updated by useEffect whenever builderComponents changes
       // Prefer ref value if it has components, otherwise fall back to state
-      const componentsToSave = (builderComponentsRef.current.length > 0 || builderComponents.length === 0) 
-        ? builderComponentsRef.current 
+      const componentsToSave = (builderComponentsRef.current.length > 0 || builderComponents.length === 0)
+        ? builderComponentsRef.current
         : builderComponents;
-      
+
       if (!Array.isArray(componentsToSave) || componentsToSave.length === 0) {
         toast({
           title: 'No changes to save',
@@ -630,7 +996,7 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
       });
 
       const res = await api.put(`/api/pages/${targetPageId}/layout`, requestBody);
-      
+
       // Check if response is OK before parsing
       if (!res.ok) {
         const errorText = await res.text();
@@ -641,13 +1007,13 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
         } catch {
           errorMessage = errorText || errorMessage;
         }
-        
+
         console.error('[testing] Save failed - HTTP error:', {
           status: res.status,
           statusText: res.statusText,
           error: errorMessage
         });
-        
+
         toast({
           title: 'Failed to save',
           description: errorMessage,
@@ -655,10 +1021,10 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
         });
         return;
       }
-      
+
       const json = await res.json();
       console.log('[testing] Save response:', json);
-      
+
       // Explicitly check for success === true
       if (json && json.success === true) {
         // Optimistic update: set builder state from the payload we just saved so the UI
@@ -740,7 +1106,7 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
     try {
       setLoading(true);
       const response = await api.post(`/api/themes/${currentThemeId}/migrate-layouts`);
-      
+
       if (response.ok) {
         const data = await response.json();
         toast({
@@ -838,9 +1204,9 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
 
   const getThemePageUrl = (slug: string): string => {
     if (!currentThemeId) return '';
-    
+
     const cleanSlug = slug.startsWith('/') ? slug.slice(1) : slug;
-    
+
     if (cleanSlug === '' || cleanSlug === 'home' || cleanSlug === 'index') {
       return `/theme/${currentThemeId}`;
     } else {
@@ -918,8 +1284,8 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
               {currentTenantId && availableThemes.length > 0 && (
                 <>
                   <span className="text-sm text-gray-600 ml-2">Theme:</span>
-                  <Select 
-                    value={previewThemeId || currentThemeId || 'custom'} 
+                  <Select
+                    value={previewThemeId || currentThemeId || 'custom'}
                     onValueChange={(v) => {
                       setPreviewThemeId(v === 'custom' ? null : v);
                       // Reload layout with new theme
@@ -966,7 +1332,7 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
             {visualEditorPage && (
               <Button
                 size="sm"
-                onClick={handleSaveLayout}
+                onClick={translationLanguage !== 'default' ? handleSaveTranslations : handleSaveLayout}
                 disabled={savingLayout || builderLoading}
                 className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -978,13 +1344,36 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
                 ) : (
                   <>
                     <Save size={16} />
-                    Save
+                    {translationLanguage !== 'default' ? 'Save Translation' : 'Save'}
                   </>
                 )}
               </Button>
             )}
           </div>
         </div>
+
+        {/* Translation Language Switcher */}
+        {availableLanguages.length > 0 && (
+          <div className="px-4 py-1 border-b bg-white">
+            <TranslationLanguageSwitcher
+              contentType="page"
+              contentId={visualEditorPage.id ? parseInt(visualEditorPage.id) : 0}
+              currentLanguage={translationLanguage}
+              defaultLanguage="default"
+              availableLanguages={availableLanguages}
+              onLanguageChange={setTranslationLanguage}
+              onTranslateAll={handleTranslateAll}
+            />
+          </div>
+        )}
+
+        {/* Translation mode banner */}
+        {translationLanguage !== 'default' && (
+          <div style={{ background: '#EEF2FF', borderBottom: '1px solid #C7D2FE', padding: '6px 16px', fontSize: 13, color: '#4338CA', display: 'flex', alignItems: 'center', gap: 8 }}>
+            🌐 Editing translations for <strong>{translationLanguage.toUpperCase()}</strong>
+            {translating && <span style={{ marginLeft: 8 }}>⏳ Translating...</span>}
+          </div>
+        )}
 
         {/* Unified website-style visual editor for all tenants/themes */}
         <div className="flex-1 bg-background rounded-b-lg overflow-hidden flex">
@@ -1116,11 +1505,11 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
         if (a.slug === '/' || a.slug === '/home') return -1;
         if (b.slug === '/' || b.slug === '/home') return 1;
       }
-      
+
       // Then sort by created_at (newest first)
       return new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime();
     });
-  
+
   // Debug logging for filtering
   console.log(`[testing] Frontend: Total pages: ${pages.length}, Active tab: ${activeTab}, Filtered pages: ${filteredPages.length}`);
   if (pages.length > 0 && filteredPages.length === 0) {
@@ -1233,7 +1622,7 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
             </Button>
           </nav>
         </div>
-        
+
         {/* Tab Content */}
         <div className="p-6">
           <div className="space-y-6">

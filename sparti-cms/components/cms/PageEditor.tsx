@@ -20,6 +20,8 @@ import { EmptyState, ComponentsErrorState, ComponentsEmptyState } from './PageEd
 import { FloatingAIAssistant } from '../../../src/components/FloatingAIAssistant';
 import SectionContentList from '@/components/SectionContentList';
 import CodeViewerDialog from './PageEditor/CodeViewerDialog';
+import TranslationLanguageSwitcher from './TranslationLanguageSwitcher';
+import { translateAllFields } from '../../services/translationApi';
 
 // REMOVED: Inline ContentsPanel and VisualEditorRenderer usage
 
@@ -118,6 +120,68 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack, currentTenantId
   const [pageFileHint, setPageFileHint] = useState<string | null>(null);
   const [isSavingRef, setIsSavingRef] = useState(false); // Prevent useEffect from overwriting during save
 
+  // Translation state
+  const [translationLanguage, setTranslationLanguage] = useState<string>('default');
+  const [availableLanguages, setAvailableLanguages] = useState<string[]>([]);
+  const [translating, setTranslating] = useState(false);
+
+  // Fetch available languages for translation
+  useEffect(() => {
+    const fetchLanguages = async () => {
+      try {
+        // Fetch the default language
+        const defaultRes = await api.get(`/api/site-settings/site_language?tenantId=${currentTenantId}`);
+        const defaultData = await defaultRes.json();
+        const defaultLang = defaultData?.setting_value || 'en';
+
+        // Fetch all content languages (comma-separated)
+        const contentRes = await api.get(`/api/site-settings/site_content_languages?tenantId=${currentTenantId}`);
+        const contentData = await contentRes.json();
+
+        if (contentData?.setting_value) {
+          const allLangs = contentData.setting_value.split(',').map((l: string) => l.trim()).filter(Boolean);
+          // Additional languages = all languages minus the default
+          const additional = allLangs.filter((l: string) => l !== defaultLang);
+          setAvailableLanguages(additional);
+          console.log('[translation] Default:', defaultLang, 'Additional:', additional);
+        }
+      } catch (err) {
+        console.log('[translation] Could not fetch languages:', err);
+      }
+    };
+    if (currentTenantId) fetchLanguages();
+  }, [currentTenantId]);
+
+  // Handle translate all fields for current page
+  const handleTranslateAll = useCallback(async () => {
+    if (!pageData || translationLanguage === 'default') return;
+    setTranslating(true);
+    try {
+      // Extract translatable fields from components
+      const fields: Record<string, string> = {};
+      if (pageData.meta_title) fields.meta_title = pageData.meta_title;
+      if (pageData.meta_description) fields.meta_description = pageData.meta_description;
+      components.forEach((comp, idx) => {
+        const prefix = `component_${comp.key || comp.type || idx}`;
+        const textProps = ['title', 'subtitle', 'content', 'description', 'heading', 'text', 'buttonText'];
+        if (comp.props) {
+          for (const prop of textProps) {
+            if ((comp.props as any)[prop] && typeof (comp.props as any)[prop] === 'string') {
+              fields[`${prefix}.${prop}`] = (comp.props as any)[prop];
+            }
+          }
+        }
+      });
+      await translateAllFields('page', pageData.id, translationLanguage, fields);
+      toast.success(`AI translated ${Object.keys(fields).length} fields to ${translationLanguage}`);
+    } catch (err: any) {
+      console.error('[translation] Translate all failed:', err);
+      toast.error(err.message || 'Translation failed');
+    } finally {
+      setTranslating(false);
+    }
+  }, [pageData, translationLanguage, components]);
+
   // JSON Editor hook - use a wrapper to prevent updates during save
   const handleComponentsChange = useCallback((newComponents: ComponentSchema[]) => {
     if (!isSavingRef) {
@@ -158,7 +222,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack, currentTenantId
     const fetchPageData = async () => {
       try {
         setLoading(true);
-        
+
         // Determine API endpoint based on tenant + theme
         let apiUrl: string;
         if (currentTenantId && currentThemeId) {
@@ -176,10 +240,10 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack, currentTenantId
           setLoading(false);
           return;
         }
-        
+
         const response = await api.get(apiUrl);
         const data = await response.json();
-        
+
         // Convert testimonials sections to proper items structure if needed
         // NOTE: This only transforms data in memory for display - does NOT modify database
         if (data.page && data.page.layout && data.page.layout.components) {
@@ -198,7 +262,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack, currentTenantId
             const layoutComponents = isValidComponentsArray(data.page.layout.components)
               ? data.page.layout.components
               : [];
-            
+
             // Remove duplicates based on component key to prevent duplicate sections
             const uniqueComponents = layoutComponents.filter((component, index, self) => {
               // If component has a key, use it for deduplication
@@ -206,12 +270,12 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack, currentTenantId
                 return index === self.findIndex(c => c.key === component.key);
               }
               // If no key, use type + index as fallback
-              return index === self.findIndex((c, i) => 
-                c.type === component.type && 
+              return index === self.findIndex((c, i) =>
+                c.type === component.type &&
                 (c.key || `component-${i}`) === (component.key || `component-${index}`)
               );
             });
-            
+
             // Only update if not currently saving
             if (!isSavingRef) {
               setComponents(uniqueComponents);
@@ -267,8 +331,8 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack, currentTenantId
 
       // Common text properties to extract
       const textProperties = [
-        'title', 'heading', 'headingLine1', 'headingLine2', 'subtitle', 
-        'description', 'content', 'text', 'label', 'buttonText', 
+        'title', 'heading', 'headingLine1', 'headingLine2', 'subtitle',
+        'description', 'content', 'text', 'label', 'buttonText',
         'ctaButtonText', 'badgeText', 'name', 'tagline'
       ];
       // Common image-like keys
@@ -291,7 +355,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack, currentTenantId
             if (key === 'headingLine1') level = 1;
             if (key === 'headingLine2') level = 2;
             if (componentType.includes('hero')) level = 1;
-            
+
             content.push({
               type: 'heading',
               level,
@@ -328,8 +392,8 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack, currentTenantId
               // If array item is an image-like object
               const url = typeof (item as any).src === 'string' ? (item as any).src
                 : typeof (item as any).url === 'string' ? (item as any).url
-                : typeof (item as any).image === 'string' ? (item as any).image
-                : '';
+                  : typeof (item as any).image === 'string' ? (item as any).image
+                    : '';
               if (url) {
                 content.push({
                   type: 'image',
@@ -367,7 +431,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack, currentTenantId
     components.forEach((component, index) => {
       const componentType = component.type || 'unknown';
       const componentId = component.key || `component-${index}`;
-      
+
       extractFromProps((component as any).props ?? (component.items as any), componentType, componentId);
     });
 
@@ -408,7 +472,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack, currentTenantId
       // Ensure layout_json has the complete structure with components array
       // This replaces the entire JSON, not merging
       const layoutJson = { components: componentsToSave };
-      
+
       // Include themeId when available and not 'custom' to ensure correct page is updated
       const layoutRequestBody: any = {
         layout_json: layoutJson,
@@ -441,13 +505,13 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack, currentTenantId
       await new Promise(resolve => setTimeout(resolve, 300));
 
       // Reload page data to ensure UI reflects saved state
-      const apiUrl = currentThemeId && currentThemeId !== 'custom' 
+      const apiUrl = currentThemeId && currentThemeId !== 'custom'
         ? `/api/pages/${pageId}?tenantId=${currentTenantId}&themeId=${currentThemeId}&_t=${Date.now()}`
         : `/api/pages/${pageId}?tenantId=${currentTenantId}&_t=${Date.now()}`;
-      
+
       const reloadResponse = await api.get(apiUrl);
       const reloadData = await reloadResponse.json();
-      
+
       if (reloadData.success && reloadData.page?.layout?.components) {
         const reloadedComponents = reloadData.page.layout.components;
         console.log('[testing] Reloaded components after save:', reloadedComponents.length);
@@ -534,11 +598,11 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack, currentTenantId
     try {
       setSaving(true);
       setIsSavingRef(true); // Block useEffect and component updates during save
-      
+
       // Log JSON string before parsing
       console.log('[testing] Step 1: JSON String (first 500 chars):', jsonString.substring(0, 500));
       console.log('[testing] Step 1: JSON String length:', jsonString.length);
-      
+
       // Parse the current JSON string to ensure we have the latest changes
       let componentsToSave: ComponentSchema[];
       try {
@@ -546,7 +610,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack, currentTenantId
         console.log('[testing] Step 2: JSON parsed successfully');
         console.log('[testing] Step 2: Parsed type:', Array.isArray(parsed) ? 'array' : typeof parsed);
         console.log('[testing] Step 2: Parsed keys:', Object.keys(parsed));
-        
+
         // Handle both array and object with components property
         if (Array.isArray(parsed)) {
           componentsToSave = parsed;
@@ -557,7 +621,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack, currentTenantId
         } else {
           throw new Error('JSON must be an array of components or an object with a components array');
         }
-        
+
         console.log('[testing] Step 2: Components to save (first component):', componentsToSave[0] ? {
           type: componentsToSave[0].type,
           key: componentsToSave[0].key,
@@ -596,9 +660,9 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack, currentTenantId
 
       console.log('[testing] Step 4: Request body:', {
         ...layoutRequestBody,
-        layout_json: { 
-          ...layoutRequestBody.layout_json, 
-          components: `[${componentsToSave.length} components]` 
+        layout_json: {
+          ...layoutRequestBody.layout_json,
+          components: `[${componentsToSave.length} components]`
         }
       });
       console.log('[testing] Step 4: API endpoint:', `/api/pages/${pageId}/layout`);
@@ -619,14 +683,14 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack, currentTenantId
           statusText: layoutResponse.statusText,
           errorText: errorText
         });
-        
+
         let errorData;
         try {
           errorData = JSON.parse(errorText);
         } catch {
           errorData = { message: errorText || 'Failed to save layout' };
         }
-        
+
         throw new Error(errorData.message || errorData.error || 'Failed to update page layout');
       }
 
@@ -638,14 +702,14 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack, currentTenantId
       await new Promise(resolve => setTimeout(resolve, 500));
 
       // Reload page data to ensure UI reflects saved state
-      const apiUrl = currentThemeId && currentThemeId !== 'custom' 
+      const apiUrl = currentThemeId && currentThemeId !== 'custom'
         ? `/api/pages/${pageId}?tenantId=${currentTenantId}&themeId=${currentThemeId}&_t=${Date.now()}`
         : `/api/pages/${pageId}?tenantId=${currentTenantId}&_t=${Date.now()}`;
-      
+
       console.log('[testing] Step 7: Reloading page data from:', apiUrl);
       const reloadResponse = await api.get(apiUrl);
       const reloadData = await reloadResponse.json();
-      
+
       console.log('[testing] Step 7: Reload response:', {
         success: reloadData.success,
         hasPage: !!reloadData.page,
@@ -653,7 +717,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack, currentTenantId
         hasComponents: !!reloadData.page?.layout?.components,
         componentsCount: reloadData.page?.layout?.components?.length || 0
       });
-      
+
       if (reloadData.success && reloadData.page?.layout?.components) {
         const reloadedComponents = reloadData.page.layout.components;
         console.log('[testing] Step 7: Reloaded components count:', reloadedComponents.length);
@@ -662,7 +726,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack, currentTenantId
           reloadedCount: reloadedComponents.length,
           match: componentsToSave.length === reloadedComponents.length
         });
-        
+
         // Now update components with reloaded data
         setComponents(reloadedComponents);
         setOriginalComponents(JSON.parse(JSON.stringify(reloadedComponents)));
@@ -724,7 +788,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack, currentTenantId
         ctx?.page_file_name ||
         null;
       if (hint) setPageFileHint(hint);
-    } catch {}
+    } catch { }
   }, [pageData]);
 
   // Memoized selected component
@@ -875,6 +939,29 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack, currentTenantId
         </div>
       </div>
 
+      {/* Translation Language Switcher */}
+      {availableLanguages.length > 0 && (
+        <div className="px-4 py-1 border-b">
+          <TranslationLanguageSwitcher
+            contentType="page"
+            contentId={pageData.id ? parseInt(pageData.id) : 0}
+            currentLanguage={translationLanguage}
+            defaultLanguage="default"
+            availableLanguages={availableLanguages}
+            onLanguageChange={setTranslationLanguage}
+            onTranslateAll={handleTranslateAll}
+          />
+        </div>
+      )}
+
+      {/* Translation mode banner */}
+      {translationLanguage !== 'default' && (
+        <div style={{ background: '#EEF2FF', borderBottom: '1px solid #C7D2FE', padding: '6px 16px', fontSize: 13, color: '#4338CA', display: 'flex', alignItems: 'center', gap: 8 }}>
+          🌐 Editing translations for <strong>{translationLanguage.toUpperCase()}</strong>
+          {translating && <span style={{ marginLeft: 8 }}>⏳ Translating...</span>}
+        </div>
+      )}
+
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden relative">
         {/* Left Panel - Components List */}
@@ -973,10 +1060,10 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack, currentTenantId
               updatedComponents = next;
               return next
             })
-            
+
             // Clear proposed components since we're auto-applying
             setProposedComponents(null);
-            
+
             // Auto-save the version and update layout
             if (pageData && updatedComponents.length > 0) {
               try {
@@ -1026,7 +1113,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageId, onBack, currentTenantId
           }}
           onOpenJSONEditor={openJSONEditor}
           selectedComponentJSON={selectedComponentForAI || ({ __scope: 'page', schema: { components } } as any)}
-          onComponentSelected={() => {}}
+          onComponentSelected={() => { }}
         />
       </div>
 
