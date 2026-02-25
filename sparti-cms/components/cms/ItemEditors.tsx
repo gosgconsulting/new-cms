@@ -1461,14 +1461,17 @@ export const ReviewEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemo
   );
 };
 
-// Feature item editor
+// Feature item editor (Option B: array item fields are top-level; read/write top-level with props fallback)
 export const FeatureEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRemove, allowRemove = true }) => {
   const keyInputRef = useRef<HTMLInputElement>(null);
   const iconInputRef = useRef<HTMLInputElement>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
   const localKeyRef = useRef(item.key);
-  const localIconRef = useRef(item.props?.icon || '');
-  const localTitleRef = useRef(item.props?.title || '');
+  const icon = (item as any).icon ?? (item as any).props?.icon ?? '';
+  const title = (item as any).title ?? (item as any).props?.title ?? '';
+  const description = (item as any).description ?? (item as any).props?.description ?? '';
+  const localIconRef = useRef(icon);
+  const localTitleRef = useRef(title);
   const isKeyFocusedRef = useRef(false);
   const isIconFocusedRef = useRef(false);
   const isTitleFocusedRef = useRef(false);
@@ -1487,7 +1490,7 @@ export const FeatureEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRem
       }
     }
     if (!isIconFocusedRef.current) {
-      const newIcon = item.props?.icon || '';
+      const newIcon = (item as any).icon ?? (item as any).props?.icon ?? '';
       if (newIcon !== localIconRef.current) {
         localIconRef.current = newIcon;
         if (iconInputRef.current) {
@@ -1499,7 +1502,7 @@ export const FeatureEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRem
       }
     }
     if (!isTitleFocusedRef.current) {
-      const newTitle = item.props?.title || '';
+      const newTitle = (item as any).title ?? (item as any).props?.title ?? '';
       if (newTitle !== localTitleRef.current) {
         localTitleRef.current = newTitle;
         if (titleInputRef.current) {
@@ -1510,7 +1513,7 @@ export const FeatureEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRem
         }
       }
     }
-  }, [item.key, item.props?.icon, item.props?.title]);
+  }, [item.key, (item as any).icon, (item as any).props?.icon, (item as any).title, (item as any).props?.title]);
 
   const updateKey = (value: string) => {
     localKeyRef.current = value;
@@ -1524,14 +1527,22 @@ export const FeatureEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRem
     localTitleRef.current = value;
   };
 
-  const updateProps = (propKey: string, value: any) => {
-    const newProps = { ...(item.props || {}), [propKey]: value };
-    onChange({ ...item, props: newProps });
+  // Write to top-level so saved layout matches section contract (Option B)
+  const updateTopLevel = (updates: { icon?: string; title?: string; description?: string }) => {
+    const next = { ...item, ...updates };
+    const { props, ...rest } = next as any;
+    if (props && typeof props === 'object') {
+      const { icon: _i, title: _t, description: _d, ...propsRest } = props;
+      if (Object.keys(propsRest).length === 0) {
+        delete (next as any).props;
+      }
+    }
+    onChange(next);
   };
 
   const initialKey = item.key;
-  const initialIcon = item.props?.icon || '';
-  const initialTitle = item.props?.title || '';
+  const initialIcon = icon;
+  const initialTitle = title;
 
   return (
     <Card className="border-0 shadow-none">
@@ -1576,7 +1587,7 @@ export const FeatureEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRem
               isIconFocusedRef.current = false;
               const currentValue = e.target.value;
               localIconRef.current = currentValue;
-              updateProps('icon', currentValue);
+              updateTopLevel({ icon: currentValue });
             }}
             placeholder="e.g., star, heart, award"
           />
@@ -1593,7 +1604,7 @@ export const FeatureEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRem
               isTitleFocusedRef.current = false;
               const currentValue = e.target.value;
               localTitleRef.current = currentValue;
-              updateProps('title', currentValue);
+              updateTopLevel({ title: currentValue });
             }}
             placeholder="Enter feature title..."
             className="text-sm"
@@ -1602,8 +1613,8 @@ export const FeatureEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRem
         <div>
           <Label className="text-xs">Feature Description</Label>
           <QuillEditor
-            content={item.props?.description || ''}
-            onChange={(value) => updateProps('description', value)}
+            content={description}
+            onChange={(value) => updateTopLevel({ description: value })}
             placeholder="Enter feature description..."
           />
         </div>

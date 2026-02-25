@@ -12,15 +12,20 @@ interface FAQItemEditorProps {
   onRemove: () => void;
 }
 
+// Option B: array item fields are top-level; read/write top-level with props fallback
+const getQuestion = (item: SchemaItem) => (item as any).question ?? (item as any).props?.question ?? '';
+const getAnswer = (item: SchemaItem) => (item as any).answer ?? (item as any).props?.answer ?? '';
+
 const FAQItemEditor: React.FC<FAQItemEditorProps> = memo(({ item, onChange, onRemove }) => {
   const questionInputRef = useRef<HTMLInputElement>(null);
-  const localQuestionRef = useRef(item.props?.question || '');
+  const initialQuestion = getQuestion(item);
+  const localQuestionRef = useRef(initialQuestion);
   const isQuestionFocusedRef = useRef(false);
   
   // Initialize refs from item prop - but only if input is not focused
   useEffect(() => {
     if (!isQuestionFocusedRef.current) {
-      const newQuestion = item.props?.question || '';
+      const newQuestion = getQuestion(item);
       if (newQuestion !== localQuestionRef.current) {
         localQuestionRef.current = newQuestion;
         if (questionInputRef.current) {
@@ -31,24 +36,16 @@ const FAQItemEditor: React.FC<FAQItemEditorProps> = memo(({ item, onChange, onRe
         }
       }
     }
-  }, [item.props?.question]);
+  }, [(item as any).question, (item as any).props?.question]);
   
   const updateQuestion = (value: string) => {
     localQuestionRef.current = value;
   };
   
-  // Stable callback for QuillEditor onChange
+  // Write to top-level so saved layout matches section contract (Option B)
   const handleAnswerChange = useCallback((value: string) => {
-    onChange({ 
-      ...item, 
-      props: { 
-        ...item.props, 
-        answer: value 
-      } 
-    });
+    onChange({ ...item, answer: value });
   }, [item, onChange]);
-  
-  const initialQuestion = item.props?.question || '';
   
   return (
     <Card className="border-l-4 border-l-amber-500">
@@ -78,13 +75,7 @@ const FAQItemEditor: React.FC<FAQItemEditorProps> = memo(({ item, onChange, onRe
                 isQuestionFocusedRef.current = false;
                 const currentValue = e.target.value;
                 localQuestionRef.current = currentValue;
-                onChange({ 
-                  ...item, 
-                  props: { 
-                    ...item.props, 
-                    question: currentValue 
-                  } 
-                });
+                onChange({ ...item, question: currentValue });
               }}
               placeholder="Enter question"
               className="w-full p-2 border border-gray-300 rounded-md"
@@ -94,7 +85,7 @@ const FAQItemEditor: React.FC<FAQItemEditorProps> = memo(({ item, onChange, onRe
             <label className="block text-sm font-medium text-gray-700 mb-1">Answer</label>
             <QuillEditor
               key={`quill-answer-${item.key}`} // Stable key to prevent remounting
-              content={item.props?.answer || ''}
+              content={getAnswer(item)}
               onChange={handleAnswerChange}
               placeholder="Enter answer"
             />

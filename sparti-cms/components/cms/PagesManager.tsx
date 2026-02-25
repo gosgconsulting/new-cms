@@ -661,12 +661,10 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
       
       // Explicitly check for success === true
       if (json && json.success === true) {
-        // Wait a bit for database to commit
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        // Reload the page layout from database to ensure UI reflects saved state
-        // Force reload by clearing any potential cache
-        await loadBuilderLayout();
+        // Optimistic update: set builder state from the payload we just saved so the UI
+        // immediately reflects the saved layout without needing to leave and reopen the editor.
+        setBuilderComponents(componentsToSave);
+        builderComponentsRef.current = componentsToSave;
         
         toast({
           title: 'Layout saved',
@@ -1082,6 +1080,11 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
           tenantId={currentTenantId}
           currentThemeId={currentThemeId}
           currentTenantId={currentTenantId}
+          currentComponents={builderComponents}
+          onLayoutSaved={(components) => {
+            setBuilderComponents(components);
+            builderComponentsRef.current = components;
+          }}
         />
         {selectedPageForSEO && (
           <SEODialog

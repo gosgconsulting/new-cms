@@ -27,6 +27,7 @@ import FlowbiteVideoSection from "@/libraries/flowbite/components/FlowbiteVideoS
 import FlowbiteWhatsIncludedSection from "@/libraries/flowbite/components/FlowbiteWhatsIncludedSection";
 import FlowbiteWhyChooseUsSection from "@/libraries/flowbite/components/FlowbiteWhyChooseUsSection";
 import FlowbiteCTASection from "@/libraries/flowbite/components/FlowbiteCTASection";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { SpartiBuilderProvider, useSpartiBuilder } from "../../../sparti-cms/components/SpartiBuilderProvider";
 import { ResizableDivider, useResizableDivider } from "./ResizableDivider";
 import { ElementSelector } from "../../../sparti-cms/components/ElementSelector";
@@ -517,7 +518,7 @@ function SectionTeam({ items }: { items: SchemaItem[] }) {
               <div className="aspect-[4/3] bg-gray-100">
                 <img
                   src={m.src}
-                  alt={m.name || `Member ${idx + 1}`}
+                  alt={m.alt || m.name || `Member ${idx + 1}`}
                   className="h-full w-full object-cover"
                   onError={(e) => {
                     (e.target as HTMLImageElement).src = "/placeholder.svg";
@@ -539,6 +540,87 @@ function SectionTeam({ items }: { items: SchemaItem[] }) {
           </div>
         ))}
       </div>
+    </FlowbiteSection>
+  );
+}
+
+/** Derive tab value from item: use item.value if set, else from key (e.g. "tab-group-class" -> "group-class", "tab-all" -> "all"). */
+function getTabValue(item: any): string {
+  if (item?.value && typeof item.value === "string") return item.value;
+  const k = (item?.key || "") as string;
+  if (k.toLowerCase().startsWith("tab-")) return k.slice(4).toLowerCase();
+  return k.toLowerCase() || "all";
+}
+
+function SectionGallery({ items }: { items: SchemaItem[] }) {
+  const title = getHeading(items, "title", 2) || getText(items, "title");
+  const description = getText(items, "description");
+  const tabsArray = getArray(items, "tabs");
+  const galleryArray = getArray(items, "gallery").filter(
+    (i: any) => i?.type === "image" && typeof i?.src === "string"
+  );
+  const tabs = tabsArray.map((t: any) => ({
+    label: (t?.content ?? t?.label ?? t?.key ?? "") as string,
+    value: getTabValue(t),
+  })).filter((t) => t.value);
+  const defaultTab = tabs[0]?.value ?? "all";
+  const [activeTab, setActiveTab] = useState(defaultTab);
+
+  if (tabs.length === 0 && galleryArray.length === 0 && !title) return null;
+
+  return (
+    <FlowbiteSection title={title || undefined} subtitle={description || undefined}>
+      {tabs.length > 0 ? (
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full mt-4">
+          <TabsList className="mb-4 flex flex-wrap gap-1 bg-gray-100 p-1">
+            {tabs.map((tab) => (
+              <TabsTrigger key={tab.value} value={tab.value} className="px-4 py-2 text-sm">
+                {tab.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+          {tabs.map((tab) => {
+            const imagesForTab = tab.value === "all"
+              ? galleryArray
+              : galleryArray.filter((img: any) => (img?.category || "").toLowerCase() === (tab.value || "").toLowerCase());
+            return (
+            <TabsContent key={tab.value} value={tab.value} className="mt-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                {imagesForTab.map((img: any, idx: number) => (
+                  <div key={img?.key || idx} className="rounded-lg overflow-hidden border border-gray-200 bg-gray-50">
+                    <img
+                      src={img.src}
+                      alt={img.alt || `Gallery ${idx + 1}`}
+                      className="w-full aspect-square object-cover"
+                      loading="lazy"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = "/placeholder.svg";
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
+            </TabsContent>
+          );
+          })}
+        </Tabs>
+      ) : (
+        <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+          {galleryArray.map((img: any, idx: number) => (
+            <div key={img?.key || idx} className="rounded-lg overflow-hidden border border-gray-200 bg-gray-50">
+              <img
+                src={img.src}
+                alt={img.alt || `Gallery ${idx + 1}`}
+                className="w-full aspect-square object-cover"
+                loading="lazy"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = "/placeholder.svg";
+                }}
+              />
+            </div>
+          ))}
+        </div>
+      )}
     </FlowbiteSection>
   );
 }
@@ -657,6 +739,13 @@ const FlowbiteDioraRenderer: React.FC<FlowbiteDioraRendererProps> = ({
               return (
                 <div data-sparti-component-index={idx} data-sparti-section={t} key={`sec-${idx}`}>
                   <SectionTeam items={comp.items || []} />
+                </div>
+              );
+            }
+            if (t.includes("gallerysection") || t.includes("gallery")) {
+              return (
+                <div data-sparti-component-index={idx} data-sparti-section={t} key={`sec-${idx}`}>
+                  <SectionGallery items={comp.items || []} />
                 </div>
               );
             }

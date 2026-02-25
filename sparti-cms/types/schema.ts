@@ -1,4 +1,6 @@
 // TypeScript interfaces for the simplified schema structure
+// For expected item keys per section (array keys, button keys) use sectionContracts.ts
+// when generating or validating new tenant page schema.
 
 // Schema item types
 export type SchemaItemType = 

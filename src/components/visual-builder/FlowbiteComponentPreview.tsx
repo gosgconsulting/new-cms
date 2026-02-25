@@ -232,7 +232,7 @@ function SectionTeam({ items }: { items: SchemaItem[] }) {
               <div className="aspect-[4/3] bg-gray-100">
                 <img
                   src={m.src}
-                  alt={m.name || `Member ${idx + 1}`}
+                  alt={m.alt || m.name || `Member ${idx + 1}`}
                   className="h-full w-full object-cover"
                   onError={(e) => {
                     (e.target as HTMLImageElement).src = "/placeholder.svg";

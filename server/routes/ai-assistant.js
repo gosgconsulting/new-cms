@@ -451,11 +451,13 @@ Whether you need help with the CMS, general questions, or creative tasks, I'm he
 });
 
 // Get page context endpoint - returns page metadata and layout JSON
+// When themeId is provided, resolves the theme page (same page as Flowbite editor in theme mode).
 router.get('/ai-assistant/page-context', authenticateUser, async (req, res) => {
   try {
     // Get slug from query parameter (handles slashes properly)
     const slug = req.query.slug || '';
     const tenantId = req.tenantId || req.query.tenantId || 'tenant-gosg';
+    const themeId = req.query.themeId || null;
     
     if (!slug) {
       return res.status(400).json({
@@ -467,19 +469,37 @@ router.get('/ai-assistant/page-context', authenticateUser, async (req, res) => {
     // Ensure slug starts with /
     const normalizedSlug = slug.startsWith('/') ? slug : `/${slug}`;
     
-    // First, get the page by slug
-    const pageResult = await query(`
-      SELECT 
-        id,
-        page_name,
-        slug,
-        tenant_id,
-        page_type,
-        status
-      FROM pages
-      WHERE slug = $1 AND tenant_id = $2
-      LIMIT 1
-    `, [normalizedSlug, tenantId]);
+    // Resolve page: by theme_id when in theme mode, else by tenant_id (tenant/custom mode)
+    let pageResult;
+    if (themeId && themeId !== 'custom') {
+      pageResult = await query(`
+        SELECT 
+          id,
+          page_name,
+          slug,
+          tenant_id,
+          theme_id,
+          page_type,
+          status
+        FROM pages
+        WHERE slug = $1 AND theme_id = $2
+        LIMIT 1
+      `, [normalizedSlug, themeId]);
+    } else {
+      pageResult = await query(`
+        SELECT 
+          id,
+          page_name,
+          slug,
+          tenant_id,
+          theme_id,
+          page_type,
+          status
+        FROM pages
+        WHERE slug = $1 AND tenant_id = $2
+        LIMIT 1
+      `, [normalizedSlug, tenantId]);
+    }
     
     if (pageResult.rows.length === 0) {
       return res.status(404).json({
@@ -502,12 +522,13 @@ router.get('/ai-assistant/page-context', authenticateUser, async (req, res) => {
     
     const layout = layoutResult.rows[0]?.layout_json || { components: [] };
     
-    // Build page context
+    // Build page context (include themeId when resolved by theme for consistency)
     const pageContext = {
       slug: page.slug,
       pageName: page.page_name,
       pageId: page.id,
       tenantId: page.tenant_id,
+      themeId: page.theme_id || themeId || null,
       layout: layout
     };
     

@@ -17,6 +17,7 @@ import 'prismjs/themes/prism.css';
 import { validateJSON } from '../../utils/validation';
 import { Loader2, Copy, Check } from 'lucide-react';
 import api from '../../utils/api';
+import type { ComponentSchema } from '../../types/schema';
 
 interface VisualEditorJSONDialogProps {
   open: boolean;
@@ -27,6 +28,10 @@ interface VisualEditorJSONDialogProps {
   currentThemeId: string;
   currentTenantId: string;
   connectionName?: string;
+  /** Current builder components (in-memory); when provided, used to seed the JSON editor so it matches the module editor. */
+  currentComponents?: ComponentSchema[] | null;
+  /** Called after a successful save with the saved components so the parent can refresh the builder (e.g. setBuilderComponents). */
+  onLayoutSaved?: (components: ComponentSchema[]) => void;
 }
 
 export const VisualEditorJSONDialog: React.FC<VisualEditorJSONDialogProps> = ({
@@ -38,6 +43,8 @@ export const VisualEditorJSONDialog: React.FC<VisualEditorJSONDialogProps> = ({
   currentThemeId,
   currentTenantId,
   connectionName,
+  currentComponents,
+  onLayoutSaved,
 }) => {
   const [jsonString, setJsonString] = useState('');
   const [jsonError, setJsonError] = useState<string | null>(null);
@@ -159,11 +166,32 @@ export const VisualEditorJSONDialog: React.FC<VisualEditorJSONDialogProps> = ({
       setLoading(true);
       setJsonError(null);
       
-      // For themes, we might not have a tenantId, so handle that
+      // Prefer in-memory builder components when provided (same page as module editor) so JSON and module editor stay in sync
+      if (Array.isArray(currentComponents) && currentComponents.length > 0) {
+        const layoutJson = JSON.stringify({ components: currentComponents }, null, JSON_EDITOR_CONFIG.TAB_SIZE);
+        setJsonString(layoutJson);
+        setLoading(false);
+        setTimeout(() => {
+          if (!isMountedRef.current || !open) return;
+          if (codeJarRef.current && editorRef.current && document.contains(editorRef.current)) {
+            try {
+              codeJarRef.current.updateCode(layoutJson);
+            } catch (error) {
+              console.warn('[testing] Error updating CodeJar (non-critical):', error);
+            }
+          } else if (editorRef.current && document.contains(editorRef.current)) {
+            initializeCodeJar(editorRef.current);
+          }
+        }, 200);
+        return;
+      }
+      
+      // Otherwise load from API (e.g. when opening JSON without having opened the visual editor first)
       const effectiveTenantId = tenantId || currentTenantId || 'tenant-gosg';
+      const themeParam = currentThemeId && currentThemeId !== 'custom' ? `&themeId=${encodeURIComponent(currentThemeId)}` : '';
       
       const encodedSlug = encodeURIComponent(pageSlug);
-      const response = await api.get(`/api/ai-assistant/page-context?slug=${encodedSlug}&tenantId=${effectiveTenantId}`);
+      const response = await api.get(`/api/ai-assistant/page-context?slug=${encodedSlug}&tenantId=${effectiveTenantId}${themeParam}`);
       const data = await response.json();
       
       if (data.success && data.pageContext?.layout) {
@@ -319,10 +347,11 @@ export const VisualEditorJSONDialog: React.FC<VisualEditorJSONDialogProps> = ({
       setSaving(true);
       const parsed = JSON.parse(jsonString);
       
-      // First get pageId from slug
+      // First get pageId from slug (use themeId when in theme mode so we update the same page as the module editor)
       const effectiveTenantId = tenantId || currentTenantId || 'tenant-gosg';
+      const themeParam = currentThemeId && currentThemeId !== 'custom' ? `&themeId=${encodeURIComponent(currentThemeId)}` : '';
       const encodedSlug = encodeURIComponent(pageSlug);
-      const pageContextResponse = await api.get(`/api/ai-assistant/page-context?slug=${encodedSlug}&tenantId=${effectiveTenantId}`);
+      const pageContextResponse = await api.get(`/api/ai-assistant/page-context?slug=${encodedSlug}&tenantId=${effectiveTenantId}${themeParam}`);
       const pageContextData = await pageContextResponse.json();
       
       if (!pageContextData.success || !pageContextData.pageContext?.pageId) {
@@ -343,6 +372,8 @@ export const VisualEditorJSONDialog: React.FC<VisualEditorJSONDialogProps> = ({
       const data = await response.json();
       
       if (data.success) {
+        const components = Array.isArray(parsed?.components) ? parsed.components : [];
+        onLayoutSaved?.(components);
         onOpenChange(false);
       } else {
         setJsonError('Failed to save layout');
