@@ -493,12 +493,34 @@ function SectionIngredients({ items }: { items: SchemaItem[] }) {
   );
 }
 
+/** Normalize team member: support flat (src, name, role, description) or nested (items: [image, heading, heading, text]). */
+function normalizeTeamMember(m: any): { src?: string; alt?: string; name?: string; role?: string; description?: string } {
+  if (!m) return {};
+  if (m.src || m.name) {
+    return { src: m.src, alt: m.alt, name: m.name ?? m.title, role: m.role, description: m.description };
+  }
+  const nested = Array.isArray(m.items) ? m.items : [];
+  const imageItem = nested.find((i: any) => i?.type === "image");
+  const headings = nested.filter((i: any) => i?.type === "heading");
+  const textItem = nested.find((i: any) => i?.type === "text");
+  const name = headings.find((i: any) => i?.level === 2)?.content ?? headings[0]?.content ?? "";
+  const role = headings.find((i: any) => i?.level === 4)?.content ?? headings[1]?.content ?? "";
+  return {
+    src: imageItem?.src,
+    alt: imageItem?.alt,
+    name,
+    role,
+    description: textItem?.content,
+  };
+}
+
 function SectionTeam({ items }: { items: SchemaItem[] }) {
   const title = getText(items, "title");
   const subtitle = getText(items, "subtitle");
   const description = getText(items, "description");
-  const team = getArray(items, "teamMembers").filter(
-    (m: any) => !!m?.src || !!m?.name
+  const rawTeam = getArray(items, "teamMembers");
+  const team = rawTeam.map(normalizeTeamMember).filter(
+    (m) => !!m?.src || !!m?.name
   );
 
   if (team.length === 0 && !title && !subtitle) return null;

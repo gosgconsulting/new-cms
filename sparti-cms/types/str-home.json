@@ -1,463 +1,565 @@
 {
-    "components": [
-      {
-        "key": "section1",
-        "name": "Home",
-        "type": "HeroSection",
-        "items": [
-          {
-            "key": "title",
-            "type": "heading",
-            "level": 1,
-            "content": "Train Better, Live Better."
-          },
-          {
-            "key": "subtitle",
-            "type": "text",
-            "content": "Where Community meets Performance"
-          },
-          {
-            "key": "description",
-            "type": "text",
-            "content": "A Premium space for Training, Rehabilitation and Wellness, all under one roof."
-          },
-          {
-            "key": "address",
-            "type": "text",
-            "content": "38 North Canal Road\n#05-01\nS059294"
-          },
-          {
-            "alt": "STR Fitness Gym",
-            "key": "image",
-            "src": "https://qwfcq0wvdkyoxzqx.public.blob.vercel-storage.com/uploads/default/hero-background-tNFUhcoUeMBopFolDzdOcnA5puFhNI.jpg",
-            "type": "image"
-          },
-          {
-            "key": "cta",
-            "link": "#programmes",
-            "type": "button",
-            "content": "EXPLORE OUR PROGRAMMES",
-            "buttonText": "EXPLORE OUR PROGRAMMES"
-          }
-        ],
-        "label": "Home"
-      },
-      {
-        "key": "section2",
-        "name": "About Us",
-        "type": "AboutSection",
-        "items": [
-          {
-            "key": "title",
-            "type": "heading",
-            "level": 2,
-            "content": "About Us"
-          },
-          {
-            "key": "description",
-            "type": "text",
-            "content": "Our space is dedicated to cultivating an environment to guide individuals on a transformative journey that balances the physical and mental aspects of health. By integrating personalized training and evidence-based rehabilitation, we empower anyone to unlock their full potential. Through a focus on mental resilience, self-belief, and holistic well-being, we cultivate a space where individuals overcome challenges, enhance performance, and achieve a sustainable, confident lifestyle."
-          },
-          {
-            "alt": "STR Fitness Gym Training",
-            "key": "image",
-            "src": "https://qwfcq0wvdkyoxzqx.public.blob.vercel-storage.com/uploads/default/ABOUT-US-BACKGROUND-wi57Lwdyq6nDHsparvFpxTj7RCQ5x2.jpg",
-            "type": "image"
-          },
-          {
-            "key": "features",
-            "type": "array",
-            "items": [
-              {
-                "key": "feature1",
-                "type": "feature",
-                "title": "EXPERT COACHING",
-                "description": "Train With Experienced Coaches Who Guide Every Workout With Proper Form And Purpose."
-              },
-              {
-                "key": "feature2",
-                "type": "feature",
-                "title": "Structured Programs",
-                "description": "Follow Proven Training Programs Designed To Deliver Real, Measurable Results."
-              },
-              {
-                "key": "feature3",
-                "type": "feature",
-                "title": "SUPPORTIVE COMMUNITY",
-                "description": "Train In A Motivating Environment That Helps You Stay Consistent And Reach Your Goals."
-              }
-            ]
-          }
-        ],
-        "label": "About Us"
-      },
-      {
-        "key": "section3",
-        "name": "Our Programmes",
-        "type": "ProgrammesSection",
-        "items": [
-          {
-            "key": "title",
-            "type": "heading",
-            "level": 2,
-            "content": "OUR PROGRAMMES"
-          },
-          {
-            "key": "description",
-            "type": "text",
-            "content": "Discover our comprehensive range of fitness and wellness programmes designed to help you achieve your goals, from personal training to group classes and rehabilitation."
-          },
-          {
-            "alt": "STR Fitness Gym Facilities - Rowing Machines, Training Area, and Weightlifting Equipment",
-            "key": "image",
-            "src": "https://qwfcq0wvdkyoxzqx.public.blob.vercel-storage.com/uploads/default/Group-1171274862-1-y78fUANAdAiduk23zPDyFbk8XSySvw.png",
-            "type": "image"
-          },
-          {
-            "key": "button",
-            "link": "/booking",
-            "type": "button",
-            "content": "GET STARTED",
-            "buttonText": "GET STARTED"
-          },
-          {
-            "key": "programmes",
-            "type": "array",
-            "items": [
-              {
-                "key": "programme1",
-                "type": "feature",
-                "title": "PERSONAL TRAINING",
-                "description": "Designed specifically for your own personal goals, work with a professional coach with fully guided and supervised sessions to ensure maximal success in achieving your goals."
-              },
-              {
-                "key": "programme2",
-                "type": "feature",
-                "title": "SPORTS MASSAGE",
-                "description": "Sports massage focuses on preventing and treating sports-related injuries by improving muscle flexibility and reducing tension."
-              },
-              {
-                "key": "programme3",
-                "type": "feature",
-                "title": "STR MEMBERSHIP PROGRAMME",
-                "description": "Unlimited access to group classes and open gym access, here at STR Fitness club."
-              },
-              {
-                "key": "programme4",
-                "type": "feature",
-                "title": "PHYSIOTHERAPY",
-                "description": "Our fully equipped gym with state-of-the-art rehabilitation equipment ensures that your recovery is optimised all the way, from symptom relief, restoration of function, all the way to performance."
-              },
-              {
-                "key": "programme5",
-                "type": "feature",
-                "title": "GROUP CLASSES",
-                "description": "We offer classes of different intensity, ranging from beginners-friendly to more advanced levels, to help you build the strength and speed needed for your next race. Whether you are looking to start your HYROX journey, maintain your fitness during the off-season or train for your next podium win, we have just the right class for you."
-              },
-              {
-                "key": "programme6",
-                "type": "feature",
-                "title": "OPEN GYM",
-                "description": "Open Gym Access. Capped at 5 pax per hourly slot, train with our official HYROX Center Equipment and state of the art equipment. Unwind, relax and connect afterwards at our outdoor terrace! Open Gym Hours: Monday - Friday 10am - 5pm, Saturday - Sunday 12pm - 5pm."
-              },
-              {
-                "key": "programme7",
-                "type": "feature",
-                "title": "YOUTH STRENGTH & CONDITIONING",
-                "description": "Engaging the youth and propelling them for long term athletic development while developing lifelong habits and values. Our coaches are specially equipped with the right skillset to motivate and teach the youth population."
-              }
-            ]
-          }
-        ],
-        "label": "Our Programmes"
-      },
-      {
-        "key": "section4",
-        "name": "Gallery",
-        "type": "GallerySection",
-        "items": [
-          {
-            "key": "title",
-            "type": "heading",
-            "level": 2,
-            "content": "GALLERY"
-          },
-          {
-            "key": "description",
-            "type": "text",
-            "content": "Training sessions, facility photos and videos"
-          },
-          {
-            "key": "tabs",
-            "type": "array",
-            "items": [
-              {
-                "key": "tab-all",
-                "type": "text",
-                "content": "All",
-                "value": "all"
-              },
-              {
-                "key": "tab-group-class",
-                "type": "text",
-                "content": "Group Class",
-                "value": "group-class"
-              },
-              {
-                "key": "tab-physiotherapy",
-                "type": "text",
-                "content": "Physiotherapy",
-                "value": "physiotherapy"
-              },
-              {
-                "key": "tab-personal-training",
-                "type": "text",
-                "content": "Personal Training",
-                "value": "personal-training"
-              }
-            ]
-          },
-          {
-            "key": "gallery",
-            "type": "array",
-            "items": [
-              {
-                "key": "image-1",
-                "type": "image",
-                "src": "https://str-two-kappa.vercel.app/theme/str/assets/gallery/group-class-1.png",
-                "alt": "Group Class 1",
-                "category": "group-class"
-              },
-              {
-                "key": "image-2",
-                "type": "image",
-                "src": "https://str-two-kappa.vercel.app/theme/str/assets/gallery/group-class-2.png",
-                "alt": "Group class 2",
-                "category": "group-class"
-              },
-              {
-                "key": "image-3",
-                "type": "image",
-                "src": "/theme/str/assets/gallery/group-class-3.png",
-                "alt": "Group Class 3",
-                "category": "group-class"
-              },
-              {
-                "key": "image-4",
-                "type": "image",
-                "src": "/theme/str/assets/gallery/physiotherapy-1.png",
-                "alt": "Physiotherapy 1",
-                "category": "physiotherapy"
-              },
-              {
-                "key": "image-5",
-                "type": "image",
-                "src": "/theme/str/assets/gallery/physiotherapy-2.png",
-                "alt": "Physiotherapy 2",
-                "category": "physiotherapy"
-              },
-              {
-                "key": "image-6",
-                "type": "image",
-                "src": "/theme/str/assets/gallery/personal-training-1.png",
-                "alt": "Personal Training 1",
-                "category": "personal-training"
-              },
-              {
-                "key": "image-7",
-                "type": "image",
-                "src": "/theme/str/assets/gallery/personal-training-5.png",
-                "alt": "Personal Training 2",
-                "category": "personal-training"
-              }
-            ]
-          }
-        ],
-        "label": "Gallery"
-      },
-      {
-        "key": "section5",
-        "name": "Reviews",
-        "type": "TestimonialsSection",
-        "items": [
-          {
-            "key": "title",
-            "type": "heading",
-            "level": 2,
-            "content": "RESULT YOU CAN FEEL & SEE"
-          },
-          {
-            "key": "testimonials",
-            "type": "array",
-            "items": []
-          },
-          {
-            "key": "button",
-            "link": "/booking",
-            "type": "button",
-            "content": "START YOUR JOURNEY",
-            "buttonText": "START YOUR JOURNEY"
-          }
-        ],
-        "label": "Reviews"
-      },
-      {
-        "key": "section6",
-        "name": "Our Team",
-        "type": "TeamSection",
-        "items": [
-          {
-            "key": "title",
-            "type": "heading",
-            "level": 2,
-            "content": "OUR COACHES"
-          },
-          {
-            "key": "teamMembers",
-            "type": "array",
-            "items": [
-              {
-                "alt": "JJ - Head Coach",
-                "key": "member1",
-                "src": "/theme/str/assets/team/JJ-Head-Coach-scaled-e1743491665639.jpg",
-                "type": "feature",
-                "name": "JJ",
-                "role": "Head Coach | Founder | Physiotherapist",
-                "title": "JJ",
-                "description": "JJ, a former National Youth Wushu Athlete, earned a Physiotherapy degree from Trinity College Dublin and specialized in sports physiotherapy at Sengkang General Hospital. He competes in endurance events like Hyrox — ranking top 6 Singaporean in 2024 — and volunteers with the Special Olympics and Wushu community."
-              },
-              {
-                "alt": "Brandon Khoo - PT Coach",
-                "key": "member2",
-                "src": "/theme/str/assets/team/Brandon-Khoo-Coach-scaled-e1743491558663.jpg",
-                "type": "feature",
-                "name": "Brandon Khoo",
-                "role": "PT Coach",
-                "title": "Brandon Khoo",
-                "description": "Brandon Khoo is an experienced strength and conditioning coach specializing in kettlebell and barbell training. He has designed and led both individualized and group training programs, focusing on strength, endurance, mobility, and injury prevention. He is passionate about helping clients build functional strength through structured progression."
-              },
-              {
-                "alt": "Jing Yong - Group Class Coach",
-                "key": "member3",
-                "src": "/theme/str/assets/team/Jing-Yong-Coach-e1743491534837.jpg",
-                "type": "feature",
-                "name": "Jing Yong",
-                "role": "Group Class Coach",
-                "title": "Jing Yong",
-                "description": "Jing Yong earned an Accountancy degree from Nanyang Technological University and currently holds a managerial position at a local investment firm. A former competitive athlete in triathlons, track and field and cross-country running, he now focuses on endurance events such as Hyrox, marathons, and team-based functional fitness races."
-              },
-              {
-                "alt": "Jessica - Group Class Coach | PT Coach",
-                "key": "member4",
-                "src": "/theme/str/assets/team/Jessica-e1744082680759.jpeg",
-                "type": "feature",
-                "name": "Jessica",
-                "role": "Group Class Coach | PT Coach",
-                "title": "Jessica",
-                "description": "Jessica is an experienced and versatile personal trainer with expertise in both strength and hybrid training. She has helped numerous clients achieve both fitness and aesthetic goals, while ensuring that they train safely and efficiently. She competes in half marathons and HYROX, ranking as the top Singaporean woman in both Open (2nd overall, first in AG) and Pro (3rd overall, first in AG) categories in HYROX 2024 races."
-              },
-              {
-                "alt": "Jacqueline - Group Class Coach",
-                "key": "member5",
-                "src": "/theme/str/assets/team/Jacqueline-e1744082763597.jpeg",
-                "type": "feature",
-                "name": "Jacqueline",
-                "role": "Group Class Coach",
-                "title": "Jacqueline",
-                "description": "Jacqueline is a passionate fitness trainer dedicated to helping others feel strong, confident, and empowered through movement. While she works as an HR professional by day, her true energy comes from the world of fitness—especially spin and pilates. She believes fitness should be fun, approachable, and inclusive, regardless of experience level. Her mission is to create a supportive space where members are encouraged to grow, challenge themselves, and celebrate progress."
-              }
-            ]
-          }
-        ],
-        "label": "Our Team"
-      },
-      {
-        "key": "section7",
-        "name": "FAQ",
-        "type": "FAQSection",
-        "items": [
-          {
-            "key": "title",
-            "type": "heading",
-            "level": 2,
-            "content": "FREQUENTLY ASKED QUESTIONS"
-          },
-          {
-            "key": "button",
-            "link": "/booking",
-            "type": "button",
-            "content": "GET STARTED TODAY"
-          },
-          {
-            "key": "faqItems",
-            "type": "array",
-            "items": [
-              {
-                "key": "faq1",
-                "type": "faq",
-                "question": "What experience level do I need to train at STR?",
-                "answer": "STR welcomes clients of all experience levels, from complete beginners to elite athletes. Our coaches tailor programs to your current fitness level and goals, ensuring safe and effective progression."
-              },
-              {
-                "key": "faq2",
-                "type": "faq",
-                "question": "How do I know if STR is right for me?",
-                "answer": "STR is ideal if you're looking for evidence-based coaching, personalized attention, and long-term physical development. We focus on building strength, improving performance, and supporting rehabilitation needs."
-              },
-              {
-                "key": "faq3",
-                "type": "faq",
-                "question": "What should I expect in my first session?",
-                "answer": "Your first session includes a comprehensive assessment of your movement patterns, strength levels, and goals. This allows us to design a program specifically tailored to your needs and objectives."
-              },
-              {
-                "key": "faq4",
-                "type": "faq",
-                "question": "How often should I train?",
-                "answer": "Training frequency depends on your goals, experience level, and schedule. Our coaches will recommend an optimal training schedule during your initial consultation, typically ranging from 2-5 sessions per week."
-              },
-              {
-                "key": "faq5",
-                "type": "faq",
-                "question": "Do you offer group training sessions?",
-                "answer": "Yes, we offer both individual and small group training options. Group sessions provide a supportive environment while maintaining personalized coaching attention."
-              },
-              {
-                "key": "faq6",
-                "type": "faq",
-                "question": "What results can I expect?",
-                "answer": "Results vary based on individual goals, consistency, and commitment. Our evidence-based approach focuses on sustainable, long-term improvements in strength, performance, and overall physical health."
-              }
-            ]
-          }
-        ],
-        "label": "FAQ"
-      },
-      {
-        "key": "section8",
-        "name": "CTA",
-        "type": "CTASection",
-        "items": [
-          {
-            "key": "title",
-            "type": "heading",
-            "level": 2,
-            "content": "READY TO TRANSFORM YOUR TRAINING?"
-          },
-          {
-            "key": "description",
-            "type": "text",
-            "content": "Join STR today and experience evidence-based coaching that delivers real, lasting results. Your journey to better strength, performance, and rehabilitation starts here."
-          },
-          {
-            "key": "cta",
-            "link": "#programmes",
-            "type": "button",
-            "content": "EXPLORE OUR PROGRAMMES",
-            "buttonText": "EXPLORE OUR PROGRAMMES"
-          }
-        ],
-        "label": "CTA"
-      }
-    ]
-  }
+  "components": [
+    {
+      "key": "section1",
+      "name": "Home",
+      "type": "HeroSection",
+      "items": [
+        {
+          "key": "title",
+          "type": "heading",
+          "level": 1,
+          "content": "Train Better, Live Better."
+        },
+        {
+          "key": "subtitle",
+          "type": "text",
+          "content": "Where Community meets Performance"
+        },
+        {
+          "key": "description",
+          "type": "text",
+          "content": "A Premium space for Training, Rehabilitation and Wellness, all under one roof."
+        },
+        {
+          "key": "address",
+          "type": "text",
+          "content": "38 North Canal Road\n#05-01\nS059294"
+        },
+        {
+          "alt": "STR Fitness Gym",
+          "key": "image",
+          "src": "https://qwfcq0wvdkyoxzqx.public.blob.vercel-storage.com/uploads/default/hero-background-tNFUhcoUeMBopFolDzdOcnA5puFhNI.jpg",
+          "type": "image"
+        },
+        {
+          "key": "cta",
+          "link": "#programmes",
+          "type": "button",
+          "content": "EXPLORE OUR PROGRAMMES",
+          "buttonText": "EXPLORE OUR PROGRAMMES"
+        }
+      ],
+      "label": "Home"
+    },
+    {
+      "key": "section2",
+      "name": "About Us",
+      "type": "AboutSection",
+      "items": [
+        {
+          "key": "title",
+          "type": "heading",
+          "level": 2,
+          "content": "About Us"
+        },
+        {
+          "key": "description",
+          "type": "text",
+          "content": "Our space is dedicated to cultivating an environment to guide individuals on a transformative journey that balances the physical and mental aspects of health. By integrating personalized training and evidence-based rehabilitation, we empower anyone to unlock their full potential. Through a focus on mental resilience, self-belief, and holistic well-being, we cultivate a space where individuals overcome challenges, enhance performance, and achieve a sustainable, confident lifestyle."
+        },
+        {
+          "alt": "STR Fitness Gym Training",
+          "key": "image",
+          "src": "https://qwfcq0wvdkyoxzqx.public.blob.vercel-storage.com/uploads/default/ABOUT-US-BACKGROUND-wi57Lwdyq6nDHsparvFpxTj7RCQ5x2.jpg",
+          "type": "image"
+        },
+        {
+          "key": "features",
+          "type": "array",
+          "items": [
+            {
+              "key": "feature1",
+              "type": "feature",
+              "title": "EXPERT COACHING",
+              "description": "Train With Experienced Coaches Who Guide Every Workout With Proper Form And Purpose."
+            },
+            {
+              "key": "feature2",
+              "type": "feature",
+              "title": "Structured Programs",
+              "description": "Follow Proven Training Programs Designed To Deliver Real, Measurable Results."
+            },
+            {
+              "key": "feature3",
+              "type": "feature",
+              "title": "SUPPORTIVE COMMUNITY",
+              "description": "Train In A Motivating Environment That Helps You Stay Consistent And Reach Your Goals."
+            }
+          ]
+        }
+      ],
+      "label": "About Us"
+    },
+    {
+      "key": "section3",
+      "name": "Our Programmes",
+      "type": "ProgrammesSection",
+      "items": [
+        {
+          "key": "title",
+          "type": "heading",
+          "level": 2,
+          "content": "OUR PROGRAMMES"
+        },
+        {
+          "key": "description",
+          "type": "text",
+          "content": "Discover our comprehensive range of fitness and wellness programmes designed to help you achieve your goals, from personal training to group classes and rehabilitation."
+        },
+        {
+          "alt": "STR Fitness Gym Facilities - Rowing Machines, Training Area, and Weightlifting Equipment",
+          "key": "image",
+          "src": "https://qwfcq0wvdkyoxzqx.public.blob.vercel-storage.com/uploads/default/Group-1171274862-1-y78fUANAdAiduk23zPDyFbk8XSySvw.png",
+          "type": "image"
+        },
+        {
+          "key": "button",
+          "link": "/booking",
+          "type": "button",
+          "content": "GET STARTED",
+          "buttonText": "GET STARTED"
+        },
+        {
+          "key": "programmes",
+          "type": "array",
+          "items": [
+            {
+              "key": "programme1",
+              "type": "feature",
+              "title": "PERSONAL TRAINING",
+              "description": "Designed specifically for your own personal goals, work with a professional coach with fully guided and supervised sessions to ensure maximal success in achieving your goals."
+            },
+            {
+              "key": "programme2",
+              "type": "feature",
+              "title": "SPORTS MASSAGE",
+              "description": "Sports massage focuses on preventing and treating sports-related injuries by improving muscle flexibility and reducing tension."
+            },
+            {
+              "key": "programme3",
+              "type": "feature",
+              "title": "STR MEMBERSHIP PROGRAMME",
+              "description": "Unlimited access to group classes and open gym access, here at STR Fitness club."
+            },
+            {
+              "key": "programme4",
+              "type": "feature",
+              "title": "PHYSIOTHERAPY",
+              "description": "Our fully equipped gym with state-of-the-art rehabilitation equipment ensures that your recovery is optimised all the way, from symptom relief, restoration of function, all the way to performance."
+            },
+            {
+              "key": "programme5",
+              "type": "feature",
+              "title": "GROUP CLASSES",
+              "description": "We offer classes of different intensity, ranging from beginners-friendly to more advanced levels, to help you build the strength and speed needed for your next race. Whether you are looking to start your HYROX journey, maintain your fitness during the off-season or train for your next podium win, we have just the right class for you."
+            },
+            {
+              "key": "programme6",
+              "type": "feature",
+              "title": "OPEN GYM",
+              "description": "Open Gym Access. Capped at 5 pax per hourly slot, train with our official HYROX Center Equipment and state of the art equipment. Unwind, relax and connect afterwards at our outdoor terrace! Open Gym Hours: Monday - Friday 10am - 5pm, Saturday - Sunday 12pm - 5pm."
+            },
+            {
+              "key": "programme7",
+              "type": "feature",
+              "title": "YOUTH STRENGTH & CONDITIONING",
+              "description": "Engaging the youth and propelling them for long term athletic development while developing lifelong habits and values. Our coaches are specially equipped with the right skillset to motivate and teach the youth population."
+            }
+          ]
+        }
+      ],
+      "label": "Our Programmes"
+    },
+    {
+      "key": "section4",
+      "name": "Gallery",
+      "type": "GallerySection",
+      "items": [
+        {
+          "key": "title",
+          "type": "heading",
+          "level": 2,
+          "content": "GALLERY"
+        },
+        {
+          "key": "description",
+          "type": "text",
+          "content": "Training sessions, facility photos and videos"
+        },
+        {
+          "key": "tabs",
+          "type": "array",
+          "items": [
+            {
+              "key": "tab-all",
+              "type": "text",
+              "value": "all",
+              "content": "All"
+            },
+            {
+              "key": "tab-group-class",
+              "type": "text",
+              "value": "group-class",
+              "content": "Group Class"
+            },
+            {
+              "key": "tab-physiotherapy",
+              "type": "text",
+              "value": "physiotherapy",
+              "content": "Physiotherapy"
+            },
+            {
+              "key": "tab-personal-training",
+              "type": "text",
+              "value": "personal-training",
+              "content": "Personal Training"
+            }
+          ]
+        },
+        {
+          "key": "gallery",
+          "type": "array",
+          "items": [
+            {
+              "alt": "Group Class 1",
+              "key": "image-1",
+              "src": "https://str-two-kappa.vercel.app/theme/str/assets/gallery/group-class-1.png",
+              "type": "image",
+              "content": "",
+              "category": "group-class"
+            },
+            {
+              "alt": "Group class 2",
+              "key": "image-2",
+              "src": "https://str-two-kappa.vercel.app/theme/str/assets/gallery/group-class-2.png",
+              "type": "image",
+              "content": "",
+              "category": "group-class"
+            },
+            {
+              "alt": "Group Class 3",
+              "key": "image-3",
+              "src": "https://str-two-kappa.vercel.app/theme/str/assets/gallery/group-class-3.png",
+              "type": "image",
+              "content": "",
+              "category": "group-class"
+            },
+            {
+              "alt": "Physiotherapy 1",
+              "key": "image-4",
+              "src": "https://str-two-kappa.vercel.app/theme/str/assets/gallery/physiotherapy-1.png",
+              "type": "image",
+              "content": "",
+              "category": "physiotherapy"
+            },
+            {
+              "alt": "Physiotherapy 2",
+              "key": "image-5",
+              "src": "https://str-two-kappa.vercel.app/theme/str/assets/gallery/physiotherapy-2.png",
+              "type": "image",
+              "content": "",
+              "category": "physiotherapy"
+            },
+            {
+              "alt": "Personal Training 1",
+              "key": "image-6",
+              "src": "https://str-two-kappa.vercel.app/theme/str/assets/gallery/personal-training-1.png",
+              "type": "image",
+              "content": "",
+              "category": "personal-training"
+            },
+            {
+              "alt": "Personal Training 2",
+              "key": "image-7",
+              "src": "https://str-two-kappa.vercel.app/theme/str/assets/gallery/personal-training-5.png",
+              "type": "image",
+              "content": "",
+              "category": "personal-training"
+            }
+          ]
+        }
+      ],
+      "label": "Gallery"
+    },
+    {
+      "key": "section5",
+      "name": "Reviews",
+      "type": "TestimonialsSection",
+      "items": [
+        {
+          "key": "title",
+          "type": "heading",
+          "level": 2,
+          "content": "RESULT YOU CAN FEEL & SEE"
+        },
+        {
+          "key": "testimonials",
+          "type": "array",
+          "items": []
+        },
+        {
+          "key": "button",
+          "link": "/booking",
+          "type": "button",
+          "content": "START YOUR JOURNEY",
+          "buttonText": "START YOUR JOURNEY"
+        }
+      ],
+      "label": "Reviews"
+    },
+    {
+      "key": "section6",
+      "name": "Our Team",
+      "type": "TeamSection",
+      "items": [
+        {
+          "key": "title",
+          "type": "heading",
+          "level": 2,
+          "content": "OUR COACHES"
+        },
+        {
+          "key": "teamMembers",
+          "type": "array",
+          "items": [
+            {
+              "key": "member1",
+              "type": "array",
+              "items": [
+                {
+                  "key": "member1_image",
+                  "type": "image",
+                  "src": "https://str-two-kappa.vercel.app/theme/str/assets/team/JJ-Head-Coach-scaled-e1743491665639.jpg",
+                  "alt": "JJ - Head Coach"
+                },
+                {
+                  "key": "member1_name",
+                  "type": "heading",
+                  "level": 2,
+                  "content": "JJ"
+                },
+                {
+                  "key": "member1_role",
+                  "type": "heading",
+                  "level": 4,
+                  "content": "Head Coach | Founder | Physiotherapist"
+                },
+                {
+                  "key": "member1_bio",
+                  "type": "text",
+                  "content": "JJ, a former National Youth Wushu Athlete, earned a Physiotherapy degree from Trinity College Dublin and specialized in sports physiotherapy at Sengkang General Hospital. He competes in endurance events like Hyrox — ranking top 6 Singaporean in 2024 — and volunteers with the Special Olympics and Wushu community."
+                }
+              ]
+            },
+            {
+              "key": "member2",
+              "type": "array",
+              "items": [
+                {
+                  "key": "member2_image",
+                  "type": "image",
+                  "src": "https://str-two-kappa.vercel.app/theme/str/assets/team/Brandon-Khoo-Coach-scaled-e1743491558663.jpg",
+                  "alt": "Brandon Khoo - PT Coach"
+                },
+                {
+                  "key": "member2_name",
+                  "type": "heading",
+                  "level": 2,
+                  "content": "Brandon Khoo"
+                },
+                {
+                  "key": "member2_role",
+                  "type": "heading",
+                  "level": 4,
+                  "content": "PT Coach"
+                },
+                {
+                  "key": "member2_bio",
+                  "type": "text",
+                  "content": "Brandon Khoo is an experienced strength and conditioning coach specializing in kettlebell and barbell training. He has designed and led both individualized and group training programs, focusing on strength, endurance, mobility, and injury prevention. He is passionate about helping clients build functional strength through structured progression."
+                }
+              ]
+            },
+            {
+              "key": "member3",
+              "type": "array",
+              "items": [
+                {
+                  "key": "member3_image",
+                  "type": "image",
+                  "src": "https://str-two-kappa.vercel.app/theme/str/assets/team/Jing-Yong-Coach-e1743491534837.jpg",
+                  "alt": "Jing Yong - Group Class Coach"
+                },
+                {
+                  "key": "member3_name",
+                  "type": "heading",
+                  "level": 2,
+                  "content": "Jing Yong"
+                },
+                {
+                  "key": "member3_role",
+                  "type": "heading",
+                  "level": 4,
+                  "content": "Group Class Coach"
+                },
+                {
+                  "key": "member3_bio",
+                  "type": "text",
+                  "content": "Jing Yong earned an Accountancy degree from Nanyang Technological University and currently holds a managerial position at a local investment firm. A former competitive athlete in triathlons, track and field and cross-country running, he now focuses on endurance events such as Hyrox, marathons, and team-based functional fitness races."
+                }
+              ]
+            },
+            {
+              "key": "member4",
+              "type": "array",
+              "items": [
+                {
+                  "key": "member4_image",
+                  "type": "image",
+                  "src": "https://str-two-kappa.vercel.app/theme/str/assets/team/Jessica-e1744082680759.jpeg",
+                  "alt": "Jessica - Group Class Coach | PT Coach"
+                },
+                {
+                  "key": "member4_name",
+                  "type": "heading",
+                  "level": 2,
+                  "content": "Jessica"
+                },
+                {
+                  "key": "member4_role",
+                  "type": "heading",
+                  "level": 4,
+                  "content": "Group Class Coach | PT Coach"
+                },
+                {
+                  "key": "member4_bio",
+                  "type": "text",
+                  "content": "Jessica is an experienced and versatile personal trainer with expertise in both strength and hybrid training. She has helped numerous clients achieve both fitness and aesthetic goals, while ensuring that they train safely and efficiently. She competes in half marathons and HYROX, ranking as the top Singaporean woman in both Open (2nd overall, first in AG) and Pro (3rd overall, first in AG) categories in HYROX 2024 races."
+                }
+              ]
+            },
+            {
+              "key": "member5",
+              "type": "array",
+              "items": [
+                {
+                  "key": "member5_image",
+                  "type": "image",
+                  "src": "https://str-two-kappa.vercel.app/theme/str/assets/team/Jacqueline-e1744082763597.jpeg",
+                  "alt": "Jacqueline - Group Class Coach"
+                },
+                {
+                  "key": "member5_name",
+                  "type": "heading",
+                  "level": 2,
+                  "content": "Jacqueline"
+                },
+                {
+                  "key": "member5_role",
+                  "type": "heading",
+                  "level": 4,
+                  "content": "Group Class Coach"
+                },
+                {
+                  "key": "member5_bio",
+                  "type": "text",
+                  "content": "Jacqueline is a passionate fitness trainer dedicated to helping others feel strong, confident, and empowered through movement. While she works as an HR professional by day, her true energy comes from the world of fitness—especially spin and pilates. She believes fitness should be fun, approachable, and inclusive, regardless of experience level. Her mission is to create a supportive space where members are encouraged to grow, challenge themselves, and celebrate progress."
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "label": "Our Team"
+    },
+    {
+      "key": "section7",
+      "name": "FAQ",
+      "type": "FAQSection",
+      "items": [
+        {
+          "key": "title",
+          "type": "heading",
+          "level": 2,
+          "content": "FREQUENTLY ASKED QUESTIONS"
+        },
+        {
+          "key": "button",
+          "link": "/booking",
+          "type": "button",
+          "content": "GET STARTED TODAY"
+        },
+        {
+          "key": "faqItems",
+          "type": "array",
+          "items": [
+            {
+              "key": "faq1",
+              "type": "faq",
+              "answer": "STR welcomes clients of all experience levels, from complete beginners to elite athletes. Our coaches tailor programs to your current fitness level and goals, ensuring safe and effective progression.",
+              "question": "What experience level do I need to train at STR?"
+            },
+            {
+              "key": "faq2",
+              "type": "faq",
+              "answer": "STR is ideal if you're looking for evidence-based coaching, personalized attention, and long-term physical development. We focus on building strength, improving performance, and supporting rehabilitation needs.",
+              "question": "How do I know if STR is right for me?"
+            },
+            {
+              "key": "faq3",
+              "type": "faq",
+              "answer": "Your first session includes a comprehensive assessment of your movement patterns, strength levels, and goals. This allows us to design a program specifically tailored to your needs and objectives.",
+              "question": "What should I expect in my first session?"
+            },
+            {
+              "key": "faq4",
+              "type": "faq",
+              "answer": "Training frequency depends on your goals, experience level, and schedule. Our coaches will recommend an optimal training schedule during your initial consultation, typically ranging from 2-5 sessions per week.",
+              "question": "How often should I train?"
+            },
+            {
+              "key": "faq5",
+              "type": "faq",
+              "answer": "Yes, we offer both individual and small group training options. Group sessions provide a supportive environment while maintaining personalized coaching attention.",
+              "question": "Do you offer group training sessions?"
+            },
+            {
+              "key": "faq6",
+              "type": "faq",
+              "answer": "Results vary based on individual goals, consistency, and commitment. Our evidence-based approach focuses on sustainable, long-term improvements in strength, performance, and overall physical health.",
+              "question": "What results can I expect?"
+            }
+          ]
+        }
+      ],
+      "label": "FAQ"
+    },
+    {
+      "key": "section8",
+      "name": "CTA",
+      "type": "CTASection",
+      "items": [
+        {
+          "key": "title",
+          "type": "heading",
+          "level": 2,
+          "content": "READY TO TRANSFORM YOUR TRAINING?"
+        },
+        {
+          "key": "description",
+          "type": "text",
+          "content": "Join STR today and experience evidence-based coaching that delivers real, lasting results. Your journey to better strength, performance, and rehabilitation starts here."
+        },
+        {
+          "key": "cta",
+          "link": "#programmes",
+          "type": "button",
+          "content": "EXPLORE OUR PROGRAMMES",
+          "buttonText": "EXPLORE OUR PROGRAMMES"
+        }
+      ],
+      "label": "CTA"
+    }
+  ]
+}
