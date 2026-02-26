@@ -112,6 +112,11 @@ const getHardcodedThemePages = (themeId: string): PageItem[] => {
   ];
 };
 
+const PAGE_LOAD_RETRY_DELAY_MS = 500;
+const PAGE_LOAD_TIMEOUT_MS = 5000;
+
+const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+
 // Load theme pages from API (from database, synced from pages.json)
 // Falls back to hardcoded pages if API fails
 const loadThemePages = async (themeId: string | null): Promise<PageItem[]> => {
@@ -153,6 +158,7 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
   const [pages, setPages] = useState<PageItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [loadAttempt, setLoadAttempt] = useState(0);
   const [visualEditorPage, setVisualEditorPage] = useState<{ slug: string; pageName: string; id?: string } | null>(null);
   const [seoPage, setSeoPage] = useState<{ slug: string; pageName: string; id: string } | null>(null);
   const [showJSONEditor, setShowJSONEditor] = useState(false);
@@ -178,6 +184,9 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
   useEffect(() => {
     builderComponentsRef.current = builderComponents;
   }, [builderComponents]);
+
+  // "Latest load wins": ignore setState when a newer load has started (e.g. user switched tenant).
+  const loadIdRef = useRef(0);
 
   const [builderLoading, setBuilderLoading] = useState(false);
   const [builderError, setBuilderError] = useState<string | null>(null);
@@ -450,165 +459,139 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
     { page_name: 'Terms of Service', slug: '/terms-conditions', page_type: 'legal' as const, status: 'draft' as const },
   ];
 
-  // Load pages from database for tenant + theme combination
-  useEffect(() => {
-    console.log('[testing] Loading pages for tenant:', currentTenantId, 'theme:', currentThemeId);
+  // Single attempt to load pages. Returns success with pages or failure with cause.
+  const attemptLoadPages = useCallback(async (): Promise<
+    { success: true; pages: PageItem[] } | { success: false; cause: string }
+  > => {
+    const url = currentThemeId === 'custom'
+      ? `/api/pages/all?tenantId=${currentTenantId}`
+      : `/api/pages/all?tenantId=${currentTenantId}&themeId=${currentThemeId}`;
 
-    if (currentTenantId && currentThemeId) {
-      // Load pages for tenant + theme combination
-      loadPages();
-    } else {
-      // No tenant or theme selected, show empty
-      setPages([]);
-      setLoading(false);
-      setError(null);
-    }
-  }, [currentTenantId, currentThemeId, user]);
-
-  const loadPages = async () => {
     try {
-      setLoading(true);
-      setError(null);
-
-      // Load pages for tenant + theme combination
-      // If theme is 'custom', load tenant pages without theme filter
-      // Otherwise, load pages filtered by both tenant and theme
-      const url = currentThemeId === 'custom'
-        ? `/api/pages/all?tenantId=${currentTenantId}`
-        : `/api/pages/all?tenantId=${currentTenantId}&themeId=${currentThemeId}`;
-
-      console.log('[testing] Frontend: ========== Loading Pages ==========');
-      console.log('[testing] Frontend: currentTenantId:', currentTenantId);
-      console.log('[testing] Frontend: currentThemeId:', currentThemeId);
-      console.log('[testing] Frontend: API URL:', url);
-      console.log('[testing] Frontend: Headers:', {
-        'X-Tenant-Id': currentTenantId || ''
-      });
-
       let response;
       try {
         response = await api.get(url, {
-          headers: {
-            'X-Tenant-Id': currentTenantId || ''
-          }
+          headers: { 'X-Tenant-Id': currentTenantId || '' },
         });
       } catch (apiError: any) {
-        // If API call fails (e.g., database not ready), try to get theme pages from filesystem
-        console.log('[testing] Frontend: API call failed, trying theme pages fallback:', apiError?.message);
-
         if (currentThemeId && currentThemeId !== 'custom') {
           try {
-            // Try to get theme pages directly (which falls back to filesystem)
             const themePagesResponse = await api.get(`/api/pages/theme/${currentThemeId}`);
             if (themePagesResponse.ok) {
               const themePagesData = await themePagesResponse.json();
               const themePages = themePagesData.pages || [];
-              console.log('[testing] Frontend: Got pages from theme API (filesystem fallback):', themePages.length);
-              setPages(themePages);
-              setError(null);
-              return;
+              if (themePages.length > 0) return { success: true, pages: themePages };
             }
-          } catch (themeError) {
-            console.log('[testing] Frontend: Theme pages API also failed:', themeError);
+          } catch {
+            // ignore
           }
         }
-
-        // If all else fails, use hardcoded pages for the theme
-        console.log('[testing] Frontend: Using hardcoded pages as fallback');
         const hardcodedPages = getHardcodedThemePages(currentThemeId || '');
-        setPages(hardcodedPages);
-        setError(null);
-        return;
+        if (hardcodedPages.length > 0) return { success: true, pages: hardcodedPages };
+        return { success: false, cause: 'network' };
       }
 
-      console.log('[testing] Frontend: Response status:', response.status, response.statusText);
-
       if (!response.ok) {
-        // If API returned error, try filesystem fallback
-        const errorText = await response.text();
-        console.log('[testing] Frontend: API returned error, trying filesystem fallback:', errorText);
-
         if (currentThemeId && currentThemeId !== 'custom') {
           try {
             const themePagesResponse = await api.get(`/api/pages/theme/${currentThemeId}`);
             if (themePagesResponse.ok) {
               const themePagesData = await themePagesResponse.json();
               const themePages = themePagesData.pages || [];
-              console.log('[testing] Frontend: Got pages from theme API (filesystem fallback):', themePages.length);
-              setPages(themePages);
-              setError(null);
-              return;
+              if (themePages.length > 0) return { success: true, pages: themePages };
             }
-          } catch (themeError) {
-            console.log('[testing] Frontend: Theme pages API also failed:', themeError);
+          } catch {
+            // ignore
           }
         }
-
-        // Last resort: use hardcoded pages
         const hardcodedPages = getHardcodedThemePages(currentThemeId || '');
-        setPages(hardcodedPages);
-        setError(null);
-        return;
+        if (hardcodedPages.length > 0) return { success: true, pages: hardcodedPages };
+        return { success: false, cause: 'network' };
       }
 
       const data = await response.json();
-      console.log('[testing] Frontend: Response data:', {
-        success: data.success,
-        total: data.total,
-        pagesCount: data.pages?.length || 0,
-        tenantId: data.tenantId,
-        themeId: data.themeId,
-        from_filesystem: data.from_filesystem
-      });
+      const receivedPages: PageItem[] = data.pages || [];
 
-      const receivedPages = data.pages || [];
-      console.log('[testing] Frontend: Received pages:', receivedPages.length);
+      if (data.tenantId && data.tenantId !== currentTenantId) {
+        return { success: false, cause: 'wrong_tenant' };
+      }
 
-      // If no pages from database, try filesystem fallback for theme
-      if (receivedPages.length === 0 && currentThemeId && currentThemeId !== 'custom') {
-        console.log('[testing] Frontend: No pages from database, trying filesystem fallback');
+      if (receivedPages.length > 0) {
+        return { success: true, pages: receivedPages };
+      }
+
+      if (currentThemeId && currentThemeId !== 'custom') {
         try {
           const themePagesResponse = await api.get(`/api/pages/theme/${currentThemeId}`);
           if (themePagesResponse.ok) {
             const themePagesData = await themePagesResponse.json();
             const themePages = themePagesData.pages || [];
-            if (themePages.length > 0) {
-              console.log('[testing] Frontend: Got pages from filesystem:', themePages.length);
-              setPages(themePages);
-              setError(null);
-              return;
-            }
+            if (themePages.length > 0) return { success: true, pages: themePages };
           }
-        } catch (themeError) {
-          console.log('[testing] Frontend: Theme pages API failed:', themeError);
+        } catch {
+          // ignore
         }
       }
 
-      if (receivedPages.length > 0) {
-        const pageTypes = receivedPages.map(p => p.page_type).filter((v, i, a) => a.indexOf(v) === i);
-        console.log('[testing] Frontend: Page types received:', pageTypes.join(', '));
-        console.log('[testing] Frontend: Sample page:', {
-          id: receivedPages[0].id,
-          page_name: receivedPages[0].page_name,
-          slug: receivedPages[0].slug,
-          page_type: receivedPages[0].page_type,
-          theme_id: receivedPages[0].theme_id
-        });
+      const hardcodedPages = getHardcodedThemePages(currentThemeId || '');
+      if (hardcodedPages.length > 0) return { success: true, pages: hardcodedPages };
+      return { success: false, cause: 'empty' };
+    } catch (err) {
+      console.error('[testing] Frontend: Error loading pages:', err);
+      return { success: false, cause: 'network' };
+    }
+  }, [currentTenantId, currentThemeId]);
+
+  // Load pages with retry (500ms delay) and 5s timeout. Only applies state if this load is still the latest (loadId).
+  const loadPages = useCallback(async (callerLoadId?: number) => {
+    const loadId = callerLoadId !== undefined ? callerLoadId : (loadIdRef.current += 1);
+
+    setLoading(true);
+    setError(null);
+    setLoadAttempt(0);
+    const startTime = Date.now();
+    let lastCause = 'timeout';
+
+    while (true) {
+      if (loadIdRef.current !== loadId) return;
+      setLoadAttempt((a) => a + 1);
+      const result = await attemptLoadPages();
+
+      if (result.success) {
+        if (loadIdRef.current !== loadId) return;
+        setPages(result.pages);
+        setLoading(false);
+        setError(null);
+        return;
       }
 
-      setPages(receivedPages);
-      console.log('[testing] Frontend: Pages set in state:', receivedPages.length);
-      console.log('[testing] Frontend: ====================================');
-    } catch (error) {
-      console.error('[testing] Frontend: Error loading pages:', error);
-      // Don't set error - try to use hardcoded pages instead
-      const hardcodedPages = getHardcodedThemePages(currentThemeId || '');
-      setPages(hardcodedPages);
-      setError(null);
-    } finally {
-      setLoading(false);
+      lastCause = result.cause;
+      if (Date.now() - startTime >= PAGE_LOAD_TIMEOUT_MS) {
+        break;
+      }
+      await sleep(PAGE_LOAD_RETRY_DELAY_MS);
     }
-  };
+
+    if (loadIdRef.current !== loadId) return;
+    setError(lastCause);
+    setLoading(false);
+  }, [attemptLoadPages]);
+
+  // Load pages from database for tenant + theme combination. Clear list immediately on switch so stale loads don't overwrite.
+  useEffect(() => {
+    if (currentTenantId && currentThemeId) {
+      loadIdRef.current += 1;
+      const thisLoadId = loadIdRef.current;
+      setPages([]);
+      setLoading(true);
+      setError(null);
+      loadPages(thisLoadId);
+    } else {
+      setPages([]);
+      setLoading(false);
+      setError(null);
+    }
+  }, [currentTenantId, currentThemeId, user, loadPages]);
 
 
   const handleSEOIndexToggle = async (pageId: string, pageType: string, currentIndex: boolean) => {
@@ -1537,22 +1520,32 @@ export const PagesManager: React.FC<PagesManagerProps> = ({
       <div className="max-w-6xl mx-auto">
         <div className="bg-white rounded-lg border border-gray-200 p-6">
           <div className="text-center py-12">
-            <p className="text-gray-500">Loading pages...</p>
+            <p className="text-gray-500 flex items-center justify-center gap-2">
+              <Loader2 className="h-5 w-5 animate-spin" />
+              {loadAttempt > 1 ? 'Loading page(s) (retrying…)' : 'Loading page(s)…'}
+            </p>
           </div>
         </div>
       </div>
     );
   }
 
+  const errorMessages: Record<string, string> = {
+    timeout: 'Load timed out after 5 seconds.',
+    network: 'Could not load pages. Check your connection and try again.',
+    empty: 'No pages returned for this tenant and theme.',
+    wrong_tenant: 'Received pages for a different tenant. Please retry.',
+  };
+
   if (error) {
     return (
       <div className="max-w-6xl mx-auto">
         <div className="bg-white rounded-lg border border-gray-200 p-6">
           <div className="text-center py-12">
-            <p className="text-red-600">Error: {error}</p>
-            <Button onClick={() => {
-              loadPages();
-            }} className="mt-4">
+            <p className="text-red-600 mb-1">Failed to load pages</p>
+            <p className="text-gray-600 text-sm mb-4">{errorMessages[error] ?? error}</p>
+            <Button onClick={() => loadPages()} className="gap-2">
+              <RefreshCw className="h-4 w-4" />
               Retry
             </Button>
           </div>
