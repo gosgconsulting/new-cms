@@ -47,6 +47,43 @@ const errorResponse = (error, code, status = 500) => {
   };
 };
 
+/** 
+ * Base URL for the CMS (API and uploads). Used so branding logo/favicon can be absolute URLs.
+ * Prefer env (CMS_PUBLIC_URL or PUBLIC_APP_URL), then Vercel, then request origin.
+ * @param {import('express').Request} req
+ * @returns {string}
+ */
+function getCmsBaseUrl(req) {
+  const fromEnv = process.env.FRONTEND_URL || process.env.PUBLIC_APP_URL;
+  if (fromEnv) return fromEnv.replace(/\/$/, '');
+  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
+  if (req && req.protocol && req.get && req.get('host')) {
+    return `${req.protocol}://${req.get('host')}`;
+  }
+  return '';
+}
+
+/**
+ * Resolve relative site_logo and site_favicon to absolute URLs using the CMS base URL.
+ * Leaves absolute URLs unchanged. Returns a shallow copy of branding with resolved fields.
+ * @param {Record<string, unknown>} branding
+ * @param {string} baseUrl
+ * @returns {Record<string, unknown>}
+ */
+function resolveBrandingMediaUrls(branding, baseUrl) {
+  if (!branding || typeof branding !== 'object') return branding || {};
+  const out = { ...branding };
+  if (baseUrl) {
+    for (const key of ['site_logo', 'site_favicon']) {
+      const value = out[key];
+      if (typeof value === 'string' && value.startsWith('/')) {
+        out[key] = `${baseUrl}${value}`;
+      }
+    }
+  }
+  return out;
+}
+
 /**
  * GET /api/v1/me
  * Return current tenant and current user. req.tenantId and req.user are set by authenticateTenantApiKey.
@@ -906,8 +943,11 @@ router.get('/theme/:themeSlug/branding', async (req, res) => {
       themeKeys: Object.keys(settings.theme || {})
     });
     
-    // Return branding settings in the expected format
-    res.json(successResponse(settings.branding || {}, tenantId));
+    // Resolve relative logo/favicon paths to absolute URLs (CMS base from env or request)
+    const baseUrl = getCmsBaseUrl(req);
+    const branding = resolveBrandingMediaUrls(settings.branding || {}, baseUrl);
+    
+    res.json(successResponse(branding, tenantId));
   } catch (error) {
     console.error('[testing] Error fetching theme branding:', error);
     console.error('[testing] Error stack:', error.stack);
