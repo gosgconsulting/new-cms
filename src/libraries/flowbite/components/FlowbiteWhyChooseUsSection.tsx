@@ -65,6 +65,7 @@ const FlowbiteWhyChooseUsSection: React.FC<FlowbiteWhyChooseUsSectionProps> = ({
   const description = getText("description") || props.description || "";
   const reasons = getArray("reasons");
   const cta = getButton("cta");
+  const sectionLabel = title || (component as any).name || "reasons";
 
   return (
     <section className={`py-20 px-4 bg-[color:var(--brand-background)] dark:bg-[#0a0a0a] ${className}`}>
@@ -112,7 +113,7 @@ const FlowbiteWhyChooseUsSection: React.FC<FlowbiteWhyChooseUsSectionProps> = ({
               })}
             </div>
           ) : (
-            <p className="text-gray-600 dark:text-gray-400 text-center">No reasons to display</p>
+            <p className="text-gray-600 dark:text-gray-400 text-center">No {sectionLabel} to display</p>
           )}
 
           {/* CTA */}

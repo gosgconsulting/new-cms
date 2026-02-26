@@ -156,7 +156,7 @@ const FlowbitePainPointSection: React.FC<FlowbitePainPointSectionProps> = ({
                 );
               })
             ) : (
-              <p className="text-[color:var(--text-muted)]">No items to display.</p>
+              <p className="text-[color:var(--text-muted)]">No {(component as any).name || getHeading("title") || "items"} to display.</p>
             )}
           </div>
         </div>

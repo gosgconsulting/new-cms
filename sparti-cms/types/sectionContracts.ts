@@ -2,6 +2,10 @@
  * Section contracts: expected item keys and shapes for Flowbite (and other) preview/components.
  * Use this when generating or validating new tenant page schema so layout renders correctly.
  *
+ * AI schema generation: Prefer section types and structure from reference schema
+ * sparti-cms/types/jp-b2b-home.json (HeroSection, Showcase, ProductGrid, SocialMedia,
+ * ContentSection, ServicesGrid, Reviews, etc.). Generated schema should follow these contracts.
+ *
  * Option B: All array item fields are TOP-LEVEL on the item (not in props). Editors and
  * preview components should read/write these keys so saved JSON matches the schema.
  *
@@ -119,6 +123,56 @@ export const SECTION_CONTRACTS: Record<string, SectionContract> = {
     buttonKeys: ["cta"],
     titleKey: "title",
     descriptionKey: "description",
+  },
+  // --- Section types from jp-b2b-home.json (Julia Paris / reference schema for AI schema generation) ---
+  showcase: {
+    type: "Showcase",
+    arrayKeys: ["categoryGrids", "items", "showcase"],
+    buttonKeys: ["button"],
+    titleKey: "title",
+    descriptionKey: "description",
+    arrayItemKeysTopLevel: true,
+  },
+  productgrid: {
+    type: "ProductGrid",
+    arrayKeys: ["buttons"],
+    buttonKeys: [],
+    titleKey: "title",
+    descriptionKey: "description",
+    arrayItemKeysTopLevel: true,
+  },
+  socialmedia: {
+    type: "SocialMedia",
+    arrayKeys: [],
+    buttonKeys: [],
+    titleKey: "title",
+    descriptionKey: "subtitle",
+  },
+  contentsection: {
+    type: "ContentSection",
+    arrayKeys: ["content"],
+    buttonKeys: ["button"],
+    titleKey: "title",
+    descriptionKey: "description",
+    imageKey: "backgroundImage",
+    arrayItemKeysTopLevel: true,
+  },
+  servicesgrid: {
+    type: "ServicesGrid",
+    arrayKeys: ["services"],
+    buttonKeys: [],
+    titleKey: "title",
+    descriptionKey: "subtitle",
+    arrayItemKeysTopLevel: true,
+  },
+  reviews: {
+    type: "Reviews",
+    arrayKeys: ["reviews"],
+    buttonKeys: [],
+    titleKey: "title",
+    descriptionKey: "subtitle",
+    arrayItemShape: { name: "name", content: "content", rating: "rating" },
+    arrayItemKeysTopLevel: true,
   },
 };
 

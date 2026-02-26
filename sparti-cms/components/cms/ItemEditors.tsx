@@ -1613,6 +1613,7 @@ export const FeatureEditor: React.FC<ItemEditorProps> = ({ item, onChange, onRem
         <div>
           <Label className="text-xs">Feature Description</Label>
           <QuillEditor
+            key={`quill-description-${item.key}`}
             content={description}
             onChange={(value) => updateTopLevel({ description: value })}
             placeholder="Enter feature description..."

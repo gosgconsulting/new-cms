@@ -57,6 +57,7 @@ const FlowbiteProductGrid: React.FC<FlowbiteProductGridProps> = ({
   const title = getHeading("title") || props.title || "";
   const subtitle = getHeading("subtitle", 3) || props.subtitle || "";
   const products = getArray("products") || props.products || [];
+  const sectionLabel = title || (component as any).name || "products";
 
   return (
     <FlowbiteSection 
@@ -106,7 +107,7 @@ const FlowbiteProductGrid: React.FC<FlowbiteProductGridProps> = ({
         </div>
       ) : (
         <div className="mt-8 text-center text-gray-600 dark:text-gray-400">
-          <p>No products to display. Products will be loaded from e-commerce API.</p>
+          <p>No {sectionLabel} to display. Products will be loaded from e-commerce API.</p>
         </div>
       )}
     </FlowbiteSection>

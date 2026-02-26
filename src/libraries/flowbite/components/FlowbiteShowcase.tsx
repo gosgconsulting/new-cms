@@ -78,14 +78,15 @@ const FlowbiteShowcase: React.FC<FlowbiteShowcaseProps> = ({
     }
   }
 
-  // Get title if exists
+  // Get title if exists (section title/name for placeholder when empty)
   const title = getHeading(items, "title") || props.title || "";
+  const sectionLabel = title || (component as any).name || "Showcase";
 
   if (showcaseItems.length === 0) {
     return (
       <FlowbiteSection title={title || undefined} className={className}>
         <div className="text-center py-12">
-          <p className="text-gray-600 dark:text-gray-400">No showcase items to display.</p>
+          <p className="text-gray-600 dark:text-gray-400">No {sectionLabel} items to display.</p>
         </div>
       </FlowbiteSection>
     );

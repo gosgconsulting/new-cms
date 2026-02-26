@@ -71,6 +71,7 @@ const FlowbiteFeaturesSection: React.FC<FlowbiteFeaturesSectionProps> = ({
     getText("subtitle") ||
     (props as any).subtitle ||
     "A complete growth package designed to fix the bottlenecks above and turn attention into leads.";
+  const sectionLabel = title || (component as any).name || "items";
 
   const features = useMemo<Feature[]>(() => {
     const featuresArray = getArray("features");
@@ -212,7 +213,7 @@ const FlowbiteFeaturesSection: React.FC<FlowbiteFeaturesSectionProps> = ({
               </>
             )
           ) : (
-            <p className="text-gray-500 dark:text-gray-400 text-center">No items to display</p>
+            <p className="text-gray-500 dark:text-gray-400 text-center">No {sectionLabel} to display</p>
           )}
         </div>
       </div>

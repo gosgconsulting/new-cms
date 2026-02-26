@@ -1055,8 +1055,17 @@ const FlowbiteDioraRenderer: React.FC<FlowbiteDioraRendererProps> = ({
               );
             }
 
-            // Only render Diora template components - skip non-Diora components
-            return null;
+            // Fallback: render clickable placeholder for unknown section types so section stays selectable
+            const sectionLabel = (comp as any).name || (comp as any).type || (comp as any).key || `Section ${idx + 1}`;
+            return (
+              <div data-sparti-component-index={idx} data-sparti-section={t} key={`sec-${idx}`}>
+                <section className="w-full rounded-lg border border-dashed border-gray-300 bg-gray-50/50 p-8 text-center">
+                  <p className="text-gray-500 text-sm">
+                    No content to display. <span className="font-medium text-gray-700">{sectionLabel}</span> placeholder.
+                  </p>
+                </section>
+              </div>
+            );
           })}
         </main>
       </ElementSelector>

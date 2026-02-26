@@ -890,6 +890,7 @@ body.gosg-editing .sparti-btn:hover {
 /* Sticky editor sidebar: own scrolling, no propagation to center */
 .sparti-editor-sticky {
   height: 100vh;
+  max-height: calc(100vh - 248px);
   overscroll-behavior: contain; /* prevent scroll chaining */
   -webkit-overflow-scrolling: touch; /* smooth scrolling on iOS */
 }

@@ -44,6 +44,7 @@ const FlowbiteSocialMedia: React.FC<FlowbiteSocialMediaProps> = ({
   const title = getHeading("title") || props.title || "";
   const subtitle = getHeading("subtitle", 3) || getText("subtitle") || props.subtitle || "";
   const instagramHandle = props.instagramHandle || props.handle || "";
+  const sectionLabel = title || (component as any).name || "Instagram";
 
   return (
     <FlowbiteSection 
@@ -63,7 +64,7 @@ const FlowbiteSocialMedia: React.FC<FlowbiteSocialMediaProps> = ({
             </div>
           </div>
         ) : (
-          <p className="text-gray-600 dark:text-gray-400">Instagram feed placeholder</p>
+          <p className="text-gray-600 dark:text-gray-400">{sectionLabel} placeholder</p>
         )}
       </div>
     </FlowbiteSection>
