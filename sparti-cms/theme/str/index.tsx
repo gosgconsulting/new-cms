@@ -51,10 +51,10 @@ const STRTheme: React.FC<TenantLandingProps> = ({
   // Get settings from database with fallback to defaults using utility functions
   const siteName = getSiteName(branding, tenantName);
   const siteDescription = getSiteDescription(branding, 'STR Fitness Club - Evidence-based strength training, personal training, physiotherapy, and group classes in Singapore.');
-  const logoSrc = "https://cms.sparti.ai"+getLogoSrc(branding, STR_ASSETS.logos.header);
+  const logoSrc = getLogoSrc(branding, STR_ASSETS.logos.header);
   // For homepage, use circular logo (branding may override, but default to circular logo from assets)
   const circularLogoSrc = branding?.site_logo || STR_ASSETS.logos.circular;
-  const faviconSrc = "https://cms.sparti.ai"+getFaviconSrc(branding);
+  const faviconSrc = getFaviconSrc(branding);
   
   // Apply favicon when branding loads
   useEffect(() => {
