@@ -205,6 +205,12 @@ export const useThemeBranding = (
         ? `/api/v1/theme/${themeSlug}/branding?tenantId=${encodeURIComponent(effectiveTenantId)}`
         : `/api/v1/theme/${themeSlug}/branding`;
 
+      const fullBrandingUrl =
+        typeof window !== 'undefined'
+          ? `${window.location.origin}${apiUrl}`
+          : apiUrl;
+      console.log('[testing] useThemeBranding: fetching branding from', fullBrandingUrl);
+
       fetch(apiUrl, {
         method: 'GET',
         headers: {
