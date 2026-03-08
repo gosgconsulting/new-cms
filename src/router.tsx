@@ -1,7 +1,6 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import { useParams, useLocation } from "react-router-dom";
 import React from "react";
-import AdminTopBar from "@/components/AdminTopBar";
 import { useSEO } from "@/hooks/useSEO";
 import { AuthProvider } from "../sparti-cms/components/auth/AuthProvider";
 import { RouteErrorElement } from "./components/RouteErrorElement";
@@ -72,7 +71,6 @@ const RootLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
     <AuthProvider>
       <ConditionalSEO />
-      <AdminTopBar />
       {children}
     </AuthProvider>
   );

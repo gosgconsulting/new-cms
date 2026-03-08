@@ -5,7 +5,7 @@ import './index.css';
 import 'flowbite/dist/flowbite';
 import '../sparti-cms/styles/modal-sparti-fix.css';
 import '../sparti-cms/styles/rich-text-editor.css';
-import { initializeGlobalTheme } from '@/lib/utils-dashboard';
+import { initializeGlobalTheme } from '@/utils/dashboard';
 
 // Set light mode by default
 document.documentElement.classList.add("light");
