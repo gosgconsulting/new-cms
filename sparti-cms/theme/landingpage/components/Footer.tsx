@@ -126,6 +126,12 @@ const Footer: React.FC<FooterProps> = ({
               >
                 Reviews
               </button>
+              <a
+                href={`/theme/${tenantSlug}/blog`}
+                className="block text-muted-foreground hover:text-primary transition-colors cursor-pointer"
+              >
+                Blog
+              </a>
               <button
                 onClick={() => scrollToSection('faq')}
                 className="block text-muted-foreground hover:text-primary transition-colors cursor-pointer bg-transparent border-none text-left"
