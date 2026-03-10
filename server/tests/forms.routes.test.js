@@ -8,7 +8,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import request from 'supertest';
 import express from 'express';
 import formsRoutes from '../routes/forms.js';
-import { query } from '../../sparti-cms/db/index.js';
+import { query } from '../../src/lib/cms/db/index.js';
 
 // Create test app
 const app = express();

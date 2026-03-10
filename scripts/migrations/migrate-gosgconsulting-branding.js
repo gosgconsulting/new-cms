@@ -10,7 +10,7 @@
  * Usage: node scripts/migrations/migrate-gosgconsulting-branding.js
  */
 
-import { query } from '../../sparti-cms/db/connection.js';
+import { query } from '../../src/lib/cms/db/connection.js';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { existsSync } from 'fs';
@@ -278,7 +278,7 @@ function verifyAssets() {
   console.log('[testing] Verifying asset files...');
   
   // Check logo
-  const logoPath = join(__dirname, '../../sparti-cms/theme/gosgconsulting/assets/go-sg-logo-official.png');
+  const logoPath = join(__dirname, '../../src/themes/gosgconsulting/assets/go-sg-logo-official.png');
   if (existsSync(logoPath)) {
     console.log(`[testing] ✓ Logo found: ${logoPath}`);
   } else {

@@ -1,9 +1,9 @@
 import express from 'express';
-import { query } from '../../sparti-cms/db/index.js';
+import { query } from '../../src/lib/cms/db/index.js';
 import { authenticateUser } from '../middleware/auth.js';
 import { getDatabaseState } from '../utils/database.js';
-import { getThemePagesFromFileSystem } from '../../sparti-cms/services/themeSync.js';
-import { getTranslations } from '../../sparti-cms/services/translationService.js';
+import { getThemePagesFromFileSystem } from '../../src/services/cms/themeSync.js';
+import { getTranslations } from '../../src/services/cms/translationService.js';
 import {
   getAllPagesWithTypes,
   updatePageSlug,
@@ -32,13 +32,13 @@ import {
   setPostTags,
   findOrCreateCategory,
   findOrCreateTag
-} from '../../sparti-cms/db/index.js';
+} from '../../src/lib/cms/db/index.js';
 import { upload } from '../config/multer.js';
 import { readFileSync } from 'fs';
-import { parseWordPressXML, parseWordPressJSON, extractPosts, extractCategories, extractTags, extractImages, updateImageReferences } from '../../sparti-cms/services/wordpressImport.js';
-import { downloadImages } from '../../sparti-cms/services/imageDownloader.js';
-import { invalidateBySlug } from '../../sparti-cms/cache/index.js';
-import models, { sequelize } from '../../sparti-cms/db/sequelize/models/index.js';
+import { parseWordPressXML, parseWordPressJSON, extractPosts, extractCategories, extractTags, extractImages, updateImageReferences } from '../../src/services/cms/wordpressImport.js';
+import { downloadImages } from '../../src/services/cms/imageDownloader.js';
+import { invalidateBySlug } from '../../src/lib/cms/cache/index.js';
+import models, { sequelize } from '../../src/lib/cms/db/sequelize/models/index.js';
 import { Op } from 'sequelize';
 import { createWordPressClientFromConfig } from '../services/wordpressClient.js';
 const { Post, Category, Tag } = models;
@@ -492,7 +492,7 @@ router.get('/pages/:pageId', async (req, res) => {
 
         // Convert testimonials sections to proper items structure
         try {
-          const { convertLayoutTestimonialsToItems } = await import('../../sparti-cms/utils/convertTestimonialsToItems.js');
+          const { convertLayoutTestimonialsToItems } = await import('../../src/utils/cms/convertTestimonialsToItems.js');
           layout = convertLayoutTestimonialsToItems(layout);
         } catch (error) {
           console.log('[testing] Note: Could not convert testimonials structure:', error.message);
@@ -523,7 +523,7 @@ router.get('/pages/:pageId', async (req, res) => {
       // Convert testimonials sections to proper items structure
       if (page.layout && page.layout.components) {
         try {
-          const { convertLayoutTestimonialsToItems } = await import('../../sparti-cms/utils/convertTestimonialsToItems.js');
+          const { convertLayoutTestimonialsToItems } = await import('../../src/utils/cms/convertTestimonialsToItems.js');
           page.layout = convertLayoutTestimonialsToItems(page.layout);
         } catch (error) {
           console.log('[testing] Note: Could not convert testimonials structure:', error.message);
@@ -2155,7 +2155,7 @@ router.post('/pages/:pageId/migrate-schema', async (req, res) => {
     }
 
     // Import migration utilities
-    const { migrateOldSchemaToNew, needsMigration } = await import('../../sparti-cms/utils/schema-migration.ts');
+    const { migrateOldSchemaToNew, needsMigration } = await import('../../src/utils/cms/schema-migration.ts');
 
     // Check if migration is needed
     if (!needsMigration(page.layout)) {
@@ -2222,7 +2222,7 @@ router.post('/pages/:pageId/validate-schema', async (req, res) => {
     }
 
     // Import validation utilities
-    const { validatePageSchema, getValidationSummary } = await import('../../sparti-cms/utils/schema-validator.ts');
+    const { validatePageSchema, getValidationSummary } = await import('../../src/utils/cms/schema-validator.ts');
 
     // Validate the schema
     const validation = validatePageSchema(page.layout);

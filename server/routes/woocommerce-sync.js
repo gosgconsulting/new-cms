@@ -1,5 +1,5 @@
 import express from 'express';
-import { query } from '../../sparti-cms/db/index.js';
+import { query } from '../../src/lib/cms/db/index.js';
 import { authenticateTenantApiKey } from '../middleware/tenantApiKey.js';
 import { createWooCommerceClient } from '../services/woocommerceClient.js';
 import {

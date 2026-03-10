@@ -4,7 +4,7 @@
  * Script to verify Stripe Connect columns exist in tenants table
  */
 
-import { query } from '../../sparti-cms/db/index.js';
+import { query } from '../../src/lib/cms/db/index.js';
 
 async function verifyStripeColumns() {
   try {

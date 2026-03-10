@@ -18,7 +18,7 @@ ensureUploadsDir();
 // IMPORTANT: Routes must come before static middleware to handle theme routes correctly
 app.use(routes);
 
-// Serve theme assets from sparti-cms/theme and public/theme directories
+// Serve theme assets from src/themes and public/theme directories
 // Only serve actual asset files (with extensions), not HTML routes or directories
 app.use('/theme', async (req, res, next) => {
   // Skip if this looks like a route (no file extension) - let route handlers deal with it
@@ -32,13 +32,13 @@ app.use('/theme', async (req, res, next) => {
   // Normalize path (remove leading slash if present)
   const normalizedPath = path.startsWith('/') ? path.slice(1) : path;
   
-  // Try to serve from sparti-cms/theme first, then fallback to public/theme
-  const spartiThemePath = join(__dirname, '..', 'sparti-cms', 'theme', normalizedPath);
+  // Try to serve from src/themes first, then fallback to public/theme
+  const spartiThemePath = join(__dirname, '..', 'src', 'themes', normalizedPath);
   const publicThemePath = join(__dirname, '..', 'public', 'theme', normalizedPath);
   
   let filePath = null;
   
-  // Check if file exists in sparti-cms/theme
+  // Check if file exists in src/themes
   if (existsSync(spartiThemePath)) {
     try {
       const stats = statSync(spartiThemePath);
@@ -50,7 +50,7 @@ app.use('/theme', async (req, res, next) => {
     }
   }
   
-  // Fallback to public/theme if not found in sparti-cms/theme
+  // Fallback to public/theme if not found in src/themes
   if (!filePath && existsSync(publicThemePath)) {
     try {
       const stats = statSync(publicThemePath);

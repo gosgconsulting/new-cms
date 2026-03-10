@@ -8,7 +8,7 @@ import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import request from 'supertest';
 import express from 'express';
 import authRoutes from '../routes/auth.js';
-import { query } from '../../sparti-cms/db/index.js';
+import { query } from '../../src/lib/cms/db/index.js';
 import bcrypt from 'bcryptjs';
 import { isMockDatabaseEnabled, getDatabaseState } from '../utils/database.js';
 

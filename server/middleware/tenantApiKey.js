@@ -1,5 +1,5 @@
-import { validateApiKey } from '../../sparti-cms/db/tenant-management.js';
-import { query } from '../../sparti-cms/db/index.js';
+import { validateApiKey } from '../../src/lib/cms/db/tenant-management.js';
+import { query } from '../../src/lib/cms/db/index.js';
 import { getDatabaseState } from '../utils/database.js';
 import { verifyAccessToken, extractTokenFromHeader } from '../services/authService.js';
 

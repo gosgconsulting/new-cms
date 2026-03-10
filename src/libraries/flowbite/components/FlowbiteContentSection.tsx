@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo } from "react";
-import type { ComponentSchema } from "../../../../sparti-cms/types/schema";
+import type { ComponentSchema } from "@/types/cms/schema";
 import { Star } from "lucide-react";
 import Reveal from "./Reveal";
 import { useInViewOnce } from "../hooks/useInViewOnce";

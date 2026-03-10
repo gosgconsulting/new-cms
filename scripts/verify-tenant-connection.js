@@ -9,8 +9,8 @@
  */
 
 import dotenv from 'dotenv';
-import { query } from '../sparti-cms/db/index.js';
-import { getConnectionInfo } from '../sparti-cms/db/connection.js';
+import { query } from '../src/lib/cms/db/index.js';
+import { getConnectionInfo } from '../src/lib/cms/db/connection.js';
 
 // Load environment variables
 dotenv.config();
@@ -147,7 +147,7 @@ async function verifyTenantConnection() {
 
       if (brandingCount === 0 || foldersCount === 0) {
         console.log(`  Running tenant initialization...`);
-        const { initializeTenantDefaults } = await import('../sparti-cms/db/tenant-initialization.js');
+        const { initializeTenantDefaults } = await import('../src/lib/cms/db/tenant-initialization.js');
         await initializeTenantDefaults(tenantId);
         console.log(`  ✅ Tenant initialization complete\n`);
       } else {

@@ -1,10 +1,10 @@
 import express from 'express';
-import { query } from '../../sparti-cms/db/index.js';
-import { pool } from '../../sparti-cms/db/index.js';
+import { query } from '../../src/lib/cms/db/index.js';
+import { pool } from '../../src/lib/cms/db/index.js';
 import { simpleUpload } from '../config/multer.js';
 import { uploadBufferToBlob } from '../utils/blobStorage.js';
 import { RESEND_API_KEY, SMTP_FROM_EMAIL } from '../config/constants.js';
-import { invalidateAll, invalidateBySlug } from '../../sparti-cms/cache/index.js';
+import { invalidateAll, invalidateBySlug } from '../../src/lib/cms/cache/index.js';
 import { handleUpload } from '@vercel/blob/client';
 import { verifyAccessToken } from '../services/authService.js';
 

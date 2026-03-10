@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import type { ComponentSchema, SchemaItem } from "../../../sparti-cms/types/schema";
+import type { ComponentSchema, SchemaItem } from "@/types/cms/schema";
 import FlowbiteSection from "@/libraries/flowbite/components/FlowbiteSection";
 import FlowbiteBlogHero from "@/libraries/flowbite/components/FlowbiteBlogHero";
 import FlowbiteBlogGrid from "@/libraries/flowbite/components/FlowbiteBlogGrid";
@@ -28,13 +28,13 @@ import FlowbiteWhatsIncludedSection from "@/libraries/flowbite/components/Flowbi
 import FlowbiteWhyChooseUsSection from "@/libraries/flowbite/components/FlowbiteWhyChooseUsSection";
 import FlowbiteCTASection from "@/libraries/flowbite/components/FlowbiteCTASection";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { SpartiBuilderProvider, useSpartiBuilder } from "../../../sparti-cms/components/SpartiBuilderProvider";
+import { SpartiBuilderProvider, useSpartiBuilder } from "@/components/cms/SpartiBuilderProvider";
 import { ResizableDivider, useResizableDivider } from "./ResizableDivider";
-import { ElementSelector } from "../../../sparti-cms/components/ElementSelector";
-import { EditingOverlay } from "../../../sparti-cms/components/EditingOverlay";
-import { ContentEditPanel } from "../../../sparti-cms/components/ContentEditPanel";
+import { ElementSelector } from "@/components/cms/ElementSelector";
+import { EditingOverlay } from "@/components/cms/EditingOverlay";
+import { ContentEditPanel } from "@/components/cms/ContentEditPanel";
 import FlowbiteSectionList from "./FlowbiteSectionList";
-import "../../../sparti-cms/components/sparti-builder.css";
+import "../../../src/components/cms/sparti-builder.css";
 
 interface FlowbiteDioraRendererProps {
   components: ComponentSchema[];

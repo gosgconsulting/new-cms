@@ -2,7 +2,7 @@
  * Configure WordPress integration for nail-queen tenant and import blog posts
  */
 
-import { query } from '../sparti-cms/db/index.js';
+import { query } from '../src/lib/cms/db/index.js';
 import { createWordPressClientFromConfig } from '../server/services/wordpressClient.js';
 
 const WORDPRESS_URL = 'https://cms.gosgconsulting.com';
@@ -113,11 +113,11 @@ async function configureNailQueenWordPress() {
     }
 
     // Import posts (simplified - using the import endpoint logic)
-    const models = await import('../sparti-cms/db/sequelize/models/index.js');
+    const models = await import('../src/lib/cms/db/sequelize/models/index.js');
     const { Post } = models.default;
     const { Op } = await import('sequelize');
-    const { findOrCreateCategory, setPostCategories } = await import('../sparti-cms/db/modules/categories.js');
-    const { findOrCreateTag, setPostTags } = await import('../sparti-cms/db/modules/tags.js');
+    const { findOrCreateCategory, setPostCategories } = await import('../src/lib/cms/db/modules/categories.js');
+    const { findOrCreateTag, setPostTags } = await import('../src/lib/cms/db/modules/tags.js');
     const crypto = await import('crypto');
 
     function stripHtml(html) {

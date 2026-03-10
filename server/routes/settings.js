@@ -9,9 +9,9 @@ import {
   getThemeSettings,
   getCustomCodeSettings,
   updateCustomCodeSettings
-} from '../../sparti-cms/db/index.js';
-import { invalidateAll } from '../../sparti-cms/cache/index.js';
-import languageManagementService from '../../sparti-cms/services/languageManagementService.js';
+} from '../../src/lib/cms/db/index.js';
+import { invalidateAll } from '../../src/lib/cms/cache/index.js';
+import languageManagementService from '../../src/services/cms/languageManagementService.js';
 
 const router = express.Router();
 
@@ -48,7 +48,7 @@ router.post('/branding', authenticateUser, async (req, res) => {
     console.log(`[testing] API: Updating branding settings for tenant: ${tenantId}, theme: ${themeId}`, req.body);
     
     // Verify tenant exists
-    const { query } = await import('../../sparti-cms/db/index.js');
+    const { query } = await import('../../src/lib/cms/db/index.js');
     const tenantCheck = await query(`
       SELECT id FROM tenants WHERE id = $1
     `, [tenantId]);
@@ -372,9 +372,9 @@ router.put('/theme/:themeId/:key', authenticateUser, async (req, res) => {
       if (dbError.message?.includes('column') || dbError.message?.includes('does not exist')) {
         res.status(500).json({ 
           error: 'Database schema error',
-          message: 'The site_settings table is missing required columns. Please run the migration: sparti-cms/db/migrations/create-site-settings-schema.sql',
+          message: 'The site_settings table is missing required columns. Please run the migration: src/lib/cms/db/migrations/create-site-settings-schema.sql',
           details: dbError.message,
-          migrationFile: 'sparti-cms/db/migrations/create-site-settings-schema.sql'
+          migrationFile: 'src/lib/cms/db/migrations/create-site-settings-schema.sql'
         });
       } else {
         res.status(500).json({ 
@@ -461,7 +461,7 @@ router.post('/custom-code', authenticateUser, async (req, res) => {
     console.log(`[testing] API: Updating custom code settings for tenant: ${tenantId}`, req.body);
     
     // Verify tenant exists
-    const { query } = await import('../../sparti-cms/db/index.js');
+    const { query } = await import('../../src/lib/cms/db/index.js');
     const tenantCheck = await query(`
       SELECT id FROM tenants WHERE id = $1
     `, [tenantId]);
@@ -515,7 +515,7 @@ router.get('/site-schemas/:schemaKey', authenticateUser, async (req, res) => {
       return res.status(400).json({ error: 'Tenant ID is required' });
     }
     
-    const { getSiteSchema } = await import('../../sparti-cms/db/index.js');
+    const { getSiteSchema } = await import('../../src/lib/cms/db/index.js');
     const schema = await getSiteSchema(schemaKey, tenantId, language);
     
     if (!schema) {
@@ -545,7 +545,7 @@ router.put('/site-schemas/:schemaKey', authenticateUser, async (req, res) => {
       return res.status(400).json({ error: 'Schema data is required' });
     }
     
-    const { updateSiteSchema } = await import('../../sparti-cms/db/index.js');
+    const { updateSiteSchema } = await import('../../src/lib/cms/db/index.js');
     await updateSiteSchema(schemaKey, schema, tenantId, schemaLanguage);
     
     res.json({ success: true, message: 'Schema updated successfully', language: schemaLanguage });

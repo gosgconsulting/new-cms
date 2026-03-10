@@ -3,8 +3,8 @@ import { createRoot } from 'react-dom/client';
 import App from './App';
 import './index.css';
 import 'flowbite/dist/flowbite';
-import '../sparti-cms/styles/modal-sparti-fix.css';
-import '../sparti-cms/styles/rich-text-editor.css';
+import '../src/styles/cms/modal-sparti-fix.css';
+import '../src/styles/cms/rich-text-editor.css';
 import { initializeGlobalTheme } from '@/lib/utils-dashboard';
 
 // Set light mode by default

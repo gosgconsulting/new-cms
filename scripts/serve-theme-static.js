@@ -61,7 +61,7 @@ async function getBrandingSettingsDirect(tenantId, themeSlug) {
     
     // Lazy import - only load database module when needed
     // This prevents database connection from blocking server startup
-    const { getBrandingSettings } = await import('../sparti-cms/db/modules/branding.js');
+    const { getBrandingSettings } = await import('../src/lib/cms/db/modules/branding.js');
     
     // Call the shared function directly from the database module
     const settings = await getBrandingSettings(tenantId);
@@ -92,7 +92,7 @@ async function getCustomCodeSettingsDirect(tenantId) {
     console.log(`[testing] Fetching custom code settings from database for tenant: ${tenantId}`);
     
     // Lazy import - only load database module when needed
-    const { getCustomCodeSettings } = await import('../sparti-cms/db/modules/branding.js');
+    const { getCustomCodeSettings } = await import('../src/lib/cms/db/modules/branding.js');
     
     // Call the shared function directly from the database module
     const customCodeData = await getCustomCodeSettings(tenantId);

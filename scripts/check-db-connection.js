@@ -1,6 +1,6 @@
 
 import 'dotenv/config';
-import { testConnection } from '../sparti-cms/db/connection.js';
+import { testConnection } from '../src/lib/cms/db/connection.js';
 
 console.log('🔍 Pre-deploy: Testing database connection...');
 

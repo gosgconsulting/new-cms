@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import pool from '../../sparti-cms/db/index.js';
+import pool from '../../src/lib/cms/db/index.js';
 
 /**
  * Migration script to add tenant_id columns to pages tables

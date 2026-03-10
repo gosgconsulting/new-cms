@@ -1,10 +1,10 @@
 import express from 'express';
 import bcrypt from 'bcryptjs';
-import { query } from '../../sparti-cms/db/index.js';
+import { query } from '../../src/lib/cms/db/index.js';
 import { authenticateUser } from '../middleware/auth.js';
 import { generateToken } from '../utils/auth.js';
 import { getDatabaseState, isMockDatabaseEnabled } from '../utils/database.js';
-import { debugLog, debugError } from '../../sparti-cms/utils/debugLogger.js';
+import { debugLog, debugError } from '../../src/utils/cms/debugLogger.js';
 
 // Helper function to check if database connection is to localhost
 const isLocalhostConnection = () => {
@@ -45,11 +45,11 @@ import {
   getTenantApiKeys,
   deleteTenantApiKey,
   validateApiKey
-} from '../../sparti-cms/db/tenant-management.js';
-import { initializeTenantDefaults } from '../../sparti-cms/db/tenant-initialization.js';
-import { createPage } from '../../sparti-cms/db/modules/pages.js';
-import { updateSiteSchema } from '../../sparti-cms/db/modules/branding.js';
-import { getThemeBySlug } from '../../sparti-cms/services/themeSync.js';
+} from '../../src/lib/cms/db/tenant-management.js';
+import { initializeTenantDefaults } from '../../src/lib/cms/db/tenant-initialization.js';
+import { createPage } from '../../src/lib/cms/db/modules/pages.js';
+import { updateSiteSchema } from '../../src/lib/cms/db/modules/branding.js';
+import { getThemeBySlug } from '../../src/services/cms/themeSync.js';
 
 const router = express.Router();
 
@@ -1331,7 +1331,7 @@ router.post('/tenants/:id/import-theme', authenticateUser, async (req, res) => {
       };
       
       // Check if schemas exist, if not create them
-      const { getSiteSchema } = await import('../../sparti-cms/db/index.js');
+      const { getSiteSchema } = await import('../../src/lib/cms/db/index.js');
       
       const existingHeader = await getSiteSchema('header', tenantId);
       if (!existingHeader) {

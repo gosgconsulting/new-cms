@@ -22,7 +22,7 @@ async function getTenantStoragePath(tenantId) {
     
     if (!storageName) {
       // Fallback to database
-      const { query } = await import('../../sparti-cms/db/index.js');
+      const { query } = await import('../../src/lib/cms/db/index.js');
       const result = await query(`
         SELECT storage_name FROM tenants WHERE id = $1
       `, [tenantId]);

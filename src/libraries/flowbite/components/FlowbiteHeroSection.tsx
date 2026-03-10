@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import type { ComponentSchema } from "../../../../sparti-cms/types/schema";
+import type { ComponentSchema } from "@/types/cms/schema";
 import FlowbiteSlider, { type FlowbiteSlide } from "./FlowbiteSlider";
 import { ChevronDown } from "lucide-react";
 import SectionLabel from "./SectionLabel";

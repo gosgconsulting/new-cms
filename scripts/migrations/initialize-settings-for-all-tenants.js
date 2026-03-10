@@ -9,8 +9,8 @@
  */
 
 import dotenv from 'dotenv';
-import { query } from '../../sparti-cms/db/index.js';
-import { initializeTenantDefaults } from '../../sparti-cms/db/tenant-initialization.js';
+import { query } from '../../src/lib/cms/db/index.js';
+import { initializeTenantDefaults } from '../../src/lib/cms/db/tenant-initialization.js';
 
 // Load environment variables
 dotenv.config();

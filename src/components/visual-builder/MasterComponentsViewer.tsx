@@ -7,7 +7,7 @@ import { useTenants } from "../../hooks/useTenants";
 import { useTenantComponent } from "../../hooks/useTenantComponent";
 
 // Eagerly load all registry component JSON definitions via Vite glob
-const modules = import.meta.glob("../../../sparti-cms/registry/components/*.json", { eager: true });
+const modules = import.meta.glob("../../../src/lib/cms/registry/components/*.json", { eager: true });
 
 // ADDED: normalizeId helper to extract an ID from a Vite glob path like '.../features-section.json'
 const normalizeId = (path: string): string => {

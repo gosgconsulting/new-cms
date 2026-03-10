@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo } from "react";
-import type { ComponentSchema } from "../../../sparti-cms/types/schema";
+import type { ComponentSchema } from "@/types/cms/schema";
 
 // Try to import registry - will be null if import fails
 let componentRegistryModule: any = null;
@@ -9,7 +9,7 @@ let registryImportError: Error | null = null;
 
 try {
   // Use require for dynamic loading
-  componentRegistryModule = require("../../../sparti-cms/theme/gosgconsulting/components/registry");
+  componentRegistryModule = require("../../../src/themes/gosgconsulting/components/registry");
 } catch (error) {
   registryImportError = error instanceof Error ? error : new Error(String(error));
   console.error('[testing] Failed to import component registry:', error);

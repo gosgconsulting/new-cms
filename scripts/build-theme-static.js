@@ -69,7 +69,7 @@ async function fetchBrandingForBuild(themeSlug, tenantId) {
   if (tenantId) {
     try {
       console.log(`[testing] Fetching branding from database for tenant: ${tenantId}`);
-      const { getBrandingSettings } = await import('../sparti-cms/db/modules/branding.js');
+      const { getBrandingSettings } = await import('../src/lib/cms/db/modules/branding.js');
       const settings = await getBrandingSettings(tenantId);
       const brandingData = settings.branding || {};
       
@@ -90,7 +90,7 @@ async function fetchBrandingForBuild(themeSlug, tenantId) {
 console.log(`[testing] Building static export for theme: ${themeSlug}`);
 
 // Check if theme exists
-const themePath = path.join(__dirname, '..', 'sparti-cms', 'theme', themeSlug);
+const themePath = path.join(__dirname, '..', 'src', 'themes', themeSlug);
 if (!fs.existsSync(themePath)) {
   console.error(`Error: Theme "${themeSlug}" not found at ${themePath}`);
   process.exit(1);
@@ -107,11 +107,11 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import ErrorBoundary from "./components/ErrorBoundary";
 import './index.css';
-import '../sparti-cms/styles/modal-sparti-fix.css';
-import '../sparti-cms/styles/rich-text-editor.css';
+import '../src/styles/cms/modal-sparti-fix.css';
+import '../src/styles/cms/rich-text-editor.css';
 
 // Import the theme component
-const ThemeComponent = React.lazy(() => import('../sparti-cms/theme/${themeSlug}'));
+const ThemeComponent = React.lazy(() => import('../src/themes/${themeSlug}'));
 
 // Theme name mapping
 const themeNames: Record<string, string> = {

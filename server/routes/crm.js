@@ -6,7 +6,7 @@ import {
   createContact,
   updateContact,
   deleteContact
-} from '../../sparti-cms/db/index.js';
+} from '../../src/lib/cms/db/index.js';
 
 const router = express.Router();
 

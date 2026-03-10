@@ -96,7 +96,7 @@ async function runMigration() {
   
   try {
     // Read the migration SQL file
-    const migrationPath = path.join(__dirname, 'sparti-cms/db/migrations/consolidate-page-types.sql');
+    const migrationPath = path.join(__dirname, 'src/lib/cms/db/migrations/consolidate-page-types.sql');
     const migrationSQL = fs.readFileSync(migrationPath, 'utf8');
     
     // Execute the migration

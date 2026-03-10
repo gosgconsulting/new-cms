@@ -9,7 +9,7 @@
  */
 
 import dotenv from 'dotenv';
-import { query } from '../sparti-cms/db/index.js';
+import { query } from '../src/lib/cms/db/index.js';
 import { WooCommerceClient } from '../server/services/woocommerceClient.js';
 
 dotenv.config();

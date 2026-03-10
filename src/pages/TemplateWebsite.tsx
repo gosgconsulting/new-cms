@@ -1,7 +1,7 @@
 import React, { Suspense, lazy, useMemo } from "react";
 import { useLocation } from "react-router-dom";
 
-const StorefrontTheme = lazy(() => import("../../sparti-cms/theme/storefront"));
+const StorefrontTheme = lazy(() => import("@/themes/storefront"));
 
 /**
  * Template Website

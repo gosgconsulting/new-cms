@@ -2,8 +2,8 @@
 
 import React, { memo, useMemo, useCallback, useEffect, useState } from "react";
 import { GripVertical } from "lucide-react";
-import { useSpartiBuilder } from "../../../sparti-cms/components/SpartiBuilderProvider";
-import type { ComponentSchema } from "../../../sparti-cms/types/schema";
+import { useSpartiBuilder } from "@/components/cms/SpartiBuilderProvider";
+import type { ComponentSchema } from "@/types/cms/schema";
 
 interface ThemeSectionListProps {
   components: ComponentSchema[];

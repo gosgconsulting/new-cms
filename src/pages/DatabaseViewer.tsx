@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Database, Table, Eye, RefreshCw, Search, Filter, Shield } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../sparti-cms/components/auth/AuthProvider';
+import { useAuth } from '@/components/cms/auth/AuthProvider';
 
 interface TableInfo {
   table_name: string;

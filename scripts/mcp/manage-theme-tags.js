@@ -13,7 +13,7 @@
  *   node scripts/mcp/manage-theme-tags.js update <theme-slug> <tag1> <tag2>
  */
 
-import { query } from '../../sparti-cms/db/index.js';
+import { query } from '../../src/lib/cms/db/index.js';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -59,7 +59,7 @@ async function syncTagsFromFiles() {
   try {
     console.log('[MCP] Syncing tags from theme.json files to database...');
     
-    const themesDir = path.join(__dirname, '../../sparti-cms/theme');
+    const themesDir = path.join(__dirname, '../../src/themes');
     const themeFolders = fs.readdirSync(themesDir, { withFileTypes: true })
       .filter(dirent => dirent.isDirectory())
       .map(dirent => dirent.name)

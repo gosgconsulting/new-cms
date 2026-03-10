@@ -1,5 +1,5 @@
 import express from 'express';
-import { query } from '../../sparti-cms/db/index.js';
+import { query } from '../../src/lib/cms/db/index.js';
 import { authenticateUser } from '../middleware/auth.js';
 import {
   saveFormSubmission,
@@ -7,9 +7,9 @@ import {
   getEmailSettingsByFormId,
   getFormSubmissions,
   createContact
-} from '../../sparti-cms/db/index.js';
+} from '../../src/lib/cms/db/index.js';
 import { processFormSubmissionEmails } from '../utils/emailService.js';
-import { debugLog, debugError } from '../../sparti-cms/utils/debugLogger.js';
+import { debugLog, debugError } from '../../src/utils/cms/debugLogger.js';
 
 const router = express.Router();
 

@@ -26,14 +26,14 @@ import {
   toggleSEOIndex,
   query,
   getTerms
-} from '../../sparti-cms/db/index.js';
-import pool from '../../sparti-cms/db/index.js';
-import { renderPageBySlug } from '../../sparti-cms/render/pageRenderer.js';
-import { getLayoutBySlug, upsertLayoutBySlug } from '../../sparti-cms/db/index.js';
-import cacheStore, { getPageCache, setPageCache, invalidateBySlug, invalidateAll } from '../../sparti-cms/cache/index.js';
+} from '../../src/lib/cms/db/index.js';
+import pool from '../../src/lib/cms/db/index.js';
+import { renderPageBySlug } from '../../src/lib/cms/render/pageRenderer.js';
+import { getLayoutBySlug, upsertLayoutBySlug } from '../../src/lib/cms/db/index.js';
+import cacheStore, { getPageCache, setPageCache, invalidateBySlug, invalidateAll } from '../../src/lib/cms/cache/index.js';
 
 // Import tenant routes
-import tenantRoutes from '../../sparti-cms/db/tenant-api-routes.js';
+import tenantRoutes from '../../src/lib/cms/db/tenant-api-routes.js';
 
 // Import mock data for development
 import {
@@ -42,7 +42,7 @@ import {
   createMockContact,
   updateMockContact,
   deleteMockContact
-} from '../../sparti-cms/db/scripts/mock-data.js';
+} from '../../src/lib/cms/db/scripts/mock-data.js';
 
 // SMTP Configuration for server-side email sending
 const RESEND_API_KEY = process.env.RESEND_API_KEY;

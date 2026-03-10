@@ -204,7 +204,7 @@ export async function sendFormAutoReply(formSubmission, emailSettings) {
 export async function processFormSubmissionEmails(formSubmission, formId) {
   try {
     // Import here to avoid circular dependencies
-    const { getEmailSettingsByFormId } = await import('../../sparti-cms/db/modules/forms.js');
+    const { getEmailSettingsByFormId } = await import('../../src/lib/cms/db/modules/forms.js');
     
     // Get email settings for this form
     const emailSettings = await getEmailSettingsByFormId(formId);

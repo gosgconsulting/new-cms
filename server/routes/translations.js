@@ -1,6 +1,6 @@
 import express from 'express';
 import { authenticateUser } from '../middleware/auth.js';
-import translationService from '../../sparti-cms/services/translationService.js';
+import translationService from '../../src/services/cms/translationService.js';
 
 const router = express.Router();
 

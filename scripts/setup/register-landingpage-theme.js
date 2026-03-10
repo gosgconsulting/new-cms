@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
-import { query } from '../../sparti-cms/db/index.js';
-import { syncThemesFromFileSystem } from '../../sparti-cms/services/themeSync.js';
+import { query } from '../../src/lib/cms/db/index.js';
+import { syncThemesFromFileSystem } from '../../src/services/cms/themeSync.js';
 
 // Load environment variables
 dotenv.config();

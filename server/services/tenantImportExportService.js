@@ -5,8 +5,8 @@
  * @module server/services/tenantImportExportService
  */
 
-import { query } from '../../sparti-cms/db/index.js';
-import { createMediaFolder, createMediaFile } from '../../sparti-cms/db/modules/media.js';
+import { query } from '../../src/lib/cms/db/index.js';
+import { createMediaFolder, createMediaFile } from '../../src/lib/cms/db/modules/media.js';
 
 const EXPORT_VERSION = 1;
 

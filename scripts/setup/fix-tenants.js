@@ -5,7 +5,7 @@
  * and creates a default tenant if none exists.
  */
 
-import { query } from '../../sparti-cms/db/index.js';
+import { query } from '../../src/lib/cms/db/index.js';
 
 async function fixTenants() {
   console.log('Starting tenants fix script...');

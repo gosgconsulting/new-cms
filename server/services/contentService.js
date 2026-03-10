@@ -1,6 +1,6 @@
 import PostRepository from '../repositories/PostRepository.js';
 import { withTransaction } from '../utils/transaction.js';
-import { query } from '../../sparti-cms/db/index.js';
+import { query } from '../../src/lib/cms/db/index.js';
 
 /**
  * Content Service

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useAuth } from "../../sparti-cms/components/auth/AuthProvider";
-import { SpartiCMS } from "../../sparti-cms";
+import { useAuth } from "@/components/cms/auth/AuthProvider";
+import { SpartiCMS } from "@/lib/cms";
 
 /**
  * Theme-specific Admin page

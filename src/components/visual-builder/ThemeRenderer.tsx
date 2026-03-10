@@ -3,10 +3,10 @@ import { AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Loader2 } from 'lucide-react';
 import ThemeSectionList from './ThemeSectionList';
-import { SpartiBuilderProvider, useSpartiBuilder } from '../../../sparti-cms/components/SpartiBuilderProvider';
-import { ContentEditPanel } from '../../../sparti-cms/components/ContentEditPanel';
+import { SpartiBuilderProvider, useSpartiBuilder } from '@/components/cms/SpartiBuilderProvider';
+import { ContentEditPanel } from '@/components/cms/ContentEditPanel';
 import { ResizableDivider, useResizableDivider } from './ResizableDivider';
-import type { ComponentSchema } from '../../../sparti-cms/types/schema';
+import type { ComponentSchema } from '@/types/cms/schema';
 
 interface ThemeRendererProps {
   components: ComponentSchema[];
@@ -22,16 +22,16 @@ interface ThemeRendererProps {
 }
 
 // Dynamic theme imports - themes with hardcoded content
-const LandingPageTheme = lazy(() => import('../../../sparti-cms/theme/landingpage'));
-const SpartiSEOLandingTheme = lazy(() => import('../../../sparti-cms/theme/sparti-seo-landing'));
-const GosgConsultingTheme = lazy(() => import('../../../sparti-cms/theme/gosgconsulting'));
-const CustomTheme = lazy(() => import('../../../sparti-cms/theme/custom'));
-const HotelTheme = lazy(() => import('../../../sparti-cms/theme/hotel'));
-const NailQueenTheme = lazy(() => import('../../../sparti-cms/theme/nail-queen'));
-const OptimalConsultingTheme = lazy(() => import('../../../sparti-cms/theme/optimalconsulting'));
-const MasterTheme = lazy(() => import('../../../sparti-cms/theme/master'));
-const MoondkTheme = lazy(() => import('../../../sparti-cms/theme/moondk'));
-const StrTheme = lazy(() => import('../../../sparti-cms/theme/str'));
+const LandingPageTheme = lazy(() => import('@/themes/landingpage'));
+const SpartiSEOLandingTheme = lazy(() => import('@/themes/sparti-seo-landing'));
+const GosgConsultingTheme = lazy(() => import('@/themes/gosgconsulting'));
+const CustomTheme = lazy(() => import('@/themes/custom'));
+const HotelTheme = lazy(() => import('@/themes/hotel'));
+const NailQueenTheme = lazy(() => import('@/themes/nail-queen'));
+const OptimalConsultingTheme = lazy(() => import('@/themes/optimalconsulting'));
+const MasterTheme = lazy(() => import('@/themes/master'));
+const MoondkTheme = lazy(() => import('@/themes/moondk'));
+const StrTheme = lazy(() => import('@/themes/str'));
 
 /**
  * Map theme slugs to their display names and components
@@ -120,7 +120,7 @@ const ThemeRenderer: React.FC<ThemeRendererProps> = ({
             Available themes: {Object.keys(themeConfig).join(', ')}
           </p>
           <p className="text-sm mt-2">
-            To add a new theme, create a folder at <code className="bg-muted px-1 py-0.5 rounded">sparti-cms/theme/{effectiveThemeId}/</code> with an <code className="bg-muted px-1 py-0.5 rounded">index.tsx</code> file.
+            To add a new theme, create a folder at <code className="bg-muted px-1 py-0.5 rounded">src/themes/{effectiveThemeId}/</code> with an <code className="bg-muted px-1 py-0.5 rounded">index.tsx</code> file.
           </p>
         </AlertDescription>
       </Alert>

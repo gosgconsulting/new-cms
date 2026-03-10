@@ -1,4 +1,4 @@
-import { ensureBlogSchemaInitialized } from '../../sparti-cms/db/scripts/init-blog.js';
+import { ensureBlogSchemaInitialized } from '../../src/lib/cms/db/scripts/init-blog.js';
 
 // Track database initialization state
 let dbInitialized = false;
@@ -55,7 +55,7 @@ export async function initializeDatabaseInBackground(maxRetries = 5, retryDelay 
     attempt++;
     try {
       // Test connection first with a simple query
-      const { query } = await import('../../sparti-cms/db/index.js');
+      const { query } = await import('../../src/lib/cms/db/index.js');
       await query('SELECT 1');
       
       setDatabaseState(true);
@@ -89,7 +89,7 @@ export async function initializeDatabaseInBackground(maxRetries = 5, retryDelay 
 // Diagnostic function to verify users table exists
 export async function verifyUsersTableExists() {
   try {
-    const { query } = await import('../../sparti-cms/db/index.js');
+    const { query } = await import('../../src/lib/cms/db/index.js');
     const result = await query(`
       SELECT EXISTS (
         SELECT FROM information_schema.tables 
@@ -115,7 +115,7 @@ export async function verifyUsersTableExists() {
 // Diagnostic function to test database queries
 export async function testDatabaseQuery(testQuery = 'SELECT 1') {
   try {
-    const { query } = await import('../../sparti-cms/db/index.js');
+    const { query } = await import('../../src/lib/cms/db/index.js');
     const result = await query(testQuery);
     return {
       success: true,

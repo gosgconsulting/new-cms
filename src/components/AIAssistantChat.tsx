@@ -2,8 +2,8 @@ import React, { useState, useRef, useEffect, useMemo } from "react";
 import { MessageCircle, Loader2, ChevronRight, X, GripVertical } from "lucide-react";
 import { PromptBox } from "@/components/ui/chatgpt-prompt-input";
 import { cn } from "@/lib/utils";
-import api from "../../sparti-cms/utils/api";
-import { useAuth } from "../../sparti-cms/components/auth/AuthProvider";
+import api from "@/utils/cms/api";
+import { useAuth } from "@/components/cms/auth/AuthProvider";
 
 interface PageContext {
   slug: string;

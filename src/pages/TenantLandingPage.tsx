@@ -4,18 +4,18 @@ import { AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 // Dynamic theme imports - themes with hardcoded content, ready for database integration
-const LandingPageTheme = lazy(() => import('../../sparti-cms/theme/landingpage'));
-const SpartiSEOLandingTheme = lazy(() => import('../../sparti-cms/theme/sparti-seo-landing'));
-const GosgConsultingTheme = lazy(() => import('../../sparti-cms/theme/gosgconsulting'));
-const SissonneTheme = lazy(() => import('../../sparti-cms/theme/sissonne'));
-const StorefrontTheme = lazy(() => import('../../sparti-cms/theme/storefront'));
-const MoondkTheme = lazy(() => import('../../sparti-cms/theme/moondk'));
-const StrTheme = lazy(() => import('../../sparti-cms/theme/str'));
-const OptimalConsultingTheme = lazy(() => import('../../sparti-cms/theme/optimalconsulting'));
-const MasterTheme = lazy(() => import('../../sparti-cms/theme/master'));
-const EShopTheme = lazy(() => import('../../sparti-cms/theme/e-shop'));
-const HotelTheme = lazy(() => import('../../sparti-cms/theme/hotel'));
-const NailQueenTheme = lazy(() => import('../../sparti-cms/theme/nail-queen'));
+const LandingPageTheme = lazy(() => import('@/themes/landingpage'));
+const SpartiSEOLandingTheme = lazy(() => import('@/themes/sparti-seo-landing'));
+const GosgConsultingTheme = lazy(() => import('@/themes/gosgconsulting'));
+const SissonneTheme = lazy(() => import('@/themes/sissonne'));
+const StorefrontTheme = lazy(() => import('@/themes/storefront'));
+const MoondkTheme = lazy(() => import('@/themes/moondk'));
+const StrTheme = lazy(() => import('@/themes/str'));
+const OptimalConsultingTheme = lazy(() => import('@/themes/optimalconsulting'));
+const MasterTheme = lazy(() => import('@/themes/master'));
+const EShopTheme = lazy(() => import('@/themes/e-shop'));
+const HotelTheme = lazy(() => import('@/themes/hotel'));
+const NailQueenTheme = lazy(() => import('@/themes/nail-queen'));
 
 /**
  * Map theme slugs to their display names and components
@@ -204,7 +204,7 @@ const TenantLandingPage: React.FC = () => {
             Available themes: {Object.keys(themeConfig).join(', ')}
           </p>
           <p className="text-sm mt-2">
-            To add a new theme, create a folder at <code className="bg-muted px-1 py-0.5 rounded">sparti-cms/theme/{slug}/</code> with an <code className="bg-muted px-1 py-0.5 rounded">index.tsx</code> file.
+            To add a new theme, create a folder at <code className="bg-muted px-1 py-0.5 rounded">src/themes/{slug}/</code> with an <code className="bg-muted px-1 py-0.5 rounded">index.tsx</code> file.
           </p>
         </AlertDescription>
       </Alert>

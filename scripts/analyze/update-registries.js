@@ -13,7 +13,7 @@ export async function updateRegistryIndex() {
   console.log('[testing] Updating Component Registry Index');
   console.log('[testing] ============================================');
   
-  const registryPath = join(__dirname, '../../sparti-cms/registry');
+  const registryPath = join(__dirname, '../../src/lib/cms/registry');
   const componentsPath = join(registryPath, 'components');
   const indexPath = join(registryPath, 'index.ts');
   
@@ -149,7 +149,7 @@ export async function updateThemeRegistry() {
   console.log('[testing] Updating Theme Component Registry');
   console.log('[testing] ============================================');
   
-  const themePath = join(__dirname, '../../sparti-cms/theme/gosgconsulting/components');
+  const themePath = join(__dirname, '../../src/themes/gosgconsulting/components');
   const registryPath = join(themePath, 'registry.ts');
   
   // Read all component files

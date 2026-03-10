@@ -8,7 +8,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const GALLERY_PATH = join(__dirname, '..', 'sparti-cms', 'theme', 'nail-queen', 'assets', 'gallery', 'Nail_Queen');
+const GALLERY_PATH = join(__dirname, '..', 'src/lib/cms', 'theme', 'nail-queen', 'assets', 'gallery', 'Nail_Queen');
 const MAX_SIZE_MB = 2; // Target max size in MB
 const TARGET_SIZE_MB = 1; // Preferred size in MB
 const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;

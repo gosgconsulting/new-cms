@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo } from "react";
-import type { ComponentSchema } from "../../../../sparti-cms/types/schema";
+import type { ComponentSchema } from "@/types/cms/schema";
 import { AlertTriangle, BarChart3, CircleX, Sparkles } from "lucide-react";
 import Reveal from "./Reveal";
 import SectionLabel from "./SectionLabel";

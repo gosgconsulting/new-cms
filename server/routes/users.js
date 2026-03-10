@@ -2,12 +2,12 @@ import express from 'express';
 import bcrypt from 'bcryptjs';
 import { authenticateUser } from '../middleware/auth.js';
 import { getDatabaseState } from '../utils/database.js';
-import { query } from '../../sparti-cms/db/index.js';
+import { query } from '../../src/lib/cms/db/index.js';
 // Lazy-load Sequelize models and utilities inside handlers to avoid boot-time crashes
 // when DATABASE_URL is not set. This keeps the server up for health and auth routes.
 // Helper to load models and Op on demand.
 const loadSequelize = async () => {
-  const modelsModule = await import('../../sparti-cms/db/sequelize/models/index.js');
+  const modelsModule = await import('../../src/lib/cms/db/sequelize/models/index.js');
   const sequelizePkg = await import('sequelize');
   return { models: modelsModule.default, Op: sequelizePkg.Op };
 };

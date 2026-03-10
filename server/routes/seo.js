@@ -1,5 +1,5 @@
 import express from 'express';
-import { query } from '../../sparti-cms/db/index.js';
+import { query } from '../../src/lib/cms/db/index.js';
 import { getDatabaseState, isMockDatabaseEnabled } from '../utils/database.js';
 import {
   getRedirects,
@@ -14,8 +14,8 @@ import {
   generateSitemapXML,
   getSEOMeta,
   createSEOMeta
-} from '../../sparti-cms/db/seo-management.js';
-import { getPublicSEOSettings } from '../../sparti-cms/db/index.js';
+} from '../../src/lib/cms/db/seo-management.js';
+import { getPublicSEOSettings } from '../../src/lib/cms/db/index.js';
 
 const router = express.Router();
 

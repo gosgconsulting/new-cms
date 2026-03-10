@@ -5,8 +5,8 @@
  */
 
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
-import { createPage, getPageBySlug, updatePage, deletePage, getPages } from '../../sparti-cms/db/modules/pages.js';
-import { query } from '../../sparti-cms/db/index.js';
+import { createPage, getPageBySlug, updatePage, deletePage, getPages } from '../../src/lib/cms/db/modules/pages.js';
+import { query } from '../../src/lib/cms/db/index.js';
 
 const testTenant1 = 'tenant-test-1';
 const testTenant2 = 'tenant-test-2';

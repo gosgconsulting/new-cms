@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { useSpartiBuilder } from "../../../sparti-cms/components/SpartiBuilderProvider";
+import { useSpartiBuilder } from "@/components/cms/SpartiBuilderProvider";
 import { GripVertical } from "lucide-react";
 
 const labelFor = (comp: any, idx: number) => {

@@ -1,5 +1,5 @@
 import express from 'express';
-import { query } from '../../sparti-cms/db/index.js';
+import { query } from '../../src/lib/cms/db/index.js';
 import { getDatabaseState, getDatabaseDiagnostics, isMockDatabaseEnabled } from '../utils/database.js';
 import { PORT } from '../config/constants.js';
 

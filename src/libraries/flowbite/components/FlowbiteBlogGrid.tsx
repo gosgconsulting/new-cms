@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import type { ComponentSchema, SchemaItem } from "../../../../sparti-cms/types/schema";
+import type { ComponentSchema, SchemaItem } from "@/types/cms/schema";
 import FlowbiteSection from "./FlowbiteSection";
 import { Card } from "flowbite-react";
 

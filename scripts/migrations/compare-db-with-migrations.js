@@ -10,7 +10,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const MIGRATIONS_DIR = path.join(__dirname, '../../sparti-cms/db/sequelize/migrations');
+const MIGRATIONS_DIR = path.join(__dirname, '../../src/lib/cms/db/sequelize/migrations');
 
 const connString = process.env.DATABASE_URL;
 if (!connString) {

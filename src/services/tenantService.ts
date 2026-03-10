@@ -10,7 +10,7 @@ export interface Tenant {
 }
 
 // Re-export ComponentSchema from schema types for consistency
-import type { ComponentSchema } from "../../sparti-cms/types/schema";
+import type { ComponentSchema } from "@/types/cms/schema";
 
 // Re-export for convenience
 export type { ComponentSchema };

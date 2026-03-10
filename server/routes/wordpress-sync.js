@@ -1,11 +1,11 @@
 import express from 'express';
-import { query } from '../../sparti-cms/db/index.js';
+import { query } from '../../src/lib/cms/db/index.js';
 import { authenticateUser } from '../middleware/auth.js';
 import { createWordPressClientFromConfig } from '../services/wordpressClient.js';
 import { getDatabaseState } from '../utils/database.js';
-import models from '../../sparti-cms/db/sequelize/models/index.js';
-import { findOrCreateCategory, setPostCategories } from '../../sparti-cms/db/modules/categories.js';
-import { findOrCreateTag, setPostTags } from '../../sparti-cms/db/modules/tags.js';
+import models from '../../src/lib/cms/db/sequelize/models/index.js';
+import { findOrCreateCategory, setPostCategories } from '../../src/lib/cms/db/modules/categories.js';
+import { findOrCreateTag, setPostTags } from '../../src/lib/cms/db/modules/tags.js';
 import { Op } from 'sequelize';
 import crypto from 'crypto';
 const { Post, Category, Tag } = models;

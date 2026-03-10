@@ -1,4 +1,4 @@
-import { getPool } from '../../sparti-cms/db/connection.js';
+import { getPool } from '../../src/lib/cms/db/connection.js';
 
 /**
  * Transaction Utilities

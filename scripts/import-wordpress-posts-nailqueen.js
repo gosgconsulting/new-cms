@@ -3,8 +3,8 @@
  */
 
 import { WordPressClient } from '../server/services/wordpressClient.js';
-import { query } from '../sparti-cms/db/index.js';
-import models from '../sparti-cms/db/sequelize/models/index.js';
+import { query } from '../src/lib/cms/db/index.js';
+import models from '../src/lib/cms/db/sequelize/models/index.js';
 import { Op } from 'sequelize';
 import crypto from 'crypto';
 
@@ -88,8 +88,8 @@ async function importPosts() {
       return;
     }
 
-    const { findOrCreateCategory, setPostCategories } = await import('../sparti-cms/db/modules/categories.js');
-    const { findOrCreateTag, setPostTags } = await import('../sparti-cms/db/modules/tags.js');
+    const { findOrCreateCategory, setPostCategories } = await import('../src/lib/cms/db/modules/categories.js');
+    const { findOrCreateTag, setPostTags } = await import('../src/lib/cms/db/modules/tags.js');
 
     const results = {
       created: 0,

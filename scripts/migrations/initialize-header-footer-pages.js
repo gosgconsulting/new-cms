@@ -5,8 +5,8 @@
  * that don't already have them.
  */
 
-import { query } from '../../sparti-cms/db/index.js';
-import { createPage } from '../../sparti-cms/db/modules/pages.js';
+import { query } from '../../src/lib/cms/db/index.js';
+import { createPage } from '../../src/lib/cms/db/modules/pages.js';
 
 async function initializeHeaderFooterPages() {
   console.log('Starting Header/Footer pages initialization...');

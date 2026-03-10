@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { api } from '../../sparti-cms/utils/api';
+import { api } from '@/utils/cms/api';
 
 interface Product {
   product_id: number;

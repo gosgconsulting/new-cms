@@ -1,4 +1,4 @@
-import { api } from '../../sparti-cms/utils/api';
+import { api } from '@/utils/cms/api';
 
 export interface TableInfo {
   name: string;

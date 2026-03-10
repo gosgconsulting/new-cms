@@ -20,11 +20,11 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
  */
 const templateRegistry: Record<string, () => Promise<any>> = {
   // Known templates - add more as needed
-  master: () => import("../../sparti-cms/theme/master"), // Master theme moved to theme folder
-  website: () => import("../../sparti-cms/theme/storefront"), // website template uses storefront theme
-  hotel: () => import("../../sparti-cms/theme/hotel"), // Hotel booking theme
+  master: () => import("@/themes/master"), // Master theme moved to theme folder
+  website: () => import("@/themes/storefront"), // website template uses storefront theme
+  hotel: () => import("@/themes/hotel"), // Hotel booking theme
   // Add more templates here:
-  // 'templatename': () => import("../../sparti-cms/theme/templatename"),
+  // 'templatename': () => import("@/themes/templatename"),
 };
 
 /**

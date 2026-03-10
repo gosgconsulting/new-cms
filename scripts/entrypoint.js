@@ -16,7 +16,7 @@ import 'dotenv/config';
 
 // Wait for database to be available (uses dynamically imported query)
 async function waitForDatabase(maxRetries = 30, retryDelay = 2000) {
-  const { query } = await import('../sparti-cms/db/index.js');
+  const { query } = await import('../src/lib/cms/db/index.js');
   let attempt = 0;
 
   while (attempt < maxRetries) {
@@ -36,7 +36,7 @@ async function waitForDatabase(maxRetries = 30, retryDelay = 2000) {
 
 // Run migrations with retry logic (uses dynamically imported runMigrations)
 async function runDatabaseMigrations(maxRetries = 3, retryDelay = 5000) {
-  const { runMigrations } = await import('../sparti-cms/db/sequelize/run-migrations.js');
+  const { runMigrations } = await import('../src/lib/cms/db/sequelize/run-migrations.js');
   let attempt = 0;
 
   while (attempt < maxRetries) {

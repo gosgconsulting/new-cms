@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { initAllTenantBrandingSchemas } from '../sparti-cms/db/initBrandingSchema.js';
+import { initAllTenantBrandingSchemas } from '../src/lib/cms/db/initBrandingSchema.js';
 
 async function main() {
   try {

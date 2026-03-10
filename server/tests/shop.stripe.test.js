@@ -7,7 +7,7 @@
 import { describe, it, expect, beforeEach, vi, beforeAll } from 'vitest';
 import request from 'supertest';
 import express from 'express';
-import { query } from '../../sparti-cms/db/index.js';
+import { query } from '../../src/lib/cms/db/index.js';
 
 // Mock Stripe SDK before importing shop routes
 // Use global to store mock instance (vi.mock is hoisted)
@@ -44,7 +44,7 @@ if (!global.mockQuerySingleton) {
   global.mockQueryInstance = global.mockQuerySingleton;
 }
 
-vi.mock('../../sparti-cms/db/index.js', () => {
+vi.mock('../../src/lib/cms/db/index.js', () => {
   // Always return the same singleton instance
   // This ensures shop routes and tests use the same mock
   if (!global.mockQuerySingleton) {
@@ -80,7 +80,7 @@ const createApp = async () => {
   
   // CRITICAL: Re-import query AFTER shop routes has imported it
   // The singleton pattern ensures this is the same instance shop routes uses
-  const dbModule = await import('../../sparti-cms/db/index.js');
+  const dbModule = await import('../../src/lib/cms/db/index.js');
   const queryInstance = dbModule.query;
   
   // Verify it's the singleton instance
@@ -141,7 +141,7 @@ describe('Stripe Connect Routes', () => {
     
     // Re-import query after module reset to get the mocked version
     // This ensures we're using the same mock instance that shop routes uses
-    const dbModule = await import('../../sparti-cms/db/index.js');
+    const dbModule = await import('../../src/lib/cms/db/index.js');
     const queryMock = dbModule.query;
     
     // Setup default mock query responses for tests that don't reset modules
@@ -283,7 +283,7 @@ describe('Stripe Connect Routes', () => {
       mockStripeInstance = global.mockStripeInstance;
       
       // Re-setup query mock after module reset
-      const dbModule = await import('../../sparti-cms/db/index.js');
+      const dbModule = await import('../../src/lib/cms/db/index.js');
       const queryMock = dbModule.query;
 
       // Mock Stripe to throw resource_missing error

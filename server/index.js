@@ -2,7 +2,7 @@ import 'dotenv/config';
 import app from './app.js';
 import { PORT } from './config/constants.js';
 import { initializeDatabaseInBackground } from './utils/database.js';
-import { syncThemesFromFileSystem } from '../sparti-cms/services/themeSync.js';
+import { syncThemesFromFileSystem } from '../src/services/cms/themeSync.js';
 
 // Validate PORT
 if (!PORT || isNaN(Number(PORT)) || Number(PORT) < 1 || Number(PORT) > 65535) {

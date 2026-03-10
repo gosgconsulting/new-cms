@@ -1,0 +1,558 @@
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogClose,
+} from '@/components/ui/dialog';
+import { JSON_EDITOR_CONFIG } from '@/utils/cms/componentHelpers';
+import { CodeJar } from 'codejar';
+import Prism from 'prismjs';
+import 'prismjs/components/prism-json';
+import 'prismjs/themes/prism.css';
+import { validateJSON } from '@/utils/cms/validation';
+import { Loader2, Copy, Check } from 'lucide-react';
+import api from '@/utils/cms/api';
+import type { ComponentSchema } from '@/types/cms/schema';
+
+interface VisualEditorJSONDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  pageSlug: string;
+  pageName: string;
+  tenantId?: string;
+  currentThemeId: string;
+  currentTenantId: string;
+  connectionName?: string;
+  /** Current builder components (in-memory); when provided, used to seed the JSON editor so it matches the module editor. */
+  currentComponents?: ComponentSchema[] | null;
+  /** Called after a successful save with the saved components so the parent can refresh the builder (e.g. setBuilderComponents). */
+  onLayoutSaved?: (components: ComponentSchema[]) => void;
+}
+
+export const VisualEditorJSONDialog: React.FC<VisualEditorJSONDialogProps> = ({
+  open,
+  onOpenChange,
+  pageSlug,
+  pageName,
+  tenantId,
+  currentThemeId,
+  currentTenantId,
+  connectionName,
+  currentComponents,
+  onLayoutSaved,
+}) => {
+  const [jsonString, setJsonString] = useState('');
+  const [jsonError, setJsonError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const [connectionInfo, setConnectionInfo] = useState<{ type: 'tenant' | 'theme' | 'none'; name: string } | null>(null);
+  const [copied, setCopied] = useState(false);
+  const editorRef = useRef<HTMLDivElement>(null);
+  const codeJarRef = useRef<CodeJar | null>(null);
+  const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isMountedRef = useRef<boolean>(false);
+
+  // Load connection info
+  const loadConnectionInfo = async () => {
+    try {
+      // If connectionName is provided, use it
+      if (connectionName) {
+        setConnectionInfo({
+          type: 'tenant',
+          name: connectionName
+        });
+        return;
+      }
+
+      // Otherwise, fetch from API
+      if (currentThemeId && currentThemeId !== 'custom') {
+        // Fetch theme name
+        const response = await api.get(`/api/themes`);
+        if (response.ok) {
+          const data = await response.json();
+          const theme = data.themes?.find((t: any) => (t.slug || t.id) === currentThemeId);
+          setConnectionInfo({
+            type: 'theme',
+            name: theme?.name || currentThemeId
+          });
+        } else {
+          setConnectionInfo({
+            type: 'theme',
+            name: currentThemeId
+          });
+        }
+      } else if (currentTenantId) {
+        // Fetch tenant name
+        const response = await api.get(`/api/tenants`);
+        if (response.ok) {
+          const data = await response.json();
+          const tenant = data.find((t: any) => t.id === currentTenantId);
+          setConnectionInfo({
+            type: 'tenant',
+            name: tenant?.name || currentTenantId
+          });
+        } else {
+          setConnectionInfo({
+            type: 'tenant',
+            name: currentTenantId
+          });
+        }
+      } else {
+        setConnectionInfo({
+          type: 'none',
+          name: 'Not connected'
+        });
+      }
+    } catch (error) {
+      console.error('[testing] Error loading connection info:', error);
+      setConnectionInfo({
+        type: (currentThemeId && currentThemeId !== 'custom')
+          ? 'theme'
+          : (currentTenantId ? 'tenant' : 'none'),
+        name: (currentThemeId && currentThemeId !== 'custom')
+          ? (currentThemeId)
+          : (currentTenantId || 'Not connected')
+      });
+    }
+  };
+
+  // Track mount state
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
+  // Load JSON and connection info when dialog opens
+  useEffect(() => {
+    if (open) {
+      isMountedRef.current = true;
+      loadConnectionInfo();
+      loadPageLayout();
+    } else {
+      // Cleanup on close - ensure DOM node still exists before destroying
+      if (codeJarRef.current && editorRef.current && document.contains(editorRef.current)) {
+        try {
+          codeJarRef.current.destroy();
+        } catch (error) {
+          // Ignore cleanup errors - DOM might already be removed
+          console.warn('[testing] Error destroying CodeJar (non-critical):', error);
+        }
+      }
+      codeJarRef.current = null;
+      
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current);
+        retryTimeoutRef.current = null;
+      }
+      // Reset state only if component is still mounted
+      if (isMountedRef.current) {
+        setJsonString('');
+        setJsonError(null);
+        setLoading(false);
+      }
+    }
+  }, [open, pageSlug, tenantId, currentThemeId, currentTenantId]);
+
+  const loadPageLayout = async () => {
+    try {
+      setLoading(true);
+      setJsonError(null);
+      
+      // Prefer in-memory builder components when provided (same page as module editor) so JSON and module editor stay in sync
+      if (Array.isArray(currentComponents) && currentComponents.length > 0) {
+        const layoutJson = JSON.stringify({ components: currentComponents }, null, JSON_EDITOR_CONFIG.TAB_SIZE);
+        setJsonString(layoutJson);
+        setLoading(false);
+        setTimeout(() => {
+          if (!isMountedRef.current || !open) return;
+          if (codeJarRef.current && editorRef.current && document.contains(editorRef.current)) {
+            try {
+              codeJarRef.current.updateCode(layoutJson);
+            } catch (error) {
+              console.warn('[testing] Error updating CodeJar (non-critical):', error);
+            }
+          } else if (editorRef.current && document.contains(editorRef.current)) {
+            initializeCodeJar(editorRef.current);
+          }
+        }, 200);
+        return;
+      }
+      
+      // Otherwise load from API (e.g. when opening JSON without having opened the visual editor first)
+      const effectiveTenantId = tenantId || currentTenantId || 'tenant-gosg';
+      const themeParam = currentThemeId && currentThemeId !== 'custom' ? `&themeId=${encodeURIComponent(currentThemeId)}` : '';
+      
+      const encodedSlug = encodeURIComponent(pageSlug);
+      const response = await api.get(`/api/ai-assistant/page-context?slug=${encodedSlug}&tenantId=${effectiveTenantId}${themeParam}`);
+      const data = await response.json();
+      
+      if (data.success && data.pageContext?.layout) {
+        const layoutJson = JSON.stringify(data.pageContext.layout, null, JSON_EDITOR_CONFIG.TAB_SIZE);
+        setJsonString(layoutJson);
+        // Update editor after setting JSON - only if component is still mounted
+        setTimeout(() => {
+          if (!isMountedRef.current || !open) return;
+          if (codeJarRef.current && editorRef.current && document.contains(editorRef.current)) {
+            try {
+              codeJarRef.current.updateCode(layoutJson);
+            } catch (error) {
+              console.warn('[testing] Error updating CodeJar (non-critical):', error);
+            }
+          } else if (editorRef.current && document.contains(editorRef.current)) {
+            initializeCodeJar(editorRef.current);
+          }
+        }, 200);
+      } else {
+        // Empty layout if not found
+        const emptyLayout = JSON.stringify({ components: [] }, null, JSON_EDITOR_CONFIG.TAB_SIZE);
+        setJsonString(emptyLayout);
+        setTimeout(() => {
+          if (!isMountedRef.current || !open) return;
+          if (codeJarRef.current && editorRef.current && document.contains(editorRef.current)) {
+            try {
+              codeJarRef.current.updateCode(emptyLayout);
+            } catch (error) {
+              console.warn('[testing] Error updating CodeJar (non-critical):', error);
+            }
+          } else if (editorRef.current && document.contains(editorRef.current)) {
+            initializeCodeJar(editorRef.current);
+          }
+        }, 200);
+      }
+    } catch (error) {
+      console.error('[testing] Error loading page layout:', error);
+      setJsonError('Failed to load page layout');
+      // Set empty layout on error - only if component is still mounted
+      const emptyLayout = JSON.stringify({ components: [] }, null, JSON_EDITOR_CONFIG.TAB_SIZE);
+      setJsonString(emptyLayout);
+      setTimeout(() => {
+        if (!isMountedRef.current || !open) return;
+        if (codeJarRef.current && editorRef.current && document.contains(editorRef.current)) {
+          try {
+            codeJarRef.current.updateCode(emptyLayout);
+          } catch (error) {
+            console.warn('[testing] Error updating CodeJar on error (non-critical):', error);
+          }
+        } else if (editorRef.current && document.contains(editorRef.current)) {
+          initializeCodeJar(editorRef.current);
+        }
+      }, 200);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Initialize CodeJar
+  const initializeCodeJar = useCallback((element: HTMLDivElement) => {
+    // Clean up any existing instance first - only if element still exists in DOM
+    if (codeJarRef.current) {
+      try {
+        // Check if the editor element still exists in DOM before destroying
+        if (editorRef.current && document.contains(editorRef.current)) {
+          codeJarRef.current.destroy();
+        }
+      } catch (error) {
+        // Ignore cleanup errors - DOM might already be removed
+        console.warn('[testing] Error destroying CodeJar during init (non-critical):', error);
+      }
+      codeJarRef.current = null;
+    }
+
+    if (!element || !open || !document.contains(element) || !isMountedRef.current) {
+      return;
+    }
+
+    const highlight = (editor: HTMLElement) => {
+      const code = editor.textContent || '';
+      try {
+        editor.innerHTML = Prism.highlight(code, Prism.languages.json, 'json');
+      } catch (error) {
+        editor.innerHTML = code;
+      }
+    };
+
+    try {
+      codeJarRef.current = CodeJar(element, highlight, {
+        tab: ' '.repeat(JSON_EDITOR_CONFIG.TAB_SIZE),
+      });
+
+      const initialContent = jsonString || JSON.stringify({ components: [] }, null, JSON_EDITOR_CONFIG.TAB_SIZE);
+      codeJarRef.current.updateCode(initialContent);
+
+      codeJarRef.current.onUpdate((code) => {
+        setJsonString(code);
+        const validation = validateJSON(code);
+        if (validation.valid) {
+          setJsonError(null);
+        } else {
+          setJsonError(validation.error || 'Invalid JSON format.');
+        }
+      });
+
+      setTimeout(() => {
+        if (element && document.contains(element)) {
+          element.focus();
+        }
+      }, JSON_EDITOR_CONFIG.FOCUS_DELAY || 200);
+    } catch (error) {
+      console.error('[testing] Error initializing CodeJar:', error);
+    }
+  }, [jsonString, open]);
+
+  // Callback ref to initialize when element mounts
+  const setEditorRef = useCallback((element: HTMLDivElement | null) => {
+    if (element && open && isMountedRef.current) {
+      editorRef.current = element;
+      // Clear any existing timeout
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current);
+        retryTimeoutRef.current = null;
+      }
+      
+      // Initialize after a short delay to ensure DOM is ready
+      retryTimeoutRef.current = setTimeout(() => {
+        if (element && document.contains(element) && open && isMountedRef.current) {
+          initializeCodeJar(element);
+        }
+      }, JSON_EDITOR_CONFIG.INIT_DELAY || 200);
+    } else if (!element && codeJarRef.current) {
+      // Cleanup when element is removed - only if element still exists in DOM
+      try {
+        if (editorRef.current && document.contains(editorRef.current)) {
+          codeJarRef.current.destroy();
+        }
+      } catch (error) {
+        // Ignore cleanup errors - DOM might already be removed
+        console.warn('[testing] Error destroying CodeJar in setEditorRef (non-critical):', error);
+      }
+      codeJarRef.current = null;
+      editorRef.current = null;
+    }
+  }, [open, initializeCodeJar]);
+
+  const handleSave = async () => {
+    if (jsonError) {
+      return;
+    }
+
+    try {
+      setSaving(true);
+      const parsed = JSON.parse(jsonString);
+      
+      // First get pageId from slug (use themeId when in theme mode so we update the same page as the module editor)
+      const effectiveTenantId = tenantId || currentTenantId || 'tenant-gosg';
+      const themeParam = currentThemeId && currentThemeId !== 'custom' ? `&themeId=${encodeURIComponent(currentThemeId)}` : '';
+      const encodedSlug = encodeURIComponent(pageSlug);
+      const pageContextResponse = await api.get(`/api/ai-assistant/page-context?slug=${encodedSlug}&tenantId=${effectiveTenantId}${themeParam}`);
+      const pageContextData = await pageContextResponse.json();
+      
+      if (!pageContextData.success || !pageContextData.pageContext?.pageId) {
+        throw new Error('Page not found');
+      }
+      
+      // Include themeId when available and not 'custom' to ensure correct page is updated
+      const saveLayoutBody: any = {
+        layout_json: parsed,
+        tenantId: effectiveTenantId,
+      };
+      if (currentThemeId && currentThemeId !== 'custom') {
+        saveLayoutBody.themeId = currentThemeId;
+      }
+      
+      const response = await api.put(`/api/pages/${pageContextData.pageContext.pageId}/layout`, saveLayoutBody);
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        const components = Array.isArray(parsed?.components) ? parsed.components : [];
+        onLayoutSaved?.(components);
+        onOpenChange(false);
+      } else {
+        setJsonError('Failed to save layout');
+      }
+    } catch (error) {
+      console.error('[testing] Error saving layout:', error);
+      setJsonError('Failed to save layout');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Function to get the selected Claude model from Editor
+  const getSelectedModelFromAIAssistant = (): string => {
+    try {
+      // Align with Editor PromptBox: use the textarea that has data-selector-active and dataset.selectedModel
+      const aiAssistantTextarea = document.querySelector('textarea[data-selector-active]') as HTMLTextAreaElement | null;
+      const selectedModel = aiAssistantTextarea?.dataset?.selectedModel;
+      if (selectedModel && typeof selectedModel === 'string') {
+        return selectedModel;
+      }
+    } catch (error) {
+      console.warn('[testing] Could not get selected model from Editor:', error);
+    }
+    // Fallback to default model
+    return 'claude-3-5-haiku-20241022';
+  };
+
+  const handleCopyJSON = async () => {
+    try {
+      await navigator.clipboard.writeText(jsonString);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (error) {
+      console.error('[testing] Failed to copy JSON:', error);
+    }
+  };
+
+  const handleSyncJSON = async () => {
+    try {
+      setSyncing(true);
+      setJsonError(null);
+
+      const selectedModel = getSelectedModelFromAIAssistant();
+      const effectiveTenantId = tenantId || currentTenantId || 'tenant-gosg';
+
+      const requestPayload = {
+        pageSlug,
+        pageName,
+        tenantId: effectiveTenantId,
+        model: selectedModel,
+        analyzePageCode: true,
+        currentSchema: jsonString ? JSON.parse(jsonString) : null,
+      };
+
+      const response = await api.post('/api/ai-assistant/generate-schema', requestPayload);
+      const data = await response.json();
+
+      if (data.success && data.schema) {
+        const schemaJson = JSON.stringify(data.schema, null, JSON_EDITOR_CONFIG.TAB_SIZE);
+        setJsonString(schemaJson);
+        // Apply the generated schema directly into the CodeJar editor - only if component is still mounted
+        if (isMountedRef.current && codeJarRef.current && editorRef.current && document.contains(editorRef.current)) {
+          try {
+            codeJarRef.current.updateCode(schemaJson);
+          } catch (error) {
+            console.warn('[testing] Error updating CodeJar with schema (non-critical):', error);
+          }
+        }
+        console.log(`[testing] Schema generated successfully using ${selectedModel}`);
+      } else {
+        setJsonError(data.error || 'Failed to generate schema');
+      }
+    } catch (error) {
+      console.error('[testing] Error syncing JSON:', error);
+      setJsonError('Failed to sync JSON from AI. Please ensure the Editor is available.');
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-4xl h-[80vh] flex flex-col" translate="no">
+        <DialogHeader>
+          <DialogTitle className="flex items-center justify-between">
+            <span>Page Schema JSON Editor</span>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleCopyJSON}
+              disabled={loading || !jsonString}
+              className="ml-4"
+            >
+              {copied ? (
+                <>
+                  <Check className="h-4 w-4 mr-2" />
+                  Copied!
+                </>
+              ) : (
+                <>
+                  <Copy className="h-4 w-4 mr-2" />
+                  Copy JSON
+                </>
+              )}
+            </Button>
+          </DialogTitle>
+          <DialogDescription>
+            Edit the complete page structure. Be careful with this editor.
+            {connectionInfo && (
+              <span className="mt-2 block text-xs text-muted-foreground">
+                Connected to {connectionInfo.type === 'tenant' ? 'Tenant' : connectionInfo.type === 'theme' ? 'Theme' : ''}: <span className="font-semibold">{connectionInfo.name}</span>
+              </span>
+            )}
+          </DialogDescription>
+        </DialogHeader>
+        <div className="flex-1 overflow-auto p-4 bg-gray-50 relative">
+          {/* Editor: always in DOM when not loading so CodeJar can own it. Hidden during load to avoid ref thrashing. */}
+          <div
+            ref={loading ? undefined : setEditorRef}
+            className="w-full h-full p-4 outline-none font-mono text-sm border border-gray-300 rounded bg-white"
+            style={{
+              minHeight: JSON_EDITOR_CONFIG.MIN_HEIGHT,
+              whiteSpace: 'pre-wrap',
+              wordBreak: 'break-word',
+              tabSize: JSON_EDITOR_CONFIG.TAB_SIZE,
+              ...(loading && { visibility: 'hidden' as const }),
+            }}
+            spellCheck="false"
+            dir="ltr"
+          />
+          {/* Loader: kept in DOM and toggled via opacity to avoid removeChild errors with Radix Dialog portals */}
+          <div
+            className="absolute inset-4 flex items-center justify-center bg-gray-50 rounded transition-opacity"
+            style={{ opacity: loading ? 1 : 0, pointerEvents: loading ? 'auto' : 'none' }}
+            aria-hidden={!loading}
+          >
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+          {jsonError && <p className="text-destructive text-sm mt-2">{jsonError}</p>}
+        </div>
+        <DialogFooter>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleSyncJSON}
+            disabled={syncing || loading}
+            title="Analyze page code using selected Claude model from Editor and generate optimized JSON schema"
+          >
+            {syncing ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Syncing...
+              </>
+            ) : (
+              'Analyze & Sync JSON'
+            )}
+          </Button>
+          <DialogClose asChild>
+            <Button type="button" variant="secondary">
+              Cancel
+            </Button>
+          </DialogClose>
+          <Button
+            onClick={handleSave}
+            disabled={!!jsonError || saving || loading}
+          >
+            {saving ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              'Save & Close'
+            )}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};

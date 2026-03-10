@@ -103,7 +103,7 @@ async function runFullAnalysis() {
           .filter(r => r.success)
           .map(r => {
             // Read the component definition to get full details
-            const componentDefPath = join(__dirname, '../../sparti-cms/registry/components', `${r.componentType || r.componentId}.json`);
+            const componentDefPath = join(__dirname, '../../src/lib/cms/registry/components', `${r.componentType || r.componentId}.json`);
             try {
               return JSON.parse(readFileSync(componentDefPath, 'utf-8'));
             } catch (e) {

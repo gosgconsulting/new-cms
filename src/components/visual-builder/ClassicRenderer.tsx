@@ -1,15 +1,15 @@
 "use client";
 
 import React from "react";
-import type { ComponentSchema } from "../../../sparti-cms/types/schema";
-import { SpartiBuilderProvider, useSpartiBuilder } from "../../../sparti-cms/components/SpartiBuilderProvider";
-import { ElementSelector } from "../../../sparti-cms/components/ElementSelector";
-import { EditingOverlay } from "../../../sparti-cms/components/EditingOverlay";
-import { ContentEditPanel } from "../../../sparti-cms/components/ContentEditPanel";
+import type { ComponentSchema } from "@/types/cms/schema";
+import { SpartiBuilderProvider, useSpartiBuilder } from "@/components/cms/SpartiBuilderProvider";
+import { ElementSelector } from "@/components/cms/ElementSelector";
+import { EditingOverlay } from "@/components/cms/EditingOverlay";
+import { ContentEditPanel } from "@/components/cms/ContentEditPanel";
 import SectionList from "./SectionList";
 import GenericSectionPreview from "./GenericSectionPreview";
 import { ResizableDivider, useResizableDivider } from "./ResizableDivider";
-import "../../../sparti-cms/components/sparti-builder.css";
+import "../../../src/components/cms/sparti-builder.css";
 
 interface ClassicRendererProps {
   components: ComponentSchema[];

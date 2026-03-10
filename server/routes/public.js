@@ -9,13 +9,13 @@ import {
   getBrandingSettings,
   setPostCategories,
   setPostTags
-} from '../../sparti-cms/db/index.js';
+} from '../../src/lib/cms/db/index.js';
 
 // Lazy-load Sequelize and models inside handlers to avoid boot-time crashes if DATABASE_URL is missing
 const loadSequelizeModels = async () => {
-  const modelsModule = await import('../../sparti-cms/db/sequelize/models/index.js');
-  const sequelizeModule = await import('../../sparti-cms/db/sequelize/models/index.js');
-  const sequelizeInstance = (await import('../../sparti-cms/db/sequelize/models/index.js')).sequelize;
+  const modelsModule = await import('../../src/lib/cms/db/sequelize/models/index.js');
+  const sequelizeModule = await import('../../src/lib/cms/db/sequelize/models/index.js');
+  const sequelizeInstance = (await import('../../src/lib/cms/db/sequelize/models/index.js')).sequelize;
   const { Op } = await import('sequelize');
   return {
     models: modelsModule.default,

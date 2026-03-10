@@ -1,14 +1,14 @@
 import express from 'express';
 import Anthropic from '@anthropic-ai/sdk';
 import { authenticateUser } from '../middleware/auth.js';
-import { getPageWithLayout } from '../../sparti-cms/db/modules/pages.js';
-import { query } from '../../sparti-cms/db/index.js';
+import { getPageWithLayout } from '../../src/lib/cms/db/modules/pages.js';
+import { query } from '../../src/lib/cms/db/index.js';
 // Import component registry - using dynamic import for TypeScript module
 let componentRegistry;
 async function getComponentRegistry() {
   if (!componentRegistry) {
     try {
-      const registryModule = await import('../../sparti-cms/registry/index.ts');
+      const registryModule = await import('../../src/lib/cms/registry/index.ts');
       componentRegistry = registryModule.componentRegistry || registryModule.ComponentRegistry?.getInstance();
     } catch (error) {
       console.error('[testing] Error importing component registry:', error);
@@ -137,7 +137,7 @@ Feel free to ask me anything! I'm here to help whether it's CMS-related or any o
    }
 
 3. COMPONENT REGISTRY:
-   - Component definitions stored in: sparti-cms/registry/components/*.json
+   - Component definitions stored in: src/lib/cms/registry/components/*.json
    - Each component has: id, name, type, category, properties, editor, version, tenant_scope
    - Properties define what can be edited: type, description, editable, required, default
    - Example component structure:

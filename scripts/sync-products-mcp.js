@@ -24,7 +24,7 @@ const WOOCOMMERCE_CONFIG = {
 };
 
 // Database operations using query function
-import { query } from '../sparti-cms/db/index.js';
+import { query } from '../src/lib/cms/db/index.js';
 
 async function syncProducts() {
   console.log('[testing] Starting WooCommerce product sync for Julia Paris B2B...');

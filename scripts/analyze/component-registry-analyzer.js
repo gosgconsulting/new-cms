@@ -13,7 +13,7 @@ export async function analyzeComponentRegistry() {
   console.log('[testing] Starting Component Registry Analysis');
   console.log('[testing] ============================================');
   
-  const registryPath = join(__dirname, '../../sparti-cms/registry/components');
+  const registryPath = join(__dirname, '../../src/lib/cms/registry/components');
   
   try {
     // Read all JSON files in the components directory

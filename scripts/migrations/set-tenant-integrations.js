@@ -6,7 +6,7 @@
  */
 
 import dotenv from 'dotenv';
-import { query } from '../../sparti-cms/db/index.js';
+import { query } from '../../src/lib/cms/db/index.js';
 
 // Load environment variables
 dotenv.config();

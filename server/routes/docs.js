@@ -6,7 +6,7 @@ const router = express.Router();
 
 const DOC_DIRS = [
   join(process.cwd(), 'docs'),
-  join(process.cwd(), 'sparti-cms', 'docs'),
+  join(process.cwd(), 'src/lib/cms', 'docs'),
 ];
 
 const isMarkdownOrText = (filename) => {
@@ -157,7 +157,7 @@ async function buildDatabaseOverviewActions() {
   // Select relevant files to consolidate
   const candidates = [
     join(process.cwd(), 'docs', 'features', 'DATABASE.md'),
-    join(process.cwd(), 'sparti-cms', 'docs', 'database-rules.md'),
+    join(process.cwd(), 'src/lib/cms', 'docs', 'database-rules.md'),
     join(process.cwd(), 'docs', 'development', 'database-audit-implementation-plan.md'),
     join(process.cwd(), 'docs', 'setup', 'POSTGRES_MCP_SETUP.md'),
     join(process.cwd(), 'docs', 'setup', 'POSTGRES_MCP_SETUP.md'),
@@ -242,7 +242,7 @@ router.get('/api/docs/brief', async (req, res) => {
       // Build synthetic brief from known DB docs
       const candidates = [
         join(process.cwd(), 'docs', 'features', 'DATABASE.md'),
-        join(process.cwd(), 'sparti-cms', 'docs', 'database-rules.md'),
+        join(process.cwd(), 'src/lib/cms', 'docs', 'database-rules.md'),
         join(process.cwd(), 'docs', 'implementation', 'DATABASE_VIEWER_FIX.md'),
         join(process.cwd(), 'docs', 'implementation', 'DATABASE_TABLES_SYNC_FIX.md'),
         join(process.cwd(), 'docs', 'setup', 'POSTGRES_MCP_SETUP.md'),

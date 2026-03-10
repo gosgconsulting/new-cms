@@ -10,7 +10,7 @@
  */
 
 import 'dotenv/config';
-import { query, testConnection, getConnectionInfo, getPoolStatus } from '../sparti-cms/db/connection.js';
+import { query, testConnection, getConnectionInfo, getPoolStatus } from '../src/lib/cms/db/connection.js';
 import { getDatabaseState, verifyUsersTableExists, testDatabaseQuery } from '../server/utils/database.js';
 
 console.log('========================================');

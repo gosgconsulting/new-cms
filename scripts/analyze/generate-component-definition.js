@@ -9,7 +9,7 @@ const __dirname = dirname(__filename);
  * Generate component definition JSON file from missing component data
  */
 export async function generateComponentDefinition(missingComponent) {
-  const registryPath = join(__dirname, '../../sparti-cms/registry/components');
+  const registryPath = join(__dirname, '../../src/lib/cms/registry/components');
   
   // Ensure directory exists
   if (!existsSync(registryPath)) {

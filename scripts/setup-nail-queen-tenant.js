@@ -2,8 +2,8 @@
  * Setup nail-queen tenant with pages and settings
  */
 
-import { query } from '../sparti-cms/db/index.js';
-import { readThemePages } from '../sparti-cms/services/themeSync.js';
+import { query } from '../src/lib/cms/db/index.js';
+import { readThemePages } from '../src/services/cms/themeSync.js';
 
 const TENANT_ID = 'tenant-nail-queen';
 const THEME_SLUG = 'nail-queen';

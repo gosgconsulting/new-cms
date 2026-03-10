@@ -1,5 +1,5 @@
 import express from 'express';
-import { query } from '../../sparti-cms/db/index.js';
+import { query } from '../../src/lib/cms/db/index.js';
 import {
   getProducts,
   getProductsWithDetails,
@@ -24,7 +24,7 @@ import {
   getReviews,
   createReview,
   deleteReview
-} from '../../sparti-cms/db/modules/ecommerce.js';
+} from '../../src/lib/cms/db/modules/ecommerce.js';
 import { authenticateTenantApiKey } from '../middleware/tenantApiKey.js';
 import { authenticateUser } from '../middleware/auth.js';
 import { createWooCommerceClient } from '../services/woocommerceClient.js';

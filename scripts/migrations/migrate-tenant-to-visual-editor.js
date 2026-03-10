@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
-import { query } from '../../sparti-cms/db/index.js';
-import { getAllTenants, getTenantDatabaseDetails } from '../../sparti-cms/db/tenant-management.js';
+import { query } from '../../src/lib/cms/db/index.js';
+import { getAllTenants, getTenantDatabaseDetails } from '../../src/lib/cms/db/tenant-management.js';
 import { writeFileSync, mkdirSync, readFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';

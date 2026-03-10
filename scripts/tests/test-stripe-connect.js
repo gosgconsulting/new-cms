@@ -5,7 +5,7 @@
  * Verifies all components are properly configured
  */
 
-import { query } from '../../sparti-cms/db/index.js';
+import { query } from '../../src/lib/cms/db/index.js';
 import Stripe from 'stripe';
 
 const REQUIRED_ENV_VARS = [
@@ -133,9 +133,9 @@ async function testStripeConnect() {
   console.log('-'.repeat(60));
   
   const requiredFiles = [
-    'sparti-cms/components/admin/ShopSettingsManager.tsx',
+    'src/components/cms/admin/ShopSettingsManager.tsx',
     'server/routes/shop.js',
-    'sparti-cms/db/sequelize/migrations/20241226000001-create-ecommerce-tables.js'
+    'src/lib/cms/db/sequelize/migrations/20241226000001-create-ecommerce-tables.js'
   ];
 
   const fs = await import('fs');

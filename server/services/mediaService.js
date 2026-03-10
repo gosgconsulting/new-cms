@@ -129,7 +129,7 @@ export async function moveMediaToFolder(mediaId, folderId) {
  * Get media usage in content
  */
 export async function getMediaUsage(mediaId) {
-  const { query } = await import('../../sparti-cms/db/index.js');
+  const { query } = await import('../../src/lib/cms/db/index.js');
 
   // Find posts using this media
   const postsResult = await query(
@@ -158,7 +158,7 @@ export async function getMediaUsage(mediaId) {
  * Get orphaned media (not used anywhere)
  */
 export async function getOrphanedMedia(tenantId = null) {
-  const { query } = await import('../../sparti-cms/db/index.js');
+  const { query } = await import('../../src/lib/cms/db/index.js');
 
   let queryText = `
     SELECT m.* 
@@ -219,7 +219,7 @@ export async function cleanupOrphanedMedia(tenantId = null, dryRun = true) {
  * Get media statistics by type
  */
 export async function getMediaStatsByType(tenantId = null) {
-  const { query } = await import('../../sparti-cms/db/index.js');
+  const { query } = await import('../../src/lib/cms/db/index.js');
 
   let queryText = `
     SELECT 

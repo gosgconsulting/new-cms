@@ -29,7 +29,7 @@ export default tseslint.config(
         "error",
         {
           selector: "CallExpression[callee.object.name='console'][callee.property.name=/^(log|error|warn)$/] > Literal[value=/\\[testing\\]/]",
-          message: "Use debugLog, debugError, or debugWarn from sparti-cms/utils/debugLogger.js instead of console.log('[testing]...')",
+          message: "Use debugLog, debugError, or debugWarn from src/utils/cms/debugLogger.js instead of console.log('[testing]...')",
         },
       ],
     },

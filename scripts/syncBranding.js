@@ -4,7 +4,7 @@ import {
   ensureAllTenantsHaveDefaults,
   syncAllTenantsFromMaster,
   getAllTenantsSyncStatus
-} from '../sparti-cms/db/syncBrandingSettings.js';
+} from '../src/lib/cms/db/syncBrandingSettings.js';
 
 const args = process.argv.slice(2);
 const command = args[0];

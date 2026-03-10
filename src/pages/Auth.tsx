@@ -14,7 +14,7 @@ import {
   Info
 } from 'lucide-react';
 import { Link, useNavigate, useLocation, useParams } from 'react-router-dom';
-import { useAuth } from '../../sparti-cms/components/auth/AuthProvider';
+import { useAuth } from '@/components/cms/auth/AuthProvider';
 
 interface FormData {
   first_name: string;

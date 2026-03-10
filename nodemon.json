@@ -3,7 +3,7 @@
     "server",
     "server.js",
     "scripts",
-    "sparti-cms/db"
+    "src/lib/cms/db"
   ],
   "ext": "js,json",
   "ignore": [

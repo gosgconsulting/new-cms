@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-import { syncThemePages } from '../../sparti-cms/services/themeSync.js';
+import { syncThemePages } from '../../src/services/cms/themeSync.js';
 
 // Load environment variables
 dotenv.config();
@@ -26,7 +26,7 @@ async function syncLandingPagePages() {
       }
       
       // Verify pages exist in database
-      const { query } = await import('../../sparti-cms/db/index.js');
+      const { query } = await import('../../src/lib/cms/db/index.js');
       const pagesCheck = await query(`
         SELECT id, page_name, slug, theme_id, status
         FROM pages

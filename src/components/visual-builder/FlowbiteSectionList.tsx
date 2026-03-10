@@ -1,9 +1,9 @@
 "use client";
 
 import React, { memo, useMemo, useCallback } from "react";
-import { useSpartiBuilder } from "../../../sparti-cms/components/SpartiBuilderProvider";
+import { useSpartiBuilder } from "@/components/cms/SpartiBuilderProvider";
 import { GripVertical } from "lucide-react";
-import type { ComponentSchema } from "../../../sparti-cms/types/schema";
+import type { ComponentSchema } from "@/types/cms/schema";
 
 const labelFor = (comp: ComponentSchema | null, idx: number): string => {
   if (!comp) return `Section ${idx + 1}`;

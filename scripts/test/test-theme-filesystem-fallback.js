@@ -1,4 +1,4 @@
-import { getThemesFromFileSystem } from '../../sparti-cms/services/themeSync.js';
+import { getThemesFromFileSystem } from '../../src/services/cms/themeSync.js';
 
 /**
  * Test script to verify themes can be read from file system
@@ -23,7 +23,7 @@ async function testThemeFileSystemFallback() {
     
     if (themes.length === 0) {
       console.log('⚠️  No themes found in file system');
-      console.log('   Make sure you have theme folders in: sparti-cms/theme/');
+      console.log('   Make sure you have theme folders in: src/themes/');
     } else {
       console.log('✅ File system fallback is working correctly!');
     }

@@ -9,10 +9,10 @@
  */
 
 import dotenv from 'dotenv';
-import { query } from '../../sparti-cms/db/index.js';
-import { runMigrations } from '../../sparti-cms/db/sequelize/run-migrations.js';
-import { initializeTenantMediaFolders } from '../../sparti-cms/db/modules/media.js';
-import { initializeTenantDefaults } from '../../sparti-cms/db/tenant-initialization.js';
+import { query } from '../../src/lib/cms/db/index.js';
+import { runMigrations } from '../../src/lib/cms/db/sequelize/run-migrations.js';
+import { initializeTenantMediaFolders } from '../../src/lib/cms/db/modules/media.js';
+import { initializeTenantDefaults } from '../../src/lib/cms/db/tenant-initialization.js';
 
 // Load environment variables
 dotenv.config();

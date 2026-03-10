@@ -1,6 +1,6 @@
 
 import React from "react";
-import { SpartiCMS } from "../../sparti-cms";
+import { SpartiCMS } from "@/lib/cms";
 
 const Admin = () => {
   return <SpartiCMS />;

@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge-2';
 import { Button } from '@/components/ui/button-1';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import api from '../../sparti-cms/utils/api';
+import api from '@/utils/cms/api';
 
 type Task = {
   id: string;

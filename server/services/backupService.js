@@ -5,7 +5,7 @@
  * @module server/services/backupService
  */
 
-import { query } from '../../sparti-cms/db/index.js';
+import { query } from '../../src/lib/cms/db/index.js';
 
 // Re-use the exact same data-fetching logic from the export service
 // (import the internal helper; we don't need the Express res-based streaming wrapper)

@@ -5,7 +5,7 @@
  * with tenant_id = NULL after the tenant-based database refactoring.
  */
 
-import { query } from '../sparti-cms/db/index.js';
+import { query } from '../src/lib/cms/db/index.js';
 import dotenv from 'dotenv';
 
 dotenv.config();

@@ -1,5 +1,5 @@
-import { query } from '../sparti-cms/db/index.js';
-import { updateTenant } from '../sparti-cms/db/tenant-management.js';
+import { query } from '../src/lib/cms/db/index.js';
+import { updateTenant } from '../src/lib/cms/db/tenant-management.js';
 import { existsSync } from 'fs';
 import { join } from 'path';
 import { fileURLToPath } from 'url';
@@ -78,8 +78,8 @@ async function connectSTRTenant() {
     // Step 4: Verify assets
     console.log('[testing] Step 4: Verifying assets...');
     const assetPaths = [
-      join(__dirname, '..', 'sparti-cms', 'theme', 'str', 'assets', 'logos', 'str-logo-1-1024x604.png'),
-      join(__dirname, '..', 'sparti-cms', 'theme', 'str', 'assets', 'hero', 'hero-background.jpg'),
+      join(__dirname, '..', 'src/lib/cms', 'theme', 'str', 'assets', 'logos', 'str-logo-1-1024x604.png'),
+      join(__dirname, '..', 'src/lib/cms', 'theme', 'str', 'assets', 'hero', 'hero-background.jpg'),
       join(__dirname, '..', 'public', 'theme', 'str', 'assets', 'logos', 'str-logo-1-1024x604.png'),
       join(__dirname, '..', 'public', 'theme', 'str', 'assets', 'hero', 'hero-background.jpg')
     ];
@@ -106,10 +106,10 @@ async function connectSTRTenant() {
     // Step 5: Verify pages
     console.log('[testing] Step 5: Verifying theme pages...');
     const pageFiles = [
-      join(__dirname, '..', 'sparti-cms', 'theme', 'str', 'index.tsx'),
-      join(__dirname, '..', 'sparti-cms', 'theme', 'str', 'booking.tsx'),
-      join(__dirname, '..', 'sparti-cms', 'theme', 'str', 'packages.tsx'),
-      join(__dirname, '..', 'sparti-cms', 'theme', 'str', 'pages.json')
+      join(__dirname, '..', 'src/lib/cms', 'theme', 'str', 'index.tsx'),
+      join(__dirname, '..', 'src/lib/cms', 'theme', 'str', 'booking.tsx'),
+      join(__dirname, '..', 'src/lib/cms', 'theme', 'str', 'packages.tsx'),
+      join(__dirname, '..', 'src/lib/cms', 'theme', 'str', 'pages.json')
     ];
 
     const pageChecks = pageFiles.map(path => ({

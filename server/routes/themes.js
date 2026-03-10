@@ -5,9 +5,9 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import multer from 'multer';
 import { authenticateUser } from '../middleware/auth.js';
-import { syncThemesFromFileSystem, getAllThemes, getThemeBySlug, getThemesFromFileSystem, createTheme, syncThemePages, getDefaultLayoutForTheme, readThemePages } from '../../sparti-cms/services/themeSync.js';
-import { query } from '../../sparti-cms/db/index.js';
-import { generateThemeApiKey } from '../../sparti-cms/db/tenant-management.js';
+import { syncThemesFromFileSystem, getAllThemes, getThemeBySlug, getThemesFromFileSystem, createTheme, syncThemePages, getDefaultLayoutForTheme, readThemePages } from '../../src/services/cms/themeSync.js';
+import { query } from '../../src/lib/cms/db/index.js';
+import { generateThemeApiKey } from '../../src/lib/cms/db/tenant-management.js';
 
 const router = express.Router();
 
@@ -23,7 +23,7 @@ function ensureDir(dirPath) {
 function getThemeAssetsDirs(themeSlug) {
   const projectRoot = path.join(__dirname, '..', '..');
 
-  const themeAssetsDir = path.join(projectRoot, 'sparti-cms', 'theme', themeSlug, 'assets');
+  const themeAssetsDir = path.join(projectRoot, 'src/lib/cms', 'theme', themeSlug, 'assets');
   const publicAssetsDir = path.join(projectRoot, 'public', 'theme', themeSlug, 'assets');
 
   return { themeAssetsDir, publicAssetsDir };
@@ -121,7 +121,7 @@ router.get('/:themeSlug/assets', authenticateUser, async (req, res) => {
  * Uploads a file into the theme assets folder.
  *
  * Writes to:
- * - sparti-cms/theme/:themeSlug/assets (server + production)
+ * - src/themes/:themeSlug/assets (server + production)
  * - public/theme/:themeSlug/assets (vite dev + fallback)
  */
 router.post(
@@ -252,7 +252,7 @@ router.post('/:themeId/migrate-layouts', authenticateUser, async (req, res) => {
       // Try to sync pages from file system first
       console.log(`[testing] No pages found in database, attempting to sync from file system...`);
       try {
-        const { syncThemePages } = await import('../../sparti-cms/services/themeSync.js');
+        const { syncThemePages } = await import('../../src/services/cms/themeSync.js');
         const syncResult = await syncThemePages(themeId);
         
         if (syncResult.success && syncResult.synced > 0) {
@@ -289,7 +289,7 @@ router.post('/:themeId/migrate-layouts', authenticateUser, async (req, res) => {
         } else {
           return res.json({
             success: true,
-            message: `No pages found for theme ${themeId}. Please ensure pages.json exists in sparti-cms/theme/${themeId}/pages.json`,
+            message: `No pages found for theme ${themeId}. Please ensure pages.json exists in src/themes/${themeId}/pages.json`,
             migrated: 0,
             total: 0,
             results: []
@@ -539,7 +539,7 @@ router.post('/sync', authenticateUser, async (req, res) => {
             
             // Ensure demo tenant has pages for this theme
             try {
-              const { ensureDemoTenantHasThemePages } = await import('../../sparti-cms/services/themeSync.js');
+              const { ensureDemoTenantHasThemePages } = await import('../../src/services/cms/themeSync.js');
               const themePages = readThemePages(themeResult.slug);
               if (themePages && themePages.length > 0) {
                 await ensureDemoTenantHasThemePages(themeResult.slug, themePages);

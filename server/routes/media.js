@@ -18,7 +18,7 @@ import {
   updateMediaFile,
   deleteMediaFile,
   getTenantStorageName
-} from '../../sparti-cms/db/modules/media.js';
+} from '../../src/lib/cms/db/modules/media.js';
 import { authenticateUser } from '../middleware/auth.js';
 import { uploadBufferToBlob } from '../utils/blobStorage.js';
 import path from 'path';

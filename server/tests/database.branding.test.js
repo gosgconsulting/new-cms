@@ -5,8 +5,8 @@
  */
 
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { getBrandingSettings, updateBrandingSettings, updateMultipleBrandingSettings } from '../../sparti-cms/db/modules/branding.js';
-import { query } from '../../sparti-cms/db/index.js';
+import { getBrandingSettings, updateBrandingSettings, updateMultipleBrandingSettings } from '../../src/lib/cms/db/modules/branding.js';
+import { query } from '../../src/lib/cms/db/index.js';
 
 const testTenant = 'tenant-test-branding';
 const testTheme = 'theme-test';

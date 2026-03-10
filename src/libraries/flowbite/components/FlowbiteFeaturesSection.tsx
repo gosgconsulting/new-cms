@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo, useRef } from "react";
-import type { ComponentSchema } from "../../../../sparti-cms/types/schema";
+import type { ComponentSchema } from "@/types/cms/schema";
 import FlowbiteSection from "./FlowbiteSection";
 import { ArrowLeft, ArrowRight, Clock, Heart, Users } from "lucide-react";
 

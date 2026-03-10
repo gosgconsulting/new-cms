@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Upload theme assets (sparti-cms/theme and public/theme) to Vercel Blob
+ * Upload theme assets (src/themes and public/theme) to Vercel Blob
  * and create a path -> URL manifest. Run once or when theme assets change.
  *
  * Requires: BLOB_READ_WRITE_TOKEN in env (never commit this; use Vercel env or .env).
@@ -16,7 +16,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.join(__dirname, '..');
 
 const THEME_DIRS = [
-  path.join(rootDir, 'sparti-cms', 'theme'),
+  path.join(rootDir, 'src', 'themes'),
   path.join(rootDir, 'public', 'theme'),
 ];
 

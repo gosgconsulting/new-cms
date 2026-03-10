@@ -16,8 +16,8 @@ export async function generateReactComponent(componentDefinitionPath) {
   // Determine component directory based on category
   const isLayoutComponent = componentDef.category === 'layout';
   const componentDir = isLayoutComponent
-    ? join(__dirname, '../../sparti-cms/theme/gosgconsulting/components')
-    : join(__dirname, '../../sparti-cms/theme/gosgconsulting/components');
+    ? join(__dirname, '../../src/themes/gosgconsulting/components')
+    : join(__dirname, '../../src/themes/gosgconsulting/components');
   
   // Ensure directory exists
   if (!existsSync(componentDir)) {
@@ -249,7 +249,7 @@ export async function generateAllReactComponents(componentDefinitions) {
   for (const compDef of componentDefinitions) {
     try {
       // Find the component definition file
-      const registryPath = join(__dirname, '../../sparti-cms/registry/components');
+      const registryPath = join(__dirname, '../../src/lib/cms/registry/components');
       const componentDefPath = join(registryPath, `${compDef.id}.json`);
       
       if (!existsSync(componentDefPath)) {

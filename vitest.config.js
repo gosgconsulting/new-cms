@@ -9,8 +9,8 @@ export default defineConfig({
       'server/tests/**/*.test.js', 
       'server/tests/**/*.test.ts',
       // Frontend tests excluded until @testing-library/react and jsdom are installed
-      // 'sparti-cms/components/**/__tests__/**/*.test.tsx',
-      // 'sparti-cms/components/**/__tests__/**/*.test.ts'
+      // 'src/components/cms/**/__tests__/**/*.test.tsx',
+      // 'src/components/cms/**/__tests__/**/*.test.ts'
     ],
     exclude: [
       'node_modules', 
@@ -18,8 +18,8 @@ export default defineConfig({
       'server/tests/authService.test.js', // Old test format, not Vitest
       'server/tests/repositories.test.js', // Old test format, not Vitest
       // Exclude frontend tests until dependencies are installed
-      'sparti-cms/components/**/__tests__/**/*.test.tsx',
-      'sparti-cms/components/**/__tests__/**/*.test.ts',
+      'src/components/cms/**/__tests__/**/*.test.tsx',
+      'src/components/cms/**/__tests__/**/*.test.ts',
     ],
     testTimeout: 10000,
     hookTimeout: 10000,

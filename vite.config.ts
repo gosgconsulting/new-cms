@@ -74,24 +74,23 @@ export default defineConfig(({ mode }) => {
     plugins.push(themeDevPlugin(themeSlug, tenantId));
   }
 
-  // When theme folder is excluded (Vercel CMS-only or VITE_SKIP_THEMES), resolve sparti-cms/theme to stubs so build succeeds.
+  // When theme folder is excluded (Vercel CMS-only or VITE_SKIP_THEMES), resolve @/themes to stubs so build succeeds.
   const useThemeStubs = envVars.VERCEL === '1' || envVars.VITE_SKIP_THEMES === '1';
   const themeStubsPath = path.resolve(__dirname, 'src/theme-stubs');
-  const resolveAlias: Array<{ find: string | RegExp; replacement: string }> = [
-    { find: '@', replacement: path.resolve(__dirname, './src') },
-  ];
+  const resolveAlias: Array<{ find: string | RegExp; replacement: string }> = [];
   if (useThemeStubs) {
-    // IMPORTANT: Vite can sometimes attempt to load an aliased directory as a file.
-    // Map top-level theme entry imports to the actual stub index file explicitly.
+    // IMPORTANT: These must come BEFORE the '@' alias so they take precedence.
+    // Map top-level theme entry imports (e.g. @/themes/landingpage) to the actual stub index file.
     resolveAlias.push({
-      find: /sparti-cms\/theme\/([^/]+)$/,
+      find: /^@\/themes\/([^/]+)$/,
       replacement: themeStubsPath + '/$1/index.tsx',
     });
 
-    // Map deep imports (e.g. sparti-cms/theme/gosgconsulting/services/wordpressApi)
+    // Map deep imports (e.g. @/themes/gosgconsulting/services/wordpressApi)
     // directly into the stubs folder.
-    resolveAlias.push({ find: /sparti-cms\/theme(.*)/, replacement: themeStubsPath + '$1' });
+    resolveAlias.push({ find: /^@\/themes(.*)/, replacement: themeStubsPath + '$1' });
   }
+  resolveAlias.push({ find: '@', replacement: path.resolve(__dirname, './src') });
 
   return {
     server: {

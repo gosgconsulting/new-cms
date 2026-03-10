@@ -20,8 +20,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { RouteErrorElement } from "./components/RouteErrorElement";
 import './index.css';
-import '../sparti-cms/styles/modal-sparti-fix.css';
-import '../sparti-cms/styles/rich-text-editor.css';
+import '../src/styles/cms/modal-sparti-fix.css';
+import '../src/styles/cms/rich-text-editor.css';
 
 // Get theme slug from environment variable or URL parameter
 const getThemeSlug = (): string => {
@@ -59,17 +59,17 @@ const themeNames: Record<string, string> = {
 const loadTheme = (slug: string) => {
   switch (slug) {
     case 'landingpage':
-      return lazy(() => import('../sparti-cms/theme/landingpage'));
+      return lazy(() => import('@/themes/landingpage'));
     case 'sparti-seo-landing':
-      return lazy(() => import('../sparti-cms/theme/sparti-seo-landing'));
+      return lazy(() => import('@/themes/sparti-seo-landing'));
     case 'gosgconsulting':
-      return lazy(() => import('../sparti-cms/theme/gosgconsulting'));
+      return lazy(() => import('@/themes/gosgconsulting'));
     case 'nail-queen':
-      return lazy(() => import('../sparti-cms/theme/nail-queen'));
+      return lazy(() => import('@/themes/nail-queen'));
     case 'moondk':
-      return lazy(() => import('../sparti-cms/theme/moondk'));
+      return lazy(() => import('@/themes/moondk'));
     default:
-      return lazy(() => import('../sparti-cms/theme/landingpage'));
+      return lazy(() => import('@/themes/landingpage'));
   }
 };
 

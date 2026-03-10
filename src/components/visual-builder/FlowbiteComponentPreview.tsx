@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import FlowbiteSection from "../../libraries/flowbite/components/FlowbiteSection";
 import GenericSectionPreview from "./GenericSectionPreview";
-import type { ComponentSchema, SchemaItem } from "../../../sparti-cms/types/schema";
+import type { ComponentSchema, SchemaItem } from "@/types/cms/schema";
 
 type Props = {
   schema: ComponentSchema;

@@ -4,7 +4,7 @@ import { GripVertical } from 'lucide-react';
 import { Kanban, KanbanBoard, KanbanColumn, KanbanColumnContent, KanbanColumnHandle, KanbanItem, KanbanItemHandle, KanbanOverlay } from '@/components/ui/kanban';
 import { Badge } from '@/components/ui/badge-2';
 import { Button } from '@/components/ui/button-1';
-import { useAuth } from '../../sparti-cms/components/auth/AuthProvider';
+import { useAuth } from '@/components/cms/auth/AuthProvider';
 import { Navigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 

@@ -10,7 +10,6 @@ const config = {
   content: [
     './index.html',
     './src/**/*.{ts,tsx}',
-    './sparti-cms/**/*.{ts,tsx}',
     './node_modules/flowbite/**/*.js',
   ],
   theme: {

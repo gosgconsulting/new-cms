@@ -40,12 +40,12 @@ console.log('==========================================');
 console.log('');
 
 // Check if theme exists
-const themePath = join(__dirname, '..', 'sparti-cms', 'theme', themeSlug);
+const themePath = join(__dirname, '..', 'src', 'themes', themeSlug);
 if (!existsSync(themePath)) {
   console.error(`❌ Error: Theme '${themeSlug}' not found at ${themePath}`);
   console.log('');
   console.log('Available themes:');
-  const themesDir = join(__dirname, '..', 'sparti-cms', 'theme');
+  const themesDir = join(__dirname, '..', 'src', 'themes');
   if (existsSync(themesDir)) {
     const themes = readdirSync(themesDir, { withFileTypes: true })
       .filter(dirent => dirent.isDirectory() && dirent.name !== 'custom')

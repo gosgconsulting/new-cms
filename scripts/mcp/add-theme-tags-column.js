@@ -8,7 +8,7 @@
  *   node scripts/mcp/add-theme-tags-column.js
  */
 
-import { query } from '../../sparti-cms/db/index.js';
+import { query } from '../../src/lib/cms/db/index.js';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -65,7 +65,7 @@ async function syncTagsFromFiles() {
   try {
     console.log('[MCP] Syncing tags from theme.json files to database...');
     
-    const themesDir = path.join(__dirname, '../../sparti-cms/theme');
+    const themesDir = path.join(__dirname, '../../src/themes');
     
     if (!fs.existsSync(themesDir)) {
       console.error('❌ Themes directory not found:', themesDir);

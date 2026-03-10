@@ -1,5 +1,5 @@
 import type { DesignSystemMetadata } from "./designSystemMetadata";
-import type { ComponentSchema } from "../../sparti-cms/types/schema";
+import type { ComponentSchema } from "@/types/cms/schema";
 import { discoverComponents } from "../utils/designSystemDiscovery";
 import { getAvailableFlowbiteThemes, applyFlowbiteTheme } from "../utils/flowbiteThemeManager";
 import FlowbiteComponentPreview from "../components/visual-builder/FlowbiteComponentPreview";

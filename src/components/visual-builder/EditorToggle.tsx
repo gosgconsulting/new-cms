@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { useSpartiBuilder } from "../../../sparti-cms/components/SpartiBuilderProvider";
+import { useSpartiBuilder } from "@/components/cms/SpartiBuilderProvider";
 import { showInfoToast } from "@/utils/toast-utils";
 import { Wand, X } from "lucide-react";
 

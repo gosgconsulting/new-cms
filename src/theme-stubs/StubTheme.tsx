@@ -2,7 +2,7 @@ import React from 'react';
 
 /**
  * Placeholder component used when theme folder is excluded from deployment (e.g. Vercel CMS-only; themes served from Blob).
- * Build resolves sparti-cms/theme/* to these stubs when VITE_SKIP_THEMES=1 or VERCEL=1.
+ * Build resolves src/themes/* to these stubs when VITE_SKIP_THEMES=1 or VERCEL=1.
  */
 export default function StubTheme() {
   return (

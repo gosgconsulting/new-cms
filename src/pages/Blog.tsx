@@ -9,7 +9,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ContactModal from "@/components/ContactModal";
-import { getPosts, getFeaturedImageUrl, calculateReadTime, getPostCategories } from "../../sparti-cms/theme/gosgconsulting/services/wordpressApi";
+import { getPosts, getFeaturedImageUrl, calculateReadTime, getPostCategories } from "@/themes/gosgconsulting/services/wordpressApi";
 
 // Import placeholder images for fallback
 const placeholderImage = "/placeholder.svg";

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef } from "react";
-import type { ComponentSchema } from "../../../../sparti-cms/types/schema";
+import type { ComponentSchema } from "@/types/cms/schema";
 import Reveal from "./Reveal";
 
 interface FlowbiteCTASectionProps {

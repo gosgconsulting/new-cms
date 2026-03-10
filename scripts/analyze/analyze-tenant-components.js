@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 import { Pool } from 'pg';
-import { query } from '../../sparti-cms/db/index.js';
-import { getAllTenants, getTenantDatabaseDetails } from '../../sparti-cms/db/tenant-management.js';
+import { query } from '../../src/lib/cms/db/index.js';
+import { getAllTenants, getTenantDatabaseDetails } from '../../src/lib/cms/db/tenant-management.js';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';

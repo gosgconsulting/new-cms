@@ -2,7 +2,7 @@ import React, { Suspense, lazy, useMemo } from "react";
 import { useLocation } from "react-router-dom";
 
 // The legacy templates folder was removed; the master template lives as a theme.
-const TemplateMasterApp = lazy(() => import("../../sparti-cms/theme/master"));
+const TemplateMasterApp = lazy(() => import("@/themes/master"));
 
 /**
  * Template Master

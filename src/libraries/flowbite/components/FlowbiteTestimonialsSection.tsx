@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo, useRef, useState } from "react";
-import type { ComponentSchema } from "../../../../sparti-cms/types/schema";
+import type { ComponentSchema } from "@/types/cms/schema";
 import FlowbiteSection from "./FlowbiteSection";
 import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 import { Star } from "lucide-react";

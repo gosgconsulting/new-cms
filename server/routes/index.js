@@ -1,8 +1,8 @@
 import express from 'express';
 import { authenticateTenantApiKey } from '../middleware/tenantApiKey.js';
 import { authenticateWithAccessKey } from '../middleware/accessKey.js';
-import { renderPageBySlug } from '../../sparti-cms/render/pageRenderer.js';
-import { getPageCache, setPageCache } from '../../sparti-cms/cache/index.js';
+import { renderPageBySlug } from '../../src/lib/cms/render/pageRenderer.js';
+import { getPageCache, setPageCache } from '../../src/lib/cms/cache/index.js';
 
 // Import all route modules
 import healthRoutes from './health.js';
