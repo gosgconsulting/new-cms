@@ -121,7 +121,8 @@ const NewPostEditor: React.FC<NewPostEditorProps> = ({ onBack, onSave, initialDa
     visibility: 'public',
     template: 'default',
     promotion: false,
-    ...initialData
+    ...initialData,
+    author_id: initialData?.author_id ?? (typeof user?.id === 'number' ? user.id : 1),
   });
 
   // Data states
@@ -652,7 +653,7 @@ const NewPostEditor: React.FC<NewPostEditorProps> = ({ onBack, onSave, initialDa
                 <div>
                   <Label htmlFor="author">Author</Label>
                   <Select
-                    value={postData.author_id.toString()}
+                    value={postData.author_id?.toString() ?? ''}
                     onValueChange={(value) => handleInputChange('author_id', parseInt(value))}
                   >
                     <SelectTrigger>
