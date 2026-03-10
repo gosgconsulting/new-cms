@@ -29,6 +29,7 @@
     "migrate": "node scripts/migrations/migrate-production-db.js",
     "migrate:production": "npm run sequelize:migrate:production",
     "migrate:template-id": "node scripts/migrations/add-template-id-to-tenants.js",
+    "migrate:wordpress-to-sparti": "node scripts/migrate-wordpress-to-sparti.js",
     "register:landingpage": "node scripts/setup/register-landingpage-theme.js",
     "sync:landingpage-pages": "node scripts/setup/sync-landingpage-pages.js",
     "sync:tenants": "node scripts/migrations/sync-tenants-to-new-structure.js",
