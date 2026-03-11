@@ -27,13 +27,14 @@ const loadSequelizeModels = async () => {
 const router = express.Router();
 
 // Helper function to format success response
-const successResponse = (data, tenantId) => {
+const successResponse = (data, tenantId, total) => {
   return {
     success: true,
     data,
     meta: {
       tenant_id: tenantId,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      total,
     }
   };
 };
@@ -511,10 +512,7 @@ router.get('/blog/posts', async (req, res) => {
       };
     });
 
-    res.json(successResponse({
-      data: postsWithTerms,
-      total: count
-    }, tenantId));
+    res.json(successResponse(postsWithTerms, tenantId, count));
   } catch (error) {
     console.error('[testing] Error fetching blog posts:', error);
     res.status(500).json(errorResponse(error, 'FETCH_POSTS_ERROR'));
