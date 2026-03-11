@@ -128,13 +128,13 @@ router.get('/pages', async (req, res) => {
     const tenantId = req.tenantId;
     const { sequelize } = await loadSequelizeModels();
     const { status, page_type, limit, offset } = req.query;
-    
+
     // Build query with Sequelize
     const queryOptions = {
       replacements: { tenantId },
       type: sequelize.QueryTypes.SELECT
     };
-    
+
     let queryText = `
       SELECT 
         id,
@@ -155,27 +155,27 @@ router.get('/pages', async (req, res) => {
       FROM pages
       WHERE tenant_id = :tenantId
     `;
-    
+
     if (status) {
       queryText += ` AND status = :status`;
       queryOptions.replacements.status = status;
     }
-    
+
     if (page_type) {
       queryText += ` AND page_type = :page_type`;
       queryOptions.replacements.page_type = page_type;
     }
-    
+
     queryText += ` ORDER BY created_at DESC`;
-    
+
     const limitNum = limit ? parseInt(limit, 10) : 100;
     const offsetNum = offset ? parseInt(offset, 10) : 0;
     queryText += ` LIMIT :limit OFFSET :offset`;
     queryOptions.replacements.limit = limitNum;
     queryOptions.replacements.offset = offsetNum;
-    
+
     const result = await sequelize.query(queryText, queryOptions);
-    
+
     res.json(successResponse(result, tenantId));
   } catch (error) {
     console.error('[testing] Error fetching pages:', error);
@@ -194,12 +194,12 @@ router.get('/pages/:slug', async (req, res) => {
     const { sequelize } = await loadSequelizeModels();
     const { language } = req.query;
     let slug = req.params.slug;
-    
+
     // Ensure slug starts with /
     if (!slug.startsWith('/')) {
       slug = '/' + slug;
     }
-    
+
     // First, get the page by slug using Sequelize
     const pageResult = await sequelize.query(`
       SELECT 
@@ -220,14 +220,14 @@ router.get('/pages/:slug', async (req, res) => {
       replacements: { slug, tenantId },
       type: sequelize.QueryTypes.SELECT
     });
-    
+
     if (pageResult.length === 0) {
       return res.status(404).json(errorResponse('Page not found', 'PAGE_NOT_FOUND', 404));
     }
-    
+
     const page = pageResult[0];
     const pageId = page.id;
-    
+
     // Get layout for requested language, fallback to 'default' if not found
     const requestedLanguage = language || 'default';
     let layoutResult = await sequelize.query(`
@@ -240,7 +240,7 @@ router.get('/pages/:slug', async (req, res) => {
       replacements: { pageId, language: requestedLanguage },
       type: sequelize.QueryTypes.SELECT
     });
-    
+
     // If requested language not found and it's not 'default', fallback to 'default'
     if (layoutResult.length === 0 && requestedLanguage !== 'default') {
       console.log(`[testing] Layout for language '${requestedLanguage}' not found, falling back to 'default'`);
@@ -255,7 +255,7 @@ router.get('/pages/:slug', async (req, res) => {
         type: sequelize.QueryTypes.SELECT
       });
     }
-    
+
     // Attach layout to page
     if (layoutResult.length > 0) {
       page.layout = layoutResult[0].layout_json;
@@ -265,7 +265,7 @@ router.get('/pages/:slug', async (req, res) => {
       page.layout = { components: [] };
       page.layout_language = 'default';
     }
-    
+
     res.json(successResponse(page, tenantId));
   } catch (error) {
     console.error('[testing] Error fetching page:', error);
@@ -281,11 +281,11 @@ router.get('/header', async (req, res) => {
   try {
     const tenantId = req.tenantId;
     const schema = await getSiteSchema('header', tenantId);
-    
+
     if (!schema) {
       return res.status(404).json(errorResponse('Header schema not found', 'HEADER_NOT_FOUND', 404));
     }
-    
+
     res.json(successResponse(schema, tenantId));
   } catch (error) {
     console.error('[testing] Error fetching header schema:', error);
@@ -301,11 +301,11 @@ router.get('/footer', async (req, res) => {
   try {
     const tenantId = req.tenantId;
     const schema = await getSiteSchema('footer', tenantId);
-    
+
     if (!schema) {
       return res.status(404).json(errorResponse('Footer schema not found', 'FOOTER_NOT_FOUND', 404));
     }
-    
+
     res.json(successResponse(schema, tenantId));
   } catch (error) {
     console.error('[testing] Error fetching footer schema:', error);
@@ -321,18 +321,18 @@ router.get('/global-schema', async (req, res) => {
   try {
     const tenantId = req.tenantId;
     const { language } = req.query;
-    
+
     // Fetch both header and footer schemas
     const [headerSchema, footerSchema] = await Promise.all([
       getSiteSchema('header', tenantId, language),
       getSiteSchema('footer', tenantId, language)
     ]);
-    
+
     const globalSchema = {
       header: headerSchema || null,
       footer: footerSchema || null
     };
-    
+
     res.json(successResponse(globalSchema, tenantId));
   } catch (error) {
     console.error('[testing] Error fetching global schema:', error);
@@ -422,10 +422,10 @@ router.get('/blog/posts', async (req, res) => {
     const { sequelize, models, Op } = await loadSequelizeModels();
     const { Post, Category, Tag } = models;
     const { status, limit, offset } = req.query;
-    
+
     // Build where clause
     const whereClause = {};
-    
+
     // Filter by tenant_id if provided
     if (tenantId) {
       whereClause[Op.or] = [
@@ -433,10 +433,10 @@ router.get('/blog/posts', async (req, res) => {
         { tenant_id: null }
       ];
     }
-    
+
     // Filter by status (default to published)
     whereClause.status = status || 'published';
-    
+
     // Build query options
     const queryOptions = {
       where: whereClause,
@@ -469,7 +469,7 @@ router.get('/blog/posts', async (req, res) => {
         'view_count'
       ]
     };
-    
+
     // Add pagination
     if (limit) {
       queryOptions.limit = parseInt(limit, 10) || 20;
@@ -479,14 +479,16 @@ router.get('/blog/posts', async (req, res) => {
     } else {
       queryOptions.limit = 20; // Default limit
     }
-    
-    // Fetch posts using Sequelize
-    const posts = await Post.findAll(queryOptions);
-    
+
+    // Fetch posts using findAndCountAll to get total count
+    // Using distinct: true ensures count works correctly with includes
+    queryOptions.distinct = true;
+    const { count, rows: posts } = await Post.findAndCountAll(queryOptions);
+
     // Transform posts to include terms array for backward compatibility
     const postsWithTerms = posts.map(post => {
       const postJson = post.toJSON();
-      
+
       // Build terms array from categories and tags
       const terms = [
         ...(postJson.categories || []).map(cat => ({
@@ -502,14 +504,17 @@ router.get('/blog/posts', async (req, res) => {
           taxonomy: 'post_tag'
         }))
       ];
-      
+
       return {
         ...postJson,
         terms: terms
       };
     });
-    
-    res.json(successResponse(postsWithTerms, tenantId));
+
+    res.json(successResponse({
+      data: postsWithTerms,
+      total: count
+    }, tenantId));
   } catch (error) {
     console.error('[testing] Error fetching blog posts:', error);
     res.status(500).json(errorResponse(error, 'FETCH_POSTS_ERROR'));
@@ -577,10 +582,10 @@ router.get('/blog/posts/:slug', async (req, res) => {
     const slug = req.params.slug;
     const { models, Op } = await loadSequelizeModels();
     const { Post, Category, Tag } = models;
-    
+
     // Build where clause
     const whereClause = { slug };
-    
+
     // Filter by tenant_id if provided
     if (tenantId) {
       whereClause[Op.or] = [
@@ -588,7 +593,7 @@ router.get('/blog/posts/:slug', async (req, res) => {
         { tenant_id: null }
       ];
     }
-    
+
     // Fetch post using Sequelize with associations
     const post = await Post.findOne({
       where: whereClause,
@@ -620,13 +625,13 @@ router.get('/blog/posts/:slug', async (req, res) => {
         'view_count'
       ]
     });
-    
+
     if (!post) {
       return res.status(404).json(errorResponse('Post not found', 'POST_NOT_FOUND', 404));
     }
-    
+
     const postJson = post.toJSON();
-    
+
     // Build terms array from categories and tags for backward compatibility
     const terms = [
       ...(postJson.categories || []).map(cat => ({
@@ -642,12 +647,12 @@ router.get('/blog/posts/:slug', async (req, res) => {
         taxonomy: 'post_tag'
       }))
     ];
-    
+
     const postWithTerms = {
       ...postJson,
       terms: terms
     };
-    
+
     res.json(successResponse(postWithTerms, tenantId));
   } catch (error) {
     console.error('[testing] Error fetching blog post:', error);
@@ -906,7 +911,7 @@ router.get('/settings', async (req, res) => {
   try {
     const tenantId = req.tenantId;
     const settings = await getsitesettingsbytenant(tenantId);
-    
+
     // Filter only public settings
     const publicSettings = settings
       .filter(setting => setting.is_public === true)
@@ -914,7 +919,7 @@ router.get('/settings', async (req, res) => {
         acc[setting.setting_key] = setting.setting_value;
         return acc;
       }, {});
-    
+
     res.json(successResponse(publicSettings, tenantId));
   } catch (error) {
     console.error('[testing] Error fetching settings:', error);
@@ -930,17 +935,17 @@ router.get('/settings/:key', async (req, res) => {
   try {
     const tenantId = req.tenantId;
     const key = req.params.key;
-    
+
     const setting = await getSiteSettingByKey(key, tenantId);
-    
+
     if (!setting) {
       return res.status(404).json(errorResponse('Setting not found', 'SETTING_NOT_FOUND', 404));
     }
-    
+
     if (!setting.is_public) {
       return res.status(403).json(errorResponse('Setting is not public', 'SETTING_NOT_PUBLIC', 403));
     }
-    
+
     res.json(successResponse({
       key: setting.setting_key,
       value: setting.setting_value,
@@ -961,13 +966,13 @@ router.get('/theme/:themeSlug/settings', async (req, res) => {
   try {
     const tenantId = req.tenantId;
     const { themeSlug } = req.params;
-    
+
     if (!tenantId) {
       return res.status(400).json(errorResponse('Tenant ID is required', 'TENANT_ID_REQUIRED', 400));
     }
-    
+
     const settings = await getThemeSettings(tenantId, themeSlug);
-    
+
     // Filter only public settings
     const publicSettings = {};
     Object.keys(settings).forEach(category => {
@@ -977,7 +982,7 @@ router.get('/theme/:themeSlug/settings', async (req, res) => {
       // In production, you might want to filter by is_public per setting
       Object.assign(publicSettings[category], settings[category]);
     });
-    
+
     res.json(successResponse(publicSettings, tenantId));
   } catch (error) {
     console.error('[testing] Error fetching theme settings:', error);
@@ -994,29 +999,29 @@ router.get('/theme/:themeSlug/branding', async (req, res) => {
     // Get tenant ID from middleware, query param, or default to tenant-gosg
     const tenantId = req.tenantId || req.query.tenantId || 'tenant-gosg';
     const { themeSlug } = req.params;
-    
+
     console.log(`[testing] Fetching branding for theme: ${themeSlug}, tenant: ${tenantId}`);
     console.log(`[testing] Request headers:`, {
       'x-tenant-id': req.headers['x-tenant-id'],
       'x-api-key': req.headers['x-api-key'] ? '***' : undefined,
       query: req.query
     });
-    
+
     // themeSlug can be used directly as themeId in getBrandingSettings
     // The function accepts either theme ID or theme slug
     const settings = await getBrandingSettings(tenantId, themeSlug);
-    
+
     console.log(`[testing] Branding settings retrieved:`, {
       brandingKeys: Object.keys(settings.branding || {}),
       seoKeys: Object.keys(settings.seo || {}),
       localizationKeys: Object.keys(settings.localization || {}),
       themeKeys: Object.keys(settings.theme || {})
     });
-    
+
     // Resolve relative logo/favicon paths to absolute URLs (CMS base from env or request)
     const baseUrl = getCmsBaseUrl(req);
     const branding = resolveBrandingMediaUrls(settings.branding || {}, baseUrl);
-    
+
     res.json(successResponse(branding, tenantId));
   } catch (error) {
     console.error('[testing] Error fetching theme branding:', error);
@@ -1034,30 +1039,30 @@ router.get('/theme/:themeSlug/styles', async (req, res) => {
     // Get tenant ID from middleware, query param, or default to tenant-gosg
     const tenantId = req.tenantId || req.query.tenantId || 'tenant-gosg';
     const { themeSlug } = req.params;
-    
+
     console.log(`[testing] Fetching styles for theme: ${themeSlug}, tenant: ${tenantId}`);
-    
+
     const setting = await getSiteSettingByKey('theme_styles', tenantId, themeSlug);
-    
+
     if (!setting) {
       console.log(`[testing] No styles found for theme: ${themeSlug}, tenant: ${tenantId}`);
       return res.json(successResponse({}, tenantId));
     }
-    
+
     // Check if setting is public (if is_public is false, still return it for theme-specific styles)
     // Theme styles should be accessible if they exist
     let styles = {};
     if (setting.setting_value) {
       try {
-        styles = typeof setting.setting_value === 'string' 
-          ? JSON.parse(setting.setting_value) 
+        styles = typeof setting.setting_value === 'string'
+          ? JSON.parse(setting.setting_value)
           : setting.setting_value;
         console.log(`[testing] Styles retrieved for theme: ${themeSlug}`, Object.keys(styles));
       } catch (e) {
         console.error('[testing] Error parsing theme styles:', e);
       }
     }
-    
+
     res.json(successResponse(styles, tenantId));
   } catch (error) {
     console.error('[testing] Error fetching theme styles:', error);
