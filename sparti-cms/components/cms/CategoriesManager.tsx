@@ -340,13 +340,14 @@ const CategoriesManager: React.FC = () => {
               <TableRow>
                 <TableHead>Name</TableHead>
                 <TableHead>Slug</TableHead>
+                <TableHead>Total Posts</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredCategories.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={3} className="text-center py-8">
+                  <TableCell colSpan={4} className="text-center py-8">
                     <div className="flex flex-col items-center">
                       <FolderTree className="h-12 w-12 text-muted-foreground mb-2" />
                       <p className="text-muted-foreground">No categories found</p>
@@ -369,6 +370,11 @@ const CategoriesManager: React.FC = () => {
                       <code className="text-sm bg-gray-100 px-2 py-1 rounded">
                         {getFullSlug(category.slug)}
                       </code>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-muted-foreground font-medium">
+                        {category.post_count}
+                      </div>
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">
