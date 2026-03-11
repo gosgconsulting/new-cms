@@ -341,6 +341,76 @@ router.get('/global-schema', async (req, res) => {
 });
 
 /**
+ * GET /api/v1/blog/categories
+ * Get all blog categories for a tenant.
+ * Query params:
+ *   - withCount=true  : include a live count of published posts per category
+ */
+router.get('/blog/categories', async (req, res) => {
+  try {
+    const tenantId = req.tenantId;
+    const { withCount } = req.query;
+    const { sequelize, models, Op } = await loadSequelizeModels();
+    const { Category, Post } = models;
+
+    const liveCount = withCount === 'true' || withCount === '1';
+
+    let categories;
+
+    if (liveCount) {
+      // Live count: join post_categories + posts filtered by published status and tenant
+      categories = await Category.findAll({
+        where: { tenant_id: tenantId },
+        attributes: {
+          include: [
+            [sequelize.fn('COUNT', sequelize.fn('DISTINCT', sequelize.col('posts.id'))), 'post_count']
+          ]
+        },
+        include: [
+          {
+            model: Post,
+            as: 'posts',
+            attributes: [],
+            through: { attributes: [] },
+            where: {
+              status: 'published',
+              [Op.or]: [
+                { tenant_id: tenantId },
+                { tenant_id: null }
+              ]
+            },
+            required: false // LEFT JOIN
+          }
+        ],
+        group: ['Category.id'],
+        order: [['name', 'ASC']]
+      });
+    } else {
+      // Return cached post_count from the categories table
+      categories = await Category.findAll({
+        where: { tenant_id: tenantId },
+        order: [['name', 'ASC']]
+      });
+    }
+
+    // Normalise post_count to integer and remove joined posts array
+    const result = categories.map(cat => {
+      const data = cat.toJSON();
+      delete data.posts;
+      return {
+        ...data,
+        post_count: parseInt(data.post_count, 10) || 0
+      };
+    });
+
+    res.json(successResponse(result, tenantId));
+  } catch (error) {
+    console.error('[testing] Error fetching blog categories:', error);
+    res.status(500).json(errorResponse(error, 'FETCH_CATEGORIES_ERROR'));
+  }
+});
+
+/**
  * GET /api/v1/blog/posts
  * Get all blog posts
  * Note: If posts table has tenant_id column, it will be filtered by tenant.
