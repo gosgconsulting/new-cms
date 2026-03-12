@@ -25,10 +25,15 @@ interface Post {
   created_at: string;
   updated_at: string;
   published_at: string | null;
-  terms: Array<{
+  categories?: Array<{
     id: number;
     name: string;
-    taxonomy: string;
+    slug?: string;
+  }>;
+  tags?: Array<{
+    id: number;
+    name: string;
+    slug?: string;
   }>;
   author?: {
     id: number;
@@ -169,7 +174,8 @@ const PostsManager: React.FC = () => {
   const filteredPosts = posts.filter(post => {
     const matchesSearch = post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          post.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         post.terms?.some(term => term.name.toLowerCase().includes(searchTerm.toLowerCase()));
+                         post.categories?.some(cat => cat.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                         post.tags?.some(tag => tag.name.toLowerCase().includes(searchTerm.toLowerCase()));
     
     // Also search by author name
     const author = users.find(u => u.id === post.author_id);
@@ -206,7 +212,7 @@ const PostsManager: React.FC = () => {
   };
 
   const getPostTags = (post: Post) => {
-    return post.terms?.filter(t => t.taxonomy === 'post_tag').map(t => t.name) || [];
+    return post.tags?.map(t => t.name) || [];
   };
 
   // Show New Post Editor
@@ -233,8 +239,8 @@ const PostsManager: React.FC = () => {
           status: ((editingPost.status === 'trash' ? 'draft' : editingPost.status) as 'published' | 'draft' | 'private' | 'scheduled'),
           author_id: editingPost.author_id,
           published_at: editingPost.published_at,
-          categories: editingPost.terms?.filter(t => t.taxonomy === 'category').map(t => t.id) || [],
-          tags: editingPost.terms?.filter(t => t.taxonomy === 'post_tag').map(t => t.id) || [],
+          categories: editingPost.categories?.map(c => c.id) || [],
+          tags: editingPost.tags?.map(t => t.id) || [],
           meta_title: '',
           meta_description: '',
           meta_keywords: '',

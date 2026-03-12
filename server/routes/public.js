@@ -349,7 +349,11 @@ router.get('/global-schema', async (req, res) => {
  */
 router.get('/blog/categories', async (req, res) => {
   try {
-    const tenantId = req.tenantId;
+    const tenantId = req.tenantId || req.query.tenantId;
+    if (!tenantId) {
+      return res.status(400).json(errorResponse('Tenant ID is required', 'TENANT_ID_REQUIRED', 400));
+    }
+    
     const { withCount } = req.query;
     const { sequelize, models, Op } = await loadSequelizeModels();
     const { Category, Post } = models;
@@ -486,33 +490,7 @@ router.get('/blog/posts', async (req, res) => {
     queryOptions.distinct = true;
     const { count, rows: posts } = await Post.findAndCountAll(queryOptions);
 
-    // Transform posts to include terms array for backward compatibility
-    const postsWithTerms = posts.map(post => {
-      const postJson = post.toJSON();
-
-      // Build terms array from categories and tags
-      const terms = [
-        ...(postJson.categories || []).map(cat => ({
-          id: cat.id,
-          name: cat.name,
-          slug: cat.slug,
-          taxonomy: 'category'
-        })),
-        ...(postJson.tags || []).map(tag => ({
-          id: tag.id,
-          name: tag.name,
-          slug: tag.slug,
-          taxonomy: 'post_tag'
-        }))
-      ];
-
-      return {
-        ...postJson,
-        terms: terms
-      };
-    });
-
-    res.json(successResponse(postsWithTerms, tenantId, count));
+    res.json(successResponse(posts.map(post => post.toJSON()), tenantId, count));
   } catch (error) {
     console.error('[testing] Error fetching blog posts:', error);
     res.status(500).json(errorResponse(error, 'FETCH_POSTS_ERROR'));
@@ -559,11 +537,7 @@ router.get('/blog/posts/id/:id', async (req, res) => {
     }
 
     const postJson = post.toJSON();
-    const terms = [
-      ...(postJson.categories || []).map(cat => ({ id: cat.id, name: cat.name, slug: cat.slug, taxonomy: 'category' })),
-      ...(postJson.tags || []).map(tag => ({ id: tag.id, name: tag.name, slug: tag.slug, taxonomy: 'post_tag' }))
-    ];
-    res.json(successResponse({ ...postJson, terms }, tenantId));
+    res.json(successResponse(postJson, tenantId));
   } catch (error) {
     console.error('[testing] Error fetching blog post by id:', error);
     res.status(500).json(errorResponse(error, 'FETCH_POST_ERROR'));
@@ -630,28 +604,7 @@ router.get('/blog/posts/:slug', async (req, res) => {
 
     const postJson = post.toJSON();
 
-    // Build terms array from categories and tags for backward compatibility
-    const terms = [
-      ...(postJson.categories || []).map(cat => ({
-        id: cat.id,
-        name: cat.name,
-        slug: cat.slug,
-        taxonomy: 'category'
-      })),
-      ...(postJson.tags || []).map(tag => ({
-        id: tag.id,
-        name: tag.name,
-        slug: tag.slug,
-        taxonomy: 'post_tag'
-      }))
-    ];
-
-    const postWithTerms = {
-      ...postJson,
-      terms: terms
-    };
-
-    res.json(successResponse(postWithTerms, tenantId));
+    res.json(successResponse(postJson, tenantId));
   } catch (error) {
     console.error('[testing] Error fetching blog post:', error);
     res.status(500).json(errorResponse(error, 'FETCH_POST_ERROR'));
@@ -737,11 +690,7 @@ router.post('/blog/posts', async (req, res) => {
       ]
     });
     const postData = newPost ? newPost.toJSON() : post.toJSON();
-    const terms = [
-      ...(postData.categories || []).map(cat => ({ id: cat.id, name: cat.name, slug: cat.slug, taxonomy: 'category' })),
-      ...(postData.tags || []).map(tag => ({ id: tag.id, name: tag.name, slug: tag.slug, taxonomy: 'post_tag' }))
-    ];
-    res.status(201).json(successResponse({ ...postData, terms }, tenantId));
+    res.status(201).json(successResponse(postData, tenantId));
   } catch (error) {
     console.error('[testing] Error creating blog post:', error);
     if (error.code === '23505' || error.message?.includes('unique')) {
@@ -846,11 +795,7 @@ router.put('/blog/posts/:id', async (req, res) => {
       ]
     });
     const postData = updatedPost ? updatedPost.toJSON() : post.toJSON();
-    const terms = [
-      ...(postData.categories || []).map(cat => ({ id: cat.id, name: cat.name, slug: cat.slug, taxonomy: 'category' })),
-      ...(postData.tags || []).map(tag => ({ id: tag.id, name: tag.name, slug: tag.slug, taxonomy: 'post_tag' }))
-    ];
-    res.json(successResponse({ ...postData, terms }, tenantId));
+    res.json(successResponse(postData, tenantId));
   } catch (error) {
     console.error('[testing] Error updating blog post:', error);
     if (error.code === '23505' || error.message?.includes('unique')) {

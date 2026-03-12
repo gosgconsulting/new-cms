@@ -1373,31 +1373,7 @@ router.get('/posts', async (req, res) => {
       order: [['created_at', 'DESC']]
     });
 
-    // Transform posts to include terms array for backward compatibility
-    const postsWithTerms = posts.map(post => {
-      const postJson = post.toJSON();
-
-      // Build terms array from categories and tags for backward compatibility
-      const terms = [
-        ...(postJson.categories || []).map(cat => ({
-          id: cat.id,
-          name: cat.name,
-          taxonomy: 'category'
-        })),
-        ...(postJson.tags || []).map(tag => ({
-          id: tag.id,
-          name: tag.name,
-          taxonomy: 'post_tag'
-        }))
-      ];
-
-      return {
-        ...postJson,
-        terms: terms
-      };
-    });
-
-    res.json(postsWithTerms);
+    res.json(posts.map(post => post.toJSON()));
   } catch (error) {
     console.error('[testing] Error fetching posts:', error);
 

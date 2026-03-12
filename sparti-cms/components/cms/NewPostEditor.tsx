@@ -126,6 +126,7 @@ const NewPostEditor: React.FC<NewPostEditorProps> = ({ onBack, onSave, initialDa
   });
 
   // Data states
+  const [categories, setCategories] = useState<Category[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [newTagName, setNewTagName] = useState('');
@@ -184,6 +185,7 @@ const NewPostEditor: React.FC<NewPostEditorProps> = ({ onBack, onSave, initialDa
   // Load data on component mount and when tenant changes
   useEffect(() => {
     if (currentTenantId) {
+      loadCategories();
       loadTags();
       loadUsers();
     }
@@ -221,6 +223,21 @@ const NewPostEditor: React.FC<NewPostEditorProps> = ({ onBack, onSave, initialDa
     }
   }, [postData.title, postData.excerpt]);
 
+  const loadCategories = async () => {
+    if (!currentTenantId) return;
+    try {
+      const response = await api.get(`/api/categories?tenantId=${currentTenantId}`, {
+        headers: { 'X-Tenant-Id': currentTenantId }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setCategories(data);
+      }
+    } catch (error) {
+      console.error('[testing] Error loading categories:', error);
+    }
+  };
+
   const loadTags = async () => {
     if (!currentTenantId) return;
     try {
@@ -250,6 +267,15 @@ const NewPostEditor: React.FC<NewPostEditorProps> = ({ onBack, onSave, initialDa
 
   const handleInputChange = (field: keyof PostData, value: any) => {
     setPostData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleCategoryToggle = (categoryId: number) => {
+    if (!categoryId || isNaN(categoryId)) return;
+    setPostData(prev => ({ ...prev, categories: [categoryId] }));
+  };
+
+  const handleRemoveCategory = () => {
+    setPostData(prev => ({ ...prev, categories: [] }));
   };
 
   const handleTagToggle = (tagId: number) => {
@@ -357,6 +383,10 @@ const NewPostEditor: React.FC<NewPostEditorProps> = ({ onBack, onSave, initialDa
 
   const getSelectedTags = () => {
     return tags.filter(tag => postData.tags.includes(tag.id));
+  };
+
+  const getSelectedCategories = () => {
+    return categories.filter(category => postData.categories.includes(category.id));
   };
 
   const getAuthorName = () => {
@@ -648,7 +678,7 @@ const NewPostEditor: React.FC<NewPostEditorProps> = ({ onBack, onSave, initialDa
             </ExpandableCard>
 
             {/* Page Attributes Card */}
-            <ExpandableCard title="Page Attributes" defaultExpanded={false}>
+            <ExpandableCard title="Page Attributes" defaultExpanded={true}>
               <div className="space-y-4">
                 <div>
                   <Label htmlFor="author">Author</Label>
@@ -670,6 +700,28 @@ const NewPostEditor: React.FC<NewPostEditorProps> = ({ onBack, onSave, initialDa
                       ))}
                     </SelectContent>
                   </Select>
+                </div>
+
+                {/* Category */}
+                <div>
+                  <Label htmlFor="category-select">Category</Label>
+                  <div className="mt-2">
+                    <Select
+                      value={postData.categories[0]?.toString() ?? ""}
+                      onValueChange={(value) => handleCategoryToggle(parseInt(value))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a category..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.map(category => (
+                          <SelectItem key={category.id} value={category.id.toString()}>
+                            {category.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
                 <div>
