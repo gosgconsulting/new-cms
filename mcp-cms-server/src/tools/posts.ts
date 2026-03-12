@@ -237,6 +237,35 @@ export const postToolDefinitions = [
     },
   },
   {
+    name: 'create_category',
+    description: 'Create a new category in the CMS.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        name: {
+          type: 'string',
+          description: 'Category name (e.g. "Technology").',
+        },
+        slug: {
+          type: 'string',
+          description: 'Unique URL slug.',
+        },
+        description: {
+          type: 'string',
+        },
+        parent_id: {
+          type: 'number',
+          description: 'ID of the parent category, if nested.',
+        },
+        tenant_id: {
+          type: 'string',
+          description: 'Tenant ID the category belongs to.',
+        },
+      },
+      required: ['name', 'slug'],
+    },
+  },
+  {
     name: 'get_post_stats',
     description:
       'Return a summary count of posts grouped by status (published, draft, private, trash).',
@@ -538,6 +567,30 @@ async function listCategories(args: ToolArgs) {
   return text(result.rows);
 }
 
+// --- create_category ---
+async function createCategory(args: ToolArgs) {
+  const name = args.name as string;
+  const slug = args.slug as string;
+  const description = (args.description as string | undefined) ?? '';
+  const parentId = args.parent_id as number | null | undefined;
+  const tenantId = args.tenant_id as string | null | undefined;
+
+  const sql = `
+    INSERT INTO categories (name, slug, description, parent_id, tenant_id)
+    VALUES ($1, $2, $3, $4, $5)
+    ON CONFLICT (slug, COALESCE(tenant_id, '00000000-0000-0000-0000-000000000000')) DO UPDATE
+    SET name = EXCLUDED.name, description = EXCLUDED.description, parent_id = EXCLUDED.parent_id
+    RETURNING *
+  `;
+
+  const result = await query(sql, [name, slug, description, parentId ?? null, tenantId ?? null]);
+  if (!result.rows[0]) {
+    return errorText('Failed to sync category.');
+  }
+
+  return text(result.rows[0]);
+}
+
 // --- list_tags ---
 async function listTags(args: ToolArgs) {
   const tenantId = args.tenant_id as string | undefined;
@@ -618,6 +671,7 @@ export async function handlePostTool(
       case 'publish_post':     return await publishPost(args);
       case 'unpublish_post':   return await unpublishPost(args);
       case 'list_categories':  return await listCategories(args);
+      case 'create_category':  return await createCategory(args);
       case 'list_tags':        return await listTags(args);
       case 'get_post_stats':   return await getPostStats(args);
       default:

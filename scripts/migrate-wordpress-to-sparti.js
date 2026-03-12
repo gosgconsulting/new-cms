@@ -100,12 +100,29 @@ async function fetchAllWpPosts() {
   return list;
 }
 
-async function getExistingSlugsForTenant(pool) {
+async function getExistingPostsForTenant(pool) {
   const result = await pool.query(
-    `SELECT slug FROM posts WHERE tenant_id = $1`,
+    `SELECT id, slug FROM posts WHERE tenant_id = $1`,
     [tenantId]
   );
-  return new Set(result.rows.map((r) => r.slug));
+  // Returns a Map of slug -> id for existing posts
+  return new Map(result.rows.map((r) => [r.slug, r.id]));
+}
+
+async function findOrCreateCategory(pool, slug, name) {
+  const existing = await pool.query(
+    `SELECT id FROM categories WHERE slug = $1 AND tenant_id = $2`,
+    [slug, tenantId]
+  );
+  if (existing.rows.length > 0) {
+    return existing.rows[0].id;
+  }
+  const created = await pool.query(
+    `INSERT INTO categories (name, slug, tenant_id, created_at, updated_at)
+     VALUES ($1, $2, $3, NOW(), NOW()) RETURNING id`,
+    [name, slug, tenantId]
+  );
+  return created.rows[0].id;
 }
 
 function stripHtml(html) {
@@ -143,20 +160,41 @@ async function main() {
       return;
     }
 
-    // 2) Existing slugs in Sparti for this tenant (avoid duplicates)
-    console.log('Loading existing Sparti slugs for tenant...');
-    const existingSlugs = await getExistingSlugsForTenant(pool);
-    console.log(`Existing slugs in Sparti for ${tenantId}: ${existingSlugs.size}\n`);
+    // 2) Existing posts in Sparti for this tenant
+    console.log('Loading existing Sparti posts for tenant...');
+    const existingPosts = await getExistingPostsForTenant(pool);
+    console.log(`Existing posts in Sparti for ${tenantId}: ${existingPosts.size}\n`);
 
-    const toMigrate = wpPosts.filter((p) => !existingSlugs.has(p.slug));
-    const skipped = wpPosts.length - toMigrate.length;
-    if (skipped) {
-      console.log(`Skipping ${skipped} posts that already exist (same slug).`);
-    }
-    console.log(`Posts to migrate: ${toMigrate.length}\n`);
+    const toMigrate = wpPosts.filter((p) => !existingPosts.has(p.slug));
+    const toUpdate = wpPosts.filter((p) => existingPosts.has(p.slug));
+    console.log(`Posts to migrate: ${toMigrate.length}, posts to update category: ${toUpdate.length}\n`);
+
+    // 3) Ensure the "medusa" category exists for this tenant
+    console.log('Resolving "medusa" category...');
+    const medusaCategoryId = await findOrCreateCategory(pool, 'medusa', 'Medusa');
+    console.log(`Using category id=${medusaCategoryId} (medusa)\n`);
 
     let created = 0;
+    let updated = 0;
     let errors = 0;
+
+    // Update category on already-existing posts
+    for (const wp of toUpdate) {
+      try {
+        const postId = existingPosts.get(wp.slug);
+        await pool.query(
+          `INSERT INTO post_categories (post_id, category_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+          [postId, medusaCategoryId]
+        );
+        updated++;
+        console.log(`  Updated category: ${wp.slug} (id=${postId})`);
+      } catch (err) {
+        errors++;
+        console.error(`  Error updating category for slug "${wp.slug}":`, err.message);
+      }
+    }
+
+    if (toUpdate.length > 0) console.log('');
 
     for (const wp of toMigrate) {
       try {
@@ -168,11 +206,12 @@ async function main() {
         const excerpt = full.excerpt?.rendered ?? '';
         const publishedAt = full.date ? new Date(full.date) : null;
 
-        await pool.query(
+        const { rows } = await pool.query(
           `INSERT INTO posts (
             title, slug, content, excerpt, status, post_type,
             tenant_id, published_at, created_at, updated_at
-          ) VALUES ($1, $2, $3, $4, 'published', 'post', $5, $6, NOW(), NOW())`,
+          ) VALUES ($1, $2, $3, $4, 'published', 'post', $5, $6, NOW(), NOW())
+          RETURNING id`,
           [
             title,
             slug,
@@ -182,15 +221,22 @@ async function main() {
             publishedAt,
           ]
         );
+
+        const postId = rows[0].id;
+        await pool.query(
+          `INSERT INTO post_categories (post_id, category_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+          [postId, medusaCategoryId]
+        );
+
         created++;
-        console.log(`  Created: ${slug}`);
+        console.log(`  Created: ${slug} (id=${postId}, category=medusa)`);
       } catch (err) {
         errors++;
         console.error(`  Error migrating slug "${wp.slug}":`, err.message);
       }
     }
 
-    console.log(`\nDone. Created: ${created}, Errors: ${errors}`);
+    console.log(`\nDone. Created: ${created}, Updated: ${updated}, Errors: ${errors}`);
   } finally {
     await pool.end();
   }
