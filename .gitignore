@@ -41,3 +41,4 @@ cookies.txt
 .env.test
 .vercel
 .env*.local
+.cursor/mcp.json
