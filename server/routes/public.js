@@ -426,7 +426,7 @@ router.get('/blog/posts', async (req, res) => {
     const tenantId = req.tenantId;
     const { sequelize, models, Op } = await loadSequelizeModels();
     const { Post, Category, Tag } = models;
-    const { status, limit, offset } = req.query;
+    const { status, limit, offset, category, order } = req.query;
 
     // Build where clause
     const whereClause = {};
@@ -442,6 +442,16 @@ router.get('/blog/posts', async (req, res) => {
     // Filter by status (default to published)
     whereClause.status = status || 'published';
 
+    // Resolve order clause (e.g. "published_at DESC")
+    let orderClause = [['created_at', 'DESC']];
+    if (order) {
+      const parts = String(order).trim().split(/\s+/);
+      const col = parts[0];
+      const dir = (parts[1] || 'DESC').toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
+      const allowed = ['created_at', 'updated_at', 'published_at', 'title', 'view_count'];
+      if (allowed.includes(col)) orderClause = [[col, dir]];
+    }
+
     // Build query options
     const queryOptions = {
       where: whereClause,
@@ -450,7 +460,8 @@ router.get('/blog/posts', async (req, res) => {
           model: Category,
           as: 'categories',
           through: { attributes: [] },
-          attributes: ['id', 'name', 'slug']
+          attributes: ['id', 'name', 'slug'],
+          ...(category ? { where: { slug: category }, required: true } : {})
         },
         {
           model: Tag,
@@ -459,7 +470,7 @@ router.get('/blog/posts', async (req, res) => {
           attributes: ['id', 'name', 'slug']
         }
       ],
-      order: [['created_at', 'DESC']],
+      order: orderClause,
       attributes: [
         'id',
         'title',
