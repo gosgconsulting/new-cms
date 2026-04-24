@@ -4,9 +4,14 @@
  * - GET  /api/backups              — List backups for a tenant
  * - POST /api/backups/trigger      — Manually trigger a single-tenant backup
  * - DELETE /api/backups            — Delete a specific backup by URL
+ * - GET  /api/backups/uploads/export   — Super admin: zip uploads (disk: public/uploads; Blob: list prefix uploads/)
+ * - POST /api/backups/uploads/import   — Super admin: restore zip to disk or re-upload to Blob (multipart field `file`)
  */
 
 import express from 'express';
+import multer from 'multer';
+import { readFile, unlink } from 'fs/promises';
+import os from 'os';
 import { authenticateUser } from '../middleware/auth.js';
 import {
     backupAllTenants,
@@ -15,8 +20,29 @@ import {
     deleteBackup,
     deleteOldBackups,
 } from '../services/backupService.js';
+import {
+    backupAllUploadsToZip,
+    importUploadsFromZip,
+} from '../services/uploadsBackupService.js';
 
 const router = express.Router();
+
+const uploadsBackupImport = multer({
+    dest: os.tmpdir(),
+    limits: { fileSize: 512 * 1024 * 1024 },
+    fileFilter: (req, file, cb) => {
+        const name = (file.originalname || '').toLowerCase();
+        const ok =
+            name.endsWith('.zip') ||
+            file.mimetype === 'application/zip' ||
+            file.mimetype === 'application/x-zip-compressed';
+        if (ok) {
+            cb(null, true);
+        } else {
+            cb(new Error('Only .zip archives are accepted'));
+        }
+    },
+});
 
 /* ------------------------------------------------------------------ */
 /*  Cron endpoint — Vercel sends Authorization: Bearer <CRON_SECRET>  */
@@ -130,5 +156,75 @@ router.delete('/backups', authenticateUser, async (req, res) => {
         res.status(500).json({ error: error?.message || 'Delete failed' });
     }
 });
+
+/**
+ * GET /api/backups/uploads/export
+ * Super admin only. Zip of uploads (disk or Vercel Blob, depending on env).
+ */
+router.get('/backups/uploads/export', authenticateUser, async (req, res) => {
+    try {
+        if (!req.user?.is_super_admin) {
+            return res.status(403).json({ error: 'Super admin access required' });
+        }
+        const { buffer, entryCount, storage } = await backupAllUploadsToZip();
+        const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+        const filename = `uploads-backup-${stamp}.zip`;
+        res.setHeader('Content-Type', 'application/zip');
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+        res.setHeader('X-Backup-Entry-Count', String(entryCount));
+        res.setHeader('X-Backup-Storage', storage);
+        res.send(buffer);
+    } catch (error) {
+        console.error('[backup] uploads export error:', error);
+        const msg = error?.message || 'Export failed';
+        const status = msg.includes('BLOB_READ_WRITE_TOKEN') ? 503 : 400;
+        res.status(status).json({ error: msg });
+    }
+});
+
+/**
+ * POST /api/backups/uploads/import
+ * Super admin only. Body: multipart form with field `file` (.zip from export or compatible layout).
+ */
+router.post(
+    '/backups/uploads/import',
+    authenticateUser,
+    (req, res, next) => {
+        if (!req.user?.is_super_admin) {
+            return res.status(403).json({ error: 'Super admin access required' });
+        }
+        next();
+    },
+    (req, res, next) => {
+        uploadsBackupImport.single('file')(req, res, (err) => {
+            if (err) {
+                return res.status(400).json({ error: err.message || 'Invalid upload' });
+            }
+            next();
+        });
+    },
+    async (req, res) => {
+        let tmpPath;
+        try {
+            if (!req.file?.path) {
+                return res.status(400).json({ error: 'Missing zip file (field name: file)' });
+            }
+            tmpPath = req.file.path;
+            const zipBuffer = await readFile(tmpPath);
+            const overwrite = req.body?.overwrite !== 'false' && req.body?.overwrite !== false;
+            const result = await importUploadsFromZip(zipBuffer, { overwrite });
+            res.json({ success: true, ...result });
+        } catch (error) {
+            console.error('[backup] uploads import error:', error);
+            const msg = error?.message || 'Import failed';
+            const status = msg.includes('BLOB_READ_WRITE_TOKEN') ? 503 : 400;
+            res.status(status).json({ error: msg });
+        } finally {
+            if (tmpPath) {
+                await unlink(tmpPath).catch(() => { });
+            }
+        }
+    },
+);
 
 export default router;

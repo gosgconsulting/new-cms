@@ -1,9 +1,11 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Download, Upload, Loader2, RefreshCw, Trash2, Clock, HardDrive } from 'lucide-react';
+import { Download, Upload, Loader2, RefreshCw, Trash2, Clock, HardDrive, Archive, Shield } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import { useAuth } from '../auth/AuthProvider';
 import { api } from '../../utils/api';
+import { Checkbox } from '@/components/ui/checkbox';
 import { uploadFile } from '../../utils/uploadToBlob';
 
 interface ImportExportTabProps {
@@ -52,11 +54,17 @@ function formatDate(iso: string): string {
  * Backups: automatic daily backups stored in Vercel Blob, viewable/downloadable/deletable.
  */
 export default function ImportExportTab({ currentTenantId }: ImportExportTabProps) {
+  const { user } = useAuth();
   const [exporting, setExporting] = useState(false);
   const [importing, setImporting] = useState(false);
   const [importProgress, setImportProgress] = useState<{ percent: number; label: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const uploadsZipInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+
+  const [exportingUploadsZip, setExportingUploadsZip] = useState(false);
+  const [importingUploadsZip, setImportingUploadsZip] = useState(false);
+  const [uploadsZipOverwrite, setUploadsZipOverwrite] = useState(true);
 
   // Backup state
   const [backups, setBackups] = useState<BackupEntry[]>([]);
@@ -237,6 +245,77 @@ export default function ImportExportTab({ currentTenantId }: ImportExportTabProp
     }
   };
 
+  const handleExportUploadsZip = async () => {
+    setExportingUploadsZip(true);
+    try {
+      const res = await api.get('/api/backups/uploads/export');
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: res.statusText }));
+        throw new Error((err as { error?: string }).error || 'Export failed');
+      }
+      const blob = await res.blob();
+      const disposition = res.headers.get('Content-Disposition');
+      const match = disposition && /filename="?([^";]+)"?/.exec(disposition);
+      const filename = match ? match[1].trim() : `uploads-backup-${Date.now()}.zip`;
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+      const storage = res.headers.get('X-Backup-Storage') || '';
+      const count = res.headers.get('X-Backup-Entry-Count');
+      toast({
+        title: 'Uploads backup downloaded',
+        description: [storage && `Storage: ${storage}`, count != null && `${count} archive entries`].filter(Boolean).join(' · ') || 'ZIP saved.',
+      });
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Could not export uploads.';
+      toast({ title: 'Export failed', description: message, variant: 'destructive' });
+    } finally {
+      setExportingUploadsZip(false);
+    }
+  };
+
+  const handleImportUploadsZip = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    if (!file.name.toLowerCase().endsWith('.zip')) {
+      toast({ title: 'Invalid file', description: 'Please choose a .zip file.', variant: 'destructive' });
+      return;
+    }
+    setImportingUploadsZip(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      if (!uploadsZipOverwrite) {
+        formData.append('overwrite', 'false');
+      }
+      const res = await api.postFormData('/api/backups/uploads/import', formData);
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error((data as { error?: string }).error || res.statusText || 'Import failed');
+      }
+      const { extractedFiles, skipped, storage } = data as {
+        extractedFiles?: number;
+        skipped?: number;
+        storage?: string;
+      };
+      toast({
+        title: 'Uploads restored',
+        description: `Extracted ${extractedFiles ?? 0} file(s), skipped ${skipped ?? 0}. ${storage ? `(${storage})` : ''}`.trim(),
+      });
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Could not import uploads.';
+      toast({ title: 'Import failed', description: message, variant: 'destructive' });
+    } finally {
+      setImportingUploadsZip(false);
+    }
+  };
+
   const handleDeleteBackup = async (backup: BackupEntry) => {
     setDeletingBackup(backup.url);
     try {
@@ -312,6 +391,59 @@ export default function ImportExportTab({ currentTenantId }: ImportExportTabProp
           <span className="text-xs text-muted-foreground">JSON from export</span>
         </div>
       </div>
+
+      {user?.is_super_admin && (
+        <div className="rounded-lg border border-amber-200/80 dark:border-amber-900/40 bg-amber-50/60 dark:bg-amber-950/25 p-5 space-y-4">
+          <div className="flex items-start gap-2">
+            <Shield className="h-5 w-5 text-amber-700 dark:text-amber-500 shrink-0 mt-0.5" />
+            <div>
+              <h3 className="text-lg font-medium text-foreground">Upload files backup (ZIP)</h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                Super admin only. Downloads or restores every file under the <code className="text-xs bg-muted px-1 rounded">uploads/</code> prefix
+                (local disk or Vercel Blob, depending on deployment). This is separate from tenant JSON backups below.
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <Button
+              type="button"
+              onClick={handleExportUploadsZip}
+              disabled={exportingUploadsZip}
+              variant="secondary"
+              className="gap-2"
+            >
+              {exportingUploadsZip ? <Loader2 className="h-4 w-4 animate-spin" /> : <Archive className="h-4 w-4" />}
+              {exportingUploadsZip ? 'Building ZIP…' : 'Download uploads ZIP'}
+            </Button>
+            <input
+              ref={uploadsZipInputRef}
+              type="file"
+              accept=".zip,application/zip"
+              className="hidden"
+              onChange={handleImportUploadsZip}
+              disabled={importingUploadsZip}
+            />
+            <Button
+              type="button"
+              variant="secondary"
+              className="gap-2"
+              disabled={importingUploadsZip}
+              onClick={() => uploadsZipInputRef.current?.click()}
+            >
+              {importingUploadsZip ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+              {importingUploadsZip ? 'Restoring…' : 'Restore from ZIP…'}
+            </Button>
+            <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer select-none">
+              <Checkbox
+                checked={uploadsZipOverwrite}
+                onCheckedChange={(v) => setUploadsZipOverwrite(v === true)}
+                id="uploads-zip-overwrite"
+              />
+              <span>Overwrite existing files</span>
+            </label>
+          </div>
+        </div>
+      )}
 
       {/* Backup History Section */}
       <div>

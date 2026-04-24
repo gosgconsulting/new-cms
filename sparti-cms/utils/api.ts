@@ -101,6 +101,28 @@ export const api = {
       ...restOptions,
     });
   },
+
+  /** POST multipart (do not set Content-Type — browser sets boundary). */
+  postFormData: async (endpoint: string, formData: FormData, options?: RequestInit & { tenantId?: string }) => {
+    const url = endpoint.startsWith('http') ? endpoint : `${API_BASE_URL}${endpoint}`;
+    const { tenantId, ...restOptions } = options || {};
+    const token = getAuthToken();
+    const accessKey = getAccessKey();
+    const tenantApiKey = getTenantApiKey(tenantId);
+    const headers: Record<string, string> = {
+      ...(token && { Authorization: `Bearer ${token}` }),
+      ...(accessKey && { 'X-Access-Key': accessKey }),
+      ...(tenantApiKey && { 'X-Tenant-API-Key': tenantApiKey }),
+      ...(tenantApiKey && { 'X-API-Key': tenantApiKey }),
+      ...(tenantId && { 'X-Tenant-Id': tenantId }),
+    };
+    return fetch(url, {
+      method: 'POST',
+      headers,
+      body: formData,
+      ...restOptions,
+    });
+  },
   
   put: async (endpoint: string, data?: any, options?: RequestInit & { tenantId?: string }) => {
     const url = endpoint.startsWith('http') ? endpoint : `${API_BASE_URL}${endpoint}`;
