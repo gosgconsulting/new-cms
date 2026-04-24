@@ -141,7 +141,6 @@
     "@vercel/blob": "^0.27.1",
     "@vitejs/plugin-react-swc": "^4.1.0",
     "adm-zip": "^0.5.16",
-    "archiver": "^7.0.1",
     "astro": "^5.14.5",
     "astro-compress": "^2.3.8",
     "astro-embed": "^0.9.0",

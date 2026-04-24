@@ -18,6 +18,7 @@ export const EXTERNALS = [
   'dotenv',
   'fast-xml-parser',
   'rate-limiter-flexible',
+  'adm-zip', // CJS + require('fs'); bundling breaks Vercel ESM function (dynamic require)
 ];
 
 /** Packages to install in function (externals minus pg-native) */

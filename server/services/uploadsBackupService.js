@@ -5,13 +5,10 @@
  * @module server/services/uploadsBackupService
  */
 
-import { createWriteStream, mkdirSync, existsSync } from 'fs';
-import { mkdtemp, readFile, rm, writeFile as writeFileAsync } from 'fs/promises';
-import { tmpdir } from 'os';
+import { mkdirSync, existsSync } from 'fs';
+import { writeFile as writeFileAsync } from 'fs/promises';
 import { dirname, extname, join, resolve, sep } from 'path';
 import { fileURLToPath } from 'url';
-import { finished } from 'stream/promises';
-import archiver from 'archiver';
 import AdmZip from 'adm-zip';
 import { useBlobStorage } from '../utils/blobStorage.js';
 import { getUploadsDir } from '../utils/uploads.js';
@@ -91,34 +88,12 @@ export async function backupAllUploadsToZip() {
 
 async function backupDiskUploadsToZip() {
   const uploadsDir = getUploadsDir();
-  const tmpRoot = await mkdtemp(join(tmpdir(), 'sparti-uploads-bak-'));
-  const zipPath = join(tmpRoot, 'uploads-backup.zip');
-
-  let entryCount = 0;
-  const output = createWriteStream(zipPath);
-  const archive = archiver('zip', { zlib: { level: 9 } });
-
-  const archiveError = new Promise((_, reject) => {
-    archive.on('error', reject);
-  });
-
-  archive.on('entry', () => {
-    entryCount += 1;
-  });
-
-  archive.pipe(output);
-
+  const zip = new AdmZip();
   if (existsSync(uploadsDir)) {
-    archive.directory(uploadsDir, 'uploads');
+    zip.addLocalFolder(uploadsDir, 'uploads');
   }
-
-  const closed = finished(output);
-  const finalized = archive.finalize();
-  await Promise.race([Promise.all([finalized, closed]), archiveError]);
-
-  const buffer = await readFile(zipPath);
-  await rm(tmpRoot, { recursive: true, force: true });
-
+  const buffer = zip.toBuffer();
+  const entryCount = zip.getEntries().filter((e) => !e.isDirectory).length;
   return { buffer, entryCount, storage: 'disk' };
 }
 
@@ -131,19 +106,7 @@ async function backupBlobUploadsToZip() {
   }
 
   const blobs = await listAllBlobsWithPrefix('uploads/');
-  const tmpRoot = await mkdtemp(join(tmpdir(), 'sparti-uploads-bak-'));
-  const zipPath = join(tmpRoot, 'uploads-backup.zip');
-
-  let entryCount = 0;
-  const output = createWriteStream(zipPath);
-  const archive = archiver('zip', { zlib: { level: 9 } });
-
-  const archiveError = new Promise((_, reject) => {
-    archive.on('error', reject);
-  });
-
-  archive.pipe(output);
-
+  const zip = new AdmZip();
   for (const blob of blobs) {
     const pathname = blob.pathname.replace(/\\/g, '/').replace(/^\/+/, '');
     if (!pathname.startsWith('uploads/') || pathname.includes('..')) {
@@ -154,17 +117,10 @@ async function backupBlobUploadsToZip() {
       throw new Error(`Failed to download blob ${pathname}: HTTP ${res.status}`);
     }
     const buf = Buffer.from(await res.arrayBuffer());
-    archive.append(buf, { name: pathname });
-    entryCount += 1;
+    zip.addFile(pathname, buf);
   }
-
-  const closed = finished(output);
-  const finalized = archive.finalize();
-  await Promise.race([Promise.all([finalized, closed]), archiveError]);
-
-  const buffer = await readFile(zipPath);
-  await rm(tmpRoot, { recursive: true, force: true });
-
+  const buffer = zip.toBuffer();
+  const entryCount = zip.getEntries().filter((e) => !e.isDirectory).length;
   return { buffer, entryCount, storage: 'blob' };
 }
 
